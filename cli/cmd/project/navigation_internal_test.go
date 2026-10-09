@@ -129,10 +129,10 @@ func TestNavigationDropFilesExist(t *testing.T) {
 	}
 }
 
-// The seam is the whole of what makes the systems interchangeable: the screens
-// import `lib/navigation`, and only that module imports a navigation library.
-// An overlay that does not replace it would leave the app calling the library
-// it no longer depends on.
+// The seam is the whole of what makes the systems interchangeable: screens
+// reach the navigation library only through `lib/navigation`. An overlay that
+// does not replace it would leave the app calling the library it no longer
+// depends on.
 func TestNavigationOverlayReplacesTheSeam(t *testing.T) {
 	t.Parallel()
 

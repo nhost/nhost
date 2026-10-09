@@ -14,18 +14,18 @@ It has two halves:
 
 1. **`src/app` is routes and nothing else.** Expo Router turns every file
    under it into a route, including files that export no component - they end
-   up in the route table and in the sitemap. So a sign-in method's calls live
-   in the file that is its route, not in a module beside it. Anything shared
-   goes in `src/lib`, `src/components` or `src/signin`.
-2. **One module imports the navigation library.**
+   up in the route table and in the sitemap. Under React Navigation,
+   `src/screens.ts` registers the `.tsx` files in it as screens the same way.
+   So a sign-in method's calls live in the file that is its route, not in a
+   module beside it. Anything shared goes in `src/lib`, `src/components` or
+   `src/signin`.
+2. **Screens reach the navigation library through one module.**
    `frontend/src/lib/navigation.tsx` is the seam, the same idea as
    `components/ui`: screens call `useGo()`, `useParams()` and `Redirect` and
-   import nothing else for navigation. `nhost init --template react-native
-   --navigation navigation` swaps that one file, the app shell and
-   `package.json` for the React Navigation versions and leaves every screen
-   alone. Importing `expo-router` in a screen breaks that, silently, for the
-   other system only. If you need something the seam does not expose, add it
-   to both copies.
+   import nothing else for navigation. This project has one copy of it,
+   written against whichever of Expo Router and React Navigation it was
+   scaffolded with. If you need something the seam does not expose, add it
+   there rather than importing the library in a screen.
 3. **One client, created once.** `frontend/src/lib/nhost/AuthProvider.tsx`
    calls `createClient` in a `useMemo` with no dependencies and shares it
    through context. That client owns the refresh timer. Creating a second one
@@ -56,12 +56,12 @@ It has two halves:
    `frontend/src/signin/methods.ts`. A method may import from `@/lib/*`,
    `@/components/*` and `@/signin/*` - never from another method, and nothing
    shared may import from a method.
-7. **Routes are the directory tree.** Expo Router maps `src/app/` to paths, so
-   a method directory is its own route and deleting it removes that route. Do
-   not add a route table.
+7. **Routes are the directory tree.** Expo Router, or `src/screens.ts` under
+   React Navigation, maps `src/app/` to paths, so a method directory is its own
+   route and deleting it removes that route. Do not add a route table.
 8. **Typed routes are off.** `methods.ts` is generated data with no imports and
    types `href` as a plain string, which is what lets the sign-in screen list
-   methods without depending on any of them. Turning
+   methods without depending on any of them. Under Expo Router, turning
    `experiments.typedRoutes` on makes every `href` have to be a route literal
    and breaks that.
 9. **The protected screen is a convenience, not a control.** The check runs on

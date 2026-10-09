@@ -6,15 +6,12 @@ import {
 import { useMemo } from 'react';
 
 /**
- * Everything this app does with its navigation library, and the only module
- * that imports one.
+ * The navigation library as the screens see it: they reach Expo Router only
+ * through this module.
  *
  * It is the same idea as `components/ui`: a seam with one implementation
- * behind it. `nhost init --template react-native --navigation navigation`
- * swaps this file for the React Navigation version and leaves every screen
- * alone, which only works for as long as no screen reaches past it. If you
- * need something this does not expose, add it here rather than importing
- * `expo-router` in a screen.
+ * behind it. If you need something this does not expose, add it here rather
+ * than importing `expo-router` in a screen.
  */
 
 /**

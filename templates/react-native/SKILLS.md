@@ -7,9 +7,10 @@ agents that read this file see the same instructions.
 ## Remove a sign-in method
 
 Each sign-in method is one directory under `frontend/src/app/auth/` and one
-line in `frontend/src/signin/methods.ts`. Expo Router maps the directory tree
-to routes, and nothing else imports from a method, so removing one is two
-deletions and a build.
+line in `frontend/src/signin/methods.ts`. The routes are read from the
+directory tree, by Expo Router itself or by `frontend/src/screens.ts` under
+React Navigation, and nothing else imports from a method, so removing one is
+two deletions and a build.
 
 1. Delete the method's directory, e.g. `rm -rf frontend/src/app/auth/otp`. Its
    route disappears with it, along with the calls that only it made, because
@@ -25,4 +26,8 @@ the email code, `auth.method.oauth.<provider>` for OAuth), you may disable it
 there too; the app does not depend on it either way.
 
 Do not remove `frontend/src/signin/` itself or anything under
-`frontend/src/lib/`: those are shared by every method.
+`frontend/src/lib/` or `frontend/src/components/`: those are shared between the
+methods. Leave the files that start the app and find its screens alone too:
+`frontend/src/app/_layout.tsx` under Expo Router, and `frontend/index.ts`,
+`frontend/src/App.tsx`, `frontend/src/screens.ts` and `frontend/src/linkPath.ts`
+under React Navigation.

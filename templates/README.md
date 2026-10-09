@@ -159,15 +159,19 @@ The two guards below run in CI; run them before pushing:
   framework here with two navigation libraries in common use, so it is the only
   one with `navSystems` and the only one `--navigation` applies to; passing it
   to any other template is refused. The swap works the same way `--ui` does,
-  behind a seam: `frontend/src/lib/navigation.tsx` is the only module that
-  imports a navigation library, screens import only from it, and the overlay
-  under `templates/react-native/navigation/<name>/` replaces that file, the app
-  shell and `package.json`. It is laid over `frontend/` rather than one
-  directory inside it, because changing navigation changes the entry point and
-  the dependencies too, and `dropFiles` removes what the default needed and this
+  behind a seam: screens reach the navigation library only through
+  `frontend/src/lib/navigation.tsx`, and the overlay under
+  `templates/react-native/navigation/<name>/` replaces that file, the app shell
+  and `package.json`. It is laid over `frontend/` rather than one directory
+  inside it, because changing navigation changes the entry point and the
+  dependencies too, and `dropFiles` removes what the default needed and this
   one does not. The overlay is written after the UI system, so its
   `package.json` would undo a UI system's `drops`;
   `TestNavigationOverlayKeepsTheUIDrops` refuses a template that offers both.
+  Anything added to the seam goes into every copy of it, `frontend/`'s and each
+  overlay's. A scaffolded project receives only one, so its README and agent
+  context are written for that one and say nothing about keeping copies in
+  step; that rule lives here.
   The `navigation` job scaffolds and builds each one, for the same reason the
   `ui-system` job exists: nothing typechecks `navigation/` where it sits. It
   scaffolds once per sign-in method, leaving that method out and grepping for

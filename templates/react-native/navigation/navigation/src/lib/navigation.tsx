@@ -9,14 +9,12 @@ import { useContext, useEffect, useMemo } from 'react';
 import { target } from '@/lib/target';
 
 /**
- * Everything this app does with its navigation library, and the only module
- * that imports one.
+ * The navigation library as the screens see it: they reach React Navigation
+ * only through this module.
  *
- * This is the React Navigation implementation of the seam. The Expo Router one
- * has the same exports and the screens import nothing else, which is the whole
- * of what makes the two interchangeable. If you need something this does not
- * expose, add it here rather than importing `@react-navigation/native` in a
- * screen.
+ * This is the React Navigation implementation of the seam. If you need
+ * something this does not expose, add it here rather than importing
+ * `@react-navigation/native` in a screen.
  *
  * A `Destination` is the same string on either side of the seam, and
  * `signin/methods.ts` is correct for both, because a path is read here the way

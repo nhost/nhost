@@ -139,8 +139,9 @@ scheme resolves to that device's copy. And if you rename the scheme in
 ## The sign-in methods
 
 Each method is a directory under `src/app/auth/` and a line in
-`src/signin/methods.ts`. Nothing else in the app knows a method exists: Expo
-Router maps the directory tree to routes, so there is no route table naming
+`src/signin/methods.ts`. Nothing else in the app knows a method exists: the
+routes are read from the directory tree, by Expo Router itself or by
+`src/screens.ts` under React Navigation, so there is no route table naming
 them.
 
 | method | `--auth-methods` name | directory | what the backend needs |
@@ -198,9 +199,10 @@ the directory, so there is nothing else to find.
 In the route file, not beside it. Expo Router turns **every** file under
 `src/app` into a route, including ones that export no component, so a
 `actions.ts` next to a screen would show up in the route table and the sitemap.
-That is why each method's calls sit in its `index.tsx` rather than in a module
-of its own, and why anything genuinely shared lives in `src/lib`,
-`src/components` or `src/signin`.
+Under React Navigation, `src/screens.ts` registers the `.tsx` files there as
+screens in the same way. That is why each method's calls sit in its `index.tsx`
+rather than in a module of its own, and why anything genuinely shared lives in
+`src/lib`, `src/components` or `src/signin`.
 
 The exception is `src/lib/nhost/redirect.ts`. Building the link an auth email
 comes back to is the one security-relevant decision every method makes, so it
@@ -208,8 +210,8 @@ is in one place and tested once rather than repeated four times.
 
 ## Swapping the navigation system
 
-`src/lib/navigation.tsx` is a seam, the same idea as `components/ui`: it is the
-only module that imports a navigation library. Screens use `useGo()`,
+`src/lib/navigation.tsx` is a seam, the same idea as `components/ui`: screens
+reach the navigation library only through it. They use `useGo()`,
 `useParams()` and `Redirect` from it and nothing else, which is what lets
 `--navigation` change the library without touching a single screen.
 
@@ -227,10 +229,10 @@ follows Expo Router's `[id]`, `(group)`, `[...rest]` and `+not-found` names,
 though a catch-all gets no parameter for the segments it took, and without a
 `+not-found` screen a path no screen is at goes home.
 
-If you add something to the seam, add it to both copies: the one in
-`frontend/src/lib/navigation.tsx` and the one the other system ships. CI
-scaffolds and builds each system, so a screen that reaches past the seam fails
-there.
+Your project has one copy of the seam, written against the library it was
+scaffolded with. If a screen needs something the seam does not expose, add it to
+`src/lib/navigation.tsx` rather than importing the library in the screen, so
+the screens stay the same whichever library is behind them.
 
 ## Where the session lives
 
