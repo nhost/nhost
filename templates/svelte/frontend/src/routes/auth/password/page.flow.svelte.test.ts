@@ -14,11 +14,9 @@ vi.mock('$app/state', () => ({
   },
 }));
 
-vi.mock('$app/navigation', () => ({
-  goto: async (href: string) => {
-    url = new URL(href, url);
-  },
-}));
+const goto = vi.hoisted(() => vi.fn());
+
+vi.mock('$app/navigation', () => ({ goto }));
 
 vi.mock('$lib/nhost/auth.svelte', () => ({ useAuth: () => ({ nhost: {} }) }));
 
@@ -33,10 +31,13 @@ const backLink = (): string | null | undefined =>
     .find((link) => link.textContent?.trim() === 'Other ways to sign in')
     ?.getAttribute('href');
 
+const button = (label: string): HTMLButtonElement | undefined =>
+  [...document.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent?.trim() === label,
+  );
+
 async function toggle(label: string): Promise<void> {
-  [...document.querySelectorAll('button')]
-    .find((candidate) => candidate.textContent?.trim() === label)
-    ?.click();
+  button(label)?.click();
   await tick();
   flushSync();
 }
@@ -44,6 +45,9 @@ async function toggle(label: string): Promise<void> {
 describe('password page, switching modes', () => {
   beforeEach(() => {
     url = new URL('http://localhost/auth/password?next=%2Fprotected');
+    goto.mockReset().mockImplementation(async (href: string) => {
+      url = new URL(href, url);
+    });
     page = mount(PasswordPage, { target: document.body });
   });
 
@@ -63,5 +67,22 @@ describe('password page, switching modes', () => {
     await toggle('Create an account');
 
     expect(backLink()).toBe('/signin?next=%2Fprotected');
+  });
+
+  // A toggle that pushed would leave an entry per click for Back to step
+  // through before leaving the page. `goto` moves focus to the top of the
+  // document unless told not to, which would strand a keyboard or
+  // screen-reader user, and `noScroll` keeps the form where they were reading.
+  it('switches in place, without a history entry or a focus change', async () => {
+    const toggleButton = button('I already have an account');
+    toggleButton?.focus();
+
+    await toggle('I already have an account');
+
+    expect(goto).toHaveBeenLastCalledWith(
+      '/auth/password?next=%2Fprotected&intent=sign-in',
+      { replaceState: true, keepFocus: true, noScroll: true },
+    );
+    expect(document.activeElement).toBe(toggleButton);
   });
 });
