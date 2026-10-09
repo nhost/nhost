@@ -6,10 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
+	"os"
 	"path"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/creack/pty"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/templates"
 	"github.com/urfave/cli/v3"
 )
@@ -313,6 +317,14 @@ func TestResolveUISystem(t *testing.T) {
 			wantErr:  errUINeedsTmpl,
 		},
 		{name: "no template and no flag", template: "", want: ""},
+		{name: "one to choose from", template: "react-native", want: defaultUI},
+		{
+			name:      "one the template does not offer",
+			template:  "react-native",
+			args:      []string{"--ui", "shadcn"},
+			wantErr:   errUnknownUI,
+			wantInErr: "available: none",
+		},
 	}
 
 	for _, tt := range tests {
@@ -333,5 +345,123 @@ func TestResolveUISystem(t *testing.T) {
 				t.Errorf("resolveUISystem = %q, want %q", got.name, tt.want)
 			}
 		})
+	}
+}
+
+// A template with one UI system has nothing to ask about, so the question is
+// asked only where there is a choice.
+//
+//nolint:paralleltest // swaps os.Stdin
+func TestResolveUISystemAsksOnlyWithAChoice(t *testing.T) {
+	tests := []struct {
+		name      string
+		template  string
+		wantAsked bool
+		want      string
+	}{
+		{name: "two systems", template: "nextjs", wantAsked: true, want: "shadcn"},
+		{name: "one system", template: "react-native", wantAsked: false, want: defaultUI},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, asked := resolveUIOnTerminal(t, tt.template, "j\r")
+
+			if asked != tt.wantAsked {
+				t.Errorf("asked = %v, want %v", asked, tt.wantAsked)
+			}
+
+			if got.name != tt.want {
+				t.Errorf("resolveUISystem = %q, want %q", got.name, tt.want)
+			}
+		})
+	}
+}
+
+// resolveUIOnTerminal resolves the UI system as if the template had been
+// picked on a terminal, and reports whether a question was drawn. Keys are
+// typed only once one is, so a question asked where none should be is seen
+// rather than answered by input queued for it.
+func resolveUIOnTerminal(t *testing.T, template, keys string) (uiSystem, bool) {
+	t.Helper()
+
+	ptmx, tty, err := pty.Open()
+	if err != nil {
+		t.Skipf("no pseudo-terminal: %v", err)
+	}
+
+	t.Cleanup(func() {
+		ptmx.Close()
+		tty.Close()
+	})
+
+	orig := os.Stdin
+	os.Stdin = tty
+
+	t.Cleanup(func() { os.Stdin = orig })
+
+	chunks := make(chan []byte, 64)
+
+	go func() {
+		for {
+			buf := make([]byte, 4096)
+
+			n, err := ptmx.Read(buf)
+			if n > 0 {
+				chunks <- buf[:n]
+			}
+
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	var (
+		got    uiSystem
+		gotErr error
+	)
+
+	done := make(chan error, 1)
+
+	cmd := &cli.Command{
+		Name:  "init",
+		Flags: []cli.Flag{&cli.StringFlag{Name: flagUI, Value: defaultUI}},
+		Action: func(_ context.Context, c *cli.Command) error {
+			ce := clienv.New(tty, tty, nil, "", "", "", "", "", "", "")
+			got, gotErr = resolveUISystem(ce, c, template, true)
+
+			return gotErr
+		},
+	}
+
+	go func() { done <- cmd.Run(t.Context(), []string{"init"}) }()
+
+	var seen []byte
+
+	asked := false
+	timeout := time.After(5 * time.Second)
+
+	for {
+		select {
+		case chunk := <-chunks:
+			seen = append(seen, chunk...)
+
+			if !asked && bytes.Contains(seen, []byte(frameClose)) {
+				asked = true
+
+				if _, err := ptmx.WriteString(keys); err != nil {
+					t.Fatalf("type %q: %v", keys, err)
+				}
+			}
+		case err := <-done:
+			if err != nil {
+				t.Fatalf("resolveUISystem error = %v", err)
+			}
+
+			return got, asked
+		case <-timeout:
+			t.Fatalf("resolveUISystem did not return:\n%q", seen)
+		}
 	}
 }

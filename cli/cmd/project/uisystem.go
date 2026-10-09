@@ -206,7 +206,9 @@ func lookupUI(systems []uiSystem, name string) (uiSystem, bool) {
 }
 
 // resolveUISystem returns the UI system to scaffold with, asking when the
-// template itself was chosen by answering a question.
+// template itself was chosen by answering a question and offers more than one.
+// With one there is nothing to choose, and answering the template question
+// already chose it.
 func resolveUISystem(
 	ce *clienv.CliEnv,
 	cmd *cli.Command,
@@ -238,7 +240,7 @@ func resolveUISystem(
 		)
 	}
 
-	if asked && !cmd.IsSet(flagUI) {
+	if asked && !cmd.IsSet(flagUI) && len(tmpl.uiSystems) > 1 {
 		return pickUISystem(ce, tmpl.uiSystems, ui)
 	}
 
