@@ -177,8 +177,8 @@ func buildFunctionArguments(
 
 		// Clean up type name (remove any schema prefix if present)
 		cleanType := argType
-		if idx := strings.LastIndex(argType, "."); idx != -1 {
-			cleanType = argType[idx+1:]
+		if _, after, found := strings.CutLast(argType, "."); found {
+			cleanType = after
 		}
 
 		args = append(args, introspection.FunctionArgument{
