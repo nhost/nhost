@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/Card';
 import { useGo } from '@/lib/navigation';
+import { IntentSwitch } from '@/signin/IntentSwitch';
 import type { Intent } from '@/signin/intent';
 import { methods } from '@/signin/methods';
 import { signInRoute } from '@/signin/route';
@@ -68,6 +69,7 @@ export default function SignIn() {
               </View>
             </Pressable>
           ))}
+          <IntentSwitch />
         </CardContent>
       </Card>
     </Screen>

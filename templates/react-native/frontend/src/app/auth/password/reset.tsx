@@ -45,6 +45,14 @@ async function setNewPassword(
   }
 }
 
+// The password form in its sign-in mode, the one that takes the new password
+// and the only one that offers to send another reset link.
+const passwordSignIn = signInRoute(
+  '/auth/password',
+  DEFAULT_DESTINATION,
+  'sign-in',
+);
+
 // The reset email's link goes through the auth service, which reopens this app
 // on a deep link carrying a refresh token that `lib/nhost/linkToken.ts`
 // redeems, or an error when the link expired or was already used. The error
@@ -107,15 +115,7 @@ export default function ResetPasswordScreen() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button
-              onPress={() =>
-                go.replace(
-                  signInRoute('/auth/password', DEFAULT_DESTINATION, 'sign-in'),
-                )
-              }
-            >
-              Sign in
-            </Button>
+            <Button onPress={() => go.replace(passwordSignIn)}>Sign in</Button>
           </CardContent>
         </Card>
       </Screen>
@@ -143,7 +143,7 @@ export default function ResetPasswordScreen() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onPress={() => go.replace('/auth/password')}>
+            <Button onPress={() => go.replace(passwordSignIn)}>
               Request a new link
             </Button>
           </CardContent>
