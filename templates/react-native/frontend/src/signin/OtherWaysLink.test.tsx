@@ -29,4 +29,19 @@ describe('OtherWaysLink', () => {
     });
     expect(go.push).not.toHaveBeenCalled();
   });
+
+  // A screen whose toggle has moved on from the intent it was opened with
+  // says which one it is showing, and that wins over the route's.
+  it('carries the intent the screen passes over the one it was opened with', () => {
+    const link = OtherWaysLink({ intent: 'sign-up' }) as ReactElement<{
+      onPress: () => void;
+    }>;
+
+    link.props.onPress();
+
+    expect(go.backTo).toHaveBeenLastCalledWith({
+      pathname: '/signin',
+      params: { next: '/protected' },
+    });
+  });
 });

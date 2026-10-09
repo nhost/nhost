@@ -1,5 +1,6 @@
 import { Text } from 'react-native';
 import { useGo } from '@/lib/navigation';
+import type { Intent } from '@/signin/intent';
 import { methods } from '@/signin/methods';
 import { signInRoute } from '@/signin/route';
 import { useIntent } from '@/signin/useIntent';
@@ -21,13 +22,21 @@ import { useNext } from '@/signin/useNext';
  * method screen gets a back link that remembers both without passing anything.
  * There is no server half on a device to resolve them on the way through.
  *
+ * A screen that lets the visitor switch between signing up and signing in
+ * without leaving it passes the `intent` it is showing instead, since the
+ * route's is then out of date. That keeps the switch in the screen's own
+ * state: writing it back into the route's parameters would take a new method
+ * on both navigation seams, and on a device there is no address bar or reload
+ * for those parameters to keep honest.
+ *
  * It goes back rather than forward: the sign-in screen is normally the one
  * beneath, and pushing another would leave two of it on the stack.
  */
-export function OtherWaysLink() {
+export function OtherWaysLink({ intent: shown }: { intent?: Intent } = {}) {
   const go = useGo();
   const next = useNext();
-  const intent = useIntent();
+  const opened = useIntent();
+  const intent = shown ?? opened;
 
   if (methods.length < 2) {
     return null;

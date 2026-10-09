@@ -124,7 +124,8 @@ export default function PasswordScreen() {
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
   // unless it said otherwise: a fresh local backend has no accounts in it, so a
-  // sign-in form would be a dead end.
+  // sign-in form would be a dead end. After the toggle the route's intent is
+  // stale, so the back link is given this instead.
   const [mode, setMode] = useState<Mode>(intent);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -280,7 +281,7 @@ export default function PasswordScreen() {
               </Button>
             ) : null}
           </View>
-          <OtherWaysLink />
+          <OtherWaysLink intent={mode} />
         </CardContent>
       </Card>
     </Screen>

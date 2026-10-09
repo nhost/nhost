@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/Card';
 import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInRoute } from '@/signin/route';
 
 export default function Home() {
   const { session, isLoading } = useAuth();
@@ -54,14 +56,21 @@ export default function Home() {
           ) : (
             <>
               {/* Sign up first: a fresh local backend has no accounts in it. */}
-              <Button onPress={() => go.push('/signin')}>Sign up</Button>
+              <Button
+                onPress={() =>
+                  go.push(
+                    signInRoute('/signin', DEFAULT_DESTINATION, 'sign-up'),
+                  )
+                }
+              >
+                Sign up
+              </Button>
               <Button
                 variant="outline"
                 onPress={() =>
-                  go.push({
-                    pathname: '/signin',
-                    params: { intent: 'sign-in' },
-                  })
+                  go.push(
+                    signInRoute('/signin', DEFAULT_DESTINATION, 'sign-in'),
+                  )
                 }
               >
                 Sign in
