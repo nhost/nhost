@@ -216,7 +216,7 @@ permission writer emits a per-subscriber whole-session parameter; serializing
 the template map would include its private NUL-key sentinel and fail PostgreSQL
 JSONB parsing (22P05).
 
-`ReinitializeTestData` truncates and reseeds integration tables in separate non-transactional statements. An interrupted run can leave `cf_select.items` or other seeded tables empty; `TestComputedFieldReference` does not reseed. Before a standalone live comparison, verify the seed rows on `:5432/local` or first run a test that invokes `ReinitializeTestData`.
+`ReinitializeTestData` truncates and reseeds integration tables in separate non-transactional statements. An interrupted run can leave `cf_select.items` or other seeded tables empty; `TestComputedFieldReference` does not reseed. Before a standalone live comparison, verify the seed rows on `:5432/local` or first run a test that invokes `ReinitializeTestData`. A completed full integration run can change the count of `public.news` from a startup snapshot with extra rows to the five canonical rows in `integration/nhost/seeds/default/30-news_entries.sql`; verify seed identities, not just the earlier count, after the suite.
 
 In controller overlay probes, `Controller.Resolve` may put a single-SQL-connector fast-path result into unexported `rawResponse`, leaving `GraphQLResponse.Data` nil; assert via an HTTP response or a customized/remote-relationship query instead of interpreting nil Data alone as failure.
 
