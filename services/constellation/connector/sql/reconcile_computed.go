@@ -73,23 +73,91 @@ func reconcileComputedFields(
 			fields = append(fields, field)
 		}
 
-		t.ComputedFields = fields
+		t.ComputedFields = omitComputedOrderCollisions(
+			ctx, logger, inc, original.Name, t, objects, index[key], fields,
+		)
 		omitAmbiguousComputedGrants(t, ambiguousSiblings)
 	}
 
 	for i := range effective.Tables {
-		t := &effective.Tables[i]
 		reconcileComputedPermissions(
 			ctx,
 			logger,
 			inc,
 			original.Name,
-			t,
+			&effective.Tables[i],
 			effective.Tables,
 			objects,
 			index,
 		)
 	}
+}
+
+// The synthesized order key of an argument-free table field must not shadow
+// an existing orderable field. Resolve scalar signatures before testing table
+// fields so the result does not depend on computed_fields list order.
+func omitComputedOrderCollisions(
+	ctx context.Context, logger *slog.Logger, inc *metadata.Inconsistencies,
+	source string, table *metadata.TableMetadata, objects *introspection.Objects,
+	index map[string]computedKind, fields []metadata.ComputedField,
+) []metadata.ComputedField {
+	scalars := make(map[string]struct{})
+	for _, field := range fields {
+		if index[field.Name] != computedScalar {
+			continue
+		}
+
+		lookup, _ := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, field.Name)
+		if lookup.Function != nil && !computedHasUserArguments(lookup.Function, field) {
+			scalars[field.Name] = struct{}{}
+		}
+	}
+
+	return slices.DeleteFunc(fields, func(field metadata.ComputedField) bool {
+		if index[field.Name] != computedTable {
+			return false
+		}
+
+		lookup, _ := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, field.Name)
+		if lookup.Function == nil {
+			return false
+		}
+
+		if computedHasUserArguments(lookup.Function, field) {
+			return false
+		}
+
+		sibling := field.Name + "_aggregate"
+		if !computedOrderNameConflict(table, sibling, objects, scalars) {
+			return false
+		}
+
+		inc.RecordComputedField(
+			ctx,
+			logger,
+			source,
+			table.Table.Schema,
+			table.Table.Name,
+			field.Name,
+			fmt.Sprintf("computed aggregate order field %q conflicts with an order field", sibling),
+		)
+		index[field.Name] = computedInvalid
+
+		return true
+	})
+}
+
+func computedHasUserArguments(
+	fn *introspection.ComputedFunction,
+	field metadata.ComputedField,
+) bool {
+	for _, name := range fn.GraphQLArgumentNames(field.Definition.SessionArgument) {
+		if name != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func computedNameCounts(fields []metadata.ComputedField) map[string]int {
@@ -212,6 +280,42 @@ func computedAggregateSiblingConflict(table *metadata.TableMetadata, name string
 	}
 
 	return false
+}
+
+// A relationship with this exact name contributes an order key only when it
+// is an object relationship. An array relationship named X_aggregate instead
+// contributes X_aggregate_aggregate; X matching an array aggregate sibling is
+// already rejected by computedNameConflict.
+func computedOrderNameConflict(
+	table *metadata.TableMetadata, sibling string, objects *introspection.Objects,
+	scalars map[string]struct{},
+) bool {
+	for _, col := range objectsColumnNames(objects, table.Table) {
+		name := table.Configuration.ColumnConfig[col].CustomName
+		if name == "" {
+			name = col
+		}
+
+		if name == sibling {
+			return true
+		}
+	}
+
+	for _, rel := range table.ObjectRelationships {
+		if rel.Name == sibling {
+			return true
+		}
+	}
+
+	for _, rel := range table.ArrayRelationships {
+		if rel.Name+"_aggregate" == sibling {
+			return true
+		}
+	}
+
+	_, found := scalars[sibling]
+
+	return found
 }
 
 func validComputedName(name string) bool {

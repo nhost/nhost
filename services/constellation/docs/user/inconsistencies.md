@@ -158,7 +158,23 @@ not metadata parity.
 An exact computed `<rel>_aggregate` array-relationship sibling collision
 also omits only the ambiguous computed field and its grant, retaining the
 select permission and genuine relationship; Hasura exposes duplicate names.
-These two omissions are exceptions to the usual invalid-grant rule. A select/update/delete filter or insert/update check referencing a valid,
+An argument-free table computed field `X` whose synthesized order key
+`X_aggregate` collides with a column/custom column name, object relationship
+or argument-free scalar computed field is omitted individually as a
+`computed_field` inconsistency. Its selection, EXISTS predicate and aggregate
+order input disappear, while the genuine field's order input and unrelated
+roles survive. A permission predicate depending on the removed field is
+invalidated rather than silently ignored. Hasura v2.50.3-ce accepts these
+names, keeps `X` selectable and the roles available, but publishes duplicate
+order inputs; neither use of `X_aggregate` works. Constellation drops the
+ambiguous field to retain a valid schema and the genuine order input. An array
+relationship named `X_aggregate` does not create this conflict: its generated
+order key is `X_aggregate_aggregate`. Only the column's effective GraphQL
+name participates: a physical `X_aggregate` column renamed with `custom_name`
+to another name does not collide. Argument-bearing table fields generate
+no aggregate-order input. This does not make manual table-valued grants valid;
+the earlier sibling and argument-type omissions remain exceptions to the usual
+invalid-grant rule for ordinary invalid computed definitions. A select/update/delete filter or insert/update check referencing a valid,
 argument-free PostgreSQL scalar or table computed field is enforced, including
 through logical operators, local relationships and `_exists`.
 On PostgreSQL, `_exists._table` accepts a bare name or an object with an
