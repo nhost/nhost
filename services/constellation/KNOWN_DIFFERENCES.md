@@ -255,6 +255,21 @@ inconsistency and omits only the ambiguous computed selection and its grant;
 the real array relationship and its aggregate sibling, unrelated roots and
 select permissions remain available to authorized roles. This exception does
 not change exact relationship/column collision handling or permission gates.
+
+**Table-computed aggregate-order name collision (Hasura v2.50.3-ce):** For an
+argument-free table field `X`, a column (including a custom name), object
+relationship or argument-free scalar computed field named `X_aggregate`
+collides with the generated order input. Hasura accepts the metadata and keeps
+both roles and the `X` selection, but emits duplicate input fields; neither
+meaning of `X_aggregate` is usable in `order_by`. Constellation instead marks
+the table field inconsistent and removes its selection, EXISTS predicate and
+aggregate order input. The genuine field, its working order input and unrelated
+role roots remain. This conservative field-local omission avoids serving an
+invalid schema or misrouting an object relationship's order input. An array
+relationship named `X_aggregate` does not collide: its generated order key is
+`X_aggregate_aggregate`. Argument-bearing table fields emit no aggregate order
+input and are unaffected.
+
 Argument-free table functions appear in row `bool_exp` as EXISTS and in
 `order_by` through the target's aggregate-order input; these user inputs
 respect returned-table select permissions, including row filters in patched
