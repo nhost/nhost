@@ -29,28 +29,47 @@ computed_fields:
         name: item_tags
         schema: cf_select
 remote_relationships:
-  - name: cf_label_object
-    definition:
+  - definition:
       to_source:
-        source: cf_select
-        table: {name: items, schema: cf_select}
-        relationship_type: object
-        field_mapping: {item_label: label}
-  - name: cf_label_array
-    definition:
-      to_source:
-        source: cf_select
-        table: {name: items, schema: cf_select}
+        field_mapping:
+          item_label: label
         relationship_type: array
-        field_mapping: {item_label: label}
-  - name: cf_payload_object
-    definition:
-      to_source:
         source: cf_select
-        table: {name: items, schema: cf_select}
+        table:
+          name: items
+          schema: cf_select
+    name: cf_label_array
+  - definition:
+      to_source:
+        field_mapping:
+          item_label: label
         relationship_type: object
-        field_mapping: {item_payload: payload}
+        source: cf_select
+        table:
+          name: items
+          schema: cf_select
+    name: cf_label_object
+  - definition:
+      to_source:
+        field_mapping:
+          item_payload: payload
+        relationship_type: object
+        source: cf_select
+        table:
+          name: items
+          schema: cf_select
+    name: cf_payload_object
 select_permissions:
+  - role: cf_filtered_one
+    permission:
+      columns:
+        - id
+      filter: {}
+  - role: cf_filtered_three
+    permission:
+      columns:
+        - id
+      filter: {}
   - role: cf_no_grant
     permission:
       columns:
@@ -71,13 +90,3 @@ select_permissions:
         - item_payload
       filter: {}
       allow_aggregations: true
-  - role: cf_filtered_one
-    permission:
-      columns:
-        - id
-      filter: {}
-  - role: cf_filtered_three
-    permission:
-      columns:
-        - id
-      filter: {}
