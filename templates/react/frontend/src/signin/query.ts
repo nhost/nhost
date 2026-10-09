@@ -26,5 +26,9 @@ export function signInQuery(destination: string, intent: Intent): string {
     params.set('intent', intent);
   }
 
-  return params.size > 0 ? `?${params}` : '';
+  // Not `params.size`: Safari 16, which these builds still target, does not
+  // have it, and reading it there would drop the whole query.
+  const search = params.toString();
+
+  return search === '' ? '' : `?${search}`;
 }
