@@ -9,10 +9,11 @@ Four sign-in methods are on offer and `nhost init --template` scaffolds the ones
 you asked for with `--auth-methods`, email and password by default.
 `src/signin/methods.ts` lists the ones you have.
 
-The password form opens on **sign up**, because a fresh local backend has no
-accounts in it yet. Signing in and signing up are kept apart: the home screen
-offers both, and the screen that wants the other mode is opened with an
-`intent` of `sign-in`.
+Sign up is the default, because a fresh local backend has no accounts in it
+yet: the sign-in screen is headed "Create an account", and if you scaffolded
+email and password, its form opens on sign up. Signing in and signing up are
+kept apart: the home screen offers both, and the screen that wants the other
+mode is opened with an `intent` of `sign-in`.
 
 Anywhere the app says "check your inbox", those words open the local mailbox,
 since against a local backend that is where the email went. They go back to

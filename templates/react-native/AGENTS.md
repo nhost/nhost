@@ -71,9 +71,11 @@ It has two halves:
 10. **Config, not schema.** Enabling an auth method is a `nhost.toml` change,
    not a migration.
 11. **Sign up is the default, and an `intent` param is what changes it.** The
-   password form opens on sign-up, because anyone running this against a fresh
-   local backend has no account yet. A link that wants the other mode carries
-   an `intent` of `sign-in`; `frontend/src/signin/intent.ts` parses it.
+   sign-in screen is headed "Create an account", and a method with both modes
+   opens on sign-up (of the four on offer, only email and password has both),
+   because anyone running this against a fresh local backend has no account
+   yet. A link that wants the other mode carries an `intent` of `sign-in`;
+   `frontend/src/signin/intent.ts` parses it.
    Nothing is gated on it, so a missing or crafted value costs nothing.
    `frontend/src/signin/route.ts` builds every link that carries it, and it is
    the only thing that does: `next` and `intent` both have to survive the hop
