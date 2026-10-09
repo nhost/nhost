@@ -8,6 +8,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInQuery } from '@/signin/query';
+
+const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 
 export default function Home() {
   const { session, isLoading } = useAuth();
@@ -43,10 +48,10 @@ export default function Home() {
             <>
               {/* Sign up first: a fresh local backend has no accounts in it. */}
               <Button asChild>
-                <Link to="/signin">Sign up</Link>
+                <Link to={signUpLink}>Sign up</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/signin?intent=sign-in">Sign in</Link>
+                <Link to={signInLink}>Sign in</Link>
               </Button>
             </>
           )}

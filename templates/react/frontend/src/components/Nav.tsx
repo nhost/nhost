@@ -3,6 +3,10 @@ import NhostLogo from '@/components/NhostLogo';
 import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInQuery } from '@/signin/query';
+
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 
 export default function Nav() {
   return (
@@ -36,7 +40,7 @@ function Account() {
   if (!user) {
     return (
       <Button asChild variant="ghost" size="sm">
-        <Link to="/signin?intent=sign-in">Sign in</Link>
+        <Link to={signInLink}>Sign in</Link>
       </Button>
     );
   }
