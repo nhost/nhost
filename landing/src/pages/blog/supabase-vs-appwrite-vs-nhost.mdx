@@ -22,7 +22,7 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-I picked a bad month to write this. It's October, and all three platforms have been shipping consistently. Launches happen, new releases ship, and sometimes a major release lands right in the middle of writing a draft. Comparisons like this have a shelf life.
+I picked a bad month to write this. It's October, and all three platforms have been shipping consistently. However, the basics I tested, how each one handles data, permissions and APIs, won't change overnight.
 
 So here's what this is: a hands-on comparison in October 2026 of Supabase, Appwrite and Nhost, from building the same small app three times. All three on free plans, all three through the dashboards rather than the CLI. Serious builders lean on the CLI, I know, but the dashboard is where most people form their first opinion of a platform, so that's the lens I'm using.
 
@@ -30,7 +30,7 @@ I work at Nhost, but I've tried to keep this as neutral as possible by running t
 
 ## TL;DR
 
-Supabase is a better fit for developers who want PostgreSQL at the core of their backend. It's ideal for people who are comfortable with SQL and relational databases and want more direct control over their data and database architecture.
+Supabase is a better fit for developers who want PostgreSQL at the core of their backend. It works if you're comfortable with SQL and don't mind writing and maintaining your own access rules in it.
 
 Appwrite feels like a classic backend-as-a-service. You work through SDKs and APIs, and the platform hides most of the database and infrastructure from you.
 
@@ -65,17 +65,17 @@ Auth / Storage               |                       |
                      NATIVE PG / MySQL
 ```
 
-Supabase is Postgres with services generated around it. PostgREST exposes your tables as REST, auth users live in an `auth` schema, storage keeps file metadata in a table. Permissions are row-level security policies, RLS for short: SQL rules you attach to a table that Postgres runs on every query, so a caller only gets back the rows their policy allows, whatever issued the query.
+Supabase builds everything on top of Postgres, so your tables, users and files all live in one database. Permissions are SQL rules called row-level security (RLS), and Postgres checks them on every query to decide which rows each user gets back.
 
-Appwrite is an API layer with storage engines behind it. Requests go to Appwrite, which resolves them against TablesDB, DocumentsDB or VectorsDB. Permissions are grants attached to tables and rows, enforced by Appwrite on the way through. Since 2.0 you can also provision a standalone Postgres or MySQL and point a driver at it directly, which skips both the API and the permissions.
+Appwrite puts its own API in front of the database, so your app never talks to the database directly. You set permissions on tables and rows, and Appwrite checks them on every request. The exception is Appwrite's standalone Postgres, which you connect to directly, so its permissions don't apply there.
 
-Nhost is Postgres with a GraphQL API generated from the schema. One endpoint serves queries, mutations and subscriptions, and the client introspects the types. Permissions are per-role rules stored as metadata rather than SQL, and Auth, Storage and Functions read the same session variables, so one rule covers a query, a subscription and a file download.
+Nhost turns your Postgres schema into a GraphQL API, so every table you expose is ready to query from your app. You write a permission rule once per role, and it applies everywhere: queries, live updates, file downloads, AI assistants.
 
 ![Supabase, Appwrite and Nhost dashboards side by side.](/images/blog/supabase-vs-appwrite/dashboard-comparison.png)
 
 ## Data modeling
 
-It used to be an easy choice between Postgres and documents. Now all three offer Postgres in some form, so that's no longer what sets them apart.
+All three offer Postgres now. Supabase and Nhost have been built on it since day one, and Appwrite recently added a standalone Postgres too. The difference is in what each one builds around the database.
 
 ### Supabase: one store, and you extend it
 
@@ -85,19 +85,19 @@ The upside is that everything lives in one place with one consistency model and 
 
 The downside is that everything shares one database. Vectors, queues and cron jobs all compete for the same server, and Postgres limits how many connections it accepts at once. That's true of any Postgres-based platform.
 
-### Appwrite: five stores, and you pick per workload
+### Appwrite: separate databases for tables, documents and vectors
 
 Appwrite 2.0 added four new stores, so the full list now looks like this:
 
-- **TablesDB**: structured data with relations, queried through Appwrite's API rather than SQL.
+- **TablesDB**: structured data with relations, queried through Appwrite's API.
 - **DocumentsDB**: schemaless JSON (Beta).
 - **VectorsDB**: embeddings and similarity search. You set the vector size when you create the collection (Beta).
 - **Native Postgres**: a standard Postgres, outside Appwrite's permissions and realtime.
 - **Native MySQL**: the same, for MySQL.
 
-The Databases page only lets you create three types of databases: TablesDB, DocumentsDB and VectorsDB. The Native Postgres and MySQL options aren't there on my free plan. They do show up in the Explorer, Appwrite's in-console API client, where the PostgreSQL service alone has 37 endpoints. Appwrite runs them as paid dedicated instances, so the free dashboard doesn't offer them.
+On the Databases page you can only create three types of databases: TablesDB, DocumentsDB and VectorsDB. The Native Postgres and MySQL options aren't there, because Appwrite runs them as paid dedicated instances. They do show up in the Explorer (Appwrite's in-console API client, where the PostgreSQL service alone has 37 endpoints).
 
-The free plan caps you at one database, so I couldn't create a second to try another type.
+The free plan caps you at one database, so I couldn't create a second one to try another type.
 
 ![Appwrite's Databases page: three creatable types, DocumentsDB and VectorsDB in beta.](/images/blog/supabase-vs-appwrite/appwrite-database-types.png)
 
@@ -120,7 +120,7 @@ alter table public.posts add constraint posts_author_id_fkey
 
 That one statement does two jobs. It stops a post from pointing to an author who doesn't exist, and it lets PostgREST turn `.select('*, authors(name)')` into a join, because the API reads your foreign keys.
 
-Appwrite treats a relation as a column type you set up in a form. Creating one asked me five things, in this order:
+Appwrite treats a relation as a column type you set up in a form. Creating one asked me five things:
 
 1. One-way or two-way
 2. Which table to link to
@@ -213,7 +213,7 @@ All three have a solid provider list, MFA and OIDC, and each can act as an ident
 
 Supabase added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which makes custom claims, triggers, and joins against your own tables easy. It also means a badly written trigger on sign-up can break sign-ups entirely.
 
-With Appwrite 2.0, you host the OAuth consent screen yourself, so users approving access stay on a page that looks like your product. Client registration is also an API call in the client SDKs, which lets you build a self-serve portal where other developers register their own apps. Both only help if other developers will build on top of your app.
+With Appwrite, you host the OAuth consent screen yourself, so users approving access stay on a page that looks like your product. Client registration is also an API call in the client SDKs, which lets you build a self-serve portal where other developers register their own apps. Both only help if other developers will build on top of your app.
 
 Nhost Auth handles email and password, magic links, one-time codes, WebAuthn and social sign-in. Users live in a Postgres table in the `auth` schema, so you link a user to their rows with a regular foreign key. Any custom claim you add to a user can be used in your permission rules.
 
@@ -225,8 +225,6 @@ Authorization rules decide who can read and change which rows. To compare them, 
 2. Signed-in users can create posts
 3. Authors can edit and delete only their own
 4. Nobody else's drafts are visible to anyone
-
-I tested rules 1 and 4 on all three platforms. Rules 2 and 3 are set up on all three too, but I didn't test them end to end, since that needs real user accounts.
 
 Supabase covers published posts and private drafts with two policies:
 
@@ -329,21 +327,21 @@ On Nhost, the role switch sits next to Run in the GraphQL playground. Switch it 
 
 ### Which permission model fits
 
-The real difference is what a rule can check. In Supabase a rule can check anything SQL can, but you have to write and maintain the SQL policies yourself. In Appwrite a rule can only check who the user is. That's easy for the whole team to read, but it stops working once access depends on what's in the row. In Nhost a rule can check both who the user is and what's in the row, and you build it in a form. That covers most apps, though not the most unusual cases.
+The real difference is what a rule can check. Supabase lets a rule check anything SQL can, but you have to write and maintain the SQL policies yourself. Appwrite only checks who the user is, which is easy for the whole team to read but stops working once access depends on what's in the row. Nhost checks both the user and the row, and you build the rule in a form. If a rule gets too complex for the form, you can still write that part in SQL.
 
-Look at the hardest access rule in your app. If your permission system can't express it, you'll end up writing that check somewhere worse: in the client, in a wrapper endpoint, or on every row by hand.
+Think of the hardest access rule in your app. If your permission system can't express it, you'll end up writing that check somewhere worse: in the client, in a wrapper endpoint, or on every row by hand.
 
 ## Storage
 
-Supabase and Appwrite both answer to the S3 API now, so standard S3 tools work against either one. Nhost takes the other route and keeps its own API in front of S3-compatible storage, which is what lets it apply your permission rules to files.
+Each platform protects files the same way it protects your data.
 
-Supabase splits egress (outgoing traffic) into cached and origin tiers. Cached egress costs $0.03/GB, about a third of origin. I took that number from [their changelog](https://supabase.com/changelog/38119-3x-cheaper-egress-for-cache-hits), not their pricing page, so check it before you commit. If you serve a lot of images, making sure they come from the cache will noticeably cut your bill.
+Supabase keeps a record of every file in a Postgres table and protects it with RLS policies, like any other table. If you can write a policy for a row, you can write one for a file. It also works with standard S3 tools, so you can manage files from the AWS CLI.
 
-Appwrite says its S3 API works with your existing buckets, so files you upload with the AWS CLI show up in the console, and the other way around. That's from [their 2.0 announcement](https://appwrite.io/blog/post/announcing-appwrite-2). I stayed in the dashboard and didn't test it myself.
+Appwrite gives each bucket and each file its own permissions, using the same roles as tables: Any, All guests, All users, a specific user or a team. That brings the same limit as with tables: a rule can check who the user is, but not anything about the file or the data it belongs to. Appwrite also says its buckets now work with standard S3 tools.
 
-In Nhost, every upload and download goes through an API that checks the same permission rules as your tables. It also saves file metadata in Postgres and can resize or convert images on download. Presigned URLs, per-file permissions and CDN delivery are included. One set of rules covers both rows and files.
+In Nhost, every upload and download goes through an API that checks the same permission rules as your tables. File records live in Postgres, so you can use the same conditions on files that you use on rows. It can also resize or convert images on download.
 
-For most apps, the real differences are CDN speed, image transformations and upload limits. Don't trust vendor benchmarks here. Test with the file sizes your app actually uses.
+Most apps have public files (like avatars, product images) and private ones (invoices or user uploads). When you test a platform, upload one of each and see who can open it.
 
 ## Functions, and the runtime arms race
 
@@ -353,38 +351,36 @@ For most apps, the real differences are CDN speed, image transformations and upl
 | Deploy | CLI, dashboard, Management API | CLI, console, Git triggers | Git push, CLI |
 | Language freedom | JavaScript/TypeScript | Wide | Narrow in Functions, unlimited in Run |
 
-Appwrite supports the most runtimes of the three. On August 21st it added [Bun 1.4](https://appwrite.io/blog/post/announcing-bun-1-4-runtime), both for functions and as a build runtime for Appwrite Sites. It's the first Bun version written in Rust instead of Zig. Appwrite says builds are 22% faster than on Bun 1.3, measured on a Next.js app with 640 packages. That's a vendor benchmark on a single workload, so treat it with caution.
+Appwrite supports the most runtimes of the three, from Node and Python to Rust, and it recently added Bun 1.4.
 
 Supabase gives you one runtime, which means one set of behaviors to learn. For webhooks and glue code, that's plenty. If your pipeline has a Python ML step, it's a dealbreaker.
 
-Nhost splits this into two products. Functions run JavaScript/TypeScript and deploy automatically when you push to the connected GitHub repo. They handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. For anything else there's Run, which deploys any Docker container next to your stack: Go, Python, Rust, or anything that builds into an image. You pay for the vCPU and memory you allocate.
-
-About cold starts: I'm not publishing numbers from a free tier, because they say little about production. Measure your own. Call your function 20 times after five idle minutes and check the p95.
+Nhost splits this into two products. Functions run JavaScript/TypeScript and handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. For anything else there's Nhost Run, which deploys any Docker container next to your stack: Go, Python, Rust, or anything that builds into an image.
 
 ## Realtime
 
-Supabase Realtime sends database changes over WebSockets and controls channel access with RLS policies. [Since June 2026, Broadcast also supports binary payloads](https://supabase.com/changelog/46834-realtime-broadcast-now-supports-binary-payloads), which cuts JSON overhead if you're pushing sensor data or image frames. The dashboard also lets you set the connection pool size and max concurrent clients per project, which you'll need once traffic grows.
+Supabase Realtime sends database changes over WebSockets and controls channel access with RLS policies. Broadcast also supports binary payloads now, which cuts JSON overhead if you're pushing sensor data or image frames. The dashboard also lets you set the connection pool size and max concurrent clients per project, which you'll need once traffic grows.
 
-Appwrite realtime uses the same permissions as your data, so a client subscribed to a table only sees rows it's allowed to see. Appwrite Cloud got a [Presences API](https://appwrite.io/blog/post/announcing-presences-api) in May 2026 for online, typing and activity states, a feature most teams end up building themselves, and 1.9.5 brought it to self-hosted. Appwrite's native Postgres has no realtime at all.
+Appwrite realtime uses the same permissions as your data, so a client subscribed to a table only sees rows it's allowed to see. It also has a Presences API for online, typing and activity states, a feature most teams end up building themselves, available on both Cloud and self-hosted. Appwrite's native Postgres has no realtime at all.
 
 Nhost does realtime with GraphQL subscriptions. Take any query, change `query` to `subscription`, and you get a live stream over a WebSocket. The same permission rules apply, so a subscribed client only gets the rows its role is allowed to see.
 
-## The AI in the console
+## Where the AI lives
 
-Supabase and Appwrite both have an AI assistant in the dashboard, on the free tier. They use it for different things.
+While building the test app, I ran into AI features in all three dashboards. What they're for turned out to be quite different.
 
-Supabase puts it on the Policies page. Its suggested prompts include "Set up RLS policies", "Query your data" and "Create a function". It's there to help with access rules, the part that's easiest to get wrong.
+Supabase and Appwrite both have an AI assistant in the dashboard, free tier included. Supabase puts it on the Policies page, with prompts like "Set up RLS policies" and "Query your data". Appwrite uses it to get you started: when you create a table, it suggests columns based on the table name and can fill an empty table with sample data.
 
-Appwrite uses it to help you get started. When you create a table, it offers "Smart column suggestions" based on the table name. An empty table shows "Suggest columns" and "Generate sample data" buttons right next to "Create column".
+Both help you, the developer, while you build. Neither gives you an AI feature you can put in front of your users.
 
-Both help you build your app. Neither becomes part of it.
+Nhost has AI features you build into your app. Its AI service, [Graphite](https://docs.nhost.io/products/ai/), comes in two parts:
 
-Nhost puts AI inside the app itself, through a product called [Graphite](https://docs.nhost.io/products/ai/). It has two parts:
+- **Auto-Embeddings** generates embeddings automatically when rows are added or changed, and adds GraphQL queries to your schema for natural-language search and finding similar items. The embeddings live in Postgres with pgvector, so you can also query them yourself.
+- **AI Assistants** let your users chat with your data. You give each assistant a set of tools (GraphQL queries, mutations or any HTTP endpoint), and the model asks Graphite to run them. It never touches the database itself. Different assistants can see different parts of your data, and you decide which users can use which assistant.
 
-- **Auto-Embeddings** creates and updates embeddings as rows are added or changed. For each source you set up, it adds two queries to your schema: one for natural-language search and one for finding similar items.
-- **AI Assistants** lets you create an assistant and choose which tools it can use: specific GraphQL queries, mutations or webhooks. It can read data, write data or trigger a function, but only through the tools you give it.
+There's also a Backend MCP Server, which lets AI clients like Claude or Cursor connect to your app's API. Users sign in through Nhost Auth, so the agent works with their account.
 
-Both follow the same permission rules as any other request, so an assistant can only see what the signed-in user can see.
+All of it runs under the user's session, so the AI only gets data that user is allowed to see.
 
 ## So which one
 
@@ -395,8 +391,6 @@ I know it's a cliché, but there's no single answer to which one is best. I buil
 **Appwrite** is for you if you're building a mobile app or a frontend-heavy product and would rather never think about the database. Each user owns their own data, maybe shares it with a team. That's the shape Appwrite fits best, with login, files, push notifications and hosting all in one console.
 
 **Nhost** is for you if you want AI agents working inside your app on your users' behalf, through Claude, ChatGPT or your own assistant. That's where it's furthest ahead. Its MCP service signs agents in through Nhost Auth, so every call runs as that user, with that user's permissions. Graphite adds search and assistants under the same rules.
-
-None of these are bad choices, and all three got a working app out of me without much fuss. The one that fits is usually the one whose defaults match how you already think about your data, which is easier to feel than to read about. So if you're torn between two of them, build the same small thing on both. That's where this whole post came from, and it taught me more than any comparison table, including the ones above.
 
 If Nhost sounds like your fit, the free plan is enough to run the same test yourself.
 
