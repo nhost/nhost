@@ -22,11 +22,11 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-I'm still testing how backend platforms hold up when people build on them with AI. Last time I tried [five vibe coding tools](/blog/best-vibe-coding-tools). This time it's Claude Code with the CLIs of three popular backend platforms.
+AI agents now write a lot of backend code, and the platform you pick decides how much they get right on their own. I wanted to see that in practice: what happens when Claude Code builds the same app on Supabase, Appwrite and Nhost through each platform's CLI, with nobody telling it where the access rules should go.
 
-Each platform got two apps. The first is the same polling app from that post. The second is harder and uses more of the backend.
+I used two apps. The first is a polling app with a secret ballot, the same one I used to test [five vibe coding tools](/blog/best-vibe-coding-tools). It's small, but it has one requirement that's easy to get wrong: nobody can see how anyone else voted. The second is a team incident logger with file uploads, team membership and a server function, so it tests much more of each backend.
 
-This isn't a benchmark or a full platform comparison. The apps are small and each one ran once. I gave all three the same starting point (which took a lot more cleanup between runs than I expected), watched what happened, and wrote down what I saw. Both prompts are below in full, so you can run them yourself.
+Each app ran once per platform, from the same clean start. Both prompts are below, so you can run them yourself.
 
 ## Setup
 
@@ -73,7 +73,7 @@ I expected "nobody can find out how another specific user voted" to be the harde
 | Where the rules ended up | row rules in the database | row-level policies in the database | database closed, everything through a server function |
 | What it handed back | a local page | a local page | a deployed site on a public URL |
 
-Appwrite took the longest because it did two extra things: it wrote a server function and put the finished app on a public URL. I never asked for either, and the other two didn't do it. My guess is that since Appwrite hosts sites itself, deploying looked like the obvious next step.
+Appwrite took the longest because it did two extra things: it wrote a server function and put the finished app on a public URL. I never asked for either, and neither Nhost nor Supabase did that. My guess is that since Appwrite hosts sites itself, deploying looked like the obvious next step.
 
 ## Nhost: fastest, but with an extra setup step
 
