@@ -248,9 +248,13 @@ The two guards below run in CI; run them before pushing:
    `ui-system` and `navigation` jobs and `check-ci-matrix.sh` find them by name
    rather than reading the catalogue, so `authDir` must end in the only
    directory named `auth` under `frontend/src`, and `methodsFile` must be the
-   only `methods.ts` there. A React template takes `reactUISystems()`; another
-   framework needs its own, with a `none` entry, which is what `--ui` defaults
-   to.
+   only `methods.ts` there. A React web template takes `reactUISystems()` and
+   a React Native one `nativeUISystems()`; another framework needs its own,
+   with a `none` entry, which is what `--ui` defaults to. A framework with no
+   alternative component set offers `none` alone and ships no `ui/`, and the
+   CLI does not ask. Leave `navSystems` nil unless the framework has more than
+   one navigation library in common use; a template that sets it must offer
+   `router`, which is what `--navigation` defaults to.
 4. Add `//go:embed` directives for its top-level entries in
    `templates/embed.go`. `go test ./templates/...` tells you what is missing.
 5. Add it to the source fileset in `cli/project.nix`, cutting out its
@@ -261,9 +265,11 @@ The two guards below run in CI; run them before pushing:
    `go build` sees the whole working tree and passes without this, so the
    first thing that notices is the Nix build in CI, and what it reports is the
    `//go:embed` directive from step 4 failing on a directory that is not there.
-6. Add the name to `matrix.template` in the `frontend`, `delete-method` and
-   `ui-system` jobs of `.github/workflows/templates_checks.yaml`, the method
-   directories to `matrix.method`, and the `ui/` directories to `matrix.ui`.
+6. Add the name to `matrix.template` in the `frontend` and `delete-method`
+   jobs of `.github/workflows/templates_checks.yaml`, and the method
+   directories to `matrix.method`. Add it to the `ui-system` job only if it
+   has a `ui/` directory, with each one in `matrix.ui`; a template without one
+   stays out, or `check-ci-matrix.sh` fails on a UI system not on disk.
    A template with `navigation/` directories also needs an `include:` entry in
    the `navigation` job for each one and each method.
 7. Add a row to [Available templates](#available-templates).
