@@ -165,10 +165,13 @@ The two guards below run in CI; run them before pushing:
   shell and `package.json`. It is laid over `frontend/` rather than one
   directory inside it, because changing navigation changes the entry point and
   the dependencies too, and `dropFiles` removes what the default needed and this
-  one does not. The `navigation` job scaffolds and builds each one, for the same
-  reason the `ui-system` job exists: nothing typechecks `navigation/` where it
-  sits. It scaffolds once per sign-in method, leaving that method out and
-  grepping for it, since the `delete-method` job builds only `frontend/` and
+  one does not. The overlay is written after the UI system, so its
+  `package.json` would undo a UI system's `drops`;
+  `TestNavigationOverlayKeepsTheUIDrops` refuses a template that offers both.
+  The `navigation` job scaffolds and builds each one, for the same reason the
+  `ui-system` job exists: nothing typechecks `navigation/` where it sits. It
+  scaffolds once per sign-in method, leaving that method out and grepping for
+  it, since the `delete-method` job builds only `frontend/` and
   never sees the overlay's route table. It then checks the export's source map
   for every screen under `src/app`, because a system that finds its screens at
   runtime builds cleanly even when it bundles none of them.

@@ -210,6 +210,45 @@ func TestNavigationOverlayLeavesTheSignInMethodsAlone(t *testing.T) {
 	}
 }
 
+// The overlay is also written after the UI system, so a package.json of its own
+// replaces the one the UI system just took its drops out of, and the project
+// would declare packages nothing imports. A template cannot offer both until
+// the overlay is laid first.
+func TestNavigationOverlayKeepsTheUIDrops(t *testing.T) {
+	t.Parallel()
+
+	for _, tmpl := range catalogue() {
+		var dropping []string
+
+		for _, ui := range tmpl.uiSystems {
+			if len(ui.drops) > 0 {
+				dropping = append(dropping, ui.name)
+			}
+		}
+
+		for _, nav := range tmpl.navSystems {
+			if nav.overlay == "" || len(dropping) == 0 {
+				continue
+			}
+
+			t.Run(tmpl.name+"/"+nav.name, func(t *testing.T) {
+				t.Parallel()
+
+				pkg := path.Join(tmpl.name, navDirPath, nav.overlay, "package.json")
+				if _, err := fs.Stat(templates.FS, pkg); err != nil {
+					return
+				}
+
+				t.Errorf(
+					"%s ships its own package.json, which is written after the UI system "+
+						"and would put back the dependencies %s drop",
+					nav.name, strings.Join(dropping, ", "),
+				)
+			})
+		}
+	}
+}
+
 func resolveNavWith(
 	t *testing.T,
 	template string,
