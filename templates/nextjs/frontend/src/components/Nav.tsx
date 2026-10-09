@@ -1,8 +1,12 @@
 import Link from 'next/link';
+import { DEFAULT_DESTINATION } from '@/app/signin/destination';
+import { signInQuery } from '@/app/signin/query';
 import NhostLogo from '@/components/NhostLogo';
 import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
+
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 
 export default async function Nav() {
   const nhost = await createNhostClient();
@@ -28,7 +32,7 @@ export default async function Nav() {
           </div>
         ) : (
           <Button asChild variant="ghost" size="sm">
-            <Link href="/signin?intent=sign-in">Sign in</Link>
+            <Link href={signInLink}>Sign in</Link>
           </Button>
         )}
       </div>
