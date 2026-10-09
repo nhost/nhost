@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { DEFAULT_DESTINATION } from '@/app/signin/destination';
+import { signInQuery } from '@/app/signin/query';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,6 +12,9 @@ import {
 import { createNhostClient } from '@/lib/nhost/server';
 
 export const dynamic = 'force-dynamic';
+
+const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 
 export default async function Home() {
   const nhost = await createNhostClient();
@@ -37,10 +42,10 @@ export default async function Home() {
             <>
               {/* Sign up first: a fresh local backend has no accounts in it. */}
               <Button asChild>
-                <Link href="/signin">Sign up</Link>
+                <Link href={signUpLink}>Sign up</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/signin?intent=sign-in">Sign in</Link>
+                <Link href={signInLink}>Sign in</Link>
               </Button>
             </>
           )}
