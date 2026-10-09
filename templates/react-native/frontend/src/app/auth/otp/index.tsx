@@ -174,7 +174,8 @@ export default function OtpScreen() {
                 {isPending ? 'Signing in…' : 'Sign in'}
               </Button>
 
-              <View className="flex-row flex-wrap gap-2">
+              {/* Wrapped, the two buttons are far enough apart for their hitSlop. */}
+              <View className="flex-row flex-wrap gap-x-2 gap-y-4">
                 <Button
                   variant="ghost"
                   size="sm"

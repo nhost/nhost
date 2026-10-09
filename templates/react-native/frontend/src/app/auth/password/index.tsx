@@ -253,7 +253,9 @@ export default function PasswordScreen() {
                 : 'Sign up'}
           </Button>
 
-          <View className="flex-row flex-wrap items-center justify-between gap-2">
+          {/* The links' hitSlop needs mt-1 to clear the button above, and
+              gap-y-8 to clear each other once wrapped. */}
+          <View className="mt-1 flex-row flex-wrap items-center justify-between gap-x-2 gap-y-8">
             <Button
               variant="link"
               size="link"

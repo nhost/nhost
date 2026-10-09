@@ -21,6 +21,16 @@ const buttonSize = {
   link: 'h-auto p-0',
 } as const;
 
+// What each size takes past its top and bottom, so a finger has 44pt to hit.
+// NativeWind makes 1rem 14pt on a device, so `default` is 38.5 tall, `sm` 31.5
+// and a `link` line 17.5. Two targets whose slop adds up to more than the gap
+// between them overlap, and the later one takes the tap there.
+const hitSlop = {
+  default: { top: 2.75, bottom: 2.75 },
+  sm: { top: 6.25, bottom: 6.25 },
+  link: { top: 13.25, bottom: 13.25 },
+} as const;
+
 const labelSize = {
   default: 'text-base',
   sm: 'text-sm',
@@ -63,6 +73,10 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || isPending }}
       disabled={disabled || isPending}
+      // Slop only counts inside the nearest native parent, the Card or the
+      // scroll view's content, as the rows between flatten away. A background,
+      // border or testID on a row stops that.
+      hitSlop={hitSlop[size]}
       onPress={onPress}
       className={cn(
         'flex-row items-center justify-center gap-2 rounded-lg',
