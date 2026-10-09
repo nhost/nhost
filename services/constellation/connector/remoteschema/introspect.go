@@ -311,10 +311,11 @@ func convertIntrospectionInput(t *introspectionType) *graph.InputObjectType {
 	}
 
 	return &graph.InputObjectType{
-		Name:        t.Name,
-		Description: t.Description,
-		Fields:      fields,
-		Directives:  nil,
+		Name:             t.Name,
+		Description:      t.Description,
+		Fields:           fields,
+		Directives:       nil,
+		ComputedArgument: false,
 	}
 }
 

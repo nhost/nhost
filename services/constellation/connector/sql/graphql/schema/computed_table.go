@@ -139,6 +139,7 @@ func tableComputedArguments(
 	name := field.Name + "_" + getCustomOrDefaultTypeName(parent) + "_args"
 	s.Inputs = append(s.Inputs, &graph.InputObjectType{
 		Name: name, Fields: userArgs, Description: "", Directives: nil,
+		ComputedArgument: true,
 	})
 
 	typ := graph.NewNamedType(name)

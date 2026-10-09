@@ -118,6 +118,10 @@ type InputObjectType struct {
 	Description string
 	Fields      []*InputField
 	Directives  []*Directive
+	// ComputedArgument marks a SQL-computed selection's input. It is internal
+	// provenance, not a GraphQL field, and survives schema customization so
+	// the composer can prune it without removing a tracked function's input.
+	ComputedArgument bool
 }
 
 // InputField represents a field on an input object.

@@ -393,6 +393,19 @@ For the same reason, constellation does not generate the `_aggregate` root field
 
 Function arguments without a default value are exposed as non-null (`uuid!`) in `_args` input types. Hasura always makes them nullable (`uuid`) regardless of whether they have a default. Neither behavior is wrong since PostgreSQL will reject a missing required argument at execution time either way.
 
+When a tracked root function's `<function>_args` and a computed field's
+`<field>_<table>_args` have different fields in the same source, Hasura
+v2.50.3-ce rejects the metadata atomically (even with
+`allow_inconsistent_metadata: true`). Constellation accepts the document but
+omits only the computed selection and records a `computed_field` inconsistency;
+the function and other roots remain available. When the PostgreSQL argument
+names/types are identical, Hasura shares a nullable input and serves both
+fields. Constellation's non-null tracked-function arguments still conflict with
+the nullable computed input when no default exists: it omits the computed
+selection rather than changing the tracked function's existing contract.
+Inputs that are already identical in GraphQL (e.g. a defaulted function
+argument) remain shared.
+
 ## Permissions
 
 Constellation does not infer permissions for functions (HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS=false and not configurable) and need to be set explicitly. Otherwise, permissions work the same way as in hasura:

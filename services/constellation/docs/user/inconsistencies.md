@@ -148,10 +148,13 @@ inconsistency; the role and other fields remain. If the omitted selection was
 an aggregate family's only operand, its now-empty output type and the
 corresponding aggregate field are also removed; `count`, other aggregate
 families and `nodes` remain. Hasura v2.50.3-ce instead atomically rejects
-both the probed PUBLIC argument enum versus tracked-row object collision and
-cross-source differing `_args` inputs, even with
-`allow_inconsistent_metadata: true`. Constellation's metadata acceptance and
-narrow fail-closed omission are an approved difference, not metadata parity.
+the probed PUBLIC argument enum versus tracked-row object collision and
+both cross-source and same-source differing `_args` inputs (including a
+tracked root function's input), even with `allow_inconsistent_metadata: true`.
+A same-source collision keeps the tracked function's root and input, and records
+one computed-field inconsistency per affected field and role. Constellation's
+metadata acceptance and narrow fail-closed omission are an approved difference,
+not metadata parity.
 An exact computed `<rel>_aggregate` array-relationship sibling collision
 also omits only the ambiguous computed field and its grant, retaining the
 select permission and genuine relationship; Hasura exposes duplicate names.
