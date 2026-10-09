@@ -5,11 +5,13 @@ import {
   createContext,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
 import { redeemLinkToken } from '@/lib/nhost/linkToken';
 import { startAuth } from '@/lib/nhost/startAuth';
@@ -62,7 +64,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // links, so until then nobody knows who the user is about to be.
   const [isLoading, setIsLoading] = useState(true);
 
-  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkError, setLinkErrorState] = useState<string | null>(null);
+
+  const announced = useRef<string | null>(null);
+
+  // Announced here rather than by the notice, because every screen in the
+  // stack shows it. On Android a provider's failed callback arrives both as a
+  // link event and as the OAuth screen's result, so a message is announced
+  // again only once something has cleared it.
+  const setLinkError = useCallback((message: string | null): void => {
+    setLinkErrorState(message);
+    if (message && message !== announced.current) {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+    announced.current = message;
+  }, []);
 
   useEffect(() => {
     // Someone signing in has moved on from whatever link failed before, and
@@ -102,11 +118,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       stop();
       unsubscribe();
     };
-  }, [nhost, storage]);
+  }, [nhost, storage, setLinkError]);
 
   const value = useMemo<AuthValue>(
     () => ({ nhost, session, isLoading, linkError, setLinkError }),
-    [nhost, session, isLoading, linkError],
+    [nhost, session, isLoading, linkError, setLinkError],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;
