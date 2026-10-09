@@ -1230,15 +1230,16 @@ func TestParseFieldComparison_WithVariable(t *testing.T) {
 // "no match". The unexported `where.Table` interface is fully satisfied so
 // it can be passed in to where.Parse from this external test package.
 type parseTestTable struct {
-	d            dialect.Dialect
-	schemaName   string
-	fromClause   string
-	columns      map[string]*core.Column
-	computed     map[string]core.ComputedExpression
-	relationship map[string]where.Relationship
-	siblings     map[string]where.Table
-	roleHasPerms map[string]bool
-	permsWriter  func(b *strings.Builder, params []any, paramIndex int, sourceRef string) ([]any, int, error)
+	d             dialect.Dialect
+	schemaName    string
+	fromClause    string
+	columns       map[string]*core.Column
+	computed      map[string]core.ComputedExpression
+	computedTable map[string]core.ComputedTableExpression
+	relationship  map[string]where.Relationship
+	siblings      map[string]where.Table
+	roleHasPerms  map[string]bool
+	permsWriter   func(b *strings.Builder, params []any, paramIndex int, sourceRef string) ([]any, int, error)
 }
 
 func (p *parseTestTable) Dialect() dialect.Dialect { return p.d }
@@ -1253,8 +1254,8 @@ func (p *parseTestTable) ComputedScalarFromGraphqlName(name, _ string) core.Comp
 	return p.computed[name]
 }
 
-func (p *parseTestTable) ComputedTableFromGraphqlName(string, string) core.ComputedTableExpression {
-	return nil
+func (p *parseTestTable) ComputedTableFromGraphqlName(name, _ string) core.ComputedTableExpression {
+	return p.computedTable[name]
 }
 
 func (p *parseTestTable) RelationshipFromGraphqlName(name string) where.Relationship {

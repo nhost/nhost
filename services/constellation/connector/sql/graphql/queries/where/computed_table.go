@@ -49,7 +49,7 @@ func parseComputedTableFilter(
 	return &computedTableFilter{
 		call: call, target: target, conditions: predicate, role: role,
 		sessionVariables: sessionVariables,
-		alias:            fmt.Sprintf("\"_cs_cf%d\"", nestingLevel),
+		alias:            fmt.Sprintf("\"_cs_cf%s%d\"", aliases.Relationship, nestingLevel),
 	}, nil
 }
 
