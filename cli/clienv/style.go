@@ -4,6 +4,7 @@ package clienv
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"syscall"
@@ -40,6 +41,13 @@ var promptMessage = lipgloss.NewStyle().
 	Foreground(ANSIColorCyan).
 	Bold(true).
 	Render
+
+// Stdout is where the CLI writes, exposed so that the interactive picker can
+// address the cursor directly. Everything else should go through the helpers
+// below, which format and terminate their own lines.
+func (ce *CliEnv) Stdout() io.Writer {
+	return ce.stdout
+}
 
 func (ce *CliEnv) Println(msg string, a ...any) {
 	if _, err := fmt.Fprintln(ce.stdout, fmt.Sprintf(msg, a...)); err != nil {
