@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { vi } from 'vitest';
-import { AppSidebar } from '@/components/layout/AppSidebar';
+import { DashboardNavigation } from '@/components/layout/DashboardNavigation';
 import {
   getProjectUrl,
   projectPages,
@@ -23,7 +23,7 @@ afterEach(() => {
 // The sidebar is hand-written JSX, while the command palette lists the same
 // pages in its catalog. This keeps the two lists from drifting apart. The
 // sidebar groups pages into sections, so the order is not compared.
-describe('ProjectNav lists the same pages as the command palette catalog', () => {
+describe('ProjectNavigation lists the same pages as the command palette catalog', () => {
   it('links every catalog page', () => {
     // On the platform no item is disabled, so every item renders as a link.
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
@@ -34,13 +34,10 @@ describe('ProjectNav lists the same pages as the command palette catalog', () =>
       query: { orgSlug: 'nhost', appSubdomain: 'dashboard' },
     });
 
-    render(<AppSidebar />);
+    render(<DashboardNavigation />);
 
-    // The sidebar landmark, not its <nav>: Settings lives in the footer.
-    const sidebar = screen.getByRole('complementary', {
-      name: 'Project navigation',
-    });
-    const links = within(sidebar).getAllByRole('link');
+    const nav = screen.getByRole('navigation', { name: 'Project navigation' });
+    const links = within(nav).getAllByRole('link');
 
     expect(links.map((link) => link.getAttribute('href')).sort()).toEqual(
       projectPages

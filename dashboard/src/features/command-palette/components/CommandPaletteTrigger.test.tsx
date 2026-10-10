@@ -1,6 +1,8 @@
 import userEvent from '@testing-library/user-event';
 import toast from 'react-hot-toast';
 import { vi } from 'vitest';
+import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
+import { useCommandPalette } from '@/features/command-palette/hooks/useCommandPalette';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { render, screen, waitFor, within } from '@/tests/testUtils';
 import CommandPaletteTrigger from './CommandPaletteTrigger';
@@ -60,7 +62,19 @@ const orgB = {
   apps: [projectC],
 };
 
-const renderTrigger = () => render(<CommandPaletteTrigger />);
+// Stands in for `Header`, the palette's single owner.
+function PaletteHost() {
+  const { openCommandPalette, paletteProps } = useCommandPalette();
+
+  return (
+    <>
+      <CommandPaletteTrigger onOpen={openCommandPalette} />
+      <CommandPalette {...paletteProps} />
+    </>
+  );
+}
+
+const renderTrigger = () => render(<PaletteHost />);
 
 let user: ReturnType<typeof userEvent.setup>;
 
@@ -970,7 +984,7 @@ describe('CommandPaletteTrigger', () => {
       error: null,
       refetch: vi.fn(),
     });
-    rerender(<CommandPaletteTrigger />);
+    rerender(<PaletteHost />);
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
