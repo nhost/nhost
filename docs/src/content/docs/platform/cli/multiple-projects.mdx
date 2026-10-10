@@ -106,3 +106,19 @@ alternativeproject-auth-1  | {"level":"info","message":"Applying metadata..."}
 alternativeproject-auth-1  | {"level":"info","message":"Metadata applied"}
 alternativeproject-auth-1  | {"level":"info","message":"Running on port 4000"}
 ```
+
+## How the project name is resolved
+
+The name is resolved in this order. An empty `--project-name` or
+`NHOST_PROJECT_NAME` does not set the name, but an empty `--project-name` still
+takes the place of `NHOST_PROJECT_NAME`, so the name then comes from the folder:
+
+1. `--project-name`
+2. `NHOST_PROJECT_NAME`
+3. the name of the current folder
+
+Whichever value wins, the name is lowercased and any character other than
+ASCII letters, digits, `-` and `_` is dropped, so `My.App` becomes `myapp`. It
+then has to start with a letter or digit. A name that does not is not shortened
+to one that does, since that could take over another project's containers; it
+is passed to Docker Compose as written and Docker Compose refuses to start.

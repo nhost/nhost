@@ -21,7 +21,7 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 | | |
 | --- | --- |
-| `--branch=""` | Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. Default: `<current-git-branch>`. Env: `$BRANCH`. |
+| `--branch=""` | Branch name used to namespace this project's docker volumes (detected from git by default). Default: `<current-git-branch>`. Env: `$BRANCH`. |
 | `--dot-nhost-folder=""` | Path to .nhost folder. Default: `".nhost"`. Env: `$NHOST_DOT_NHOST_FOLDER`. |
 | `--help, -h` | show help. |
 | `--local-subdomain=""` | Local subdomain to reach the development environment. Default: `"local"`. Env: `$NHOST_LOCAL_SUBDOMAIN`. |

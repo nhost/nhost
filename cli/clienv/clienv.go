@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -16,9 +17,36 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// sanitizeNameDrop matches every character a docker compose project name
+// cannot hold and that nothing better can be done with than dropping it.
+var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+
+// sanitizeName turns a project name into one docker compose accepts --
+// `[a-z0-9][a-z0-9_-]*` -- or into the empty string when the name holds nothing
+// compose could be started from, which resolveProjectName then refuses.
+//
+// A dot is dropped, so `example.com` is `examplecom`. Mapping it to a dash
+// instead would rename the compose project of every existing project with a
+// dot in its name, and with it the Postgres volume, so its next `nhost up`
+// would start from an empty database.
+//
+// A name that still leads with a dash or underscore comes back empty rather
+// than trimmed into shape. Trimming would turn `_myapp` into `myapp` and hand
+// it a neighbouring project's containers and Postgres volume, so the name is
+// reported as unusable and resolveProjectName lets compose refuse it.
 func sanitizeName(name string) string {
-	re := regexp.MustCompile(`[^a-zA-Z0-9_-]`)
-	return strings.ToLower(re.ReplaceAllString(name, ""))
+	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
+
+	if lowered == "" || !isComposeNameStart(lowered[0]) {
+		return ""
+	}
+
+	return lowered
+}
+
+// isComposeNameStart reports whether b can open a docker compose project name.
+func isComposeNameStart(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9')
 }
 
 type CliEnv struct {
@@ -70,25 +98,60 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		panic(err)
 	}
 
-	return &CliEnv{
-		stdout: cmd.Writer,
-		stderr: cmd.ErrWriter,
-		Path: NewPathStructure(
-			cwd,
-			cmd.String(flagRootFolder),
-			cmd.String(flagDotNhostFolder),
-			cmd.String(flagNhostFolder),
-		),
+	path := NewPathStructure(
+		cwd,
+		cmd.String(flagRootFolder),
+		cmd.String(flagDotNhostFolder),
+		cmd.String(flagNhostFolder),
+	)
+
+	ce := &CliEnv{
+		stdout:         cmd.Writer,
+		stderr:         cmd.ErrWriter,
+		Path:           path,
 		authURL:        cmd.String(flagAuthURL),
 		graphqlURL:     cmd.String(flagGraphqlURL),
 		oauth2ClientID: cmd.String(flagOAuth2ClientID),
 		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
-		projectName:    sanitizeName(cmd.String(flagProjectName)),
+		projectName:    "",
 		nhclient:       nil,
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
+	ce.projectName = ce.resolveProjectName(cmd)
+
+	return ce
+}
+
+// resolveProjectName picks the docker compose project name, in the order
+// --project-name, NHOST_PROJECT_NAME, and finally the working directory name.
+// A blank flag or env value names no project, so it falls through like an unset
+// one.
+//
+// A name sanitizeName can make nothing of is passed on raw instead of as the
+// empty string, because compose reads an empty -p as no -p at all: it names the
+// project after --project-directory and normalises that name on the way,
+// trimming the very leading `_` and `-` this package refuses to trim. A
+// directory holding nothing a name can be made of could therefore come up on
+// the name a sibling project is already using. Handing compose the raw name
+// gets it refused out loud instead.
+//
+// A directory already named `_myapp` is unaffected: the name survived
+// sanitizing before this too, and compose refused it then as it does now.
+func (ce *CliEnv) resolveProjectName(cmd *cli.Command) string {
+	// IsSet covers both the flag and NHOST_PROJECT_NAME: a value taken from an
+	// env source marks the flag as set too.
+	name := cmd.String(flagProjectName)
+	if !cmd.IsSet(flagProjectName) || strings.TrimSpace(name) == "" {
+		name = filepath.Base(ce.Path.WorkingDir())
+	}
+
+	if sanitized := sanitizeName(name); sanitized != "" {
+		return sanitized
+	}
+
+	return name
 }
 
 func (ce *CliEnv) ProjectName() string {
