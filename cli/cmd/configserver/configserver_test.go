@@ -19,6 +19,12 @@ func TestDashboardOriginRegex(t *testing.T) {
 		{"https://local.dashboard.nhost.run", true},
 		{"http://local.dashboard.nhost.run:443", true},
 
+		// Localhost origins, for a dashboard running from source.
+		{"http://localhost:3000", true},
+		{"https://localhost:3000", true},
+		{"http://localhost", true},
+		{"http://127.0.0.1:3000", true},
+
 		// Foreign origins must be rejected.
 		{"https://evil.com", false},
 		{"https://attacker.local.nhost.run", false},
@@ -26,7 +32,10 @@ func TestDashboardOriginRegex(t *testing.T) {
 		{"https://dashboard.local.nhost.run.evil.com", false},
 		{"https://local.dashboard.local.nhost.run.evil.com", false},
 		{"https://local.dashboard.local.nhost.run/foo", false},
-		{"http://localhost:3000", false},
+		{"http://localhost.evil.com:3000", false},
+		{"http://evil.localhost:3000", false},
+		{"http://127.0.0.1.nip.io:3000", false},
+		{"http://localhost:3000/foo", false},
 		{"", false},
 
 		// Multi-label subdomains are intentionally rejected even though
