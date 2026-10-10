@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
@@ -154,7 +154,7 @@ MetricsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>{page}</ProjectStateGate>
+        <MetricsArea>{page}</MetricsArea>
       </ProjectScope>
     </AppLayout>
   );
