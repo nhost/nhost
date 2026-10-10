@@ -5,9 +5,8 @@ and the browser, and guards one page behind it. There is no database schema: the
 app uses only the `auth.users` table the backend ships with, so there is nothing
 to undo when you start building your own.
 
-Four sign-in methods are on offer and `nhost init --template` scaffolds the ones
-you asked for with `--auth-methods`, email and password by default.
-`src/app/signin/methods.ts` lists the ones you have.
+Four sign-in methods are on offer and `nhost init --template` scaffolds all of
+them. `src/app/signin/methods.ts` lists the ones you have.
 
 ## Run it
 
@@ -29,17 +28,16 @@ verification links and one-time codes turn up.
 Each method is a directory under `src/app/auth/` and a line in
 `src/app/signin/methods.ts`. Nothing else in the app knows a method exists.
 
-| method | `--auth-methods` name | directory | what the backend needs |
+| method | name | directory | what the backend needs |
 | --- | --- | --- | --- |
 | Email and password | `password` | `auth/password/` | on by default |
 | Magic link | `magic-link` | `auth/magic-link/` | `auth.method.emailPasswordless.enabled = true` |
 | Email code | `otp` | `auth/otp/` | `auth.method.otp.email.enabled = true` |
 | GitHub or Google | `oauth` | `auth/oauth/` | a provider section, see below |
 
-Scaffolding into an empty directory enables whichever of magic link and email
-code you asked for, since both are off in a stock backend. The default asks for
-neither and so changes no configuration. If you brought your own backend, its
-`nhost.toml` was left alone and the lines above are yours to add.
+Magic link and email code are off in a stock backend, and `nhost init` leaves
+them that way: set the two lines above in `nhost/nhost.toml` before using
+either. The next steps init prints name them too.
 
 OAuth needs an app registered with the provider. Its callback URL for the local
 stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`

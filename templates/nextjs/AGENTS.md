@@ -49,10 +49,14 @@ It has two halves:
 
 ## Adding a table
 
-There is no schema yet. With `nhost up` running, create the
-table in the local dashboard at <https://local.dashboard.local.nhost.run>. It
-writes the migration to `nhost/migrations/default/` and the tracking and
-permissions to `nhost/metadata/`.
+The template adds no schema of its own, but the backend may already have one:
+it can predate the template, or have been pulled with `nhost init --remote`.
+Read `nhost/migrations/default/` and `nhost/metadata/` before adding a table.
+
+With `nhost up` running, create the table in the local dashboard at
+<https://local.dashboard.local.nhost.run>. It writes the migration to
+`nhost/migrations/default/` and the tracking and permissions to
+`nhost/metadata/`.
 
 Without a browser, `nhost dev hasura` wraps the Hasura CLI. It needs the
 backend running and writes `nhost/migrations/default/<ts>_<name>/`:

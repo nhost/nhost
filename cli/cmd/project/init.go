@@ -66,11 +66,17 @@ func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
 const hasuraMetadataVersion = 3
 
 func CommandInit() *cli.Command {
+	// Held here rather than read back through the command, so the action sees
+	// exactly what the parser set.
+	tv := new(templateValue)
+
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "init",
 		Aliases: []string{},
 		Usage:   "Initialize a new Nhost project",
-		Action:  commandInit,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return commandInit(ctx, cmd, tv)
+		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagRemote,
@@ -78,15 +84,38 @@ func CommandInit() *cli.Command {
 				Value:   false,
 				Sources: cli.EnvVars("NHOST_REMOTE"),
 			},
+			&cli.GenericFlag{ //nolint:exhaustruct
+				Name: flagTemplate,
+				// Backticks here are urfave's placeholder syntax, not Markdown:
+				// the first quoted span becomes the flag's value name in help.
+				// Only NAME may carry them, or the flag renders as its own usage
+				// text, as in `--template --template NAME`.
+				Usage: "Add a starter frontend next to the backend. `NAME` picks one; a bare --template lists them",
+				Value: tv,
+			},
 		},
 	}
 }
 
-func commandInit(ctx context.Context, cmd *cli.Command) error {
+func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error {
 	ce := clienv.FromCLI(cmd)
+
+	// Everything that can refuse runs before anything is written, so a typo
+	// or a cancelled picker leaves the directory as it was.
+	template, err := resolveTemplate(ce, cmd, tv)
+	if err != nil {
+		return err
+	}
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
 		return errors.New("nhost folder already exists") //nolint:err113
+	}
+
+	var layout templateLayout
+	if template != "" {
+		if layout, err = planTemplate(ce.Path, template); err != nil {
+			return err
+		}
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
@@ -109,7 +138,18 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
+	if template == "" {
+		ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
+
+		return nil
+	}
+
+	if err := writeTemplate(ce.Path, template, layout); err != nil {
+		return err
+	}
+
+	printKeptEntries(ce, layout)
+	printTemplateNextSteps(ce, template)
 
 	return nil
 }
