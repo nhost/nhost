@@ -28,6 +28,7 @@ module.exports = {
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',
         'primary-highlight': 'hsl(var(--primary-highlight))',
+        'console-background': 'hsl(var(--console-background))',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
         'theme-grey-200': '#21262d',
@@ -72,12 +73,15 @@ module.exports = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-          background: 'hsl(var(--accent-background))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+          hover: 'hsl(var(--destructive-hover))',
         },
+        warning: 'hsl(var(--warning) / <alpha-value>)',
+        'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
+        'sidebar-section-title': 'hsl(var(--sidebar-section-title))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -96,6 +100,7 @@ module.exports = {
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
+        overlay: 'var(--shadow-overlay)',
       },
       zIndex: {
         '-1': '-1',
@@ -219,10 +224,9 @@ module.exports = {
         'near-screen': '96vh',
       },
       fontFamily: {
-        display: ['Inter var', ...defaultTheme.fontFamily.sans],
-        sans: ['Work Sans', ...defaultTheme.fontFamily.sans],
+        display: ['Figtree', ...defaultTheme.fontFamily.sans],
+        sans: ['Figtree', ...defaultTheme.fontFamily.sans],
         system: defaultTheme.fontFamily.sans,
-        'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
         mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
       },
       keyframes: {

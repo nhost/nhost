@@ -47,7 +47,7 @@ export default function SigninPage() {
   }, []);
 
   return (
-    <div className="grid gap-12 font-[Inter]">
+    <div className="grid gap-12">
       <div className="text-center">
         <h2 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
           Welcome back
