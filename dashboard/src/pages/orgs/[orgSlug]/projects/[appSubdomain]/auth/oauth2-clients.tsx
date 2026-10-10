@@ -5,13 +5,15 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { AuthArea } from '@/features/orgs/projects/authentication/layout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { CreateOAuth2ClientForm } from '@/features/orgs/projects/authentication/oauth2-clients/components/CreateOAuth2ClientForm';
 import { OAuth2ClientsList } from '@/features/orgs/projects/authentication/oauth2-clients/components/OAuth2ClientsList';
@@ -146,7 +148,7 @@ function OAuth2ClientsPageContent() {
     !isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2)
   ) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5">
+      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -154,17 +156,18 @@ function OAuth2ClientsPageContent() {
             </h3>
             <p className="text-center text-muted-foreground text-sm">
               OAuth2 Clients require Auth version {MIN_AUTH_VERSION_OAUTH2} or
-              later. Please upgrade your Auth service in the Settings page.
+              later. Please upgrade your Auth service in Settings →
+              Authentication.
             </p>
           </div>
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,
+                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
               )
             }
           >
-            Go to Auth Settings
+            Go to Authentication settings
           </Button>
         </div>
       </Container>
@@ -192,7 +195,7 @@ function OAuth2ClientsPageContent() {
 
   if (!oauth2Enabled) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5">
+      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -205,7 +208,7 @@ function OAuth2ClientsPageContent() {
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/oauth2-provider`,
+                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=oauth2-provider`,
               )
             }
           >
@@ -219,7 +222,7 @@ function OAuth2ClientsPageContent() {
   if (clientsLoading) {
     return (
       <Container
-        className="flex h-full max-w-9xl flex-col"
+        className="flex h-full max-w-9xl flex-col pt-8 pb-8"
         rootClassName="h-full"
       >
         <div className="flex shrink-0 grow-0 flex-row place-content-between">
@@ -252,7 +255,7 @@ function OAuth2ClientsPageContent() {
   const clientsCount = totalNrOfElements;
 
   return (
-    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
+    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm pl-9"
@@ -337,5 +340,11 @@ function OAuth2ClientsPageContent() {
 }
 
 OAuth2ClientsPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <AuthArea>{page}</AuthArea>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

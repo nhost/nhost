@@ -23,12 +23,15 @@ export interface DrawerProps extends Omit<MaterialDrawerProps, 'title'> {
   hideCloseButton?: boolean;
 }
 
-const StyledDrawer = styled(MaterialDrawer)(({ theme }) => ({
+const StyledDrawer = styled(MaterialDrawer)(() => ({
   [`& .${drawerClasses.paper}`]: {
     display: 'flex',
     boxShadow:
       '0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)',
-    backgroundColor: theme.palette.background.paper,
+    // Use the current design-system card token instead of the legacy MUI
+    // theme's `background.paper` (which is a different, slightly blue-tinted
+    // color in dark mode) so the drawer matches the rest of the app.
+    backgroundColor: 'hsl(var(--background))',
     backgroundImage: 'none',
   },
 }));

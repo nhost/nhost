@@ -14,7 +14,7 @@ export default function PermissionSettingsSection({
   children,
 }: PermissionSettingsSectionProps) {
   return (
-    <section className="border-y-1 bg-white dark:bg-[#171d26]">
+    <section className="border-y-1 bg-background">
       <h2 className="px-6 py-3 font-bold text-sm+">{title}</h2>
       <div
         className={cn(

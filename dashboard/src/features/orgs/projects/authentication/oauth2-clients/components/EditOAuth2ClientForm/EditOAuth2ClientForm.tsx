@@ -328,7 +328,7 @@ export default function EditOAuth2ClientForm({
           <Button type="submit" disabled={isSubmitting || !isDirty}>
             Save Changes
           </Button>
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
         </div>

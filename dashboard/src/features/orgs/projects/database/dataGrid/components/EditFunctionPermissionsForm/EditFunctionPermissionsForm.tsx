@@ -327,7 +327,7 @@ export default function EditFunctionPermissionsForm({
               <p>
                 Please go to the{' '}
                 <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
@@ -338,11 +338,11 @@ export default function EditFunctionPermissionsForm({
               <p>
                 To configure infer function permissions, go to{' '}
                 <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
-                  Hasura Settings
+                  GraphQL Settings
                 </NavLink>
                 .
               </p>

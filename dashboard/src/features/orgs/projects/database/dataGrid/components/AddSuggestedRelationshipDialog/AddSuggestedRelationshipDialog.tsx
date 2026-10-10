@@ -248,7 +248,7 @@ export default function AddSuggestedRelationshipDialog({
 
                 <DialogClose asChild>
                   <Button
-                    variant="outline"
+                    variant="outline-emboss"
                     className="!text-sm+ text-foreground"
                     type="button"
                   >

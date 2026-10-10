@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
+import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -196,7 +196,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInvite}
-              className={buttonVariants({ variant: 'destructive' })}
+              variant="destructive"
               disabled={deleting}
             >
               {deleting ? (
@@ -278,7 +278,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               </div>
               <DialogFooter>
                 <Button
-                  variant="secondary"
+                  variant="outline-emboss"
                   type="button"
                   onClick={handleDismissDialog}
                 >

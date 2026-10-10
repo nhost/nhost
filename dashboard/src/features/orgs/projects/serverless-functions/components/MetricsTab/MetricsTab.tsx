@@ -106,7 +106,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   }, [range, setRange]);
 
   return (
-    <div className="relative flex h-full flex-col bg-accent-background">
+    <div className="relative flex h-full flex-col bg-background">
       <div
         aria-hidden
         className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
@@ -154,7 +154,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 <span>
                   Please try again in a few minutes. This is usually temporary.
                 </span>
-                <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+                <div className="rounded bg-muted py-2">
                   <CodeBlock
                     copyToClipboardToastTitle="Error details"
                     className="!mt-0 text-sm"

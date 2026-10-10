@@ -7,7 +7,7 @@ import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
@@ -26,6 +26,8 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   type GetOrganizationsQuery,
@@ -151,7 +153,7 @@ function TicketPage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-background-default py-10">
+    <div className="flex min-h-full flex-col items-center justify-center py-10">
       <div className="flex w-full max-w-3xl flex-col">
         <div className="mb-4 flex flex-col items-center">
           <h4 className="font-bold text-2xl">Nhost Support</h4>
@@ -210,10 +212,10 @@ function TicketPage() {
                           onValuesChange={field.onChange}
                         >
                           <FormControl>
-                            <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                            <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent">
                               <MultiSelectValue
                                 placeholder="Select Services"
-                                placeHolderClassName="text-[#9ca7b7]"
+                                placeHolderClassName="text-muted-foreground"
                                 overflowBehavior="wrap"
                               />
                             </MultiSelectTrigger>
@@ -234,7 +236,7 @@ function TicketPage() {
                                 <MultiSelectItem
                                   key={s}
                                   value={s}
-                                  className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
+                                  className="data-[selected='true']:bg-accent"
                                 >
                                   {s}
                                 </MultiSelectItem>
@@ -261,14 +263,9 @@ function TicketPage() {
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}
-                          <a
-                            className="text-primary hover:underline"
-                            href="https://nhost.io/pricing"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <TextLink href="https://nhost.io/pricing" external>
                             View pricing
-                          </a>
+                          </TextLink>
                         </>
                       ) : null
                     }
@@ -330,7 +327,7 @@ function TicketPage() {
                     </p>
                     <ButtonWithLoading
                       variant="outline"
-                      className="hover:!bg-white hover:!bg-opacity-10 text-base focus:ring-0"
+                      className="text-base focus:ring-0"
                       size="lg"
                       type="submit"
                       disabled={isSubmitting}
@@ -352,9 +349,9 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Help & Support | Nhost" withMainNav={false}>
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Help & Support | Nhost">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };
 

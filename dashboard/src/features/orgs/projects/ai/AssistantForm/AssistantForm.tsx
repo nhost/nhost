@@ -310,7 +310,7 @@ export default function AssistantForm({
         </div>
 
         <div className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>

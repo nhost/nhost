@@ -8,6 +8,7 @@ import {
   useTheme,
 } from '@graphiql/react';
 import { PlayIcon } from 'lucide-react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
@@ -16,7 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import {
@@ -24,6 +25,7 @@ import {
   type GraphQLPlaygroundSelection,
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
+import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -155,7 +157,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
   }
 
   return (
-    <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
+    <header className="grid grid-flow-row items-end gap-2 border-b p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
         <UserAndRoleSelect onSelectionChange={onSelectionChange} />
 
@@ -370,12 +372,12 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'graphiql-themed flex h-full flex-col',
-      }}
-    >
-      {page}
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <GraphQLArea>
+          <div className="graphiql-themed flex h-full flex-col">{page}</div>
+        </GraphQLArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -2,10 +2,11 @@ import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -62,7 +63,7 @@ export default function IndexPage() {
   if (error) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <div className="flex w-full max-w-md flex-col gap-8 rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+        <div className="flex w-full max-w-md flex-col gap-8 rounded-lg border border-border p-8 text-center shadow-sm">
           <TriangleAlert className="mx-auto size-10 text-amber-500" />
           <div className="flex flex-col gap-4">
             <h3 className="font-semibold text-lg">
@@ -78,7 +79,7 @@ export default function IndexPage() {
             </div>
           </div>
 
-          <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+          <div className="rounded bg-muted py-2">
             <CodeBlock
               copyToClipboardToastTitle="Error details"
               className="!mt-0 rounded text-sm"
@@ -120,5 +121,9 @@ export default function IndexPage() {
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <AuthenticatedLayout title="Dashboard">{page}</AuthenticatedLayout>;
+  return (
+    <StandaloneLayout title="Dashboard">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
+  );
 };

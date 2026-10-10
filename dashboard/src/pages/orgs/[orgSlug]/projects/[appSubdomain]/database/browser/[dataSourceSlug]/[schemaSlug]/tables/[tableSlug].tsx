@@ -1,10 +1,12 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserGridContainer } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
+import { DatabaseArea } from '@/features/orgs/projects/database/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function DataBrowserTableDetailsPage() {
@@ -24,16 +26,17 @@ export default function DataBrowserTableDetailsPage() {
 
 DataBrowserTableDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <DataBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <DatabaseArea>
+          <div className="flex h-full">
+            <DataBrowserSidebar />
+            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+              {page}
+            </div>
+          </div>
+        </DatabaseArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

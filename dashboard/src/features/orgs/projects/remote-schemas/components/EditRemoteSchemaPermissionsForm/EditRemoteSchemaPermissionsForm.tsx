@@ -117,9 +117,9 @@ export default function EditRemoteSchemaPermissionsForm({
         <InfoAlert>
           To configure permissions, enable remote schema permissions first in{' '}
           <TextLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
           >
-            Hasura Settings.
+            GraphQL Settings.
           </TextLink>
         </InfoAlert>
       </div>
@@ -234,7 +234,7 @@ export default function EditRemoteSchemaPermissionsForm({
             </span>
           </div>
 
-          <Table containerClassName="bg-card">
+          <Table>
             <TableHeader className="block">
               <TableRow className="grid grid-cols-2 items-center">
                 <TableHead className="border-b-0 p-2">Role</TableHead>
@@ -268,7 +268,7 @@ export default function EditRemoteSchemaPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
               underline="hover"
               className="px-0"
             >

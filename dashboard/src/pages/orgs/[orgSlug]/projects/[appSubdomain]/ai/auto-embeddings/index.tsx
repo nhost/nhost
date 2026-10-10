@@ -5,18 +5,18 @@ import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import type { AutoEmbeddingsConfiguration } from '@/features/orgs/projects/ai/auto-embeddings/types';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -105,7 +105,7 @@ export default function AutoEmbeddingsPage() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -123,12 +123,12 @@ export default function AutoEmbeddingsPage() {
 
   if (aiServiceUnavailable || !isGraphiteEnabled) {
     return (
-      <div className="w-full bg-background p-4">
+      <div className="w-full px-4 pt-8 pb-8">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -147,7 +147,7 @@ export default function AutoEmbeddingsPage() {
 
   if (autoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
-      <div className="w-full bg-background p-6">
+      <div className="w-full px-6 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
@@ -173,7 +173,7 @@ export default function AutoEmbeddingsPage() {
   }
 
   return (
-    <div className="flex w-full flex-col overflow-hidden">
+    <div className="flex w-full flex-col overflow-x-hidden">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateAutoEmbeddingsConfiguration}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -205,16 +205,10 @@ export default function AutoEmbeddingsPage() {
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <AIArea>{page}</AIArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -16,9 +16,9 @@ test('should return static feature path for top-level pages', () => {
 test('should return full path for nested static pages', () => {
   expect(
     getProjectFeaturePagePath(
-      '/orgs/[orgSlug]/projects/[appSubdomain]/settings/authentication',
+      '/orgs/[orgSlug]/projects/[appSubdomain]/auth/settings',
     ),
-  ).toBe('/settings/authentication');
+  ).toBe('/auth/settings');
 });
 
 test('should truncate at the first dynamic segment after appSubdomain', () => {
@@ -53,12 +53,20 @@ test('should truncate at the first dynamic segment for remote schemas', () => {
   ).toBe('/graphql/remote-schemas');
 });
 
-test('should return /storage when on a bucket detail page', () => {
+test('should return /storage/buckets when on a bucket detail page', () => {
   expect(
     getProjectFeaturePagePath(
-      '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
+      '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
     ),
-  ).toBe('/storage');
+  ).toBe('/storage/buckets');
+});
+
+test('should return /functions/browser when on a function detail page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/browser/[...functionSlug]',
+    ),
+  ).toBe('/functions/browser');
 });
 
 test('should return /database/schema/default when on the schema navigator page', () => {
@@ -67,4 +75,20 @@ test('should return /database/schema/default when on the schema navigator page',
       '/orgs/[orgSlug]/projects/[appSubdomain]/database/schema/[dataSourceSlug]',
     ),
   ).toBe('/database/schema/default');
+});
+
+test('should return /database/native-queries/default when on a native queries page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]/queries/[querySlug]',
+    ),
+  ).toBe('/database/native-queries/default');
+});
+
+test('should return /database/console/default when on the SQL console page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/database/console/[dataSourceSlug]',
+    ),
+  ).toBe('/database/console/default');
 });

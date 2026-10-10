@@ -26,7 +26,7 @@ pnpm test                    # Run lint + all vitests
 pnpm test:vitest             # Run all vitests (unit/integration tests)
 pnpm test:watch              # Run vitests in watch mode
 vitest run <file>           # Run a single test file
-vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
+vitest run --reporter=verbose src/features/orgs/guards/OrganizationGuard/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
 Run Vitest with `dashboard/` as the working directory so it loads
@@ -73,12 +73,22 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 
 ### Navigation
 
+A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
+
+- Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the query cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
+- Project settings pages: `<AppLayout><ProjectScope><ProjectStateGate><SettingsGuard><SettingsArea>{page}</SettingsArea></SettingsGuard></ProjectStateGate></ProjectScope></AppLayout>`.
+- Sections with route tabs (Database, GraphQL, …) use their area component from `features/orgs/projects/<area>/layout/<Area>Area.tsx` inside `ProjectScope`. Each area passes its route tabs to the shared `AreaLayout` (`features/orgs/projects/common/layout/AreaLayout`; new tabbed areas do the same), which composes `ProjectStateGate` below the tabs, keeping navigation available while the project is paused; do not add a second gate to these pages. Their settings pages wrap the settings content in `SettingsGuard` and `SettingsArea`.
+- Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
+
+Write route-tab links and settings-tab links as explicit JSX, and select settings content with an explicit switch or conditional. Do not generate these UIs from arrays, configuration objects, `.map()`, `Object.entries()`, or generic tab builders. Parameterized tests and command-palette catalogs are exempt.
+
 When creating a new feature page, check whether it needs to be added to:
 
-- The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
-- `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
-- `MainNav/nav-config.tsx`, which defines sidebar navigation.
-- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
+- The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which `ProjectStateGate` reads via `requiresRunningProject()` / `hasSidebarSkeleton()` to show the project-state screen. They only take effect on pages that compose `ProjectStateGate`.
+- `components/layout/DashboardNavigation/ProjectNavigation.tsx` or `components/layout/DashboardNavigation/OrganizationNavigation.tsx` for visible sidebar entries.
+- The area's `features/orgs/projects/<area>/layout/<Area>RouteTabs.tsx` for its route tabs.
+- `features/command-palette/catalog.tsx` (page names, routes, palette gates via `isHiddenFromPalette`, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it. A page's palette `gate` only hides it in the command palette; it does not control sidebar entries or direct page access.
 
 ### Helpers and references
 

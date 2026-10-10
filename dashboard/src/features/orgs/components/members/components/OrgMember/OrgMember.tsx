@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/v3/alert-dialog';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
+import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -239,7 +239,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveMemberFromOrg}
-              className={buttonVariants({ variant: 'destructive' })}
+              variant="destructive"
             >
               Continue
             </AlertDialogAction>
@@ -316,7 +316,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               </div>
               <DialogFooter>
                 <Button
-                  variant="secondary"
+                  variant="outline-emboss"
                   type="button"
                   onClick={handleDismissDialog}
                 >

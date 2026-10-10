@@ -1,345 +1,167 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Lock } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/form/Form';
-import { FormInput } from '@/components/form/FormInput';
+import { type PropsWithChildren, type ReactElement, useEffect } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import {
-  SettingsCard,
-  SettingsCardContent,
-  SettingsCardFooter,
-  SettingsCardHeader,
-} from '@/components/layout/SettingsCard';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Alert } from '@/components/ui/v3/alert';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { TransferProject } from '@/features/orgs/components/TransferProject';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
-import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
-import { useIsPausing } from '@/features/orgs/projects/common/hooks/useIsPausing';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useIsUnpauseDisabled } from '@/features/orgs/projects/common/hooks/useIsUnpauseDisabled';
-import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
-import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
-import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
-import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
-import {
-  useBillingDeleteAppMutation,
-  useUpdateApplicationMutation,
-} from '@/generated/graphql';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { ApplicationStatus } from '@/types/application';
-import { slugifyString } from '@/utils/helpers';
+  AreaSidebarGroup,
+  AreaSidebarLink,
+  AreaSidebarNav,
+  AreaSidebarRoot,
+} from '@/components/layout/AreaSidebar';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
+import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
+import { GeneralSettings } from '@/features/orgs/projects/general/settings/components/GeneralSettings';
+import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/settings/components/ComputeResourcesSettings';
+import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
-const projectNameValidationSchema = Yup.object({
-  name: Yup.string()
-    .required('This field is required.')
-    .min(3, 'Must be at least 3 characters.')
-    .max(32, 'Must be at most 32 characters.'),
-});
-
-export type ProjectNameValidationSchema = Yup.InferType<
-  typeof projectNameValidationSchema
->;
-
-export default function SettingsGeneralPage() {
+function RedirectToGeneralTab() {
   const router = useRouter();
-  const isPlatform = useIsPlatform();
-  const { openAlertDialog } = useDialog();
-
-  const isOwner = useIsCurrentUserOwner();
-  const { currentOrg: org } = useOrgs();
-  const { project, loading } = useProject();
-  const { state } = useAppState();
-  const track = useTrackEvent();
-
-  const { services } = useRunServices();
-
-  const showWarning = useMemo(() => {
-    const isPlanFree = org?.plan?.isFree;
-
-    if (isPlanFree) {
-      return false;
-    }
-
-    return services?.some(
-      (service) => (service?.config?.resources?.storage?.length ?? 0) > 0,
-    );
-  }, [org?.plan?.isFree, services]);
-
-  const [updateApp] = useUpdateApplicationMutation();
-  const [deleteApplication] = useBillingDeleteAppMutation();
-  const { onPause, loading: pauseLoading } = usePauseApplication();
-  const { onUnpause, loading: unpauseLoading } = useUnpauseApplication();
-  const isPauseDisabled = useIsPauseDisabled();
-  const isUnpauseDisabled = useIsUnpauseDisabled();
-  const isPausing = useIsPausing();
-  const isUnpausing = useIsUnpausing();
-
-  const form = useForm<ProjectNameValidationSchema>({
-    mode: 'onSubmit',
-    reValidateMode: 'onSubmit',
-    defaultValues: {
-      name: project?.name,
-    },
-    resolver: yupResolver(projectNameValidationSchema),
-    criteriaMode: 'all',
-    shouldFocusError: true,
-  });
-
-  const { formState } = form;
 
   useEffect(() => {
-    if (!loading) {
-      form.reset({
-        name: project?.name,
-      });
-    }
-  }, [loading, project?.name, form]);
-
-  async function handleProjectNameChange(data: ProjectNameValidationSchema) {
-    const newProjectSlug = slugifyString(data.name);
-
-    if (newProjectSlug.length < 1 || newProjectSlug.length > 32) {
-      form.setError('name', {
-        message:
-          'A unique URL cannot be generated from this name. Please remove invalid characters if there are any or try a different name.',
-      });
-
+    if (!router.isReady) {
       return;
     }
 
-    const updateAppMutation = updateApp({
-      variables: {
-        appId: project?.id,
-        app: {
-          name: data.name,
-          slug: newProjectSlug,
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await updateAppMutation;
-        form.reset({ name: data.name });
-      },
-      {
-        loadingMessage: `Project name is being updated...`,
-        successMessage: `Project name has been updated successfully.`,
-        errorMessage: getLockedProjectErrorMessage(
-          'An error occurred while trying to update project name.',
-        ),
-      },
+    void router.replace(
+      { pathname: router.pathname, query: { ...router.query, tab: 'general' } },
+      undefined,
+      { shallow: true },
     );
+  }, [router]);
+
+  return null;
+}
+
+function ProjectSettingsTabContent() {
+  const router = useRouter();
+
+  switch (getSingleQueryParam(router.query.tab)) {
+    case 'general':
+      return <GeneralSettings />;
+    case 'compute-resources':
+      return <ComputeResourcesSettings />;
+    case 'environment-variables':
+      return <EnvironmentVariablesSettings />;
+    case 'secrets':
+      return <SecretsSettings />;
+    case 'editor':
+      return <TOMLEditor />;
+    default:
+      return <RedirectToGeneralTab />;
+  }
+}
+
+function ProjectSettingsSidebar() {
+  const router = useRouter();
+  const orgSlug = getSingleQueryParam(router.query.orgSlug);
+  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
+
+  if (!orgSlug || !appSubdomain) {
+    return null;
   }
 
-  async function handleDeleteApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await deleteApplication({
-          variables: {
-            appID: project?.id,
-          },
-        });
-        track('Project Deleted');
+  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/settings`;
 
-        await router.push(`/orgs/${org?.slug}/projects`);
-      },
-      {
-        loadingMessage: `Deleting ${project?.name}...`,
-        successMessage: `${project?.name} has been deleted successfully.`,
-        errorMessage: getLockedProjectErrorMessage(
-          `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
-        ),
-      },
-    );
-  }
-
-  const showWakeUpCard =
-    state === ApplicationStatus.Paused || state === ApplicationStatus.Unpausing;
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
+  // Docked against the app sidebar, unlike the area settings pages whose
+  // sidebar is centered with the content.
   return (
-    <div className="grid grid-flow-row gap-8">
-      <FormProvider {...form}>
-        <Form onSubmit={handleProjectNameChange}>
-          <SettingsCard>
-            <SettingsCardHeader
-              title="Project Name"
-              description="The name of the project."
-            />
-
-            <SettingsCardContent className="lg:grid-cols-4">
-              <FormInput
-                control={form.control}
-                name="name"
-                label="Project Name"
-                containerClassName="col-span-2"
-              />
-            </SettingsCardContent>
-
-            <SettingsCardFooter>
-              <ButtonWithLoading
-                type="submit"
-                disabled={!formState.isDirty || !isPlatform}
-                loading={formState.isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                Save
-              </ButtonWithLoading>
-            </SettingsCardFooter>
-          </SettingsCard>
-        </Form>
-      </FormProvider>
-
-      {showWakeUpCard ? (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Wake up Project"
-            description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-          />
-
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={isUnpauseDisabled}
-              loading={unpauseLoading || isUnpausing}
-              onClick={onUnpause}
-              className="w-full sm:w-auto"
-            >
-              {isUnpausing ? 'Waking up...' : 'Wake up'}
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      ) : null}
-
-      {!showWakeUpCard && (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Pause Project"
-            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-          />
-
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={isPauseDisabled}
-              loading={pauseLoading || isPausing}
-              onClick={() => {
-                openAlertDialog({
-                  title: 'Pause Project?',
-                  payload: (
-                    <div className="flex flex-col gap-2">
-                      {showWarning ? (
-                        <Alert
-                          variant="warning"
-                          className="flex flex-col gap-3 text-left"
-                        >
-                          <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                            <p className="flex items-start gap-1 font-semibold">
-                              <span>⚠</span> Warning: This action will delete
-                              all volume data for your Run services.
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-4">
-                            <p>
-                              Pausing this project will delete all persistent
-                              volume data for your Run services. No automatic
-                              backups are made. Please backup your data manually
-                              to prevent loss. Contact{' '}
-                              <Link
-                                href="/support"
-                                target="_blank"
-                                className="text-primary-text underline"
-                                rel="noopener noreferrer"
-                              >
-                                support
-                              </Link>{' '}
-                              with any questions.
-                            </p>
-                          </div>
-                        </Alert>
-                      ) : null}
-                      <p className="text-pretty">
-                        Are you sure you want to pause this project? It will not
-                        be accessible until you unpause it.
-                      </p>
-                    </div>
-                  ),
-                  props: {
-                    maxWidth: 'sm',
-                    onPrimaryAction: onPause,
-                  },
-                });
-              }}
-              className="w-full sm:w-auto"
-            >
-              {isPausing ? 'Pausing...' : 'Pause'}
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
-
-      <TransferProject />
-
-      {isPlatform && (
-        <SettingsCard className="border-destructive">
-          <SettingsCardHeader
-            title="Delete Project"
-            description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-          />
-
-          <SettingsCardFooter>
-            {!isOwner && (
-              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
-                <Lock className="h-4 w-4 shrink-0" />
-                Only organization admins can delete this project.
-              </p>
-            )}
-            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-              <RemoveApplicationDialog
-                handler={handleDeleteApplication}
-                trigger={
-                  <ButtonWithLoading
-                    type="button"
-                    disabled={!isOwner}
-                    variant="destructive"
-                    className="w-full sm:w-auto"
-                  >
-                    Delete
-                  </ButtonWithLoading>
-                }
-              />
-            </span>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
-    </div>
+    <AreaSidebarRoot className="flex flex-col bg-background md:border-r">
+      <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
+        Settings
+      </div>
+      <AreaSidebarNav
+        ariaLabel="Project settings navigation"
+        className="h-auto min-h-0 flex-1 md:overflow-auto"
+      >
+        <AreaSidebarGroup label="Project">
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=general`}
+            exact
+            shallow
+            scroll={false}
+          >
+            General
+          </AreaSidebarLink>
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=compute-resources`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Compute Resources
+          </AreaSidebarLink>
+        </AreaSidebarGroup>
+        <AreaSidebarGroup label="Configuration">
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=environment-variables`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Environment Variables
+          </AreaSidebarLink>
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=secrets`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Secrets
+          </AreaSidebarLink>
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=editor`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Configuration Editor
+          </AreaSidebarLink>
+        </AreaSidebarGroup>
+      </AreaSidebarNav>
+    </AreaSidebarRoot>
   );
+}
+
+function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
+  const router = useRouter();
+
+  if (getSingleQueryParam(router.query.tab) === 'editor') {
+    return (
+      <RetryableErrorBoundary resetKeys={[router.asPath]}>
+        {children}
+      </RetryableErrorBoundary>
+    );
+  }
+
+  return <SettingsArea>{children}</SettingsArea>;
+}
+
+export default function SettingsGeneralPage() {
+  return <ProjectSettingsTabContent />;
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <SettingsGuard>
+            <div className="flex h-full min-h-0 flex-col md:flex-row">
+              <ProjectSettingsSidebar />
+              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+                <ProjectSettingsContentLayout>
+                  {page}
+                </ProjectSettingsContentLayout>
+              </div>
+            </div>
+          </SettingsGuard>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

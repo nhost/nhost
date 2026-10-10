@@ -259,8 +259,8 @@ export default function EditTableForm({
             <Button
               onClick={resetError}
               size="sm"
-              variant="destructive"
-              className="bg-transparent text-destructive hover:bg-destructive/10"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               Clear
             </Button>

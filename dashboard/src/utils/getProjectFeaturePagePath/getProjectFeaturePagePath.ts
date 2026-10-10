@@ -1,12 +1,13 @@
 /**
  * Maps computed feature paths that are not valid navigable pages to their
  * actual parent page. This is needed when a dynamic route's direct parent
- * segment is not a list page (e.g. `/storage/bucket` has no index, only
- * `/storage` does).
+ * segment is not a list page (e.g. `/database/schema` has no index, only
+ * `/database/schema/default` does).
  */
 const featurePathOverrides: Record<string, string> = {
-  '/storage/bucket': '/storage',
   '/database/schema': '/database/schema/default',
+  '/database/native-queries': '/database/native-queries/default',
+  '/database/console': '/database/console/default',
 };
 
 /**

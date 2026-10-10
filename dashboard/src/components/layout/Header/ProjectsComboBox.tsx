@@ -1,38 +1,41 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Box } from 'lucide-react';
+import { Box, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
-import ProjectStatus from '@/components/layout/Header/ProjectStatus';
+import ProjectLabel from '@/components/layout/Header/ProjectLabel';
+import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
+import { getProjectSwitchHref } from '@/utils/getProjectSwitchHref';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export default function ProjectsComboBox() {
-  const {
-    query: { appSubdomain },
-    pathname,
-    push,
-  } = useRouter();
+  const { query, pathname, push } = useRouter();
+  const { appSubdomain } = query;
 
-  const { state: appState } = useAppState();
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
-  const { project } = useProject();
-  const isGitHubConnected = !!project?.githubRepository;
 
   const selectedProjectFromUrl = apps.find(
     (app) => app.subdomain === appSubdomain,
   );
 
   const handleProjectSelect = (subdomain: string) => {
-    const featurePath = getProjectFeaturePagePath(pathname);
-    push(`/orgs/${orgSlug}/projects/${subdomain}${featurePath}`);
+    if (!orgSlug) {
+      return;
+    }
+
+    push(
+      getProjectSwitchHref({
+        pathname,
+        tab: getSingleQueryParam(query.tab),
+        orgSlug,
+        subdomain,
+      }),
+    );
   };
 
   const options = apps.map((app) => ({
@@ -65,42 +68,45 @@ export default function ProjectsComboBox() {
     ),
   }));
 
-  const triggerLabel = selectedProjectFromUrl ? (
-    <div className="flex items-center gap-2">
-      <ProjectStatusIndicator status={appState} />
-      {selectedProjectFromUrl.name}
-      {isGitHubConnected && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex items-center">
-              <SiGithub className="h-3.5 w-3.5" />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent
-            sideOffset={8}
-            className="pointer-events-none max-w-56"
-          >
-            <p className="font-medium">GitHub connected</p>
-            <p className="text-muted-foreground">
-              Metadata changes may be overridden by the next deployment.
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-      <ProjectStatus />
-    </div>
+  const selectedLabel = selectedProjectFromUrl ? (
+    <ProjectLabel name={selectedProjectFromUrl.name} />
   ) : null;
 
+  const footerSlot = (
+    <>
+      <CommandSeparator className="mt-1" />
+      <CommandItem
+        forceMount
+        value="new-project"
+        onSelect={() => {
+          if (!orgSlug) {
+            return;
+          }
+
+          push(`/orgs/${orgSlug}/projects/new`);
+        }}
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        New Project
+      </CommandItem>
+    </>
+  );
+
   return (
-    <div className="flex items-center gap-1">
-      <HeaderCombobox
-        options={options}
-        value={selectedProjectFromUrl?.subdomain ?? null}
-        triggerLabel={triggerLabel}
-        placeholder="Select a project"
-        searchPlaceholder="Select a project..."
-        onChange={handleProjectSelect}
-      />
-    </div>
+    <HeaderCombobox
+      options={options}
+      value={selectedProjectFromUrl?.subdomain ?? null}
+      placeholder="Select a project"
+      searchPlaceholder="Select a project..."
+      footerSlot={footerSlot}
+      linkHref={
+        selectedProjectFromUrl && orgSlug
+          ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`
+          : undefined
+      }
+      linkContent={selectedLabel}
+      aria-label="Switch project"
+      onChange={handleProjectSelect}
+    />
   );
 }

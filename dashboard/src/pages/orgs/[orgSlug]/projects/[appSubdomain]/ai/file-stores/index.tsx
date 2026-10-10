@@ -3,17 +3,18 @@ import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -73,7 +74,10 @@ export default function FileStoresPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <div className="bg-background p-4">
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
+        rootClassName="bg-transparent"
+      >
         <UpgradeToProBanner
           section="ai-file-stores"
           title="Upgrade to Nhost Pro."
@@ -84,7 +88,7 @@ export default function FileStoresPage() {
             </p>
           }
         />
-      </div>
+      </Container>
     );
   }
 
@@ -94,12 +98,12 @@ export default function FileStoresPage() {
 
   if (aiServiceUnavailable || !isGraphiteEnabled) {
     return (
-      <div className="w-full bg-background p-4">
+      <div className="w-full px-4 pt-8 pb-8">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -118,7 +122,7 @@ export default function FileStoresPage() {
 
   if (fileStores.length === 0 && !loading) {
     return (
-      <div className="w-full bg-background p-6">
+      <div className="w-full px-6 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <FileStoresIcon className="h-10 w-10" />
 
@@ -156,7 +160,7 @@ export default function FileStoresPage() {
   }
 
   return (
-    <div className="flex w-full flex-col overflow-hidden">
+    <div className="flex w-full flex-col overflow-x-hidden">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateFileStoreForm}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -176,16 +180,10 @@ export default function FileStoresPage() {
 
 FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <AIArea>{page}</AIArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

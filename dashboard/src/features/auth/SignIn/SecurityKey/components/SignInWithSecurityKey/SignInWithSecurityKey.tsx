@@ -25,16 +25,13 @@ function SignInWithSecurityKey({
     <>
       <VerifyEmailDialog open={open} setOpen={setOpen} />
       <Button
-        variant="ghost"
-        className={cn(
-          '!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50',
-          className,
-        )}
+        variant="outline-emboss"
+        className={cn('w-full gap-2 text-sm+', className)}
         disabled={disabled}
         onClick={signInWithSecurityKey}
         aria-describedby={ariaDescribedBy}
       >
-        <Fingerprint size={14} />
+        <Fingerprint />
         Continue with a security key
       </Button>
     </>

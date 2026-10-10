@@ -5,8 +5,8 @@ import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
+import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -200,7 +201,7 @@ export default function OnboardingPage() {
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="rounded-lg border border-border bg-card p-6 shadow-sm"
+                className="rounded-lg border border-border p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -304,7 +305,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border border-border p-6 shadow-sm">
         <div className="mb-6 text-center">
           <h2 className="mb-2 font-bold text-2xl">Welcome to Nhost!</h2>
           <p className="text-muted-foreground">
@@ -379,7 +380,7 @@ export default function OnboardingPage() {
                       >
                         {plansData?.plans?.map((plan) => (
                           <FormItem key={plan.id}>
-                            <FormLabel className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent-background">
+                            <FormLabel className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent">
                               <div className="flex items-center space-x-3">
                                 <FormControl>
                                   <RadioGroupItem value={plan.id} />
@@ -454,11 +455,8 @@ export default function OnboardingPage() {
 
 OnboardingPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout
-      title="Onboarding - Welcome to Nhost"
-      withMainNav={false}
-    >
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Onboarding - Welcome to Nhost">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };

@@ -52,7 +52,7 @@ export default function DataGridPagination({
         disabled={currentPage === 1}
         onClick={onOpenPrevPage}
         aria-label="Previous page"
-        className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
+        className="h-max w-max border-none bg-transparent dark:hover:bg-accent"
         {...prevButtonProps}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -75,7 +75,7 @@ export default function DataGridPagination({
         disabled={currentPage === totalPages}
         onClick={onOpenNextPage}
         aria-label="Next page"
-        className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
+        className="h-max w-max border-none bg-transparent dark:hover:bg-accent"
         {...nextButtonProps}
       >
         <ChevronRight className="h-4 w-4" />

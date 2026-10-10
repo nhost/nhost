@@ -1,5 +1,4 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import Head from 'next/head';
 import type { PropsWithChildren } from 'react';
@@ -22,13 +21,6 @@ function ThemeProviderContent({
     <MaterialThemeProvider theme={theme}>
       {!manualColor && <ThemeDocumentClass />}
       <CssBaseline />
-      <GlobalStyles
-        styles={{
-          'html, body': {
-            backgroundColor: `${theme.palette.background.default} !important`,
-          },
-        }}
-      />
       <Head>
         <meta name="theme-color" content={theme.palette.background.paper} />
       </Head>

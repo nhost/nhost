@@ -143,7 +143,7 @@ function ConditionValue({
 
   if (operator === '_is_null') {
     const triggerClasses =
-      'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+      'border focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
         name={inputName}
