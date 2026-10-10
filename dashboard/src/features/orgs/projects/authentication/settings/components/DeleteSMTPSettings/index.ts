@@ -1,1 +1,1 @@
-export { default as DeleteSTMPSettings } from './DeleteSMTPSettings';
+export { default as DeleteSMTPSettings } from './DeleteSMTPSettings';
