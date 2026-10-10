@@ -39,7 +39,7 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
         className="h-8 w-8 flex-i"
         onClick={() => removeFilter(index)}
       >
-        <X width={12} height={12} />
+        <X className="size-3" />
       </Button>
     </div>
   );

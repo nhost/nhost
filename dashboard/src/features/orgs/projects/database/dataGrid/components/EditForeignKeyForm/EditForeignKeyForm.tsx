@@ -88,8 +88,8 @@ export default function EditForeignKeyForm({
             <Button
               onClick={() => setError(null)}
               size="sm"
-              variant="destructive"
-              className="bg-transparent text-destructive hover:bg-destructive/10"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               Clear
             </Button>
