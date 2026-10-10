@@ -1,7 +1,9 @@
+import { SiGithub } from '@icons-pack/react-simple-icons';
 import NextLink from 'next/link';
 import { FormInput } from '@/components/form/FormInput';
-import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
+import { TextLink } from '@/components/ui/v3/text-link';
 import useSignInWithEmailAndPasswordForm, {
   type SignInWithEmailAndPasswordFormValues,
 } from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useSignInWithEmailAndPasswordForm';
@@ -33,27 +35,26 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           type="password"
           placeholder="Password"
         />
-        <NextLink
+        <TextLink
           href="/password/new"
           className="justify-self-start font-semibold"
         >
           Forgot password?
-        </NextLink>
-        <Button
+        </TextLink>
+        <ButtonWithLoading
           type="submit"
-          variant="outline"
-          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
+          className="w-full"
           disabled={isLoading}
           loading={isLoading}
         >
           Sign In
-        </Button>
-        <p color="secondary" className="text-center">
-          <span className="text-[#A2B3BE]">or </span>
-          <NextLink className="font-semibold" href="/signin">
-            sign in with GitHub
+        </ButtonWithLoading>
+        <Button variant="outline-emboss" className="gap-2 text-sm+" asChild>
+          <NextLink href="/signin">
+            <SiGithub size={14} />
+            Sign in with GitHub
           </NextLink>
-        </p>
+        </Button>
       </form>
     </Form>
   );

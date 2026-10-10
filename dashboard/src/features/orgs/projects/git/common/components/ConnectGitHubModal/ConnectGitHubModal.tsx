@@ -298,7 +298,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           <GithubAuthButton
             redirectTo={`${hostname}?signinProvider=github&state=signin-refresh:${org.slug}:${project!.subdomain}`}
             buttonText="Sign in with GitHub"
-            className="!bg-primary !text-white disabled:!text-white disabled:!text-opacity-60 dark:!bg-white dark:!text-black dark:disabled:!text-black w-full max-w-72 gap-2"
+            className="w-full max-w-72 gap-2"
           />
         </div>
       );
