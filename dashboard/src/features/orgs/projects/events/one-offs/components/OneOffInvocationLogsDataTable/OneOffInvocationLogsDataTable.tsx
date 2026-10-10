@@ -73,7 +73,7 @@ export default function OneOffInvocationLogsDataTable({
               {headerGroup.headers.map((header, index) => (
                 <TableHead
                   className={cn(
-                    'group relative overflow-hidden bg-paper font-bold font-display text-primary-text text-xs',
+                    'group relative overflow-hidden bg-transparent font-bold font-display text-primary-text text-xs',
                     'border-divider border-t-1 border-r-1 border-b-1',
                     '!h-8 p-0',
                     'last:border-r-0',
@@ -111,7 +111,7 @@ export default function OneOffInvocationLogsDataTable({
           {!isLoading &&
             table.getRowModel().rows?.length > 0 &&
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className="hover:bg-background/60">
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
