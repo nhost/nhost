@@ -194,7 +194,10 @@ export default defineConfig({
                 {
                   label: 'Local Development',
                   collapsed: false,
-                  items: [{ slug: 'getting-started/local-development/cli' }],
+                  items: [
+                    { slug: 'getting-started/local-development/cli' },
+                    { slug: 'getting-started/local-development/templates' },
+                  ],
                 },
                 {
                   label: 'Tutorials',
