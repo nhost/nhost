@@ -109,7 +109,7 @@
     "graphql-tag": "^2.12.7",
     "jest": "^29.7.0",
     "openapi3-ts": "^4.6.1",
-    "rollup": "^4.64.0",
+    "rollup": "^4.64.3",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.51.2",
     "ts-jest": "^29.4.14",
