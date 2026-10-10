@@ -16,7 +16,7 @@ import {
   screen,
   waitFor,
 } from '@/tests/testUtils';
-import ProjectLayoutContent from './ProjectLayoutContent';
+import ProjectGuard from './ProjectGuard';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -29,9 +29,9 @@ vi.mock('next/router', () => ({
 
 function TestComponent() {
   return (
-    <ProjectLayoutContent>
+    <ProjectGuard>
       <h1>Project loaded</h1>
-    </ProjectLayoutContent>
+    </ProjectGuard>
   );
 }
 
@@ -65,7 +65,7 @@ const getUseRouterObject = (
   isFallback: false,
 });
 
-describe('ProjectLayoutContent', () => {
+describe('ProjectGuard', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'production';
@@ -98,7 +98,6 @@ describe('ProjectLayoutContent', () => {
       const loadingIndicator = screen.getByTestId('projectLoadingIndicator');
 
       expect(loadingIndicator).toBeInTheDocument();
-      expect(loadingIndicator.closest('main')).not.toBeNull();
       expect(screen.queryByText('Project loaded')).not.toBeInTheDocument();
     });
 
