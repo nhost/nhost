@@ -10,7 +10,7 @@ packages:
   - "!**/test/**"
   - "!out/**"
   - services/functions
-  - "!**/backend/functions"
+  - "!**/backend*/functions"
 
 sharedWorkspaceLockfile: false
 preferWorkspacePackages: true
