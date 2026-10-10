@@ -318,6 +318,23 @@ const functionsSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
+const runSettingsTabChildren = toSettingsTabNodes(
+  'project-run',
+  'run/settings',
+  [
+    {
+      slug: 'custom-domain',
+      title: 'Run Custom Domain',
+      keywords: ['run', 'settings', 'custom domain'],
+    },
+    {
+      slug: 'rate-limiting',
+      title: 'Run Rate Limiting',
+      keywords: ['run', 'settings', 'rate limiting', 'rate limits'],
+    },
+  ],
+);
+
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
@@ -383,6 +400,15 @@ const subPageChildren: Record<
     },
     { settings: functionsSettingsTabChildren },
   ),
+  run: toSubPageNodes(
+    projectSubPagesBySlug.run,
+    'project-run',
+    {
+      services: ['run', 'services', 'containers'],
+      settings: ['run', 'settings'],
+    },
+    { settings: runSettingsTabChildren },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -406,8 +432,6 @@ const settingsPageMeta: Record<
     ],
   },
   deployments: { keywords: ['settings', 'releases'] },
-  'custom-domains': { keywords: ['settings', 'domains'] },
-  'rate-limiting': { keywords: ['settings', 'limits'] },
   ai: { keywords: ['settings', 'embeddings'] },
   metrics: {
     id: 'project-settings-observability',
@@ -489,7 +513,10 @@ const projectPageMeta: Record<
     keywords: ['serverless', 'code'],
     children: subPageChildren.functions,
   },
-  run: { keywords: ['services', 'docker'] },
+  run: {
+    keywords: ['services', 'docker'],
+    children: subPageChildren.run,
+  },
   ai: {
     keywords: ['auto embeddings', 'embeddings'],
     children: subPageChildren.ai,

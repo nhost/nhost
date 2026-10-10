@@ -209,6 +209,21 @@ describe('AppSidebar', () => {
       );
     });
 
+    it('keeps Run active on its settings page', () => {
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/run/settings',
+        '/orgs/nhost/projects/dashboard/run/settings?tab=rate-limiting',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      expect(screen.getByRole('link', { name: 'Run' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    });
+
     it('falls back to the path while router query params are not ready', () => {
       mockRoute(
         '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores',
