@@ -1,0 +1,53 @@
+openapi: "3.0.0"
+info:
+  title: Sensitive Debug fixture
+  version: "1.0"
+paths:
+  /credentials:
+    get:
+      operationId: inspectCredentials
+      parameters:
+        - name: ticket
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: trace
+          in: header
+          required: false
+          schema:
+            type: string
+            x-nhost-sensitive: true
+      responses:
+        "200":
+          description: OK
+components:
+  schemas:
+    Credentials:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        accessToken:
+          type: string
+        codeChallenge:
+          type: string
+        hmacCreateSecret:
+          type: boolean
+        unusualValue:
+          type: string
+          x-nhost-sensitive: true
+      required:
+        - username
+        - password
+        - accessToken
+        - codeChallenge
+        - hmacCreateSecret
+        - unusualValue
