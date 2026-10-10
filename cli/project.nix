@@ -55,13 +55,19 @@ let
 
       # starter templates (embedded into the CLI binary by `nhost init
       # --template`). The fileset is not git-aware, so a developer's
-      # node_modules and .next are cut out explicitly; maybeMissing keeps the
-      # build working when they were never installed.
+      # node_modules and build output are cut out explicitly; maybeMissing
+      # keeps the build working when they were never installed. A template
+      # missing from this list is not in the Nix source at all, and the
+      # //go:embed directives naming it fail the build.
       ../templates/embed.go
       ../templates/embed_test.go
       (fs.difference ../templates/nextjs (fs.unions [
         (fs.maybeMissing ../templates/nextjs/frontend/node_modules)
         (fs.maybeMissing ../templates/nextjs/frontend/.next)
+      ]))
+      (fs.difference ../templates/react (fs.unions [
+        (fs.maybeMissing ../templates/react/frontend/node_modules)
+        (fs.maybeMissing ../templates/react/frontend/dist)
       ]))
 
       # docs

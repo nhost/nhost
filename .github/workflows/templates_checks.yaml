@@ -42,7 +42,7 @@ jobs:
       matrix:
         # Add a template here when it lands, or it ships unchecked.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
-        template: [nextjs]
+        template: [nextjs, react]
     defaults:
       run:
         working-directory: templates/${{ matrix.template }}/frontend
@@ -83,8 +83,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs]
-        # One entry per directory under frontend/src/app/auth/.
+        template: [nextjs, react]
+        # One entry per directory under the template's own auth/ directory.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         method: [password, magic-link, otp, oauth]
     defaults:
@@ -109,11 +109,24 @@ jobs:
         env:
           METHOD: ${{ matrix.method }}
         run: |
-          rm -r "src/app/auth/$METHOD"
-          node - <<'JS'
+          # A framework decides where it keeps these, so they are found rather
+          # than named. templates/check-ci-matrix.sh finds the same auth/
+          # directory to decide which methods this job owes a run.
+          auth_dir=$(find src -type d -name auth -not -path '*/node_modules/*')
+          methods_file=$(find src -type f -name methods.ts \
+            -not -path '*/node_modules/*')
+
+          if [ ! -d "$auth_dir" ] || [ ! -f "$methods_file" ]; then
+            echo "::error::expected exactly one auth/ directory and one" \
+              "methods.ts under src; found '$auth_dir' and '$methods_file'"
+            exit 1
+          fi
+
+          rm -r "$auth_dir/$METHOD"
+          METHODS_FILE="$methods_file" node - <<'JS'
           const fs = require('node:fs');
 
-          const path = 'src/app/signin/methods.ts';
+          const path = process.env.METHODS_FILE;
           const href = `/auth/${process.env.METHOD}`;
           const source = fs.readFileSync(path, 'utf8');
 
@@ -162,7 +175,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs]
+        template: [nextjs, react]
         # One entry per directory under `templates/<template>/ui/`.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         ui: [none]
@@ -191,7 +204,9 @@ jobs:
         run: |
           go build -o "$RUNNER_TEMP/nhost" ./cli
 
-          methods=$(find "templates/$TEMPLATE/frontend/src/app/auth" \
+          auth_dir=$(find "templates/$TEMPLATE/frontend/src" -type d -name auth)
+
+          methods=$(find "$auth_dir" \
             -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
             sort | paste -sd, -)
 

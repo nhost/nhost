@@ -26,4 +26,14 @@ import "embed"
 //go:embed nextjs/frontend/vitest.config.ts
 //go:embed all:nextjs/frontend/src
 //go:embed all:nextjs/ui
+//go:embed react/AGENTS.md react/CLAUDE.md react/SKILLS.md
+//go:embed all:react/.claude
+//go:embed react/frontend/.env.example react/frontend/.gitignore
+//go:embed react/frontend/README.md
+//go:embed react/frontend/biome.json react/frontend/components.json
+//go:embed react/frontend/index.html react/frontend/package.json
+//go:embed react/frontend/pnpm-lock.yaml react/frontend/pnpm-workspace.yaml
+//go:embed react/frontend/tsconfig.json react/frontend/vite.config.ts
+//go:embed all:react/frontend/src
+//go:embed all:react/ui
 var FS embed.FS

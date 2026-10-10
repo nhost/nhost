@@ -70,6 +70,14 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
 		},
+		{
+			name:         "react",
+			label:        "React",
+			authDir:      "frontend/src/auth",
+			methodsFile:  "frontend/src/signin/methods.ts",
+			componentsUI: "frontend/src/components/ui",
+			uiSystems:    reactUISystems(),
+		},
 	}
 }
 
@@ -342,7 +350,11 @@ func layTemplate(
 	}
 
 	dst := filepath.Join(ps.Root(), filepath.FromSlash(tmpl.methodsFile))
-	if err := os.WriteFile(dst, renderSignInMethods(methods), 0o600); err != nil { //nolint:mnd
+	if err := os.WriteFile(
+		dst,
+		renderSignInMethods(tmpl, methods),
+		0o600, //nolint:mnd
+	); err != nil {
 		return fmt.Errorf("writing %s: %w", dst, err)
 	}
 
@@ -477,9 +489,10 @@ func unselectedAuthDirs(tmpl starterTemplate, methods []signInMethod) map[string
 const signInMethodsHeader = `/**
  * The sign-in methods this app offers, one line each.
  *
- * Every method is its own directory under ` + "`app/auth/`" + `, and nothing outside that
- * directory imports from it. To drop a method: delete its directory, then
- * delete its line here. That is the whole procedure - see README.md.
+ * Every method is its own directory under ` + "`%s`" + `, and nothing
+ * outside that directory imports from it. To drop a method: delete its
+ * directory, then delete its line here. That is the whole procedure - see
+ * README.md.
  *
  * This file has no imports on purpose: it is what lets the sign-in page list
  * the methods without depending on any of them.
@@ -493,11 +506,20 @@ export type SignInMethod = {
 export const methods: SignInMethod[] = [
 `
 
+// authDirLabel is how the generated file points a reader at the method
+// directories: the template's authDir as a path from the frontend root, which
+// is the root every template's own tooling and imports are relative to.
+// Naming one framework's layout here would be wrong for the next template, and
+// the comment is the only instruction a developer gets for dropping a method.
+func authDirLabel(tmpl starterTemplate) string {
+	return strings.TrimPrefix(tmpl.authDir, "frontend/") + "/"
+}
+
 // renderSignInMethods writes methods.ts for a selection, in catalogue order.
-func renderSignInMethods(methods []signInMethod) []byte {
+func renderSignInMethods(tmpl starterTemplate, methods []signInMethod) []byte {
 	var b strings.Builder
 
-	b.WriteString(signInMethodsHeader)
+	fmt.Fprintf(&b, signInMethodsHeader, authDirLabel(tmpl))
 
 	for _, m := range methods {
 		fmt.Fprintf(
