@@ -68,3 +68,19 @@ test('should return /database/schema/default when on the schema navigator page',
     ),
   ).toBe('/database/schema/default');
 });
+
+test('should return /database/native-queries/default when on a native queries page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]/queries/[querySlug]',
+    ),
+  ).toBe('/database/native-queries/default');
+});
+
+test('should return /database/console/default when on the SQL console page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/database/console/[dataSourceSlug]',
+    ),
+  ).toBe('/database/console/default');
+});
