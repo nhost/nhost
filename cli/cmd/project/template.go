@@ -27,6 +27,13 @@ var (
 // starterTemplate is one entry of the catalogue: a directory under templates/
 // whose top-level entries are laid over the project root, next to the nhost
 // folder init itself writes.
+//
+// The paths below are where this template keeps the things the scaffold edits,
+// relative to the template's own directory. They are fields rather than
+// package constants because a framework decides its own layout: an App Router
+// app keeps its routes under frontend/src/app, and nothing says the next
+// template will. All of them are paths inside the embedded filesystem, so they
+// are slash-separated regardless of host.
 type starterTemplate struct {
 	// name is the directory under templates/ and what --template takes.
 	name string
@@ -34,13 +41,35 @@ type starterTemplate struct {
 	// else. What the template scaffolds is the two questions after this one,
 	// so a gloss here would both answer them early and crowd the line.
 	label string
+	// authDir holds one directory per sign-in method, named for the method, so
+	// a selection maps to files without a second table to keep in step.
+	authDir string
+	// methodsFile is the list of methods the sign-in page offers, which the
+	// scaffold generates from the selection.
+	methodsFile string
+	// componentsUI is the seam: everything in the app imports these modules and
+	// nothing imports past them, so swapping what is behind the path is the
+	// whole of changing UI system.
+	componentsUI string
+	// uiSystems are the component layers this template can be scaffolded with,
+	// in the order the picker offers them. They belong to the template because
+	// a component library is written for one framework: shadcn/ui is React, and
+	// its Vue and Svelte ports are different packages.
+	uiSystems []uiSystem
 }
 
 // catalogue lists the templates the binary ships, in the order the picker
 // offers them. Adding one is an entry here and a directory under templates/.
 func catalogue() []starterTemplate {
 	return []starterTemplate{
-		{name: "nextjs", label: "Next.js"},
+		{
+			name:         "nextjs",
+			label:        "Next.js",
+			authDir:      "frontend/src/app/auth",
+			methodsFile:  "frontend/src/app/signin/methods.ts",
+			componentsUI: "frontend/src/components/ui",
+			uiSystems:    reactUISystems(),
+		},
 	}
 }
 
@@ -254,7 +283,12 @@ func writeTemplate(
 	ui uiSystem,
 	pm packageManager,
 ) error {
-	err := layTemplate(ps, name, layout, methods, ui, pm)
+	tmpl, ok := lookupTemplate(name)
+	if !ok {
+		return fmt.Errorf("%w %q", errUnknownTemplate, name)
+	}
+
+	err := layTemplate(ps, tmpl, layout, methods, ui, pm)
 	if err == nil {
 		return nil
 	}
@@ -270,19 +304,22 @@ func writeTemplate(
 }
 
 // layTemplate writes the entries the layout leaves to write, without the
-// sign-in methods that were not selected. A method is a directory under
-// authDirPath plus an entry in methods.ts and nothing else, so skipping the
-// directory and rewriting that one file is the whole of it - the same two steps
-// the template documents for removing a method by hand afterwards.
+// sign-in methods that were not selected. A method is a directory under the
+// template's authDir plus an entry in its methodsFile and nothing else, so
+// skipping the directory and rewriting that one file is the whole of it - the
+// same two steps the template documents for removing a method by hand
+// afterwards.
 func layTemplate(
 	ps *clienv.PathStructure,
-	name string,
+	tmpl starterTemplate,
 	layout templateLayout,
 	methods []signInMethod,
 	ui uiSystem,
 	pm packageManager,
 ) error {
-	skip := unselectedAuthDirs(name, methods)
+	name := tmpl.name
+
+	skip := unselectedAuthDirs(tmpl, methods)
 	skip[path.Join(name, uiDirPath)] = true
 
 	for _, e := range layout.keep {
@@ -304,12 +341,12 @@ func layTemplate(
 		return fmt.Errorf("writing template %s: %w", name, err)
 	}
 
-	dst := filepath.Join(ps.Root(), filepath.FromSlash(methodsFilePath))
+	dst := filepath.Join(ps.Root(), filepath.FromSlash(tmpl.methodsFile))
 	if err := os.WriteFile(dst, renderSignInMethods(methods), 0o600); err != nil { //nolint:mnd
 		return fmt.Errorf("writing %s: %w", dst, err)
 	}
 
-	if err := writeUISystem(ps, name, ui); err != nil {
+	if err := writeUISystem(ps, tmpl, ui); err != nil {
 		return err
 	}
 
@@ -380,10 +417,10 @@ func retargetTemplateDocs(
 // dependencies it does not use out of the scaffolded package.json. The default
 // has neither an overlay nor anything to drop, because it is what frontend/
 // already holds.
-func writeUISystem(ps *clienv.PathStructure, name string, ui uiSystem) error {
+func writeUISystem(ps *clienv.PathStructure, tmpl starterTemplate, ui uiSystem) error {
 	if ui.overlay != "" {
-		src := path.Join(name, uiDirPath, ui.overlay)
-		dst := filepath.Join(ps.Root(), filepath.FromSlash(componentsUIPath))
+		src := path.Join(tmpl.name, uiDirPath, ui.overlay)
+		dst := filepath.Join(ps.Root(), filepath.FromSlash(tmpl.componentsUI))
 
 		if err := writeFS(templates.FS, src, dst); err != nil {
 			return fmt.Errorf("writing the %s UI system: %w", ui.name, err)
@@ -415,7 +452,7 @@ func writeUISystem(ps *clienv.PathStructure, name string, ui uiSystem) error {
 
 // unselectedAuthDirs are the method directories inside the embedded filesystem
 // that this selection leaves behind, as the paths writeFSExcept skips.
-func unselectedAuthDirs(name string, methods []signInMethod) map[string]bool {
+func unselectedAuthDirs(tmpl starterTemplate, methods []signInMethod) map[string]bool {
 	selected := make(map[string]bool, len(methods))
 	for _, m := range methods {
 		selected[m.name] = true
@@ -425,7 +462,7 @@ func unselectedAuthDirs(name string, methods []signInMethod) map[string]bool {
 
 	for _, m := range signInMethods() {
 		if !selected[m.name] {
-			skip[path.Join(name, authDirPath, m.name)] = true
+			skip[path.Join(tmpl.name, tmpl.authDir, m.name)] = true
 		}
 	}
 

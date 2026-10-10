@@ -84,6 +84,15 @@ The two guards below run in CI; run them before pushing:
   a template ships and fails if any `pnpm` survives the rewrite, so a command
   written in a form the table does not know about is caught here rather than by
   a user running it.
+- **Where a template keeps things is the template's own business.** The
+  catalogue entry in `cli/cmd/project/template.go` names its `authDir`,
+  `methodsFile` and `componentsUI`, because a framework decides its own layout:
+  `frontend/src/app/auth` is the App Router's answer, not every template's. The
+  same entry carries the template's `uiSystems`, since a component library is
+  written for one framework and the shadcn ports for Vue and Svelte are
+  different packages. `--ui` lists the union of every template's options in its
+  help, because that help is built before a template is chosen, and refuses a
+  name the chosen template does not offer with that template's own list.
 - **UI systems swap behind one directory.** Everything in the app imports
   `@/components/ui/*` and nothing imports past it, so a UI system is the set of
   modules behind that path. `frontend/` holds the shadcn/ui set, because that is
@@ -150,10 +159,13 @@ The two guards below run in CI; run them before pushing:
    template and retarget the paths they name. Keep the two copies identical;
    `check-agent-context.sh` fails if they drift.
 2. Generate the lockfile: `cd templates/<name>/frontend && pnpm install`.
-3. Add the template to the catalogue in `cli/cmd/project/template.go`. It needs
-   the same four sign-in method directories, since the method catalogue in
-   `cli/cmd/project/authmethod.go` is shared by every template and carries the
-   configuration each method needs on a fresh backend.
+3. Add the template to the catalogue in `cli/cmd/project/template.go`, naming
+   its `authDir`, `methodsFile`, `componentsUI` and `uiSystems`. It needs the
+   same four sign-in method directories under `authDir`, since the method
+   catalogue in `cli/cmd/project/authmethod.go` is shared by every template and
+   carries the configuration each method needs on a fresh backend. A React
+   template takes `reactUISystems()`; another framework needs its own, with a
+   `none` entry, which is what `--ui` defaults to.
 4. Add `//go:embed` directives for its top-level entries in
    `templates/embed.go`. `go test ./templates/...` tells you what is missing.
 5. Add the name to `matrix.template` in the `frontend`, `delete-method` and
