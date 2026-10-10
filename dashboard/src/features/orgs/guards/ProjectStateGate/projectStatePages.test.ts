@@ -15,6 +15,14 @@ describe('requiresRunningProject', () => {
     `${base}/database/native-queries/[dataSourceSlug]`,
     `${base}/database/native-queries/[dataSourceSlug]/models/[modelSlug]`,
     `${base}/database/native-queries/[dataSourceSlug]/queries/[querySlug]`,
+    `${base}/graphql`,
+    `${base}/graphql/console`,
+    `${base}/graphql/metadata`,
+    `${base}/graphql/actions`,
+    `${base}/graphql/actions/[actionSlug]`,
+    `${base}/graphql/actions/custom-types`,
+    `${base}/graphql/remote-schemas`,
+    `${base}/graphql/remote-schemas/[remoteSchemaSlug]`,
   ])('blocks %s', (route) => {
     expect(requiresRunningProject(route)).toBe(true);
   });
@@ -24,6 +32,7 @@ describe('requiresRunningProject', () => {
     `${base}/database/backups/point-in-time`,
     `${base}/database/backups/import`,
     `${base}/database/settings`,
+    `${base}/graphql/settings`,
   ])('leaves %s reachable while the project is paused', (route) => {
     expect(requiresRunningProject(route)).toBe(false);
   });
