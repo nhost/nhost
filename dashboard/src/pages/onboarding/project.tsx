@@ -192,7 +192,7 @@ export default function OnboardingProjectPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border border-border p-6 shadow-sm">
           <div className="mb-6 text-center">
             <h2 className="mb-2 font-bold text-2xl">
               Create Your First Project

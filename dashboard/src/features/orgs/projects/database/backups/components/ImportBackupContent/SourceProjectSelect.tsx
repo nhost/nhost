@@ -29,7 +29,7 @@ function SourceProjectSelect({ onProjectSelect, projectId }: Props) {
 
   return (
     <div className="w-max">
-      <p className="pb-1 text-[#21324B] dark:text-[#DFECF5]">Source project</p>
+      <p className="pb-1 text-foreground">Source project</p>
       <Select value={projectId} onValueChange={handleChange} disabled={loading}>
         <SelectTrigger>
           <SelectValue placeholder="Select a project to import backup from" />
@@ -42,7 +42,7 @@ function SourceProjectSelect({ onProjectSelect, projectId }: Props) {
           ))}
         </SelectContent>
       </Select>
-      <p className="pt-1 text-[#9CA7B7] dark:text-[#68717A]">
+      <p className="pt-1 text-muted-foreground">
         Backups can be imported from projects that are in the same organization
         and region.
       </p>

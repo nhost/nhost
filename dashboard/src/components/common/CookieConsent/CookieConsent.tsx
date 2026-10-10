@@ -50,7 +50,7 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
             <h3 className="mb-3 font-semibold text-sm text-white">
               We use cookies for payments and analytics to improve our services.
             </h3>
-            <p className="mb-4 text-[#A2B3BE] text-xs">
+            <p className="mb-4 text-neutral-400 text-xs">
               <NextLink
                 href="https://nhost.io/legal/privacy-policy"
                 target="_blank"
@@ -81,7 +81,7 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
           <button
             onClick={handleClose}
             type="button"
-            className="text-[#A2B3BE] hover:text-white"
+            className="text-neutral-400 hover:text-white"
             aria-label="Close cookie banner"
           >
             <X size={16} />

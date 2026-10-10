@@ -48,10 +48,9 @@ describe('RemoteSchemaTree', () => {
     const wrapper = container.querySelector('.rct-dark') as HTMLElement | null;
     expect(wrapper).toBeTruthy();
     expect(wrapper!).toHaveClass('rct-dark');
-    expect(wrapper).toHaveStyle({
-      backgroundColor: '#171d26',
-      color: '#e3e3e3',
-    });
+    // Read the inline style directly: jsdom can't resolve `var()` values.
+    expect(wrapper!.style.backgroundColor).toBe('hsl(var(--background))');
+    expect(wrapper!.style.color).toBe('hsl(var(--foreground))');
   });
 
   it('builds tree data including all SDL types and fields', () => {

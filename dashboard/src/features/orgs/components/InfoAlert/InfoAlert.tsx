@@ -14,7 +14,7 @@ function InfoAlert({
   icon,
   borderLess = false,
 }: PropsWithChildren<Props>) {
-  const alertClassNames = cn('bg-[#ebf3ff] dark:bg-muted', {
+  const alertClassNames = cn('bg-primary-highlight', {
     'flex items-center gap-2': !!icon,
     'border-none': borderLess,
   });

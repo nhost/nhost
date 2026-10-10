@@ -92,7 +92,7 @@ export default function FilePreviewDialog({
         <DialogDescription className="hidden">{alt}</DialogDescription>
         {loading && (
           <Spinner
-            className={cn('h-5 w-5', { '!stroke-[#1e324b]': !isJson })}
+            className={cn('h-5 w-5', { 'text-neutral-800': !isJson })}
             wrapperClassName={cn('flex-row gap-1 text-xs', {
               'text-disabled': isJson,
               'text-gray-600': !isJson,

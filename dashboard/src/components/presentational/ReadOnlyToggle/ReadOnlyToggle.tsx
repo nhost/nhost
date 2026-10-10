@@ -50,8 +50,7 @@ function ReadOnlyToggle(
           'box-border inline-grid h-3 w-5 items-center rounded-full border-1 border-primary-text bg-transparent px-0.5',
           checked && 'justify-end',
           {
-            'border-transparent bg-primary-text px-0.5 dark:bg-[#363a43]':
-              checked,
+            'border-transparent bg-primary-text px-0.5 dark:bg-muted': checked,
           },
         )}
       >
@@ -59,7 +58,7 @@ function ReadOnlyToggle(
           className={cn(
             'inline-block h-2 w-2 rounded-full border-primary-text bg-primary-text',
             {
-              'border-transparent bg-data-cell-bg px-0.5 dark:bg-[#f4f7f9]':
+              'border-transparent bg-background px-0.5 dark:bg-foreground':
                 checked,
               'my-px h-px justify-self-center': checked === null,
             },

@@ -264,7 +264,7 @@ function PipelineRunDetails({
       </div>
 
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {logsLoading && taskGroups.length === 0 && (
             <span className="font-mono">Loading logs...</span>
           )}
@@ -403,7 +403,7 @@ function LegacyDeploymentDetailsView({
         </div>
       </div>
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {deployment.deploymentLogs.length === 0 && (
             <span className="font-mono">No message.</span>
           )}

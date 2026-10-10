@@ -45,7 +45,7 @@ export default function TypedFieldDescription({
           size="icon"
           title={actionLabel}
           data-testid={`${lowercaseNoun}s.${index}.description`}
-          className="h-8 w-8 hover:bg-[#eaedf0] dark:hover:bg-[#2f363d]"
+          className="h-8 w-8 hover:bg-accent"
         >
           <DescriptionIcon strokeWidth={1} className="h-5 w-5" />
         </Button>
