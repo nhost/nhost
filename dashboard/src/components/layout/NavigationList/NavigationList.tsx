@@ -1,5 +1,3 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import {
   type ComponentPropsWithoutRef,
   createContext,
@@ -8,12 +6,12 @@ import {
   useContext,
   useId,
 } from 'react';
+import { SidebarItem, SidebarSectionTitle } from '@/components/layout/Sidebar';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { isRouteActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 interface NavigationListContextValue {
@@ -31,7 +29,6 @@ export const NavigationListContext = createContext<NavigationListContextValue>({
 interface NavigationListProps {
   ariaLabel: string;
   children: ReactNode;
-  footer?: ReactNode;
   className?: string;
 }
 
@@ -64,16 +61,20 @@ function SidebarTooltip({
   label: string;
   children: ReactNode;
 }) {
-  if (!collapsed) {
-    return children;
-  }
-
+  // Always render the tooltip wrapper and only toggle its content. Swapping
+  // the wrapper in and out would remount the item, and its collapse
+  // transitions would never run. `disableHoverableContent` makes leaving the
+  // item close the tooltip by itself; otherwise the (unrendered) content is in
+  // charge of closing it, and an item hovered while expanded would show its
+  // tooltip as soon as the sidebar collapses.
   return (
-    <Tooltip>
+    <Tooltip disableHoverableContent>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8}>
-        {label}
-      </TooltipContent>
+      {collapsed && (
+        <TooltipContent side="right" sideOffset={8}>
+          {label}
+        </TooltipContent>
+      )}
     </Tooltip>
   );
 }
@@ -82,55 +83,42 @@ function NavigationListItem({
   label,
   href,
   icon,
-  activePath = href,
+  activePath,
   exact = false,
   disabled,
 }: NavigationListItemProps) {
   const { collapsed } = useContext(NavigationListContext);
-  const { asPath } = useRouter();
-  const active = isRouteActive(asPath, activePath, exact);
-  const itemClassName = cn(
-    'flex h-10 w-full items-center rounded-lg font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-    collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
-    active &&
-      'bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted',
-    disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
-  );
-  const content = (
-    <>
-      <span
-        aria-hidden="true"
-        className="flex size-5 shrink-0 items-center justify-center"
-      >
-        {icon}
-      </span>
-      <span className={cn('truncate', collapsed && 'sr-only')}>{label}</span>
-    </>
-  );
-
-  const navItem = disabled ? (
-    <div
-      aria-current={active ? 'page' : undefined}
-      aria-disabled="true"
-      className={itemClassName}
-    >
-      {content}
-    </div>
-  ) : (
-    <Link
-      href={href}
-      aria-current={active ? 'page' : undefined}
-      className={itemClassName}
-    >
-      {content}
-    </Link>
-  );
 
   return (
     <li>
       <SidebarTooltip collapsed={collapsed} label={label}>
-        {navItem}
+        <SidebarItem
+          href={href}
+          activePath={activePath}
+          exact={exact}
+          disabled={disabled}
+          className={cn(
+            'transition-[color,background-color,padding] ease-in-out [transition-duration:150ms,150ms,300ms] motion-reduce:transition-none',
+            collapsed && 'pl-5',
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-4 shrink-0 items-center justify-center"
+          >
+            {icon}
+          </span>
+          <span
+            className={cn(
+              'overflow-hidden whitespace-nowrap transition-opacity motion-reduce:transition-none',
+              collapsed
+                ? 'text-clip opacity-0 duration-300 ease-in-out'
+                : 'text-ellipsis opacity-100 delay-100 duration-300',
+            )}
+          >
+            {label}
+          </span>
+        </SidebarItem>
       </SidebarTooltip>
     </li>
   );
@@ -140,6 +128,7 @@ function NavigationListSection({
   label,
   children,
   id,
+  className,
   ...props
 }: NavigationListSectionProps) {
   const { collapsed } = useContext(NavigationListContext);
@@ -147,21 +136,29 @@ function NavigationListSection({
   const labelId = label ? (id ? `${id}-heading` : generatedLabelId) : undefined;
 
   return (
-    <section id={id} aria-labelledby={labelId} {...props}>
-      {label && !collapsed && (
-        <h2
-          id={labelId}
-          className="px-3 pt-5 pb-2 font-semibold text-2xs text-muted-foreground uppercase tracking-[0.16em]"
+    <section
+      id={id}
+      aria-labelledby={labelId}
+      className={cn('mt-[1.2rem] first:mt-0', className)}
+      {...props}
+    >
+      {label && (
+        // Collapses its height with the grid-rows trick instead of unmounting,
+        // so the items below glide up rather than jump.
+        <div
+          className={cn(
+            'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none',
+            collapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr]',
+          )}
         >
-          {label}
-        </h2>
+          <div className="min-h-0 overflow-hidden">
+            <SidebarSectionTitle id={labelId} className="whitespace-nowrap">
+              {label}
+            </SidebarSectionTitle>
+          </div>
+        </div>
       )}
-      {label && collapsed && (
-        <h2 id={labelId} className="sr-only">
-          {label}
-        </h2>
-      )}
-      <ul className="flex flex-col gap-1">{children}</ul>
+      <ul className="flex flex-col">{children}</ul>
     </section>
   );
 }
@@ -169,7 +166,6 @@ function NavigationListSection({
 function NavigationList({
   ariaLabel,
   children,
-  footer,
   className,
 }: NavigationListProps) {
   return (
@@ -177,15 +173,9 @@ function NavigationList({
       aria-label={ariaLabel}
       className={cn('flex min-h-0 flex-1 flex-col', className)}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2">
         <div className="flex flex-col gap-1">{children}</div>
       </div>
-
-      {footer && (
-        <div className="shrink-0 border-t p-2">
-          <ul className="flex flex-col gap-1">{footer}</ul>
-        </div>
-      )}
     </nav>
   );
 }
