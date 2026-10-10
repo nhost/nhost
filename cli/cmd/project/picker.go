@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"unicode/utf8"
 
@@ -54,6 +55,9 @@ const (
 	actionDown
 	actionSelect
 	actionCancel
+	// actionToggle checks or unchecks the option under the cursor. Only a
+	// checklist acts on it; a single-answer picker moves on instead.
+	actionToggle
 )
 
 // pickWithKeys runs the arrow-key picker and returns the index of the chosen
@@ -108,7 +112,9 @@ func pickWithKeys(
 				// HandleExitCoder, and wrapping it would turn a clean cancel back
 				// into a printed error.
 				return -1, errCancelled //nolint:wrapcheck
-			case actionNone, actionUp, actionDown:
+			// A question with one answer has nothing to toggle, so space moves
+			// the cursor nowhere rather than meaning something else here.
+			case actionNone, actionUp, actionDown, actionToggle:
 				cursor = moveSelection(cursor, action, len(items))
 			}
 		}
@@ -271,8 +277,13 @@ func decodeKey(buf []byte) (pickerAction, int) {
 
 	if buf[0] == keyEscape {
 		n, _ := escapeLen(buf)
-		if n >= csiArrowLen && buf[1] == '[' {
-			switch buf[2] {
+
+		// Narrowed to the sequence itself so its length is what the indexing
+		// below is checked against. escapeLen never reports more than it was
+		// given, so this only makes an existing bound visible.
+		seq := buf[:n]
+		if len(seq) >= csiArrowLen && seq[1] == '[' {
+			switch seq[2] {
 			case 'A':
 				return actionUp, n
 			case 'B':
@@ -286,6 +297,8 @@ func decodeKey(buf []byte) (pickerAction, int) {
 	switch buf[0] {
 	case '\r', '\n':
 		return actionSelect, 1
+	case ' ':
+		return actionToggle, 1
 	case 'k':
 		return actionUp, 1
 	case 'j':
@@ -309,11 +322,150 @@ func moveSelection(cursor int, action pickerAction, count int) int {
 		return (cursor - 1 + count) % count
 	case actionDown:
 		return (cursor + 1) % count
-	case actionNone, actionSelect, actionCancel:
+	case actionNone, actionSelect, actionCancel, actionToggle:
 		return cursor
 	}
 
 	return cursor
+}
+
+// pickMultiWithKeys runs the checklist and returns which items were left
+// checked. Space toggles, enter accepts. An empty selection is not accepted:
+// the question is which of these to have, and none of them is not an answer it
+// can carry out, so enter on an empty list redraws rather than returns.
+func pickMultiWithKeys(
+	ce *clienv.CliEnv,
+	title string,
+	items []pickerItem,
+	checked []bool,
+	cursor int,
+) ([]bool, error) {
+	tty, err := enterRawMode(ce)
+	if err != nil {
+		return nil, err
+	}
+
+	defer tty.restore()
+
+	out, width := tty.out, tty.width
+
+	fmt.Fprintf(out, "\r\x1b[K%s\r\n", barLine())
+	fmt.Fprintf(
+		out,
+		"\r\x1b[K%s\r\n",
+		fitQuestion(
+			pickerHeading(title),
+			"  ↑/↓ to move, space to toggle, enter to accept",
+			width,
+		),
+	)
+
+	keys := newKeyReader(os.Stdin)
+
+	for {
+		renderChecklist(out, items, checked, cursor, width)
+
+		actions, err := keys.readActions()
+		if err != nil {
+			abandonPick(out, len(items))
+
+			return nil, err
+		}
+
+		for _, action := range actions {
+			switch action {
+			case actionSelect:
+				if !anyChecked(checked) {
+					continue
+				}
+
+				submitChecklist(out, pickerHeading(title), items, checked, width)
+
+				return checked, nil
+			case actionCancel:
+				abandonPick(out, len(items))
+
+				// Not wrapped, for the reason pickWithKeys gives.
+				return nil, errCancelled //nolint:wrapcheck
+			case actionToggle:
+				checked[cursor] = !checked[cursor]
+			case actionNone, actionUp, actionDown:
+				cursor = moveSelection(cursor, action, len(items))
+			}
+		}
+
+		moveUp(out, len(items)+1)
+	}
+}
+
+func anyChecked(checked []bool) bool {
+	for _, c := range checked {
+		if c {
+			return true
+		}
+	}
+
+	return false
+}
+
+// renderChecklist draws the checklist in place, the same way renderItems draws
+// a single-answer list, with the mark saying what is picked rather than where
+// the cursor is.
+//
+// The line closing the frame carries the reason enter is being ignored while
+// nothing is picked. Without it the refusal is silent, and a key that does
+// nothing and says nothing reads as a broken picker rather than a rule.
+func renderChecklist(
+	w io.Writer,
+	items []pickerItem,
+	checked []bool,
+	cursor, width int,
+) {
+	for i, item := range items {
+		fmt.Fprintf(
+			w,
+			"\r\x1b[K%s\r\n",
+			multiOptionLine(checked[i], i == cursor, fitLabel(item, width)),
+		)
+	}
+
+	note := ""
+	if !anyChecked(checked) {
+		note = "pick at least one"
+	}
+
+	fmt.Fprintf(w, "\r\x1b[K%s\r\n", closeLine(note))
+}
+
+// submitChecklist replaces the list with the answer: the question marked as
+// answered and the chosen labels joined on one line, so a finished run reads
+// back as the decision it was.
+func submitChecklist(
+	w io.Writer,
+	heading string,
+	items []pickerItem,
+	checked []bool,
+	width int,
+) {
+	const aroundList = 2
+
+	labels := make([]string, 0, len(items))
+
+	for i, item := range items {
+		if checked[i] {
+			labels = append(labels, item.Label)
+		}
+	}
+
+	eraseBlock(w, len(items)+aroundList)
+	fmt.Fprintf(
+		w,
+		"%s\r\n%s\r\n",
+		askLine(false, heading),
+		optionLine(true, truncate(
+			strings.Join(labels, ", "), width-marginWidth()-markWidth(),
+		)),
+	)
 }
 
 // keyReader decodes the key presses a raw terminal delivers, holding on to a
@@ -397,15 +549,7 @@ func renderItems(w io.Writer, items []pickerItem, cursor, width int) {
 // have taken their columns. The cut happens before the colour is applied, so a
 // narrow terminal never truncates an escape sequence half way through.
 func fitLabel(item pickerItem, width int) string {
-	return truncate(itemLabel(item), width-marginWidth()-len(frameOn+" "))
-}
-
-func itemLabel(item pickerItem) string {
-	if item.Desc == "" {
-		return item.Label
-	}
-
-	return item.Label + " - " + item.Desc
+	return truncate(item.Label, width-marginWidth()-markWidth())
 }
 
 func moveUp(w io.Writer, lines int) {

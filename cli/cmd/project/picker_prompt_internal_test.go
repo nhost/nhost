@@ -47,9 +47,9 @@ func newTestEnv(output *bytes.Buffer) *clienv.CliEnv {
 //nolint:paralleltest // swaps os.Stdin
 func TestPromptPick(t *testing.T) {
 	items := []pickerItem{
-		{Label: "first", Desc: "the first one"},
-		{Label: "second", Desc: ""},
-		{Label: "third", Desc: ""},
+		{Label: "first"},
+		{Label: "second"},
+		{Label: "third"},
 	}
 
 	tests := []struct {
@@ -98,7 +98,7 @@ func TestPromptPickAsksAboutASingleOption(t *testing.T) {
 	var output bytes.Buffer
 
 	got, err := promptPick(
-		newTestEnv(&output), "Template", []pickerItem{{Label: "only", Desc: "the one"}}, 0,
+		newTestEnv(&output), "Template", []pickerItem{{Label: "only"}}, 0,
 	)
 	if err != nil {
 		t.Fatalf("promptPick: %v", err)
@@ -108,7 +108,7 @@ func TestPromptPickAsksAboutASingleOption(t *testing.T) {
 		t.Errorf("promptPick() = %d, want 0", got)
 	}
 
-	if !strings.Contains(output.String(), "1. only - the one") {
+	if !strings.Contains(output.String(), "1. only") {
 		t.Errorf("promptPick() did not offer the one option:\n%s", output.String())
 	}
 }
@@ -123,8 +123,8 @@ func TestPromptPickAsksToSelect(t *testing.T) {
 		title string
 		want  string
 	}{
-		{title: "Template", want: "Select a template"},
-		{title: "Framework", want: "Select a framework"},
+		{title: "Template", want: "Select template"},
+		{title: "Framework", want: "Select framework"},
 	}
 
 	items := []pickerItem{{Label: "Next.js"}, {Label: "React"}}
@@ -153,8 +153,10 @@ func TestPickerHeading(t *testing.T) {
 		title string
 		want  string
 	}{
-		{title: "Template", want: "Select a template"},
-		{title: "Package manager", want: "Select a package manager"},
+		{title: "Template", want: "Select template"},
+		{title: "Package manager", want: "Select package manager"},
+		// An acronym keeps its capitals: "uI system" is not a heading.
+		{title: "UI system", want: "Select UI system"},
 		{title: "", want: "Select one"},
 	}
 
@@ -169,25 +171,32 @@ func TestPickerHeading(t *testing.T) {
 	}
 }
 
+// An option is its label and nothing else, on the numbered path as on the
+// picker.
+//
 //nolint:paralleltest // swaps os.Stdin
-func TestPromptPickListsDescriptions(t *testing.T) {
+func TestPromptPickListsLabelsOnly(t *testing.T) {
 	withStdin(t, "\n")
 
 	var output bytes.Buffer
 
 	items := []pickerItem{
-		{Label: "Next.js", Desc: "App Router"},
-		{Label: "React", Desc: ""},
+		{Label: "Next.js"},
+		{Label: "React"},
 	}
 
 	if _, err := promptPick(newTestEnv(&output), "Template", items, 0); err != nil {
 		t.Fatalf("promptPick: %v", err)
 	}
 
-	for _, want := range []string{"1. Next.js - App Router", "2. React"} {
+	for _, want := range []string{"1. Next.js", "2. React"} {
 		if !strings.Contains(output.String(), want) {
 			t.Errorf("menu missing %q:\n%s", want, output.String())
 		}
+	}
+
+	if strings.Contains(output.String(), " - ") {
+		t.Errorf("an option carries a description:\n%s", output.String())
 	}
 }
 

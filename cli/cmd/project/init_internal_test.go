@@ -54,3 +54,35 @@ func TestInitProject(t *testing.T) {
 		t.Errorf("hasura config version: got %d, want 3", hasuraConf.Version)
 	}
 }
+
+// init writes the selected methods' settings only into a config it generated,
+// which is also what decides whether the next steps check the config instead.
+func TestWritesAuthConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		hasBackend bool
+		remote     bool
+		want       bool
+	}{
+		{name: "fresh", hasBackend: false, remote: false, want: true},
+		{name: "--remote", hasBackend: false, remote: true, want: false},
+		{name: "existing", hasBackend: true, remote: false, want: false},
+		{name: "both", hasBackend: true, remote: true, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := writesAuthConfig(tt.hasBackend, tt.remote)
+			if got != tt.want {
+				t.Errorf(
+					"writesAuthConfig(%v, %v) = %v, want %v",
+					tt.hasBackend, tt.remote, got, tt.want,
+				)
+			}
+		})
+	}
+}

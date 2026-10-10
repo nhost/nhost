@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/templates"
 	"github.com/urfave/cli/v3"
 )
 
@@ -69,7 +72,7 @@ func resolveWith(t *testing.T, output *bytes.Buffer, args ...string) (string, er
 			&cli.GenericFlag{Name: flagTemplate, Value: tv},
 		},
 		Action: func(_ context.Context, c *cli.Command) error {
-			got, gotErr = resolveTemplate(newTestEnv(output), c, tv)
+			got, _, gotErr = resolveTemplate(newTestEnv(output), c, tv)
 
 			return nil
 		},
@@ -153,7 +156,7 @@ func TestResolveTemplateBareFlagAsks(t *testing.T) {
 			t.Errorf("resolveTemplate(--template) = %q, want nextjs", got)
 		}
 
-		if !strings.Contains(output.String(), "Select a template") {
+		if !strings.Contains(output.String(), "Select template") {
 			t.Errorf("picker did not ask:\n%s", output.String())
 		}
 	})
@@ -172,6 +175,68 @@ func TestResolveTemplateBareFlagAsks(t *testing.T) {
 			t.Errorf("resolveTemplate(--template) = %q, want nextjs", got)
 		}
 	})
+}
+
+// methods.ts is generated at scaffold time but also checked in, because the
+// template's own frontend is linted, tested and built in CI. Rendering the
+// whole catalogue has to reproduce the committed file exactly, or a user who
+// takes every method gets something the template's CI never ran against.
+func TestRenderSignInMethodsMatchesTemplate(t *testing.T) {
+	t.Parallel()
+
+	for _, tmpl := range catalogue() {
+		t.Run(tmpl.name, func(t *testing.T) {
+			t.Parallel()
+
+			committed, err := fs.ReadFile(templates.FS, path.Join(tmpl.name, methodsFilePath))
+			if err != nil {
+				t.Fatalf("reading %s from the template: %v", methodsFilePath, err)
+			}
+
+			if got := renderSignInMethods(signInMethods()); !bytes.Equal(got, committed) {
+				t.Errorf(
+					"generated %s differs from the one %s ships\n--- generated ---\n%s\n--- committed ---\n%s",
+					methodsFilePath,
+					tmpl.name,
+					got,
+					committed,
+				)
+			}
+		})
+	}
+}
+
+// Every method the catalogue offers has to be a directory the template ships,
+// since that is what a selection skips or keeps.
+func TestEveryAuthMethodIsEmbedded(t *testing.T) {
+	t.Parallel()
+
+	for _, tmpl := range catalogue() {
+		for _, m := range signInMethods() {
+			t.Run(tmpl.name+"/"+m.name, func(t *testing.T) {
+				t.Parallel()
+
+				dir := path.Join(tmpl.name, authDirPath, m.name)
+
+				entries, err := fs.ReadDir(templates.FS, dir)
+				if err != nil {
+					t.Fatalf("method %q has no %s in the template: %v", m.name, dir, err)
+				}
+
+				if len(entries) == 0 {
+					t.Errorf("%s is empty", dir)
+				}
+
+				if want := "/auth/" + m.name; m.href != want {
+					t.Errorf(
+						"href = %q, want %q: the href is what links to the directory",
+						m.href,
+						want,
+					)
+				}
+			})
+		}
+	}
 }
 
 func TestCatalogueIsEmbedded(t *testing.T) {
@@ -205,9 +270,9 @@ func TestCatalogueIsEmbedded(t *testing.T) {
 	}
 }
 
-// A write failing partway takes back every entry the layout said to write,
-// which planTemplate showed was not there before. Without that, a retry is
-// refused by the first half-written entry.
+// A step failing after the checks passed takes back what it wrote, which the
+// checks showed was not there before, and nothing it was told to keep. Without
+// that, a retry is refused by the first half-written entry.
 func TestWriteTemplateRemovesWhatItWroteOnFailure(t *testing.T) {
 	t.Parallel()
 
@@ -219,25 +284,34 @@ func TestWriteTemplateRemovesWhatItWroteOnFailure(t *testing.T) {
 		filepath.Join(root, "nhost"),
 	)
 
+	mine := []byte("# Mine\n")
+	if err := os.WriteFile(
+		filepath.Join(root, "CLAUDE.md"), mine, 0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
 	layout, err := planTemplate(ps, "nextjs")
 	if err != nil {
 		t.Fatalf("planTemplate: %v", err)
 	}
 
-	// A file where the frontend needs a directory fails the copy after the
-	// entries ahead of frontend in walk order are already written.
-	if err := os.MkdirAll(filepath.Join(root, "frontend"), 0o755); err != nil {
-		t.Fatal(err)
+	pm, _ := lookupPackageManager(defaultPackageManager)
+
+	// The overlay is the step after the tree copy and methods.ts, so by the
+	// time it fails the frontend is already on disk.
+	broken := uiSystem{
+		name:      "broken",
+		label:     "Broken",
+		overlay:   "missing",
+		drops:     nil,
+		dropFiles: nil,
 	}
 
-	if err := os.WriteFile(
-		filepath.Join(root, "frontend", "src"), nil, 0o600,
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := writeTemplate(ps, "nextjs", layout); err == nil {
-		t.Fatal("writeTemplate over a blocked frontend/src succeeded")
+	if err := writeTemplate(
+		ps, "nextjs", layout, signInMethods(), broken, pm,
+	); err == nil {
+		t.Fatal("writeTemplate with a missing overlay succeeded")
 	}
 
 	found, err := os.ReadDir(root)
@@ -245,10 +319,19 @@ func TestWriteTemplateRemovesWhatItWroteOnFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(found) != 0 {
+	if len(found) != 1 || found[0].Name() != "CLAUDE.md" {
 		t.Errorf(
-			"after a failed write the project holds %v, want nothing",
+			"after a failed write the project holds %v, want CLAUDE.md",
 			found,
 		)
+	}
+
+	got, err := os.ReadFile(filepath.Join(root, "CLAUDE.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(got, mine) {
+		t.Errorf("the project's own CLAUDE.md changed to %q", got)
 	}
 }

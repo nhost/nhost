@@ -14,16 +14,20 @@ import (
 	"github.com/nhost/nhost/cli/clienv"
 )
 
-// pickerItem is one selectable option in a numbered prompt.
+// pickerItem is one selectable option in a numbered prompt. A label is all an
+// option says: every question here chooses between a handful of named things,
+// and a gloss on each is a wall of text to read past rather than help.
 type pickerItem struct {
 	Label string
-	Desc  string
 }
 
 // pickerHeading phrases a picker's title as the question it is asking. The
 // title itself stays the bare noun, because it is also what the answer is
 // recorded under once the menu is gone, and because a heading reads as a
 // sentence rather than a column label.
+//
+// No article: it keeps the heading short, and it is the only phrasing that
+// works for both a question with one answer and a plural one with several.
 func pickerHeading(title string) string {
 	if title == "" {
 		return "Select one"
@@ -31,7 +35,13 @@ func pickerHeading(title string) string {
 
 	first, rest := utf8.DecodeRuneInString(title)
 
-	return "Select a " + string(unicode.ToLower(first)) + title[rest:]
+	// A title opening on two capitals is an acronym, not a capitalised word, so
+	// it is left alone: "UI system" asks to be lowered to "uI system" otherwise.
+	if second, _ := utf8.DecodeRuneInString(title[rest:]); unicode.IsUpper(second) {
+		return "Select " + title
+	}
+
+	return "Select " + string(unicode.ToLower(first)) + title[rest:]
 }
 
 // promptPick asks which of the items to use, preferring the arrow-key picker
@@ -62,6 +72,48 @@ func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx 
 	return idx, nil
 }
 
+// promptPickMulti asks which of the items to use, allowing several. It is the
+// checklist in a terminal; where stdin cannot be read key by key there is no
+// prompt at all and the defaults stand, so a scripted `init` neither blocks on
+// a question nor needs a second line piped into it. A script that wants
+// something other than the defaults passes the flag.
+func promptPickMulti(
+	ce *clienv.CliEnv,
+	title string,
+	items []pickerItem,
+	defaults []bool,
+) ([]bool, error) {
+	if len(items) == 0 {
+		return nil, fmt.Errorf("%s: nothing to choose from", title) //nolint:err113
+	}
+
+	checked := make([]bool, len(items))
+	copy(checked, defaults)
+
+	// The cursor opens on the first checked item, which is what the question
+	// is proposing, rather than on an option the user has not asked for.
+	cursor := 0
+
+	for i, c := range checked {
+		if c {
+			cursor = i
+
+			break
+		}
+	}
+
+	picked, err := pickMultiWithKeys(ce, title, items, checked, cursor)
+
+	switch {
+	case errors.Is(err, errNoRawTerminal):
+		return defaults, nil
+	case err != nil:
+		return nil, err
+	}
+
+	return picked, nil
+}
+
 // pickByNumber prints a numbered list and returns the index of the chosen
 // item, falling back to defaultIdx on an empty answer. It is what runs when
 // input is piped in rather than typed.
@@ -75,11 +127,7 @@ func pickByNumber(
 	ce.Infoln("%s", pickerHeading(title))
 
 	for i, item := range items {
-		if item.Desc == "" {
-			ce.Println("  %d. %s", i+1, item.Label)
-		} else {
-			ce.Println("  %d. %s - %s", i+1, item.Label, item.Desc)
-		}
+		ce.Println("  %d. %s", i+1, item.Label)
 	}
 
 	ce.PromptMessage("Select # [%d]: ", defaultIdx+1)

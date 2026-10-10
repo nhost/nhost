@@ -6,8 +6,10 @@ It has two halves:
 - `nhost/` - the backend configuration. Migrations and metadata live here and
   are applied by `nhost up`. This template ships **none**: the app uses only
   the `auth.users` table the backend provides.
-- `frontend/` - a Next.js 16 (App Router) app with Tailwind v4 and shadcn/ui,
-  built around authentication. Read `frontend/README.md` first.
+- `frontend/` - a Next.js 16 (App Router) app with Tailwind v4, built around
+  authentication. Read `frontend/README.md` first. `src/components/ui/` holds
+  plain Tailwind modules the project owns, or the shadcn/ui versions of the
+  same API when it was scaffolded with `--ui shadcn`.
 
 ## Rules that are easy to break
 
@@ -19,16 +21,18 @@ It has two halves:
 2. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/app/auth/` plus one line in
    `frontend/src/app/signin/methods.ts`. A method may import from
-   `@/lib/nhost/*`, `@/components/*` and `@/app/signin/destination` - never
-   from another method, and nothing shared may import from a method.
+   `@/lib/nhost/*`, `@/components/*` and `@/app/signin/*` - never from
+   another method, and nothing shared may import from a method.
 3. **Removing a method is two deletions**: the directory and its line in
    `methods.ts`. Then stop `pnpm dev`, delete `frontend/.next` and run
    `pnpm build`: the dev server's route types there still import the page.
-4. **Sign up is the default, and `?intent=` is what changes it.** `PasswordForm`
-   opens on sign-up, because anyone running this against a fresh local backend
-   has no account yet. A link that wants the other mode says
-   `?intent=sign-in`; `frontend/src/app/signin/intent.ts` parses it. Nothing is
-   gated on it, so a missing or crafted value costs nothing.
+4. **Sign up is the default, and `?intent=` is what changes it.** The sign-in
+   page is headed "Create an account", and a method with both modes opens on
+   sign-up (of the four on offer, only email and password has both), because
+   anyone running this against a fresh local backend has no account yet. A
+   link that wants the other mode says `?intent=sign-in`;
+   `frontend/src/app/signin/intent.ts` parses it. Nothing is gated on it, so a
+   missing or crafted value costs nothing.
    `frontend/src/app/signin/query.ts` builds every link that carries it, and it
    is the only thing that does: `next` and `intent` both have to survive the
    hop out to a method and the hop back, and a second builder is how one of
