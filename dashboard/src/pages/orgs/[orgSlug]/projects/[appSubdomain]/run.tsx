@@ -94,7 +94,7 @@ export default function RunPage() {
   if (isPlatform && isPlanFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -108,7 +108,7 @@ export default function RunPage() {
 
   if (loading && loadingProject) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="medium" />
       </Container>
     );
@@ -116,7 +116,7 @@ export default function RunPage() {
 
   if (services.length === 0 && !loading) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
+      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
         <div className="flex flex-row place-content-end">
           <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
             <PlusIcon className="mr-2 h-4 w-4" />
