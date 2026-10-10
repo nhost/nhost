@@ -179,6 +179,21 @@ describe('AppSidebar', () => {
       );
     });
 
+    it('keeps Storage active on its settings page', () => {
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/storage/settings',
+        '/orgs/nhost/projects/dashboard/storage/settings',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      expect(screen.getByRole('link', { name: 'Storage' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    });
+
     it('falls back to the path while router query params are not ready', () => {
       mockRoute(
         '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores',
