@@ -691,6 +691,53 @@ INSERT INTO cf_select.ns_kids VALUES (101,'first'),(102,'first'),(201,'second');
 								}
 							}
 						}
+
+						if role.name == "admin" && tc.name == "target_type_prefix" {
+							const insertedID = 98765
+
+							failed, resolveErr := ctrl.Resolve(ctx, controller.GraphQLRequest{
+								Query: `mutation { insert_cf_select_items(objects:[
+									{id:98765,owner_id:1,label:"first",amount:1,payload:{}}
+								]) { returning { id physical_kids_aggregate(limit:-1) {
+									aggregate { count }
+								} } } }`,
+							})
+							if resolveErr != nil || failed.Data != nil {
+								t.Fatalf(
+									"invalid aggregate mutation: response=%+v err=%v",
+									failed,
+									resolveErr,
+								)
+							}
+
+							errs, ok := failed.Errors.([]map[string]any)
+							if !ok || len(errs) != 1 {
+								t.Fatalf(
+									"expected one aggregate validation error: %+v",
+									failed.Errors,
+								)
+							}
+
+							ext, ok := errs[0]["extensions"].(map[string]any)
+							if !ok || ext["code"] != "validation-failed" ||
+								ext["path"] != "$.selectionSet.insert_cf_select_items.selectionSet.returning.selectionSet.physical_kids_aggregate.args.limit" {
+								t.Fatalf("aggregate validation extensions: %+v", errs[0])
+							}
+
+							var count int
+							if err := pool.QueryRow(t.Context(),
+								"SELECT count(*) FROM cf_select.items WHERE id=$1", insertedID,
+							).Scan(&count); err != nil {
+								t.Fatalf("checking source mutation: %v", err)
+							}
+
+							if count != 0 {
+								t.Fatalf(
+									"invalid aggregate mutation inserted %d source rows",
+									count,
+								)
+							}
+						}
 					})
 				}
 			},

@@ -181,12 +181,22 @@ func assertWrappedError(t *testing.T, err, innerErr error) {
 type groupedCollectionFake struct {
 	Connector
 
-	response map[string]any
-	err      error
-	got      groupedaggregate.Request
-	role     string
-	session  map[string]any
-	logger   *slog.Logger
+	response    map[string]any
+	err         error
+	got         groupedaggregate.Request
+	role        string
+	session     map[string]any
+	logger      *slog.Logger
+	validateErr error
+	validated   bool
+}
+
+func (f *groupedCollectionFake) ValidateGroupedAggregate(
+	req groupedaggregate.Request, role string, session map[string]any,
+) error {
+	f.got, f.role, f.session, f.validated = req, role, session, true
+
+	return f.validateErr
 }
 
 func (f *groupedCollectionFake) HasSelectableJoinColumn(_, _, name string) bool {
@@ -312,6 +322,82 @@ func TestCustomizedConnectorForwardsTargetCapabilities(t *testing.T) {
 		t.Context(), req, "reader", session, logger,
 	); result != nil || err == nil || !strings.Contains(err.Error(), "grouped aggregate unavailable") {
 		t.Fatalf("non-capable aggregate result=%#v error=%v", result, err)
+	}
+}
+
+func TestCustomizedConnectorValidateGroupedAggregate(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		err  error
+	}{
+		{name: "valid request"},
+		{name: "invalid request", err: stampedNegativeLimitValidationError(t, "insert_items.selectionSet.returning.selectionSet.kids_aggregate")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			inner := &groupedCollectionFake{
+				Connector: &fakeConnector{schema: teamSchema()}, validateErr: tc.err,
+			}
+
+			wrapper, err := newCustomizedConnector("target", inner,
+				metadata.Customization{TypeNamesPrefix: "Kid"}, customization.FlavorDatabase)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req := groupedaggregate.Request{
+				TableSchema:       "public",
+				TableName:         "kids",
+				JoinColumnSQLName: "item_id",
+				JoinValues: []any{
+					1,
+				},
+				ArgumentPath: "insert_items.selectionSet.returning.selectionSet.kids_aggregate",
+				Field: &ast.Field{
+					Name:      "kids_aggregate",
+					Arguments: negativeLimitArguments(),
+				},
+			}
+			session := map[string]any{"x-hasura-user-id": "1"}
+
+			err = wrapper.ValidateGroupedAggregate(req, "reader", session)
+			if !inner.validated || !reflect.DeepEqual(inner.got, req) || inner.role != "reader" ||
+				!reflect.DeepEqual(inner.session, session) {
+				t.Fatalf("validation forwarding: inner=%+v", inner)
+			}
+
+			if tc.err != nil {
+				if !errors.Is(err, tc.err) ||
+					!strings.Contains(err.Error(), "customized connector target") {
+					t.Fatalf("validation error = %v, want wrapped inner error", err)
+				}
+
+				assertQueryValidationErrorPath(
+					t,
+					err,
+					"$.selectionSet.insert_items.selectionSet.returning.selectionSet.kids_aggregate.args.limit",
+				)
+			} else if err != nil {
+				t.Fatalf("valid request: %v", err)
+			}
+		})
+	}
+
+	uncapable, err := newCustomizedConnector("target", &fakeConnector{schema: teamSchema()},
+		metadata.Customization{RootFieldsPrefix: "pfx_"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := uncapable.ValidateGroupedAggregate(
+		groupedaggregate.Request{},
+		"reader",
+		nil,
+	); err != nil {
+		t.Fatalf("non-capable inner: %v", err)
 	}
 }
 
