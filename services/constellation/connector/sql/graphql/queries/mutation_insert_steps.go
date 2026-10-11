@@ -34,8 +34,10 @@ func unsupportedInsertPlan() *core.InsertPlan {
 }
 
 // insertFKExpression binds text captured from a prior physical RETURNING row
-// and casts it to this column's actual catalog type (not its GraphQL/base
-// type). Identifier-bearing types come only from PostgreSQL introspection.
+// and casts it to this column's typmod-free catalog type (not its GraphQL/base
+// type). The source may be longer than the destination, so applying the
+// destination typmod here could truncate before assignment rejects the value.
+// Identifier-bearing types come only from PostgreSQL introspection.
 func (t *table) insertFKExpression(col *core.Column, index int) string {
 	if col == nil {
 		return t.dialect.Placeholder(index)
@@ -503,7 +505,11 @@ func (t *table) writeInsertResultSource(b *strings.Builder, collection bool) {
 		// the value is extracted from the bound captured-row JSON array.
 		b.WriteString(t.dialect.DependentInsertRowValue(col.SQLName))
 
-		physical := t.physicalColumnTypes[col.SQLName]
+		physical := t.restoreColumnTypes[col.SQLName]
+		if physical == "" {
+			physical = t.physicalColumnTypes[col.SQLName]
+		}
+
 		if physical == "" {
 			physical = col.SQLType
 		} // white-box fixture
