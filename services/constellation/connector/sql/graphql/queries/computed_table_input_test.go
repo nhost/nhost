@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 
@@ -97,6 +98,8 @@ func TestComputedTableInputs(t *testing.T) {
 		{"not and nested", `query { cf_select_items(where:{_not:{item_tags:{label:{_eq:"two"}}}},order_by:{id:asc}) { id } }`, "admin", []any{map[string]any{"id": float64(2)}}},
 		{"aggregate count", `query { cf_select_items(order_by:[{item_tags_aggregate:{count:desc}},{id:asc}]) { id } }`, "admin", []any{map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}},
 		{"aggregate max", `query { cf_select_items(order_by:[{item_tags_aggregate:{max:{id:desc}}},{id:asc}]) { id } }`, "admin", []any{map[string]any{"id": float64(2)}, map[string]any{"id": float64(1)}}},
+		{"object relationship aggregate count", `query { cf_select_tags(order_by:[{item:{item_tags_aggregate:{count:asc}}},{id:asc}]) { id } }`, "admin", []any{map[string]any{"id": float64(3)}, map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}},
+		{"object relationship aggregate max", `query { cf_select_tags(order_by:[{item:{item_tags_aggregate:{max:{id:desc}}}},{id:asc}]) { id } }`, "admin", []any{map[string]any{"id": float64(3)}, map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}},
 		{"nested target", `query { cf_select_items(where:{item_tags:{item:{item_tags:{id:{_eq:2}}}}},order_by:{id:asc}) { id } }`, "admin", []any{map[string]any{"id": float64(1)}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -108,6 +111,19 @@ func TestComputedTableInputs(t *testing.T) {
 			}
 		})
 	}
+
+	// The same tag filter applies to the outer selection and to the table
+	// function's returned rows. With tag one hidden, both related items have
+	// one visible tag; count ties are resolved by the outer tag ID.
+	md.Tables[1].SelectPermissions[0].Permission.Filter = map[string]any{
+		"label": map[string]any{"_neq": "one"},
+	}
+	roots = build(t)
+
+	checkFilteredObjectRelationshipOrder(t, roots, pool)
+
+	md.Tables[1].SelectPermissions[0].Permission.Filter = map[string]any{}
+	roots = build(t)
 
 	sessionOp := computedTableOperation(t, roots,
 		`query { cf_select_items(where:{item_tags_for_session:{id:{_eq:3}}}) { id } }`,
@@ -157,6 +173,25 @@ func TestComputedTableInputs(t *testing.T) {
 				op.SQL,
 			)
 		}
+	}
+}
+
+func checkFilteredObjectRelationshipOrder(t *testing.T, roots queries.Roots, pool *pgxpool.Pool) {
+	t.Helper()
+
+	for _, tc := range []struct {
+		name, query string
+		want        any
+	}{
+		{"count", `query { cf_select_tags(order_by:[{item:{item_tags_aggregate:{count:asc}}},{id:asc}]) { id } }`, []any{map[string]any{"id": float64(2)}, map[string]any{"id": float64(3)}}},
+		{"max", `query { cf_select_tags(order_by:[{item:{item_tags_aggregate:{max:{id:desc}}}},{id:asc}]) { id } }`, []any{map[string]any{"id": float64(3)}, map[string]any{"id": float64(2)}}},
+	} {
+		t.Run("filtered object relationship "+tc.name, func(t *testing.T) {
+			op := computedTableOperation(t, roots, tc.query, "cf_reader", nil)
+			if got := computedResult(t, pool, op); !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("filtered object order: got %#v, want %#v; SQL %s", got, tc.want, op.SQL)
+			}
+		})
 	}
 }
 
