@@ -118,7 +118,9 @@ transformResult := transformer.Transform(subOp, fragments)
 
 // Inject only source phantoms for the primary operation. Each remote
 // result's selection gets its own child join-key phantoms on a copied AST.
-transform.InjectPhantomFields(transformResult.CleanOperation, toPhantomSpecs(primaryPhantoms))
+transform.InjectPhantomFields(
+    transformResult.CleanOperation, toPhantomSpecs(primaryPhantoms), schema, transformResult.CleanFragments,
+)
 
 plan.PrimaryQueries = append(plan.PrimaryQueries, &PrimaryQuery{...})
 plan.RemoteQueries = append(plan.RemoteQueries, analysis.RemoteQueries...)
@@ -138,18 +140,19 @@ The analyzer expands `*ast.FragmentSpread` and `*ast.InlineFragment` so relation
 
 ### Phantom field specification
 
-After detecting relationships, the analyzer compares `neededPhantoms` against fields already selected with their own response key (`collectOwnResponseKeyFields`). Aliased user fields still occupy response keys, so `collectResponseKeys` is used to choose an internal alias when an injected phantom would collide with the user's response shape. The remaining fields are recorded as a `PhantomFieldSpec`:
+After detecting relationships, the analyzer compares `neededPhantoms` against fields already selected with their own response key on the relationship's source type (`collectOwnResponseKeyFieldsForType`). Aliased user fields still occupy response keys, so `collectResponseKeysFromSelections` reserves keys across every branch at that response path before choosing an internal alias; cleanup must not delete another branch's explicit field. The remaining fields are recorded as a `PhantomFieldSpec`:
 
 ```go
 type PhantomFieldSpec struct {
     Path            jsonpath.Path     // e.g. ["users", "profile"]
+    SourceType      string            // relationship's source object type
     Fields          []string          // e.g. ["department_id"]
     Aliases         map[string]string // optional internal response keys for colliding phantoms
     ForRelationship string
 }
 ```
 
-The spec is referenced from every `RemoteQueryPlan` that shares the same source path, so the resolver can later look up which phantom fields belong to which relationship and which internal response key to read for aliased phantoms.
+The spec is referenced from every `RemoteQueryPlan` that shares the same source path **and source type**, so the resolver can later look up which phantom fields belong to which relationship and which internal response key to read for aliased phantoms.
 
 ### AST transformer
 
@@ -157,13 +160,13 @@ The spec is referenced from every `RemoteQueryPlan` that shares the same source 
 
 - **Strips** any field whose `(typeName, fieldName)` is a remote relationship.
 - **Filters** fragments whose `TypeCondition` is not owned by `t.connectorName` (that is, `t.connectorName` is not in `t.typeToConnectors[typeName]`). Because `typeToConnectors` is a `map[string][]string`, fragments on shared types are preserved for every connector that owns the type.
-- **Drops** fragment spreads that reference fragments which were filtered out or became empty after stripping.
+- **Drops** fragment spreads that reference fragments which were filtered out or became empty after stripping. Empty fragments can transitively empty named wrappers even when the wrapper appeared earlier in the document; repeat pruning until no more definitions vanish before injecting path-local phantoms.
 
 Because the transformer always returns a fresh AST, callers can mutate the result without affecting the planner's shared trees.
 
 ### Phantom injection
 
-`transform.InjectPhantomFields` mutates the *clean* primary operation in place to add each primary join key at its source path. It inlines a path-local copy when descending through a named fragment, preserving type conditions and directives; changing the shared definition would expose a hidden key through other spreads that have no cleanup spec. `prepareRemoteSelection` copies remote-result selections, expands referenced fragments into inline fragments, strips child remote fields and injects their phantoms in the parent's target selection. The two operations therefore each request only the keys available from their own connector.
+`transform.InjectPhantomFields` mutates the *clean* primary operation in place to add each primary join key at its source path only within selections compatible with the relationship's source object type. When stripping the relationship empties an inline or named fragment under a union/interface-typed field, injection restores a source-typed inline fragment with the join key. It inlines a path-local copy when descending through a named fragment, preserving type conditions and directives; changing the shared definition would expose a hidden key through other spreads that have no cleanup spec. `prepareRemoteSelection` copies remote-result selections, expands referenced fragments into inline fragments, strips child remote fields and injects their phantoms in the parent's target selection. The two operations therefore each request only the keys available from their own connector.
 
 ## Runtime phase
 

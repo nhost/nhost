@@ -74,13 +74,19 @@ type analysisResult struct {
 
 	sources     map[string]*sourceSelection
 	sourceOrder []string
+	occurrences map[string][]sourceOccurrence
 }
 
 type sourceSelection struct {
 	path          jsonpath.Path
-	selections    ast.SelectionSet
+	sourceType    string
 	needed        map[string]struct{}
 	phantomForRel string
+}
+
+type sourceOccurrence struct {
+	typeName   string
+	selections ast.SelectionSet
 }
 
 // analyzeOperation analyzes a sub-operation for a connector.
@@ -90,6 +96,7 @@ func (a *analyzer) analyzeOperation(op *ast.OperationDefinition) *analysisResult
 		RemoteQueries: []*RemoteQueryPlan{},
 		sources:       make(map[string]*sourceSelection),
 		sourceOrder:   nil,
+		occurrences:   make(map[string][]sourceOccurrence),
 	}
 
 	for _, sel := range op.SelectionSet {
@@ -123,8 +130,17 @@ func (a *analyzer) analyzeOperation(op *ast.OperationDefinition) *analysisResult
 func (a *analyzer) finishPhantoms(result *analysisResult) {
 	for _, key := range result.sourceOrder {
 		source := result.sources[key]
+
+		var selections, responseSelections ast.SelectionSet
+		for _, occurrence := range result.occurrences[source.path.String()] {
+			responseSelections = append(responseSelections, occurrence.selections...)
+			if a.typesOverlap(occurrence.typeName, source.sourceType) {
+				selections = append(selections, occurrence.selections...)
+			}
+		}
+
 		a.processPhantomFields(
-			source.selections, source.path,
+			selections, responseSelections, source.path, source.sourceType,
 			source.needed, source.phantomForRel, result,
 		)
 	}
@@ -148,7 +164,7 @@ func (a *analyzer) analyzeField(
 	}
 
 	// First pass: identify remote relationships and collect phantom field requirements
-	neededPhantoms, phantomForRel := a.collectRemoteRelationships(
+	a.collectRemoteRelationships(
 		field,
 		typeName,
 		path,
@@ -156,38 +172,27 @@ func (a *analyzer) analyzeField(
 		result,
 	)
 
-	if result.sources == nil {
-		result.sources = make(map[string]*sourceSelection)
+	if result.occurrences == nil {
+		result.occurrences = make(map[string][]sourceOccurrence)
 	}
 
-	key := path.String()
-
-	source := result.sources[key]
-	if source == nil {
-		source = &sourceSelection{
-			path: path, selections: nil, needed: make(map[string]struct{}), phantomForRel: "",
-		}
-		result.sources[key] = source
-		result.sourceOrder = append(result.sourceOrder, key)
-	}
-
-	source.selections = append(source.selections, field.SelectionSet...)
-	mergePhantomResults(source.needed, neededPhantoms, &source.phantomForRel, phantomForRel)
+	result.occurrences[path.String()] = append(result.occurrences[path.String()], sourceOccurrence{
+		typeName: typeName, selections: field.SelectionSet,
+	})
 
 	// Second pass: descend through local and remote selections alike. A remote
 	// child's source rows are available after its parent has been stitched.
 	a.recurseIntoNestedFields(field, typeName, path, namePath, result)
 }
 
-// collectRemoteRelationships identifies remote relationship fields and builds query plans.
-// Returns the set of needed phantom columns and the relationship name for the last one found.
+// collectRemoteRelationships records source-scoped phantom requirements and query plans.
 func (a *analyzer) collectRemoteRelationships(
 	field *ast.Field,
 	typeName string,
 	path, namePath jsonpath.Path,
 	result *analysisResult,
-) (map[string]struct{}, string) {
-	return a.collectFromSelectionSet(field.SelectionSet, typeName, path, result, namePath)
+) {
+	a.collectFromSelectionSet(field.SelectionSet, typeName, path, result, namePath)
 }
 
 // collectFromSelectionSet collects relationships from a selection set (used for fragments).
@@ -197,15 +202,11 @@ func (a *analyzer) collectFromSelectionSet(
 	path jsonpath.Path,
 	result *analysisResult,
 	names ...jsonpath.Path,
-) (map[string]struct{}, string) {
+) {
 	namePath := path
 	if len(names) != 0 {
 		namePath = names[0]
 	}
-
-	neededPhantoms := make(map[string]struct{})
-
-	var phantomForRel string
 
 	for _, sel := range selectionSet {
 		switch s := sel.(type) {
@@ -214,16 +215,7 @@ func (a *analyzer) collectFromSelectionSet(
 				continue
 			}
 
-			if relName := a.collectRemoteField(
-				s,
-				typeName,
-				path,
-				namePath,
-				result,
-				neededPhantoms,
-			); relName != "" {
-				phantomForRel = relName
-			}
+			a.collectRemoteField(s, typeName, path, namePath, result)
 
 		case *ast.FragmentSpread:
 			if !includeSelection(s.Directives, a.variables) {
@@ -236,18 +228,12 @@ func (a *analyzer) collectFromSelectionSet(
 			}
 
 			frag := a.getFragment(s.Name)
-			subPhantoms, subRel := a.collectFromSelectionSet(
-				frag.SelectionSet, fragTypeName, path, result, namePath,
-			)
-			mergePhantomResults(neededPhantoms, subPhantoms, &phantomForRel, subRel)
+			a.collectFromSelectionSet(frag.SelectionSet, fragTypeName, path, result, namePath)
 
 		case *ast.InlineFragment:
-			subPhantoms, subRel := a.collectInlineFragment(s, typeName, path, namePath, result)
-			mergePhantomResults(neededPhantoms, subPhantoms, &phantomForRel, subRel)
+			a.collectInlineFragment(s, typeName, path, namePath, result)
 		}
 	}
-
-	return neededPhantoms, phantomForRel
 }
 
 func (a *analyzer) collectInlineFragment(
@@ -255,16 +241,16 @@ func (a *analyzer) collectInlineFragment(
 	typeName string,
 	path, namePath jsonpath.Path,
 	result *analysisResult,
-) (map[string]struct{}, string) {
+) {
 	if !includeSelection(fragment.Directives, a.variables) {
-		return nil, ""
+		return
 	}
 
 	if fragment.TypeCondition != "" {
 		typeName = fragment.TypeCondition
 	}
 
-	return a.collectFromSelectionSet(fragment.SelectionSet, typeName, path, result, namePath)
+	a.collectFromSelectionSet(fragment.SelectionSet, typeName, path, result, namePath)
 }
 
 func (a *analyzer) collectRemoteField(
@@ -272,24 +258,39 @@ func (a *analyzer) collectRemoteField(
 	typeName string,
 	path, namePath jsonpath.Path,
 	result *analysisResult,
-	needed map[string]struct{},
-) string {
+) {
 	rel := a.getRelationship(typeName, field.Name, path, result)
 	if rel == nil || !rel.IsRemote {
-		return ""
-	}
-
-	for sourceCol := range rel.JoinMapping {
-		needed[sourceCol] = struct{}{}
-	}
-
-	for _, sourceField := range rel.LHSFields {
-		needed[sourceField] = struct{}{}
+		return
 	}
 
 	a.recordRemoteSelection(field, rel, path, namePath, result)
 
-	return rel.Name
+	if result.sources == nil {
+		result.sources = make(map[string]*sourceSelection)
+	}
+
+	key := path.String() + "\x00" + rel.SourceType
+
+	source := result.sources[key]
+	if source == nil {
+		source = &sourceSelection{
+			path: path, sourceType: rel.SourceType,
+			needed: make(map[string]struct{}), phantomForRel: "",
+		}
+		result.sources[key] = source
+		result.sourceOrder = append(result.sourceOrder, key)
+	}
+
+	for sourceCol := range rel.JoinMapping {
+		source.needed[sourceCol] = struct{}{}
+	}
+
+	for _, sourceField := range rel.LHSFields {
+		source.needed[sourceField] = struct{}{}
+	}
+
+	source.phantomForRel = rel.Name
 }
 
 // recordRemoteSelection coalesces compatible occurrences at one response path.
@@ -304,7 +305,8 @@ func (a *analyzer) recordRemoteSelection(
 		if plan.SourcePath.String() != path.String() ||
 			plan.OutputField != fieldResponseKey(field) ||
 			plan.SourceConnector != a.connectorAtPath(path, result) ||
-			plan.Name != rel.Name || plan.TargetConnector != rel.TargetConnector {
+			plan.Name != rel.Name || plan.SourceType != rel.SourceType ||
+			plan.TargetConnector != rel.TargetConnector {
 			continue
 		}
 
@@ -319,17 +321,6 @@ func (a *analyzer) recordRemoteSelection(
 
 	result.RemoteQueries = append(result.RemoteQueries,
 		a.buildRemoteQueryPlan(field, rel, path, namePath, result))
-}
-
-// mergePhantomResults merges source phantom columns and relationship name into the destination.
-func mergePhantomResults(dst, src map[string]struct{}, dstRel *string, srcRel string) {
-	for col := range src {
-		dst[col] = struct{}{}
-	}
-
-	if srcRel != "" {
-		*dstRel = srcRel
-	}
 }
 
 // resolveFragmentTypeName looks up a fragment by name and returns its effective type name.
@@ -379,6 +370,7 @@ func (a *analyzer) buildRemoteQueryPlan(
 
 	return &RemoteQueryPlan{
 		Name:                rel.Name,
+		SourceType:          rel.SourceType,
 		SourceConnector:     a.connectorAtPath(path, result),
 		SourcePath:          path,
 		SourceNamePath:      namePath,
@@ -399,8 +391,9 @@ func (a *analyzer) buildRemoteQueryPlan(
 
 // processPhantomFields determines which phantom fields need to be added and records them.
 func (a *analyzer) processPhantomFields(
-	selections ast.SelectionSet,
+	selections, responseSelections ast.SelectionSet,
 	path jsonpath.Path,
+	sourceType string,
 	neededPhantoms map[string]struct{},
 	phantomForRel string,
 	result *analysisResult,
@@ -411,10 +404,10 @@ func (a *analyzer) processPhantomFields(
 
 	// Check which fields are already available under their own response key.
 	selectedFields := make(map[string]struct{})
-	a.collectOwnResponseKeyFieldsFromSelections(selections, selectedFields)
+	a.collectOwnResponseKeyFieldsForType(selections, sourceType, selectedFields)
 
 	responseKeys := make(map[string]struct{})
-	a.collectResponseKeysFromSelections(selections, responseKeys)
+	a.collectResponseKeysFromSelections(responseSelections, responseKeys)
 
 	// Determine which phantom fields need to be added
 	var phantomFields []string
@@ -442,6 +435,7 @@ func (a *analyzer) processPhantomFields(
 	// Record phantom field spec
 	pfs := &PhantomFieldSpec{
 		Path:            path,
+		SourceType:      sourceType,
 		Fields:          phantomFields,
 		Aliases:         phantomAliases,
 		ForRelationship: phantomForRel,
@@ -451,42 +445,64 @@ func (a *analyzer) processPhantomFields(
 	// Update the remote query plans with source phantom info
 	pathStr := path.String()
 	for _, rqp := range result.RemoteQueries {
-		if rqp.SourcePath.String() == pathStr {
+		if rqp.SourcePath.String() == pathStr && rqp.SourceType == sourceType {
 			rqp.SourcePhantomFields = pfs
 		}
 	}
 }
 
-func (a *analyzer) collectOwnResponseKeyFieldsFromSelections(
+// typesOverlap reports whether two selection types can contain the same object.
+func (a *analyzer) typesOverlap(left, right string) bool {
+	if left == right {
+		return true
+	}
+
+	for _, possible := range a.schema.PossibleTypes[left] {
+		if possible.Name == right {
+			return true
+		}
+
+		for _, other := range a.schema.PossibleTypes[right] {
+			if possible.Name == other.Name {
+				return true
+			}
+		}
+	}
+
+	for _, possible := range a.schema.PossibleTypes[right] {
+		if possible.Name == left {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (a *analyzer) collectOwnResponseKeyFieldsForType(
 	selections ast.SelectionSet,
+	sourceType string,
 	selectedFields map[string]struct{},
 ) {
 	for _, sel := range selections {
 		switch s := sel.(type) {
 		case *ast.Field:
-			if !includeSelection(s.Directives, a.variables) {
-				continue
-			}
-
 			// A computed JSON path selection is not the full join value;
 			// inject a separate unmodified phantom under an internal alias.
-			if len(s.Arguments) == 0 && (s.Alias == "" || s.Alias == s.Name) {
+			if includeSelection(s.Directives, a.variables) && len(s.Arguments) == 0 &&
+				(s.Alias == "" || s.Alias == s.Name) {
 				selectedFields[s.Name] = struct{}{}
 			}
 		case *ast.FragmentSpread:
-			if !includeSelection(s.Directives, a.variables) {
-				continue
-			}
-
-			if frag := a.fragments.ForName(s.Name); frag != nil {
-				a.collectOwnResponseKeyFieldsFromSelections(frag.SelectionSet, selectedFields)
+			if frag := a.fragments.ForName(s.Name); frag != nil &&
+				includeSelection(s.Directives, a.variables) &&
+				a.typesOverlap(frag.TypeCondition, sourceType) {
+				a.collectOwnResponseKeyFieldsForType(frag.SelectionSet, sourceType, selectedFields)
 			}
 		case *ast.InlineFragment:
-			if !includeSelection(s.Directives, a.variables) {
-				continue
+			if includeSelection(s.Directives, a.variables) &&
+				(s.TypeCondition == "" || a.typesOverlap(s.TypeCondition, sourceType)) {
+				a.collectOwnResponseKeyFieldsForType(s.SelectionSet, sourceType, selectedFields)
 			}
-
-			a.collectOwnResponseKeyFieldsFromSelections(s.SelectionSet, selectedFields)
 		}
 	}
 }
