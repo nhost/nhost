@@ -4,6 +4,7 @@ import (
 	"context"
 	stdjson "encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -609,8 +610,14 @@ func convertRemoteFieldCalls(h map[string]hasura.RemoteFieldCall) map[string]Rem
 
 	result := make(map[string]RemoteFieldCall, len(h))
 	for k, v := range h {
+		var args map[string]string
+		if v.Arguments != nil {
+			args = make(map[string]string, len(v.Arguments))
+			maps.Copy(args, v.Arguments)
+		}
+
 		result[k] = RemoteFieldCall{
-			Arguments: v.Arguments,
+			Arguments: args,
 			Field:     convertRemoteFieldCalls(v.Field),
 		}
 	}
