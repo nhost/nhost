@@ -425,6 +425,52 @@ func assertLossyInlineFields(t *testing.T, m *metadata.Metadata, comment string,
 	}
 }
 
+func TestMalformedComputedYAMLMemberRetainsNameOnSnapshotReload(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		member string
+	}{
+		{name: "table argument", member: `definition: {function: f, table_argument: 17}
+      name: broken`},
+		{name: "comment", member: `comment: false
+      name: broken
+      definition: {function: f}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tables := `- table: {name: items, schema: public}
+  computed_fields:
+    - ` + tc.member
+			dir := writeComputedTablesFixture(t, tables, false)
+
+			src := source.NewFileMetadataSource(filepath.Join(dir, "metadata.yaml"))
+			t.Cleanup(func() { src.Close() })
+
+			original, err := src.InitialLoad(t.Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			snapshot, _ := src.HasuraSnapshotJSON()
+
+			reloaded, err := metadata.FromHasuraJSON(snapshot)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			for _, doc := range []*metadata.Metadata{original, reloaded} {
+				fields := doc.Databases[0].Tables[0].ComputedFields
+				if len(fields) != 1 || fields[0].Name != "broken" || fields[0].DecodeError == "" {
+					t.Fatalf("lost invalid computed identity: %+v", fields)
+				}
+			}
+		})
+	}
+}
+
 func TestNonJSONComputedYAMLListsKeepInvalidMarker(t *testing.T) {
 	t.Parallel()
 
