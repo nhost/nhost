@@ -67,6 +67,98 @@ func TestComputedScalarGroupedAggregateInputs(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // The fixture owns one testdb pool shared by sequential cases.
+func TestComputedGroupedAggregateOrderSkipsSyntheticRows(t *testing.T) {
+	//nolint:dogsled // The grouped builder and isolated pool are the fixture results needed.
+	_, pool, _, _, grouped := computedTestFixture(t, false, true, true)
+
+	tests := []struct {
+		name   string
+		order  string
+		limit  string
+		counts map[int]int
+	}{
+		{"scalar", "item_strict_order:asc", "", map[int]int{1: 1, 2: 1, 999: 0}},
+		{"scalar windowed", "item_strict_order:asc", ",limit:1", map[int]int{1: 1, 2: 1, 999: 0}},
+		{
+			"table aggregate",
+			"item_tags_strict_order_aggregate:{count:asc}",
+			"",
+			map[int]int{1: 1, 2: 1, 999: 0},
+		},
+		{
+			"table aggregate windowed",
+			"item_tags_strict_order_aggregate:{count:asc}",
+			",limit:1",
+			map[int]int{1: 1, 2: 1, 999: 0},
+		},
+		// A real row with zero SRF results is omitted, while a synthetic
+		// row must survive. The second real row produces two nodes.
+		{"setof", "item_setof_order:asc", "", map[int]int{2: 2, 999: 0}},
+		{"setof windowed", "item_setof_order:asc", ",limit:1", map[int]int{2: 1, 999: 0}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			query := `query { _root(order_by:{` + tt.order + `}` + tt.limit + `) {
+				aggregate { count } nodes { id }
+			} }`
+
+			doc, err := parser.ParseQuery(&ast.Source{Input: query})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			field, ok := doc.Operations[0].SelectionSet[0].(*ast.Field)
+			if !ok {
+				t.Fatal("expected grouped field")
+			}
+
+			op, err := grouped.BuildGroupedAggregateSQL(groupedagg.BuildInput{
+				TableSchema: "cf_select", TableName: "items", Field: field,
+				Fragments: doc.Fragments, Role: "cf_reader", JoinColumnSQLName: "id",
+				JoinValues: []any{1, 2, 999},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var raw []byte
+			if err := pool.QueryRow(t.Context(), op.SQL, op.Parameters...).Scan(&raw); err != nil {
+				t.Fatalf("grouped SQL: %v\n%s", err, op.SQL)
+			}
+
+			var groups []struct {
+				Key       int `json:"_join_key"`
+				Aggregate struct {
+					Count int `json:"count"`
+				} `json:"aggregate"`
+				Nodes []struct {
+					ID int `json:"id"`
+				} `json:"nodes"`
+			}
+			if err := json.Unmarshal(raw, &groups); err != nil {
+				t.Fatal(err)
+			}
+
+			if len(groups) != len(tt.counts) {
+				t.Fatalf("groups: %s", raw)
+			}
+
+			seen := make(map[int]bool, len(groups))
+			for _, group := range groups {
+				want, found := tt.counts[group.Key]
+				if !found || seen[group.Key] || group.Aggregate.Count != want ||
+					len(group.Nodes) != want || group.Nodes == nil {
+					t.Fatalf("unexpected group: %s", raw)
+				}
+
+				seen[group.Key] = true
+			}
+		})
+	}
+}
+
 func TestComputedScalarGroupedEmptySessionPredicate(t *testing.T) {
 	t.Parallel()
 	//nolint:dogsled // The grouped builder and isolated pool are the only fixture results needed.
