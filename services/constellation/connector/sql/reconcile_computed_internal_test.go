@@ -559,6 +559,10 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 				"count": map[string]any{"predicate": map[string]any{"_gt": 0}},
 			}},
 		},
+		{
+			name: "raw to_source array aggregate", field: "posts_aggregate", relationship: "remote array",
+			keepGrant: true, filter: map[string]any{"id": map[string]any{"_eq": 1}},
+		},
 		{name: "remote relationship", field: "elsewhere", relationship: "remote", filter: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -601,6 +605,8 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 				}
 			}
 
+			assertRawArraySiblingCollision(t, tt.relationship, &got.Tables[0], inc)
+
 			wantPermissions := 1 + boolInt(tt.keepGrant)
 			if len(got.Tables[0].ComputedFields) != 2*boolInt(tt.grantOnly) ||
 				len(got.Tables[0].SelectPermissions) != wantPermissions ||
@@ -624,6 +630,25 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 	}
 }
 
+func assertRawArraySiblingCollision(
+	t *testing.T, kind string, table *metadata.TableMetadata, inc *metadata.Inconsistencies,
+) {
+	t.Helper()
+
+	if kind != "remote array" {
+		return
+	}
+
+	if len(inc.Snapshot()) != 1 ||
+		len(table.SelectPermissions) != 2 ||
+		table.SelectPermissions[1].Role != "invalid_grant" ||
+		!reflect.DeepEqual(table.SelectPermissions[1].Permission.Columns, []string{"id"}) ||
+		len(table.SelectPermissions[1].Permission.ComputedFields) != 0 ||
+		len(table.RemoteRelationships) != 1 {
+		t.Fatalf("raw array sibling collision was not isolated: %+v, %+v", table, inc.Snapshot())
+	}
+}
+
 func configureComputedCollision(table *metadata.TableMetadata, kind, field string) {
 	using := metadata.RelationshipUsing{ManualConfiguration: &metadata.ManualConfiguration{
 		RemoteTable: metadata.TableSource{Schema: "public", Name: "posts"},
@@ -639,6 +664,13 @@ func configureComputedCollision(table *metadata.TableMetadata, kind, field strin
 		table.ArrayRelationships = []metadata.ArrayRelationship{{Name: "posts", Using: using}}
 	case "remote":
 		table.RemoteRelationships = []metadata.RemoteRelationship{{Name: field}}
+	case "remote array":
+		table.RemoteRelationships = []metadata.RemoteRelationship{{
+			Name: "posts",
+			Definition: metadata.RemoteRelationshipDef{ToSource: &metadata.ToSourceRelationship{
+				RelationshipType: metadata.RelationshipTypeArray,
+			}},
+		}}
 	}
 }
 

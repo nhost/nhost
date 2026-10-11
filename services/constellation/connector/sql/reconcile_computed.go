@@ -254,8 +254,8 @@ func computedNameConflict(
 		}
 	}
 
-	for _, rel := range table.ArrayRelationships {
-		if rel.Name == name || rel.Name+"_aggregate" == name {
+	for _, rel := range computedArrayRelationshipNames(table) {
+		if rel == name || rel+"_aggregate" == name {
 			return "computed field conflicts with a relationship"
 		}
 	}
@@ -269,12 +269,30 @@ func computedNameConflict(
 	return ""
 }
 
+// Array relationships can be local/lowered or raw native to_source entries.
+// The latter have no ArrayRelationships entry in TOML metadata.
+func computedArrayRelationshipNames(table *metadata.TableMetadata) []string {
+	names := make([]string, 0, len(table.ArrayRelationships)+len(table.RemoteRelationships))
+	for _, rel := range table.ArrayRelationships {
+		names = append(names, rel.Name)
+	}
+
+	for _, rel := range table.RemoteRelationships {
+		toSource := rel.Definition.ToSource
+		if toSource != nil && toSource.RelationshipType == metadata.RelationshipTypeArray {
+			names = append(names, rel.Name)
+		}
+	}
+
+	return names
+}
+
 // Only the generated aggregate sibling of an array relationship has this
 // exception. Exact relationship and column collisions keep their usual
 // invalid-grant behavior.
 func computedAggregateSiblingConflict(table *metadata.TableMetadata, name string) bool {
-	for _, rel := range table.ArrayRelationships {
-		if name == rel.Name+"_aggregate" {
+	for _, rel := range computedArrayRelationshipNames(table) {
+		if name == rel+"_aggregate" {
 			return true
 		}
 	}
