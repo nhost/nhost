@@ -305,7 +305,6 @@ func convertComputedFields(list hasura.ComputedFieldList) []ComputedField {
 				SessionArgument: entry.SessionArgument,
 			},
 			Comment:     entry.Comment,
-			Raw:         entry.Raw,
 			DecodeError: "",
 		}
 		if entry.DecodeError != nil {
@@ -333,7 +332,7 @@ func convertSelectPermissions(perms []hasura.SelectPermission) []SelectPermissio
 				config.InvalidComputedFields = append(
 					config.InvalidComputedFields,
 					InvalidComputedFieldGrant{
-						Raw: grant.Raw, DecodeError: grant.DecodeError.Error(),
+						DecodeError: grant.DecodeError.Error(),
 					},
 				)
 

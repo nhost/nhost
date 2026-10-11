@@ -18,13 +18,12 @@ type TableMetadata struct {
 }
 
 // ComputedField retains a table-owned PostgreSQL function definition. An
-// invalid wire entry carries both its original value and parse error for
-// later reconciliation; it is never interpreted as a valid field.
+// invalid wire entry carries its decode error for reconciliation; it is never
+// interpreted as a valid field.
 type ComputedField struct {
 	Name        string                  `json:"name"              toml:"name"`
 	Definition  ComputedFieldDefinition `json:"definition"        toml:"definition"`
 	Comment     string                  `json:"comment,omitempty" toml:"comment,omitempty"`
-	Raw         []byte                  `json:"-"                 toml:"-"`
 	DecodeError string                  `json:"-"                 toml:"-"`
 }
 
@@ -39,7 +38,6 @@ type ComputedFieldDefinition struct {
 // InvalidComputedFieldGrant retains an unparseable wire grant without
 // treating it as permission to access any computed field.
 type InvalidComputedFieldGrant struct {
-	Raw         []byte `json:"-" toml:"-"`
 	DecodeError string `json:"-" toml:"-"`
 }
 

@@ -1,7 +1,6 @@
 package metadata_test
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,14 +74,7 @@ func compareComputedModels(t *testing.T, expected, actual *metadata.Metadata) {
 			}
 
 			for _, table := range db.Tables {
-				fields := make([]metadata.ComputedField, len(table.ComputedFields))
-				copy(fields, table.ComputedFields)
-
-				for i := range fields {
-					fields[i].Raw = nil
-				}
-
-				result[db.Name+"."+table.Table.Name+".fields"] = fields
+				result[db.Name+"."+table.Table.Name+".fields"] = table.ComputedFields
 				for _, perm := range table.SelectPermissions {
 					result[db.Name+"."+table.Table.Name+"."+perm.Role+".grants"] = perm.Permission.ComputedFields
 				}
@@ -192,20 +184,9 @@ func TestComputedFieldsInvalidEntriesStayExplicit(t *testing.T) {
 		[]string{"valid"},
 		perm.ComputedFields,
 	); diff != "" ||
-		len(perm.InvalidComputedFields) != 2 {
+		len(perm.InvalidComputedFields) != 2 ||
+		perm.InvalidComputedFields[0].DecodeError == "" ||
+		perm.InvalidComputedFields[1].DecodeError == "" {
 		t.Fatalf("permission: %+v (%s)", perm, diff)
-	}
-
-	var raw map[string]any
-	if err := json.Unmarshal(
-		table.ComputedFields[0].Raw,
-		&raw,
-	); err != nil ||
-		raw["future"] == nil {
-		t.Fatalf("lost original field: %s (%v)", table.ComputedFields[0].Raw, err)
-	}
-
-	if string(table.ComputedFields[1].Raw) != `{"name":"broken","definition":{"function":17}}` {
-		t.Fatalf("lost invalid raw field: %s", table.ComputedFields[1].Raw)
 	}
 }
