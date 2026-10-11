@@ -27,6 +27,8 @@ const (
 	groupedAggregateJoinKeyAlias    = "__cs_join_key"
 	groupedAggregateRowNumberCol    = "__cs_rn"
 	groupedAggregateExpandedAlias   = "_root.expanded"
+	groupedAggregateOrderAlias      = "_root.order"
+	groupedAggregateOrderPresent    = "__cs_present"
 )
 
 // ErrGroupedAggregateDistinctOnUnsupported is returned when a cross-database
@@ -415,27 +417,11 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 	b.WriteString(groupedAggregateJoinKeyAlias)
 	b.WriteByte('"')
 
-	if orderBy != nil {
-		for _, item := range orderBy.Items {
-			computed := item.ComputedExpression()
-			if computed == nil {
-				continue
-			}
-
-			b.WriteString(", ")
-
-			var err error
-
-			params, paramIndex, err = computed.WriteExpression(
-				b, tableRef, sessionVariables, params, paramIndex,
-			)
-			if err != nil {
-				return nil, 0, fmt.Errorf("writing grouped computed order: %w", err)
-			}
-
-			b.WriteString(" AS ")
-			core.WriteQuotedIdentifier(b, item.Column)
-		}
+	params, paramIndex, setofOrder, err := writeGroupedComputedOrderColumns(
+		b, tableRef, joinCol.SQLName, orderBy, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	b.WriteString(" FROM ")
@@ -460,8 +446,6 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 	b.WriteString(groupedAggregateKeyCol)
 	b.WriteString(`"`)
 
-	var err error
-
 	if len(whereClause) > 0 {
 		b.WriteString(" AND ")
 
@@ -482,6 +466,15 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 		}
 	}
 
+	if setofOrder {
+		params, paramIndex, err = writeGroupedSetofOrderJoin(
+			b, tableRef, joinCol.SQLName, orderBy, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
 	// A CTE ORDER BY is only meaningful when distinct_on is present: it selects
 	// which row each (join_key, distinct_on) group keeps. The GROUP BY in the
 	// outer query discards the CTE row order otherwise, so order_by-only node
@@ -491,6 +484,114 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 	}
 
 	b.WriteString(") ")
+
+	return params, paramIndex, nil
+}
+
+// groupedSetofOrder identifies scalar SETOF functions; table aggregate order
+// expressions are scalar subqueries even when their FROM function returns rows.
+func groupedSetofOrder(item arguments.OrderByItem) (*computedInput, bool) {
+	input, ok := item.ComputedExpression().(*computedInput)
+
+	return input, ok && input.computed.function.ReturnSet
+}
+
+func writeGroupedComputedOrderColumns(
+	b *strings.Builder, tableRef, joinCol string,
+	orderBy *arguments.OrderBy, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) ([]any, int, bool, error) {
+	if orderBy == nil {
+		return params, paramIndex, false, nil
+	}
+
+	setofOrder := false
+	for _, item := range orderBy.Items {
+		computed := item.ComputedExpression()
+		if computed == nil {
+			continue
+		}
+
+		b.WriteString(", ")
+
+		// PostgreSQL forbids SRFs inside CASE: evaluate those in a guarded
+		// lateral source instead of the base CTE's target list.
+		if _, ok := groupedSetofOrder(item); ok {
+			setofOrder = true
+
+			core.WriteQualifiedColumn(b, `"`+groupedAggregateOrderAlias+`"`, item.Column)
+		} else {
+			b.WriteString("CASE WHEN ")
+			core.WriteQualifiedColumn(b, tableRef, joinCol)
+			b.WriteString(" IS NOT NULL THEN ")
+
+			var err error
+
+			params, paramIndex, err = computed.WriteExpression(
+				b, tableRef, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, false, fmt.Errorf("writing grouped computed order: %w", err)
+			}
+
+			b.WriteString(" END")
+		}
+
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, item.Column)
+	}
+
+	return params, paramIndex, setofOrder, nil
+}
+
+// writeGroupedSetofOrderJoin preserves synthetic keys and omits real rows when
+// an SRF yields no values. A presence marker distinguishes a returned NULL
+// value from the LEFT JOIN's no-result row. Multiple SRFs in the same SELECT
+// target list advance in lockstep as in the ordinary root path.
+func writeGroupedSetofOrderJoin(
+	b *strings.Builder, tableRef, joinCol string,
+	orderBy *arguments.OrderBy, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) ([]any, int, error) {
+	b.WriteString(" LEFT JOIN LATERAL (SELECT ")
+
+	first := true
+	for _, item := range orderBy.Items {
+		input, ok := groupedSetofOrder(item)
+		if !ok {
+			continue
+		}
+
+		if !first {
+			b.WriteString(", ")
+		}
+
+		var err error
+
+		params, paramIndex, err = input.WriteExpression(
+			b, tableRef, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("writing grouped computed order: %w", err)
+		}
+
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, item.Column)
+
+		first = false
+	}
+
+	b.WriteString(", 1 AS ")
+	core.WriteQuotedIdentifier(b, groupedAggregateOrderPresent)
+	b.WriteString(" WHERE ")
+	core.WriteQualifiedColumn(b, tableRef, joinCol)
+	b.WriteString(" IS NOT NULL) AS ")
+	core.WriteQuotedIdentifier(b, groupedAggregateOrderAlias)
+	b.WriteString(" ON true WHERE ")
+	core.WriteQualifiedColumn(b, tableRef, joinCol)
+	b.WriteString(" IS NULL OR ")
+	core.WriteQualifiedColumn(b, `"`+groupedAggregateOrderAlias+`"`, groupedAggregateOrderPresent)
+	b.WriteString(" IS NOT NULL")
 
 	return params, paramIndex, nil
 }
