@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync/atomic"
@@ -313,6 +314,23 @@ LANGUAGE sql STABLE AS $$ SELECT CASE WHEN item.id = 1 AND
 				"item_session_team",
 			)
 		}
+	}
+
+	// Exercise the same metadata export/reload path as the CLI before
+	// executing both computed and renamed-column remote joins.
+	exported, err := metadata.MarshalTOML(md)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	metadataPath := filepath.Join(t.TempDir(), "metadata.toml")
+	if err := os.WriteFile(metadataPath, exported, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	md, err = metadata.FromDetect(t.Context(), metadataPath)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	ctrl, err := newComputedController(t, md, false)
