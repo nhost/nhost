@@ -211,6 +211,33 @@ func (c *customizedConnector) ExecuteGroupedAggregate(
 	return forwardGroupedTypeNames(results, req, c.customizer, false), nil
 }
 
+// ValidateGroupedAggregate forwards pre-execution validation to the native
+// target so remote aggregate argument errors can abort mutations before writes.
+func (c *customizedConnector) ValidateGroupedAggregate(
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	validator, ok := c.inner.(interface {
+		ValidateGroupedAggregate(
+			req groupedaggregate.Request, role string, sessionVariables map[string]any,
+		) error
+	})
+	if !ok {
+		return nil
+	}
+
+	if err := validator.ValidateGroupedAggregate(req, role, sessionVariables); err != nil {
+		return fmt.Errorf(
+			"validating grouped aggregate on customized connector %s: %w",
+			c.name,
+			err,
+		)
+	}
+
+	return nil
+}
+
 func forwardGroupedTypeNames(
 	results map[string]any, req groupedaggregate.Request,
 	customizer *customization.Customizer, collection bool,
