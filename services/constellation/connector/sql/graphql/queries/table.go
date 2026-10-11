@@ -37,6 +37,7 @@ type table struct {
 	pkColumns                []*core.Column
 	columns                  []*core.Column
 	physicalColumnTypes      map[string]string
+	restoreColumnTypes       map[string]string
 	conflictColumns          map[string][]string
 	conflictNullsNotDistinct map[string]bool
 	relationships            []*relationship
@@ -77,6 +78,7 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
 		physicalColumnTypes:          map[string]string{},
+		restoreColumnTypes:           map[string]string{},
 		conflictColumns:              map[string][]string{},
 		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
@@ -107,10 +109,9 @@ func (t *table) Initialize(
 	}
 
 	columns := make([]*core.Column, len(tableObj.Columns))
-	t.physicalColumnTypes = make(map[string]string, len(columns))
+	t.initializePhysicalColumnTypes(tableObj.Columns)
 
 	for i, colObj := range tableObj.Columns {
-		t.physicalColumnTypes[colObj.Name] = colObj.PhysicalSQLType
 		graphqlName := colObj.Name
 
 		if c, found := md.Configuration.ColumnConfig[colObj.Name]; found && c.CustomName != "" {
@@ -162,6 +163,16 @@ func (t *table) Initialize(
 	}
 
 	return nil
+}
+
+func (t *table) initializePhysicalColumnTypes(columns []introspection.Column) {
+	t.physicalColumnTypes = make(map[string]string, len(columns))
+	t.restoreColumnTypes = make(map[string]string, len(columns))
+
+	for _, col := range columns {
+		t.physicalColumnTypes[col.Name] = col.PhysicalSQLType
+		t.restoreColumnTypes[col.Name] = col.RestoreSQLType
+	}
 }
 
 func tableConflictMetadata(tableObj *introspection.Table) (map[string][]string, map[string]bool) {

@@ -453,6 +453,7 @@ func getColumnsAndPKs( //nolint:funlen // PRAGMA scan and returned column metada
 			Name:            name,
 			Type:            mappedType,
 			PhysicalSQLType: "",
+			RestoreSQLType:  "",
 			IsNullable:      !notNull,
 			IsGenerated:     hidden == 2 || hidden == 3, // virtual or stored generated
 			IsIdentity:      false,                      // populated by markRowidAliasIdentity
