@@ -676,7 +676,7 @@ func TestInjectPhantomFields_AtRootPath(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -722,7 +722,7 @@ func TestInjectPhantomFields_AtNestedPath(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	teamsField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -777,7 +777,7 @@ func TestInjectPhantomFields_DeduplicatesExistingFields(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -833,7 +833,7 @@ func TestInjectPhantomFields_InjectsUnaliasedPhantomWhenExistingFieldUsesDiffere
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -874,7 +874,7 @@ func TestInjectPhantomFields_AliasCollisionUsesPhantomAlias(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -908,8 +908,8 @@ func TestInjectPhantomFields_NoOpWithEmptySpecs(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, nil)
-	transform.InjectPhantomFields(op, []transform.PhantomSpec{})
+	transform.InjectPhantomFields(op, nil, nil)
+	transform.InjectPhantomFields(op, []transform.PhantomSpec{}, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -978,7 +978,7 @@ func TestInjectPhantomFieldsSharedFragmentsArePathLocal(t *testing.T) {
 	fragments := ast.FragmentDefinitionList{leaf, wrapper}
 	transform.InjectPhantomFields(op, []transform.PhantomSpec{{
 		Path: jsonpath.Path{"first", "users", "item"}, Fields: []string{"secret"},
-	}}, fragments)
+	}}, nil, fragments)
 
 	if got := fieldNames(
 		selectionFieldAt(t, leaf.SelectionSet, 0).SelectionSet,
