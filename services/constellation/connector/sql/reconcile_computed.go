@@ -652,8 +652,8 @@ func computedDependencyKey(key string, value any, table, root *metadata.TableMet
 		return computedExistsDependency(value, table, root, tables, objects, index, insideAggregate)
 	default:
 		identity := introspection.ComputedTable{Schema: table.Table.Schema, Name: table.Table.Name}
-		// SQL columns (including customized names), local relationships and
-		// their aggregate keys take precedence over rejected computed names.
+		// Permission predicates resolve physical SQL columns, not custom GraphQL
+		// names. Local relationships and their aggregate keys also take precedence.
 		if computedKeyIsColumn(key, table, objects) {
 			return ""
 		}
@@ -892,13 +892,7 @@ func computedKeyIsColumn(
 	table *metadata.TableMetadata,
 	objects *introspection.Objects,
 ) bool {
-	for _, column := range objectsColumnNames(objects, table.Table) {
-		if column == key || table.Configuration.ColumnConfig[column].CustomName == key {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(objectsColumnNames(objects, table.Table), key)
 }
 
 // computedExistsTable follows Hasura's QualifiedTable default: an omitted or
