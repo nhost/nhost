@@ -3,16 +3,13 @@ package controller_test
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/nhost/nhost/services/constellation/controller"
-	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -152,9 +149,7 @@ INSERT INTO cf_select.target_column_kids VALUES
 				},
 			)
 
-			ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
-				middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: &md},
-				slog.New(slog.DiscardHandler), "", nil)
+			ctrl, err := newComputedController(t, &md, false)
 			if err != nil {
 				t.Fatal(err)
 			}

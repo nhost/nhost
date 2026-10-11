@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhost/nhost/services/constellation/controller"
-	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -21,7 +18,7 @@ import (
 // Hasura v2.50.3-ce classified these collisions in a serialized oracle.
 // Each Constellation variant is rebuilt from pristine metadata on testdb.
 //
-//nolint:paralleltest,gocognit,gocyclo,cyclop // Variants open/close connectors serially on the same testdb, checking each role/grant.
+//nolint:paralleltest,gocognit,gocyclo,cyclop // Variants share one testdb and close their connectors in each subtest.
 func TestComputedCollisionRoleMatrix(t *testing.T) {
 	ddl, err := os.ReadFile(
 		"../integration/nhost/migrations/default/1790001000000_computed_fields/up.sql",
@@ -39,6 +36,14 @@ func TestComputedCollisionRoleMatrix(t *testing.T) {
 
 	raw, err := os.ReadFile("../integration/computedfields/testdata/metadata.json")
 	if err != nil {
+		t.Fatal(err)
+	}
+
+	var baseline int
+
+	const otherSessions = `SELECT count(*) FROM pg_stat_activity
+		WHERE datname = current_database() AND pid <> pg_backend_pid()`
+	if err := pool.QueryRow(t.Context(), otherSessions).Scan(&baseline); err != nil {
 		t.Fatal(err)
 	}
 
@@ -83,9 +88,7 @@ func TestComputedCollisionRoleMatrix(t *testing.T) {
 						items.SelectPermissions[1].Permission.ComputedFields, tc.field)
 				}
 
-				ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
-					middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md},
-					slog.New(slog.DiscardHandler), "", nil)
+				ctrl, err := newComputedController(t, md, false)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -159,6 +162,30 @@ func TestComputedCollisionRoleMatrix(t *testing.T) {
 					}
 				}
 			})
+
+			// The subtest cleanup must close both metadata-built pools before
+			// the next variant runs against this same test database.
+			deadline := time.Now().Add(3 * time.Second)
+			for {
+				var remaining int
+				if err := pool.QueryRow(t.Context(), otherSessions).Scan(&remaining); err != nil {
+					t.Fatal(err)
+				}
+
+				if remaining <= baseline {
+					break
+				}
+
+				if time.Now().After(deadline) {
+					t.Fatalf(
+						"%d connections still open after variant cleanup (baseline %d)",
+						remaining,
+						baseline,
+					)
+				}
+
+				time.Sleep(10 * time.Millisecond)
+			}
 		}
 	}
 }

@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -122,9 +123,50 @@ type computedStaticSource struct{ meta *metadata.Metadata }
 func (s computedStaticSource) InitialLoad(context.Context) (*metadata.Metadata, error) {
 	return s.meta, nil
 }
-func (s computedStaticSource) Watch(context.Context) <-chan metadata.Update { return nil }
-func (s computedStaticSource) HasuraSnapshotJSON() ([]byte, int64)          { return nil, 0 }
-func (s computedStaticSource) Close()                                       {}
+
+func (s computedStaticSource) Watch(ctx context.Context) <-chan metadata.Update {
+	updates := make(chan metadata.Update)
+	go func() {
+		<-ctx.Done()
+		close(updates)
+	}()
+
+	return updates
+}
+func (s computedStaticSource) HasuraSnapshotJSON() ([]byte, int64) { return nil, 0 }
+func (s computedStaticSource) Close()                              {}
+
+// newComputedController runs the controller so test cleanup shuts down every
+// metadata-built connector before the owning testdb database is dropped.
+func newComputedController(
+	t *testing.T, md *metadata.Metadata, devMode bool,
+) (*controller.Controller, error) {
+	t.Helper()
+
+	logger := slog.New(slog.DiscardHandler)
+
+	ctrl, err := controller.New(context.Background(), time.Second, testAdminSecret, devMode,
+		middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md}, logger, "", nil)
+	if err != nil {
+		return nil, fmt.Errorf("building computed test controller: %w", err)
+	}
+
+	runCtx, cancel := context.WithCancel(context.Background())
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+
+		ctrl.Run(runCtx, logger)
+	}()
+
+	t.Cleanup(func() {
+		cancel()
+		<-done
+	})
+
+	return ctrl, nil
+}
 
 //nolint:tparallel // Subtests share one pool and run sequentially to respect the testdb connection budget.
 func TestComputedSelectionViaCrossSource(
@@ -198,10 +240,7 @@ func TestComputedSelectionViaCrossSource(
 		}
 	}
 
-	logger := slog.New(slog.DiscardHandler)
-
-	ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
-		middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md}, logger, "", nil)
+	ctrl, err := newComputedController(t, md, false)
 	if err != nil {
 		t.Fatal(err)
 	}
