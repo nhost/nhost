@@ -180,6 +180,10 @@ RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT to_jsonb(item.label || ':' || (se
 		ddl = extendComputedTableFixture(ddl, &md.Databases[0])
 	}
 
+	if len(sessionFunction) > 2 && sessionFunction[2] {
+		ddl = extendComputedOrderFixture(ddl, &md.Databases[0], sessionFunction[1])
+	}
+
 	pool := testdb.NewPostgres(t, string(ddl), string(seed))
 
 	pgPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
@@ -209,6 +213,54 @@ RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT to_jsonb(item.label || ':' || (se
 	}
 
 	return roots, pool, objects, &md.Databases[0], grouped
+}
+
+// extendComputedOrderFixture installs functions that make synthetic-row calls
+// observable, including a scalar SETOF whose zero-row result omits real rows.
+func extendComputedOrderFixture(
+	ddl []byte, md *metadata.DatabaseMetadata, withTable bool,
+) []byte {
+	ddl = append(ddl, []byte(`
+CREATE FUNCTION cf_select.item_strict_order(item cf_select.items) RETURNS text
+LANGUAGE plpgsql STABLE AS $$ BEGIN
+  IF item.id IS NULL THEN RAISE EXCEPTION 'computed order called on empty row'; END IF;
+  RETURN item.label;
+END $$;
+CREATE FUNCTION cf_select.item_setof_order(item cf_select.items) RETURNS SETOF integer
+LANGUAGE sql STABLE AS $$ SELECT n FROM generate_series(1, item.id) AS n WHERE item.id > 1 $$;
+`)...)
+
+	names := []string{"item_strict_order", "item_setof_order"}
+	if withTable {
+		ddl = append(ddl, []byte(`
+CREATE FUNCTION cf_select.item_tags_strict_order(item cf_select.items) RETURNS SETOF cf_select.tags
+LANGUAGE plpgsql STABLE AS $$ BEGIN
+  IF item.id IS NULL THEN RAISE EXCEPTION 'computed table order called on empty row'; END IF;
+  RETURN QUERY SELECT t.id, t.item_id, t.label FROM cf_select.tags t WHERE t.item_id = item.id;
+END $$;
+`)...)
+		names = append(names, "item_tags_strict_order")
+	}
+
+	table := &md.Tables[0]
+	for _, name := range names {
+		table.ComputedFields = append(table.ComputedFields, metadata.ComputedField{
+			Name: name, Definition: metadata.ComputedFieldDefinition{
+				Function: metadata.FunctionSource{Schema: "cf_select", Name: name},
+			},
+		})
+	}
+
+	for i := range table.SelectPermissions {
+		if table.SelectPermissions[i].Role == "cf_reader" {
+			table.SelectPermissions[i].Permission.ComputedFields = append(
+				table.SelectPermissions[i].Permission.ComputedFields,
+				"item_strict_order", "item_setof_order",
+			)
+		}
+	}
+
+	return ddl
 }
 
 func computedOperation(
