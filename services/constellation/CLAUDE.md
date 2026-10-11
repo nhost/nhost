@@ -127,7 +127,7 @@ fields, which then fails `exhaustruct` on a second lint pass. For a composite
 adapter that needs all fields initialized, prefer a named member with forwarding
 methods rather than an embedded field and verify a second lint run is clean.
 
-After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes. For whole-root lint, use the storage Nix shell so `pkg-config` can find libvips for `services/storage/image`.
+After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes. For whole-root lint, use the storage Nix shell so `pkg-config` can find libvips for `services/storage/image`. In tests that observe `slog` records via a handler wrapper, avoid backing it with `io.Discard`: golangci-lint's `sloglint` `--fix` replaces that handler with `slog.DiscardHandler`, whose `Enabled` always returns false. Use an enabled handler backed by a buffer instead.
 
 ### Integration comparisons and regression tests
 

@@ -1305,6 +1305,40 @@ func TestStreamCohortManager_RebuildCohortMap_Merge(t *testing.T) {
 	}
 }
 
+func TestStreamCohortManager_EmptyPollPromotesPendingSubscriber(t *testing.T) {
+	t.Parallel()
+
+	m := streamRebuildHarness()
+	key, c := newStreamCohortForTest(map[string]any{"id": 5})
+	m.cohorts[key.String()] = c
+
+	first := newStreamCohortSubscription("first", nil, nil, map[string]any{"id": 5})
+	c.addSubscription(first)
+	c.startPolling()
+
+	pending := newStreamCohortSubscription("pending", nil, nil, map[string]any{"id": 5})
+	c.addSubscription(pending)
+	c.removeSubscription(first.id)
+	m.subscriptionIndex[pending.id] = key.String()
+
+	// Simulate the next poll snapshot after the last regular subscriber left.
+	// No executor is needed: the empty branch must make the pending subscriber
+	// eligible for the next poll rather than leaving it queued forever.
+	m.executeAndRebuild(context.Background(), c, slog.Default())
+
+	if c.getSubscriptionsCopy()[pending.id] != pending {
+		t.Fatal("pending subscriber was not promoted to the pollable cohort")
+	}
+
+	if len(c.getNewSubscriptionsCopy()) != 0 {
+		t.Fatal("pending subscriber remained queued after the empty poll")
+	}
+
+	if got := m.subscriptionIndex[pending.id]; got != key.String() {
+		t.Errorf("pending subscriber index = %q, want %q", got, key.String())
+	}
+}
+
 func TestStreamCohortManager_ProcessNewSubscribers_JoinsExistingCohort(t *testing.T) {
 	t.Parallel()
 
