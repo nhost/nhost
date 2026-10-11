@@ -131,7 +131,7 @@ func parseExists( //nolint:funlen,ireturn,nolintlint
 	}
 
 	var conds Statement
-	if conditions != nil {
+	if len(conditions) > 0 {
 		conds = conditions
 	}
 

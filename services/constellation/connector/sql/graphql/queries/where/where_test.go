@@ -1886,6 +1886,100 @@ func TestParse_Exists_WithExplicitSchema(t *testing.T) {
 	}
 }
 
+func TestParse_Exists_EmptyWhere(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		where *ast.Value
+	}{
+		{name: "empty object", where: &ast.Value{Kind: ast.ObjectValue}},
+		{
+			name: "empty and list",
+			where: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "_and", Value: &ast.Value{Kind: ast.ListValue}},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			sibling := &parseTestTable{
+				schemaName: "public",
+				fromClause: `"public"."other"`,
+			}
+			tbl := &parseTestTable{
+				schemaName: "public",
+				siblings:   map[string]where.Table{"public.other": sibling},
+			}
+			value := buildExistsValue([2]string{"schema", "public"}, [2]string{"name", "other"})
+			exists := value.Children[0].Value
+			exists.Children = append(
+				exists.Children,
+				&ast.ChildValue{Name: "_where", Value: tt.where},
+			)
+
+			clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.PermissionAliases)
+			if err != nil {
+				t.Fatalf("Parse _exists: %v", err)
+			}
+
+			writers := []struct {
+				name  string
+				write func(*strings.Builder) ([]any, int, error)
+			}{
+				{
+					name: "root clause",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return clause.WriteCondition(b, `"t"`, nil, 1)
+					},
+				},
+				{
+					name: "direct filter",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return clause[0].WriteCondition(b, `"t"`, nil, 1)
+					},
+				},
+				{
+					name: "substituted filter",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return where.WriteConditionSubstituted(clause, b, `"t"`, nil, 1,
+							where.TableSubstitutions{`"public"."other"`: "replacement"})
+					},
+				},
+			}
+
+			for _, writer := range writers {
+				t.Run(writer.name, func(t *testing.T) {
+					var b strings.Builder
+
+					params, index, err := writer.write(&b)
+					if err != nil {
+						t.Fatalf("WriteCondition: %v", err)
+					}
+
+					if got, want := b.String(), `EXISTS (SELECT 1 FROM "public"."other" h)`; got != want {
+						t.Errorf("SQL = %q, want %q", got, want)
+					}
+
+					if len(params) != 0 || index != 1 {
+						t.Errorf(
+							"params = %v, index = %d; want no params and index 1",
+							params,
+							index,
+						)
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestParse_Exists_DefaultsSchemaFromTable(t *testing.T) {
 	t.Parallel()
 
