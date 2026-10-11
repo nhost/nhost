@@ -87,6 +87,10 @@ type PhantomFieldSpec struct {
 	// Path is where the phantom fields should be added (e.g., "users.profile").
 	Path jsonpath.Path
 
+	// SourceType owns the join fields at this path, even when other object
+	// types share the response path in mutually exclusive fragments.
+	SourceType string
+
 	// Fields are the field names to add (e.g., ["user_id", "department_id"]).
 	Fields []string
 
@@ -103,6 +107,9 @@ type PhantomFieldSpec struct {
 type RemoteQueryPlan struct {
 	// Name is the relationship name (for identification/logging).
 	Name string
+
+	// SourceType is the object type that owns this relationship.
+	SourceType string
 
 	// SourceConnector is where the parent data comes from.
 	SourceConnector string

@@ -124,6 +124,7 @@ func (p *QueryPlanner) planConnector(
 	transform.InjectPhantomFields(
 		transformResult.CleanOperation,
 		toPhantomSpecs(primaryPhantoms),
+		schema,
 		transformResult.CleanFragments,
 	)
 
@@ -211,9 +212,10 @@ func toPhantomSpecs(specs []*PhantomFieldSpec) []transform.PhantomSpec {
 	out := make([]transform.PhantomSpec, 0, len(specs))
 	for _, s := range specs {
 		out = append(out, transform.PhantomSpec{
-			Path:    s.Path,
-			Fields:  s.Fields,
-			Aliases: s.Aliases,
+			Path:       s.Path,
+			SourceType: s.SourceType,
+			Fields:     s.Fields,
+			Aliases:    s.Aliases,
 		})
 	}
 
