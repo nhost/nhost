@@ -11,6 +11,8 @@
 package relationships
 
 import (
+	"strings"
+
 	"github.com/nhost/nhost/services/constellation/connector"
 	connectorrelationships "github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
@@ -66,9 +68,11 @@ func forDatabase(
 			dbConn, table.Table.Schema+"."+table.Table.Name,
 		)
 
+		emitted := make(map[string]bool)
 		for _, rel := range table.ObjectRelationships {
 			if rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, false); rm != nil {
 				out = append(out, rm)
+				emitted[rel.Name] = true
 			}
 		}
 
@@ -79,6 +83,7 @@ func forDatabase(
 			}
 
 			out = append(out, rm)
+			emitted[rel.Name] = true
 
 			// Cross-database array relationships also expose an
 			// "<rel>_aggregate" sibling field, routed through the
@@ -88,23 +93,26 @@ func forDatabase(
 			}
 		}
 
-		out = append(out, forRawRemoteRelationships(table, sourceType)...)
+		out = append(out, forRawRemoteRelationships(table, sourceType, emitted)...)
 	}
 
 	return out
 }
 
 func forRawRemoteRelationships(
-	table metadata.TableMetadata, sourceType string,
+	table metadata.TableMetadata, sourceType string, emitted map[string]bool,
 ) []*planner.RelationshipMetadata {
 	var out []*planner.RelationshipMetadata
 	for _, rel := range table.RemoteRelationships {
 		if rel.Definition.ToSource == nil {
-			// Hasura decoding already lowered to_remote_schema to an object or
-			// array relationship and renamed its column_config LHS references.
-			// Only native/TOML raw-only relationships need this planner entry.
-			if !hasLoweredRelationship(table, rel.Name) {
-				if rm := remoteSchemaRelationship(sourceType, rel); rm != nil {
+			// Prefer a usable lowered relationship, but retain raw-only native
+			// definitions and malformed lowered paths as planner fallbacks.
+			if !emitted[rel.Name] {
+				if rm := remoteSchemaRelationship(
+					sourceType,
+					rel,
+					table.Configuration.ColumnConfig,
+				); rm != nil {
 					out = append(out, rm)
 				}
 			}
@@ -131,24 +139,10 @@ func forRawRemoteRelationships(
 	return out
 }
 
-func hasLoweredRelationship(table metadata.TableMetadata, name string) bool {
-	for _, object := range table.ObjectRelationships {
-		if object.Name == name {
-			return true
-		}
-	}
-
-	for _, array := range table.ArrayRelationships {
-		if array.Name == name {
-			return true
-		}
-	}
-
-	return false
-}
-
 func remoteSchemaRelationship(
-	sourceType string, rel metadata.RemoteRelationship,
+	sourceType string,
+	rel metadata.RemoteRelationship,
+	columnConfig map[string]metadata.ColumnConfig,
 ) *planner.RelationshipMetadata {
 	toRS := rel.Definition.ToRemoteSchema
 	if toRS == nil {
@@ -160,10 +154,32 @@ func remoteSchemaRelationship(
 		return nil
 	}
 
+	rename := func(sqlName string) string {
+		if column, ok := columnConfig[sqlName]; ok && column.CustomName != "" {
+			return column.CustomName
+		}
+
+		return sqlName
+	}
+
+	lhsFields := make([]string, len(toRS.LHSFields))
+	for i, field := range toRS.LHSFields {
+		lhsFields[i] = rename(field)
+	}
+
 	plannerPath := make([]planner.RemoteFieldPathEntry, len(path))
 	for i, entry := range path {
+		args := make(map[string]string, len(entry.Arguments))
+		for key, value := range entry.Arguments {
+			if sqlName, ok := strings.CutPrefix(value, "$"); ok {
+				value = "$" + rename(sqlName)
+			}
+
+			args[key] = value
+		}
+
 		plannerPath[i] = planner.RemoteFieldPathEntry{
-			FieldName: entry.FieldName, Arguments: entry.Arguments,
+			FieldName: entry.FieldName, Arguments: args,
 		}
 	}
 
@@ -171,7 +187,7 @@ func remoteSchemaRelationship(
 		Name: rel.Name, SourceType: sourceType,
 		TargetConnector: toRS.RemoteSchema, TargetTable: "", TargetTableSchema: "",
 		JoinMapping: nil, IsArray: false, IsArrayAggregate: false, IsRemote: true,
-		LHSFields: toRS.LHSFields, RemoteFieldPath: plannerPath,
+		LHSFields: lhsFields, RemoteFieldPath: plannerPath,
 	}
 }
 

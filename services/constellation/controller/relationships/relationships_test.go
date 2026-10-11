@@ -1,6 +1,9 @@
 package relationships_test
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -266,6 +269,176 @@ func TestFromMetadata_DBToRemoteSchemaRelationship(t *testing.T) {
 
 	if len(rel.LHSFields) != 1 || rel.LHSFields[0] != "id" {
 		t.Errorf("LHSFields = %v, want [id]", rel.LHSFields)
+	}
+}
+
+// An exported Hasura document contains both the raw remote definition and a
+// lowered relationship, but the lowered path is not part of the TOML format.
+func TestFromMetadata_ExportedRemoteSchemaRelationships(t *testing.T) {
+	t.Parallel()
+
+	const document = `{
+		"version":3,"sources":[{"name":"db","kind":"postgres",
+		"configuration":{"connection_info":{"database_url":"postgres://localhost/test"}},
+		"tables":[{"table":{"schema":"public","name":"items"},
+		"configuration":{"column_config":{"id":{"custom_name":"itemId"}}},
+		"computed_fields":[{"name":"team_key","definition":{"function":{"schema":"public","name":"team_key"}}}],
+		"select_permissions":[{"role":"reader","permission":{"columns":["id"],"computed_fields":["team_key"],"filter":{}}}],
+		"remote_relationships":[
+			{"name":"computed_team","definition":{"to_remote_schema":{"remote_schema":"rs","lhs_fields":["team_key"],"remote_field":{"team":{"arguments":{"id":"$team_key"}}}}}},
+			{"name":"physical_team","definition":{"to_remote_schema":{"remote_schema":"rs","lhs_fields":["id"],"remote_field":{"team":{"arguments":{"id":"$id"}}}}}}
+		]}]}]}`
+
+	original, err := metadata.FromHasuraJSON([]byte(document))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	originalArg := original.Databases[0].Tables[0].RemoteRelationships[1].Definition.ToRemoteSchema.RemoteField["team"].Arguments["id"]
+	if originalArg != "$id" {
+		t.Fatalf("raw SQL argument before export = %q, want $id", originalArg)
+	}
+
+	encoded, err := metadata.MarshalTOML(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	path := filepath.Join(t.TempDir(), "metadata.toml")
+	if err := os.WriteFile(path, encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	reloaded, err := metadata.FromDetect(context.Background(), path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	conn := connectormock.NewMockConnector(gomock.NewController(t))
+	conn.EXPECT().GetTypeName("public.items").Return("items").AnyTimes()
+
+	tests := []struct {
+		name, field, arg string
+	}{
+		{"computed_team", "team_key", "$team_key"},
+		{"physical_team", "itemId", "$itemId"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := relationships.FromMetadata(reloaded, map[string]connector.Connector{"db": conn})["db"]
+			want := &planner.RelationshipMetadata{
+				Name:              tt.name,
+				SourceType:        "items",
+				TargetConnector:   "rs",
+				TargetTable:       "",
+				TargetTableSchema: "",
+				JoinMapping:       map[string]string{tt.field: tt.field},
+				IsArray:           false,
+				IsArrayAggregate:  false,
+				IsRemote:          true,
+				LHSFields:         []string{tt.field},
+				RemoteFieldPath: []planner.RemoteFieldPathEntry{{
+					FieldName: "team", Arguments: map[string]string{"id": tt.arg},
+				}},
+			}
+
+			if len(got) != len(tests) {
+				t.Fatalf("planner entries = %d, want %d: %+v", len(got), len(tests), got)
+			}
+
+			found := 0
+			for _, rel := range got {
+				if rel.Name == tt.name {
+					found++
+
+					if diff := cmp.Diff(want, rel); diff != "" {
+						t.Errorf("planner entry (-want +got):\n%s", diff)
+					}
+				}
+			}
+
+			if found != 1 {
+				t.Errorf("%s entries = %d, want 1", tt.name, found)
+			}
+		})
+	}
+
+	// Restoring the derived path must not modify the exported raw definition.
+	raw := reloaded.Databases[0].Tables[0].RemoteRelationships[1].Definition.ToRemoteSchema
+	if got := raw.RemoteField["team"].Arguments["id"]; got != originalArg {
+		t.Errorf("raw argument = %q, want %q", got, originalArg)
+	}
+}
+
+func TestFromMetadata_RawRemoteSchemaFallbackWithoutUsableLoweredPath(t *testing.T) {
+	t.Parallel()
+
+	conn := connectormock.NewMockConnector(gomock.NewController(t))
+	conn.EXPECT().GetTypeName("public.items").Return("items").AnyTimes()
+
+	tests := []struct {
+		name    string
+		lowered bool
+	}{
+		{name: "raw only", lowered: false},
+		{name: "lowered without path", lowered: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			table := metadata.TableMetadata{
+				Table: metadata.TableSource{Schema: "public", Name: "items"},
+				Configuration: metadata.TableConfiguration{
+					ColumnConfig: map[string]metadata.ColumnConfig{
+						"id": {CustomName: "itemId"},
+					},
+				},
+				RemoteRelationships: []metadata.RemoteRelationship{{
+					Name: "team", Definition: metadata.RemoteRelationshipDef{
+						ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+							RemoteSchema: "rs", LHSFields: []string{"id"},
+							RemoteField: map[string]metadata.RemoteFieldCall{
+								"lookup": {Arguments: map[string]string{"id": "$id"}},
+							},
+						},
+					},
+				}},
+			}
+			if tt.lowered {
+				table.ObjectRelationships = []metadata.ObjectRelationship{{
+					Name: "team", Using: metadata.RelationshipUsing{
+						ManualConfiguration: &metadata.ManualConfiguration{
+							RemoteSchema:  "rs",
+							ColumnMapping: map[string]string{"itemId": "itemId"},
+						},
+					},
+				}}
+			}
+
+			md := &metadata.Metadata{Databases: []metadata.DatabaseMetadata{{
+				Name: "db", Tables: []metadata.TableMetadata{table},
+			}}}
+			got := relationships.FromMetadata(md, map[string]connector.Connector{"db": conn})["db"]
+			want := &planner.RelationshipMetadata{
+				Name: "team", SourceType: "items", TargetConnector: "rs",
+				TargetTable: "", TargetTableSchema: "", JoinMapping: nil,
+				IsArray: false, IsArrayAggregate: false, IsRemote: true,
+				LHSFields: []string{"itemId"}, RemoteFieldPath: []planner.RemoteFieldPathEntry{{
+					FieldName: "lookup", Arguments: map[string]string{"id": "$itemId"},
+				}},
+			}
+
+			if len(got) != 1 {
+				t.Fatalf("planner entries = %d, want 1: %+v", len(got), got)
+			}
+
+			if diff := cmp.Diff(want, got[0]); diff != "" {
+				t.Errorf("planner entry (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
 
