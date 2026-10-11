@@ -91,6 +91,7 @@ func (l *ComputedFieldList) UnmarshalJSON(data []byte) error {
 
 		if err := json.Unmarshal(raw, &field); err != nil {
 			entry.DecodeError = fmt.Errorf("decoding computed field: %w", err)
+			entry.Name = computedFieldName(raw)
 		} else {
 			entry.Name = field.Name
 			entry.TableArgument = field.Definition.TableArgument
@@ -107,6 +108,22 @@ func (l *ComputedFieldList) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// A bad sibling may stop struct decoding before the name is visited. Recover
+// only an independently valid string name for permission reconciliation.
+func computedFieldName(raw jsontext.Value) string {
+	var members map[string]jsontext.Value
+	if err := json.Unmarshal(raw, &members); err != nil {
+		return ""
+	}
+
+	var name string
+	if err := json.Unmarshal(members["name"], &name); err != nil {
+		return ""
+	}
+
+	return name
 }
 
 func (l ComputedFieldList) IsZero() bool { return l.Raw == nil }
