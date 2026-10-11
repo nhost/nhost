@@ -372,6 +372,9 @@ func populateTableColumns( //nolint:funlen
 				ELSE COALESCE(bt.typname, t.typname)
 			END as typname,
 			pg_catalog.format('%I.%I', type_ns.nspname, t.typname) AS physical_type,
+			CASE WHEN t.oid = 'pg_catalog.bpchar'::pg_catalog.regtype AND a.atttypmod > 4
+				THEN pg_catalog.format('%I.%I(%s)', type_ns.nspname, t.typname, a.atttypmod - 4)
+				ELSE '' END AS restore_type,
 			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
 			a.attidentity != '' as is_identity,
@@ -418,6 +421,7 @@ func populateTableColumns( //nolint:funlen
 			columnName     string
 			typeName       string
 			physicalType   string
+			restoreType    string
 			isNullable     string
 			isGenerated    bool
 			isIdentity     bool
@@ -434,6 +438,7 @@ func populateTableColumns( //nolint:funlen
 			&columnName,
 			&typeName,
 			&physicalType,
+			&restoreType,
 			&isNullable,
 			&isGenerated,
 			&isIdentity,
@@ -476,6 +481,7 @@ func populateTableColumns( //nolint:funlen
 			Name:            columnName,
 			Type:            typeName,
 			PhysicalSQLType: physicalType,
+			RestoreSQLType:  restoreType,
 			IsNullable:      isNullable == "YES",
 			IsGenerated:     isGenerated,
 			IsIdentity:      isIdentity,

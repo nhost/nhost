@@ -115,9 +115,15 @@ type Column struct {
 	// Type is the database-native type name (e.g. "text", "int4", "_text").
 	Type string
 	// PhysicalSQLType is the PostgreSQL catalog's original, schema-qualified
-	// and SQL-quoted pg_type identity. Unlike Type it does not unwrap domains
-	// or array element types. Empty on SQLite and hand-built test objects.
+	// and SQL-quoted pg_type identity, without the column typmod. Unlike Type
+	// it does not unwrap domains or array element types. Empty on SQLite and
+	// hand-built test objects.
 	PhysicalSQLType string
+	// RestoreSQLType is the typmod-bearing SQL type for a plain bpchar(n)
+	// column. Restoring captured text to this same column re-pads its value;
+	// cross-column FK replay must use PhysicalSQLType instead. Empty for all
+	// other types and on SQLite.
+	RestoreSQLType string
 	// IsNullable is true if the column accepts NULL.
 	IsNullable bool
 	// IsGenerated is true if the column is computed by the database and
