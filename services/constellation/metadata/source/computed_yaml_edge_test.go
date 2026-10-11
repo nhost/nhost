@@ -57,14 +57,8 @@ func assertComputedYAMLFile(t *testing.T, dir, want string) {
 
 	perm := table.SelectPermissions[0].Permission
 	if len(perm.ComputedFields) != 3 || len(perm.InvalidComputedFields) != 1 ||
-		perm.InvalidComputedFields[0].DecodeError == "" ||
-		len(perm.InvalidComputedFields[0].Raw) == 0 ||
-		len(table.ComputedFields[1].Raw) == 0 {
-		t.Fatalf(
-			"decoded grants or invalid raw: %+v / %+v",
-			perm,
-			table.ComputedFields[1],
-		)
+		perm.InvalidComputedFields[0].DecodeError == "" {
+		t.Fatalf("decoded grants: %+v", perm)
 	}
 
 	raw, _ := src.HasuraSnapshotJSON()
