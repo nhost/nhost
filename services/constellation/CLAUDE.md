@@ -142,6 +142,9 @@ connection attempt; under SCRAM and default parallelism this can exhaust the
 postmaster child limit (53300) even with few active sessions. Respect an
 explicit `DATABASE_URL`. Reuse and close pools at test cleanup; never
 add a second pool per subtest or reduce global parallelism to mask exhaustion.
+When verifying cleanup through `pg_stat_activity`, a backend may remain briefly
+visible after `pgxpool.Close`; poll with a short deadline rather than asserting
+zero connections immediately after a subtest ends.
 For large independent computed-permission testdb matrices, keep one parallel top-level test with sequential per-case subtests and close each connector in the case cleanup; making every matrix top-level test parallel exhausts :5433 even though each individual case closes its pool. If a Nix `make check` fails with SQLSTATE 53300 despite direct default-parallel `go test` passing, inspect newly added controller testdb fixtures: three extra parallel top-level tests can exceed the Nix cross-package connection budget. Keep those fixture-owning top-level tests serial (their subcases already run sequentially) and rerun unchanged default Nix concurrency; do not set `-p`/`-parallel` as a workaround. Likewise, constructing multiple SQL connectors over one isolated test schema in parallel can race their catalog-function initialization (`tuple concurrently updated`); serialize those per-variant subtests without changing global Go test parallelism. Use package-scoped `go generate` for changed interfaces, not `go generate
 ./...` (unrelated live-schema clients may be rewritten). Hasura cleanup
 mutations need distinct aliases so every cleanup field executes. Root mutation

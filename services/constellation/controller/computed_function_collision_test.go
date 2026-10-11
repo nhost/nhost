@@ -3,14 +3,10 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/nhost/nhost/services/constellation/controller"
-	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -48,9 +44,7 @@ AS $$ SELECT id, amount FROM public.items WHERE amount * factor > 1 $$;`
 		pool.Config().ConnConfig.ConnString(),
 	)
 
-	ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
-		middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md},
-		slog.New(slog.DiscardHandler), "", nil)
+	ctrl, err := newComputedController(t, md, false)
 	if err != nil {
 		t.Fatal(err)
 	}

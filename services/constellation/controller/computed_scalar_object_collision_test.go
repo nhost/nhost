@@ -3,16 +3,12 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/nhost/nhost/services/constellation/controller"
-	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -97,9 +93,7 @@ CREATE FUNCTION cf_select.p14_collision_enum(item cf_select.items,
 				},
 			})
 
-			ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
-				middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md},
-				slog.New(slog.DiscardHandler), "", nil)
+			ctrl, err := newComputedController(t, md, false)
 			if err != nil {
 				t.Fatalf(
 					"Constellation rejected metadata instead of omitting the conflicting selection: %v",
