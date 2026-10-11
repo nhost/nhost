@@ -3,16 +3,12 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/nhost/nhost/services/constellation/controller"
-	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -69,9 +65,7 @@ RETURNS numeric LANGUAGE sql STABLE AS $$ SELECT item.amount + n $$;
 		}
 
 		t.Run(name, func(t *testing.T) {
-			ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, dev,
-				middleware.NewNoOpJWTAuthenticator(), computedStaticSource{meta: md},
-				slog.New(slog.DiscardHandler), "", nil)
+			ctrl, err := newComputedController(t, md, dev)
 			if err != nil {
 				t.Fatal(err)
 			}
