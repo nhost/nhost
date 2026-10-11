@@ -536,9 +536,13 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 		relationship string
 		grantOnly    bool
 		keepGrant    bool
+		dropFiltered bool
 	}{
 		{name: "column", field: "id", filter: map[string]any{"id": map[string]any{"_eq": 1}}},
-		{name: "custom column", field: "label", relationship: "custom column", filter: map[string]any{
+		{name: "custom column physical filter", field: "label", relationship: "custom column", filter: map[string]any{
+			"id": map[string]any{"_eq": 1},
+		}},
+		{name: "custom column computed filter", field: "label", relationship: "custom column", dropFiltered: true, filter: map[string]any{
 			"label": map[string]any{"_eq": 1},
 		}},
 		{name: "object relationship", field: "posts", relationship: "object", filter: map[string]any{
@@ -607,26 +611,82 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 
 			assertRawArraySiblingCollision(t, tt.relationship, &got.Tables[0], inc)
 
-			wantPermissions := 1 + boolInt(tt.keepGrant)
-			if len(got.Tables[0].ComputedFields) != 2*boolInt(tt.grantOnly) ||
-				len(got.Tables[0].SelectPermissions) != wantPermissions ||
-				got.Tables[0].SelectPermissions[0].Role != "filtered" ||
-				!reflect.DeepEqual(
-					got.Tables[0].SelectPermissions[0].Permission.Filter,
-					tt.filter,
-				) ||
-				collisionRecorded == tt.grantOnly ||
-				hasComputedInconsistency(
-					inc,
-					metadata.InconsistencyKindSelectPermission,
-				) == tt.keepGrant {
-				t.Fatalf(
-					"collision changed ordinary permission: metadata=%+v inconsistent=%+v",
-					got.Tables[0],
-					inc.Snapshot(),
-				)
-			}
+			assertComputedCollisionPermissions(t, &got.Tables[0], inc,
+				tt.grantOnly, tt.keepGrant, tt.dropFiltered, collisionRecorded, tt.filter)
 		})
+	}
+}
+
+func assertComputedCollisionPermissions(t *testing.T, table *metadata.TableMetadata,
+	inc *metadata.Inconsistencies, grantOnly, keepGrant, dropFiltered, collisionRecorded bool,
+	filter map[string]any,
+) {
+	t.Helper()
+
+	wantPermissions := 1 + boolInt(keepGrant) - boolInt(dropFiltered)
+	if len(table.ComputedFields) != 2*boolInt(grantOnly) ||
+		len(table.SelectPermissions) != wantPermissions ||
+		collisionRecorded == grantOnly ||
+		hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) ==
+			(keepGrant && !dropFiltered) {
+		t.Fatalf("collision permissions: metadata=%+v inconsistent=%+v", table, inc.Snapshot())
+	}
+
+	if dropFiltered {
+		for _, permission := range table.SelectPermissions {
+			if permission.Role == "filtered" {
+				t.Fatalf("invalid computed filter retained: %+v", table)
+			}
+		}
+
+		return
+	}
+
+	if table.SelectPermissions[0].Role != "filtered" ||
+		!reflect.DeepEqual(table.SelectPermissions[0].Permission.Filter, filter) {
+		t.Fatalf("ordinary filter changed: %+v", table)
+	}
+}
+
+func TestComputedAggregateArgumentCustomColumnIsNotPhysical(t *testing.T) {
+	t.Parallel()
+
+	md, objects := computedReconcileFixture()
+	md.Tables[0].ArrayRelationships = []metadata.ArrayRelationship{
+		{
+			Name: "posts",
+			Using: metadata.RelationshipUsing{ManualConfiguration: &metadata.ManualConfiguration{
+				RemoteTable:   metadata.TableSource{Schema: "public", Name: "posts"},
+				ColumnMapping: map[string]string{"id": "id"},
+			}},
+		},
+	}
+	md.Tables[1].Configuration.ColumnConfig = map[string]metadata.ColumnConfig{
+		"id": {CustomName: "label"},
+	}
+	md.Tables[1].ComputedFields = []metadata.ComputedField{{
+		Name: "label", Definition: metadata.ComputedFieldDefinition{
+			Function: metadata.FunctionSource{Schema: "public", Name: "post_label"},
+		},
+	}}
+	md.Tables[0].SelectPermissions = []metadata.SelectPermission{
+		{Role: "affected", Permission: metadata.SelectPermissionConfig{
+			Columns: []string{"id"}, Filter: map[string]any{
+				"posts_aggregate": map[string]any{"bool_and": map[string]any{
+					"arguments": "label", "predicate": map[string]any{"_eq": true},
+				}},
+			},
+		}},
+		{Role: "healthy", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+	}
+	inc := metadata.NewInconsistencies()
+
+	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
+	if len(got.Tables[0].SelectPermissions) != 1 ||
+		got.Tables[0].SelectPermissions[0].Role != "healthy" ||
+		!hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
+		t.Fatalf("aggregate argument did not isolate invalid permission: %+v; %+v",
+			got.Tables[0], inc.Snapshot())
 	}
 }
 
