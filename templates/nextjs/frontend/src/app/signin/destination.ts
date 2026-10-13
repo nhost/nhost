@@ -11,9 +11,9 @@ export const DEFAULT_DESTINATION = '/';
  * Link to sign-in that comes back to `destination` afterwards.
  *
  * Anything that would otherwise send a signed-out visitor to a protected page
- * should point here instead. Following the link gets the modal over the page
- * they are on; a protected page's own redirect uses it too, so arriving the
- * long way round still ends up where they were going.
+ * should point here instead. The proxy and a protected page's own redirect
+ * both use it, so whichever sends them to sign in, they still end up where
+ * they were going.
  */
 export function signInHref(destination: string): string {
   return `/signin?next=${encodeURIComponent(destination)}`;
