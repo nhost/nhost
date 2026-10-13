@@ -1,4 +1,5 @@
-import { Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -14,6 +15,18 @@ export type ExtensionAction = 'install' | 'uninstall' | 'preload';
 export interface ExtensionActionControlProps {
   extension: PostgresExtension;
   onAction: (action: ExtensionAction, extension: PostgresExtension) => void;
+}
+
+export function InstalledBadge() {
+  return (
+    <Badge
+      variant="outline"
+      className="shrink-0 gap-1 font-medium text-muted-foreground"
+    >
+      <Check className="size-3" aria-hidden />
+      Installed
+    </Badge>
+  );
 }
 
 function BuiltInIndicator({ reason }: { reason: string }) {

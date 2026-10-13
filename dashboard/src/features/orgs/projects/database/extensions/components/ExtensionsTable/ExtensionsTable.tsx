@@ -6,7 +6,10 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
-import { ExtensionActionControl } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
+import {
+  ExtensionActionControl,
+  InstalledBadge,
+} from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionVersionLabel } from '@/features/orgs/projects/database/extensions/utils/getExtensionVersionLabel';
@@ -53,8 +56,13 @@ function ExtensionRow({
       <TableCell className="text-muted-foreground">
         {extension.comment}
       </TableCell>
-      <TableCell className="w-32 text-right">
-        <ExtensionActionControl extension={extension} onAction={onAction} />
+      <TableCell className="w-56">
+        <div className="flex items-center justify-end gap-2">
+          {extension.installed_version !== null && <InstalledBadge />}
+          <div className="flex w-24 justify-end">
+            <ExtensionActionControl extension={extension} onAction={onAction} />
+          </div>
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -66,7 +74,7 @@ export default function ExtensionsTable({
   onAction,
 }: ExtensionsTableProps) {
   return (
-    <Table className="min-w-[48rem] table-fixed">
+    <Table className="min-w-[56rem] table-fixed">
       <TableBody>
         {extensions.map((extension) => (
           <ExtensionRow

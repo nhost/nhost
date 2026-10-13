@@ -1,6 +1,9 @@
 import { Blocks, Lock } from 'lucide-react';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
-import { ExtensionActionControl } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
+import {
+  ExtensionActionControl,
+  InstalledBadge,
+} from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionVersionLabel } from '@/features/orgs/projects/database/extensions/utils/getExtensionVersionLabel';
@@ -31,7 +34,7 @@ function ExtensionCard({
       data-testid={`extension-card-${extension.name}`}
       className={cn(
         'flex flex-col gap-3 rounded-lg border p-4',
-        isBuiltIn ? 'bg-background' : 'bg-muted',
+        isBuiltIn ? 'bg-muted' : 'bg-background',
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -59,8 +62,11 @@ function ExtensionCard({
         {extension.comment}
       </p>
 
-      <div className="flex justify-end">
-        <ExtensionActionControl extension={extension} onAction={onAction} />
+      <div className="flex items-center gap-2">
+        {extension.installed_version !== null && <InstalledBadge />}
+        <div className="ml-auto">
+          <ExtensionActionControl extension={extension} onAction={onAction} />
+        </div>
       </div>
     </div>
   );

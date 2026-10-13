@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/v3/tabs';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
@@ -24,6 +30,25 @@ import { getExtensionDisplayName } from '@/features/orgs/projects/database/exten
 import { isExtensionPreloadMissing } from '@/features/orgs/projects/database/extensions/utils/isExtensionPreloadMissing';
 
 const LIST_FORMAT = new Intl.ListFormat('en', { type: 'conjunction' });
+
+type InstallFilter = 'all' | 'installed' | 'available';
+
+const INSTALL_FILTERS: Array<{ value: InstallFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'installed', label: 'Installed' },
+  { value: 'available', label: 'Available' },
+];
+
+function matchesInstallFilter(
+  extension: PostgresExtension,
+  filter: InstallFilter,
+): boolean {
+  if (filter === 'all') {
+    return true;
+  }
+
+  return (extension.installed_version !== null) === (filter === 'installed');
+}
 
 interface DialogState {
   action: ExtensionAction;
@@ -67,6 +92,7 @@ export default function DatabaseExtensions() {
   } = useRouter();
   const isPlatform = useIsPlatform();
   const [search, setSearch] = useState('');
+  const [installFilter, setInstallFilter] = useState<InstallFilter>('all');
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const dataSource = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
@@ -90,11 +116,14 @@ export default function DatabaseExtensions() {
   }
 
   const normalizedSearch = search.trim().toLowerCase();
-  const filteredExtensions = extensions.filter((extension) =>
+  const searchedExtensions = extensions.filter((extension) =>
     [extension.name, extension.comment, getExtensionDisplayName(extension.name)]
       .join(' ')
       .toLowerCase()
       .includes(normalizedSearch),
+  );
+  const filteredExtensions = searchedExtensions.filter((extension) =>
+    matchesInstallFilter(extension, installFilter),
   );
   const popularExtensions = POPULAR_EXTENSIONS.flatMap((name) =>
     extensions.filter((extension) => extension.name === name),
@@ -160,29 +189,53 @@ export default function DatabaseExtensions() {
       <section aria-label="All extensions" className="space-y-3">
         <h2 className="font-semibold text-lg">All extensions</h2>
 
-        <div className="relative max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            aria-label="Search extensions"
-            placeholder="Search extensions..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="h-10 pl-8 text-sm"
-          />
-        </div>
+        <Tabs
+          value={installFilter}
+          onValueChange={(value) => setInstallFilter(value as InstallFilter)}
+          className="space-y-3"
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full max-w-md">
+              <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Search extensions"
+                placeholder="Search extensions..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="h-10 pl-8 text-sm"
+              />
+            </div>
+            <TabsList aria-label="Filter extensions">
+              {INSTALL_FILTERS.map(({ value, label }) => (
+                <TabsTrigger key={value} value={value}>
+                  {label}
+                  <span className="ml-1.5 text-muted-foreground tabular-nums">
+                    {
+                      searchedExtensions.filter((extension) =>
+                        matchesInstallFilter(extension, value),
+                      ).length
+                    }
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
-        {filteredExtensions.length > 0 ? (
-          <ExtensionsTable
-            extensions={filteredExtensions}
-            preloadedLibraries={preloadedLibraries}
-            onAction={openDialog}
-          />
-        ) : (
-          <DataBrowserEmptyState
-            title="No matching extensions"
-            description="Try a different search term."
-          />
-        )}
+          <TabsContent value={installFilter} className="mt-0">
+            {filteredExtensions.length > 0 ? (
+              <ExtensionsTable
+                extensions={filteredExtensions}
+                preloadedLibraries={preloadedLibraries}
+                onAction={openDialog}
+              />
+            ) : (
+              <DataBrowserEmptyState
+                title="No matching extensions"
+                description="Try a different search term or filter."
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </section>
 
       {dialog?.action === 'install' && (

@@ -375,6 +375,24 @@ describe('DatabaseExtensions', () => {
     );
   });
 
+  it('marks installed extensions and filters the table by install state', async () => {
+    const user = new TestUserEvent();
+    const all = await renderPage();
+
+    expect(within(getRow(all, 'postgis')).getByText('Installed')).toBeVisible();
+    expect(
+      within(getRow(all, 'cube')).queryByText('Installed'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /^Installed/ }));
+
+    expect(
+      within(all)
+        .getAllByTestId(/^extension-row-/)
+        .map((row) => row.getAttribute('data-testid')),
+    ).toEqual(['extension-row-citext', 'extension-row-postgis']);
+  });
+
   it('locks built-in extensions instead of offering uninstall', async () => {
     const all = await renderPage();
     const citext = getRow(all, 'citext');
