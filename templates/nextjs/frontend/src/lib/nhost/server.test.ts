@@ -335,4 +335,15 @@ describe('session cookies from server actions', () => {
       );
     }
   });
+
+  // The flag is what the auth service acts on, so it has to reach the wire.
+  it('asks the auth service to revoke every session when signing out everywhere', async () => {
+    cookie.value = storedSession(900);
+    fetchMock.mockImplementation(async () => json('OK', 200));
+
+    await signOut({ all: true });
+
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
+    expect(body.all).toBe(true);
+  });
 });

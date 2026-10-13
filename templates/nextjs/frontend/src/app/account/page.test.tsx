@@ -8,11 +8,13 @@ const getVerifiedUser = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/nhost/server', () => ({ getVerifiedUser }));
 
 // Next's redirect() throws to unwind the render; the stand-in throws the
-// target so a test can read it.
+// target so a test can read it. The router is for the client cards on the
+// page, which a static render has no app router to give.
 vi.mock('next/navigation', () => ({
   redirect: (url: string) => {
     throw new Error(`redirect:${url}`);
   },
+  useRouter: () => ({ push: () => undefined, refresh: () => undefined }),
 }));
 
 const user: User = {
