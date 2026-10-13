@@ -2,6 +2,7 @@ import type { User } from '@nhost/nhost-js/auth';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Account from '@/app/account/page';
+import { methods } from '@/app/signin/methods';
 
 const getVerifiedUser = vi.hoisted(() => vi.fn());
 
@@ -55,6 +56,21 @@ describe('account page', () => {
     expect(html).toContain('2026-10-13');
     expect(html).toContain(user.id);
     expect(html).toContain('src="https://avatars.example/ada"');
+  });
+
+  // Read from the registry rather than spelled out, so this test names no
+  // method and survives any of them being deleted.
+  it('links to every account entry the sign-in methods declare', async () => {
+    getVerifiedUser.mockResolvedValueOnce(user);
+
+    const html = renderToStaticMarkup(await Account());
+
+    for (const method of methods) {
+      if (method.account) {
+        expect(html).toContain(`href="${method.account.href}"`);
+        expect(html).toContain(method.account.title);
+      }
+    }
   });
 
   it('says two-factor is off until the auth service says otherwise', async () => {

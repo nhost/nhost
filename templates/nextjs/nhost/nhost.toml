@@ -155,7 +155,8 @@ id = 'localhost'
 timeout = 60000
 
 [auth.totp]
-enabled = false
+enabled = true
+issuer = 'Nhost + Next.js'
 
 [auth.oauth2Provider]
 enabled = false
