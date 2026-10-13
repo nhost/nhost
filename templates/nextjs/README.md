@@ -8,7 +8,11 @@ Two halves, laid out the way an Nhost project is:
   auth service tracks its own tables but grants nothing, so without these a
   signed-in user could register a passkey and never see it listed. `nhost up`
   applies them, then restarts the auth and storage services so they re-add
-  what they manage themselves.
+  what they manage themselves. `nhost/emails/` holds only the `en` email
+  templates `nhost init` writes, because the config allows only `en` and auth
+  swaps any other locale for the default at sign-up. Adding a locale to
+  `allowed` means adding its templates too; `nhost init` also writes `bg`,
+  `cs`, `es` and `fr`.
 - `frontend/` is the Next.js app. See its README for the commands.
 
 ## Running it
