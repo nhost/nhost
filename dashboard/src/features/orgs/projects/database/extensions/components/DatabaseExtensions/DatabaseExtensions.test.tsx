@@ -366,18 +366,10 @@ describe('DatabaseExtensions', () => {
     expect(screen.getByTestId('extension-card-vector')).toBeInTheDocument();
   });
 
-  it('links extension names to their documentation section', async () => {
+  it('links to the documentation from an icon instead of the name', async () => {
     const all = await renderPage();
 
-    expect(
-      within(getRow(all, 'pg_cron')).getByRole('link', { name: 'pg_cron' }),
-    ).toHaveAttribute(
-      'href',
-      'https://docs.nhost.io/products/database/extensions#pg_cron',
-    );
-    expect(
-      within(getRow(all, 'vector')).getByRole('link', { name: 'pgvector' }),
-    ).toHaveAttribute(
+    expect(within(getRow(all, 'vector')).getByRole('link')).toHaveAttribute(
       'href',
       'https://docs.nhost.io/products/database/extensions#pgvector',
     );

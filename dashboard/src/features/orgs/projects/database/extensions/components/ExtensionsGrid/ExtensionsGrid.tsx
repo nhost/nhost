@@ -1,12 +1,8 @@
 import { Blocks, Lock } from 'lucide-react';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
-import {
-  ExtensionActionControl,
-  PreloadHint,
-} from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
+import { ExtensionActionControl } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
+import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
-import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
-import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extensions/utils/getExtensionDocsUrl';
 import { getExtensionVersionLabel } from '@/features/orgs/projects/database/extensions/utils/getExtensionVersionLabel';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
 import { cn } from '@/lib/utils';
@@ -27,7 +23,6 @@ function ExtensionCard({
 }: Omit<ExtensionsGridProps, 'extensions'> & {
   extension: PostgresExtension;
 }) {
-  const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
   const versionLabel = getExtensionVersionLabel(extension);
 
@@ -46,23 +41,10 @@ function ExtensionCard({
           ) : (
             <Blocks className="h-5 w-5 shrink-0" aria-hidden />
           )}
-          <a
-            href={getExtensionDocsUrl(extension.name)}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={displayName}
-            className={cn(
-              'truncate font-bold underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current',
-              isBuiltIn
-                ? 'text-muted-foreground'
-                : 'text-foreground hover:text-primary',
-            )}
-          >
-            {displayName}
-          </a>
-          <PreloadHint
-            extensionName={extension.name}
+          <ExtensionName
+            extension={extension}
             preloadedLibraries={preloadedLibraries}
+            className="truncate font-bold"
           />
         </div>
         {versionLabel && (
