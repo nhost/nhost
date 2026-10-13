@@ -6,6 +6,7 @@ import {
   AVATAR_TOO_LARGE,
   avatarFileIdFrom,
   avatarUrlFor,
+  isAvatarType,
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
 import { appOrigin } from '@/lib/nhost/env';
@@ -138,8 +139,8 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
     return { error: 'Choose an image first.' };
   }
 
-  if (!file.type.startsWith('image/')) {
-    return { error: 'That is not an image.' };
+  if (!isAvatarType(file.type)) {
+    return { error: 'Use a PNG, JPEG, GIF, WebP or AVIF image.' };
   }
 
   if (file.size > MAX_AVATAR_BYTES) {

@@ -92,6 +92,34 @@ describe('avatar route', () => {
     expect(await response.text()).toBe('png-bytes');
   });
 
+  it('serves a raster type that carries parameters', async () => {
+    fetchMock.mockResolvedValueOnce(
+      upstream(200, { 'content-type': 'image/png; charset=binary' }),
+    );
+
+    const response = await get('file-1');
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('png-bytes');
+  });
+
+  // Storage takes any file into the bucket and the account's avatar_url can
+  // name any of them, so the type is checked here rather than trusted.
+  it.each(['text/html; charset=utf-8', 'image/svg+xml'])(
+    'refuses %s without its body',
+    async (type) => {
+      fetchMock.mockResolvedValueOnce(
+        upstream(200, { 'content-type': type }, '<script>alert(1)</script>'),
+      );
+
+      const response = await get('file-1');
+
+      expect(response.status).toBe(415);
+      expect(response.body).toBeNull();
+      expect(response.headers.get('content-type')).toBeNull();
+    },
+  );
+
   it('forwards the conditional headers and relays a 304', async () => {
     fetchMock.mockResolvedValueOnce(upstream(304, { etag: '"abc"' }, null));
 
@@ -101,6 +129,7 @@ describe('avatar route', () => {
     expect(new Headers(init.headers).get('if-none-match')).toBe('"abc"');
     expect(response.status).toBe(304);
     expect(response.body).toBeNull();
+    expect(response.headers.get('etag')).toBe('"abc"');
   });
 
   it('relays a refusal from storage as it is', async () => {
