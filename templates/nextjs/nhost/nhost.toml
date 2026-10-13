@@ -113,12 +113,16 @@ enabled = false
 
 [auth.method.oauth.github]
 enabled = false
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
 enabled = false
 
 [auth.method.oauth.google]
 enabled = false
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
 enabled = false

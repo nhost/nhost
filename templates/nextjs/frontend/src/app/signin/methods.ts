@@ -30,4 +30,9 @@ export const methods: SignInMethod[] = [
     title: 'Email code',
     description: 'Get a one-time code by email.',
   },
+  {
+    href: '/auth/oauth',
+    title: 'GitHub or Google',
+    description: 'Sign in with a provider account.',
+  },
 ];
