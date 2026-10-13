@@ -20,4 +20,9 @@ export const methods: SignInMethod[] = [
     title: 'Email and password',
     description: 'Sign up or sign in with a password.',
   },
+  {
+    href: '/auth/magic-link',
+    title: 'Magic link',
+    description: 'Get a sign-in link by email.',
+  },
 ];
