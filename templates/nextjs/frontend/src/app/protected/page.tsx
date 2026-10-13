@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import BrowserCheck from '@/app/protected/BrowserCheck';
 import { signInHref } from '@/app/signin/destination';
 import SignOutButton from '@/components/SignOutButton';
 import {
@@ -37,6 +38,7 @@ export default async function Protected() {
             <dt className="text-muted-foreground">User id</dt>
             <dd className="font-mono text-xs">{user.id}</dd>
           </dl>
+          <BrowserCheck />
           <SignOutButton />
         </CardContent>
       </Card>
