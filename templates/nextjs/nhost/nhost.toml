@@ -146,7 +146,10 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = false
+enabled = true
+
+[auth.method.webauthn.relyingParty]
+id = 'localhost'
 
 [auth.method.webauthn.attestation]
 timeout = 60000
