@@ -9,7 +9,7 @@ import { PROTECTED_EXTENSIONS } from '@/features/orgs/projects/database/extensio
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 
-export type ExtensionAction = 'install' | 'uninstall';
+export type ExtensionAction = 'install' | 'uninstall' | 'preload';
 
 export interface ExtensionActionControlProps {
   extension: PostgresExtension;

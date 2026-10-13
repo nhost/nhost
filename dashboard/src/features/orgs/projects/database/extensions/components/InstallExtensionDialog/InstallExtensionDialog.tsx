@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { ExtensionSQLEditor } from '@/features/orgs/projects/database/extensions/components/ExtensionSQLEditor';
+import { PreloadLibraryStep } from '@/features/orgs/projects/database/extensions/components/PreloadLibraryStep';
 import { PRELOAD_LIBRARY_EXTENSIONS } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import type { PreloadLibrary } from '@/features/orgs/projects/database/extensions/hooks/usePreloadLibrary';
@@ -30,7 +31,6 @@ import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extension
 import { getMissingExtensionDependencies } from '@/features/orgs/projects/database/extensions/utils/getMissingExtensionDependencies';
 import { cn } from '@/lib/utils';
 import InstallStep from './InstallStep';
-import PreloadLibraryStep from './PreloadLibraryStep';
 
 export interface InstallExtensionDialogProps {
   extension: PostgresExtension;

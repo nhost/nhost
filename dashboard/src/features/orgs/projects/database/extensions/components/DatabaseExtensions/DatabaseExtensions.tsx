@@ -1,6 +1,7 @@
-import { Search } from 'lucide-react';
+import { Search, TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
@@ -10,6 +11,7 @@ import type { ExtensionAction } from '@/features/orgs/projects/database/extensio
 import { ExtensionsGrid } from '@/features/orgs/projects/database/extensions/components/ExtensionsGrid';
 import { ExtensionsTable } from '@/features/orgs/projects/database/extensions/components/ExtensionsTable';
 import { InstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/InstallExtensionDialog';
+import { PreloadExtensionDialog } from '@/features/orgs/projects/database/extensions/components/PreloadExtensionDialog';
 import { UninstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/UninstallExtensionDialog';
 import {
   EXTENSIONS_DOCS_URL,
@@ -19,6 +21,9 @@ import type { PostgresExtension } from '@/features/orgs/projects/database/extens
 import { usePostgresExtensionsQuery } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { usePreloadedLibrariesQuery } from '@/features/orgs/projects/database/extensions/hooks/usePreloadedLibrariesQuery';
 import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
+import { isExtensionPreloadMissing } from '@/features/orgs/projects/database/extensions/utils/isExtensionPreloadMissing';
+
+const LIST_FORMAT = new Intl.ListFormat('en', { type: 'conjunction' });
 
 interface DialogState {
   action: ExtensionAction;
@@ -27,6 +32,33 @@ interface DialogState {
   key: number;
   // Receives focus again when the dialog closes.
   opener: HTMLElement | null;
+}
+
+function MissingPreloadAlert({
+  extensions,
+}: {
+  extensions: PostgresExtension[];
+}) {
+  const isSingle = extensions.length === 1;
+  const names = LIST_FORMAT.format(
+    extensions.map((extension) => getExtensionDisplayName(extension.name)),
+  );
+
+  return (
+    <Alert variant="warning">
+      <TriangleAlert className="h-4 w-4" aria-hidden />
+      <AlertTitle>
+        {isSingle
+          ? "1 installed extension isn't preloaded"
+          : `${extensions.length} installed extensions aren't preloaded`}
+      </AlertTitle>
+      <AlertDescription>
+        {names} won&apos;t work until Postgres preloads{' '}
+        {isSingle ? 'its library' : 'their libraries'}. Select the warning icon
+        next to {isSingle ? 'the extension' : 'each extension'} to fix this.
+      </AlertDescription>
+    </Alert>
+  );
 }
 
 export default function DatabaseExtensions() {
@@ -67,6 +99,9 @@ export default function DatabaseExtensions() {
   const popularExtensions = POPULAR_EXTENSIONS.flatMap((name) =>
     extensions.filter((extension) => extension.name === name),
   );
+  const missingPreloadExtensions = extensions.filter((extension) =>
+    isExtensionPreloadMissing(extension, preloadedLibraries),
+  );
 
   function openDialog(action: ExtensionAction, extension: PostgresExtension) {
     const opener =
@@ -106,6 +141,10 @@ export default function DatabaseExtensions() {
           </p>
         )}
       </header>
+
+      {missingPreloadExtensions.length > 0 && (
+        <MissingPreloadAlert extensions={missingPreloadExtensions} />
+      )}
 
       {popularExtensions.length > 0 && (
         <section aria-label="Popular extensions" className="space-y-3">
@@ -151,6 +190,16 @@ export default function DatabaseExtensions() {
           key={dialog.key}
           extension={dialog.extension}
           catalog={extensions}
+          dataSource={dataSource}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onCloseAutoFocus={restoreFocus}
+        />
+      )}
+      {dialog?.action === 'preload' && (
+        <PreloadExtensionDialog
+          key={dialog.key}
+          extension={dialog.extension}
           dataSource={dataSource}
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}

@@ -44,6 +44,7 @@ function ExtensionCard({
           <ExtensionName
             extension={extension}
             preloadedLibraries={preloadedLibraries}
+            onAction={onAction}
             className="truncate font-bold"
           />
         </div>

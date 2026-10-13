@@ -42,6 +42,7 @@ function ExtensionRow({
           <ExtensionName
             extension={extension}
             preloadedLibraries={preloadedLibraries}
+            onAction={onAction}
             className="font-medium"
           />
         </div>

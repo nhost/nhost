@@ -712,6 +712,48 @@ describe('DatabaseExtensions', () => {
       expect(getInstallButton(dialog)).toBeDisabled();
     });
 
+    it('warns about an installed extension Postgres does not preload and preloads it', async () => {
+      const user = new TestUserEvent();
+      catalogRows = catalog.map((row) =>
+        row.name === 'pg_cron'
+          ? { ...row, installed_version: row.default_version }
+          : row,
+      );
+      preloadedLibraries = ['pg_stat_statements'];
+      configuredLibraries = ['pg_stat_statements'];
+      const all = await renderPage();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "1 installed extension isn't preloaded",
+      );
+
+      await user.click(
+        within(getRow(all, 'pg_cron')).getByRole('button', {
+          name: 'Library not preloaded',
+        }),
+      );
+      await user.click(
+        screen.getByRole('button', { name: 'Add to preloaded libraries…' }),
+      );
+      const dialog = await screen.findByRole('dialog');
+      await user.click(
+        await within(dialog).findByRole('button', {
+          name: 'Add to preloaded libraries',
+        }),
+      );
+
+      expect(await within(dialog).findByText('$ nhost up')).toBeInTheDocument();
+      expect(configUpdates).toEqual([
+        {
+          postgres: {
+            settings: {
+              sharedPreloadLibraries: ['pg_stat_statements', 'pg_cron'],
+            },
+          },
+        },
+      ]);
+    });
+
     it('does not change the libraries when the settings fail to load', async () => {
       const user = new TestUserEvent();
       server.use(
