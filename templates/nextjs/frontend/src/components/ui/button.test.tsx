@@ -24,9 +24,9 @@ function slotted(button: ComponentProps<typeof Button>, child: Props) {
   return received;
 }
 
-// Every UI system runs this against its own button.tsx, so `asChild` behaves
-// the same whichever one a project was scaffolded with. The shadcn/ui version
-// gets it from `@radix-ui/react-slot`, which makes that the reference.
+// The template renders links styled as buttons with `asChild`, which the
+// shadcn/ui button gets from `@radix-ui/react-slot`. These pin that the child
+// keeps its own handlers and props, merged with the button's.
 describe('Button asChild', () => {
   it('runs both click handlers, the child first', () => {
     const calls: string[] = [];

@@ -2,8 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OtherWaysLink from '@/app/signin/OtherWaysLink';
 
-// Only the count is read, so the entries name no method: a fixture that did
-// would fail the delete-method job's grep.
+// Only the count is read, so the entries name no method, and deleting a
+// method leaves nothing here that names it.
 const listed = vi.hoisted(() => ({ methods: [] as object[] }));
 
 vi.mock('@/app/signin/methods', () => listed);
@@ -27,7 +27,7 @@ describe('OtherWaysLink', () => {
     expect(render('')).toContain('href="/signin"');
   });
 
-  // The default `--auth-methods` scaffolds one, so this is the common case.
+  // A project may keep a single method, and then there is nowhere else to go.
   it('renders nothing when there is only one method', () => {
     listed.methods = [{}];
 
