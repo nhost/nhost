@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   changeEmail,
   changePassword,
@@ -44,6 +44,10 @@ beforeEach(() => {
     fn.mockReset();
   }
   client.graphql.request.mockReset();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('changePassword', () => {
@@ -206,6 +210,7 @@ describe('uploadAvatar', () => {
       variables: { id: 'user-1', avatarUrl: '/api/avatar/new' },
     });
     expect(client.storage.deleteFile).toHaveBeenCalledWith('old');
+    expect(client.storage.deleteFile).not.toHaveBeenCalledWith('new');
   });
 
   // A fresh account's avatar is a gravatar URL, which is not a file of ours
@@ -267,6 +272,68 @@ describe('uploadAvatar', () => {
       'The storage service did not keep the file.',
     );
     expect(client.graphql.request).not.toHaveBeenCalled();
+  });
+
+  // The upload lands before the account is pointed at it, so a failed update
+  // would otherwise leave a file nothing refers to. The previous avatar is
+  // still the account's and stays.
+  describe('when the account update fails after the upload', () => {
+    beforeEach(() => {
+      client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/old' };
+      client.storage.uploadFiles.mockResolvedValueOnce({
+        body: { processedFiles: [{ id: 'new' }] },
+      });
+      client.storage.deleteFile.mockResolvedValueOnce({ body: undefined });
+    });
+
+    it('deletes the new file when nothing was updated', async () => {
+      client.graphql.request.mockResolvedValueOnce({
+        body: { data: { updateUser: null } },
+      });
+
+      expect(await uploadAvatar(image())).toEqual({
+        error: 'The backend did not update this account.',
+      });
+      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+    });
+
+    it('deletes the new file when the mutation returns errors', async () => {
+      client.graphql.request.mockResolvedValueOnce({
+        body: {
+          errors: [
+            {
+              message: "field 'updateUser' not found in type: 'mutation_root'",
+            },
+          ],
+        },
+      });
+
+      expect((await uploadAvatar(image())).error).toContain('nhost/metadata');
+      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+    });
+
+    it('deletes the new file when the mutation throws', async () => {
+      client.graphql.request.mockRejectedValueOnce(new Error('network down'));
+
+      expect(await uploadAvatar(image())).toEqual({
+        error: 'Could not upload the avatar: network down',
+      });
+      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+    });
+
+    it('still reports the update error when the cleanup fails', async () => {
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      client.graphql.request.mockResolvedValueOnce({
+        body: { data: { updateUser: null } },
+      });
+      client.storage.deleteFile.mockReset();
+      client.storage.deleteFile.mockRejectedValueOnce(new Error('gone'));
+
+      expect(await uploadAvatar(image())).toEqual({
+        error: 'The backend did not update this account.',
+      });
+      expect(logged).toHaveBeenCalled();
+    });
   });
 });
 

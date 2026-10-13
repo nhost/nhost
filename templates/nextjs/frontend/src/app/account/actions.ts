@@ -1,5 +1,6 @@
 'use server';
 
+import type { NhostClient } from '@nhost/nhost-js';
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import {
@@ -125,6 +126,39 @@ export async function updateDisplayName(
   }
 }
 
+// Returns why the account could not be pointed at the file, or undefined once
+// it is.
+async function setAvatarUrl(
+  nhost: NhostClient,
+  userId: string,
+  fileId: string,
+): Promise<string | undefined> {
+  try {
+    const { body } = await nhost.graphql.request<{
+      updateUser: { id: string } | null;
+    }>({
+      query: `mutation UpdateAvatar($id: uuid!, $avatarUrl: String!) {
+        updateUser(pk_columns: { id: $id }, _set: { avatarUrl: $avatarUrl }) {
+          id
+        }
+      }`,
+      variables: { id: userId, avatarUrl: avatarUrlFor(fileId) },
+    });
+
+    if (body.errors?.length) {
+      return graphqlErrorMessage(body.errors);
+    }
+
+    if (!body.data?.updateUser) {
+      return 'The backend did not update this account.';
+    }
+
+    return undefined;
+  } catch (err) {
+    return `Could not upload the avatar: ${errorMessage(err)}`;
+  }
+}
+
 // Three steps: the file goes to storage, which inserts its row as this user
 // under the insert permission in nhost/metadata; the account's avatar_url is
 // pointed at the route handler that serves it; and the file the previous
@@ -165,23 +199,15 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
       return { error: 'The storage service did not keep the file.' };
     }
 
-    const { body } = await nhost.graphql.request<{
-      updateUser: { id: string } | null;
-    }>({
-      query: `mutation UpdateAvatar($id: uuid!, $avatarUrl: String!) {
-        updateUser(pk_columns: { id: $id }, _set: { avatarUrl: $avatarUrl }) {
-          id
-        }
-      }`,
-      variables: { id: user.id, avatarUrl: avatarUrlFor(fileId) },
-    });
+    const failure = await setAvatarUrl(nhost, user.id, fileId);
 
-    if (body.errors?.length) {
-      return { error: graphqlErrorMessage(body.errors) };
-    }
-
-    if (!body.data?.updateUser) {
-      return { error: 'The backend did not update this account.' };
+    if (failure) {
+      // Nothing should refer to the new file, and only this request knows
+      // its id.
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the unused avatar:', err);
+      });
+      return { error: failure };
     }
 
     const previous = avatarFileIdFrom(user.avatarUrl);
