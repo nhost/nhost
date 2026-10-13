@@ -2,6 +2,7 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
+import { avatarFileIdFrom, avatarUrlFor } from '@/app/account/avatar';
 import { appOrigin } from '@/lib/nhost/env';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
@@ -118,6 +119,82 @@ export async function updateDisplayName(
     return { success: true };
   } catch (err) {
     return { error: `Could not save the display name: ${errorMessage(err)}` };
+  }
+}
+
+// Generous for an avatar and well under what the storage service accepts;
+// the point is to refuse a wrong file before it is uploaded.
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+
+// Three steps: the file goes to storage, which inserts its row as this user
+// under the insert permission in nhost/metadata; the account's avatar_url is
+// pointed at the route handler that serves it; and the file the previous
+// avatar pointed at, if this app wrote it, is deleted so storage does not
+// collect one per change.
+export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
+  const file = formData.get('avatar');
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: 'Choose an image first.' };
+  }
+
+  if (!file.type.startsWith('image/')) {
+    return { error: 'That is not an image.' };
+  }
+
+  if (file.size > MAX_AVATAR_BYTES) {
+    return { error: 'That image is over 5 MB.' };
+  }
+
+  try {
+    const nhost = await createNhostClient();
+    const user = nhost.getUserSession()?.user;
+
+    if (!user) {
+      return { error: SIGNED_OUT };
+    }
+
+    const { body: uploaded } = await nhost.storage.uploadFiles({
+      'bucket-id': 'default',
+      'file[]': [file],
+    });
+    const fileId = uploaded.processedFiles[0]?.id;
+
+    if (!fileId) {
+      return { error: 'The storage service did not keep the file.' };
+    }
+
+    const { body } = await nhost.graphql.request<{
+      updateUser: { id: string } | null;
+    }>({
+      query: `mutation UpdateAvatar($id: uuid!, $avatarUrl: String!) {
+        updateUser(pk_columns: { id: $id }, _set: { avatarUrl: $avatarUrl }) {
+          id
+        }
+      }`,
+      variables: { id: user.id, avatarUrl: avatarUrlFor(fileId) },
+    });
+
+    if (body.errors?.length) {
+      return { error: graphqlErrorMessage(body.errors) };
+    }
+
+    if (!body.data?.updateUser) {
+      return { error: 'The backend did not update this account.' };
+    }
+
+    const previous = avatarFileIdFrom(user.avatarUrl);
+    if (previous && previous !== fileId) {
+      // The new avatar is already in place; a leftover file is worth a log
+      // line, not a failure the visitor has to act on.
+      await nhost.storage.deleteFile(previous).catch((err: unknown) => {
+        console.error('Could not delete the previous avatar:', err);
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not upload the avatar: ${errorMessage(err)}` };
   }
 }
 

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import AvatarForm from '@/app/account/AvatarForm';
 import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import ChangePasswordForm from '@/app/account/ChangePasswordForm';
 import DisplayNameForm from '@/app/account/DisplayNameForm';
@@ -25,6 +26,7 @@ export default async function Account() {
     <div className="mx-auto flex max-w-md flex-col gap-4">
       <ProfileSummary user={user} />
       <DisplayNameForm displayName={user.displayName} />
+      <AvatarForm avatarUrl={user.avatarUrl} />
       <ChangeEmailForm
         email={user.email}
         verified={user.emailVerified}

@@ -49,3 +49,18 @@ three steps:
 
 Until then the button is there but the auth service refuses the redirect, and
 the home page shows its reason.
+
+## The avatar
+
+An uploaded avatar is a private file in storage, and the account's
+`avatar_url` points at this app's own route, `/api/avatar/<file id>`, rather
+than at storage. The storage service reads the session from a header an
+`<img>` cannot send, so the route handler reads the file with the session
+token and streams it back with storage's `Cache-Control` and `ETag` intact,
+marked `private` because the response is gated by the cookie. The browser
+caches it for the hour storage sets and revalidates by ETag after that.
+
+The select permission is the user's own files, which covers everywhere this
+app shows an avatar: it only ever shows you yours. Showing other users'
+avatars means widening that permission, and that is the first thing to
+change if the app grows a page that lists people.
