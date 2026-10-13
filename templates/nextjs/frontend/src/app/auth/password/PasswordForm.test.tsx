@@ -19,8 +19,8 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/app/auth/password/actions', () => ({}));
 
-// Two entries, so "Other ways to sign in" renders. Neither names a method:
-// a fixture that did would fail the delete-method job's grep.
+// Two entries, so "Other ways to sign in" renders. Neither names a method, so
+// deleting a method leaves nothing here that names it.
 vi.mock('@/app/signin/methods', () => ({ methods: [{}, {}] }));
 
 (

@@ -2,8 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import SignIn from '@/app/signin/page';
 
-// The switch is what is under test, so no method is listed: a fixture that
-// named one would fail the delete-method job's grep.
+// The switch is what is under test, so no method is listed, and deleting a
+// method leaves nothing here that names it.
 vi.mock('@/app/signin/methods', () => ({ methods: [] }));
 
 async function render(params: {
