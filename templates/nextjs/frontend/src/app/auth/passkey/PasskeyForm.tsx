@@ -13,6 +13,7 @@ import {
   finishSignIn,
   finishSignUp,
 } from '@/app/auth/passkey/actions';
+import { wasCancelled } from '@/app/auth/passkey/cancelled';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
 import CheckYourInbox from '@/components/CheckYourInbox';
@@ -21,15 +22,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 type Mode = 'sign-in' | 'sign-up';
-
-// The browser reports a dismissed or timed-out prompt as NotAllowedError,
-// either directly or as the cause of the wrapper the library throws.
-function wasCancelled(err: unknown): boolean {
-  const own = (err as { name?: string }).name;
-  const cause = (err as { cause?: { name?: string } }).cause?.name;
-
-  return own === 'NotAllowedError' || cause === 'NotAllowedError';
-}
 
 export default function PasskeyForm({
   next,
