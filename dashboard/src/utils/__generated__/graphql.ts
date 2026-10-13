@@ -18,6 +18,7 @@ export type Scalars = {
   ConfigInt32: any;
   ConfigLocale: any;
   ConfigPort: any;
+  ConfigPostgresPreloadLibrary: any;
   ConfigRunServiceName: any;
   ConfigUint: any;
   ConfigUint8: any;
@@ -2540,6 +2541,13 @@ export type ConfigPostgresPitrUpdateInput = {
   retention?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
+export type ConfigPostgresPreloadLibraryComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigPostgresPreloadLibrary']>;
+  _in?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
+  _neq?: InputMaybe<Scalars['ConfigPostgresPreloadLibrary']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
+};
+
 /** Resources for the service */
 export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
@@ -2624,6 +2632,7 @@ export type ConfigPostgresSettings = {
   minWalSize?: Maybe<Scalars['String']>;
   randomPageCost?: Maybe<Scalars['Float']>;
   sharedBuffers?: Maybe<Scalars['String']>;
+  sharedPreloadLibraries?: Maybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: Maybe<Scalars['String']>;
   walBuffers?: Maybe<Scalars['String']>;
   walLevel?: Maybe<Scalars['String']>;
@@ -2653,6 +2662,7 @@ export type ConfigPostgresSettingsComparisonExp = {
   minWalSize?: InputMaybe<ConfigStringComparisonExp>;
   randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
   sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  sharedPreloadLibraries?: InputMaybe<ConfigPostgresPreloadLibraryComparisonExp>;
   trackIoTiming?: InputMaybe<ConfigStringComparisonExp>;
   walBuffers?: InputMaybe<ConfigStringComparisonExp>;
   walLevel?: InputMaybe<ConfigStringComparisonExp>;
@@ -2679,6 +2689,7 @@ export type ConfigPostgresSettingsInsertInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  sharedPreloadLibraries?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
@@ -2705,6 +2716,7 @@ export type ConfigPostgresSettingsUpdateInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  sharedPreloadLibraries?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
@@ -31321,6 +31333,13 @@ export type RestoreApplicationDatabasePiTrMutationVariables = Exact<{
 
 export type RestoreApplicationDatabasePiTrMutation = { __typename?: 'mutation_root', restoreApplicationDatabasePiTR: boolean };
 
+export type GetConfiguredPreloadLibrariesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetConfiguredPreloadLibrariesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', settings?: { __typename?: 'ConfigPostgresSettings', sharedPreloadLibraries?: Array<any> | null } | null } } | null };
+
 export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -33428,6 +33447,50 @@ export function useRestoreApplicationDatabasePiTrMutation(baseOptions?: Apollo.M
 export type RestoreApplicationDatabasePiTrMutationHookResult = ReturnType<typeof useRestoreApplicationDatabasePiTrMutation>;
 export type RestoreApplicationDatabasePiTrMutationResult = Apollo.MutationResult<RestoreApplicationDatabasePiTrMutation>;
 export type RestoreApplicationDatabasePiTrMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
+export const GetConfiguredPreloadLibrariesDocument = gql`
+    query GetConfiguredPreloadLibraries($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    postgres {
+      settings {
+        sharedPreloadLibraries
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetConfiguredPreloadLibrariesQuery__
+ *
+ * To run a query within a React component, call `useGetConfiguredPreloadLibrariesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfiguredPreloadLibrariesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfiguredPreloadLibrariesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetConfiguredPreloadLibrariesQuery(baseOptions: Apollo.QueryHookOptions<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>(GetConfiguredPreloadLibrariesDocument, options);
+      }
+export function useGetConfiguredPreloadLibrariesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>(GetConfiguredPreloadLibrariesDocument, options);
+        }
+export type GetConfiguredPreloadLibrariesQueryHookResult = ReturnType<typeof useGetConfiguredPreloadLibrariesQuery>;
+export type GetConfiguredPreloadLibrariesLazyQueryHookResult = ReturnType<typeof useGetConfiguredPreloadLibrariesLazyQuery>;
+export type GetConfiguredPreloadLibrariesQueryResult = Apollo.QueryResult<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>;
+export function refetchGetConfiguredPreloadLibrariesQuery(variables: GetConfiguredPreloadLibrariesQueryVariables) {
+      return { query: GetConfiguredPreloadLibrariesDocument, variables: variables }
+    }
 export const GetPersistentVolumesEncryptedDocument = gql`
     query GetPersistentVolumesEncrypted($appId: uuid!) {
   systemConfig(appID: $appId) {
