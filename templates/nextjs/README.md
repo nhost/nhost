@@ -34,9 +34,11 @@ points at a real project.
 
 ## Sign-in methods
 
-`frontend/src/app/signin/methods.ts` lists them. Three work as soon as the
+`frontend/src/app/signin/methods.ts` lists them. Four work as soon as the
 backend is up: email and password is always on, and `nhost/nhost.toml` turns
-on magic link and the email code. The fourth needs you.
+on magic link, the email code and passkeys. Passkeys are bound to `localhost`,
+so open the app at `http://localhost:3000`, not `127.0.0.1`. The fifth, OAuth,
+needs you.
 
 ### OAuth
 
