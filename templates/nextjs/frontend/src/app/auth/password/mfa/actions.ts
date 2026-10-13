@@ -2,7 +2,7 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { createNhostClient } from '@/lib/nhost/server';
+import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
 // the client, and never `redirect()` (see the comment there for why).
@@ -16,18 +16,26 @@ const SIGNED_OUT = 'You are signed out. Sign in and try again.';
 
 export type MfaSetup = { imageUrl: string; totpSecret: string };
 
-// Asks the backend for a fresh secret. Nothing changes on the account until
-// `enableMfa` confirms it with a code, so an abandoned setup costs nothing.
+// Asks the backend for a fresh secret, which it stores on the account right
+// away. Refused while two-factor is on: a page left open from before it was
+// turned on would otherwise replace the secret the user's app holds.
 export async function generateMfa(): Promise<
   ActionResult & { setup?: MfaSetup }
 > {
   try {
-    const nhost = await createNhostClient();
+    const user = await getVerifiedUser();
 
-    if (!nhost.getUserSession()) {
+    if (!user) {
       return { error: SIGNED_OUT };
     }
 
+    if (user.activeMfaType === 'totp') {
+      return {
+        error: 'Two-factor is already on. Reload the page to see its state.',
+      };
+    }
+
+    const nhost = await createNhostClient();
     const { body } = await nhost.auth.changeUserMfa();
 
     return { setup: { imageUrl: body.imageUrl, totpSecret: body.totpSecret } };
@@ -58,8 +66,9 @@ export async function enableMfa(code: string): Promise<ActionResult> {
   }
 }
 
-// Turning it off takes a current code too, so a stolen session alone is not
-// enough to strip the account of its second factor.
+// This page only turns it off with a current code, but that does not stop a
+// stolen session: the auth service lets any session regenerate the secret
+// directly and then produce codes from it.
 export async function disableMfa(code: string): Promise<ActionResult> {
   if (!code) {
     return { error: 'Enter the code from your authenticator app.' };
