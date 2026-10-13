@@ -125,6 +125,15 @@ export default function PasswordForm({
     }
   };
 
+  // Keeps the email: going back is usually for the same account, with the
+  // ticket lapsed or the authenticator not to hand.
+  const startOver = (): void => {
+    setMfaTicket(undefined);
+    setCode('');
+    setPassword('');
+    setError(undefined);
+  };
+
   const handleForgotPassword = async (): Promise<void> => {
     setError(undefined);
     setIsPending(true);
@@ -192,6 +201,17 @@ export default function PasswordForm({
 
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Verifying…' : 'Verify'}
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="self-start"
+          disabled={isPending}
+          onClick={startOver}
+        >
+          Start over
         </Button>
       </form>
     );
