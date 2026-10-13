@@ -6,6 +6,7 @@ import type {
   PublicKeyCredentialCreationOptions,
 } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
+import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient } from '@/lib/nhost/server';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
@@ -25,19 +26,7 @@ export type Passkey = {
 };
 
 // Listing and removing go through GraphQL, not the auth API, and depend on
-// the permissions in nhost/metadata. A query that comes back saying the field
-// does not exist is that metadata not having been applied.
-const NOT_APPLIED =
-  'The backend has no permission for this yet: nhost/metadata is applied by nhost up.';
-
-function graphqlError(message: string | undefined): string {
-  if (message?.includes('not found in type')) {
-    return NOT_APPLIED;
-  }
-
-  return message ?? 'The backend did not answer.';
-}
-
+// the permissions in nhost/metadata.
 export async function listPasskeys(): Promise<
   ActionResult & { keys?: Passkey[] }
 > {
@@ -57,7 +46,7 @@ export async function listPasskeys(): Promise<
     });
 
     if (body.errors?.length) {
-      return { error: graphqlError(body.errors[0]?.message) };
+      return { error: graphqlErrorMessage(body.errors) };
     }
 
     return { keys: body.data?.authUserSecurityKeys ?? [] };
@@ -134,7 +123,7 @@ export async function removePasskey(id: string): Promise<ActionResult> {
     });
 
     if (body.errors?.length) {
-      return { error: graphqlError(body.errors[0]?.message) };
+      return { error: graphqlErrorMessage(body.errors) };
     }
 
     if (!body.data?.deleteAuthUserSecurityKey) {
