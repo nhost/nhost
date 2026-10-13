@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { isAvatarType } from '@/app/account/avatar';
+import { isAvatarType, isFileId } from '@/app/account/avatar';
 import { createNhostClient } from '@/lib/nhost/server';
 
 // The storage service reads the session from an Authorization header, which
@@ -26,6 +26,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const { id } = await params;
+
+  // Before the session check, so a path that cannot be a file never reaches
+  // storage, signed in or not.
+  if (!isFileId(id)) {
+    return new Response(null, { status: 404 });
+  }
+
   const nhost = await createNhostClient();
   const session = nhost.getUserSession();
 
@@ -43,10 +50,9 @@ export async function GET(
     }
   }
 
-  const upstream = await fetch(
-    `${nhost.storage.baseURL}/files/${encodeURIComponent(id)}`,
-    { headers },
-  );
+  const upstream = await fetch(`${nhost.storage.baseURL}/files/${id}`, {
+    headers,
+  });
 
   // A 304 carries no body and no type, and a refusal is storage's own, so
   // only a file actually being served is checked.
