@@ -22,35 +22,108 @@ function walk(dir: string): string[] {
   });
 }
 
-// Static imports, re-exports and dynamic `import()`, by specifier.
-const SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"]([^'"]+)['"]/g;
+// Every way a file names a module: static and type imports and re-exports
+// (`from`, `import '...'`), then the calls, which can also take a template
+// literal: `import()`, `require()` and the Vitest mocks a test reaches into a
+// module with. The calls are matched by lookbehind so a type argument such as
+// `vi.importActual<typeof import('...')>('...')` yields both specifiers.
+const SPECIFIER =
+  /(?<=\b(?:from|import)\s*)(['"])(.*?)\1|(?<=\b(?:import|require|vi\.(?:mock|doMock|importActual|importMock)\s*(?:<.*?>)?)\s*\(\s*)(['"`])(.*?)\3/g;
 
-function localImports(file: string): string[] {
-  const source = readFileSync(file, 'utf8');
-  const found: string[] = [];
-  for (const match of source.matchAll(SPECIFIER)) {
-    const spec = match[1];
-    if (spec?.startsWith('@/')) {
-      found.push(resolve(SRC, spec.slice(2)));
-    } else if (spec?.startsWith('.')) {
-      found.push(resolve(dirname(file), spec));
-    }
-  }
-  return found;
+function specifiers(source: string): string[] {
+  return [...source.matchAll(SPECIFIER)].map(
+    (match) => match[2] ?? match[4] ?? '',
+  );
 }
 
-// Which method a path belongs to, or null for anything outside `app/auth/`.
+// The path a local specifier names. An interpolated one is cut back to its
+// last fixed directory, and one that could still land in any method, such as
+// `@/app/auth/${name}/actions`, names the whole of `app/auth/`.
+function resolveSpecifier(file: string, spec: string): string | null {
+  const hole = spec.indexOf('${');
+  const fixed =
+    hole === -1 ? spec : spec.slice(0, spec.lastIndexOf('/', hole) + 1);
+  let path: string;
+  if (fixed.startsWith('@/')) {
+    path = resolve(SRC, fixed.slice(2));
+  } else if (fixed.startsWith('.')) {
+    path = resolve(dirname(file), fixed);
+  } else {
+    return null;
+  }
+  if (hole !== -1 && !relative(path, AUTH).startsWith('..')) {
+    return AUTH;
+  }
+  return path;
+}
+
+function localImports(file: string): string[] {
+  return specifiers(readFileSync(file, 'utf8')).flatMap((spec) => {
+    const path = resolveSpecifier(file, spec);
+    return path ? [path] : [];
+  });
+}
+
+// Which method a path belongs to, `*` for `app/auth/` itself, which stands
+// for every method, or null for anything outside it.
 function methodOf(path: string): string | null {
   const rel = relative(AUTH, path);
   if (rel.startsWith('..')) {
     return null;
   }
-  return rel.split(sep)[0] ?? null;
+  return rel.split(sep)[0] || '*';
 }
 
 function describePath(path: string): string {
   return relative(SRC, path);
 }
+
+describe('the import scan', () => {
+  it('finds a specifier in every form', () => {
+    const fixture = [
+      "import { a } from '@/static';",
+      "import type { B } from '@/type';",
+      "export * from './reexport';",
+      "import '@/side-effect';",
+      "await import('@/dynamic');",
+      `await import(\`@/app/auth/\${name}/actions\`);`,
+      "vi.mock('@/mock', () => ({}));",
+      'vi.doMock("@/do-mock");',
+      "vi.importActual<typeof import('@/type-argument')>('@/import-actual');",
+      'vi.importMock(`@/import-mock`);',
+      "require('@/require');",
+    ].join('\n');
+    expect(specifiers(fixture)).toEqual([
+      '@/static',
+      '@/type',
+      './reexport',
+      '@/side-effect',
+      '@/dynamic',
+      `@/app/auth/\${name}/actions`,
+      '@/mock',
+      '@/do-mock',
+      '@/type-argument',
+      '@/import-actual',
+      '@/import-mock',
+      '@/require',
+    ]);
+  });
+
+  it('takes an interpolated method segment to name every method', () => {
+    const shared = join(SRC, 'app', 'account', 'page.tsx');
+    for (const spec of [
+      `@/app/auth/\${name}/actions`,
+      `@/app/\${area}/password/actions`,
+      `../auth/pass\${word}/actions`,
+    ]) {
+      expect(resolveSpecifier(shared, spec)).toBe(AUTH);
+    }
+    expect(resolveSpecifier(shared, `@/app/auth/password/\${file}`)).toBe(
+      join(AUTH, 'password'),
+    );
+    expect(methodOf(AUTH)).toBe('*');
+  });
+});
 
 describe('sign-in methods are self-contained', () => {
   const files = walk(SRC);
