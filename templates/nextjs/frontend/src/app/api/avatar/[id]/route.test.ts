@@ -16,6 +16,8 @@ vi.mock('@/lib/nhost/server', () => ({
 
 const fetchMock = vi.fn();
 
+const FILE_ID = '0b5e3f6c-8d2a-4c1e-9f7b-3a6d2e1c4b5a';
+
 const get = (
   id: string,
   headers: Record<string, string> = {},
@@ -44,31 +46,44 @@ describe('avatar route', () => {
   it('refuses without a session, before touching storage', async () => {
     client.session = null;
 
-    expect((await get('file-1')).status).toBe(401);
+    expect((await get(FILE_ID)).status).toBe(401);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('reads the file from storage with the session token', async () => {
     fetchMock.mockResolvedValueOnce(upstream(200, {}));
 
-    await get('file-1');
+    await get(FILE_ID);
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('https://storage.test/v1/files/file-1');
+    expect(url).toBe(`https://storage.test/v1/files/${FILE_ID}`);
     expect(new Headers(init.headers).get('authorization')).toBe(
       'Bearer access-token',
     );
   });
 
-  // The id lands in a path, so anything that would escape it is encoded
-  // rather than passed along.
-  it('encodes the id into the path', async () => {
-    fetchMock.mockResolvedValueOnce(upstream(404, {}));
+  // `files/..` would resolve to the storage root and carry the token there.
+  it.each(['..', '../other', 'file-1', ''])(
+    'answers 404 for %j without touching storage',
+    async (id) => {
+      expect((await get(id)).status).toBe(404);
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
 
-    await get('../other');
+  it('refuses a non-file id before asking for a session', async () => {
+    client.session = null;
+
+    expect((await get('..')).status).toBe(404);
+  });
+
+  it('takes an uppercase id', async () => {
+    fetchMock.mockResolvedValueOnce(upstream(200, {}));
+
+    await get(FILE_ID.toUpperCase());
 
     expect((fetchMock.mock.calls[0] as [string])[0]).toBe(
-      'https://storage.test/v1/files/..%2Fother',
+      `https://storage.test/v1/files/${FILE_ID.toUpperCase()}`,
     );
   });
 
@@ -82,7 +97,7 @@ describe('avatar route', () => {
       }),
     );
 
-    const response = await get('file-1');
+    const response = await get(FILE_ID);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toBe('image/png');
@@ -97,7 +112,7 @@ describe('avatar route', () => {
       upstream(200, { 'content-type': 'image/png; charset=binary' }),
     );
 
-    const response = await get('file-1');
+    const response = await get(FILE_ID);
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('png-bytes');
@@ -112,7 +127,7 @@ describe('avatar route', () => {
         upstream(200, { 'content-type': type }, '<script>alert(1)</script>'),
       );
 
-      const response = await get('file-1');
+      const response = await get(FILE_ID);
 
       expect(response.status).toBe(415);
       expect(response.body).toBeNull();
@@ -123,7 +138,7 @@ describe('avatar route', () => {
   it('forwards the conditional headers and relays a 304', async () => {
     fetchMock.mockResolvedValueOnce(upstream(304, { etag: '"abc"' }, null));
 
-    const response = await get('file-1', { 'if-none-match': '"abc"' });
+    const response = await get(FILE_ID, { 'if-none-match': '"abc"' });
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(new Headers(init.headers).get('if-none-match')).toBe('"abc"');
@@ -135,6 +150,6 @@ describe('avatar route', () => {
   it('relays a refusal from storage as it is', async () => {
     fetchMock.mockResolvedValueOnce(upstream(403, {}, 'forbidden'));
 
-    expect((await get('theirs')).status).toBe(403);
+    expect((await get(FILE_ID)).status).toBe(403);
   });
 });

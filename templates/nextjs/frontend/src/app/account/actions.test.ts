@@ -164,6 +164,9 @@ describe('updateDisplayName', () => {
 });
 
 describe('uploadAvatar', () => {
+  const OLD = '6f1c2b3a-4d5e-4f60-8a7b-9c0d1e2f3a4b';
+  const NEW = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+
   const image = (size = 10, type = 'image/png'): FormData => {
     const form = new FormData();
     form.set('avatar', new File([new Uint8Array(size)], 'me.png', { type }));
@@ -193,9 +196,9 @@ describe('uploadAvatar', () => {
   });
 
   it('stores the file, points the account at the route handler, and drops the old one', async () => {
-    client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/old' };
+    client.verifiedUser = { id: 'user-1', avatarUrl: `/api/avatar/${OLD}` };
     client.storage.uploadFiles.mockResolvedValueOnce({
-      body: { processedFiles: [{ id: 'new' }] },
+      body: { processedFiles: [{ id: NEW }] },
     });
     client.graphql.request.mockResolvedValueOnce({
       body: { data: { updateUser: { id: 'user-1' } } },
@@ -207,10 +210,10 @@ describe('uploadAvatar', () => {
       'bucket-id': 'default',
     });
     expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
-      variables: { id: 'user-1', avatarUrl: '/api/avatar/new' },
+      variables: { id: 'user-1', avatarUrl: `/api/avatar/${NEW}` },
     });
-    expect(client.storage.deleteFile).toHaveBeenCalledWith('old');
-    expect(client.storage.deleteFile).not.toHaveBeenCalledWith('new');
+    expect(client.storage.deleteFile).toHaveBeenCalledWith(OLD);
+    expect(client.storage.deleteFile).not.toHaveBeenCalledWith(NEW);
   });
 
   // A fresh account's avatar is a gravatar URL, which is not a file of ours
@@ -221,7 +224,7 @@ describe('uploadAvatar', () => {
       avatarUrl: 'https://gravatar.example/x',
     };
     client.storage.uploadFiles.mockResolvedValueOnce({
-      body: { processedFiles: [{ id: 'new' }] },
+      body: { processedFiles: [{ id: NEW }] },
     });
     client.graphql.request.mockResolvedValueOnce({
       body: { data: { updateUser: { id: 'user-1' } } },
@@ -232,15 +235,30 @@ describe('uploadAvatar', () => {
     expect(client.storage.deleteFile).not.toHaveBeenCalled();
   });
 
+  // avatar_url is the user's to set, so one under this app's prefix can still
+  // name something other than a file.
+  it('leaves an avatar under its prefix alone when the tail is not a file id', async () => {
+    client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/..' };
+    client.storage.uploadFiles.mockResolvedValueOnce({
+      body: { processedFiles: [{ id: NEW }] },
+    });
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+
+    expect(await uploadAvatar(image())).toEqual({ success: true });
+    expect(client.storage.deleteFile).not.toHaveBeenCalled();
+  });
+
   // The cookie's user is only rewritten on refresh, so a second upload within
   // one access token's life still sees the avatar from before the first.
   it('takes the previous avatar and the id from the auth service, not the cookie', async () => {
     client.session = {
       user: { id: 'cookie-user', avatarUrl: 'https://gravatar.example/x' },
     };
-    client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/first' };
+    client.verifiedUser = { id: 'user-1', avatarUrl: `/api/avatar/${OLD}` };
     client.storage.uploadFiles.mockResolvedValueOnce({
-      body: { processedFiles: [{ id: 'second' }] },
+      body: { processedFiles: [{ id: NEW }] },
     });
     client.graphql.request.mockResolvedValueOnce({
       body: { data: { updateUser: { id: 'user-1' } } },
@@ -249,9 +267,9 @@ describe('uploadAvatar', () => {
 
     expect(await uploadAvatar(image())).toEqual({ success: true });
     expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
-      variables: { id: 'user-1', avatarUrl: '/api/avatar/second' },
+      variables: { id: 'user-1', avatarUrl: `/api/avatar/${NEW}` },
     });
-    expect(client.storage.deleteFile).toHaveBeenCalledWith('first');
+    expect(client.storage.deleteFile).toHaveBeenCalledWith(OLD);
   });
 
   it('refuses when the auth service does not vouch for anyone', async () => {
@@ -279,9 +297,9 @@ describe('uploadAvatar', () => {
   // still the account's and stays.
   describe('when the account update fails after the upload', () => {
     beforeEach(() => {
-      client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/old' };
+      client.verifiedUser = { id: 'user-1', avatarUrl: `/api/avatar/${OLD}` };
       client.storage.uploadFiles.mockResolvedValueOnce({
-        body: { processedFiles: [{ id: 'new' }] },
+        body: { processedFiles: [{ id: NEW }] },
       });
       client.storage.deleteFile.mockResolvedValueOnce({ body: undefined });
     });
@@ -294,7 +312,7 @@ describe('uploadAvatar', () => {
       expect(await uploadAvatar(image())).toEqual({
         error: 'The backend did not update this account.',
       });
-      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+      expect(client.storage.deleteFile.mock.calls).toEqual([[NEW]]);
     });
 
     it('deletes the new file when the mutation returns errors', async () => {
@@ -309,7 +327,7 @@ describe('uploadAvatar', () => {
       });
 
       expect((await uploadAvatar(image())).error).toContain('nhost/metadata');
-      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+      expect(client.storage.deleteFile.mock.calls).toEqual([[NEW]]);
     });
 
     it('deletes the new file when the mutation throws', async () => {
@@ -318,7 +336,7 @@ describe('uploadAvatar', () => {
       expect(await uploadAvatar(image())).toEqual({
         error: 'Could not upload the avatar: network down',
       });
-      expect(client.storage.deleteFile.mock.calls).toEqual([['new']]);
+      expect(client.storage.deleteFile.mock.calls).toEqual([[NEW]]);
     });
 
     it('still reports the update error when the cleanup fails', async () => {
