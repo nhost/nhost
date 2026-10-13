@@ -14,8 +14,10 @@ import { createNhostClient } from '@/lib/nhost/server';
 export const dynamic = 'force-dynamic';
 
 // The reset email's link goes through the auth service, which sends the user
-// back here with a refresh token the proxy redeems on the way in. So a session
-// means the link worked, and no session means it was expired or already used.
+// back here with a refresh token the proxy redeems only for a signed-out
+// visitor. So a session means the visitor is signed in, usually through the
+// link, and no session means the link was expired, already used, or opened in
+// another browser.
 export default async function ResetPassword() {
   const session = (await createNhostClient()).getUserSession();
 
@@ -46,7 +48,8 @@ export default async function ResetPassword() {
         <CardHeader>
           <CardTitle>Choose a new password</CardTitle>
           <CardDescription>
-            The link signed you in as {session.user?.email ?? 'this account'}.
+            You are signed in as {session.user?.email ?? 'this account'}. Choose
+            a new password for this account.
           </CardDescription>
         </CardHeader>
         <CardContent>
