@@ -29,8 +29,9 @@ export default async function Mfa() {
         <CardHeader>
           <CardTitle>Two-factor authentication</CardTitle>
           <CardDescription>
-            A code from an authenticator app, asked for when signing in with a
-            password. Other sign-in methods are not challenged.
+            A code from an authenticator app, asked for when you sign in with
+            your password. Links sent by email, including the password reset
+            link, and the other sign-in methods sign in without it.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
