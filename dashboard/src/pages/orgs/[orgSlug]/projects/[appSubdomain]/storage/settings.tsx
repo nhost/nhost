@@ -9,9 +9,8 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
-import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
@@ -149,14 +148,9 @@ StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <StorageArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 md:flex-row">
-            <StorageSettingsSidebar />
-            <div className="min-w-0 flex-1">
-              <SettingsGuard>
-                <SettingsArea className="pt-0">{page}</SettingsArea>
-              </SettingsGuard>
-            </div>
-          </div>
+          <AreaSettingsLayout sidebar={<StorageSettingsSidebar />}>
+            {page}
+          </AreaSettingsLayout>
         </StorageArea>
       </ProjectScope>
     </AppLayout>

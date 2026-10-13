@@ -16,10 +16,9 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
-import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -228,14 +227,9 @@ RunSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <RunArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 md:flex-row">
-            <RunSettingsSidebar />
-            <div className="min-w-0 flex-1">
-              <SettingsGuard>
-                <SettingsArea className="pt-0">{page}</SettingsArea>
-              </SettingsGuard>
-            </div>
-          </div>
+          <AreaSettingsLayout sidebar={<RunSettingsSidebar />}>
+            {page}
+          </AreaSettingsLayout>
         </RunArea>
       </ProjectScope>
     </AppLayout>

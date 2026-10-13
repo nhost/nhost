@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { AuthArea } from '@/features/orgs/projects/authentication/layout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
@@ -59,9 +58,9 @@ import { WebAuthnSettings } from '@/features/orgs/projects/authentication/settin
 import { WindowsLiveProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WorkOsProviderSettings';
 import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
-import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
+import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -556,14 +555,9 @@ AuthSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <AuthArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 md:flex-row">
-            <AuthSettingsSidebar />
-            <div className="min-w-0 flex-1">
-              <SettingsGuard>
-                <SettingsArea className="pt-0">{page}</SettingsArea>
-              </SettingsGuard>
-            </div>
-          </div>
+          <AreaSettingsLayout sidebar={<AuthSettingsSidebar />}>
+            {page}
+          </AreaSettingsLayout>
         </AuthArea>
       </ProjectScope>
     </AppLayout>

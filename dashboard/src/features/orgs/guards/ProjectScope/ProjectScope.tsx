@@ -7,7 +7,8 @@ import { useClearQueryCacheOnProjectChange } from '@/features/orgs/projects/comm
 
 /**
  * Everything a project page needs before it may render: a signed-in session,
- * a loaded organization, a loaded project.
+ * a loaded organization, a loaded project. The region below the organization
+ * status scrolls the page, unless a layout inside it scrolls a narrower region.
  */
 export default function ProjectScope({ children }: PropsWithChildren) {
   useClearQueryCacheOnProjectChange();
@@ -16,7 +17,7 @@ export default function ProjectScope({ children }: PropsWithChildren) {
     <AuthGuard>
       <OrganizationGuard>
         <OrgStatus />
-        <div className="relative min-h-0 flex-1">
+        <div className="relative min-h-0 flex-1 overflow-y-auto">
           <ProjectGuard>{children}</ProjectGuard>
         </div>
       </OrganizationGuard>

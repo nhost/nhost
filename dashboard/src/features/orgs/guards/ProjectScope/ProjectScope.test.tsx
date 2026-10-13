@@ -304,8 +304,14 @@ describe.each([
       const main = screen.getByRole('main');
       const content = page.parentElement;
 
-      expect(main).toHaveClass('flex', 'flex-col', 'overflow-y-auto');
-      expect(content).toHaveClass('relative', 'min-h-0', 'flex-1');
+      expect(main).toHaveClass('flex', 'flex-col');
+      expect(main).not.toHaveClass('overflow-y-auto');
+      expect(content).toHaveClass(
+        'relative',
+        'min-h-0',
+        'flex-1',
+        'overflow-y-auto',
+      );
       expect(content?.parentElement).toBe(main);
 
       if (banner) {

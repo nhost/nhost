@@ -25,7 +25,8 @@ type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
 /**
  * The dashboard shell: header across the top, app sidebar down the left, the
  * page in what remains. It owns the geometry of those three regions and knows
- * nothing about what a page renders into `<main>`.
+ * nothing about what a page renders into `<main>`. `<main>` does not scroll:
+ * the scope or layout inside it decides which region does.
  *
  * It must be the root element every org- and project-scoped page returns from
  * `getLayout`; React keeps the shell mounted across navigation only while the
@@ -48,7 +49,7 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
           </DashboardSidebar>
         )}
 
-        <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-background [scrollbar-gutter:stable]">
+        <main className="relative flex min-w-0 flex-1 flex-col bg-background">
           <RetryableErrorBoundary
             errorMessageProps={{ className: 'flex flex-col items-center' }}
             resetKeys={[router.asPath]}

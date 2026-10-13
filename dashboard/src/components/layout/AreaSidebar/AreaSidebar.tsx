@@ -137,7 +137,7 @@ export function AreaSidebarNav({
         className={cn(
           isDesktop
             ? 'flex h-full min-h-0 flex-col gap-[1.2rem] p-2'
-            : 'min-w-0 px-5 pt-2',
+            : 'min-w-0 px-5',
           className,
         )}
         {...props}

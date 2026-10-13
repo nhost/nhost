@@ -5,14 +5,17 @@ import { OrganizationGuard } from '@/features/orgs/guards/OrganizationGuard';
 
 /**
  * Everything an organization page needs before it may render: a signed-in
- * session and a loaded organization.
+ * session and a loaded organization. The region below the organization status
+ * scrolls the page.
  */
 export default function OrganizationScope({ children }: PropsWithChildren) {
   return (
     <AuthGuard>
       <OrganizationGuard>
         <OrgStatus />
-        <div className="relative min-h-0 flex-1">{children}</div>
+        <div className="relative min-h-0 flex-1 overflow-y-auto">
+          {children}
+        </div>
       </OrganizationGuard>
     </AuthGuard>
   );

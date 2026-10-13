@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { AreaSidebarLayout } from '@/features/orgs/projects/common/layout/AreaSidebarLayout';
 import { BackupsPageLayout } from '@/features/orgs/projects/database/backups/components/BackupsPageLayout';
 import { BackupsSidebar } from '@/features/orgs/projects/database/backups/components/BackupsSidebar';
 import { ImportBackupContent } from '@/features/orgs/projects/database/backups/components/ImportBackupContent';
@@ -19,10 +20,9 @@ ImportBackupPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <DatabaseArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 pb-8 md:flex-row">
-            <BackupsSidebar />
-            <div className="min-w-0 flex-1">{page}</div>
-          </div>
+          <AreaSidebarLayout sidebar={<BackupsSidebar />}>
+            {page}
+          </AreaSidebarLayout>
         </DatabaseArea>
       </ProjectScope>
     </AppLayout>

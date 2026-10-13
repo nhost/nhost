@@ -10,9 +10,8 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
-import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -169,14 +168,9 @@ FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <FunctionsArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 md:flex-row">
-            <FunctionsSettingsSidebar />
-            <div className="min-w-0 flex-1">
-              <SettingsGuard>
-                <SettingsArea className="pt-0">{page}</SettingsArea>
-              </SettingsGuard>
-            </div>
-          </div>
+          <AreaSettingsLayout sidebar={<FunctionsSettingsSidebar />}>
+            {page}
+          </AreaSettingsLayout>
         </FunctionsArea>
       </ProjectScope>
     </AppLayout>

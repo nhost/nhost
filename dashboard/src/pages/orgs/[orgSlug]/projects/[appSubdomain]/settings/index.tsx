@@ -76,7 +76,7 @@ function ProjectSettingsSidebar() {
       </div>
       <AreaSidebarNav
         ariaLabel="Project settings navigation"
-        className="h-auto min-h-0 flex-1 md:overflow-auto"
+        className="h-auto min-h-0 flex-1 pt-2 md:overflow-auto"
       >
         <AreaSidebarGroup label="Project">
           <AreaSidebarLink
