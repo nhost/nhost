@@ -7,7 +7,14 @@ export type ActionResult = { error?: string };
 // Returns { error } instead of throwing, so a caller that cannot reach the auth
 // service can show that instead of leaving the session cookie live with only a
 // console line as evidence.
-export async function signOut(): Promise<ActionResult> {
+//
+// `all` revokes every refresh token the account holds, not only this
+// session's, which signs it out on every device.
+export async function signOut({
+  all = false,
+}: {
+  all?: boolean;
+} = {}): Promise<ActionResult> {
   try {
     const nhost = await createNhostClient();
     const session = nhost.getUserSession();
@@ -15,6 +22,7 @@ export async function signOut(): Promise<ActionResult> {
     if (session) {
       await nhost.auth.signOut({
         refreshToken: session.refreshToken,
+        all,
       });
     }
   } catch (err) {
