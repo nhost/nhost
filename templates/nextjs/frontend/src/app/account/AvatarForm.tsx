@@ -69,7 +69,10 @@ export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {avatarUrl ? (
-          // biome-ignore lint/performance/noImgElement: this app's own route handler or the gravatar a fresh account starts with, neither an origin next/image knows
+          // next/image's optimizer would fetch this route itself and keep the
+          // result in a cache shared across visitors. The gravatar a fresh
+          // account starts with would need a remotePatterns entry.
+          // biome-ignore lint/performance/noImgElement: the avatar route needs the visitor's session cookie, which next/image's optimizer does not send
           <img
             src={avatarUrl}
             alt=""

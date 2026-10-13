@@ -22,7 +22,10 @@ export default function ProfileSummary({ user }: { user: User }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {user.avatarUrl ? (
-          // biome-ignore lint/performance/noImgElement: the URL is whatever the backend holds, gravatar by default, and next/image needs every origin listed in next.config
+          // next/image's optimizer would fetch this route itself and keep the
+          // result in a cache shared across visitors. Gravatar or any other
+          // origin the backend holds would need a remotePatterns entry.
+          // biome-ignore lint/performance/noImgElement: the avatar route needs the visitor's session cookie, which next/image's optimizer does not send
           <img
             src={user.avatarUrl}
             alt=""
