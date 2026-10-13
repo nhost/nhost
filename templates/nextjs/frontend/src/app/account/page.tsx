@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
+import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import ChangePasswordForm from '@/app/account/ChangePasswordForm';
 import ProfileSummary from '@/app/account/ProfileSummary';
 import { signInHref } from '@/app/signin/destination';
+import { localMailboxURL } from '@/lib/nhost/env';
 import { getVerifiedUser } from '@/lib/nhost/server';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +21,11 @@ export default async function Account() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4">
       <ProfileSummary user={user} />
+      <ChangeEmailForm
+        email={user.email}
+        verified={user.emailVerified}
+        mailboxURL={localMailboxURL()}
+      />
       <ChangePasswordForm />
     </div>
   );
