@@ -1,3 +1,4 @@
+import { FetchError } from '@nhost/nhost-js/fetch';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { sendCode, verifyCode } from '@/app/auth/otp/actions';
 
@@ -41,13 +42,32 @@ describe('verifyCode', () => {
     expect(verifySignInOTPEmail).not.toHaveBeenCalled();
   });
 
-  // A 2xx without a session is not a sign-in. This is the branch the form
-  // relies on to offer another try rather than navigating away.
-  it('treats a response without a session as a wrong code', async () => {
+  // Guards a 2xx that comes back without a session.
+  it('reports a 2xx that came back without a session', async () => {
     verifySignInOTPEmail.mockResolvedValueOnce({ body: {} });
 
     expect(await verifyCode('user@example.com', '000000')).toEqual({
       error: 'That code did not work. Try again.',
+    });
+  });
+
+  // The backend answers a wrong code with an error response, so it reaches
+  // the catch, not the guard above.
+  it('passes through the message for a wrong code', async () => {
+    verifySignInOTPEmail.mockRejectedValueOnce(
+      new FetchError(
+        {
+          status: 400,
+          error: 'invalid-otp',
+          message: 'Invalid or expired OTP',
+        },
+        400,
+        new Headers(),
+      ),
+    );
+
+    expect(await verifyCode('user@example.com', '000000')).toEqual({
+      error: 'Could not verify the code: Invalid or expired OTP',
     });
   });
 

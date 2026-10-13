@@ -92,7 +92,9 @@ describe('verifyMfa', () => {
     });
   });
 
-  it('treats a response without a session as a wrong code', async () => {
+  // Guards a 2xx that comes back without a session; a wrong code is an error
+  // response and reaches the catch.
+  it('reports a 2xx that came back without a session', async () => {
     auth.verifySignInMfaTotp.mockResolvedValueOnce({ body: {} });
 
     expect(await verifyMfa('mfaTotp:abc', '000000')).toEqual({
