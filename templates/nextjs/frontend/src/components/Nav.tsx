@@ -25,9 +25,9 @@ export default async function Nav() {
 
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">
-              {user.email ?? user.id}
-            </span>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/account">{user.email ?? 'Account'}</Link>
+            </Button>
             <SignOutButton />
           </div>
         ) : (
