@@ -8,6 +8,33 @@ import {
 
 const protectedRoutes = ['/protected', '/account'];
 
+// What the auth service appends to `redirectTo` when a flow fails.
+const authErrorParams = ['error', 'errorDescription'];
+
+// A failed flow sends a signed-out visitor back to the protected page they
+// started from, so the reason arrives here. Left inside `next` it would show
+// nowhere, and come back after they signed in; on the sign-in URL it is shown
+// right where they choose again.
+function signInRedirect(request: NextRequest): URL {
+  const { pathname, search } = request.nextUrl;
+  const kept = new URLSearchParams(search);
+  const lifted = new URLSearchParams();
+  for (const name of authErrorParams) {
+    const value = kept.get(name);
+    if (value !== null) {
+      lifted.set(name, value);
+    }
+    kept.delete(name);
+  }
+
+  if (lifted.size === 0) {
+    return new URL(signInHref(`${pathname}${search}`), request.url);
+  }
+
+  const rest = kept.size > 0 ? `?${kept}` : '';
+  return new URL(`${signInHref(`${pathname}${rest}`)}&${lifted}`, request.url);
+}
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
 
@@ -35,11 +62,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // on the default page. It reads the cookie without verifying it, so each
   // protected page still checks the visitor with `getVerifiedUser`.
   if (isProtectedRoute && !session) {
-    return applySessionCookies(
-      NextResponse.redirect(
-        new URL(signInHref(`${path}${request.nextUrl.search}`), request.url),
-      ),
-    );
+    return applySessionCookies(NextResponse.redirect(signInRedirect(request)));
   }
 
   // `{ request }` forwards the cookies `handleNhostProxy` refreshed, so Server

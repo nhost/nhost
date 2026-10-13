@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 import '@/app/globals.css';
+import AuthErrorFromUrl from '@/components/AuthErrorFromUrl';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
@@ -13,7 +14,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="min-h-screen antialiased">
         <Nav />
-        <main className="mx-auto max-w-4xl px-6 py-10">{children}</main>
+        <main className="mx-auto max-w-4xl px-6 py-10">
+          {/* Every page renders per request today, but on one Next prerenders,
+              reading the query outside a boundary fails the build. */}
+          <Suspense>
+            <AuthErrorFromUrl />
+          </Suspense>
+          {children}
+        </main>
       </body>
     </html>
   );
