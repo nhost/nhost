@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
+  experimental: {
+    // Next refuses an action body over 1 MB by default. 6 MB rather than 5
+    // leaves room for the multipart framing around a file at
+    // MAX_AVATAR_BYTES (src/app/account/avatar.ts).
+    serverActions: { bodySizeLimit: '6mb' },
+  },
   // The access token is readable by JS (see accessTokenCookieOptions in
   // src/lib/nhost/server.ts), so an XSS here can act as the user until that
   // token expires. frame-ancestors is the part of a CSP that costs
