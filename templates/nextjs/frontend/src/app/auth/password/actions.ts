@@ -16,10 +16,14 @@ function errorMessage(err: unknown): string {
 
 // The server client's storage writes the session cookie, so a sign-in that
 // succeeds here is the sign-in. The caller only has to navigate.
+//
+// An account with two-factor on gets no session yet: the backend accepts the
+// password and answers with a ticket, and `verifyMfa` trades the ticket and a
+// code from the authenticator app for the session.
 export async function signIn(
   email: string,
   password: string,
-): Promise<ActionResult> {
+): Promise<ActionResult & { mfaTicket?: string }> {
   if (!email || !password) {
     return { error: 'Email and password are required.' };
   }
@@ -28,15 +32,41 @@ export async function signIn(
     const nhost = await createNhostClient();
     const { body } = await nhost.auth.signInEmailPassword({ email, password });
 
+    if (body.mfa?.ticket) {
+      return { mfaTicket: body.mfa.ticket };
+    }
+
     if (!body.session) {
-      // MFA or an unverified email: the backend accepted the password but did
-      // not issue a session. Neither is set up by this template.
+      // An unverified email: the backend accepted the password but did not
+      // issue a session.
       return { error: 'That account cannot be signed in with a password.' };
     }
 
     return { success: true };
   } catch (err) {
     return { error: `Could not sign in: ${errorMessage(err)}` };
+  }
+}
+
+export async function verifyMfa(
+  ticket: string,
+  otp: string,
+): Promise<ActionResult> {
+  if (!ticket || !otp) {
+    return { error: 'Enter the code from your authenticator app.' };
+  }
+
+  try {
+    const nhost = await createNhostClient();
+    const { body } = await nhost.auth.verifySignInMfaTotp({ ticket, otp });
+
+    if (!body.session) {
+      return { error: 'That code did not work. Try again.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not verify the code: ${errorMessage(err)}` };
   }
 }
 

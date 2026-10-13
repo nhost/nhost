@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import ChangePasswordForm from '@/app/account/ChangePasswordForm';
 import ProfileSummary from '@/app/account/ProfileSummary';
+import SignInMethodLinks from '@/app/account/SignInMethodLinks';
 import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
 import { localMailboxURL } from '@/lib/nhost/env';
@@ -28,6 +29,7 @@ export default async function Account() {
         mailboxURL={localMailboxURL()}
       />
       <ChangePasswordForm />
+      <SignInMethodLinks />
       <SignOutCard />
     </div>
   );

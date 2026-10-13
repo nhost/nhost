@@ -6,6 +6,7 @@ import {
   requestPasswordReset,
   signIn,
   signUp,
+  verifyMfa,
 } from '@/app/auth/password/actions';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
@@ -33,6 +34,7 @@ export default function PasswordForm({
   const pathname = usePathname();
   const emailId = useId();
   const passwordId = useId();
+  const codeId = useId();
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
   // unless it said otherwise: a fresh local backend has no accounts in it, so
@@ -41,6 +43,10 @@ export default function PasswordForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [sent, setSent] = useState<Sent | undefined>();
+  // Set when the password was right but the account has two-factor on: the
+  // backend wants a code from the authenticator app before it issues a session.
+  const [mfaTicket, setMfaTicket] = useState<string | undefined>();
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
 
@@ -70,6 +76,11 @@ export default function PasswordForm({
           return;
         }
 
+        if (result.mfaTicket) {
+          setMfaTicket(result.mfaTicket);
+          return;
+        }
+
         finishSignIn();
         return;
       }
@@ -88,6 +99,26 @@ export default function PasswordForm({
       setSent('verification');
     } catch (err) {
       console.error('Error submitting the form:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleVerifyCode = async (event: FormEvent): Promise<void> => {
+    event.preventDefault();
+    setError(undefined);
+    setIsPending(true);
+    try {
+      const result = await verifyMfa(mfaTicket ?? '', code);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      finishSignIn();
+    } catch (err) {
+      console.error('Error verifying the code:', err);
       setError('The request did not reach the server. Try again.');
     } finally {
       setIsPending(false);
@@ -133,6 +164,36 @@ export default function PasswordForm({
           If that address has an account, a reset link is on its way.
         </p>
       </div>
+    );
+  }
+
+  if (mfaTicket) {
+    return (
+      <form className="flex flex-col gap-4" onSubmit={handleVerifyCode}>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={codeId}>Authenticator code</Label>
+          <Input
+            id={codeId}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            autoFocus
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            disabled={isPending}
+          />
+        </div>
+
+        {error ? (
+          <p role="alert" className="text-destructive text-sm">
+            {error}
+          </p>
+        ) : null}
+
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Verifying…' : 'Verify'}
+        </Button>
+      </form>
     );
   }
 
