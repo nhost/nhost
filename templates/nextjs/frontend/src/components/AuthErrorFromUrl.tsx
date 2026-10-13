@@ -21,10 +21,7 @@ export default function AuthErrorFromUrl() {
 
   return (
     <div className="mx-auto mb-4 max-w-md">
-      <AuthErrorNotice
-        error={error}
-        description={params.get('errorDescription') ?? undefined}
-      />
+      <AuthErrorNotice error={error} />
     </div>
   );
 }

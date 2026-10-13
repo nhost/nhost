@@ -4,51 +4,38 @@ import AuthErrorNotice from '@/components/AuthErrorNotice';
 
 describe('AuthErrorNotice', () => {
   it('renders nothing without an error', () => {
-    expect(
-      renderToStaticMarkup(
-        <AuthErrorNotice error={undefined} description={undefined} />,
-      ),
-    ).toBe('');
+    expect(renderToStaticMarkup(<AuthErrorNotice error={undefined} />)).toBe(
+      '',
+    );
+    expect(renderToStaticMarkup(<AuthErrorNotice error="" />)).toBe('');
   });
 
-  it('shows the description and the code', () => {
+  it('shows the message for a known code, and the code', () => {
     const html = renderToStaticMarkup(
-      <AuthErrorNotice
-        error="disabled-endpoint"
-        description="This endpoint is disabled"
-      />,
+      <AuthErrorNotice error="disabled-endpoint" />,
     );
 
-    expect(html).toContain('This endpoint is disabled');
+    expect(html).toContain('enable it in nhost/nhost.toml');
     expect(html).toContain('(disabled-endpoint)');
     expect(html).toContain('role="alert"');
   });
 
-  it('falls back to a generic line when only the code came back', () => {
+  it('shows only a generic line for an unknown code', () => {
     const html = renderToStaticMarkup(
-      <AuthErrorNotice error="invalid-ticket" description={undefined} />,
+      <AuthErrorNotice error="account-locked" />,
     );
 
     expect(html).toContain('Sign-in failed.');
-  });
-
-  // The auth service's message is interpolated into the page, so it has to
-  // arrive as text. React escapes it; this pins that the notice does not undo
-  // that by rendering raw HTML.
-  it('escapes the description', () => {
-    const html = renderToStaticMarkup(
-      <AuthErrorNotice error="x" description="<img src=x onerror=alert(1)>" />,
-    );
-
-    expect(html).not.toContain('<img');
+    expect(html).not.toContain('account-locked');
   });
 
   it('takes the first value when a parameter is repeated', () => {
     const html = renderToStaticMarkup(
-      <AuthErrorNotice error={['first', 'second']} description={['a', 'b']} />,
+      <AuthErrorNotice error={['invalid-ticket', 'disabled-endpoint']} />,
     );
 
-    expect(html).toContain('(first)');
-    expect(html).toContain('>a ');
+    expect(html).toContain('(invalid-ticket)');
+    expect(html).toContain('This link is invalid or has expired.');
+    expect(html).not.toContain('disabled-endpoint');
   });
 });
