@@ -77,6 +77,7 @@ describe('command palette catalog', () => {
       'schema',
       'native-queries',
       'sql-console',
+      'extensions',
       'backups',
       'settings',
     ]);
