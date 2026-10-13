@@ -3,7 +3,12 @@
 Two halves, laid out the way an Nhost project is:
 
 - `nhost/` is the backend configuration `nhost up` runs. It is what
-  `nhost init` writes, with the sign-in methods this app offers switched on.
+  `nhost init` writes, with the sign-in methods this app offers switched on,
+  plus `nhost/metadata/`: the Hasura permissions the account page needs. The
+  auth service tracks its own tables but grants nothing, so without these a
+  signed-in user could register a passkey and never see it listed. `nhost up`
+  applies them, then restarts the auth and storage services so they re-add
+  what they manage themselves.
 - `frontend/` is the Next.js app. See its README for the commands.
 
 ## Running it
