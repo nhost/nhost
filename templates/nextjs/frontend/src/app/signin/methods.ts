@@ -35,4 +35,9 @@ export const methods: SignInMethod[] = [
     title: 'GitHub or Google',
     description: 'Sign in with a provider account.',
   },
+  {
+    href: '/auth/passkey',
+    title: 'Passkey',
+    description: 'Use Touch ID, Windows Hello or a security key.',
+  },
 ];
