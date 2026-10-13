@@ -5,12 +5,23 @@ const PREFIX = '/api/avatar/';
 
 export const avatarUrlFor = (fileId: string): string => `${PREFIX}${fileId}`;
 
+// Storage file ids are UUIDs. An id goes into a storage path with the
+// visitor's token, so anything else, such as `..`, is refused rather than
+// sent.
+const FILE_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const isFileId = (id: string): boolean => FILE_ID.test(id);
+
 // The file id behind an avatar URL this app wrote, or undefined for anything
-// else, such as the gravatar URL a fresh account starts with.
+// else, such as the gravatar URL a fresh account starts with. avatar_url is
+// the user's to set, so a URL under this prefix is not trusted to name a file.
 export const avatarFileIdFrom = (
   url: string | undefined,
-): string | undefined =>
-  url?.startsWith(PREFIX) ? url.slice(PREFIX.length) : undefined;
+): string | undefined => {
+  const id = url?.startsWith(PREFIX) ? url.slice(PREFIX.length) : undefined;
+  return id && isFileId(id) ? id : undefined;
+};
 
 // The largest avatar this app takes. AvatarForm checks it before sending and
 // uploadAvatar checks it again for a caller that skips the form; the server
