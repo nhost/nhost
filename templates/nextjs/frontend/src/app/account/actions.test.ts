@@ -171,10 +171,19 @@ describe('uploadAvatar', () => {
       'Choose an image first.',
     );
     expect((await uploadAvatar(image(10, 'text/plain'))).error).toBe(
-      'That is not an image.',
+      'Use a PNG, JPEG, GIF, WebP or AVIF image.',
     );
     expect((await uploadAvatar(image(5 * 1024 * 1024 + 1))).error).toBe(
       'That image is over 5 MB.',
+    );
+    expect(client.storage.uploadFiles).not.toHaveBeenCalled();
+  });
+
+  // SVG can carry script, and the route handler serves the file on this
+  // app's origin.
+  it('refuses an SVG before uploading', async () => {
+    expect((await uploadAvatar(image(10, 'image/svg+xml'))).error).toBe(
+      'Use a PNG, JPEG, GIF, WebP or AVIF image.',
     );
     expect(client.storage.uploadFiles).not.toHaveBeenCalled();
   });

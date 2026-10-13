@@ -3,7 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useRef, useState } from 'react';
 import { uploadAvatar } from '@/app/account/actions';
-import { AVATAR_TOO_LARGE, MAX_AVATAR_BYTES } from '@/app/account/avatar';
+import {
+  AVATAR_TOO_LARGE,
+  AVATAR_TYPES,
+  MAX_AVATAR_BYTES,
+} from '@/app/account/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -86,7 +90,7 @@ export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
               id={fileId}
               name="avatar"
               type="file"
-              accept="image/*"
+              accept={AVATAR_TYPES.join(',')}
               required
               disabled={isPending}
             />
