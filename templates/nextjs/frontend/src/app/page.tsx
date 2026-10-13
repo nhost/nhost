@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
+import AuthErrorNotice from '@/components/AuthErrorNotice';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,12 +17,23 @@ export const dynamic = 'force-dynamic';
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 
-export default async function Home() {
+// This is where auth emails and the OAuth callback land by default, so it is
+// also where the auth service reports a flow that failed.
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    error?: string | string[];
+    errorDescription?: string | string[];
+  }>;
+}) {
+  const { error, errorDescription } = await searchParams;
   const nhost = await createNhostClient();
   const user = nhost.getUserSession()?.user;
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto flex max-w-md flex-col gap-4">
+      <AuthErrorNotice error={error} description={errorDescription} />
       <Card>
         <CardHeader>
           <CardTitle>
