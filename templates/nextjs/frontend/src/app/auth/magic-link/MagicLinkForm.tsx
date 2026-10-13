@@ -53,8 +53,8 @@ export default function MagicLinkForm({
         <div className="flex flex-col gap-2">
           <CheckYourInbox url={mailboxURL} />
           <p className="text-muted-foreground text-sm">
-            A sign-in link is on its way to {email}. Opening it signs you in on
-            this device.
+            A sign-in link is on its way to {email}. Open it in this browser to
+            sign in here.
           </p>
         </div>
         <Button
