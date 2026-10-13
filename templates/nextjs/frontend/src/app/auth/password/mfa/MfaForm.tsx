@@ -95,7 +95,8 @@ export default function MfaForm({ active }: { active: boolean }) {
     return (
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <p className="text-sm">
-          Two-factor is on. Password sign-in asks for a code from your app.
+          Two-factor is on. Signing in with your password asks for a code from
+          your app.
         </p>
         <p className="text-muted-foreground text-sm">
           Enter a current code to turn it off.

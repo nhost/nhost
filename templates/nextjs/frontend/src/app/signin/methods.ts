@@ -27,7 +27,7 @@ export const methods: SignInMethod[] = [
     account: {
       href: '/auth/password/mfa',
       title: 'Two-factor authentication',
-      description: 'Ask for a code from an authenticator app at sign-in.',
+      description: 'Ask for a code when signing in with a password.',
     },
   },
   {

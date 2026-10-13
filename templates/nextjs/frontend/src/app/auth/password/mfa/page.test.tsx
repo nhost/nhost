@@ -41,15 +41,24 @@ describe('two-factor page', () => {
 
     const html = renderToStaticMarkup(await Mfa());
 
-    expect(html).toContain('Two-factor is on.');
+    expect(html).toContain(
+      'Two-factor is on. Signing in with your password asks for a code from your app.',
+    );
     expect(html).toContain('Turn off two-factor');
   });
 
-  it('says which sign-in it applies to', async () => {
+  // The auth service only checks for a code on the password sign-in itself;
+  // email links, the password reset one included, create a session directly.
+  it('says which sign-in it applies to and which it does not', async () => {
     getVerifiedUser.mockResolvedValueOnce({ activeMfaType: undefined });
 
     const html = renderToStaticMarkup(await Mfa());
 
-    expect(html).toContain('Other sign-in methods are not challenged.');
+    expect(html).toContain(
+      'A code from an authenticator app, asked for when you sign in with your password.',
+    );
+    expect(html).toContain(
+      'Links sent by email, including the password reset link, and the other sign-in methods sign in without it.',
+    );
   });
 });
