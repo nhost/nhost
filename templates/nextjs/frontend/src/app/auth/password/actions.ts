@@ -37,9 +37,8 @@ export async function signIn(
     }
 
     if (!body.session) {
-      // An unverified email: the backend accepted the password but did not
-      // issue a session.
-      return { error: 'That account cannot be signed in with a password.' };
+      // Guards a 2xx that carries neither a session nor an MFA ticket.
+      return { error: 'The server did not return a session. Try again.' };
     }
 
     return { success: true };

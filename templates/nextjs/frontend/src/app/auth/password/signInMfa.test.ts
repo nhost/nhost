@@ -1,3 +1,4 @@
+import { FetchError } from '@nhost/nhost-js/fetch';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { signIn, verifyMfa } from '@/app/auth/password/actions';
 
@@ -35,6 +36,36 @@ describe('signIn with two-factor on', () => {
 
     expect(await signIn('user@example.com', 'password')).toEqual({
       success: true,
+    });
+  });
+});
+
+describe('signIn without a session', () => {
+  it('reports a 2xx with neither a session nor a ticket', async () => {
+    auth.signInEmailPassword.mockResolvedValueOnce({ body: {} });
+
+    expect(await signIn('user@example.com', 'password')).toEqual({
+      error: 'The server did not return a session. Try again.',
+    });
+  });
+
+  // The backend refuses an unverified account with an error response, so it
+  // reaches the catch, not the guard above.
+  it('passes through the message for an unverified account', async () => {
+    auth.signInEmailPassword.mockRejectedValueOnce(
+      new FetchError(
+        {
+          status: 401,
+          error: 'unverified-user',
+          message: 'User is not verified.',
+        },
+        401,
+        new Headers(),
+      ),
+    );
+
+    expect(await signIn('user@example.com', 'password')).toEqual({
+      error: 'Could not sign in: User is not verified.',
     });
   });
 });
