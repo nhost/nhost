@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useRef, useState } from 'react';
 import { uploadAvatar } from '@/app/account/actions';
+import { AVATAR_TOO_LARGE, MAX_AVATAR_BYTES } from '@/app/account/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,9 +26,17 @@ export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(undefined);
+
+    const formData = new FormData(event.currentTarget);
+    const file = formData.get('avatar');
+    if (file instanceof File && file.size > MAX_AVATAR_BYTES) {
+      setError(AVATAR_TOO_LARGE);
+      return;
+    }
+
     setIsPending(true);
     try {
-      const result = await uploadAvatar(new FormData(event.currentTarget));
+      const result = await uploadAvatar(formData);
       if (result.error) {
         setError(result.error);
         return;

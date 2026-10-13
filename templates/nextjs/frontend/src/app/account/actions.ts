@@ -2,7 +2,12 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { avatarFileIdFrom, avatarUrlFor } from '@/app/account/avatar';
+import {
+  AVATAR_TOO_LARGE,
+  avatarFileIdFrom,
+  avatarUrlFor,
+  MAX_AVATAR_BYTES,
+} from '@/app/account/avatar';
 import { appOrigin } from '@/lib/nhost/env';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
@@ -122,10 +127,6 @@ export async function updateDisplayName(
   }
 }
 
-// Generous for an avatar and well under what the storage service accepts;
-// the point is to refuse a wrong file before it is uploaded.
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-
 // Three steps: the file goes to storage, which inserts its row as this user
 // under the insert permission in nhost/metadata; the account's avatar_url is
 // pointed at the route handler that serves it; and the file the previous
@@ -143,7 +144,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 
   if (file.size > MAX_AVATAR_BYTES) {
-    return { error: 'That image is over 5 MB.' };
+    return { error: AVATAR_TOO_LARGE };
   }
 
   try {

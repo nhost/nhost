@@ -3,6 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AvatarForm from '@/app/account/AvatarForm';
+import { AVATAR_TOO_LARGE, MAX_AVATAR_BYTES } from '@/app/account/avatar';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 const uploadAvatar = vi.hoisted(() => vi.fn());
@@ -74,5 +75,24 @@ describe('avatar form', () => {
 
     expect(text('alert')).toBe('over 5 MB');
     expect(router.refresh).not.toHaveBeenCalled();
+  });
+
+  it('refuses an oversized file without calling the action', async () => {
+    const input =
+      container.querySelector<HTMLInputElement>('input[type="file"]');
+    const transfer = new DataTransfer();
+    transfer.items.add(
+      new File([new Uint8Array(MAX_AVATAR_BYTES + 1)], 'me.png', {
+        type: 'image/png',
+      }),
+    );
+    if (input) {
+      input.files = transfer.files;
+    }
+
+    await submit();
+
+    expect(text('alert')).toBe(AVATAR_TOO_LARGE);
+    expect(uploadAvatar).not.toHaveBeenCalled();
   });
 });
