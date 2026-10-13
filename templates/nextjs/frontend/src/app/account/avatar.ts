@@ -11,3 +11,11 @@ export const avatarFileIdFrom = (
   url: string | undefined,
 ): string | undefined =>
   url?.startsWith(PREFIX) ? url.slice(PREFIX.length) : undefined;
+
+// The largest avatar this app takes. AvatarForm checks it before sending and
+// uploadAvatar checks it again for a caller that skips the form; the server
+// action body limit in next.config.ts sits just above it, so a file over this
+// gets this message rather than a 413 from Next.
+export const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+
+export const AVATAR_TOO_LARGE = 'That image is over 5 MB.';
