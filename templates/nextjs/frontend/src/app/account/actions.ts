@@ -128,7 +128,9 @@ export async function updateDisplayName(
 // under the insert permission in nhost/metadata; the account's avatar_url is
 // pointed at the route handler that serves it; and the file the previous
 // avatar pointed at, if this app wrote it, is deleted so storage does not
-// collect one per change.
+// collect one per change. The previous avatar comes from the auth service: the
+// session cookie's copy of the user only changes on refresh, so after an
+// upload it still names the avatar before that one.
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const file = formData.get('avatar');
 
@@ -145,13 +147,13 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 
   try {
-    const nhost = await createNhostClient();
-    const user = nhost.getUserSession()?.user;
+    const user = await getVerifiedUser();
 
     if (!user) {
       return { error: SIGNED_OUT };
     }
 
+    const nhost = await createNhostClient();
     const { body: uploaded } = await nhost.storage.uploadFiles({
       'bucket-id': 'default',
       'file[]': [file],
