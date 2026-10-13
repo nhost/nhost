@@ -6,6 +6,7 @@ import {
 } from '@simplewebauthn/browser';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
+import { wasCancelled } from '@/app/auth/passkey/cancelled';
 import {
   beginAddPasskey,
   finishAddPasskey,
@@ -17,15 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const NETWORK_ERROR = 'The request did not reach the server. Try again.';
-
-// The browser reports a dismissed or timed-out prompt as NotAllowedError,
-// either directly or as the cause of the wrapper the library throws.
-function wasCancelled(err: unknown): boolean {
-  const own = (err as { name?: string }).name;
-  const cause = (err as { cause?: { name?: string } }).cause?.name;
-
-  return own === 'NotAllowedError' || cause === 'NotAllowedError';
-}
 
 export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   const router = useRouter();
