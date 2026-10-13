@@ -168,14 +168,15 @@ export const LINK_TYPE_PARAM = 'type';
 // refresh reopens exactly the race this function guards against, just with the
 // browser as the second rotator instead of a prefetch.
 function isPrefetch(request: NextRequest): boolean {
-  // `2` is what the PPR runtime sends; `1` is the classic prefetch. Neither
-  // arises in the template as it ships, but both do the moment somebody turns
-  // PPR on or passes `prefetch` to a <Link>.
-  const prefetch = request.headers.get('next-router-prefetch');
-
+  // In a production build every default <Link> in view prefetches, sending
+  // `next-router-prefetch: 1`, some with `next-router-segment-prefetch`; the
+  // runtime prefetches of Cache Components send `2` and `3`. Any value counts,
+  // since the values are Next internals. `prefetch={true}` is the gap: that
+  // request carries no prefetch header and looks like a navigation, so it
+  // rotates, and a project that turns it on reopens the race.
   return (
-    prefetch === '1' ||
-    prefetch === '2' ||
+    !!request.headers.get('next-router-prefetch') ||
+    !!request.headers.get('next-router-segment-prefetch') ||
     request.headers.get('purpose') === 'prefetch'
   );
 }

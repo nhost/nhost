@@ -137,18 +137,27 @@ const refreshed = (accessToken: string): Response =>
     200,
   );
 
+const proxyRequest = (
+  session: string,
+  url = 'http://localhost:3000/',
+  headers: Record<string, string> = {},
+): NextRequest =>
+  new NextRequest(url, {
+    headers: {
+      ...headers,
+      cookie: `${DEFAULT_SESSION_KEY}=${encodeURIComponent(session)}`,
+    },
+  });
+
 // Runs the proxy for a visitor holding `session` and returns what it sends
 // back, so the cookies are checked as the browser would receive them.
 const proxyResponse = async (
   session: string,
   url = 'http://localhost:3000/',
 ): Promise<NextResponse> => {
-  const request = new NextRequest(url, {
-    headers: {
-      cookie: `${DEFAULT_SESSION_KEY}=${encodeURIComponent(session)}`,
-    },
-  });
-  const { applySessionCookies } = await handleNhostProxy(request);
+  const { applySessionCookies } = await handleNhostProxy(
+    proxyRequest(session, url),
+  );
 
   return applySessionCookies(NextResponse.next());
 };
@@ -224,6 +233,45 @@ describe('session cookies', () => {
     for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
       expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
     }
+  });
+});
+
+// Refresh tokens are single-use, so a prefetch that rotated alongside the real
+// navigation could get the session cleared. Prefetches read it instead.
+describe('prefetches', () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const expiring = storedSession(30);
+
+  it.each<Record<string, string>>([
+    { 'next-router-prefetch': '1' },
+    { 'next-router-prefetch': '2' },
+    { 'next-router-prefetch': '3' },
+    { 'next-router-segment-prefetch': '/_tree' },
+    { purpose: 'prefetch' },
+  ])('reads the stored session for %o', async (headers) => {
+    const { session } = await handleNhostProxy(
+      proxyRequest(expiring, undefined, headers),
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(session).toEqual(JSON.parse(expiring));
+  });
+
+  it('refreshes an RSC request that is not a prefetch', async () => {
+    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
+
+    await handleNhostProxy(proxyRequest(expiring, undefined, { rsc: '1' }));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/token$/);
   });
 });
 
