@@ -49,5 +49,11 @@ export const methods: SignInMethod[] = [
     href: '/auth/passkey',
     title: 'Passkey',
     description: 'Use Touch ID, Windows Hello or a security key.',
+    account: {
+      href: '/auth/passkey/manage',
+      title: 'Passkeys',
+      description:
+        'Add or remove the passkeys that can sign in to this account.',
+    },
   },
 ];
