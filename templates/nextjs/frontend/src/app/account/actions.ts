@@ -78,9 +78,6 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
   }
 }
 
-// For an address that was never verified: sign-up sent one link, this sends
-// another. The address comes from the auth service's own answer about who is
-// signed in, not from the caller, so this cannot be pointed at someone else.
 // The auth API has no write endpoint for a profile field, so this goes
 // through GraphQL and the update permission in nhost/metadata. The id comes
 // from the session cookie, which anyone can write, but the permission filters
@@ -199,6 +196,9 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 }
 
+// For an address that was never verified: sign-up sent one link, this sends
+// another. The address comes from the auth service's own answer about who is
+// signed in, not from the caller, so this cannot be pointed at someone else.
 export async function resendVerification(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
