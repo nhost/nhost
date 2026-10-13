@@ -3,6 +3,8 @@
 # insert permission is what decides who may upload and where. The row is
 # finished (size, etag, uploaded) by the service as admin, which is why there
 # is no update permission here. Select and delete are the user's own files.
+# The service also reads a file back as the user before serving it and asks
+# for every select column, so dropping one breaks downloads.
 table:
   name: files
   schema: storage
@@ -81,6 +83,7 @@ select_permissions:
         - etag
         - is_uploaded
         - uploaded_by_user_id
+        - metadata
       filter:
         uploaded_by_user_id:
           _eq: X-Hasura-User-Id
