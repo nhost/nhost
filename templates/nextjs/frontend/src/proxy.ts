@@ -6,7 +6,7 @@ import {
   LINK_TYPE_PARAM,
 } from '@/lib/nhost/server';
 
-const protectedRoutes = ['/protected'];
+const protectedRoutes = ['/protected', '/account'];
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
