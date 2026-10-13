@@ -76,7 +76,7 @@ expiresIn = 2592000
 enabled = false
 
 [auth.method.emailPasswordless]
-enabled = false
+enabled = true
 
 [auth.method.otp]
 [auth.method.otp.email]
