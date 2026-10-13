@@ -25,4 +25,9 @@ export const methods: SignInMethod[] = [
     title: 'Magic link',
     description: 'Get a sign-in link by email.',
   },
+  {
+    href: '/auth/otp',
+    title: 'Email code',
+    description: 'Get a one-time code by email.',
+  },
 ];

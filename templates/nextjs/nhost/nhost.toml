@@ -80,7 +80,7 @@ enabled = true
 
 [auth.method.otp]
 [auth.method.otp.email]
-enabled = false
+enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
