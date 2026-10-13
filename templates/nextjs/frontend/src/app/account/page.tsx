@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import ChangePasswordForm from '@/app/account/ChangePasswordForm';
 import ProfileSummary from '@/app/account/ProfileSummary';
 import { signInHref } from '@/app/signin/destination';
 import { getVerifiedUser } from '@/lib/nhost/server';
@@ -18,6 +19,7 @@ export default async function Account() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4">
       <ProfileSummary user={user} />
+      <ChangePasswordForm />
     </div>
   );
 }
