@@ -31,6 +31,20 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
         ],
       },
+      // The avatar route serves stored files on this origin. Storage sandboxes
+      // HTML and SVG on its own origin, so this does the same here behind the
+      // route's raster-only check. It lives here because Next sets these
+      // headers before the handler runs and drops a handler's header of the
+      // same name. This later entry replaces only the CSP above.
+      {
+        source: '/api/avatar/:id',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'none'; sandbox; frame-ancestors 'none'",
+          },
+        ],
+      },
     ];
   },
 };

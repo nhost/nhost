@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { isAvatarType } from '@/app/account/avatar';
 import { createNhostClient } from '@/lib/nhost/server';
 
 // The storage service reads the session from an Authorization header, which
@@ -46,6 +47,13 @@ export async function GET(
     `${nhost.storage.baseURL}/files/${encodeURIComponent(id)}`,
     { headers },
   );
+
+  // A 304 carries no body and no type, and a refusal is storage's own, so
+  // only a file actually being served is checked.
+  if (upstream.ok && !isAvatarType(upstream.headers.get('content-type'))) {
+    await upstream.body?.cancel();
+    return new Response(null, { status: 415 });
+  }
 
   const response = new Headers();
   for (const name of PASS_THROUGH) {

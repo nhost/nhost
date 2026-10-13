@@ -51,10 +51,12 @@ describe('avatar form', () => {
     );
   });
 
-  it('only accepts images and names the field the action reads', () => {
+  it('only accepts raster images and names the field the action reads', () => {
     const input = container.querySelector('input[type="file"]');
 
-    expect(input?.getAttribute('accept')).toBe('image/*');
+    expect(input?.getAttribute('accept')).toBe(
+      'image/png,image/jpeg,image/gif,image/webp,image/avif',
+    );
     expect(input?.getAttribute('name')).toBe('avatar');
   });
 
