@@ -3,33 +3,37 @@ import {
   changeEmail,
   changePassword,
   resendVerification,
+  updateDisplayName,
 } from '@/app/account/actions';
 import { appOrigin } from '@/lib/nhost/env';
 
 const client = vi.hoisted(() => ({
-  session: null as object | null,
+  session: null as { user?: { id: string } } | null,
   verifiedUser: null as { email?: string } | null,
   auth: {
     changeUserPassword: vi.fn(),
     changeUserEmail: vi.fn(),
     sendVerificationEmail: vi.fn(),
   },
+  graphql: { request: vi.fn() },
 }));
 
 vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({
     getUserSession: () => client.session,
     auth: client.auth,
+    graphql: client.graphql,
   }),
   getVerifiedUser: async () => client.verifiedUser,
 }));
 
 beforeEach(() => {
-  client.session = { accessToken: 'token' };
+  client.session = { user: { id: 'user-1' } };
   client.verifiedUser = { email: 'user@example.com' };
   for (const fn of Object.values(client.auth)) {
     fn.mockReset();
   }
+  client.graphql.request.mockReset();
 });
 
 describe('changePassword', () => {
@@ -98,6 +102,50 @@ describe('changeEmail', () => {
       newEmail: 'new@example.com',
       options: { redirectTo: `${appOrigin()}/account` },
     });
+  });
+});
+
+describe('updateDisplayName', () => {
+  it('asks for a name before calling the backend', async () => {
+    expect(await updateDisplayName('   ')).toEqual({
+      error: 'A display name is required.',
+    });
+    expect(client.graphql.request).not.toHaveBeenCalled();
+  });
+
+  it('updates the session user by id', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+
+    expect(await updateDisplayName('  Ada  ')).toEqual({ success: true });
+    expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
+      variables: { id: 'user-1', displayName: 'Ada' },
+    });
+  });
+
+  // The permission filters by the token's user, so a row that is not this
+  // user's comes back null rather than erroring.
+  it('reports when nothing was updated', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: null } },
+    });
+
+    expect(await updateDisplayName('Ada')).toEqual({
+      error: 'The backend did not update this account.',
+    });
+  });
+
+  it('names the metadata when the schema lacks the mutation', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: {
+        errors: [
+          { message: "field 'updateUser' not found in type: 'mutation_root'" },
+        ],
+      },
+    });
+
+    expect((await updateDisplayName('Ada')).error).toContain('nhost/metadata');
   });
 });
 

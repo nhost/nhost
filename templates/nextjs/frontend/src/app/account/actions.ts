@@ -3,6 +3,7 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { appOrigin } from '@/lib/nhost/env';
+import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
@@ -74,6 +75,52 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
 // For an address that was never verified: sign-up sent one link, this sends
 // another. The address comes from the auth service's own answer about who is
 // signed in, not from the caller, so this cannot be pointed at someone else.
+// The auth API has no write endpoint for a profile field, so this goes
+// through GraphQL and the update permission in nhost/metadata. The id comes
+// from the session cookie, which anyone can write, but the permission filters
+// by the user in the token, so a forged id updates nothing rather than
+// someone else.
+export async function updateDisplayName(
+  displayName: string,
+): Promise<ActionResult> {
+  const trimmed = displayName.trim();
+  if (!trimmed) {
+    return { error: 'A display name is required.' };
+  }
+
+  try {
+    const nhost = await createNhostClient();
+    const id = nhost.getUserSession()?.user?.id;
+
+    if (!id) {
+      return { error: SIGNED_OUT };
+    }
+
+    const { body } = await nhost.graphql.request<{
+      updateUser: { id: string } | null;
+    }>({
+      query: `mutation UpdateDisplayName($id: uuid!, $displayName: String!) {
+        updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {
+          id
+        }
+      }`,
+      variables: { id, displayName: trimmed },
+    });
+
+    if (body.errors?.length) {
+      return { error: graphqlErrorMessage(body.errors) };
+    }
+
+    if (!body.data?.updateUser) {
+      return { error: 'The backend did not update this account.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not save the display name: ${errorMessage(err)}` };
+  }
+}
+
 export async function resendVerification(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
