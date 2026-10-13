@@ -10,7 +10,11 @@ import { appOrigin } from '@/lib/nhost/env';
 
 const client = vi.hoisted(() => ({
   session: null as { user?: { id: string; avatarUrl?: string } } | null,
-  verifiedUser: null as { email?: string } | null,
+  verifiedUser: null as {
+    id: string;
+    email?: string;
+    avatarUrl?: string;
+  } | null,
   auth: {
     changeUserPassword: vi.fn(),
     changeUserEmail: vi.fn(),
@@ -32,7 +36,7 @@ vi.mock('@/lib/nhost/server', () => ({
 
 beforeEach(() => {
   client.session = { user: { id: 'user-1' } };
-  client.verifiedUser = { email: 'user@example.com' };
+  client.verifiedUser = { id: 'user-1', email: 'user@example.com' };
   for (const fn of [
     ...Object.values(client.auth),
     ...Object.values(client.storage),
@@ -176,7 +180,7 @@ describe('uploadAvatar', () => {
   });
 
   it('stores the file, points the account at the route handler, and drops the old one', async () => {
-    client.session = { user: { id: 'user-1', avatarUrl: '/api/avatar/old' } };
+    client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/old' };
     client.storage.uploadFiles.mockResolvedValueOnce({
       body: { processedFiles: [{ id: 'new' }] },
     });
@@ -198,8 +202,9 @@ describe('uploadAvatar', () => {
   // A fresh account's avatar is a gravatar URL, which is not a file of ours
   // to delete.
   it('leaves an avatar it did not write alone', async () => {
-    client.session = {
-      user: { id: 'user-1', avatarUrl: 'https://gravatar.example/x' },
+    client.verifiedUser = {
+      id: 'user-1',
+      avatarUrl: 'https://gravatar.example/x',
     };
     client.storage.uploadFiles.mockResolvedValueOnce({
       body: { processedFiles: [{ id: 'new' }] },
@@ -211,6 +216,37 @@ describe('uploadAvatar', () => {
     await uploadAvatar(image());
 
     expect(client.storage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  // The cookie's user is only rewritten on refresh, so a second upload within
+  // one access token's life still sees the avatar from before the first.
+  it('takes the previous avatar and the id from the auth service, not the cookie', async () => {
+    client.session = {
+      user: { id: 'cookie-user', avatarUrl: 'https://gravatar.example/x' },
+    };
+    client.verifiedUser = { id: 'user-1', avatarUrl: '/api/avatar/first' };
+    client.storage.uploadFiles.mockResolvedValueOnce({
+      body: { processedFiles: [{ id: 'second' }] },
+    });
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+    client.storage.deleteFile.mockResolvedValueOnce({ body: undefined });
+
+    expect(await uploadAvatar(image())).toEqual({ success: true });
+    expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
+      variables: { id: 'user-1', avatarUrl: '/api/avatar/second' },
+    });
+    expect(client.storage.deleteFile).toHaveBeenCalledWith('first');
+  });
+
+  it('refuses when the auth service does not vouch for anyone', async () => {
+    client.verifiedUser = null;
+
+    expect((await uploadAvatar(image())).error).toBe(
+      'You are signed out. Sign in and try again.',
+    );
+    expect(client.storage.uploadFiles).not.toHaveBeenCalled();
   });
 
   it('does not point the account at a file storage did not keep', async () => {
