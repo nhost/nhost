@@ -14,4 +14,10 @@ export type SignInMethod = {
   description: string;
 };
 
-export const methods: SignInMethod[] = [];
+export const methods: SignInMethod[] = [
+  {
+    href: '/auth/password',
+    title: 'Email and password',
+    description: 'Sign up or sign in with a password.',
+  },
+];
