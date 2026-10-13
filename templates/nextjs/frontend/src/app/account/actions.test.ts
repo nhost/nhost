@@ -4,11 +4,12 @@ import {
   changePassword,
   resendVerification,
   updateDisplayName,
+  uploadAvatar,
 } from '@/app/account/actions';
 import { appOrigin } from '@/lib/nhost/env';
 
 const client = vi.hoisted(() => ({
-  session: null as { user?: { id: string } } | null,
+  session: null as { user?: { id: string; avatarUrl?: string } } | null,
   verifiedUser: null as { email?: string } | null,
   auth: {
     changeUserPassword: vi.fn(),
@@ -16,6 +17,7 @@ const client = vi.hoisted(() => ({
     sendVerificationEmail: vi.fn(),
   },
   graphql: { request: vi.fn() },
+  storage: { uploadFiles: vi.fn(), deleteFile: vi.fn() },
 }));
 
 vi.mock('@/lib/nhost/server', () => ({
@@ -23,6 +25,7 @@ vi.mock('@/lib/nhost/server', () => ({
     getUserSession: () => client.session,
     auth: client.auth,
     graphql: client.graphql,
+    storage: client.storage,
   }),
   getVerifiedUser: async () => client.verifiedUser,
 }));
@@ -30,7 +33,10 @@ vi.mock('@/lib/nhost/server', () => ({
 beforeEach(() => {
   client.session = { user: { id: 'user-1' } };
   client.verifiedUser = { email: 'user@example.com' };
-  for (const fn of Object.values(client.auth)) {
+  for (const fn of [
+    ...Object.values(client.auth),
+    ...Object.values(client.storage),
+  ]) {
     fn.mockReset();
   }
   client.graphql.request.mockReset();
@@ -146,6 +152,76 @@ describe('updateDisplayName', () => {
     });
 
     expect((await updateDisplayName('Ada')).error).toContain('nhost/metadata');
+  });
+});
+
+describe('uploadAvatar', () => {
+  const image = (size = 10, type = 'image/png'): FormData => {
+    const form = new FormData();
+    form.set('avatar', new File([new Uint8Array(size)], 'me.png', { type }));
+    return form;
+  };
+
+  it('refuses an empty, non-image or oversized file before uploading', async () => {
+    expect((await uploadAvatar(new FormData())).error).toBe(
+      'Choose an image first.',
+    );
+    expect((await uploadAvatar(image(10, 'text/plain'))).error).toBe(
+      'That is not an image.',
+    );
+    expect((await uploadAvatar(image(5 * 1024 * 1024 + 1))).error).toBe(
+      'That image is over 5 MB.',
+    );
+    expect(client.storage.uploadFiles).not.toHaveBeenCalled();
+  });
+
+  it('stores the file, points the account at the route handler, and drops the old one', async () => {
+    client.session = { user: { id: 'user-1', avatarUrl: '/api/avatar/old' } };
+    client.storage.uploadFiles.mockResolvedValueOnce({
+      body: { processedFiles: [{ id: 'new' }] },
+    });
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+    client.storage.deleteFile.mockResolvedValueOnce({ body: undefined });
+
+    expect(await uploadAvatar(image())).toEqual({ success: true });
+    expect(client.storage.uploadFiles.mock.calls[0]?.[0]).toMatchObject({
+      'bucket-id': 'default',
+    });
+    expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
+      variables: { id: 'user-1', avatarUrl: '/api/avatar/new' },
+    });
+    expect(client.storage.deleteFile).toHaveBeenCalledWith('old');
+  });
+
+  // A fresh account's avatar is a gravatar URL, which is not a file of ours
+  // to delete.
+  it('leaves an avatar it did not write alone', async () => {
+    client.session = {
+      user: { id: 'user-1', avatarUrl: 'https://gravatar.example/x' },
+    };
+    client.storage.uploadFiles.mockResolvedValueOnce({
+      body: { processedFiles: [{ id: 'new' }] },
+    });
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+
+    await uploadAvatar(image());
+
+    expect(client.storage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  it('does not point the account at a file storage did not keep', async () => {
+    client.storage.uploadFiles.mockResolvedValueOnce({
+      body: { processedFiles: [] },
+    });
+
+    expect((await uploadAvatar(image())).error).toBe(
+      'The storage service did not keep the file.',
+    );
+    expect(client.graphql.request).not.toHaveBeenCalled();
   });
 });
 
