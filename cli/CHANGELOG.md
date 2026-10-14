@@ -1,3 +1,28 @@
+## [cli@1.52.0] - 2026-10-14
+
+### 🚀 Features
+
+- *(postgres)* Expose WAL and extension configuration (#5080)
+- *(cli)* Added support for ca-central-1 (#5171)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use spec-compliant annotations for MCP resources (#5138)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.2
+- *(cli)* Use production to generate bindings instead of staging for stability (#5119)
+- *(cli)* Update certs (#5174)
+- *(dashboard)* Bump references to 3.7.0
+
+
+### Chore
+
+- *(deps)* Bump go and govulncheck (#5162)
+
 ## [cli@1.51.2] - 2026-09-30
 
 ### ⚙️ Miscellaneous Tasks
