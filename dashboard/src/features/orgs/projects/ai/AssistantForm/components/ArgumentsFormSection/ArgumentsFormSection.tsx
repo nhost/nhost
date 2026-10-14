@@ -87,7 +87,7 @@ export default function ArgumentsFormSection({
                   className={`${argumentFieldClasses} min-h-10 resize-y`}
                 />
 
-                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
+                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-start">
                   <FormSelect
                     control={form.control}
                     name={typeField}

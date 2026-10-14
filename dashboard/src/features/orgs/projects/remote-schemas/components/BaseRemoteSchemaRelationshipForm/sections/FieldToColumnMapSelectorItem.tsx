@@ -60,7 +60,7 @@ export default function FieldToColumnMapSelectorItem({
         control={form.control}
         name={`fieldMapping.${itemIndex}.sourceField`}
         render={({ field: sourceFieldControl }) => (
-          <FormItem className="col-span-3">
+          <FormItem className="col-span-3 self-start">
             <Popover open={sourceFieldOpen} onOpenChange={setSourceFieldOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -125,13 +125,15 @@ export default function FieldToColumnMapSelectorItem({
         )}
       />
 
-      <span className="col-span-1 text-center">:</span>
+      <div className="col-span-1 flex h-9 items-center justify-center self-start">
+        <span className="text-center">:</span>
+      </div>
 
       <FormField
         control={form.control}
         name={`fieldMapping.${itemIndex}.referenceColumn`}
         render={({ field: columnField }) => (
-          <FormItem className="col-span-3">
+          <FormItem className="col-span-3 self-start">
             <Popover
               open={referenceColumnOpen}
               onOpenChange={setReferenceColumnOpen}
