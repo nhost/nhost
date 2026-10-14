@@ -18,9 +18,8 @@ import (
 )
 
 var (
-	errComputedArgsObject    = errors.New("computed args must be an object")
-	errComputedPositionalGap = errors.New("cannot omit positional computed argument")
-	errComputedNonJSONPath   = errors.New("path requires a JSON computed field")
+	errComputedArgsObject  = errors.New("computed args must be an object")
+	errComputedNonJSONPath = errors.New("path requires a JSON computed field")
 )
 
 type computedScalar struct {
@@ -299,7 +298,10 @@ func (t *table) writeComputedCall(
 			}
 
 			if i < positionalEnd {
-				return nil, 0, fmt.Errorf("%w %q", errComputedPositionalGap, arg.Name)
+				return nil, 0, arguments.NewComputedPositionalGapError(
+					argumentNames[i],
+					argumentPath,
+				)
 			}
 
 			continue
