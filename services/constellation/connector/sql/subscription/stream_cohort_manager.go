@@ -794,6 +794,10 @@ func (m *streamCohortManager) processNewSubscribers(
 	c *streamCohort,
 	logger *slog.Logger,
 ) {
+	// Keep extraction and reattachment atomic with Stop, which also holds m.mu.
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	newSubs := c.extractNewSubscribers()
 	if len(newSubs) == 0 {
 		return
@@ -810,9 +814,6 @@ func (m *streamCohortManager) processNewSubscribers(
 		slog.Int("count", len(newSubs)),
 		slog.Any("subscription_ids", subIDs),
 	)
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	byCursor := groupNewSubscribersByCursor(newSubs)
 
