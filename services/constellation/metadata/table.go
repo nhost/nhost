@@ -17,6 +17,31 @@ type TableMetadata struct {
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   toml:"delete_permissions,omitempty"`
 }
 
+// LocalRelationshipNames returns names owned by SQL relationships (FK or
+// same-source manual), regardless of whether a role can select their targets.
+// Remote relationships using those names must not be injected or planned.
+func (table TableMetadata) LocalRelationshipNames() map[string]bool {
+	local := make(map[string]bool)
+	for _, rel := range table.ObjectRelationships {
+		if rel.Using.isLocal() {
+			local[rel.Name] = true
+		}
+	}
+
+	for _, rel := range table.ArrayRelationships {
+		if rel.Using.isLocal() {
+			local[rel.Name] = true
+		}
+	}
+
+	return local
+}
+
+func (using RelationshipUsing) isLocal() bool {
+	mc := using.ManualConfiguration
+	return mc == nil || (mc.Source == "" && mc.RemoteSchema == "")
+}
+
 // ComputedField retains a table-owned PostgreSQL function definition. An
 // invalid wire entry carries its decode error for reconciliation; it is never
 // interpreted as a valid field.
