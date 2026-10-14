@@ -1108,3 +1108,77 @@ func TestCustomizedConnectorGroupedTypenameSelections(t *testing.T) {
 		})
 	}
 }
+
+// Native target roots can match a published affix or the namespace; neither
+// changes the table selected by the controller's GetTypeName operation.
+func TestCustomizedConnectorNativeTargetRoot(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		cfg  metadata.Customization
+	}{
+		{"prefix", metadata.Customization{RootFieldsPrefix: "db_", TypeNamesPrefix: "Pub"}},
+		{"suffix", metadata.Customization{RootFieldsSuffix: "_items", TypeNamesPrefix: "Pub"}},
+		{"namespace", metadata.Customization{RootFieldsNamespace: "db_items", TypeNamesPrefix: "Pub"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			inner := &fakeConnector{
+				schema: teamSchema(), typeName: "db_items",
+				execData: map[string]any{"db_items": []any{map[string]any{"__typename": "Team"}}},
+			}
+
+			wrapper, err := newCustomizedConnector(
+				"target",
+				inner,
+				tc.cfg,
+				customization.FlavorDatabase,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			root := wrapper.GetTypeName("db.items")
+
+			op := &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name:         root,
+					SelectionSet: ast.SelectionSet{&ast.Field{Name: "__typename"}},
+				},
+			}}
+			if err := wrapper.ValidateNative(op, nil, nil, metadata.RoleAdmin, nil); err != nil {
+				t.Fatal(err)
+			}
+
+			validated, ok := inner.gotValOp.SelectionSet[0].(*ast.Field)
+			if !ok || validated.Name != root {
+				t.Fatalf("validated root = %#v, want %q", inner.gotValOp.SelectionSet[0], root)
+			}
+
+			result, err := wrapper.ExecuteNative(
+				t.Context(),
+				op,
+				nil,
+				nil,
+				metadata.RoleAdmin,
+				nil,
+				slog.Default(),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			executed, ok := inner.gotOp.SelectionSet[0].(*ast.Field)
+			if !ok || executed.Name != root {
+				t.Fatalf("executed root = %#v, want %q", inner.gotOp.SelectionSet[0], root)
+			}
+
+			want := map[string]any{"db_items": []any{map[string]any{"__typename": "PubTeam"}}}
+			if !reflect.DeepEqual(result, want) {
+				t.Fatalf("native target result = %#v, want %#v", result, want)
+			}
+		})
+	}
+}

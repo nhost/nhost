@@ -10,6 +10,20 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+// nativeTargetValidator accepts controller-built database target roots without
+// applying published root-field customization a second time.
+//
+//go:generate mockgen -package mock -destination mock/native_target_validator.go . nativeTargetValidator
+type nativeTargetValidator interface {
+	ValidateNative(
+		operation *ast.OperationDefinition,
+		fragments ast.FragmentDefinitionList,
+		variables map[string]any,
+		role string,
+		sessionVariables map[string]any,
+	) error
+}
+
 func (c *Controller) validateRemoteTargets(
 	state *controllerState,
 	plan *planner.QueryPlan,
@@ -44,9 +58,16 @@ func (c *Controller) validateRemoteTargets(
 				*target.aggregateRequest, role, sessionVariables,
 			)
 		} else {
-			err = conn.ValidateOperation(
-				target.operation, target.fragments, variables, role, sessionVariables,
-			)
+			if native, ok := conn.(nativeTargetValidator); ok {
+				err = native.ValidateNative(
+					target.operation, target.fragments, variables, role, sessionVariables,
+				)
+			} else {
+				err = conn.ValidateOperation(
+					target.operation, target.fragments, variables, role, sessionVariables,
+				)
+			}
+
 			err = remapRemoteValidationArgumentPath(
 				err, target.remoteRootPath, target.clientPath,
 			)
