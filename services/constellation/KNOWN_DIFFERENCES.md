@@ -201,6 +201,11 @@ the grant requirement.
 
 # Computed-field support during alpha
 
+A supplied later unnamed computed argument (`arg_2`) cannot skip a defaulted
+positional input (`arg_1`). Constellation rejects this with a structured
+`validation-failed` error before mutation writes; the exact Hasura v2.50.3-ce
+error wording for this case has not been verified.
+
 PostgreSQL scalar computed fields support role-granted selection, argument-free
 row `where`/`order_by`, and Hasura's aggregate outputs: eligible comparable
 returns in `min`/`max` and numeric returns in the other eight operators, with
