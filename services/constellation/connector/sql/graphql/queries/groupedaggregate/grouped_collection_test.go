@@ -2,59 +2,86 @@ package groupedaggregate_test
 
 import (
 	"errors"
+	"reflect"
+	"strings"
 	"testing"
+
+	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate/mock"
-	"go.uber.org/mock/gomock"
 )
-
-type collectionBuilderStub struct{ err error }
-
-func (s collectionBuilderStub) BuildGroupedAggregateSQL(
-	_ groupedaggregate.BuildInput,
-) (core.SQLOperation, error) {
-	return core.SQLOperation{}, nil
-}
-
-func (s collectionBuilderStub) BuildGroupedCollectionSQL(
-	_ groupedaggregate.BuildInput, _ map[string]core.Operation,
-) (core.SQLOperation, error) {
-	return core.SQLOperation{Name: "users", SQL: "SELECT 1"}, s.err
-}
 
 func TestOps_BuildGroupedCollectionSQL(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("build failed") //nolint:err113 // test-only error identity
-	for _, tc := range []struct {
-		name     string
-		builders map[string]groupedaggregate.Builder
-		wantErr  error
+	builderErr := errors.New("build failed") //nolint:err113 // test-only error identity
+	wantOp := core.SQLOperation{Name: "users", SQL: "SELECT 1"}
+	input := sampleInput()
+	input.Role = "reader"
+	input.JoinColumns = []string{"id", "tenant_id"}
+	input.JoinTuples = [][]any{{1, 2}, {3, 4}}
+	roots := map[string]core.Operation{}
+
+	missing := input
+	missing.TableName = "missing"
+
+	tests := []struct {
+		name          string
+		input         groupedaggregate.BuildInput
+		registered    bool
+		builderOp     core.SQLOperation
+		builderErr    error
+		wantOp        core.SQLOperation
+		wantErr       error
+		wantErrorText string
 	}{
-		{"missing table", nil, groupedaggregate.ErrTableNotRegistered},
-		{"builder unavailable", map[string]groupedaggregate.Builder{
-			"public.users": mock.NewMockBuilder(gomock.NewController(t)),
-		}, groupedaggregate.ErrGroupedCollectionBuilderUnavailable},
-		{"builder failure", map[string]groupedaggregate.Builder{
-			"public.users": collectionBuilderStub{err: sentinel},
-		}, sentinel},
-		{"success", map[string]groupedaggregate.Builder{
-			"public.users": collectionBuilderStub{},
-		}, nil},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
+		{
+			name: "missing table", input: missing, registered: false,
+			builderOp: core.SQLOperation{}, builderErr: nil,
+			wantOp: core.SQLOperation{}, wantErr: groupedaggregate.ErrTableNotRegistered,
+			wantErrorText: "public.missing",
+		},
+		{
+			name: "builder failure", input: input, registered: true,
+			builderOp: core.SQLOperation{}, builderErr: builderErr,
+			wantOp: core.SQLOperation{}, wantErr: builderErr,
+			wantErrorText: "public.users",
+		},
+		{
+			name: "success", input: input, registered: true,
+			builderOp: wantOp, builderErr: nil,
+			wantOp: wantOp, wantErr: nil,
+			wantErrorText: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := groupedaggregate.New(tc.builders).
-				BuildGroupedCollectionSQL(sampleInput(), nil)
-			if !errors.Is(err, tc.wantErr) {
-				t.Fatalf("error=%v; want errors.Is %v", err, tc.wantErr)
+			builder := mock.NewMockBuilder(gomock.NewController(t))
+
+			builders := map[string]groupedaggregate.Builder{}
+			if tt.registered {
+				builder.EXPECT().BuildGroupedCollectionSQL(tt.input, roots).
+					Return(tt.builderOp, tt.builderErr)
+				builders[tt.input.TableSchema+"."+tt.input.TableName] = builder
 			}
 
-			if tc.wantErr == nil && got.SQL != "SELECT 1" {
-				t.Fatalf("operation=%+v", got)
+			got, err := groupedaggregate.New(builders).BuildGroupedCollectionSQL(tt.input, roots)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("error = %v, want errors.Is %v", err, tt.wantErr)
+			}
+
+			if tt.wantErrorText != "" &&
+				(err == nil || !strings.Contains(err.Error(), tt.wantErrorText)) {
+				t.Errorf("error = %v, want text %q", err, tt.wantErrorText)
+			}
+
+			if !reflect.DeepEqual(got, tt.wantOp) {
+				t.Errorf("operation = %+v, want %+v", got, tt.wantOp)
 			}
 		})
 	}
