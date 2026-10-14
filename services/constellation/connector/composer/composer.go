@@ -95,8 +95,10 @@ func (c *Composer) Compose(
 ) Result {
 	roleSchemas, allRoles := c.collectSchemas(ctx, logger)
 
-	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
+	// Prune colliding argument scalars before injected relationship fields can
+	// reference the target's same-named non-scalar type and preserve them.
 	c.omitConflictingComputedArgs(ctx, logger, roleSchemas)
+	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
 
 	result := Result{
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),
