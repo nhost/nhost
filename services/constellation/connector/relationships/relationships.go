@@ -86,6 +86,9 @@ type RelationshipSpec struct {
 	// IsArray is true for one-to-many / many-to-many relationships and false
 	// for object (one-to-one / many-to-one) relationships.
 	IsArray bool
+	// SkipAggregate reserves an existing local relationship's aggregate name
+	// even when its target is hidden from a particular role's SQL schema.
+	SkipAggregate bool
 	// WithSQLArgs requests the SQL filtering arguments (distinct_on, limit,
 	// offset, order_by, where) on the injected field. Only meaningful for
 	// db→db relationships where the source connector can enforce SQL filters
@@ -208,20 +211,7 @@ func addRelFieldToSchemas(
 		if spec.IsArray {
 			addArrayRelField(objectType, spec.Name, targetType, spec.WithSQLArgs, types)
 
-			// Expose <rel>_aggregate alongside the array field when the target
-			// connector publishes the matching <target>_aggregate type for
-			// this role. SQL connectors do; remote-schema connectors don't.
-			aggFieldName := spec.Name + "_aggregate"
-
-			if !fieldExists(objectType, aggFieldName) &&
-				targetTypeExistsInSchemas(
-					roleSchemas,
-					spec.TargetConnector,
-					types.aggregate,
-					role,
-				) {
-				addArrayAggregateRelField(objectType, aggFieldName, spec.WithSQLArgs, types)
-			}
+			addArrayAggregateIfAvailable(roleSchemas, objectType, spec, types, role)
 		} else {
 			objectType.Fields = append(objectType.Fields, &graph.Field{
 				Name:        spec.Name,
@@ -231,6 +221,22 @@ func addRelFieldToSchemas(
 				Directives:  nil,
 			})
 		}
+	}
+}
+
+// addArrayAggregateIfAvailable reserves a local sibling name across roles,
+// including those where that local relationship is hidden by SQL permissions.
+func addArrayAggregateIfAvailable(
+	roleSchemas map[string]map[string]*graph.Schema,
+	objectType *graph.ObjectType,
+	spec RelationshipSpec,
+	types relationshipTypes,
+	role string,
+) {
+	aggFieldName := spec.Name + "_aggregate"
+	if !spec.SkipAggregate && !fieldExists(objectType, aggFieldName) &&
+		targetTypeExistsInSchemas(roleSchemas, spec.TargetConnector, types.aggregate, role) {
+		addArrayAggregateRelField(objectType, aggFieldName, spec.WithSQLArgs, types)
 	}
 }
 

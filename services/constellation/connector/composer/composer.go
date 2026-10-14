@@ -278,8 +278,14 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 				dbConn, table.Table.Schema+"."+table.Table.Name,
 			)
 
+			localNames := table.LocalRelationshipNames()
 			for _, rel := range table.RemoteRelationships {
+				if localNames[rel.Name] {
+					continue
+				}
+
 				if spec, ok := dbRelationshipSpec(db.Name, sourceType, rel); ok {
+					spec.SkipAggregate = spec.IsArray && localNames[rel.Name+"_aggregate"]
 					if !populateComputedJoinKeys(&spec, table, rel, dbConn) {
 						continue
 					}
@@ -382,6 +388,7 @@ func dbRelationshipSpec(
 			TargetConnector:   toSource.Source,
 			TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 			IsArray:           isArray,
+			SkipAggregate:     false,
 			WithSQLArgs:       true,
 			RemoteFieldName:   "",
 			BoundArguments:    nil,
@@ -406,6 +413,7 @@ func dbRelationshipSpec(
 			TargetConnector:   toRS.RemoteSchema,
 			TargetIdentifier:  path[0].FieldName,
 			IsArray:           false,
+			SkipAggregate:     false,
 			WithSQLArgs:       false,
 			RemoteFieldName:   path[0].FieldName,
 			BoundArguments:    path[0].Arguments,
@@ -459,6 +467,7 @@ func rsRelationshipSpec(
 		TargetConnector:   toSource.Source,
 		TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 		IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
+		SkipAggregate:     false,
 		WithSQLArgs:       false,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,

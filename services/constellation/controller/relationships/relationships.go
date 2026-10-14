@@ -11,6 +11,7 @@
 package relationships
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector"
@@ -68,59 +69,115 @@ func forDatabase(
 			dbConn, table.Table.Schema+"."+table.Table.Name,
 		)
 
-		emitted := make(map[string]bool)
+		localNames := table.LocalRelationshipNames()
+
+		rawSources := make(map[string]*metadata.ToSourceRelationship)
+		for _, rel := range table.RemoteRelationships {
+			if rel.Definition.ToSource != nil {
+				rawSources[rel.Name] = rel.Definition.ToSource
+			}
+		}
+
+		emitted := make(map[string]*planner.RelationshipMetadata)
 		for _, rel := range table.ObjectRelationships {
-			if rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, false); rm != nil {
+			if rm := loweredRelationship(
+				sourceType,
+				rel.Name,
+				rel.Using,
+				false,
+				localNames,
+				rawSources,
+			); rm != nil {
 				out = append(out, rm)
-				emitted[rel.Name] = true
+				emitted[rel.Name] = rm
 			}
 		}
 
 		for _, rel := range table.ArrayRelationships {
-			rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, true)
+			rm := loweredRelationship(sourceType, rel.Name, rel.Using, true, localNames, rawSources)
 			if rm == nil {
 				continue
 			}
 
 			out = append(out, rm)
-			emitted[rel.Name] = true
+			emitted[rel.Name] = rm
 
 			// Cross-database array relationships also expose an
 			// "<rel>_aggregate" sibling field, routed through the
-			// grouped-aggregate execution path.
-			if agg := aggregateRelationship(rm); agg != nil {
+			// grouped-aggregate execution path, unless a local
+			// relationship already owns that field.
+			if agg := aggregateRelationship(rm); agg != nil && !localNames[agg.Name] {
 				out = append(out, agg)
 			}
 		}
 
-		out = append(out, forRawRemoteRelationships(table, sourceType, emitted)...)
+		out = append(out, forRawRemoteRelationships(table, sourceType, localNames, emitted)...)
 	}
 
 	return out
 }
 
+func loweredRelationship(
+	sourceType, name string, using metadata.RelationshipUsing, array bool,
+	localNames map[string]bool, rawSources map[string]*metadata.ToSourceRelationship,
+) *planner.RelationshipMetadata {
+	if localNames[name] {
+		return nil
+	}
+
+	rm := forDatabaseRelationship(sourceType, name, using, array)
+	if rm != nil {
+		if raw := rawSources[name]; raw != nil && !matchesRawSource(rm, raw) {
+			return nil
+		}
+	}
+
+	return rm
+}
+
+// matchesRawSource identifies the lowered form of a raw to_source entry.
+// Conflicting lowered entries must not supersede the raw definition used by
+// the composer, including its array aggregate sibling.
+func matchesRawSource(rm *planner.RelationshipMetadata, raw *metadata.ToSourceRelationship) bool {
+	return rm.TargetConnector == raw.Source &&
+		rm.TargetTable == raw.Table.Name && rm.TargetTableSchema == raw.Table.Schema &&
+		rm.IsArray == (raw.RelationshipType == metadata.RelationshipTypeArray) &&
+		maps.Equal(rm.JoinMapping, raw.FieldMapping)
+}
+
 func forRawRemoteRelationships(
-	table metadata.TableMetadata, sourceType string, emitted map[string]bool,
+	table metadata.TableMetadata, sourceType string, localNames map[string]bool,
+	emitted map[string]*planner.RelationshipMetadata,
 ) []*planner.RelationshipMetadata {
 	var out []*planner.RelationshipMetadata
 	for _, rel := range table.RemoteRelationships {
+		if localNames[rel.Name] {
+			continue
+		}
+
 		if rel.Definition.ToSource == nil {
+			if emitted[rel.Name] != nil {
+				continue
+			}
+
 			// Prefer a usable lowered relationship, but retain raw-only native
 			// definitions and malformed lowered paths as planner fallbacks.
-			if !emitted[rel.Name] {
-				if rm := remoteSchemaRelationship(
-					sourceType,
-					rel,
-					table.Configuration.ColumnConfig,
-				); rm != nil {
-					out = append(out, rm)
-				}
+			if rm := remoteSchemaRelationship(
+				sourceType,
+				rel,
+				table.Configuration.ColumnConfig,
+			); rm != nil {
+				out = append(out, rm)
 			}
 
 			continue
 		}
 
 		toSource := rel.Definition.ToSource
+		if lower := emitted[rel.Name]; lower != nil && matchesRawSource(lower, toSource) {
+			continue
+		}
+
 		rm := &planner.RelationshipMetadata{
 			Name: rel.Name, SourceType: sourceType, TargetConnector: toSource.Source,
 			TargetTable: toSource.Table.Name, TargetTableSchema: toSource.Table.Schema,
@@ -131,7 +188,7 @@ func forRawRemoteRelationships(
 		}
 
 		out = append(out, rm)
-		if agg := aggregateRelationship(rm); agg != nil {
+		if agg := aggregateRelationship(rm); agg != nil && !localNames[agg.Name] {
 			out = append(out, agg)
 		}
 	}
