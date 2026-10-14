@@ -13,10 +13,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// errAggregateMultiColumnJoinUnsupported is returned when a cross-database
+// ErrAggregateMultiColumnJoinUnsupported is returned when a cross-database
 // aggregate relationship uses a multi-column join mapping. The grouped
 // aggregate SQL builder currently supports only single-column GROUP BY.
-var errAggregateMultiColumnJoinUnsupported = errors.New(
+var ErrAggregateMultiColumnJoinUnsupported = errors.New(
 	"cross-database aggregate relationships with multi-column joins are not yet supported",
 )
 
@@ -47,7 +47,7 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 	}
 
 	if len(info.joinMapping) != 1 {
-		return errAggregateMultiColumnJoinUnsupported
+		return ErrAggregateMultiColumnJoinUnsupported
 	}
 
 	var sourceCol, targetCol string

@@ -1,12 +1,15 @@
 package controller
 
 import (
+	"context"
 	"errors"
+	"log/slog"
 	"slices"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
+	"github.com/nhost/nhost/services/constellation/controller/resolver"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -24,7 +27,10 @@ type nativeTargetValidator interface {
 	) error
 }
 
+//nolint:funlen // Keep grouped and ordinary validation in the same ordered pass before root execution.
 func (c *Controller) validateRemoteTargets(
+	ctx context.Context,
+	logger *slog.Logger,
 	state *controllerState,
 	plan *planner.QueryPlan,
 	fragments ast.FragmentDefinitionList,
@@ -35,6 +41,14 @@ func (c *Controller) validateRemoteTargets(
 	var allStructuredErrs []map[string]any
 
 	for _, target := range remoteValidationTargets(state, plan, fragments, variables) {
+		if target.aggregateError != nil {
+			allStructuredErrs = append(
+				allStructuredErrs, c.classifyConnectorError(ctx, logger, target.aggregateError)...,
+			)
+
+			continue
+		}
+
 		conn := state.connectors[target.connectorName]
 		if conn == nil {
 			// Missing target connectors are reported by the remote resolver; skip them here.
@@ -77,7 +91,13 @@ func (c *Controller) validateRemoteTargets(
 			continue
 		}
 
-		if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		if target.aggregateRequest != nil {
+			// Unlike ordinary remote roots, the grouped builder is also used after
+			// the source mutation. A deterministic build failure must stop the write.
+			allStructuredErrs = append(
+				allStructuredErrs,
+				c.classifyConnectorError(ctx, logger, err)...)
+		} else if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
 			allStructuredErrs = append(allStructuredErrs, structuredErrs...)
 		}
 	}
@@ -92,16 +112,18 @@ type remoteValidationTarget struct {
 	operation        *ast.OperationDefinition
 	fragments        ast.FragmentDefinitionList
 	aggregateRequest *groupedaggregate.Request
+	aggregateError   error
 }
 
 func (t remoteValidationTarget) kind() string {
-	if t.aggregateRequest != nil {
+	if t.aggregateRequest != nil || t.aggregateError != nil {
 		return "aggregate"
 	}
 
 	return "operation"
 }
 
+//nolint:funlen // Aggregate and ordinary targets share one sorted validation order.
 func remoteValidationTargets(
 	state *controllerState,
 	plan *planner.QueryPlan,
@@ -120,6 +142,20 @@ func remoteValidationTargets(
 
 		clientPath := remoteQueryArgumentPath(rqp)
 		if rqp.IsArrayAggregate {
+			if len(rqp.JoinMapping) != 1 {
+				targets = append(targets, remoteValidationTarget{
+					connectorName:    rqp.TargetConnector,
+					clientPath:       clientPath,
+					remoteRootPath:   "",
+					operation:        nil,
+					fragments:        nil,
+					aggregateRequest: nil,
+					aggregateError:   resolver.ErrAggregateMultiColumnJoinUnsupported,
+				})
+
+				continue
+			}
+
 			req, ok := remoteAggregateValidationRequest(rqp, fragments, variables, clientPath)
 			if !ok {
 				continue
@@ -132,6 +168,7 @@ func remoteValidationTargets(
 				operation:        nil,
 				fragments:        nil,
 				aggregateRequest: &req,
+				aggregateError:   nil,
 			})
 
 			continue
@@ -149,6 +186,7 @@ func remoteValidationTargets(
 			operation:        op,
 			fragments:        fragments,
 			aggregateRequest: nil,
+			aggregateError:   nil,
 		})
 	}
 

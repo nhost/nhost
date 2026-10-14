@@ -295,7 +295,9 @@ identifies a *different* GraphQL target column. This prevents an aggregate from
 joining on a denied SQL column after the computed-key gate checked a permitted
 GraphQL column. A renamed target mapped only by its GraphQL name still fails on
 the aggregate path; physical SQL-name mappings continue to work for aggregates
-when unambiguous. See the known difference below. As with other cross-connector remote
+when unambiguous. Mutations selecting an aggregate with these failing mappings,
+or a multi-column mapping, are rejected before writing and return a sanitized
+error in production. See the known difference below. As with other cross-connector remote
 relationships, WebSocket subscriptions reject remote relationship selections
 before polling, even though the shared row type appears in subscription SDL;
 queries and mutation `returning` use the resolver. See the
