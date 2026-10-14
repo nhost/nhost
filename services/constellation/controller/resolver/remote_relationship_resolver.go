@@ -100,6 +100,18 @@ type queryValidationArgumentPathRemapper interface {
 	RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
 }
 
+// nativeTargetExecutor accepts controller-built database target operations
+// whose GetTypeName root is already native.
+//
+//go:generate mockgen -package mock -destination mock/native_target_executor.go . nativeTargetExecutor
+type nativeTargetExecutor interface {
+	ExecuteNative(
+		ctx context.Context, operation *ast.OperationDefinition,
+		fragments ast.FragmentDefinitionList, variables map[string]any,
+		role string, sessionVariables map[string]any, logger *slog.Logger,
+	) (map[string]any, error)
+}
+
 // RemoteRelationshipResolver handles the complete lifecycle of remote relationship resolution.
 // It executes remote queries, stitches results, and cleans up phantom fields.
 type RemoteRelationshipResolver struct {
@@ -272,8 +284,9 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	}
 
 	// Execute the remote query
-	remoteExecResult, err := targetConnector.Execute(
-		ctx, remoteOp, filteredFragments, variables, role, sessionVariables, logger,
+	remoteExecResult, err := executeRemoteTarget(
+		ctx, targetConnector, rq, remoteOp, filteredFragments,
+		variables, role, sessionVariables, logger,
 	)
 	if err != nil {
 		// Root-field execution can merge partial connector data field-by-field, but
@@ -300,6 +313,48 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	removeRemoteResultPhantoms(remoteResults, rq.remotePhantomFields)
 
 	return nil
+}
+
+func executeRemoteTarget(
+	ctx context.Context,
+	target connector.Connector,
+	rq *remoteQuery,
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	var (
+		result map[string]any
+		err    error
+	)
+	if _, databaseTarget := rq.resolver.(*databaseResolver); databaseTarget {
+		if native, ok := target.(nativeTargetExecutor); ok {
+			result, err = native.ExecuteNative(
+				ctx, op, fragments, variables, role, sessionVariables, logger,
+			)
+		} else {
+			result, err = target.Execute(
+				ctx,
+				op,
+				fragments,
+				variables,
+				role,
+				sessionVariables,
+				logger,
+			)
+		}
+	} else {
+		result, err = target.Execute(ctx, op, fragments, variables, role, sessionVariables, logger)
+	}
+
+	if err != nil {
+		return result, fmt.Errorf("executing target connector: %w", err)
+	}
+
+	return result, nil
 }
 
 func removeRemoteResultPhantoms(results []any, fields []string) {

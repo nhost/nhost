@@ -8,9 +8,9 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// ReverseOperation rewrites an operation (and its fragments) from customized
-// names back into the connector's native schema, so the wrapped connector
-// executes against the schema it actually introspected. It returns rebuilt AST
+// ReverseOperation accepts published (customized) root names and rewrites an
+// operation (and its fragments) into the connector's native schema, so the
+// wrapped connector executes against the schema it actually introspected. It returns rebuilt AST
 // nodes and never mutates the inputs (the planner shares them across
 // connectors).
 //
@@ -32,31 +32,62 @@ func (c *Customizer) ReverseOperation(
 		return op, fragments
 	}
 
+	selections := c.reverseRootSelections(
+		op.SelectionSet, fragments, c.namespaceLiftAliases(op, fragments), variables...,
+	)
+
+	return c.reverseOperationTypes(op, fragments, selections, true)
+}
+
+// ReverseNativeOperation rewrites only type references in a controller-built
+// database target operation. Its root fields already use GetTypeName's native
+// names and must not be namespace-lifted or stripped of root affixes.
+func (c *Customizer) ReverseNativeOperation(
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
+	if !c.enabled() || op == nil {
+		return op, fragments
+	}
+
+	return c.reverseOperationTypes(
+		op,
+		fragments,
+		c.reverseSelections(op.SelectionSet, false),
+		false,
+	)
+}
+
+// reverseOperationTypes rebuilds shared operation and fragment type references.
+// Published roots reverse root fields in their fragments; native roots do not.
+func (c *Customizer) reverseOperationTypes(
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	selections ast.SelectionSet,
+	publishedRoots bool,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
 	rebuilt := &ast.OperationDefinition{ //nolint:exhaustruct
 		Operation:           op.Operation,
 		Name:                op.Name,
 		VariableDefinitions: c.reverseVariableDefinitions(op.VariableDefinitions),
 		Directives:          op.Directives,
-		SelectionSet: c.reverseRootSelections(
-			op.SelectionSet, fragments, c.namespaceLiftAliases(op, fragments), variables...),
-		Position: op.Position,
+		SelectionSet:        selections,
+		Position:            op.Position,
 	}
 
 	var rebuiltFragments ast.FragmentDefinitionList
 	if len(fragments) > 0 {
 		rebuiltFragments = make(ast.FragmentDefinitionList, len(fragments))
 		for i, frag := range fragments {
+			rootFields := publishedRoots && c.fragmentCarriesRootFields(frag.TypeCondition)
 			rebuiltFragments[i] = &ast.FragmentDefinition{ //nolint:exhaustruct
 				Name:               frag.Name,
 				VariableDefinition: frag.VariableDefinition,
 				TypeCondition:      c.reverseTypeName(frag.TypeCondition),
 				Directives:         frag.Directives,
-				SelectionSet: c.reverseSelections(
-					frag.SelectionSet,
-					c.fragmentCarriesRootFields(frag.TypeCondition),
-				),
-				Definition: frag.Definition,
-				Position:   frag.Position,
+				SelectionSet:       c.reverseSelections(frag.SelectionSet, rootFields),
+				Definition:         frag.Definition,
+				Position:           frag.Position,
 			}
 		}
 	}

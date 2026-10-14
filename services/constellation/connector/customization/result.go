@@ -22,19 +22,43 @@ func (c *Customizer) ForwardResult(
 	op *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 ) map[string]any {
+	return c.forwardResult(result, op, fragments, true)
+}
+
+// ForwardNativeResult remaps selected type names without treating a native root
+// that equals the published namespace as a namespace wrapper.
+func (c *Customizer) ForwardNativeResult(
+	result map[string]any,
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) map[string]any {
+	return c.forwardResult(result, op, fragments, false)
+}
+
+func (c *Customizer) forwardResult(
+	result map[string]any,
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	publishedRoots bool,
+) map[string]any {
 	if !c.enabled() || op == nil || result == nil {
 		return result
+	}
+
+	var aliases namespaceLiftAliases
+	if publishedRoots {
+		aliases = c.namespaceLiftAliases(op, fragments)
 	}
 
 	w := &resultWalker{
 		customizer:   c,
 		fragments:    fragments,
-		aliases:      c.namespaceLiftAliases(op, fragments),
+		aliases:      aliases,
 		typenameMemo: make(map[*ast.Field]bool),
 		remapsTypeNm: c.remapsTypeNames(),
 	}
 
-	return w.object(op.SelectionSet, result, true, "")
+	return w.object(op.SelectionSet, result, publishedRoots, "")
 }
 
 // ForwardSelectionValue remaps a grouped value using the client's selection,
