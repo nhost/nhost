@@ -11,14 +11,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { LogicalModelListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/LogicalModelListItem';
 import { NativeQueriesBrowserSidebarSkeleton } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebarSkeleton';
 import { NativeQueryListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
-import { useIsNativeQueriesSupported } from '@/features/orgs/projects/database/native-queries/hooks/useIsNativeQueriesSupported';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const CreateLogicalModelForm = dynamic(
   () =>
@@ -209,19 +206,6 @@ function NativeQueriesBrowserSidebarContent() {
 }
 
 export default function NativeQueriesBrowserSidebar() {
-  const isPlatform = useIsPlatform();
-  const { project } = useProject();
-  const { loading: loadingSupport, isSupported } =
-    useIsNativeQueriesSupported();
-
-  if (
-    loadingSupport ||
-    !isSupported ||
-    (isPlatform && !project?.config?.hasura.adminSecret)
-  ) {
-    return null;
-  }
-
   return (
     <FeatureSidebar toggleOffset="left-8">
       <NativeQueriesBrowserSidebarContent />
