@@ -168,6 +168,9 @@ for admin and physical-key aggregates, rather than allowing a hidden-value
 oracle through the computed-key gate. GraphQL-only names of renamed target
 columns still fail for aggregates; SQL-name mappings to renamed targets can
 still fail on the ordinary array path. Neither failure grants extra access.
+Mutations selecting these failing aggregate siblings in `returning` reject
+before writing, including composite target mappings (grouped aggregates support
+only one join column). The error is sanitized in production.
 
 # SQLite remote-array pagination arguments
 

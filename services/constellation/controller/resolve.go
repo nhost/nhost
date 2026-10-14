@@ -381,7 +381,16 @@ func (c *Controller) resolveData(
 	// already runs the same build/validation before touching the database.
 	if requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries() {
 		if resp := c.validateConnectors(
-			state, plan, operation, dataByConnector, fragments, variables, role, sessionVariables,
+			ctx,
+			logger,
+			state,
+			plan,
+			operation,
+			dataByConnector,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
 		); resp != nil {
 			return nil, nil, resp
 		}
@@ -460,19 +469,19 @@ func groupFieldsByConnector(
 
 // validateConnectors runs each owning connector's pre-execution validation over
 // its root operation slice plus every planned database-backed remote
-// relationship query. It returns a structured GraphQL response (no data) when
-// any connector reports a trusted argument error, so the whole request is
+// relationship query. It returns a GraphQL response (no data) for trusted
+// argument errors or deterministic grouped-aggregate build failures, so the request is
 // rejected before any connector executes — matching Hasura. Root validations
 // and remote-target validations are each sorted by connector/path so the
 // envelope is deterministic even though
 // the input connector map is not.
 //
-// Only structured argument errors short-circuit the request here. Any other
-// error a connector surfaces from validation (an unknown field, an internal
-// build failure) is left for executeConnectors/resolveRemoteRelationships to
-// report, so non-validation failures keep their existing wire shape and
-// per-connector partial-data semantics unchanged.
+// Root validation retains its structured-error-only behavior. Grouped remote
+// aggregate build failures also reject the request before executing root
+// mutations; they use the same sanitizer as post-execution remote failures.
 func (c *Controller) validateConnectors(
+	ctx context.Context,
+	logger *slog.Logger,
 	state *controllerState,
 	plan *planner.QueryPlan,
 	operation *ast.OperationDefinition,
@@ -512,7 +521,16 @@ func (c *Controller) validateConnectors(
 
 	allStructuredErrs = append(
 		allStructuredErrs,
-		c.validateRemoteTargets(state, plan, fragments, variables, role, sessionVariables)...,
+		c.validateRemoteTargets(
+			ctx,
+			logger,
+			state,
+			plan,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+		)...,
 	)
 
 	if len(allStructuredErrs) > 0 {
