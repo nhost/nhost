@@ -145,6 +145,78 @@ func TestPlanPolymorphicPhantomsStayOnSourceType(t *testing.T) {
 	}
 }
 
+func TestPlanRelationshipOnlySiblingKeepsExplicitJoinKey(t *testing.T) {
+	t.Parallel()
+
+	p, composed, native := newPolymorphicPlan(t, polymorphicNativeSDL)
+	tests := []struct {
+		name  string
+		query string
+	}{
+		{
+			name:  "duplicate field",
+			query: `query { search { ... on A { item { local { id } } item { join_id } } } }`,
+		},
+		{
+			name: "inline siblings",
+			query: `query { search { ... on A { item {
+				... on Left { local { id } }
+			} item { ... on Left { join_id } } } } }`,
+		},
+		{
+			name: "colocated named fragments",
+			query: `query { search { ...AJoin ...AKey } }
+				fragment AJoin on A { item { local { id } } }
+				fragment AKey on A { item { join_id } }`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			doc, errs := gqlparser.LoadQueryWithRules(composed, tt.query, rules.NewDefaultRules())
+			if errs != nil {
+				t.Fatalf("composed query invalid: %v", errs)
+			}
+
+			plan, err := p.Plan(doc.Operations[0], doc.Fragments, "admin", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			primary := plan.GetPrimaryQueryForConnector("remote")
+			if primary == nil || len(primary.PhantomFields) != 1 {
+				t.Fatalf("expected one phantom spec: %#v", primary)
+			}
+
+			spec := primary.PhantomFields[0]
+			if len(spec.Fields) != 1 || spec.Fields[0] != "join_id" ||
+				spec.Aliases["join_id"] == "" {
+				t.Fatalf("expected an internal alias for the missing occurrence: %#v", spec)
+			}
+
+			if spec.Aliases["join_id"] == "join_id" {
+				t.Fatalf("cleanup would remove the user's explicit join_id: %#v", spec)
+			}
+
+			forwarded := &ast.QueryDocument{
+				Operations: ast.OperationList{primary.CleanOperation},
+				Fragments:  pruneUnusedPolymorphicFragments(primary),
+			}
+
+			var buf bytes.Buffer
+			formatter.NewFormatter(&buf).FormatQueryDocument(forwarded)
+
+			if !strings.Contains(buf.String(), "\tjoin_id\n") {
+				t.Fatalf("explicit join_id missing from forwarded document: %s", buf.String())
+			}
+
+			validatePolymorphicRemote(t, native, buf.String(), "search")
+		})
+	}
+}
+
 func TestPlanAbstractPolymorphicPhantomsSurviveRelationshipOnlyFragments(t *testing.T) {
 	t.Parallel()
 
