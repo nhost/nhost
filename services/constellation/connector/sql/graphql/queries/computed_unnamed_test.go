@@ -1,6 +1,7 @@
 package queries_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -8,13 +9,14 @@ import (
 	"github.com/vektah/gqlparser/v2/parser"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/postgres"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-//nolint:cyclop // The argument combinations share one isolated catalog and schema fixture.
+//nolint:cyclop,gocognit // The argument combinations share one isolated catalog and schema fixture.
 func TestUnnamedComputedArgumentNumberedByUserInputs(t *testing.T) {
 	t.Parallel()
 	//nolint:dogsled // The fixture provides a fresh isolated database, objects and metadata.
@@ -28,6 +30,8 @@ RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $1 + item.id $$;
 CREATE FUNCTION cf_select.item_mixed(item cf_select.items, scale integer, integer)
 RETURNS integer LANGUAGE sql STABLE AS $$ SELECT scale + $3 $$;
 CREATE FUNCTION cf_select.item_two_unnamed(cf_select.items, integer, integer)
+RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;
+CREATE FUNCTION cf_select.item_gap(cf_select.items, integer DEFAULT 1, integer DEFAULT 2)
 RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;`,
 	); err != nil {
 		t.Fatal(err)
@@ -35,7 +39,7 @@ RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;`,
 
 	for _, tc := range []struct {
 		name, rowArg string
-	}{{"item_unnamed", ""}, {"item_unnamed_first", "item"}, {"item_mixed", "item"}, {"item_two_unnamed", ""}} {
+	}{{"item_unnamed", ""}, {"item_unnamed_first", "item"}, {"item_mixed", "item"}, {"item_two_unnamed", ""}, {"item_gap", ""}} {
 		md.Tables[0].ComputedFields = append(md.Tables[0].ComputedFields, metadata.ComputedField{
 			Name: tc.name, Definition: metadata.ComputedFieldDefinition{
 				Function:      metadata.FunctionSource{Schema: "cf_select", Name: tc.name},
@@ -52,6 +56,7 @@ RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;`,
 				"item_unnamed_first",
 				"item_mixed",
 				"item_two_unnamed",
+				"item_gap",
 			)
 		}
 	}
@@ -85,6 +90,7 @@ RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;`,
 		{field: "item_unnamed_first", args: []string{"arg_1"}},
 		{field: "item_mixed", args: []string{"arg_1", "scale"}},
 		{field: "item_two_unnamed", args: []string{"arg_1", "arg_2"}},
+		{field: "item_gap", args: []string{"arg_1", "arg_2"}},
 	} {
 		field := generated.ToAST().Definitions.ForName("cf_select_items").Fields.ForName(tc.field)
 
@@ -132,6 +138,37 @@ RETURNS integer LANGUAGE sql STABLE AS $$ SELECT $2 + $3 $$;`,
 		},
 	}) {
 		t.Fatalf("unnamed argument result: %#v", got)
+	}
+
+	for _, tc := range []struct{ name, query, path string }{
+		{
+			"selection", `query { cf_select_items { item_gap(args:{arg_2:5}) } }`,
+			"$.selectionSet.cf_select_items.selectionSet.item_gap.args.args",
+		},
+		{
+			"aggregate operand", `query { cf_select_items_aggregate { aggregate { sum { item_gap(args:{arg_2:5}) } } } }`,
+			"$.selectionSet.cf_select_items_aggregate.selectionSet.aggregate.selectionSet.sum.selectionSet.item_gap.args.args",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			doc, parseErr := parser.ParseQuery(&ast.Source{Input: tc.query})
+			if parseErr != nil {
+				t.Fatal(parseErr)
+			}
+
+			_, buildErr := roots.BuildQuery(doc.Operations[0], doc.Fragments, nil, "cf_reader", nil)
+
+			var validation *arguments.QueryValidationError
+			if !errors.As(buildErr, &validation) ||
+				!reflect.DeepEqual(validation.AsMap(), map[string]any{
+					"message":    `cannot omit positional computed argument "arg_1"`,
+					"extensions": map[string]any{"code": "validation-failed", "path": tc.path},
+				}) {
+				t.Fatalf("positional gap: %v", buildErr)
+			}
+		})
 	}
 
 	for _, query := range []string{

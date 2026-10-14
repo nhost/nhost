@@ -1,11 +1,28 @@
 package arguments
 
+import "fmt"
+
+// NewComputedPositionalGapError rejects an omitted defaulted argument when a
+// later unnamed input must be passed positionally. The exposed GraphQL name,
+// not the empty PostgreSQL catalog name, identifies the omitted input.
+func NewComputedPositionalGapError(argumentName, argumentPath string) *QueryValidationError {
+	message := fmt.Sprintf("cannot omit positional computed argument %q", argumentName)
+	err := newQueryValidationError(
+		message,
+		fmt.Errorf("%w: %s", ErrInvalidArgument, message),
+		"args",
+	)
+	err.StampArgumentPath(argumentPath)
+
+	return err
+}
+
 // ComputedOmissionError is the fixed Hasura error for omitting a non-default
 // computed-function argument from an explicitly supplied args object. It is
 // safe to surface without echoing argument names or client values.
 type ComputedOmissionError struct{ argumentPath string }
 
-// NewComputedOmissionError returns the only client-visible unsupported
+// NewComputedOmissionError returns the fixed client-visible unsupported
 // computed-argument error; arbitrary errors cannot be constructed via a
 // message parameter.
 func NewComputedOmissionError(argumentPath string) *ComputedOmissionError {
