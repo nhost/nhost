@@ -22,7 +22,7 @@ var (
 
 // customizedConnector decorates a Connector with Hasura-style schema
 // customization. It presents the customized schema (GetSchema) and reverses
-// the customization on the execution path: incoming operations are rewritten
+// the customization on the client execution path: published operations are rewritten
 // to the wrapped connector's native names before Execute, and responses are
 // reshaped back into customized form. The wrapped connector is unaware of any
 // of this, so the decorator works uniformly for SQL, remote-schema, and
@@ -30,8 +30,10 @@ var (
 //
 // Database to_source relationships also work from a root-field namespace
 // with a type-name prefix: the composer and planner use published type names,
-// while GetTypeName retains native names for target root execution. The
-// controller decodes namespaced rows before stitching and phantom cleanup.
+// while GetTypeName retains native names for target root execution. Controller-
+// built database target operations use ExecuteNative/ValidateNative to retain
+// those roots instead of reversing published root fields again. The controller
+// decodes namespaced rows before stitching and phantom cleanup.
 // Type-prefixed/suffixed database targets support ordinary joins, per-parent
 // collections and grouped aggregates through native table identity; computed
 // keys still require role grants and selectable target SQL columns. Unknown
@@ -324,6 +326,37 @@ func (c *customizedConnector) Execute(
 	return reshaped, nil
 }
 
+// ExecuteNative executes a controller-built database target operation whose
+// root already comes from GetTypeName. Nested selections and published type
+// references still need normal result and fragment type handling.
+func (c *customizedConnector) ExecuteNative(
+	ctx context.Context,
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	nativeOp, nativeFragments := c.customizer.ReverseNativeOperation(operation, fragments)
+	result, err := c.inner.Execute(
+		ctx, nativeOp, nativeFragments, variables, role, sessionVariables, logger,
+	)
+
+	reshaped := c.customizer.ForwardNativeResult(result, operation, fragments)
+	if err != nil {
+		// The root is already native. The controller remaps its validation path
+		// to the relationship's client path; root customization must not run here.
+		return reshaped, fmt.Errorf(
+			"executing native target on customized connector %s: %w",
+			c.name,
+			err,
+		)
+	}
+
+	return reshaped, nil
+}
+
 // ValidateOperation reverses the customization on the operation before
 // delegating to the wrapped connector, mirroring Execute so validation runs
 // against the native field/argument names the inner connector understands. The
@@ -350,6 +383,27 @@ func (c *customizedConnector) ValidateOperation(
 	return nil
 }
 
+// ValidateNative validates a controller-built database target without
+// interpreting its native root as a published root or namespace.
+func (c *customizedConnector) ValidateNative(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	nativeOp, nativeFragments := c.customizer.ReverseNativeOperation(operation, fragments)
+	if err := c.inner.ValidateOperation(
+		nativeOp, nativeFragments, variables, role, sessionVariables,
+	); err != nil {
+		// Validation paths remain native until the controller maps the target
+		// root to the relationship field's client path.
+		return fmt.Errorf("validating native target on customized connector %s: %w", c.name, err)
+	}
+
+	return nil
+}
+
 func (c *customizedConnector) remapQueryValidationArgumentPath(
 	err error, operation *ast.OperationDefinition, fragments ast.FragmentDefinitionList,
 ) error {
@@ -367,7 +421,8 @@ func (c *customizedConnector) remapQueryValidationArgumentPath(
 	return err
 }
 
-// GetTypeName retains the native table name for internal root-query execution.
+// GetTypeName retains the native table name for controller-built target roots.
+// Those roots use ExecuteNative/ValidateNative, not the published-name methods.
 // Composed relationship fields use GetCustomizedTypeName for the exposed SDL.
 func (c *customizedConnector) GetTypeName(identifier string) string {
 	return c.inner.GetTypeName(identifier)
