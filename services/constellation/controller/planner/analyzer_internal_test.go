@@ -298,6 +298,8 @@ func TestCollectFromSelectionSet_DirectField(t *testing.T) {
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
 	assertDepartmentSource(t, result)
@@ -350,6 +352,8 @@ func TestCollectFromSelectionSet_FragmentSpreadBranch(t *testing.T) {
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
 	assertDepartmentSource(t, result)
@@ -385,6 +389,8 @@ func TestCollectFromSelectionSet_FragmentSpreadMissingFragmentIgnored(t *testing
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
 	if len(result.sources) != 0 {
@@ -425,6 +431,8 @@ func TestCollectFromSelectionSet_InlineFragmentBranch(t *testing.T) {
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
 	assertDepartmentSource(t, result)
@@ -454,7 +462,14 @@ func TestCollectFromSelectionSet_InlineFragmentWithoutTypeConditionUsesFallback(
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	a.collectFromSelectionSet(selSet, "users", jsonpath.Parse("users"), result)
+	a.collectFromSelectionSet(
+		selSet,
+		"users",
+		jsonpath.Parse("users"),
+		result,
+		jsonpath.Parse("users"),
+		selSet,
+	)
 	assertDepartmentSource(t, result)
 
 	if len(result.RemoteQueries) != 1 {
