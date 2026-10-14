@@ -1,29 +1,94 @@
 ---
 title: Nhost API Reference
-description: API reference for Nhost backend services (auth, storage) and client libraries, with an interactive API Playground.
+description: API reference for Nhost backend services (auth, storage, AI), client libraries, project configuration, the CLI and Kriti templating, with an interactive API Playground.
 head:
   - tag: title
-    content: "Backend Services & Client Library APIs | Nhost Docs"
+    content: "Backend Services, CLI & Client Library APIs | Nhost Docs"
 ---
+import { Card, CardGroup } from '@components';
 
-This reference section is home to both backend services and the various client libraries available.
+This reference section is home to the backend services, the client libraries, the project configuration, the CLI, and the templating language.
+
+## Configuration
+
+Every setting available in `nhost.toml`, the file that defines a project's services, resources, and providers.
+
+<CardGroup cols={1}>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/reference/configuration"
+  >
+    Full reference for the project configuration file
+  </Card>
+</CardGroup>
 
 ## Backend Services
 
-In this section you will find the API reference for both the authentication and storage services. There is an **API Playground** to help you learn and test the endpoints against a local Nhost instance.
+The API reference for the authentication, storage, and AI services. Auth and Storage come with an **API Playground** to help you learn and test the endpoints against a local Nhost instance.
 
 To learn how to start a local Nhost instance check out [local development](/platform/cli/local-development). Starting a local instance is optional and only required if you want to use the playground to simulate real requests.
 
+<CardGroup cols={3}>
+  <Card
+    title="Auth API"
+    icon="lock"
+    href="/reference/auth"
+  >
+    REST endpoints for sign-in, sign-up, sessions, and user management
+  </Card>
+  <Card
+    title="Storage API"
+    icon="warehouse"
+    href="/reference/storage"
+  >
+    REST endpoints for uploading, downloading, and transforming files
+  </Card>
+  <Card
+    title="AI GraphQL"
+    icon="robot"
+    href="/reference/graphql/ai"
+  >
+    Queries and mutations for assistants and sessions
+  </Card>
+</CardGroup>
+
 ## Client Libraries
 
-This section documents the APIs for all available client libraries:
+The APIs for all available client libraries.
 
-- [`@nhost/nhost-js`](/reference/javascript/nhost-js/main)
+<CardGroup cols={1}>
+  <Card
+    title="@nhost/nhost-js"
+    icon="js"
+    href="/reference/javascript/nhost-js/main"
+  >
+    JavaScript SDK wrapping auth, storage, GraphQL, and functions in a single client
+  </Card>
+</CardGroup>
+
+## CLI
+
+The command line interface for local development, deployments, and project management.
+
+<CardGroup cols={1}>
+  <Card
+    title="Commands"
+    icon="terminal"
+    href="/reference/cli/commands"
+  >
+    Every `nhost` command, with its flags and arguments
+  </Card>
+</CardGroup>
 
 ## Templating
 
-- [Kriti](/reference/kriti): the JSON templating language used to reshape payloads in features such as request and payload transformations
-
-## Deprecated Libraries
-
-Legacy client libraries that are no longer actively maintained.
+<CardGroup cols={1}>
+  <Card
+    title="Kriti"
+    icon="pencil-square"
+    href="/reference/kriti"
+  >
+    The JSON templating language used to reshape payloads in features such as request and payload transformations
+  </Card>
+</CardGroup>
