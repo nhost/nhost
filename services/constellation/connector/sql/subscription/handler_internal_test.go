@@ -1,10 +1,13 @@
 package subscription
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -1336,6 +1339,122 @@ func TestStreamCohortManager_EmptyPollPromotesPendingSubscriber(t *testing.T) {
 
 	if got := m.subscriptionIndex[pending.id]; got != key.String() {
 		t.Errorf("pending subscriber index = %q, want %q", got, key.String())
+	}
+}
+
+// streamSubscriberProcessingHook launches a concurrent Stop at the handoff
+// between pending and attached stream subscribers.
+type streamSubscriberProcessingHook struct {
+	slog.Handler
+
+	onProcess func()
+}
+
+func (h *streamSubscriberProcessingHook) Handle(ctx context.Context, record slog.Record) error {
+	if record.Message == "processing new subscribers that arrived during poll" {
+		h.onProcess()
+	}
+
+	if err := h.Handler.Handle(ctx, record); err != nil {
+		return fmt.Errorf("logging stream subscriber processing: %w", err)
+	}
+
+	return nil
+}
+
+func TestStreamCohortManager_EmptyPollStopPendingSubscriber(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	m := streamRebuildHarness()
+	defer m.shutdown(ctx)
+
+	key, c := newStreamCohortForTest(map[string]any{"id": 5})
+	m.cohorts[key.String()] = c
+
+	first := newStreamCohortSubscription("first", nil, nil, map[string]any{"id": 5})
+	c.addSubscription(first)
+	m.subscriptionIndex[first.id] = key.String()
+
+	c.startPolling()
+
+	pending := newStreamCohortSubscription("pending", nil, nil, map[string]any{"id": 7})
+	c.addSubscription(pending)
+	m.subscriptionIndex[pending.id] = key.String()
+	m.removeSubscription(ctx, first.id)
+
+	// A populated destination cohort avoids a background poll while exercising
+	// the same pending-subscriber handoff as the empty-poll path.
+	dstKey, dst := newStreamCohortForTest(map[string]any{"id": 7})
+	m.cohorts[dstKey.String()] = dst
+	other := newStreamCohortSubscription("other", nil, nil, map[string]any{"id": 7})
+	dst.addSubscription(other)
+	m.subscriptionIndex[other.id] = dstKey.String()
+
+	stopDone := make(chan struct{})
+	processed := false
+
+	var logs bytes.Buffer
+
+	logger := slog.New(&streamSubscriberProcessingHook{
+		Handler: slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		onProcess: func() {
+			processed = true
+
+			go func() {
+				m.removeSubscription(ctx, pending.id)
+				close(stopDone)
+			}()
+
+			// On the old path extraction left m.mu unlocked. Let Stop finish
+			// before reattachment so the regression is deterministic; on the
+			// fixed path Stop must wait until the handoff releases m.mu.
+			if m.mu.TryLock() {
+				m.mu.Unlock()
+				<-stopDone
+			}
+		},
+	})
+
+	m.executeAndRebuild(ctx, c, logger)
+
+	if !processed {
+		t.Fatal("empty poll did not process the pending subscriber")
+	}
+
+	select {
+	case <-stopDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("concurrent Stop did not return after the empty poll")
+	}
+
+	m.mu.RLock()
+
+	_, indexed := m.subscriptionIndex[pending.id]
+	for _, cohort := range m.cohorts {
+		if cohort.getSubscription(pending.id) != nil {
+			t.Error("stopped subscriber remains in a stream cohort")
+		}
+	}
+
+	m.mu.RUnlock()
+
+	if indexed {
+		t.Error("stopped subscriber was restored to the subscription index")
+	}
+
+	if c.getSubscription(pending.id) != nil {
+		t.Error("stopped subscriber remains in the original cohort")
+	}
+
+	select {
+	case _, open := <-pending.updateChannel():
+		if open {
+			t.Error("stopped subscriber received an update instead of a closed channel")
+		}
+	default:
+		t.Error("stopped subscriber's update channel remains open")
 	}
 }
 
