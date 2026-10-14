@@ -12,6 +12,7 @@ import (
 type stubSchemaProvider struct {
 	typeName string
 	schemas  map[string]*graph.Schema
+	names    map[string]string
 }
 
 func (s stubSchemaProvider) GetSchema() (map[string]*graph.Schema, error) {
@@ -19,6 +20,14 @@ func (s stubSchemaProvider) GetSchema() (map[string]*graph.Schema, error) {
 }
 
 func (s stubSchemaProvider) GetTypeName(identifier string) string {
+	if s.names != nil {
+		if name, ok := s.names[identifier]; ok {
+			return name
+		}
+
+		return identifier
+	}
+
 	return s.typeName + ":" + identifier
 }
 

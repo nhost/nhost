@@ -4,6 +4,9 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -367,5 +370,181 @@ func TestComputedScalarCollisionKeepsRolesAndOtherSources(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// A remote relationship must not preserve the computed argument scalar that
+// collides with its target's object type and thereby invalidate the whole role.
+//
+//nolint:cyclop // Verify both generated roles, the surviving join and the field-local inconsistency together.
+func TestComputedScalarCollisionWithRemoteRelationshipKeepsRoles(t *testing.T) {
+	t.Parallel()
+
+	caps := schema.NewCapabilities(schema.KindPostgres, dialect.NewPostgresDialect())
+	makeObjects := func(tableSchema, tableName string) *introspection.Objects {
+		objects := introspection.NewObjects()
+		objects.Schemas[tableSchema] = &introspection.Schema{
+			Tables: map[string]*introspection.Table{
+				tableName: {
+					Schema: tableSchema,
+					Name:   tableName,
+					Columns: []introspection.Column{
+						{Name: "id", Type: "text", SupportsMinMax: true},
+					},
+					PrimaryKeys:  []string{"id"},
+					IsInsertable: true,
+					IsUpdatable:  true,
+				},
+			},
+		}
+
+		return objects
+	}
+
+	dbObjects := makeObjects("cf", "items")
+	dbObjects.ComputedFunctions = map[introspection.ComputedTable]map[string]introspection.ComputedFunctionLookup{
+		{Schema: "cf", Name: "items"}: {"mood": {Function: &introspection.ComputedFunction{
+			OID:    10,
+			Schema: "cf",
+			Name:   "item_mood",
+			Arguments: []introspection.ComputedFunctionArgument{
+				{
+					Type: introspection.PostgreSQLType{
+						OID:    1,
+						Schema: "cf",
+						Name:   "items",
+						Kind:   "c",
+					},
+					Name: "item",
+					Mode: "i",
+				},
+				{
+					Type: introspection.PostgreSQLType{
+						OID:    2,
+						Schema: "public",
+						Name:   "p14_mood",
+						Kind:   "e",
+					},
+					Name:     "m",
+					Mode:     "i",
+					Position: 1,
+				},
+			},
+			RowArgument: 0,
+			ReturnType: introspection.PostgreSQLType{
+				OID:    25,
+				Schema: "pg_catalog",
+				Name:   "text",
+				Kind:   "b",
+			},
+			Volatility: introspection.VolatilityStable,
+		}}},
+	}
+
+	dbMeta := metadata.DatabaseMetadata{
+		Name: "db", Kind: "postgres", Tables: []metadata.TableMetadata{{
+			Table: metadata.TableSource{Schema: "cf", Name: "items"},
+			ComputedFields: []metadata.ComputedField{{
+				Name: "mood", Definition: metadata.ComputedFieldDefinition{
+					Function: metadata.FunctionSource{Schema: "cf", Name: "item_mood"},
+				},
+			}},
+			SelectPermissions: []metadata.SelectPermission{{
+				Role: "reader", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{
+						"id",
+					},
+					ComputedFields: []string{"mood"},
+					Filter:         map[string]any{},
+				},
+			}},
+			RemoteRelationships: []metadata.RemoteRelationship{{
+				Name: "moodRow", Definition: metadata.RemoteRelationshipDef{
+					ToSource: &metadata.ToSourceRelationship{
+						RelationshipType: metadata.RelationshipTypeObject,
+						Source:           "other",
+						Table:            metadata.TableSource{Schema: "public", Name: "p14_mood"},
+						FieldMapping:     map[string]string{"id": "id"},
+					},
+				},
+			}},
+		}},
+	}
+	otherMeta := metadata.DatabaseMetadata{
+		Name: "other", Kind: "postgres", Tables: []metadata.TableMetadata{{
+			Table: metadata.TableSource{Schema: "public", Name: "p14_mood"},
+			SelectPermissions: []metadata.SelectPermission{{
+				Role: "reader", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{"id"}, Filter: map[string]any{},
+				},
+			}},
+		}},
+	}
+
+	providers := map[string]SchemaProvider{}
+	for _, source := range []struct {
+		name    string
+		objects *introspection.Objects
+		meta    *metadata.DatabaseMetadata
+		names   map[string]string
+	}{
+		{"db", dbObjects, &dbMeta, map[string]string{"cf.items": "cf_items"}},
+		{
+			"other", makeObjects("public", "p14_mood"), &otherMeta,
+			map[string]string{"public.p14_mood": "p14_mood"},
+		},
+	} {
+		roles := make(map[string]*graph.Schema)
+		for _, role := range []string{"admin", "reader"} {
+			var err error
+
+			roles[role], err = schema.GenerateForRole(source.objects, role, source.meta, caps)
+			if err != nil {
+				t.Fatalf("generate %s %s schema: %v", source.name, role, err)
+			}
+		}
+
+		providers[source.name] = stubSchemaProvider{schemas: roles, names: source.names}
+	}
+
+	inc := metadata.NewInconsistencies()
+	result := New(
+		providers,
+		&metadata.Metadata{Databases: []metadata.DatabaseMetadata{dbMeta, otherMeta}},
+		inc,
+	).
+		Compose(t.Context(), slog.Default())
+
+	for _, role := range []string{"admin", "reader"} {
+		validated := result.ValidatedSchemas[role]
+		if validated == nil {
+			t.Fatalf("role %s dropped: %+v", role, inc.Snapshot())
+		}
+
+		items := validated.Types["cf_items"]
+		if items == nil || items.Fields.ForName("id") == nil ||
+			items.Fields.ForName("mood") != nil ||
+			validated.Types["mood_cf_items_args"] != nil ||
+			validated.Types["p14_mood"] == nil ||
+			validated.Types["p14_mood"].Kind != "OBJECT" ||
+			validated.Types["query_root"].Fields.ForName("cf_items") == nil {
+			t.Fatalf("role %s retained colliding computed argument or lost fields", role)
+		}
+
+		rel := items.Fields.ForName("moodRow")
+		if rel == nil || rel.Type.Name() != "p14_mood" {
+			t.Fatalf("role %s relationship type = %+v; want p14_mood", role, rel)
+		}
+	}
+
+	found := inc.Snapshot()
+	if len(found) != 2 {
+		t.Fatalf("expected one computed inconsistency per role: %+v", found)
+	}
+
+	for _, item := range found {
+		if item.Kind != metadata.InconsistencyKindComputedField || item.Name != "cf.items.mood" {
+			t.Fatalf("unexpected inconsistency: %+v", item)
+		}
 	}
 }
