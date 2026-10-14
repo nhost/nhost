@@ -392,8 +392,8 @@ func TestExecuteAndStitchAggregate_MultiColumnMappingUnsupported(t *testing.T) {
 		nil,
 		slog.Default(),
 	)
-	if !errors.Is(err, errAggregateMultiColumnJoinUnsupported) {
-		t.Errorf("expected errAggregateMultiColumnJoinUnsupported, got %v", err)
+	if !errors.Is(err, ErrAggregateMultiColumnJoinUnsupported) {
+		t.Errorf("expected ErrAggregateMultiColumnJoinUnsupported, got %v", err)
 	}
 }
 
