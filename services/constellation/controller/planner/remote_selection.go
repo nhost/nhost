@@ -59,7 +59,7 @@ func prepareRemoteSelections(
 		switch selected := selection.(type) {
 		case *ast.Field:
 			if !includeSelection(selected.Directives, variables) ||
-				isRemoteField(path, selected, analysis.RemoteQueries) {
+				isRemoteField(path, typeName, selected, analysis.RemoteQueries) {
 				continue
 			}
 
@@ -106,7 +106,7 @@ func prepareRemoteSelections(
 		}
 	}
 
-	return append(out, phantomSelections(path, analysis.PhantomFields)...)
+	return append(out, phantomSelections(path, typeName, schema, analysis.PhantomFields)...)
 }
 
 func prepareRemoteFragment(
@@ -139,37 +139,57 @@ func prepareRemoteFragment(
 	return inline
 }
 
-func phantomSelections(path jsonpath.Path, specs []*PhantomFieldSpec) ast.SelectionSet {
-	var fields ast.SelectionSet
+func phantomSelections(
+	path jsonpath.Path, typeName string, schema *ast.Schema, specs []*PhantomFieldSpec,
+) ast.SelectionSet {
+	var out ast.SelectionSet
 	for _, spec := range specs {
 		if spec.Path.String() != path.String() {
 			continue
 		}
 
+		fields := make(ast.SelectionSet, 0, len(spec.Fields))
 		for _, name := range spec.Fields {
 			fields = append(fields, &ast.Field{ //nolint:exhaustruct
 				Name: name, Alias: spec.Aliases[name],
 			})
 		}
+
+		switch {
+		case spec.SourceType == "" || typeName == spec.SourceType:
+			out = append(out, fields...)
+		case remoteSourceTypePossibleOn(schema, typeName, spec.SourceType):
+			out = append(
+				out,
+				&ast.InlineFragment{ //nolint:exhaustruct // Only condition and selections are needed.
+					TypeCondition: spec.SourceType,
+					SelectionSet:  fields,
+				},
+			)
+		}
 	}
 
-	return fields
+	return out
 }
 
-func isRemoteField(path jsonpath.Path, field *ast.Field, remotes []*RemoteQueryPlan) bool {
+func remoteSourceTypePossibleOn(schema *ast.Schema, typeName, sourceType string) bool {
+	for _, possible := range schema.PossibleTypes[typeName] {
+		if possible.Name == sourceType {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isRemoteField(
+	path jsonpath.Path, typeName string, field *ast.Field, remotes []*RemoteQueryPlan,
+) bool {
 	for _, remote := range remotes {
-		if remote.Name != field.Name || remote.SourcePath.String() != path.String() {
-			continue
+		if remote.Name == field.Name && remote.SourcePath.String() == path.String() &&
+			(remote.SourceType == "" || remote.SourceType == typeName) {
+			return true
 		}
-
-		// Two fragments can select the same field name on different concrete
-		// types. Only strip the relationship on the type that owns this plan.
-		if remote.Selection.ObjectDefinition != nil && field.ObjectDefinition != nil &&
-			remote.Selection.ObjectDefinition.Name != field.ObjectDefinition.Name {
-			continue
-		}
-
-		return true
 	}
 
 	return false
