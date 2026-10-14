@@ -1,5 +1,4 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
-import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { ChevronDown, ChevronRight, Info, Pencil } from 'lucide-react';
@@ -24,6 +23,7 @@ import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 
 const EditFunctionForm = dynamic(
   () =>
@@ -37,7 +37,7 @@ const EditFunctionForm = dynamic(
 );
 
 export default function FunctionDefinitionView() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const router = useRouter();
   const {
     query: { schemaSlug, functionOID: routerFunctionOID, dataSourceSlug },
@@ -307,9 +307,7 @@ export default function FunctionDefinitionView() {
               <div className="overflow-hidden border-t">
                 <CodeMirror
                   value={functionDefinition}
-                  theme={
-                    theme.palette.mode === 'light' ? githubLight : githubDark
-                  }
+                  theme={resolvedTheme === 'light' ? githubLight : githubDark}
                   extensions={[
                     sql({ dialect: PostgreSQL }),
                     codeMirrorAppBackground,
