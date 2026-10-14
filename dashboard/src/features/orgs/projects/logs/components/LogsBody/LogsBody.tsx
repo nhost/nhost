@@ -202,7 +202,7 @@ export default function LogsBody({
 
   if (error) {
     return (
-      <div className="h-full w-full bg-paper p-2.5">
+      <div className="h-full w-full p-2.5">
         <p className="truncate font-mono text-xs- font-normal text-destructive">
           {error?.message.includes('the query time range exceeds the limit')
             ? 'The query time range exceeds the limit, please select a shorter range.'
@@ -214,7 +214,7 @@ export default function LogsBody({
 
   if (logsData?.logs?.length === 0) {
     return (
-      <div className="h-full w-full bg-paper p-2.5">
+      <div className="h-full w-full p-2.5">
         <p className="truncate font-mono text-xs- font-normal">
           There are no logs for the selected period.
         </p>
@@ -223,7 +223,7 @@ export default function LogsBody({
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-paper">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       <LogsBodyContent
         key={filterKey}
         data={data}

@@ -226,7 +226,7 @@ export default function EditGraphQLCustomizations({
         <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
         <Button
           type="button"
-          variant="outline"
+          variant="outline-emboss"
           size="sm"
           onClick={() => setIsOpen(false)}
         >

@@ -57,14 +57,14 @@ export default function UnauthenticatedLayout({
 
   return (
     <BaseLayout {...props}>
-      <div className="dark h-screen overflow-auto bg-black text-foreground">
+      <div className="dark h-screen overflow-auto bg-background text-foreground">
         <RetryableErrorBoundary>
-          <div className="flex min-h-screen items-center bg-black">
+          <div className="flex min-h-screen items-center bg-background">
             <Container
               rootClassName="bg-transparent h-full"
-              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-8 pb-12 lg:grid-cols-2 lg:gap-4 lg:pt-8 lg:pb-0"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-0 pb-12 lg:grid-cols-2 lg:gap-4 lg:pb-0"
             >
-              <div className="relative z-10 order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
+              <div className="relative z-10 order-2 grid w-full max-w-xl grid-flow-row gap-12 lg:order-1">
                 {children}
               </div>
 
@@ -82,7 +82,7 @@ export default function UnauthenticatedLayout({
                     />
                   </div>
 
-                  <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-[56px]" />
+                  <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-3xl" />
 
                   <Image
                     src="/assets/logo.svg"

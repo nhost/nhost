@@ -284,12 +284,30 @@ export default function CreateOrgDialog({
   const user = useUserData();
   const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
+  const isDialogOpen = isOpen ?? open;
+  // The header keeps this dialog mounted, so only fetch once it is opened.
   const { data, loading, error } = usePrefetchNewAppQuery({
-    skip: !user || !isPlatform,
+    skip: !user || !isPlatform || !isDialogOpen,
   });
-  const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
+  const [createOrganizationRequest] = useCreateOrganizationRequestMutation({
+    // Lets the inbox offer to continue the checkout if this dialog is closed
+    // before paying.
+    refetchQueries: ['organizationNewRequests'],
+  });
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const { refetch: refetchOrgs } = useOrgs();
+
+  // Reopening starts a new organization; an abandoned checkout is resumed from
+  // the inbox instead. The secret is cleared on open rather than on close, so
+  // the checkout stays visible while the dialog animates out. Controlled opens
+  // bypass `handleOpenChange`, so this follows the open state itself.
+  const [wasDialogOpen, setWasDialogOpen] = useState(isDialogOpen);
+  if (isDialogOpen !== wasDialogOpen) {
+    setWasDialogOpen(isDialogOpen);
+    if (isDialogOpen) {
+      setStripeClientSecret('');
+    }
+  }
 
   const handleOpenChange = (newOpenState: boolean) => {
     const controlledFromOutSide =
@@ -373,15 +391,12 @@ export default function CreateOrgDialog({
   }
 
   return (
-    <Dialog open={isOpen ?? open} onOpenChange={handleOpenChange}>
+    <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
       {!hideNewOrgButton && (
         <DialogTrigger asChild>
           <Button
-            className={cn(
-              'flex h-8 w-full flex-row justify-start gap-3 px-2',
-              'bg-background text-foreground hover:bg-accent dark:hover:bg-muted',
-            )}
-            onClick={() => setStripeClientSecret('')}
+            variant="ghost"
+            className="flex h-8 w-full flex-row justify-start gap-3 px-2 text-foreground dark:hover:bg-muted"
           >
             <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
             New Organization

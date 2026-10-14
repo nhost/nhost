@@ -137,8 +137,8 @@ export default function EditRecordForm({
             <Button
               onClick={reset}
               size="sm"
-              variant="destructive"
-              className="bg-transparent text-[#c91737] hover:bg-[#f131541a]"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               Clear
             </Button>
