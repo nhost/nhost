@@ -32,6 +32,13 @@ vitest run --reporter=verbose src/features/orgs/guards/OrganizationGuard/Organiz
 Run Vitest with `dashboard/` as the working directory so it loads
 `vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
 
+In modal tests, interact with controls inside the open modal: modal layers hide outside
+content with `aria-hidden`, so `screen.getByRole` cannot find background buttons.
+For Radix backdrop-dismiss tests, wait one tick for its document pointer listener,
+then dispatch `fireEvent.pointerDown(target, { button: 0, pointerType: 'mouse' })`
+followed by `fireEvent.click(target)`: Radix defers primary-button outside dismissal
+until click. Use `waitFor` for asynchronous dismissal assertions.
+
 Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
 
 ### E2E Testing

@@ -97,7 +97,9 @@ test('should create a table with nullable columns', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
@@ -137,7 +139,9 @@ test('should create a table with an identity column', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
@@ -262,7 +266,9 @@ test('should be able to create a table with a composite key', async ({
   ).toBeVisible();
 
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('div[data-testid="id"]')).toBeVisible();
@@ -338,7 +344,9 @@ test('should be able to untrack and re-track a table', async ({
   ).toBeVisible();
 
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByRole('menuitem', { name: /edit graphql/i }).click();
 
