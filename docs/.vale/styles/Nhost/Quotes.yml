@@ -1,0 +1,8 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.
+extends: existence
+message: "Commas and periods go inside quotation marks. (WR-STYLE-14)"
+link: 'https://developers.google.com/style/quotation-marks'
+level: suggestion
+nonword: true
+tokens:
+  - '"[^"]+"[.,?]'

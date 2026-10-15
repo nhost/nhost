@@ -1,0 +1,10 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.
+extends: existence
+message: "In general, don't use an ellipsis. (WR-STYLE-05)"
+link: 'https://developers.google.com/style/ellipses'
+nonword: true
+level: error
+action:
+  name: remove
+tokens:
+  - '\.\.\.'

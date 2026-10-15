@@ -103,7 +103,9 @@ explicit voice; an unknown single byline gets the neutral house voice.
 Mechanical prose style that holds in docs and posts alike. The first three
 entries do not depend on Vale. Rules vendored from the Google Vale package
 are appended to this section, numbered from 04 onward, one ID per vendored
-rule, each named in its Vale message.
+rule, each named in its Vale message. An entry marked Advisory is a
+suggestion-tier rule the hand-written docs do not follow; it informs a
+revision and never blocks one.
 
 - **WR-STYLE-01** Sentences are short, declarative and in the present tense.
   One idea per sentence; the subject performs the verb; a procedure is
@@ -114,6 +116,32 @@ rule, each named in its Vale message.
 - **WR-STYLE-03** List items are parallel in form. Steps the reader performs
   in order are a numbered list; anything else is a bulleted list or a
   sentence. A list with one item is a sentence.
+- **WR-STYLE-04** Prose has no exclamation marks. Vale-enforced:
+  `Nhost.Exclamation`.
+- **WR-STYLE-05** Prose has no `...` ellipsis: finish the list or the
+  sentence, and write an overflow menu as **⋯**. Vale-enforced:
+  `Nhost.Ellipses`.
+- **WR-STYLE-06** One space, never two or none, follows the mark that ends a
+  sentence. Vale-enforced: `Nhost.Spacing`.
+- **WR-STYLE-07** A space separates a number from its unit: `10 GB`, `16 MB`,
+  `5 s`. Vale-enforced: `Nhost.Units`.
+- **WR-STYLE-08** Ordinals in prose are words (`the first of the month`);
+  percentiles stay numeric (`95th percentile`). Vale-enforced: `Nhost.Ordinal`.
+- **WR-STYLE-09** An adverb ending in -ly takes no hyphen before the word it
+  modifies: `fully managed`. Vale-enforced: `Nhost.LyHyphens`.
+- **WR-STYLE-10** Plurals are never optional in parentheses: `ports`, not
+  `port(s)`. Vale-enforced: `Nhost.OptionalPlurals`.
+- **WR-STYLE-11** A list of three or more items in a sentence takes a comma
+  before the final `and` or `or`. Vale-enforced: `Nhost.OxfordComma`.
+- **WR-STYLE-12** Advisory: after a colon inside a sentence, a word that is not
+  a proper noun starts in lowercase. Vale-enforced: `Nhost.Colons`.
+- **WR-STYLE-13** Advisory: write `for example` and `that is`, not `e.g.` and
+  `i.e.`. Vale-enforced: `Nhost.Latin`.
+- **WR-STYLE-14** Advisory: a comma or period that follows a quotation goes
+  inside the closing mark. Vale-enforced: `Nhost.Quotes`.
+- **WR-STYLE-15** Advisory: terms from Google's word list, such as `URL` for
+  `url`; its `Cloud` entry does not apply to Nhost Cloud. Vale-enforced:
+  `Nhost.WordList`.
 
 Em dashes are house style: the hand-written docs use them freely, 275 times
 at the commit this standard was written against, so no rule here bans them

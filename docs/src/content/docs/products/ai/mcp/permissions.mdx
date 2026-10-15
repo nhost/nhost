@@ -69,7 +69,7 @@ Most MCP clients surface each tool call before running it, using the read-only a
 
 ### Protect the endpoint
 
-Backend MCP requires a valid, unexpired, correctly-issued JWT on every request; unauthenticated requests are rejected with `401`. Serve it over TLS (set `X-Forwarded-Proto` correctly if it runs behind a proxy) so bearer tokens are never sent in the clear.
+Backend MCP requires a valid, unexpired, correctly issued JWT on every request; unauthenticated requests are rejected with `401`. Serve it over TLS (set `X-Forwarded-Proto` correctly if it runs behind a proxy) so bearer tokens are never sent in the clear.
 
 ## See also
 

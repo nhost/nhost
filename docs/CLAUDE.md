@@ -37,6 +37,7 @@ or from inside `nix develop .#docs`. Outside the shell they fail with
 - `pnpm lint:prose`: every page, warnings included
 - `pnpm lint:prose:changed`: only pages changed against `origin/main` (or
   `main`) plus untracked pages
+- `vale --minAlertLevel=suggestion src/content/docs/`: the suggestion tier too
 
 Config is `.vale.ini`; rules, severity tiers and their measured counts are
 in `.vale/styles/Nhost/README.md`. Raise a rule's tier only with a new count

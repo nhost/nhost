@@ -152,7 +152,7 @@ There may be warnings and errors when executing this file, those are typically s
 
 ## Point-in-Time Recovery
 
-Projects with Point-in-Time Recovery enabled have their data continuously backed up, not bound to a specific schedule. You can recover to almost any point in time within your retention period. We perform a daily base backup and then capture database changes every 16MB or 5 minutes (whichever occurs first). This ensures that even your most recent data is safe and can be recovered.
+Projects with Point-in-Time Recovery enabled have their data continuously backed up, not bound to a specific schedule. You can recover to almost any point in time within your retention period. We perform a daily base backup and then capture database changes every 16 MB or 5 minutes (whichever occurs first). This ensures that even your most recent data is safe and can be recovered.
 
 Point-in-Time Recovery is an add-on and not included in the base price. For details visit the [pricing page](https://nhost.io/pricing). When Point-in-Time Recovery is enabled, daily backups are disabled.
 
@@ -212,7 +212,7 @@ Here you can click on the calendar icon to select the restore time:
 
 
 
-Even though you can specify a point in time down to the second, the actual restore may include data modified after that point in time. This is because we capture changes in segments every 16MB or 5 minutes, whichever occurs first, and the restore needs to execute entire segments to ensure consistency. In some cases postgres may be able to execute the entire segment and revert some changes to get closer to the desired point in time, but this is not guaranteed.
+Even though you can specify a point in time down to the second, the actual restore may include data modified after that point in time. This is because we capture changes in segments every 16 MB or 5 minutes, whichever occurs first, and the restore needs to execute entire segments to ensure consistency. In some cases postgres may be able to execute the entire segment and revert some changes to get closer to the desired point in time, but this is not guaranteed.
 
 :::caution
 When restoring a backup with Point-in-Time Recovery, the restore process needs to download a few files related to the restore. These files will take some space on your project's volume temporarily. Make sure you have enough space available before starting the restore. A good rule of thumb would be to have around 25% of your database size available. If you run into issues you can always increase the size and try again.

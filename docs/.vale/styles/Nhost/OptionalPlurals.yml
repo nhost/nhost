@@ -1,0 +1,13 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.
+extends: existence
+message: "Don't use plurals in parentheses such as in '%s'. (WR-STYLE-10)"
+link: "https://developers.google.com/style/plurals-parentheses"
+level: error
+nonword: true
+action:
+  name: edit
+  params:
+    - trim_right
+    - "(s)"
+tokens:
+  - '\b\w+\(s\)'
