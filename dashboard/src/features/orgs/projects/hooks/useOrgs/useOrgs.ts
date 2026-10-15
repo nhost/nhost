@@ -1,5 +1,5 @@
 import type { ApolloQueryResult } from '@apollo/client';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localOrganization } from '@/features/orgs/utils/local-dashboard';
 import {
@@ -27,7 +27,7 @@ export interface UseOrgsReturnType {
 }
 
 export default function useOrgs(): UseOrgsReturnType {
-  const router = useRouter();
+  const { orgSlug: currentOrgSlug } = useParams({ strict: false });
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading, user } = useAuth();
 
@@ -42,7 +42,6 @@ export default function useOrgs(): UseOrgsReturnType {
   });
 
   const orgs = data?.organizations || [];
-  const currentOrgSlug = router.query.orgSlug as string | undefined;
   const currentOrg = orgs.find((org) => org.slug === currentOrgSlug);
 
   if (isPlatform) {

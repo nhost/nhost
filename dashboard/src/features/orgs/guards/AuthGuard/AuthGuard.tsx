@@ -1,5 +1,4 @@
-import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 import Analytics from '@/components/analytics/analytics';
 import { Container } from '@/components/layout/Container';
@@ -11,7 +10,8 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAuth } from '@/providers/Auth';
 
 export default function AuthGuard({ children }: PropsWithChildren) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { orgSlug, appSubdomain } = useParams({ strict: false });
   const isPlatform = useIsPlatform();
 
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
@@ -22,23 +22,23 @@ export default function AuthGuard({ children }: PropsWithChildren) {
       return;
     }
 
-    router.push('/signin');
-  }, [isLoading, isAuthenticated, router, isPlatform]);
+    navigate({ to: '/signin' });
+  }, [isLoading, isAuthenticated, navigate, isPlatform]);
 
   useEffect(() => {
-    if (isPlatform || !router.isReady) {
+    if (isPlatform) {
       return;
     }
 
-    if (
-      router.query.orgSlug === 'local' &&
-      router.query.appSubdomain === 'local'
-    ) {
+    if (orgSlug === 'local' && appSubdomain === 'local') {
       return;
     }
 
-    router.push('/orgs/local/projects/local');
-  }, [isPlatform, router]);
+    navigate({
+      to: '/orgs/$orgSlug/projects/$appSubdomain',
+      params: { orgSlug: 'local', appSubdomain: 'local' },
+    });
+  }, [isPlatform, navigate, orgSlug, appSubdomain]);
 
   if (
     (isPlatform && isLoading) ||
@@ -55,7 +55,7 @@ export default function AuthGuard({ children }: PropsWithChildren) {
         className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
       >
         <div className="mx-auto">
-          <Image
+          <img
             src="/terminal-text.svg"
             alt="Terminal with a green dot"
             width={72}

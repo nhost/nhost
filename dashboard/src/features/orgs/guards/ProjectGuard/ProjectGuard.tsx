@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 import { PageTitle } from '@/components/common/PageTitle';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -8,29 +8,33 @@ import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
 
-const platFormOnlyPages = [
-  '/orgs/[orgSlug]/projects/[appSubdomain]/deployments',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/point-in-time',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/import',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/[deploymentId]',
-];
+const platformOnlyPages = [
+  '/orgs/$orgSlug/projects/$appSubdomain/deployments',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/backups',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/backups/point-in-time',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/backups/import',
+  '/orgs/$orgSlug/projects/$appSubdomain/metrics',
+  '/orgs/$orgSlug/projects/$appSubdomain/deployments/$deploymentId',
+] as const;
 
-function isSelfHostedAndGraphitePage(route: string) {
-  const isGraphitePage = route.startsWith(
-    '/orgs/[orgSlug]/projects/[appSubdomain]/ai',
-  );
-  const isConfigEnvVariableNotSet = getConfigServerUrl() === '';
+/**
+ * Pages that can't be shown for this project: platform-only pages on a local
+ * dashboard, and the AI pages when there is no config server.
+ */
+function useIsUnavailablePage() {
+  const matchRoute = useMatchRoute();
 
-  return isGraphitePage && isConfigEnvVariableNotSet;
-}
+  const isPlatformOnlyPage =
+    !isPlatformFn() &&
+    platformOnlyPages.some((to) => matchRoute({ to }) !== false);
+  const isSelfHostedAndGraphitePage =
+    getConfigServerUrl() === '' &&
+    matchRoute({
+      to: '/orgs/$orgSlug/projects/$appSubdomain/ai',
+      fuzzy: true,
+    }) !== false;
 
-function isPlatformOnlyPage(route: string) {
-  const platFormOnlyPage = !!platFormOnlyPages.find((page) => route === page);
-  const isNotPlatform = !isPlatformFn();
-
-  return isNotPlatform && platFormOnlyPage;
+  return isPlatformOnlyPage || isSelfHostedAndGraphitePage;
 }
 
 /**
@@ -39,7 +43,8 @@ function isPlatformOnlyPage(route: string) {
  * `ProjectStateGate` below whatever chrome must stay visible while paused.
  */
 export default function ProjectGuard({ children }: PropsWithChildren) {
-  const { route, push } = useRouter();
+  const navigate = useNavigate();
+  const isUnavailablePage = useIsUnavailablePage();
   const isPlatform = useIsPlatform();
 
   const { project, loading, error, projectNotFound } = useProject();
@@ -48,20 +53,12 @@ export default function ProjectGuard({ children }: PropsWithChildren) {
   const isUserLoggedIn = isAuthenticated && !isLoading && !isSigningOut;
 
   useEffect(() => {
-    if (
-      isPlatformOnlyPage(route) ||
-      isSelfHostedAndGraphitePage(route) ||
-      (!error && isUserLoggedIn && projectNotFound)
-    ) {
-      push('/404');
+    if (isUnavailablePage || (!error && isUserLoggedIn && projectNotFound)) {
+      navigate({ to: '/404' });
     }
-  }, [route, push, projectNotFound, isUserLoggedIn, error]);
+  }, [isUnavailablePage, navigate, projectNotFound, isUserLoggedIn, error]);
 
-  if (
-    isPlatformOnlyPage(route) ||
-    isSelfHostedAndGraphitePage(route) ||
-    (!error && isUserLoggedIn && projectNotFound)
-  ) {
+  if (isUnavailablePage || (!error && isUserLoggedIn && projectNotFound)) {
     return null;
   }
 

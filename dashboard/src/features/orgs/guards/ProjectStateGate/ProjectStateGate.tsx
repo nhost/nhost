@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { type PropsWithChildren, useMemo } from 'react';
 import { Alert } from '@/components/ui/v3/alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
@@ -8,19 +8,21 @@ import { usePollWhileTransitioning } from '@/features/orgs/projects/common/hooks
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectStateScreen from './ProjectStateScreen';
-import { requiresRunningProject } from './projectStatePages';
+import {
+  requiresRunningProject,
+  useCurrentPagePath,
+} from './projectStatePages';
 
 function ProjectStateGate({ children }: PropsWithChildren) {
-  const {
-    query: { appSubdomain },
-    route,
-  } = useRouter();
+  const { appSubdomain } = useParams({ strict: false });
+  const pagePath = useCurrentPagePath();
 
   const { state } = useAppState();
 
   usePollWhileTransitioning();
 
-  const isOnOverviewPage = route === '/orgs/[orgSlug]/projects/[appSubdomain]';
+  const isOnOverviewPage =
+    pagePath === '/orgs/$orgSlug/projects/$appSubdomain/';
 
   const projectPageContent = useMemo(() => {
     if (!appSubdomain || state === undefined) {
@@ -29,16 +31,14 @@ function ProjectStateGate({ children }: PropsWithChildren) {
 
     switch (state) {
       case ApplicationStatus.Empty: {
-        if (typeof window !== 'undefined') {
-          const newProjectSubdomain = sessionStorage.getItem(
-            'newProjectSubdomain',
-          );
-          if (
-            isNotEmptyValue(newProjectSubdomain) &&
-            newProjectSubdomain === appSubdomain
-          ) {
-            return <ApplicationProvisioning />;
-          }
+        const newProjectSubdomain = sessionStorage.getItem(
+          'newProjectSubdomain',
+        );
+        if (
+          isNotEmptyValue(newProjectSubdomain) &&
+          newProjectSubdomain === appSubdomain
+        ) {
+          return <ApplicationProvisioning />;
         }
 
         return null;
@@ -67,7 +67,7 @@ function ProjectStateGate({ children }: PropsWithChildren) {
       case ApplicationStatus.Paused:
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
-        return requiresRunningProject(route) ? (
+        return requiresRunningProject(pagePath) ? (
           <ProjectStateScreen />
         ) : (
           children
@@ -79,7 +79,7 @@ function ProjectStateGate({ children }: PropsWithChildren) {
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage, route]);
+  }, [state, children, appSubdomain, isOnOverviewPage, pagePath]);
 
   return projectPageContent;
 }

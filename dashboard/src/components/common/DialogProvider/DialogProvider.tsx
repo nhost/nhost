@@ -1,11 +1,10 @@
+import { useBlocker } from '@tanstack/react-router';
 import { X } from 'lucide-react';
-import { useRouter } from 'next/router';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import {
   cloneElement,
   isValidElement,
   useCallback,
-  useEffect,
   useMemo,
   useReducer,
   useRef,
@@ -58,8 +57,6 @@ function defaultOverflow(className?: string) {
 }
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
-  const router = useRouter();
-
   const [
     { open: dialogOpen, title: dialogTitle, activeDialog, dialogProps },
     dialogDispatch,
@@ -271,8 +268,11 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     ],
   );
 
-  useEffect(() => {
-    function handleCloseDrawerAndDialog() {
+  // Leaving the page closes open dialogs and drawers. With unsaved changes in
+  // one of them, the navigation is cancelled and the user is asked whether to
+  // discard them; discarding closes the dialogs and keeps the current page.
+  useBlocker({
+    shouldBlockFn: () => {
       if (
         isDrawerDirty.current ||
         isDialogDirty.current ||
@@ -288,25 +288,16 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           },
         });
 
-        throw new Error('Unsaved changes');
+        return true;
       }
 
       closeDrawer();
       closeDialog();
-    }
 
-    router?.events?.on?.('routeChangeStart', handleCloseDrawerAndDialog);
-
-    return () => {
-      router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
-    };
-  }, [
-    closeDialog,
-    closeDrawer,
-    hasAnyDirtySource,
-    openDirtyConfirmation,
-    router.events,
-  ]);
+      return false;
+    },
+    enableBeforeUnload: false,
+  });
 
   return (
     <DialogContext.Provider value={contextValue}>

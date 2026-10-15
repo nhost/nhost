@@ -1,6 +1,4 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -10,10 +8,10 @@ import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpau
 import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewSkeleton from './ProjectViewSkeleton';
-import { hasSidebarSkeleton } from './projectStatePages';
+import { hasSidebarSkeleton, useCurrentPagePath } from './projectStatePages';
 
 export default function ProjectStateScreen() {
-  const { route } = useRouter();
+  const pagePath = useCurrentPagePath();
   const { state } = useAppState();
 
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
@@ -22,7 +20,7 @@ export default function ProjectStateScreen() {
 
   return (
     <div className="relative h-full w-full bg-background">
-      <ProjectViewSkeleton hasSidebar={hasSidebarSkeleton(route)} />
+      <ProjectViewSkeleton hasSidebar={hasSidebarSkeleton(pagePath)} />
       <Dialog open modal={false}>
         <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
           <DialogPrimitive.Content
@@ -31,7 +29,7 @@ export default function ProjectStateScreen() {
           >
             <DialogTitle className="sr-only">Project State</DialogTitle>
 
-            <Image
+            <img
               src="/assets/PausedApp.svg"
               alt="Paused project"
               width={52}

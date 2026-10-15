@@ -1,75 +1,88 @@
-const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
+import { useRouterState } from '@tanstack/react-router';
+import type { FileRoutesByFullPath } from '@/routeTree.gen';
 
-function toRoutes(pages: string[]): Set<string> {
-  return new Set(pages.map((page) => baseProjectPageRoute.concat(page)));
-}
+/** A project page, by its route's full path (index routes end with `/`). */
+type ProjectPagePath = Extract<
+  keyof FileRoutesByFullPath,
+  `/orgs/$orgSlug/projects/$appSubdomain/${string}`
+>;
 
-const runningProjectPages = toRoutes([
-  'database/browser/[dataSourceSlug]',
-  'database/console/[dataSourceSlug]',
-  'database/browser/[dataSourceSlug]/[schemaSlug]/tables/[tableSlug]',
-  'database/browser/[dataSourceSlug]/[schemaSlug]/functions/[functionOID]',
-  'database/schema/[dataSourceSlug]',
-  'database/native-queries/[dataSourceSlug]',
-  'database/native-queries/[dataSourceSlug]/models/[modelSlug]',
-  'database/native-queries/[dataSourceSlug]/queries/[querySlug]',
-  'graphql',
-  'graphql/remote-schemas',
-  'graphql/remote-schemas/[remoteSchemaSlug]',
-  'graphql/actions',
-  'graphql/actions/[actionSlug]',
-  'graphql/actions/custom-types',
-  'graphql/metadata',
-  'events/event-triggers',
-  'events/event-triggers/[eventTriggerSlug]',
-  'events/cron-triggers',
-  'events/cron-triggers/[cronTriggerSlug]',
-  'events/one-offs',
-  'graphql/console',
-  'auth/users',
-  'auth/oauth2-clients',
-  'storage/buckets',
-  'storage/buckets/[...bucketId]',
-  'ai/auto-embeddings',
-  'ai/assistants',
-  'ai/file-stores',
-  'metrics',
-]);
+const runningProjectPages = new Set<string>([
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/console/$dataSourceSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/functions/$functionOID',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/schema/$dataSourceSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/models/$modelSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/$remoteSchemaSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/$actionSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/custom-types',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/metadata/',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/$eventTriggerSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/one-offs/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/console',
+  '/orgs/$orgSlug/projects/$appSubdomain/auth/users',
+  '/orgs/$orgSlug/projects/$appSubdomain/auth/oauth2-clients',
+  '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/',
+  '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/$',
+  '/orgs/$orgSlug/projects/$appSubdomain/ai/auto-embeddings/',
+  '/orgs/$orgSlug/projects/$appSubdomain/ai/assistants/',
+  '/orgs/$orgSlug/projects/$appSubdomain/ai/file-stores/',
+  '/orgs/$orgSlug/projects/$appSubdomain/metrics/',
+] satisfies ProjectPagePath[]);
 
-const sidebarSkeletonPages = toRoutes([
-  'events/event-triggers',
-  'events/event-triggers/[eventTriggerSlug]',
-  'events/cron-triggers',
-  'events/cron-triggers/[cronTriggerSlug]',
-  'storage/buckets',
-  'storage/buckets/[...bucketId]',
-  'graphql/remote-schemas',
-  'graphql/remote-schemas/[remoteSchemaSlug]',
-  'graphql/actions',
-  'graphql/actions/[actionSlug]',
-  'graphql/actions/custom-types',
-  'database/browser/[dataSourceSlug]',
-  'database/browser/[dataSourceSlug]/[schemaSlug]/tables/[tableSlug]',
-  'database/browser/[dataSourceSlug]/[schemaSlug]/functions/[functionOID]',
-  'database/native-queries/[dataSourceSlug]',
-  'database/native-queries/[dataSourceSlug]/models/[modelSlug]',
-  'database/native-queries/[dataSourceSlug]/queries/[querySlug]',
-]);
+const sidebarSkeletonPages = new Set<string>([
+  '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/$eventTriggerSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/',
+  '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/',
+  '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/$',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/$remoteSchemaSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/$actionSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/custom-types',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/functions/$functionOID',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/models/$modelSlug',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
+] satisfies ProjectPagePath[]);
 
 /**
- * Whether the given route only works when the project's services are running,
+ * The full path of the page being shown, e.g.
+ * `/orgs/$orgSlug/projects/$appSubdomain/graphql/`.
+ */
+export function useCurrentPagePath(): string | undefined {
+  return useRouterState({
+    select: (state) => state.matches.at(-1)?.fullPath,
+  });
+}
+
+/**
+ * Whether the given page only works when the project's services are running,
  * so it should be replaced with a project-state screen while the project is
  * paused/pausing/unpausing/restoring.
  */
-export function requiresRunningProject(route: string): boolean {
-  return runningProjectPages.has(route);
+export function requiresRunningProject(pagePath: string | undefined): boolean {
+  return pagePath !== undefined && runningProjectPages.has(pagePath);
 }
 
 /**
  * Whether the project-state screen's skeleton should include a sidebar for the
- * given route. Only pages whose sidebar loads its contents from the project
+ * given page. Only pages whose sidebar loads its contents from the project
  * qualify — a static link sidebar has nothing to stand in for.
  */
-export function hasSidebarSkeleton(route: string): boolean {
-  return sidebarSkeletonPages.has(route);
+export function hasSidebarSkeleton(pagePath: string | undefined): boolean {
+  return pagePath !== undefined && sidebarSkeletonPages.has(pagePath);
 }

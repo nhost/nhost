@@ -1,24 +1,13 @@
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import {
   BaseLayout,
   type BaseLayoutProps,
 } from '@/components/layout/BaseLayout';
 import { DashboardNavigation } from '@/components/layout/DashboardNavigation';
+import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-
-// Client-only: the sidebar restores its collapsed state from localStorage on
-// first render, which the prerendered HTML cannot know, so hydrating it would
-// leave the DOM out of sync with that state.
-const DashboardSidebar = dynamic(
-  () =>
-    import('@/components/layout/DashboardSidebar').then(
-      (mod) => mod.DashboardSidebar,
-    ),
-  { ssr: false },
-);
+import { useCurrentHref } from '@/lib/route-navigation';
 
 type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
 
@@ -28,12 +17,11 @@ type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
  * nothing about what a page renders into `<main>`. `<main>` does not scroll:
  * the scope or layout inside it decides which region does.
  *
- * It must be the root element every org- and project-scoped page returns from
- * `getLayout`; React keeps the shell mounted across navigation only while the
- * root type stays the same.
+ * The `/orgs/$orgSlug` layout route renders it, so it stays mounted while the
+ * user moves between organization and project pages.
  */
 export default function AppLayout({ children, ...props }: AppLayoutProps) {
-  const router = useRouter();
+  const currentHref = useCurrentHref();
   // Matches the header, which also renders the desktop layout until the
   // viewport is known.
   const isDesktop = useMediaQuery('md', { initialValue: true });
@@ -52,7 +40,7 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
         <main className="relative flex min-w-0 flex-1 flex-col bg-background">
           <RetryableErrorBoundary
             errorMessageProps={{ className: 'flex flex-col items-center' }}
-            resetKeys={[router.asPath]}
+            resetKeys={[currentHref]}
           >
             {children}
           </RetryableErrorBoundary>

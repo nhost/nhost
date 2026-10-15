@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
@@ -7,14 +7,14 @@ import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
  * self-hosted dashboard without a config server has nothing to edit.
  */
 export default function SettingsGuard({ children }: PropsWithChildren) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isSettingsDisabled = useSettingsDisabled();
 
   useEffect(() => {
     if (isSettingsDisabled) {
-      router.push('/404');
+      navigate({ to: '/404' });
     }
-  }, [router, isSettingsDisabled]);
+  }, [navigate, isSettingsDisabled]);
 
   if (isSettingsDisabled) {
     return null;

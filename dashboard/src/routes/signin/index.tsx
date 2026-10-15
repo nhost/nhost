@@ -11,10 +11,15 @@ import { LastUsedBadge } from '@/features/auth/SignIn/components/LastUsedBadge';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
 import { useLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
+import { getSearchParam } from '@/lib/search-params';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 
 export const Route = createFileRoute('/signin/')({
+  // Where to go after signing in; UnauthenticatedLayout reads it.
+  validateSearch: (search): { redirect?: string } => ({
+    redirect: getSearchParam(search.redirect),
+  }),
   component: RouteComponent,
 });
 

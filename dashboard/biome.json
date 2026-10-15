@@ -80,7 +80,8 @@
         }
       },
       "performance": {
-        "noAccumulatingSpread": "off"
+        "noAccumulatingSpread": "off",
+        "noImgElement": "off"
       }
     },
     "includes": [

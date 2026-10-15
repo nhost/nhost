@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   type Exact,
@@ -27,25 +27,18 @@ export default function useCurrentOrg(): UseCurrenOrgReturnType {
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
-  const {
-    query: { orgSlug },
-    isReady: isRouterReady,
-  } = useRouter();
+  const { orgSlug } = useParams({ strict: false });
 
   const isOrgSlugAvailable = Boolean(orgSlug);
 
   const shouldFetchOrg =
-    isPlatform &&
-    isRouterReady &&
-    isOrgSlugAvailable &&
-    isAuthenticated &&
-    !isAuthLoading;
+    isPlatform && isOrgSlugAvailable && isAuthenticated && !isAuthLoading;
 
   const { data, loading, error, refetch } = useGetOrganizationQuery({
     fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,
     variables: {
-      orgSlug: (orgSlug as string) ?? '',
+      orgSlug: orgSlug ?? '',
     },
   });
 

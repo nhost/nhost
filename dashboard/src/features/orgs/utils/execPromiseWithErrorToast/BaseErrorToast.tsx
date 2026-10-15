@@ -1,10 +1,10 @@
 import type { ApolloError } from '@apollo/client';
 import { ChevronDownIcon, ChevronUpIcon, CopyIcon, XIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
+import { useCurrentHref } from '@/lib/route-navigation';
 import { copy } from '@/utils/copy';
 
 interface ErrorDetails {
@@ -46,7 +46,7 @@ export default function BaseErrorToast({
   children,
 }: BaseErrorToastProps) {
   const userData = useUserData();
-  const { asPath } = useRouter();
+  const currentHref = useCurrentHref();
 
   const [showInfo, setShowInfo] = useState(false);
   const { project } = useProject();
@@ -55,7 +55,7 @@ export default function BaseErrorToast({
     info: {
       projectId: project?.id,
       userId: userData?.id || 'local',
-      url: asPath,
+      url: currentHref,
     },
     error: errorToObject(error),
   };

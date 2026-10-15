@@ -1,10 +1,10 @@
-import { useRouter } from 'next/router';
 import {
   BaseLayout,
   type BaseLayoutProps,
 } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { useCurrentHref } from '@/lib/route-navigation';
 
 export type StandaloneLayoutProps = Omit<BaseLayoutProps, 'className'>;
 
@@ -16,7 +16,7 @@ export default function StandaloneLayout({
   children,
   ...props
 }: StandaloneLayoutProps) {
-  const router = useRouter();
+  const currentHref = useCurrentHref();
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
@@ -25,7 +25,7 @@ export default function StandaloneLayout({
       <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'flex flex-col items-center' }}
-          resetKeys={[router.asPath]}
+          resetKeys={[currentHref]}
         >
           {children}
         </RetryableErrorBoundary>

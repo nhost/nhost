@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 /**
@@ -11,9 +11,7 @@ import { useEffect } from 'react';
  * section navigation would clear the cache on every section switch.
  */
 export default function useClearQueryCacheOnProjectChange() {
-  const {
-    query: { appSubdomain },
-  } = useRouter();
+  const { appSubdomain } = useParams({ strict: false });
   const queryClient = useQueryClient();
 
   useEffect(() => {

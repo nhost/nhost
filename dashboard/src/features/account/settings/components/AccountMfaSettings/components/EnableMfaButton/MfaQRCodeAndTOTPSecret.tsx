@@ -57,7 +57,6 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
             <p className="text-base">
               Scan the QR Code with your authenticator app
             </p>
-            {/** biome-ignore lint/performance/noImgElement: used for qrcode */}
             <img alt="qrcode" src={qrCodeDataUrl} className="mx-auto w-64" />
           </div>
           {totpSecret && <CopyMfaTOTPSecret totpSecret={totpSecret} />}

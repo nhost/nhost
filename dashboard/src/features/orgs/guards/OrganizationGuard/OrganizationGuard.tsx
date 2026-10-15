@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -7,7 +7,7 @@ import { useAuth } from '@/providers/Auth';
 
 function OrganizationGuard({ children }: PropsWithChildren) {
   const { org, loading, error } = useCurrentOrg();
-  const router = useRouter();
+  const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
 
@@ -15,16 +15,15 @@ function OrganizationGuard({ children }: PropsWithChildren) {
 
   const orgNotFound = isPlatform && isEmptyValue(org) && !loading;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: push does not change
   useEffect(() => {
     if (error) {
       return;
     }
 
     if (isUserLoggedIn && orgNotFound) {
-      router.push('/404');
+      navigate({ to: '/404' });
     }
-  }, [orgNotFound, isUserLoggedIn, error]);
+  }, [orgNotFound, isUserLoggedIn, error, navigate]);
 
   if (error) {
     throw error;

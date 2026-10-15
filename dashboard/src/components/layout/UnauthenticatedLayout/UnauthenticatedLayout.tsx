@@ -1,5 +1,4 @@
-import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { useMatch, useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
@@ -18,20 +17,18 @@ export default function UnauthenticatedLayout({
   rightColumnContent,
   ...props
 }: UnauthenticatedLayoutProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { redirect } = useSearch({ strict: false });
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuth();
-  const isOnResetPassword = router.route === '/password/reset';
+  const isOnResetPassword =
+    useMatch({ from: '/password/reset', shouldThrow: false }) !== undefined;
 
   useEffect(() => {
     if (!isPlatform || (!isLoading && isAuthenticated)) {
       // we do not want to redirect if the user tries to reset their password
       if (!isOnResetPassword) {
-        const redirectQuery =
-          typeof router.query.redirect === 'string' &&
-          router.query.redirect.startsWith('/')
-            ? router.query.redirect
-            : null;
+        const redirectQuery = redirect?.startsWith('/') ? redirect : null;
         const storedRedirect = sessionStorage.getItem('postSignInRedirect');
         const redirectTarget =
           redirectQuery ||
@@ -42,10 +39,19 @@ export default function UnauthenticatedLayout({
           sessionStorage.removeItem('postSignInRedirect');
         }
 
-        router.push(redirectTarget);
+        // The target comes from the URL or session storage, so it is not a
+        // typed route.
+        navigate({ href: redirectTarget });
       }
     }
-  }, [isLoading, isAuthenticated, router, isPlatform, isOnResetPassword]);
+  }, [
+    isLoading,
+    isAuthenticated,
+    navigate,
+    redirect,
+    isPlatform,
+    isOnResetPassword,
+  ]);
 
   if ((!isPlatform || isLoading || isAuthenticated) && !isOnResetPassword) {
     return (
@@ -71,20 +77,18 @@ export default function UnauthenticatedLayout({
               <div className="relative z-0 order-1 flex h-full w-full flex-col items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none] lg:gap-8">
                 <div className="relative flex items-center justify-center">
                   <div className="absolute top-0 right-0 bottom-0 left-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
-                    <Image
-                      priority
+                    <img
                       src="/assets/line-grid.svg"
                       width={1003}
                       height={644}
                       alt="Transparent lines"
-                      objectFit="fill"
-                      className="h-full w-full scale-[200%]"
+                      className="h-full w-full scale-[200%] object-fill"
                     />
                   </div>
 
                   <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-3xl" />
 
-                  <Image
+                  <img
                     src="/assets/logo.svg"
                     width={119}
                     height={40}
