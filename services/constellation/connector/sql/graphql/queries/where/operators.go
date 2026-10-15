@@ -278,6 +278,12 @@ func operatorParserTable() map[string]operatorParser {
 		"_iregex":  buildRegex(false, true),
 		"_niregex": buildRegex(true, true),
 		"_is_null": parseIsNull,
+		"_ceq":     columnComparisonParser(" = "),
+		"_cneq":    columnComparisonParser(" != "),
+		"_cgt":     columnComparisonParser(" > "),
+		"_cgte":    columnComparisonParser(" >= "),
+		"_clt":     columnComparisonParser(" < "),
+		"_clte":    columnComparisonParser(" <= "),
 		"_cast":    parseSpatialCast,
 		"_contains": containmentParser(
 			func(c *core.Column, vs []any, d dialect.Dialect) Statement {

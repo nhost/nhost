@@ -93,7 +93,14 @@ func (f *notFilter) children() []Statement { return []Statement{f.condition} }
 // references from its source. This is used to ensure the data subquery in
 // insert permission checks includes all columns needed by the permission
 // WHERE clause, even if those columns aren't in the insert data.
+//
+// ws is treated as the outermost statement, so column-comparison operands
+// that refer to the root table ("$") are included wherever they are nested.
 func CollectSourceColumns(ws Statement) []string {
+	return append(collectSourceColumns(ws), collectRootColumns(ws)...)
+}
+
+func collectSourceColumns(ws Statement) []string {
 	if ws == nil {
 		return nil
 	}
@@ -117,8 +124,42 @@ func CollectSourceColumns(ws Statement) []string {
 
 	var columns []string
 	for _, child := range composite.children() {
-		columns = append(columns, CollectSourceColumns(child)...)
+		columns = append(columns, collectSourceColumns(child)...)
 	}
 
 	return columns
+}
+
+// collectRootColumns returns the columns that column-comparison operands of
+// the form ["$", column] read from the root source. Unlike
+// collectSourceColumns it descends into relationship, aggregate and _exists
+// subqueries: the root alias stays the same however deep the operand sits.
+func collectRootColumns(ws Statement) []string {
+	if ws == nil {
+		return nil
+	}
+
+	switch f := ws.(type) {
+	case *columnComparisonFilter:
+		if f.ref.fromRoot {
+			return []string{f.ref.column}
+		}
+
+		return nil
+	case *relationshipFilter:
+		return collectRootColumns(f.conditions)
+	case *aggregateRelationshipFilter:
+		return collectRootColumns(f.filter)
+	case *existsFilter:
+		return collectRootColumns(f.conditions)
+	case compositeFilter:
+		var columns []string
+		for _, child := range f.children() {
+			columns = append(columns, collectRootColumns(child)...)
+		}
+
+		return columns
+	}
+
+	return nil
 }
