@@ -1,11 +1,11 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
-import * as TOML from '@iarna/toml';
 import { bbedit } from '@uiw/codemirror-theme-bbedit';
 import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { parse, stringify, TomlError, type TomlTable } from 'smol-toml';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -58,7 +58,7 @@ export default function TOMLEditor() {
     // Load TOML code from the server on initial load
     if (!loading && data) {
       const jsonData = JSON.parse(data?.configRawJSON);
-      const tomlStr = TOML.stringify(jsonData);
+      const tomlStr = stringify(jsonData);
       const unindentedTOMLConfig = removeTOMLIndentation(tomlStr);
       setTOMLCode(unindentedTOMLConfig);
       setPreviousTOMLCode(unindentedTOMLConfig);
@@ -77,15 +77,14 @@ export default function TOMLEditor() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    let jsonEditedConfig: TOML.JsonMap | null = null;
+    let jsonEditedConfig: TomlTable | null = null;
     try {
-      jsonEditedConfig = TOML.parse(tomlCode);
+      jsonEditedConfig = parse(tomlCode);
     } catch (error) {
       const toastStyle = getToastStyleProps();
-      const { line, col } = error;
       let message = `An error occurred while parsing the TOML file. Please check the syntax.`;
-      if (line !== undefined && col !== undefined) {
-        message = `An error occurred while parsing the TOML file. Please check the syntax at line ${line}, column ${col}.`;
+      if (error instanceof TomlError) {
+        message = `An error occurred while parsing the TOML file. Please check the syntax at line ${error.line}, column ${error.column}.`;
       }
       toast.error(message, {
         style: toastStyle.style,
@@ -109,7 +108,7 @@ export default function TOMLEditor() {
 
         if (updatedConfig) {
           const jsonUpdatedConfig = JSON.parse(updatedConfig);
-          const updatedTOMLConfig = TOML.stringify(jsonUpdatedConfig);
+          const updatedTOMLConfig = stringify(jsonUpdatedConfig);
           const unindentedTOMLConfig = removeTOMLIndentation(updatedTOMLConfig);
           setTOMLCode(unindentedTOMLConfig);
           setPreviousTOMLCode(unindentedTOMLConfig);

@@ -9,10 +9,16 @@ import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
+import { Buffer } from 'buffer';
 import { createRoot } from 'react-dom/client';
 import { RetryableErrorBoundaryFallback } from '@/components/presentational/RetryableErrorBoundary';
 import { parseSearch, stringifySearch } from '@/lib/search-params';
 import { routeTree } from '@/routeTree.gen';
+
+// node-pg-format checks `value instanceof Buffer` for every value it
+// formats, and browsers have no Buffer. Next.js provided one; until that
+// dependency is patched or replaced, the app does.
+globalThis.Buffer ??= Buffer;
 
 const router = createRouter({
   routeTree,
