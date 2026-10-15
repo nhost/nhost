@@ -10,12 +10,12 @@ import { Icon, Steps } from '@astrojs/starlight/components';
 
 A native query turns a hand-written SQL query into a GraphQL root field. Native queries are useful when the generated GraphQL API from your tables cannot express what you need, such as window functions, recursive CTEs, aggregates across several tables, or queries that are better kept in SQL than rebuilt in your application.
 
-Native queries are read-only. They execute a `SELECT` query and return rows. To modify data, use mutations or [functions](/products/functions).
+Native queries are read-only. They execute a `SELECT` query and return rows. To modify data, use mutations or [Functions](/products/functions).
 
 Every native query needs a **logical model**, which describes the shape of the rows it returns. The model is what the GraphQL API exposes as a type, and it is also where permissions are defined. The following sections explain how logical models work and how they fit into native queries.
 
 :::caution[Requirements]
-- Native queries require GraphQL Engine v2.33.0 or later. On older versions the page loads, but creating or updating native queries will fail. Check and change the version under **GraphQL -> Settings -> Engine** <a href="https://app.nhost.io/orgs/_/projects/_/graphql/settings?tab=engine" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>.
+- Native queries require GraphQL Engine v2.33.0 or later. On older versions the page loads, but creating or updating native queries will fail. Check and change the version under **GraphQL → Settings → Engine** <a href="https://app.nhost.io/orgs/_/projects/_/graphql/settings?tab=engine" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>.
 - Postgres sources only.
 :::
 
@@ -27,7 +27,7 @@ Native queries are served by the default engine. [Constellation](/products/graph
 
 ![Native Queries Navigation](/images/products/database/native-queries/native-queries-nav.png)
 
-In the dashboard, open **Database -> Native Queries** <a href="https://app.nhost.io/orgs/_/projects/_/database/native-queries/default" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>. The page is also reachable from the command palette (`⌘K` on Mac, `Ctrl+K` on Windows/Linux) by searching for "native queries" or "logical models".
+In the dashboard, open **Database → Native Queries** <a href="https://app.nhost.io/orgs/_/projects/_/database/native-queries/default" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>. The page is also reachable from the command palette (`⌘K` on Mac, `Ctrl+K` on Windows/Linux) by searching for "native queries" or "logical models".
 
 ## Native Query Concepts
 
@@ -104,7 +104,7 @@ Once the native query is created, the details page shows its **SQL**, **Returns*
 
 The native query is available as a root field in the GraphQL schema.
 
-The GraphQL Playground autocompletes the root field and the fields of the returned model, which makes it a convenient way to test the query. In the project’s sidebar, open **GraphQL → Playground** <a href="https://app.nhost.io/orgs/_/projects/_/graphql" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>:
+The GraphQL Playground autocompletes the root field and the fields of the returned model, which makes it a convenient way to test the query. In the project's sidebar, open **GraphQL → Playground** <a href="https://app.nhost.io/orgs/_/projects/_/graphql" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>:
 
 ![GraphQL Playground Navigation](/images/products/database/native-queries/graphql-playground-nav.png)
 
@@ -127,7 +127,7 @@ _Note: `args` expects a single object, ie. `{ min_views: 100 }`. A query that ta
 
 Our result returns posts above the argument threshold value, with computed `popularity` field.
 
-The `popular_posts` root field is also available on any GraphQL client, including the [JavaScript SDK](/products/functions/guides/nhost-sdk) and plain HTTP:
+The `popular_posts` root field is also available on any GraphQL client, including the [JavaScript SDK](/reference/javascript/nhost-js/graphql) and plain HTTP:
 
 ```bash
 curl -s https://{subdomain}.graphql.{region}.nhost.run/v1 \
@@ -159,13 +159,18 @@ The order matters: the SQL runs first, then the row filter applies to what it re
 
 A role with no select permission on the model does not get the root field in its schema at all, so querying it as that role is a schema error rather than an empty result.
 
-{/* SCREENSHOT: /images/products/database/native-queries/permissions.png
-    The permissions grid for a logical model with a row filter configured for a
-    role. */}
-
 ## Relationships
 
 A native query can be related to another native query, so a single GraphQL query can return a nested shape built from two SQL queries. Relationships from a native query to a tracked table are not supported here.
+
+The example below relates `popular_posts` to a second native query, `post_stats_query`, which returns a `post_stats` logical model with `post_id` and `word_count` fields and takes no arguments:
+
+```sql
+select
+  id as post_id,
+  array_length(regexp_split_to_array(body, '\s+'), 1) as word_count
+from public.posts
+```
 
 ![Relationships Navigation](/images/products/database/native-queries/relationships-nav.png)
 
@@ -181,6 +186,8 @@ In the **Create Relationship** dialog, fill in:
 - **Target Native Query**: the native query on the other end.
 - **Relationship Type**: `Object Relationship` for a single nested object, `Array Relationship` for a list.
 - **Source fields** and **Target fields**: the field mapping that joins the two. Add more than one pair for a composite join. Each source field can be used only once.
+
+In the example, that is `stats`, `post_stats_query`, `Object Relationship`, and `id` → `post_id`.
 
 The nested field is then queried like any other relationship:
 
@@ -217,11 +224,11 @@ Every create, edit, and delete is saved differently depending on where the proje
 
 | | Nhost Cloud | Local |
 | --- | --- | --- |
-| Saved through | Metadata API | Migrations API |
-| Result | Metadata updated in place, effective immediately | A migration file under `nhost/migrations/`, plus the metadata change under `nhost/metadata/` |
-| In version control | No | Yes, promoted through environments like any schema change |
+| Saved through | Metadata API | The CLI's migrate API |
+| Result | Metadata updated in place, effective immediately | Metadata applied and written to `nhost/metadata/`. No migration file is created, because these changes run no SQL |
+| In version control | No | Yes, as metadata committed with the project and promoted through environments |
 
-Because every local change is a migration, experimenting locally leaves migration files behind. Use a throwaway project when trying the feature out.
+Local changes show up in `nhost/metadata/` as soon as they are saved, so review them with `git status` and commit or discard them like any other metadata change.
 
 ## Limitations
 
