@@ -24,3 +24,25 @@ sources and regenerate instead.
 Calibration pairs (an unedited LLM draft beside the approved page, with the
 brief and the deltas) live under `tools/writing/calibration/`. Writers do not
 read that directory; reviewers and the judge do.
+
+## Prose lint (Vale)
+
+`vale` is not on a stock PATH; it comes from the docs dev shell. Run these
+from the repo root as `nix develop .#docs --command pnpm --dir docs <script>`,
+or from inside `nix develop .#docs`. Outside the shell they fail with
+`vale: command not found`, which looks like a broken script but is not.
+
+- `pnpm test:prose`: error-level alerts only; part of `pnpm test` and the
+  docs Nix check, so it must exit 0
+- `pnpm lint:prose`: every page, warnings included
+- `pnpm lint:prose:changed`: only pages changed against `origin/main` (or
+  `main`) plus untracked pages
+
+Config is `.vale.ini`; rules, severity tiers and their measured counts are
+in `.vale/styles/Nhost/README.md`. Raise a rule's tier only with a new count
+there. `.vale.ini` ignores imports, `export const` blocks, `{/* */}` comments
+and JSX tags; a rule that must see a comment (`SCREENSHOT:`, `VERIFY:`) needs
+`scope: raw`. When Vale flags text inside a JSX-wrapped paragraph (a `<Card>`
+body, say) and the same text also sits earlier in the page inside ignored
+content (a tag attribute such as an `href`, an `export const` value), the
+alert is reported at that earlier line, not the line holding the prose.
