@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -16,8 +16,7 @@ export default function CreateActionForm({ location }: CreateActionFormProps) {
   const { mutateAsync: createAction } = useCreateActionMutation();
   const { data: actionsData, isLoading, error, refetch } = useGetActions();
   const { closeDrawer } = useDialog();
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
 
   const existingCustomTypes = actionsData?.customTypes ?? {};
 
@@ -34,9 +33,11 @@ export default function CreateActionForm({ location }: CreateActionFormProps) {
           previousCustomTypes: existingCustomTypes,
         });
         closeDrawer();
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${actionArgs.name}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/$actionSlug',
+          params: (prev) => ({ ...prev, actionSlug: actionArgs.name }),
+        });
       },
       {
         loadingMessage: 'Creating action...',

@@ -54,11 +54,34 @@ function RootComponent() {
   );
 }
 
+/**
+ * Search params that can arrive on any page:
+ * - `session_id`: Stripe returns to the page that started a checkout; the
+ *   dialogs finishing it are mounted on many pages.
+ * - The rest: the auth service redirects back after an OAuth sign-in or
+ *   GitHub connection; AuthProvider handles them.
+ */
+interface RootSearch {
+  session_id?: string;
+  code?: string;
+  error?: string;
+  errorDescription?: string;
+  pkceId?: string;
+  signinProvider?: string;
+  state?: string;
+  provider_state?: string;
+}
+
 export const Route = createRootRoute({
-  // Stripe returns to the page that started a checkout with `session_id`;
-  // the dialogs finishing it are mounted on many pages.
-  validateSearch: (search): { session_id?: string } => ({
+  validateSearch: (search): RootSearch => ({
     session_id: getSearchParam(search.session_id),
+    code: getSearchParam(search.code),
+    error: getSearchParam(search.error),
+    errorDescription: getSearchParam(search.errorDescription),
+    pkceId: getSearchParam(search.pkceId),
+    signinProvider: getSearchParam(search.signinProvider),
+    state: getSearchParam(search.state),
+    provider_state: getSearchParam(search.provider_state),
   }),
   beforeLoad: ({ location }) => {
     const legacyRedirect = getLegacyRedirect(

@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -224,6 +225,7 @@ export function useDataBrowserActions({
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
   const router = useRouter();
+  const navigate = useNavigate();
   const {
     query: { orgSlug, appSubdomain },
   } = router;
@@ -299,9 +301,11 @@ export function useDataBrowserActions({
       });
 
       if (!nextObject) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}`,
-        );
+        await navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug',
+          params: (prev) => ({ ...prev, dataSourceSlug: dataSourceSlug }),
+        });
 
         return;
       }

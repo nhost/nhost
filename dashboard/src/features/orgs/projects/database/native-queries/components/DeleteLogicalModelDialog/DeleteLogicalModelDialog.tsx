@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -21,8 +21,8 @@ export default function DeleteLogicalModelDialog({
   setOpen,
   model,
 }: DeleteLogicalModelDialogProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, modelSlug } = router.query;
+  const navigate = useNavigate();
+  const { modelSlug } = useParams({ strict: false });
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: deleteLogicalModel, isPending: isDeletingLogicalModel } =
     useLogicalModelMetadataMutation({ type: 'delete' });
@@ -49,9 +49,11 @@ export default function DeleteLogicalModelDialog({
           original: model,
         });
         if (modelSlug === model.name) {
-          await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default`,
-          );
+          await navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug',
+            params: (prev) => ({ ...prev, dataSourceSlug: 'default' }),
+          });
         }
         return true;
       },

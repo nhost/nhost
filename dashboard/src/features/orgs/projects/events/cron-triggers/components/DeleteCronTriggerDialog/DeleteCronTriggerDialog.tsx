@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -23,8 +23,8 @@ export default function DeleteCronTriggerDialog({
   setOpen,
   cronTriggerToDelete,
 }: DeleteCronTriggerDialogProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
+  const navigate = useNavigate();
+  const { cronTriggerSlug } = useParams({ strict: false });
   const { mutateAsync: deleteCronTrigger, isPending: isDeletingCronTrigger } =
     useDeleteCronTriggerMutation();
 
@@ -35,9 +35,11 @@ export default function DeleteCronTriggerDialog({
           cronTriggerName: cronTriggerToDelete,
         });
         if (cronTriggerSlug === cronTriggerToDelete) {
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers`,
-          );
+          navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers',
+            params: true,
+          });
         }
       },
       {

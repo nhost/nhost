@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
@@ -27,7 +27,7 @@ export default function CreateNativeQueryForm({
   onCancel,
   location,
 }: CreateNativeQueryFormProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { setDirtySource } = useDialog();
   const modelsResult = useGetLogicalModels();
   const queriesResult = useGetNativeQueries();
@@ -99,10 +99,15 @@ export default function CreateNativeQueryForm({
     }
 
     reportDirtyState(false);
-    const { orgSlug, appSubdomain } = router.query;
-    await router.push(
-      `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(nextValues.rootFieldName)}`,
-    );
+    await navigate({
+      from: '/orgs/$orgSlug/projects/$appSubdomain',
+      to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
+      params: (prev) => ({
+        ...prev,
+        dataSourceSlug: 'default',
+        querySlug: nextValues.rootFieldName,
+      }),
+    });
     onSubmit?.();
   }
 

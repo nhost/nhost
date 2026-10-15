@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
@@ -17,6 +17,7 @@ export const Route = createFileRoute('/orgs/verify')({
 
 function PostCheckout() {
   const router = useRouter();
+  const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuth();
   const currentUser = useUserData();
@@ -64,10 +65,10 @@ function PostCheckout() {
       if (isFromOnboarding) {
         router.push('/onboarding/project');
       } else {
-        router.push(`/orgs/${Slug}/projects`);
+        navigate({ to: '/orgs/$orgSlug/projects', params: { orgSlug: Slug } });
       }
     },
-    [router, currentUser?.email, currentUser?.id, getOrganizations],
+    [router, currentUser?.email, currentUser?.id, getOrganizations, navigate],
   );
 
   return (

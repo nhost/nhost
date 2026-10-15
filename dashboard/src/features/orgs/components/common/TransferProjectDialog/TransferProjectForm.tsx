@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -53,7 +53,7 @@ function TransferProjectForm({
   onCancel,
   onOrganizationChange,
 }: TransferProjectFormProps) {
-  const { push } = useRouter();
+  const navigate = useNavigate();
   const { orgs, currentOrg } = useOrgs();
   const { project } = useProject();
   const { state } = useAppState();
@@ -110,7 +110,10 @@ function TransferProjectForm({
 
           const targetOrg = orgs.find((o) => o.id === organization);
           if (targetOrg) {
-            await push(`/orgs/${targetOrg.slug}/projects`);
+            await navigate({
+              to: '/orgs/$orgSlug/projects',
+              params: { orgSlug: targetOrg.slug },
+            });
           }
         },
         {

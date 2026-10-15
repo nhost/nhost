@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useParams } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -36,8 +35,7 @@ export default function EditRemoteSchemaForm({
   onSubmit,
   ...props
 }: EditRemoteSchemaFormProps) {
-  const router = useRouter();
-  const { appSubdomain, orgSlug } = useParams({ strict: false });
+  const navigate = useNavigate();
 
   const { data: resourceVersion } = useGetMetadataResourceVersion();
 
@@ -109,9 +107,11 @@ export default function EditRemoteSchemaForm({
 
           await onSubmit?.();
 
-          await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${values.name}`,
-          );
+          await navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/$remoteSchemaSlug',
+            params: (prev) => ({ ...prev, remoteSchemaSlug: values.name }),
+          });
         } catch (error) {
           if (error?.code === 'invalid-configuration') {
             throw new Error('cannot continue due to new inconsistent metadata');

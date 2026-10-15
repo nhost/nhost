@@ -1,5 +1,5 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
-import { useRouter } from 'next/router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   type PropsWithChildren,
   useEffect,
@@ -36,7 +36,7 @@ const removableParams = [
 function AuthProvider({ children }: PropsWithChildren) {
   const nhost = useNhostClient();
   const [getAuthUserProviders] = useGetAuthUserProvidersLazyQuery();
-  const { query, isReady: isRouterReady, push } = useRouter();
+  const navigate = useNavigate();
   const {
     code,
     error,
@@ -45,7 +45,7 @@ function AuthProvider({ children }: PropsWithChildren) {
     signinProvider,
     state,
     provider_state: providerState,
-  } = query;
+  } = useSearch({ strict: false });
   const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -83,21 +83,17 @@ function AuthProvider({ children }: PropsWithChildren) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only need to run on mount
   useEffect(() => {
     async function initializeSession() {
-      if (!isRouterReady) {
-        return;
-      }
       setIsLoading(true);
       setIsSigningOut(false);
-      if (code && typeof code === 'string') {
-        const codeVerifier =
-          typeof pkceId === 'string' ? consumePKCEVerifier(pkceId) : null;
+      if (code) {
+        const codeVerifier = pkceId ? consumePKCEVerifier(pkceId) : null;
         if (!codeVerifier) {
           toast.error(
             'No PKCE verifier found. The sign-in must be initiated from the same browser.',
             getToastStyleProps(),
           );
           removeQueryParamsFromUrl(...removableParams);
-          await push('/signin');
+          await navigate({ to: '/signin' });
           setIsLoading(false);
           return;
         }
@@ -151,7 +147,8 @@ function AuthProvider({ children }: PropsWithChildren) {
             sessionStorage.getItem('postSignInRedirect');
           if (postSignInRedirect?.startsWith('/')) {
             sessionStorage.removeItem('postSignInRedirect');
-            await push(postSignInRedirect);
+            // A URL stored before leaving for the OAuth provider.
+            await navigate({ href: postSignInRedirect });
           }
         } catch (err) {
           console.error('Token exchange failed:', err);
@@ -160,7 +157,7 @@ function AuthProvider({ children }: PropsWithChildren) {
             getToastStyleProps(),
           );
           removeQueryParamsFromUrl(...removableParams);
-          await push('/signin');
+          await navigate({ to: '/signin' });
           setIsLoading(false);
           return;
         }
@@ -169,24 +166,22 @@ function AuthProvider({ children }: PropsWithChildren) {
         setSession(currentSession);
       }
 
-      if (
-        state &&
-        typeof state === 'string' &&
-        state.startsWith('signin-refresh:')
-      ) {
+      if (state?.startsWith('signin-refresh:')) {
         const [, orgSlug, projectSubdomain] = state.split(':');
         removeQueryParamsFromUrl(...removableParams);
 
-        await push(
-          `/orgs/${orgSlug}/projects/${projectSubdomain}/deployments/settings?github-modal`,
-        );
+        await navigate({
+          to: '/orgs/$orgSlug/projects/$appSubdomain/deployments/settings',
+          params: { orgSlug, appSubdomain: projectSubdomain },
+          search: { 'github-modal': '' },
+        });
       }
 
-      if (typeof error === 'string') {
+      if (error) {
         switch (error) {
           case 'unverified-user': {
             removeQueryParamsFromUrl(...removableParams);
-            await push('/email/verify');
+            await navigate({ to: '/email/verify' });
             break;
           }
 
@@ -201,28 +196,25 @@ function AuthProvider({ children }: PropsWithChildren) {
 
           // biome-ignore lint/suspicious/noFallthroughSwitchClause: intentional
           case 'invalid-state': {
-            if (
-              isNotEmptyValue(providerState) &&
-              typeof providerState === 'string' &&
-              providerState.startsWith('install-github-app:')
-            ) {
+            if (providerState?.startsWith('install-github-app:')) {
               const [, orgSlug, projectSubdomain] = providerState.split(':');
               removeQueryParamsFromUrl(...removableParams);
-              await push(
-                `/orgs/${orgSlug}/projects/${projectSubdomain}/deployments/settings?github-modal`,
-              );
+              await navigate({
+                to: '/orgs/$orgSlug/projects/$appSubdomain/deployments/settings',
+                params: { orgSlug, appSubdomain: projectSubdomain },
+                search: { 'github-modal': '' },
+              });
               break;
             }
             // Fall through to default error handling if state search param is invalid
           }
           default: {
             const description =
-              typeof errorDescription === 'string'
-                ? errorDescription
-                : 'An error occurred during the sign-in process. Please try again.';
+              errorDescription ??
+              'An error occurred during the sign-in process. Please try again.';
             toast.error(description, getToastStyleProps());
             removeQueryParamsFromUrl(...removableParams);
-            await push('/signin');
+            await navigate({ to: '/signin' });
           }
         }
       }
@@ -230,7 +222,7 @@ function AuthProvider({ children }: PropsWithChildren) {
       setIsLoading(false);
     }
     initializeSession();
-  }, [isRouterReady]);
+  }, []);
 
   const value: AuthContextType = useMemo(
     () => ({
@@ -247,7 +239,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         });
         clearGitHubToken();
 
-        await push('/signin');
+        await navigate({ to: '/signin' });
       },
       updateSession(newSession) {
         setSession(newSession);
@@ -256,7 +248,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         setIsSigningOut(false);
       },
     }),
-    [session, isLoading, isSigningOut, nhost.auth.signOut, push],
+    [session, isLoading, isSigningOut, nhost.auth.signOut, navigate],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

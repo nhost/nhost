@@ -1,5 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
@@ -29,8 +29,7 @@ export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const track = useTrackEvent();
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
 
   const handleSubmit = async (data: BaseEventTriggerFormValues) => {
     const eventTriggerDTO = buildEventTriggerDTO({ formValues: data });
@@ -41,9 +40,11 @@ export default function CreateEventTriggerForm() {
           resourceVersion: resourceVersion ?? undefined,
         });
         track('Event Trigger Created');
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${data.triggerName}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/$eventTriggerSlug',
+          params: (prev) => ({ ...prev, eventTriggerSlug: data.triggerName }),
+        });
       },
       {
         loadingMessage: 'Creating event trigger...',

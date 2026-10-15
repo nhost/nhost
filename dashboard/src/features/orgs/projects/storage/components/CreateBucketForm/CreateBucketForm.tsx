@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useDialog } from '@/components/common/DialogProvider';
 import type { BaseBucketFormProps } from '@/features/orgs/projects/storage/components/BaseBucketForm';
 import { BaseBucketForm } from '@/features/orgs/projects/storage/components/BaseBucketForm';
@@ -20,8 +20,7 @@ export default function CreateBucketForm({
   location,
   apolloClient,
 }: CreateBucketFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
   const { closeDrawer } = useDialog();
   const { refetch: refetchBuckets } = useGetBucketsQuery({
     client: apolloClient,
@@ -49,9 +48,11 @@ export default function CreateBucketForm({
         await refetchBuckets();
         closeDrawer();
 
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(values.name)}`,
-        );
+        await navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/$',
+          params: (prev) => ({ ...prev, _splat: values.name }),
+        });
       },
       {
         loadingMessage: 'Creating bucket...',

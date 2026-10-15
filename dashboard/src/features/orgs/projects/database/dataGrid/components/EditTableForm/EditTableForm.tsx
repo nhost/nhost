@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useParams } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
@@ -47,10 +46,7 @@ export default function EditTableForm({
   ...props
 }: EditTableFormProps) {
   const [formInitialized, setFormInitialized] = useState(false);
-  const router = useRouter();
-  const { appSubdomain, dataSourceSlug, orgSlug } = useParams({
-    strict: false,
-  });
+  const navigate = useNavigate();
 
   const {
     data,
@@ -195,9 +191,15 @@ export default function EditTableForm({
       }
 
       if (originalTableName !== updatedTable.name) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
-        );
+        await navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug',
+          params: (prev) => ({
+            ...prev,
+            schemaSlug: schema,
+            tableSlug: updatedTable.name,
+          }),
+        });
       }
 
       triggerToast('The table has been updated successfully.');

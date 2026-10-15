@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import slugify from 'slugify';
@@ -53,7 +52,7 @@ const projectSchema = z.object({
 type ProjectFormData = z.infer<typeof projectSchema>;
 
 function OnboardingProjectPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const user = useUserData();
   const [isRegionIdNotSet, setIsRegionIdNotSet] = useState(true);
   const { orgs, loading: loadingOrgs } = useOrgs();
@@ -146,7 +145,10 @@ function OnboardingProjectPage() {
           sessionStorage.removeItem('onboarding');
           // store the subdomain in session storage to indicate that the user has created a project
           sessionStorage.setItem('newProjectSubdomain', subdomain);
-          router.push(`/orgs/${selectedOrg?.slug}/projects/${subdomain}`);
+          navigate({
+            to: '/orgs/$orgSlug/projects/$appSubdomain',
+            params: { orgSlug: selectedOrg?.slug, appSubdomain: subdomain },
+          });
         }
       },
       {

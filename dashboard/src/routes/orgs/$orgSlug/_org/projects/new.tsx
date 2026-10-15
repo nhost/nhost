@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
@@ -47,7 +46,7 @@ export function NewProjectPageContent({
   preSelectedOrg,
   preSelectedRegion,
 }: NewAppPageProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // form
   const [name, setName] = useState('');
@@ -132,7 +131,10 @@ export function NewProjectPageContent({
 
           // store the subdomain in session storage to indicate that the user has created a project
           sessionStorage.setItem('newProjectSubdomain', subdomain);
-          await router.push(`/orgs/${selectedOrg.slug}/projects/${subdomain}`);
+          await navigate({
+            to: '/orgs/$orgSlug/projects/$appSubdomain',
+            params: { orgSlug: selectedOrg.slug, appSubdomain: subdomain },
+          });
         }
       },
       {

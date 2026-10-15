@@ -1,4 +1,5 @@
 import { useApolloClient } from '@apollo/client';
+import { useNavigate } from '@tanstack/react-router';
 import { Archive, Plus } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -81,6 +82,7 @@ function StorageSidebarContent({
   onSidebarItemClick,
 }: StorageSidebarContentProps) {
   const router = useRouter();
+  const navigate = useNavigate();
   const {
     query: { orgSlug, appSubdomain, bucketId: bucketIdParam },
   } = router;
@@ -138,9 +140,11 @@ function StorageSidebarContent({
         });
         await deleteOrphanedFiles();
         if (bucketSlug === bucketToDelete) {
-          await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets`,
-          );
+          await navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets',
+            params: true,
+          });
         }
       },
       {

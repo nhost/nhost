@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -19,6 +19,7 @@ export const Route = createFileRoute('/')({
 
 function IndexPage() {
   const { push } = useRouter();
+  const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { orgs, loading: loadingOrgs, error, refetch } = useOrgs();
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
@@ -49,13 +50,20 @@ function IndexPage() {
 
         const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
         if (orgFromLastSlug) {
-          await push(`/orgs/${orgFromLastSlug.slug}/projects`);
+          await navigate({
+            to: '/orgs/$orgSlug/projects',
+            params: { orgSlug: orgFromLastSlug.slug },
+          });
           return;
         }
         const org = orgs.find((o) => o.plan.isFree) || orgs[0];
 
         if (org) {
-          push(`/orgs/${org.slug}/projects`);
+          navigate({
+            from: '/orgs/$orgSlug',
+            to: '/orgs/$orgSlug/projects',
+            params: true,
+          });
         }
       }
     };
@@ -63,7 +71,16 @@ function IndexPage() {
     if (isPlatform) {
       navigateToSlug();
     }
-  }, [orgs, lastSlug, push, loadingOrgs, isPlatform, isUserLoggedIn, error]);
+  }, [
+    orgs,
+    lastSlug,
+    push,
+    loadingOrgs,
+    isPlatform,
+    isUserLoggedIn,
+    error,
+    navigate,
+  ]);
 
   if (error) {
     return (

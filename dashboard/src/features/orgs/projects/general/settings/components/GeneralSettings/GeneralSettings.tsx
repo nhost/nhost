@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useNavigate } from '@tanstack/react-router';
 import { Lock, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -53,7 +53,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
 >;
 
 export default function GeneralSettings() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { openAlertDialog } = useDialog();
 
@@ -154,7 +154,11 @@ export default function GeneralSettings() {
         });
         track('Project Deleted');
 
-        await router.push(`/orgs/${org?.slug}/projects`);
+        await navigate({
+          from: '/orgs/$orgSlug',
+          to: '/orgs/$orgSlug/projects',
+          params: true,
+        });
       },
       {
         loadingMessage: `Deleting ${project?.name}...`,

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -28,7 +28,8 @@ export default function EditNativeQueryForm({
   onCancel,
   location,
 }: EditNativeQueryFormProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { querySlug } = useParams({ strict: false });
   const { setDirtySource } = useDialog();
   const { data: models = [] } = useGetLogicalModels();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -59,14 +60,19 @@ export default function EditNativeQueryForm({
     }
 
     reportDirtyState(false);
-    const { orgSlug, appSubdomain, querySlug } = router.query;
     if (
       querySlug === query.root_field_name &&
       nextValues.rootFieldName !== query.root_field_name
     ) {
-      await router.push(
-        `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(nextValues.rootFieldName)}`,
-      );
+      await navigate({
+        from: '/orgs/$orgSlug/projects/$appSubdomain',
+        to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
+        params: (prev) => ({
+          ...prev,
+          dataSourceSlug: 'default',
+          querySlug: nextValues.rootFieldName,
+        }),
+      });
     }
     onSubmit?.();
   }

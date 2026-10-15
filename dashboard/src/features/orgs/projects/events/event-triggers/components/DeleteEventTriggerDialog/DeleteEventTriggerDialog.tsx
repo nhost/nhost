@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -26,8 +26,8 @@ export default function DeleteEventTriggerDialog({
   setOpen,
   eventTriggerToDelete,
 }: DeleteEventTriggerDialogProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
+  const navigate = useNavigate();
+  const { eventTriggerSlug } = useParams({ strict: false });
   const { mutateAsync: deleteEventTrigger, isPending: isDeletingEventTrigger } =
     useDeleteEventTriggerMutation();
 
@@ -55,9 +55,11 @@ export default function DeleteEventTriggerDialog({
           resourceVersion,
         });
         if (eventTriggerSlug === eventTriggerToDelete) {
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers`,
-          );
+          navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers',
+            params: true,
+          });
         }
       },
       {

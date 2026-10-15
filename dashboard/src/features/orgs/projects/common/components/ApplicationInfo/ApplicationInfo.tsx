@@ -1,9 +1,8 @@
+import { useNavigate } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
 import { ArrowRightIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -15,9 +14,8 @@ import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
 
 export default function ApplicationInfo() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { project } = useProject();
-  const { currentOrg: org } = useOrgs();
   const userData = useUserData();
 
   const [deleteApplication] = useBillingDeleteAppMutation({
@@ -35,7 +33,11 @@ export default function ApplicationInfo() {
           },
         });
 
-        await router.push(`/orgs/${org?.slug}/projects`);
+        await navigate({
+          from: '/orgs/$orgSlug',
+          to: '/orgs/$orgSlug/projects',
+          params: true,
+        });
       },
       {
         loadingMessage: 'Deleting project...',

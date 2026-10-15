@@ -1,5 +1,5 @@
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import OrganizationLabel from '@/components/layout/Header/OrganizationLabel';
 import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
@@ -12,10 +12,8 @@ export default function OrganizationsCombobox() {
   const { orgs } = useOrgs();
   const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
 
-  const {
-    query: { orgSlug },
-    push,
-  } = useRouter();
+  const { orgSlug } = useParams({ strict: false });
+  const navigate = useNavigate();
 
   const selectedOrg = orgSlug
     ? orgs.find((item) => item.slug === orgSlug)
@@ -63,7 +61,7 @@ export default function OrganizationsCombobox() {
       aria-label="Switch organization"
       onChange={(slug) => {
         setLastSlug(slug);
-        push(`/orgs/${slug}/projects`);
+        navigate({ to: '/orgs/$orgSlug/projects', params: { orgSlug: slug } });
       }}
     />
   );

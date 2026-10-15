@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -24,8 +24,8 @@ export default function DeleteActionDialog({
   setOpen,
   actionToDelete,
 }: DeleteActionDialogProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, actionSlug } = router.query;
+  const navigate = useNavigate();
+  const { actionSlug } = useParams({ strict: false });
   const { mutateAsync: deleteAction, isPending: isDeletingAction } =
     useDeleteActionMutation();
 
@@ -36,9 +36,11 @@ export default function DeleteActionDialog({
           action: actionToDelete,
         });
         if (actionSlug === actionToDelete.name) {
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions`,
-          );
+          navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions',
+            params: true,
+          });
         }
       },
       {

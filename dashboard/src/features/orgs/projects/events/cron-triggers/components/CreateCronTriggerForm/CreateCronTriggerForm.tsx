@@ -1,5 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import {
   BaseCronTriggerForm,
@@ -26,8 +26,7 @@ const renderCreateCronTriggerButton = ({
 export default function CreateCronTriggerForm() {
   const { mutateAsync: createCronTrigger } = useCreateCronTriggerMutation();
   const track = useTrackEvent();
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
 
   const handleSubmit = async (data: BaseCronTriggerFormValues) => {
     await execPromiseWithErrorToast(
@@ -37,9 +36,11 @@ export default function CreateCronTriggerForm() {
           args: cronTriggerDTO,
         });
         track('Cron Trigger Created');
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug',
+          params: (prev) => ({ ...prev, cronTriggerSlug: data.triggerName }),
+        });
       },
       {
         loadingMessage: 'Creating cron trigger...',

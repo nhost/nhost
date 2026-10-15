@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import router from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type ReactElement, type ReactNode, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -66,6 +66,7 @@ export default function RemoveApplicationDialog({
 }: RemoveApplicationDialogProps) {
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
+  const navigate = useNavigate();
   const userData = useUserData();
   const track = useTrackEvent();
   const [open, setOpen] = useState(false);
@@ -172,7 +173,11 @@ export default function RemoveApplicationDialog({
       }
 
       closeDialog();
-      await router.push(`/orgs/${org?.slug}/projects`);
+      await navigate({
+        from: '/orgs/$orgSlug',
+        to: '/orgs/$orgSlug/projects',
+        params: true,
+      });
       triggerToast(`${project?.name} deleted`);
     } finally {
       setLoadingRemove(false);

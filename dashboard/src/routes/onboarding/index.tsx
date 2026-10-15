@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -61,6 +61,7 @@ type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 function OnboardingPage() {
   const router = useRouter();
+  const navigate = useNavigate();
   const user = useUserData();
   const { orgs, loading: loadingOrgs, error: orgsError } = useOrgs();
   const { data: plansData, loading: loadingPlans } = usePrefetchNewAppQuery({
@@ -165,7 +166,10 @@ function OnboardingPage() {
           org_slug: invite.organization?.slug,
         });
 
-        await router.push(`/orgs/${invite?.organization?.slug}/projects`);
+        await navigate({
+          to: '/orgs/$orgSlug/projects',
+          params: { orgSlug: invite?.organization?.slug },
+        });
       },
       {
         loadingMessage: `Joining ${invite.organization.name}...`,

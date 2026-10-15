@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
+import { useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -279,7 +279,7 @@ export default function CreateOrgDialog({
   redirectUrl,
   isStarterDisabled = false,
 }: CreateOrgDialogProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const currentUser = useUserData();
   const user = useUserData();
   const isPlatform = useIsPlatform();
@@ -364,7 +364,12 @@ export default function CreateOrgDialog({
             isOnboarding: false,
           });
 
-          router.push(`/orgs/${newOrg?.slug}/projects`);
+          if (newOrg) {
+            navigate({
+              to: '/orgs/$orgSlug/projects',
+              params: { orgSlug: newOrg.slug },
+            });
+          }
           handleOpenChange(false);
         }
       },

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
@@ -24,8 +24,7 @@ export default function EditEventTriggerForm({
   eventTrigger,
   trigger,
 }: EditEventTriggerFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
   const [initialData, setInitialData] =
     useState<BaseEventTriggerFormInitialData>(() =>
       parseEventTriggerFormInitialData(eventTrigger),
@@ -55,9 +54,11 @@ export default function EditEventTriggerForm({
           resourceVersion: resourceVersion ?? undefined,
         });
         setInitialData(data);
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${data.triggerName}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/$eventTriggerSlug',
+          params: (prev) => ({ ...prev, eventTriggerSlug: data.triggerName }),
+        });
       },
       {
         loadingMessage: 'Editing event trigger...',

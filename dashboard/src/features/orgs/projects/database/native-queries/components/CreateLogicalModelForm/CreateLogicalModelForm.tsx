@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -28,7 +28,7 @@ export default function CreateLogicalModelForm({
   onDirtyChange,
   location,
 }: CreateLogicalModelFormProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { setDirtySource } = useDialog();
   const { data: models = [] } = useGetLogicalModels();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
@@ -71,10 +71,15 @@ export default function CreateLogicalModelForm({
     }
 
     reportDirtyState(false);
-    const { orgSlug, appSubdomain } = router.query;
-    await router.push(
-      `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/models/${encodeURIComponent(values.name)}`,
-    );
+    await navigate({
+      from: '/orgs/$orgSlug/projects/$appSubdomain',
+      to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/models/$modelSlug',
+      params: (prev) => ({
+        ...prev,
+        dataSourceSlug: 'default',
+        modelSlug: values.name,
+      }),
+    });
     onSubmit?.();
   }
 

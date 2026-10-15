@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -20,8 +20,7 @@ export default function EditActionForm({
   action,
   location,
 }: EditActionFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
   const { closeDrawer } = useDialog();
   const { data: actionsData, isLoading, error, refetch } = useGetActions();
   const { mutateAsync: updateAction } = useUpdateActionMutation();
@@ -49,9 +48,11 @@ export default function EditActionForm({
           originalAction: action,
         });
         closeDrawer();
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${action.name}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/$actionSlug',
+          params: (prev) => ({ ...prev, actionSlug: action.name }),
+        });
       },
       {
         loadingMessage: 'Editing action...',

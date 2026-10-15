@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import {
   BaseCronTriggerForm,
@@ -23,8 +23,7 @@ export default function EditCronTriggerForm({
   cronTrigger,
   trigger,
 }: EditCronTriggerFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const navigate = useNavigate();
   const [initialData, setInitialData] =
     useState<BaseCronTriggerFormInitialData>(() =>
       parseCronTriggerFormInitialData(cronTrigger),
@@ -48,9 +47,11 @@ export default function EditCronTriggerForm({
           args: cronTriggerDTO,
         });
         setInitialData(data);
-        router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${data.triggerName}`,
-        );
+        navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug',
+          params: (prev) => ({ ...prev, cronTriggerSlug: data.triggerName }),
+        });
       },
       {
         loadingMessage: 'Editing cron trigger...',

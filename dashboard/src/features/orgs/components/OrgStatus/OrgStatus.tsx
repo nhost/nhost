@@ -1,6 +1,6 @@
+import { useNavigate } from '@tanstack/react-router';
 import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { Organization_Status_Enum } from '@/generated/graphql';
@@ -25,7 +25,7 @@ function StatusBanner({
 
 export default function OrgStatus() {
   const { org } = useCurrentOrg();
-  const { push } = useRouter();
+  const navigate = useNavigate();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: push does not change
   useEffect(() => {
@@ -34,7 +34,11 @@ export default function OrgStatus() {
       (org.status === Organization_Status_Enum.Disabled ||
         org?.status === Organization_Status_Enum.Locked)
     ) {
-      push(`/orgs/${org.slug}/billing`);
+      navigate({
+        from: '/orgs/$orgSlug',
+        to: '/orgs/$orgSlug/billing',
+        params: true,
+      });
     }
   }, [org]);
 

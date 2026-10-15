@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useParams } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
@@ -54,8 +53,8 @@ export default function CreateTableForm({
   redirectOnSuccess = true,
   ...props
 }: CreateTableFormProps) {
-  const router = useRouter();
-  const { appSubdomain, dataSourceSlug, orgSlug } = useParams({
+  const navigate = useNavigate();
+  const { dataSourceSlug } = useParams({
     strict: false,
   });
   const { closeDrawer } = useDialog();
@@ -167,9 +166,16 @@ export default function CreateTableForm({
       triggerToast('The table has been created successfully.');
 
       if (redirectOnSuccess && dataSource) {
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSource}/${selectedSchema}/tables/${table.name}`,
-        );
+        await navigate({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug',
+          params: (prev) => ({
+            ...prev,
+            dataSourceSlug: dataSource,
+            schemaSlug: selectedSchema,
+            tableSlug: table.name,
+          }),
+        });
       } else {
         closeDrawer();
       }

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { DeleteMetadataObjectDialog } from '@/features/orgs/projects/database/common/components/DeleteMetadataObjectDialog';
@@ -40,8 +40,8 @@ export default function DeleteNativeQueryDialog({
   setOpen,
   query,
 }: DeleteNativeQueryDialogProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, querySlug } = router.query;
+  const navigate = useNavigate();
+  const { querySlug } = useParams({ strict: false });
   const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: deleteNativeQuery, isPending: isDeletingNativeQuery } =
     useNativeQueryMetadataMutation({ type: 'delete' });
@@ -59,9 +59,11 @@ export default function DeleteNativeQueryDialog({
           original: query,
         });
         if (querySlug === query.root_field_name) {
-          await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default`,
-          );
+          await navigate({
+            from: '/orgs/$orgSlug/projects/$appSubdomain',
+            to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug',
+            params: (prev) => ({ ...prev, dataSourceSlug: 'default' }),
+          });
         }
         return true;
       },

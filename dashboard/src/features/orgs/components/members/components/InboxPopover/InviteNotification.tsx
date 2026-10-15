@@ -1,5 +1,5 @@
+import { linkOptions, useNavigate, useRouter } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
-import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -20,7 +20,8 @@ export default function InviteNotification({
   invite,
   onAccepted,
 }: InviteNotificationProps) {
-  const { push } = useRouter();
+  const navigate = useNavigate();
+  const router = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
   const track = useTrackEvent();
 
@@ -41,10 +42,16 @@ export default function InviteNotification({
           org_slug: invite.organization.slug,
         });
         await refetchOrgs();
-        const navigated = await push(
-          `/orgs/${invite.organization.slug}/projects`,
-        );
-        if (navigated) {
+        const target = linkOptions({
+          to: '/orgs/$orgSlug/projects',
+          params: { orgSlug: invite.organization.slug },
+        });
+        await navigate(target);
+        // A blocker (e.g. unsaved changes) can keep the user on the page.
+        if (
+          router.state.location.pathname ===
+          router.buildLocation(target).pathname
+        ) {
           onAccepted();
         }
       },
