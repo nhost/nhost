@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useLocation, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Dialog, DialogContent } from '@/components/ui/v3/dialog';
@@ -18,8 +18,8 @@ export default function TransferProjectDialog({
   open,
   setOpen,
 }: TransferProjectDialogProps) {
-  const { asPath, query, isReady: isRouterReady } = useRouter();
-  const { session_id } = query;
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const { session_id } = useSearch({ strict: false });
   const { loading: projectLoading } = useProject();
   const { state } = useAppState();
   const { loading: orgsLoading } = useOrgs();
@@ -30,15 +30,13 @@ export default function TransferProjectDialog({
   const [selectedOrgId, setSelectedOrgId] = useState<string>();
 
   useEffect(() => {
-    if (session_id && isRouterReady) {
+    if (session_id) {
       setOpen(true);
       setPreventClose(true);
     }
-  }, [session_id, setOpen, isRouterReady]);
+  }, [session_id, setOpen]);
 
-  const path = asPath.split('?')[0];
-  const redirectUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}${path}` : '';
+  const redirectUrl = `${window.location.origin}${pathname}`;
 
   const handleCreateDialogOpenStateChange = (newState: boolean) => {
     setShowCreateOrgModal(newState);

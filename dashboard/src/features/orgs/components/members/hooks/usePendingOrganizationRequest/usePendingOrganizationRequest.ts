@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useSearch } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -8,20 +8,21 @@ import {
   usePostOrganizationRequestMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { useCurrentPagePath } from '@/lib/route-navigation';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 export default function usePendingOrganizationRequest(): PostOrganizationRequestResponse | null {
   const userData = useUserData();
-  const { route, query, isReady: isRouterReady } = useRouter();
-  const { session_id } = query;
+  const pagePath = useCurrentPagePath();
+  const { session_id } = useSearch({ strict: false });
   const isPlatform = useIsPlatform();
   const hasUserId = isNotEmptyValue(userData?.id);
 
   const shouldCheck =
     isPlatform &&
     hasUserId &&
-    !['/', '/orgs/verify'].includes(route) &&
-    isRouterReady &&
+    pagePath !== '/' &&
+    pagePath !== '/orgs/verify' &&
     isEmptyValue(session_id);
 
   const { data: organizationNewRequestsData } = useOrganizationNewRequestsQuery(

@@ -1,5 +1,4 @@
-import { useParams } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useMemo, useReducer, useState } from 'react';
 import type { CommandPaletteProps } from '@/features/command-palette/components/CommandPalette';
 import { useCommandPaletteShortcut } from '@/features/command-palette/hooks/useCommandPaletteShortcut';
@@ -25,7 +24,6 @@ import {
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export interface CommandPaletteController {
   openCommandPalette: VoidFunction;
@@ -66,7 +64,7 @@ const findProjectNode = (
  * the triggers swapping at `lg`; the triggers only call `openCommandPalette`.
  */
 export function useCommandPalette(): CommandPaletteController {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { appSubdomain, orgSlug } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [state, dispatch] = useReducer(
@@ -82,8 +80,8 @@ export function useCommandPalette(): CommandPaletteController {
     ? 'Search organizations, projects, account, support, docs...'
     : 'Search pages, settings, docs...';
 
-  const currentOrgSlug = getSingleQueryParam(orgSlug);
-  const currentAppSubdomain = getSingleQueryParam(appSubdomain);
+  const currentOrgSlug = orgSlug;
+  const currentAppSubdomain = appSubdomain;
   const routeScope = useMemo(
     () => ({ orgSlug: currentOrgSlug, appSubdomain: currentAppSubdomain }),
     [currentOrgSlug, currentAppSubdomain],
@@ -236,11 +234,8 @@ export function useCommandPalette(): CommandPaletteController {
         return;
       }
 
-      const switchesScope =
-        targetScope.orgSlug !== routeScope.orgSlug ||
-        targetScope.appSubdomain !== routeScope.appSubdomain;
-
-      router.push(href, undefined, { shallow: !switchesScope });
+      // Catalog paths are resolved against the target org/project at runtime.
+      navigate({ href });
 
       if (
         navigationNode.scope === 'org' ||
@@ -262,7 +257,7 @@ export function useCommandPalette(): CommandPaletteController {
 
       handleOpenChange(false);
     },
-    [handleOpenChange, pushRecent, router, routeScope],
+    [handleOpenChange, navigate, pushRecent, routeScope],
   );
 
   return {

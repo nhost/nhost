@@ -1,7 +1,10 @@
-import { createFileRoute, useParams, useSearch } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
 import { PlusIcon, SearchIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -56,8 +59,7 @@ function OAuth2ClientsPageContent() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
-  const router = useRouter();
-  const { appSubdomain, orgSlug } = useParams({ strict: false });
+  const navigate = useNavigate();
   const { page } = useSearch({ strict: false });
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
 
@@ -172,9 +174,12 @@ function OAuth2ClientsPageContent() {
           </div>
           <Button
             onClick={() =>
-              router.push(
-                `/orgs/${orgSlug}/projects/${appSubdomain}/auth/settings?tab=authentication`,
-              )
+              navigate({
+                from: '/orgs/$orgSlug/projects/$appSubdomain',
+                to: '/orgs/$orgSlug/projects/$appSubdomain/auth/settings',
+                params: true,
+                search: { tab: 'authentication' },
+              })
             }
           >
             Go to Authentication settings
@@ -217,9 +222,12 @@ function OAuth2ClientsPageContent() {
           </div>
           <Button
             onClick={() =>
-              router.push(
-                `/orgs/${orgSlug}/projects/${appSubdomain}/auth/settings?tab=oauth2-provider`,
-              )
+              navigate({
+                from: '/orgs/$orgSlug/projects/$appSubdomain',
+                to: '/orgs/$orgSlug/projects/$appSubdomain/auth/settings',
+                params: true,
+                search: { tab: 'oauth2-provider' },
+              })
             }
           >
             Go to OAuth2 Provider Settings

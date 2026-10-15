@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -13,7 +12,7 @@ import type {
   DatabaseObjectViewModel,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
+import { getDatabaseObjectLinkOptions } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectLinkOptions';
 import { ALL_TABLE_COLUMNS_QUERY_KEY } from '@/features/orgs/projects/database/schema-diagram/useAllTableColumns';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -224,9 +223,7 @@ export function useDataBrowserActions({
 }: UseDataBrowserActionsParams) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
-  const router = useRouter();
   const navigate = useNavigate();
-  const { orgSlug, appSubdomain } = useParams({ strict: false });
   const { project } = useProject();
   const { mutateAsync: deleteDatabaseObject } =
     useDeleteDatabaseObjectWithToastMutation({ dataSource: dataSourceSlug });
@@ -313,13 +310,8 @@ export function useDataBrowserActions({
         : schema === schemaSlug && name === tableSlug;
 
       if (isCurrentlyActive) {
-        const urlSegment = getObjectTypeUrlSegment(nextObject.objectType);
-        const nextSlug =
-          nextObject.objectType === 'FUNCTION'
-            ? nextObject.oid
-            : nextObject.name;
-        await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${nextObject.schema}/${urlSegment}/${nextSlug}`,
+        await navigate(
+          getDatabaseObjectLinkOptions(dataSourceSlug, nextObject),
         );
       }
     } catch {

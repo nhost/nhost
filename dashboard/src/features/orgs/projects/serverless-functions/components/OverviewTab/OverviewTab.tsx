@@ -1,6 +1,5 @@
+import { Link } from '@tanstack/react-router';
 import { Cpu, GitCommit, Globe } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Badge } from '@/components/ui/v3/badge';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
@@ -27,7 +26,6 @@ export default function OverviewTab({
   defaultEndpointUrl,
 }: OverviewTabProps) {
   const isPlatform = useIsPlatform();
-  const { orgSlug, appSubdomain } = useRouter().query;
   const { project } = useProject();
   const showDeploymentCard =
     isPlatform &&
@@ -42,10 +40,6 @@ export default function OverviewTab({
   });
 
   const deploymentId = deploymentData?.unifiedDeployments[0]?.id;
-  const deploymentsBasePath = `/orgs/${orgSlug}/projects/${appSubdomain}/deployments`;
-  const commitHref = deploymentId
-    ? `${deploymentsBasePath}/${deploymentId}`
-    : deploymentsBasePath;
 
   return (
     <div className="space-y-4">
@@ -115,7 +109,16 @@ export default function OverviewTab({
                     Commit
                   </span>
                   <div className="flex items-center gap-1">
-                    <Link href={commitHref} className="hover:underline">
+                    <Link
+                      from="/orgs/$orgSlug/projects/$appSubdomain"
+                      to={
+                        deploymentId
+                          ? '/orgs/$orgSlug/projects/$appSubdomain/deployments/$deploymentId'
+                          : '/orgs/$orgSlug/projects/$appSubdomain/deployments'
+                      }
+                      params={(prev) => ({ ...prev, deploymentId })}
+                      className="hover:underline"
+                    >
                       <Badge variant="outline" className="font-mono text-xs">
                         {fn.createdWithCommitSha.slice(0, 7)}
                       </Badge>

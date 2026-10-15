@@ -1,5 +1,4 @@
 import { formatDistance } from 'date-fns';
-import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -59,11 +58,10 @@ export default function Announcement({ announcement }: AnnouncementProps) {
         asChild
         className="h-fit min-w-0 flex-1 items-start justify-start gap-2 rounded-md p-2 text-left hover:bg-transparent"
       >
-        <Link
+        <a
           target="_blank"
           rel="noopener noreferrer"
           href={announcement.href}
-          shallow
           onClick={() => {
             if (isUnread) {
               handleSetRead();
@@ -83,7 +81,7 @@ export default function Announcement({ announcement }: AnnouncementProps) {
             </span>
             <p className="whitespace-normal text-sm">{announcement.content}</p>
           </div>
-        </Link>
+        </a>
       </Button>
       <AnnouncementMenu
         isUnread={isUnread}

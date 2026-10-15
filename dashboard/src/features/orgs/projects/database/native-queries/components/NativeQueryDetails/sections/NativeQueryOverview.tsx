@@ -1,7 +1,7 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import NextLink from 'next/link';
+import { LogicalModelLink } from '@/features/orgs/projects/database/native-queries/components/LogicalModelLink';
 import { NativeQueriesDetailsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsSection';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { useThemePreference } from '@/providers/Theme';
@@ -9,12 +9,10 @@ import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
 export interface NativeQueryOverviewProps {
   query: NativeQueryItem;
-  modelHref: string;
 }
 
 export default function NativeQueryOverview({
   query,
-  modelHref,
 }: NativeQueryOverviewProps) {
   const { resolvedTheme } = useThemePreference();
   const argumentsList = Object.entries(query.arguments ?? {});
@@ -37,9 +35,12 @@ export default function NativeQueryOverview({
 
       <NativeQueriesDetailsSection title="Returns">
         <div className="border-t p-4 text-sm">
-          <NextLink href={modelHref} className="text-primary hover:underline">
+          <LogicalModelLink
+            name={query.returns}
+            className="text-primary hover:underline"
+          >
             {query.returns}
-          </NextLink>
+          </LogicalModelLink>
         </div>
       </NativeQueriesDetailsSection>
 

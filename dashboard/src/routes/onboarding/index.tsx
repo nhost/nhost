@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { formatDistance } from 'date-fns';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -60,7 +59,6 @@ const onboardingSchema = z.object({
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 function OnboardingPage() {
-  const router = useRouter();
   const navigate = useNavigate();
   const user = useUserData();
   const { orgs, loading: loadingOrgs, error: orgsError } = useOrgs();
@@ -110,9 +108,9 @@ function OnboardingPage() {
 
   useEffect(() => {
     if (!loadingOrgs && !orgsError && orgs && orgs.length > 0) {
-      router.push('/');
+      navigate({ to: '/' });
     }
-  }, [orgs, loadingOrgs, orgsError, router]);
+  }, [orgs, loadingOrgs, orgsError, navigate]);
 
   useEffect(() => {
     if (isNotEmptyValue(plansData?.plans?.length) && !form.getValues('plan')) {
@@ -140,7 +138,7 @@ function OnboardingPage() {
             response.data?.billingCreateOrganizationRequest,
           );
         } else {
-          router.push('/onboarding/project');
+          navigate({ to: '/onboarding/project' });
         }
       },
       {

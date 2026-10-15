@@ -1,5 +1,4 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import NextLink from 'next/link';
 import { useState } from 'react';
 import {
   AlertDialog,
@@ -18,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { NativeQueryLink } from '@/features/orgs/projects/database/native-queries/components/NativeQueryLink';
 import { RelationshipFormDialog } from '@/features/orgs/projects/database/native-queries/components/RelationshipFormDialog';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useNativeQueryMetadataMutation } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
@@ -40,7 +40,8 @@ export interface NativeQueryRelationshipsProps {
   query: NativeQueryItem;
   queries: NativeQueryItem[];
   models: LogicalModelItem[];
-  getQueryHref?: (queryName: string) => string;
+  /** Link native query targets to their pages. */
+  linkQueries?: boolean;
 }
 
 interface RelationshipWithKind {
@@ -56,7 +57,8 @@ interface EditableRelationshipWithKind extends RelationshipWithKind {
 
 interface RelationshipTargetProps {
   relationship: NativeQueryRelationship;
-  getQueryHref?: (queryName: string) => string;
+  /** Link native query targets to their pages. */
+  linkQueries?: boolean;
 }
 
 const isNativeQueryTargetRelationship = (
@@ -92,17 +94,17 @@ const getEditableRelationship = (
 
 function RelationshipTarget({
   relationship,
-  getQueryHref,
+  linkQueries,
 }: RelationshipTargetProps) {
   const targetName = getRelationshipTargetName(relationship);
-  if (isNativeQueryTargetRelationship(relationship) && getQueryHref) {
+  if (isNativeQueryTargetRelationship(relationship) && linkQueries) {
     return (
-      <NextLink
-        href={getQueryHref(targetName)}
+      <NativeQueryLink
+        name={targetName}
         className="text-primary hover:underline"
       >
         {targetName}
-      </NextLink>
+      </NativeQueryLink>
     );
   }
   return <span>{targetName}</span>;
@@ -112,7 +114,7 @@ export default function NativeQueryRelationships({
   query,
   queries,
   models,
-  getQueryHref,
+  linkQueries,
 }: NativeQueryRelationshipsProps) {
   const { mutateAsync: updateNativeQuery, isPending } =
     useNativeQueryMetadataMutation({ type: 'edit' });
@@ -218,7 +220,7 @@ export default function NativeQueryRelationships({
                     <span>→</span>
                     <RelationshipTarget
                       relationship={relationship}
-                      getQueryHref={getQueryHref}
+                      linkQueries={linkQueries}
                     />
                     <span>
                       · {Object.keys(relationship.using.column_mapping).length}{' '}

@@ -1,6 +1,5 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router';
+import { createFileRoute, Link, useSearch } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
-import Link from 'next/link';
 import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
@@ -124,7 +123,6 @@ function AutoEmbeddingsPage() {
     );
   }
 
-  const slug = isPlatform ? org?.slug : 'local';
   const aiServiceUnavailable =
     isPlatform && !org?.plan?.isFree && !project?.config?.ai;
 
@@ -135,7 +133,9 @@ function AutoEmbeddingsPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
+              from="/orgs/$orgSlug/projects/$appSubdomain"
+              to="/orgs/$orgSlug/projects/$appSubdomain/ai/settings"
+              params
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >

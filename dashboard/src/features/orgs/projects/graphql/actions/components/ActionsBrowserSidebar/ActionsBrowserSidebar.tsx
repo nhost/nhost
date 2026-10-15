@@ -1,6 +1,5 @@
+import { Link, useMatch } from '@tanstack/react-router';
 import { Braces, Plus, Search } from 'lucide-react';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -23,10 +22,11 @@ function ActionsBrowserSidebarContent() {
     error: errorActions,
   } = useGetActions();
 
-  const {
-    asPath,
-    query: { orgSlug, appSubdomain },
-  } = useRouter();
+  const isCustomTypesPage =
+    useMatch({
+      from: '/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/custom-types',
+      shouldThrow: false,
+    }) !== undefined;
 
   const { openDrawer } = useDialog();
 
@@ -63,8 +63,6 @@ function ActionsBrowserSidebarContent() {
         action.name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : actions;
-
-  const customTypesHref = `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/custom-types`;
 
   return (
     <div className="flex h-full flex-col">
@@ -114,16 +112,20 @@ function ActionsBrowserSidebarContent() {
           className={cn(
             '!text-sm+ flex rounded-none border text-foreground hover:bg-accent hover:no-underline',
             {
-              'bg-table-selected text-primary-main': asPath === customTypesHref,
+              'bg-table-selected text-primary-main': isCustomTypesPage,
             },
           )}
         >
-          <NextLink href={customTypesHref}>
+          <Link
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/custom-types"
+            params
+          >
             <div className="flex w-full flex-row items-center justify-center space-x-2">
               <Braces className="h-4 w-4" />
               <span className="flex">Custom Types Editor</span>
             </div>
-          </NextLink>
+          </Link>
         </Button>
       </div>
 

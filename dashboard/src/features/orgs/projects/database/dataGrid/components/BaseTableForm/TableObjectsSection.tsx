@@ -1,6 +1,5 @@
-import { useParams } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
 import {
   AccordionContent,
   AccordionItem,
@@ -65,10 +64,6 @@ function CheckConstraintsList({
 }
 
 function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
-  const { orgSlug, appSubdomain, dataSourceSlug } = useParams({
-    strict: false,
-  });
-
   if (triggers.length === 0) {
     return (
       <p className="text-muted-foreground text-sm+">
@@ -80,8 +75,6 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
   return (
     <div className="space-y-3">
       {triggers.map((trigger) => {
-        const functionUrl = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${trigger.functionSchema}/functions/${trigger.functionOid}`;
-
         return (
           <div
             key={trigger.name}
@@ -100,7 +93,13 @@ function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground text-sm">Function:</span>
                 <Link
-                  href={functionUrl}
+                  from="/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug"
+                  to="/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/functions/$functionOID"
+                  params={(prev) => ({
+                    ...prev,
+                    schemaSlug: trigger.functionSchema,
+                    functionOID: String(trigger.functionOid),
+                  })}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-primary text-sm hover:underline"

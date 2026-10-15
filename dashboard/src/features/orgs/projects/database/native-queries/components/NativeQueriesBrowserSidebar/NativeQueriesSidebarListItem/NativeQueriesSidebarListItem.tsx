@@ -1,5 +1,9 @@
+import {
+  Link,
+  type RegisteredRouter,
+  type ValidateLinkOptions,
+} from '@tanstack/react-router';
 import { Ellipsis } from 'lucide-react';
-import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -26,23 +30,31 @@ export interface SidebarListItemAction {
   destructive?: boolean;
 }
 
-interface NativeQueriesSidebarListItemProps {
+interface NativeQueriesSidebarListItemProps<
+  TRouter extends RegisteredRouter = RegisteredRouter,
+  TOptions = unknown,
+> {
   name: string;
-  href: string;
+  /** The page the item opens. */
+  link: ValidateLinkOptions<TRouter, TOptions>;
   isSelected: boolean;
   icon: ReactNode;
   iconTooltip: string;
   actions: SidebarListItemAction[];
 }
 
+export default function NativeQueriesSidebarListItem<
+  TRouter extends RegisteredRouter,
+  TOptions,
+>(props: NativeQueriesSidebarListItemProps<TRouter, TOptions>): ReactNode;
 export default function NativeQueriesSidebarListItem({
   name,
-  href,
+  link,
   isSelected,
   icon,
   iconTooltip,
   actions,
-}: NativeQueriesSidebarListItemProps) {
+}: NativeQueriesSidebarListItemProps): ReactNode {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -58,7 +70,7 @@ export default function NativeQueriesSidebarListItem({
       >
         <div className="flex w-full max-w-full items-center">
           <Link
-            href={href}
+            {...link}
             className={cn(
               'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
               isSelected && 'text-primary-main',

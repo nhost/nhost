@@ -1,6 +1,5 @@
-import { useParams } from '@tanstack/react-router';
+import { Link, useParams } from '@tanstack/react-router';
 import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -26,12 +25,11 @@ export interface EventTriggerListItemProps {
 export default function EventTriggerListItem({
   eventTrigger,
 }: EventTriggerListItemProps) {
-  const { orgSlug, appSubdomain, eventTriggerSlug } = useParams({
+  const { eventTriggerSlug } = useParams({
     strict: false,
   });
   const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
   const isSelected = eventTrigger.name === eventTriggerSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${eventTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [showDeleteEventTriggerDialog, setShowDeleteEventTriggerDialog] =
@@ -53,7 +51,12 @@ export default function EventTriggerListItem({
         >
           <div className="flex w-full max-w-full items-center">
             <Link
-              href={href}
+              from="/orgs/$orgSlug/projects/$appSubdomain"
+              to="/orgs/$orgSlug/projects/$appSubdomain/events/event-triggers/$eventTriggerSlug"
+              params={(prev) => ({
+                ...prev,
+                eventTriggerSlug: eventTrigger.name,
+              })}
               className={cn(
                 'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
                 {

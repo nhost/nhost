@@ -1,13 +1,16 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 function UpgradeToProButton() {
-  const router = useRouter();
-  const { org } = useCurrentOrg();
+  const navigate = useNavigate();
 
   function handleClick() {
-    router.push(`/orgs/${org?.slug}/billing?openUpgradeModal=true`);
+    navigate({
+      from: '/orgs/$orgSlug',
+      to: '/orgs/$orgSlug/billing',
+      params: true,
+      search: { openUpgradeModal: 'true' },
+    });
   }
 
   return (

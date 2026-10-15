@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
 import { useCallback, useEffect } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
@@ -16,7 +15,6 @@ export const Route = createFileRoute('/orgs/verify')({
 });
 
 function PostCheckout() {
-  const router = useRouter();
   const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,8 +26,8 @@ function PostCheckout() {
       return;
     }
 
-    router.push('/signin');
-  }, [isLoading, isAuthenticated, router, isPlatform]);
+    navigate({ to: '/signin' });
+  }, [isLoading, isAuthenticated, navigate, isPlatform]);
 
   const onCompleted = useCallback(
     async (
@@ -63,12 +61,12 @@ function PostCheckout() {
       });
 
       if (isFromOnboarding) {
-        router.push('/onboarding/project');
+        navigate({ to: '/onboarding/project' });
       } else {
         navigate({ to: '/orgs/$orgSlug/projects', params: { orgSlug: Slug } });
       }
     },
-    [router, currentUser?.email, currentUser?.id, getOrganizations, navigate],
+    [navigate, currentUser?.email, currentUser?.id, getOrganizations],
   );
 
   return (

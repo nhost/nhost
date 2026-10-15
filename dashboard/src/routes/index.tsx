@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { TriangleAlert } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
@@ -17,7 +16,6 @@ export const Route = createFileRoute('/')({
 });
 
 function IndexPage() {
-  const { push } = useRouter();
   const navigate = useNavigate();
   const isPlatform = useIsPlatform();
   const { orgs, loading: loadingOrgs, error, refetch } = useOrgs();
@@ -43,7 +41,7 @@ function IndexPage() {
 
       if (isUserLoggedIn && orgs) {
         if (orgs.length === 0) {
-          await push('/onboarding');
+          await navigate({ to: '/onboarding' });
           return;
         }
 
@@ -72,12 +70,11 @@ function IndexPage() {
   }, [
     orgs,
     lastSlug,
-    push,
+    navigate,
     loadingOrgs,
     isPlatform,
     isUserLoggedIn,
     error,
-    navigate,
   ]);
 
   if (error) {

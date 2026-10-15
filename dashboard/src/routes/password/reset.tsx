@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
@@ -29,7 +28,7 @@ const validationSchema = Yup.object({
 export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 function ResetPasswordPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const nhost = useNhostClient();
 
   const form = useForm<ResetPasswordFormValues>({
@@ -46,7 +45,7 @@ function ResetPasswordPage() {
   const changePassword = useActionWithElevatedPermissions({
     actionFn: nhost.auth.changeUserPassword,
     onSuccess: () => {
-      router.push('/');
+      navigate({ to: '/' });
     },
     successMessage: 'Password was updated successfully.',
   });

@@ -1,5 +1,4 @@
-import { useParams } from '@tanstack/react-router';
-import NextLink from 'next/link';
+import { Link, useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -12,7 +11,7 @@ import { useGetTrackedFunctionsSet } from '@/features/orgs/projects/database/dat
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type { DatabaseObjectViewModel } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
-import { getObjectTypeUrlSegment } from '@/features/orgs/projects/database/dataGrid/utils/getObjectTypeUrlSegment';
+import { getDatabaseObjectLinkOptions } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectLinkOptions';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
 import DatabaseObjectActions from './DatabaseObjectActions';
@@ -28,14 +27,9 @@ export default function DatabaseObjectListItem({
   dataBrowserActions,
   onSidebarItemClick,
 }: DatabaseObjectListItemProps) {
-  const {
-    appSubdomain,
-    dataSourceSlug,
-    functionOID,
-    orgSlug,
-    schemaSlug,
-    tableSlug,
-  } = useParams({ strict: false });
+  const { dataSourceSlug, functionOID, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
 
   const {
     removableObject,
@@ -113,7 +107,8 @@ export default function DatabaseObjectListItem({
             )}
           >
             <div>
-              <NextLink
+              <Link
+                {...getDatabaseObjectLinkOptions('default', databaseObject)}
                 className={cn(
                   'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
                   {
@@ -123,7 +118,6 @@ export default function DatabaseObjectListItem({
                 onClick={() => {
                   onSidebarItemClick?.(`default.${objectKey}`);
                 }}
-                href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/${databaseObject.schema}/${getObjectTypeUrlSegment(databaseObject.objectType)}/${isFunction ? databaseObject.oid : databaseObject.name}`}
               >
                 <DatabaseObjectIcon className="h-4 w-4 shrink-0 text-primary" />
                 <span
@@ -134,7 +128,7 @@ export default function DatabaseObjectListItem({
                 >
                   {databaseObject.name}
                 </span>
-              </NextLink>
+              </Link>
               <DatabaseObjectActions
                 objectName={databaseObject.name}
                 objectType={databaseObject.objectType}

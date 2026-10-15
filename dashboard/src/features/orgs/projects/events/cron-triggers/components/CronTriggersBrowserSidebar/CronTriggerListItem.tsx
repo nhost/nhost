@@ -1,6 +1,5 @@
-import { useParams } from '@tanstack/react-router';
+import { Link, useParams } from '@tanstack/react-router';
 import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -26,12 +25,11 @@ export interface CronTriggerListItemProps {
 export default function CronTriggerListItem({
   cronTrigger,
 }: CronTriggerListItemProps) {
-  const { orgSlug, appSubdomain, cronTriggerSlug } = useParams({
+  const { cronTriggerSlug } = useParams({
     strict: false,
   });
   const editTriggerRef = useRef<BaseCronTriggerFormTriggerProps | null>(null);
   const isSelected = cronTrigger.name === cronTriggerSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${cronTrigger.name}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [showDeleteCronTriggerDialog, setShowDeleteCronTriggerDialog] =
@@ -53,7 +51,12 @@ export default function CronTriggerListItem({
         >
           <div className="flex w-full max-w-full items-center">
             <Link
-              href={href}
+              from="/orgs/$orgSlug/projects/$appSubdomain"
+              to="/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug"
+              params={(prev) => ({
+                ...prev,
+                cronTriggerSlug: cronTrigger.name,
+              })}
               className={cn(
                 'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
                 {

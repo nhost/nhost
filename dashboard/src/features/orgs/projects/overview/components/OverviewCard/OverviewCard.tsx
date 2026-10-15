@@ -1,7 +1,9 @@
 import { ArrowRightIcon } from 'lucide-react';
-import type { ImageProps } from 'next/image';
-import Link from 'next/link';
-import type { HTMLAttributes, ReactElement } from 'react';
+import type {
+  ComponentPropsWithoutRef,
+  HTMLAttributes,
+  ReactElement,
+} from 'react';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +13,7 @@ export interface OverviewCardProps extends CardProps {
    */
   slotProps?: {
     iconWrapper?: HTMLAttributes<HTMLDivElement>;
-    imgIcon?: Omit<Partial<ImageProps>, 'src' | 'alt'>;
+    imgIcon?: Omit<ComponentPropsWithoutRef<'img'>, 'src' | 'alt'>;
   };
 }
 
@@ -26,7 +28,7 @@ function renderIcon({
   lightIcon?: string | ReactElement;
   title: string;
   iconIsComponent: boolean;
-  imageProps: Omit<Partial<ImageProps>, 'src' | 'alt'>;
+  imageProps: Omit<ComponentPropsWithoutRef<'img'>, 'src' | 'alt'>;
 }) {
   if (iconIsComponent) {
     return icon;
@@ -125,15 +127,16 @@ export default function OverviewCard({
         </div>
       </div>
       {link && (
-        <Link
+        <a
           href={link}
           target="_blank"
           rel="noopener noreferrer"
           className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
         >
           Learn more
+          <span className="sr-only"> about {title}</span>
           <ArrowRightIcon className="h-4 w-4" />
-        </Link>
+        </a>
       )}
     </div>
   );

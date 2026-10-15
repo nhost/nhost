@@ -11,7 +11,7 @@ import LogicalModelDetailsSkeleton from './LogicalModelDetailsSkeleton';
 import LogicalModelOverview from './sections/LogicalModelOverview';
 
 export default function LogicalModelDetails() {
-  const { modelSlug, orgSlug, appSubdomain } = useParams({ strict: false });
+  const { modelSlug } = useParams({ strict: false });
   const { data: models = [], isLoading, error } = useGetLogicalModels();
   const {
     data: queries = [],
@@ -73,9 +73,6 @@ export default function LogicalModelDetails() {
       <LogicalModelOverview
         model={model}
         usedBy={queries.filter((query) => query.returns === model.name)}
-        buildQueryHref={(rootFieldName) =>
-          `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(rootFieldName)}`
-        }
       />
     </div>
   );

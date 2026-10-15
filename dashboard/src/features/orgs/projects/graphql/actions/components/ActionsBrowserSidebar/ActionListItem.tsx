@@ -1,4 +1,4 @@
-import { useParams } from '@tanstack/react-router';
+import { Link, useParams } from '@tanstack/react-router';
 import {
   Anchor,
   Ellipsis,
@@ -8,7 +8,6 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 import {
   type OpenDialogOptions,
@@ -46,9 +45,8 @@ export default function ActionListItem({
   action,
   onDeleteAction,
 }: ActionListItemProps) {
-  const { orgSlug, appSubdomain, actionSlug } = useParams({ strict: false });
+  const { actionSlug } = useParams({ strict: false });
   const isSelected = action.name === actionSlug;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${action.name}`;
   const actionType = action.definition.type ?? 'mutation';
   const ActionIcon = actionType === 'query' ? FileSearch : FilePen;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -120,7 +118,9 @@ export default function ActionListItem({
       >
         <div className="flex w-full max-w-full items-center">
           <Link
-            href={href}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/actions/$actionSlug"
+            params={(prev) => ({ ...prev, actionSlug: action.name })}
             className={cn(
               'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
               {

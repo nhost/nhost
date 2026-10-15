@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -45,7 +44,7 @@ function NativeQueriesIndexContent() {
 function NativeQueriesIndexPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const { dataSourceSlug } = useRouter().query;
+  const { dataSourceSlug } = Route.useParams();
 
   if (dataSourceSlug !== 'default') {
     return (

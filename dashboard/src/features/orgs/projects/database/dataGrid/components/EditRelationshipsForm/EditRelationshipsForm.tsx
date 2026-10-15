@@ -1,6 +1,5 @@
-import { useParams } from '@tanstack/react-router';
+import { useParams, useRouter } from '@tanstack/react-router';
 import { ArrowDown, Link2, Plug as PlugIcon, Split } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -42,7 +41,7 @@ export default function EditRelationshipsForm({
 }: EditRelationshipsFormProps) {
   const router = useRouter();
   const { dataSourceSlug } = useParams({ strict: false });
-  const dataSource = (dataSourceSlug as string | undefined) || 'default';
+  const dataSource = dataSourceSlug || 'default';
 
   const {
     relationships: existingRelationshipsViewModel,
@@ -68,7 +67,7 @@ export default function EditRelationshipsForm({
       return;
     }
 
-    router.back();
+    router.history.back();
   };
 
   if (isRelationshipsLoading || tableStatus === 'loading') {

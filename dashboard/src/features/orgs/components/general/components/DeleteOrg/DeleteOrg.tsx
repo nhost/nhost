@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from '@tanstack/react-router';
 import { Lock } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ interface DeleteOrgFormValues {
 }
 
 export default function DeleteOrg() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { org } = useCurrentOrg();
   const isOrgAdmin = useIsOrgAdmin();
   const { refetch: refetchOrgs } = useOrgs();
@@ -89,7 +89,7 @@ export default function DeleteOrg() {
             },
             onCompleted: async () => {
               await refetchOrgs();
-              await router.push('/');
+              await navigate({ to: '/' });
             },
           });
         },

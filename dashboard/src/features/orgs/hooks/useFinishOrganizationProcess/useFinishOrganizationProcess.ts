@@ -1,5 +1,4 @@
 import { useSearch } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -30,7 +29,6 @@ function useFinishOrganizationProcess({
   onCompleted,
   onError,
 }: UseFinishOrgCreationProps) {
-  const router = useRouter();
   const { session_id } = useSearch({ strict: false });
 
   const { isAuthenticated } = useAuth();
@@ -42,13 +40,13 @@ function useFinishOrganizationProcess({
   // biome-ignore lint/correctness/useExhaustiveDependencies: messages and onError does not change between renders
   useEffect(() => {
     async function finishOrganizationProcess() {
-      if (router.isReady && session_id && isAuthenticated) {
+      if (session_id && isAuthenticated) {
         setLoading(true);
         execPromiseWithErrorToast(
           async () => {
             const response = await postOrganizationRequest({
               variables: {
-                sessionID: session_id as string,
+                sessionID: session_id,
               },
             });
             if (response.data?.billingPostOrganizationRequest) {

@@ -1,4 +1,4 @@
-import { useParams } from '@tanstack/react-router';
+import { linkOptions, useParams } from '@tanstack/react-router';
 import { Shapes, SquarePen, Trash2, Users } from 'lucide-react';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -49,7 +49,7 @@ interface LogicalModelListItemProps {
 export default function LogicalModelListItem({
   model,
 }: LogicalModelListItemProps) {
-  const { orgSlug, appSubdomain, modelSlug } = useParams({ strict: false });
+  const { modelSlug } = useParams({ strict: false });
   const { openDrawer, closeDrawer } = useDialog();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -95,7 +95,15 @@ export default function LogicalModelListItem({
     <>
       <NativeQueriesSidebarListItem
         name={model.name}
-        href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/models/${encodeURIComponent(model.name)}`}
+        link={linkOptions({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/models/$modelSlug',
+          params: (prev) => ({
+            ...prev,
+            dataSourceSlug: 'default',
+            modelSlug: model.name,
+          }),
+        })}
         isSelected={model.name === modelSlug}
         icon={<Shapes className="h-4 w-4 shrink-0 text-primary" />}
         iconTooltip="Logical model"

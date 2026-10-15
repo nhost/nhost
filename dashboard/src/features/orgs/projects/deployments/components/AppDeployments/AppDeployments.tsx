@@ -1,6 +1,5 @@
-import { useSearch } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import NextLink from 'next/link';
 import { Fragment } from 'react';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -43,13 +42,16 @@ function NextPrevPageLink({
   }
 
   return (
-    <NextLink
-      href={`${window.location.pathname}?page=${targetPage}`}
+    <Link
+      from="/orgs/$orgSlug/projects/$appSubdomain/deployments/"
+      to="/orgs/$orgSlug/projects/$appSubdomain/deployments"
+      params
+      search={{ page: String(targetPage) }}
       aria-label={label}
       className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
     >
       <Icon className="h-4 w-4" />
-    </NextLink>
+    </Link>
   );
 }
 

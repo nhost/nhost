@@ -10,7 +10,7 @@ import NativeQueryDetailsSkeleton from './NativeQueryDetailsSkeleton';
 import NativeQueryOverview from './sections/NativeQueryOverview';
 
 export default function NativeQueryDetails() {
-  const { querySlug, orgSlug, appSubdomain } = useParams({ strict: false });
+  const { querySlug } = useParams({ strict: false });
   const { data: queries = [], isLoading, error } = useGetNativeQueries();
   const { openDrawer } = useDialog();
 
@@ -60,10 +60,7 @@ export default function NativeQueryDetails() {
         }
       />
 
-      <NativeQueryOverview
-        query={query}
-        modelHref={`/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/models/${encodeURIComponent(query.returns)}`}
-      />
+      <NativeQueryOverview query={query} />
     </div>
   );
 }

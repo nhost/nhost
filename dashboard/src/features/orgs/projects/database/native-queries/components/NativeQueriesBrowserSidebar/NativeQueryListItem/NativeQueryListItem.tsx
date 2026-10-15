@@ -1,4 +1,4 @@
-import { useParams } from '@tanstack/react-router';
+import { linkOptions, useParams } from '@tanstack/react-router';
 import { Anchor, DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -49,7 +49,7 @@ interface NativeQueryListItemProps {
 export default function NativeQueryListItem({
   query,
 }: NativeQueryListItemProps) {
-  const { orgSlug, appSubdomain, querySlug } = useParams({ strict: false });
+  const { querySlug } = useParams({ strict: false });
   const { openDrawer } = useDialog();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -92,7 +92,15 @@ export default function NativeQueryListItem({
     <>
       <NativeQueriesSidebarListItem
         name={query.root_field_name}
-        href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(query.root_field_name)}`}
+        link={linkOptions({
+          from: '/orgs/$orgSlug/projects/$appSubdomain',
+          to: '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
+          params: (prev) => ({
+            ...prev,
+            dataSourceSlug: 'default',
+            querySlug: query.root_field_name,
+          }),
+        })}
         isSelected={query.root_field_name === querySlug}
         icon={<DatabaseSearchIcon className="h-4 w-4 shrink-0 text-primary" />}
         iconTooltip="Native query"

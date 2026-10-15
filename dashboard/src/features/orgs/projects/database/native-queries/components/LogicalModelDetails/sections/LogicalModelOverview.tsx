@@ -1,6 +1,6 @@
-import NextLink from 'next/link';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { NativeQueriesDetailsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsSection';
+import { NativeQueryLink } from '@/features/orgs/projects/database/native-queries/components/NativeQueryLink';
 import { formatLogicalModelType } from '@/features/orgs/projects/database/native-queries/utils/formatLogicalModelType';
 import type {
   LogicalModelItem,
@@ -10,13 +10,11 @@ import type {
 export interface LogicalModelOverviewProps {
   model: LogicalModelItem;
   usedBy: NativeQueryItem[];
-  buildQueryHref: (rootFieldName: string) => string;
 }
 
 export default function LogicalModelOverview({
   model,
   usedBy,
-  buildQueryHref,
 }: LogicalModelOverviewProps) {
   const permissions = model.select_permissions ?? [];
 
@@ -76,13 +74,13 @@ export default function LogicalModelOverview({
           ) : (
             <div className="flex flex-col items-start gap-2">
               {usedBy.map((query) => (
-                <NextLink
+                <NativeQueryLink
                   key={query.root_field_name}
-                  href={buildQueryHref(query.root_field_name)}
+                  name={query.root_field_name}
                   className="text-primary hover:underline"
                 >
                   {query.root_field_name}
-                </NextLink>
+                </NativeQueryLink>
               ))}
             </div>
           )}

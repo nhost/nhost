@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -12,22 +11,29 @@ import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { getSearchParam } from '@/lib/search-params';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/run-one-click-install')({
+  // Base64-encoded service configuration from a one-click install link.
+  validateSearch: (search): { config?: string } => ({
+    config: getSearchParam(search.config),
+  }),
   component: RouteComponent,
 });
 
 interface ProjectSelectorOption {
   projectName: string;
   projectPathDescriptor: string;
-  route: string;
+  orgSlug: string;
+  appSubdomain: string;
   isFree: boolean;
   plan: string;
 }
 
 function SelectOrganizationAndProject() {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { config } = Route.useSearch();
   const { openAlertDialog } = useDialog();
   const { orgs, loading: loadingOrgs } = useOrgs();
 
@@ -35,7 +41,8 @@ function SelectOrganizationAndProject() {
     org.apps.map((project) => ({
       projectName: project.name,
       projectPathDescriptor: `${org.name}/${project.name}`,
-      route: `/orgs/${org.slug}/projects/${project.subdomain}/run`,
+      orgSlug: org.slug,
+      appSubdomain: project.subdomain,
       isFree: org.plan.isFree,
       plan: org.plan.name,
     })),
@@ -68,22 +75,20 @@ function SelectOrganizationAndProject() {
             primaryButtonText: 'Ok',
             hideSecondaryAction: true,
             onPrimaryAction: async () => {
-              await router.push('/');
+              await navigate({ to: '/' });
             },
           },
         });
       }
     },
-    [openAlertDialog, router],
+    [openAlertDialog, navigate],
   );
 
   useEffect(() => {
-    const config = router.query?.config as string;
-
     if (config) {
       checkConfigFromQuery(config);
     }
-  }, [checkConfigFromQuery, router.query]);
+  }, [checkConfigFromQuery, config]);
 
   const goToServices = async (project: ProjectSelectorOption) => {
     if (!project) {
@@ -113,7 +118,11 @@ function SelectOrganizationAndProject() {
       return;
     }
 
-    await router.push({ pathname: project.route, query: router.query });
+    await navigate({
+      to: '/orgs/$orgSlug/projects/$appSubdomain/run',
+      params: { orgSlug: project.orgSlug, appSubdomain: project.appSubdomain },
+      search: { config },
+    });
   };
 
   const projectsToDisplay = filter

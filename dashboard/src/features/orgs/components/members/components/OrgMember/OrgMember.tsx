@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from '@tanstack/react-router';
 import { Ellipsis } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -73,7 +73,7 @@ const updateMemberRoleFormSchema = z.object({
 
 export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const user = useUserData();
-  const { push } = useRouter();
+  const navigate = useNavigate();
   const { refetch: refetchOrgs } = useOrgs();
   const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
     useCurrentOrg();
@@ -101,7 +101,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         await refetchOrgs();
 
         if (isRemovingSelf) {
-          push('/');
+          navigate({ to: '/' });
         }
       },
       {

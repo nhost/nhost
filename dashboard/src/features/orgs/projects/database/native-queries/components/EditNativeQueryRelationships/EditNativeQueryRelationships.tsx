@@ -1,4 +1,3 @@
-import { useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { NativeQueryRelationships } from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
@@ -14,7 +13,6 @@ export default function EditNativeQueryRelationships({
   queryName,
   onCancel,
 }: EditNativeQueryRelationshipsProps) {
-  const { orgSlug, appSubdomain } = useParams({ strict: false });
   const {
     data: queries = [],
     isLoading: queriesLoading,
@@ -50,9 +48,7 @@ export default function EditNativeQueryRelationships({
             query={query}
             queries={queries}
             models={models}
-            getQueryHref={(targetQueryName) =>
-              `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(targetQueryName)}`
-            }
+            linkQueries
           />
         ) : (
           <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
