@@ -25,6 +25,10 @@ SKIP=(
   # while the page loads fine in a real browser (false positive)
   'github\.com\/signup'
 
+  # GitLab intermittently answers its signup page with 400 for datacenter IPs /
+  # the link checker while it loads fine in a real browser (false positive)
+  'gitlab\.com\/users\/sign_up'
+
   # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
   # browsers but 403/404 to datacenter IPs / the link checker (false positive)
   'support\.microsoft\.com'
@@ -69,7 +73,17 @@ set -e
 # Strip any preamble (e.g. a pnpm lockfile warning) printed before the JSON
 # object so jq sees valid JSON. linkinator's JSON reporter emits a single
 # top-level object, so slice from the first line that starts with '{'.
-sed -i -n '/^{/,$p' "$results"
+# Write through a temp file rather than `sed -i`, whose in-place flag takes a
+# mandatory suffix argument on BSD/macOS sed.
+stripped="$(mktemp)"
+trap 'rm -f "$results" "$stripped"' EXIT
+sed -n '/^{/,$p' "$results" >"$stripped"
+mv "$stripped" "$results"
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "❌ jq is required to summarize the link check. Install it or run this through the docs nix shell." >&2
+  exit 1
+fi
 
 if ! jq -e . "$results" >/dev/null 2>&1; then
   echo "❌ Could not parse linkinator output as JSON. Raw output:" >&2
