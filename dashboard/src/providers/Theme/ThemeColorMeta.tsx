@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import useThemePreference from '@/providers/Theme/useThemePreference';
 
 function ThemeColorMeta() {
@@ -8,13 +7,12 @@ function ThemeColorMeta() {
     return null;
   }
 
+  // React hoists <meta> into <head>.
   return (
-    <Head>
-      <meta
-        name="theme-color"
-        content={resolvedTheme === 'dark' ? '#171d26' : '#ffffff'}
-      />
-    </Head>
+    <meta
+      name="theme-color"
+      content={resolvedTheme === 'dark' ? '#171d26' : '#ffffff'}
+    />
   );
 }
 

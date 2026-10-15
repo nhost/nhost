@@ -2,14 +2,14 @@
  * Determines whether the Nhost Dashboard is running in a cloud environment.
  */
 export function isPlatform() {
-  return process.env.NEXT_PUBLIC_NHOST_PLATFORM === 'true';
+  return import.meta.env.NEXT_PUBLIC_NHOST_PLATFORM === 'true';
 }
 
 /**
  * Admin secret for Hasura.
  */
 export function getHasuraAdminSecret() {
-  return process.env.NEXT_PUBLIC_NHOST_ADMIN_SECRET || 'nhost-admin-secret';
+  return import.meta.env.NEXT_PUBLIC_NHOST_ADMIN_SECRET || 'nhost-admin-secret';
 }
 
 /**
@@ -17,7 +17,7 @@ export function getHasuraAdminSecret() {
  */
 export function getAuthServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_AUTH_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_AUTH_URL ||
     'https://local.auth.local.nhost.run/v1'
   );
 }
@@ -27,7 +27,7 @@ export function getAuthServiceUrl() {
  */
 export function getDatabaseServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_DATABASE_URL || 'local.db.local.nhost.run'
+    import.meta.env.NEXT_PUBLIC_NHOST_DATABASE_URL || 'local.db.local.nhost.run'
   );
 }
 
@@ -36,7 +36,7 @@ export function getDatabaseServiceUrl() {
  */
 export function getGraphqlServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL ||
     'https://local.graphql.local.nhost.run/v1'
   );
 }
@@ -46,7 +46,7 @@ export function getGraphqlServiceUrl() {
  */
 export function getStorageServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_STORAGE_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_STORAGE_URL ||
     'https://local.storage.local.nhost.run/v1'
   );
 }
@@ -56,7 +56,7 @@ export function getStorageServiceUrl() {
  */
 export function getFunctionsServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_FUNCTIONS_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_FUNCTIONS_URL ||
     'https://local.functions.local.nhost.run/v1'
   );
 }
@@ -66,7 +66,7 @@ export function getFunctionsServiceUrl() {
  */
 export function getHasuraConsoleServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL ||
     'https://local.hasura.local.nhost.run'
   );
 }
@@ -76,7 +76,7 @@ export function getHasuraConsoleServiceUrl() {
  */
 export function getHasuraMigrationsApiUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL ||
     'https://local.hasura.local.nhost.run/apis/migrate'
   );
 }
@@ -86,7 +86,7 @@ export function getHasuraMigrationsApiUrl() {
  */
 export function getHasuraApiUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_HASURA_API_URL ||
     'https://local.hasura.local.nhost.run'
   );
 }
@@ -95,7 +95,7 @@ export function getHasuraApiUrl() {
  * Custom URL of the config service.
  */
 export function getConfigServerUrl() {
-  return process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL;
+  return import.meta.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL;
 }
 
 /**
@@ -103,7 +103,7 @@ export function getConfigServerUrl() {
  */
 export function getGraphqlLogsServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL ||
+    import.meta.env.NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL ||
     'https://local.dashboard.local.nhost.run/v1/logs/graphql'
   );
 }
@@ -113,7 +113,7 @@ export function getGraphqlLogsServiceUrl() {
  */
 export function getLogsWebsocketUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET ||
+    import.meta.env.NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET ||
     'wss://local.dashboard.local.nhost.run/v1/logs/graphql'
   );
 }
@@ -122,7 +122,7 @@ export function getLogsWebsocketUrl() {
  * Returns the current version of the dashboard.
  */
 export function getDashboardVersion() {
-  return process.env.NEXT_PUBLIC_DASHBOARD_VERSION || '0.0.0-dev';
+  return import.meta.env.NEXT_PUBLIC_DASHBOARD_VERSION || '0.0.0-dev';
 }
 
 const ZERO_UUID = '00000000-0000-0000-0000-000000000000';
@@ -135,7 +135,7 @@ const ZERO_UUID = '00000000-0000-0000-0000-000000000000';
  * back to the legacy all-zeros UUID.
  */
 export function getLocalAppId() {
-  const appId = process.env.NEXT_PUBLIC_NHOST_APP_ID;
+  const appId = import.meta.env.NEXT_PUBLIC_NHOST_APP_ID;
 
   if (!appId || appId.startsWith('__')) {
     return ZERO_UUID;

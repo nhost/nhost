@@ -13,8 +13,8 @@ let stripePromise: Promise<Stripe | null> | null = null;
 // every page, including in CLI and self-hosted mode, but only checkout needs
 // Stripe.js. The promise is cached because the provider needs a stable prop.
 function getStripe() {
-  if (!stripePromise && process.env.NEXT_PUBLIC_STRIPE_PK) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK);
+  if (!stripePromise && import.meta.env.NEXT_PUBLIC_STRIPE_PK) {
+    stripePromise = loadStripe(import.meta.env.NEXT_PUBLIC_STRIPE_PK);
   }
 
   return stripePromise;

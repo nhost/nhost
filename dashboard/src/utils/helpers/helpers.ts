@@ -25,8 +25,8 @@ export const checkHasuraConsoleStatus = async (subdomain: string) => {
 
 export function isDevOrStaging(): boolean {
   return (
-    process.env.NEXT_PUBLIC_ENV === 'dev' ||
-    process.env.NEXT_PUBLIC_ENV === 'staging'
+    import.meta.env.NEXT_PUBLIC_ENV === 'dev' ||
+    import.meta.env.NEXT_PUBLIC_ENV === 'staging'
   );
 }
 
@@ -39,7 +39,7 @@ export type Environment = 'dev' | 'staging' | 'production';
  * @returns The current environment
  */
 export function getCurrentEnvironment(): Environment {
-  return (process.env.NEXT_PUBLIC_ENV || 'dev') as Environment;
+  return (import.meta.env.NEXT_PUBLIC_ENV || 'dev') as Environment;
 }
 
 /**

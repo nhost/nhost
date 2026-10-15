@@ -42,7 +42,7 @@ export const createApolloClient = ({
   graphqlUrl,
   globalHeaders = {},
   fetchPolicy,
-  connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
+  connectToDevTools = isBrowser && import.meta.env.DEV,
 }: NhostApolloClientOptions) => {
   const backendUrl = graphqlUrl || nhost?.graphql.url;
 

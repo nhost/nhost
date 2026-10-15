@@ -356,7 +356,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
 
           <Button asChild>
             <Link
-              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
+              href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
             >
               Configure the Nhost application on GitHub
@@ -404,7 +404,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               </ul>
 
               <Link
-                href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
+                href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
                 className="grid grid-flow-col items-center justify-start gap-1 text-primary hover:underline"
               >
@@ -473,7 +473,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               Do you miss a repository, or do you need to connect another GitHub
               account?{' '}
               <Link
-                href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
+                href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
                 className="font-medium text-primary text-xs hover:underline"
               >

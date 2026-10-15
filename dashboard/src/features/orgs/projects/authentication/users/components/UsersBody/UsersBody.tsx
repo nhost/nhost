@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
+import type { RemoteAppUser } from '@/features/orgs/projects/authentication/users/types';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -28,7 +29,6 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/generated/graphql';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import { useThemePreference } from '@/providers/Theme';
 import type { Role } from '@/types/application';
 

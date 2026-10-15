@@ -15,7 +15,7 @@ export interface RetryableErrorBoundaryProps
   errorMessageProps?: Omit<ErrorMessageProps, 'onReset'>;
 }
 
-function RetryableErrorBoundaryFallback({
+export function RetryableErrorBoundaryFallback({
   error,
   resetErrorBoundary,
   className,

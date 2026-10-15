@@ -39,6 +39,11 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": [
     "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/tests",
+    "src/setupTests.ts",
     ".nhost",
     "nhost",
     "functions",

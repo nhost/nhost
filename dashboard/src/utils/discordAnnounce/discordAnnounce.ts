@@ -5,7 +5,7 @@ import { isDevOrStaging } from '@/utils/helpers';
  * @param content {string} This string to log on the particular channel.
  */
 const discordAnnounce = async (content: string) => {
-  if (!process.env.NEXT_PUBLIC_DISCORD_LOGGING) {
+  if (!import.meta.env.NEXT_PUBLIC_DISCORD_LOGGING) {
     return;
   }
 
@@ -16,7 +16,7 @@ const discordAnnounce = async (content: string) => {
     content,
   };
 
-  await fetch(process.env.NEXT_PUBLIC_DISCORD_LOGGING, {
+  await fetch(import.meta.env.NEXT_PUBLIC_DISCORD_LOGGING, {
     method: 'POST',
     headers: {
       'Content-type': 'application/json',

@@ -1,0 +1,176 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import {
+  AreaSidebarGroup,
+  AreaSidebarLink,
+  AreaSidebarNav,
+  AreaSidebarRoot,
+} from '@/components/layout/AreaSidebar';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
+import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
+import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
+import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
+import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+export const Route = createFileRoute(
+  '/orgs/$orgSlug/projects/$appSubdomain/functions/settings',
+)({
+  component: RouteComponent,
+});
+
+function FunctionsCustomDomainSettings() {
+  const { org } = useCurrentOrg();
+  const { project, loading: loadingProject } = useProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+  const shouldShowUpgrade = isPlatform && !!org?.plan?.isFree;
+
+  const { data, error } = useGetServerlessFunctionsSettingsQuery({
+    variables: { appId: project?.id },
+    skip: shouldShowUpgrade || !project?.id,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  if (shouldShowUpgrade) {
+    return (
+      <UpgradeToProBanner
+        section="settings-custom-domains"
+        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
+        description=""
+      />
+    );
+  }
+
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading Functions custom domain settings...
+      </Spinner>
+    );
+  }
+
+  return (
+    <div className="grid grid-flow-row gap-6">
+      <CustomDomainsNotice />
+      <ServerlessFunctionsDomain />
+    </div>
+  );
+}
+
+function FunctionsRateLimitingSettings() {
+  const { project, loading: loadingProject } = useProject();
+  const { functionsDefaultValues, loading } = useGetRateLimits();
+
+  if (loadingProject || !project?.id || loading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading Functions rate limit settings...
+      </Spinner>
+    );
+  }
+
+  return (
+    <RateLimitingForm
+      defaultValues={functionsDefaultValues}
+      loading={loading}
+      serviceName="functions"
+      title="Functions"
+    />
+  );
+}
+
+function FunctionsSettingsSidebar() {
+  const router = useRouter();
+  const orgSlug = getSingleQueryParam(router.query.orgSlug);
+  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
+
+  if (!orgSlug || !appSubdomain) {
+    return null;
+  }
+
+  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/settings`;
+
+  return (
+    <AreaSidebarRoot>
+      <AreaSidebarNav ariaLabel="Functions settings navigation">
+        <AreaSidebarGroup label="Connectivity">
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=custom-domain`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Custom Domain
+          </AreaSidebarLink>
+          <AreaSidebarLink
+            href={`${settingsPath}?tab=rate-limiting`}
+            exact
+            shallow
+            scroll={false}
+          >
+            Rate Limiting
+          </AreaSidebarLink>
+        </AreaSidebarGroup>
+      </AreaSidebarNav>
+    </AreaSidebarRoot>
+  );
+}
+
+function FunctionsSettingsPage() {
+  const router = useRouter();
+  const tab = getSingleQueryParam(router.query.tab);
+  const isValidTab = tab === 'rate-limiting' || tab === 'custom-domain';
+
+  useEffect(() => {
+    if (!router.isReady || isValidTab) {
+      return;
+    }
+
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: 'custom-domain' },
+      },
+      undefined,
+      { shallow: true },
+    );
+  }, [isValidTab, router]);
+
+  if (!isValidTab) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  switch (tab) {
+    case 'rate-limiting':
+      return <FunctionsRateLimitingSettings />;
+    default:
+      return <FunctionsCustomDomainSettings />;
+  }
+}
+
+function RouteComponent() {
+  return (
+    <AreaSettingsLayout sidebar={<FunctionsSettingsSidebar />}>
+      <FunctionsSettingsPage />
+    </AreaSettingsLayout>
+  );
+}

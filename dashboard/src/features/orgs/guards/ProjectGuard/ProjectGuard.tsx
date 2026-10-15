@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import { NextSeo } from 'next-seo';
 import { type PropsWithChildren, useEffect } from 'react';
+import { PageTitle } from '@/components/common/PageTitle';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -82,10 +82,12 @@ export default function ProjectGuard({ children }: PropsWithChildren) {
     return <LoadingScreen data-testid="projectLoadingIndicator" />;
   }
 
+  const pageTitle = isPlatform ? project?.name : 'Local App';
+
   return (
     <>
       {children}
-      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
+      {pageTitle ? <PageTitle title={pageTitle} /> : null}
     </>
   );
 }

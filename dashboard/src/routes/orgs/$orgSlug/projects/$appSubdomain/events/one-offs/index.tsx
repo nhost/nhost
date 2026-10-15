@@ -1,0 +1,37 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { OneOffsView } from '@/features/orgs/projects/events/one-offs/components/OneOffsView';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+
+export const Route = createFileRoute(
+  '/orgs/$orgSlug/projects/$appSubdomain/events/one-offs/',
+)({
+  component: RouteComponent,
+});
+
+function OneOffsPage() {
+  const { project } = useProject();
+  const isPlatform = useIsPlatform();
+
+  if (isPlatform && !project?.config?.hasura.adminSecret) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <RetryableErrorBoundary>
+      <OneOffsView />
+    </RetryableErrorBoundary>
+  );
+}
+
+function RouteComponent() {
+  return (
+    <div className="flex h-full">
+      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+        <OneOffsPage />
+      </div>
+    </div>
+  );
+}

@@ -62,3 +62,6 @@ e2e/.auth/*
 
 # Opencode
 AGENTS.md
+
+# vite
+/dist/

@@ -25,6 +25,7 @@ import {
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditUserPasswordForm } from '@/features/orgs/projects/authentication/users/components/EditUserPasswordForm';
+import type { RemoteAppUser } from '@/features/orgs/projects/authentication/users/types';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -35,7 +36,6 @@ import {
   useGetProjectLocalesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/generated/graphql';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import { useThemePreference } from '@/providers/Theme';
 import type { DialogFormProps } from '@/types/common';
 import { copy } from '@/utils/copy';

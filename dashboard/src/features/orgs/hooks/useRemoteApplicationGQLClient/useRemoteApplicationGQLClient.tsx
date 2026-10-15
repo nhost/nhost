@@ -21,7 +21,7 @@ function getCachedClient(
   // Tests run against per-file MSW servers with different handler setups; a
   // module-level cache would leak a warm Apollo cache across test files and
   // return stale data. Skip caching in test mode.
-  if (process.env.TEST_MODE === 'true') {
+  if (import.meta.env.MODE === 'test') {
     return build();
   }
   const existing = clientCache.get(key);

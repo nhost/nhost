@@ -75,7 +75,7 @@ export default function SystemEnvironmentVariableSettings() {
     {
       key: 'NHOST_HASURA_URL',
       value:
-        process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
+        import.meta.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
           ? `${getHasuraConsoleServiceUrl()}/console`
           : generateAppServiceUrl(
               project!.subdomain,

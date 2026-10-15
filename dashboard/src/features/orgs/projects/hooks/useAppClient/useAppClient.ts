@@ -41,7 +41,7 @@ export default function useAppClient(
     });
   }
 
-  if (process.env.NEXT_PUBLIC_ENV === 'dev' || !project) {
+  if (import.meta.env.NEXT_PUBLIC_ENV === 'dev' || !project) {
     return createClient({
       subdomain: 'local',
       region: 'local',

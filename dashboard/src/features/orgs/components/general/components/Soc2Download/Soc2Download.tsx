@@ -24,7 +24,7 @@ export default function Soc2Download() {
 
     await execPromiseWithErrorToast(
       async () => {
-        const fileId = process.env.NEXT_PUBLIC_SOC2_REPORT_FILE_ID;
+        const fileId = import.meta.env.NEXT_PUBLIC_SOC2_REPORT_FILE_ID;
 
         if (!fileId) {
           throw new Error('SOC2 report file ID not configured');

@@ -16,7 +16,7 @@ body {
   pointer-events: auto !important;
 }
 
-#__next {
+#root {
   height: 100%;
 }
 
