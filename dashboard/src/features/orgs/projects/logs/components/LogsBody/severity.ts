@@ -10,14 +10,22 @@ const SEVERITY_PATTERNS: RegExp[] = [
 export function detectSeverity(log: string): Severity {
   for (const pattern of SEVERITY_PATTERNS) {
     const match = pattern.exec(log);
-    if (!match) continue;
+    if (!match) {
+      continue;
+    }
     const word = match[1].toLowerCase();
     if (word === 'error' || word === 'fatal' || word === 'critical') {
       return 'error';
     }
-    if (word === 'warn' || word === 'warning') return 'warn';
-    if (word === 'info' || word === 'notice' || word === 'log') return 'info';
-    if (word === 'debug' || word === 'trace') return 'debug';
+    if (word === 'warn' || word === 'warning') {
+      return 'warn';
+    }
+    if (word === 'info' || word === 'notice' || word === 'log') {
+      return 'info';
+    }
+    if (word === 'debug' || word === 'trace') {
+      return 'debug';
+    }
   }
   return 'unknown';
 }
