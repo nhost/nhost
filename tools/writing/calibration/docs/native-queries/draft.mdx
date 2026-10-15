@@ -1,0 +1,241 @@
+---
+title: Native Queries
+description: Expose a custom SQL query as a GraphQL field using logical models to describe the shape of the result.
+keywords: ["native queries", "logical models", "custom SQL", "GraphQL", "PostgreSQL", "permissions", "relationships"]
+head:
+  - tag: title
+    content: "Native Queries and Logical Models | Nhost Docs"
+---
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A native query turns a hand-written SQL query into a GraphQL root field. Use one when the GraphQL API generated from your tables cannot express what you need: window functions, recursive CTEs, aggregates across several tables, or any query you would rather keep as SQL than rebuild in your application.
+
+Native queries are read-only. They run a `select` and return rows. To change data, use mutations or [functions](/products/functions).
+
+Every native query needs a **logical model**, which describes the shape of the rows it returns. The model is what the GraphQL API exposes as a type, and it is also where permissions are defined. Nothing about native queries makes sense without one, so this page covers models first.
+
+<Aside type="caution" title="Requirements">
+- Native queries need GraphQL Engine v2.33.0 or later. On older versions the pages load, but every create and update fails. Check and change the version under **Settings -> Hasura**.
+- Postgres sources only.
+- [Constellation](/products/graphql/constellation) does not support native queries. Projects served by Constellation cannot use this feature.
+</Aside>
+
+## Where to find it
+
+In the dashboard, open **Database -> Native Queries**. The page is also reachable from the command palette by searching for "native queries" or "logical models".
+
+The URL follows the project's other database pages:
+
+```
+/orgs/{org}/projects/{project}/database/native-queries/default
+```
+
+The left sidebar has two sections, **Native queries** and **Logical models**, each with a `+` button in its heading. Everything on this page is created from those two buttons.
+
+{/* SCREENSHOT: /images/products/database/native-queries/empty-state.png
+    The Native Queries page on a project with nothing created yet, showing both
+    empty sidebar sections. Capture this before creating anything. */}
+
+## How the pieces fit together
+
+| Piece | What it does |
+| --- | --- |
+| Logical model | Names the fields and types of a result shape. Exposed as a GraphQL type |
+| Native query | Holds the SQL, its arguments, and the logical model it returns |
+| Permissions | Defined on the logical model, per role, select only |
+| Relationships | Link one native query to another, object or array |
+
+A logical model can be reused by more than one native query, and can be nested inside another logical model.
+
+## Create a logical model
+
+<Steps>
+
+1. Next to the **Logical models** heading in the sidebar, click `+`.
+
+2. Give the model a **Name**. Names must start with a letter or an underscore and contain only letters, numbers, and underscores, because the name becomes a GraphQL type.
+
+3. Add a **Description** if the model needs one. Descriptions are optional throughout this feature.
+
+4. Click **Add field** once per field. Each row has **Name**, **Kind**, **Type/value**, **Nullable**, and **Description**.
+
+5. Click **Create**.
+
+</Steps>
+
+Field names follow the same rules as the model name, and must be unique within the model.
+
+{/* SCREENSHOT: /images/products/database/native-queries/create-logical-model.png
+    The Create logical model drawer with a name, description, and several fields
+    filled in. */}
+
+### Field kinds
+
+**Kind** controls what goes in the **Type/value** column:
+
+- **Scalar**: a Postgres type such as `text`, `integer`, or `uuid`. The type list is searchable, and it also accepts a type you type yourself, so a type the dashboard does not list still works.
+- **Logical model**: another logical model, which nests that model's shape inside this one.
+- **Array**: a list of either of the above. Choosing Array reveals a second row for the item type, so an array of scalars and an array of models are both possible.
+
+Every level has its own **Nullable** switch, so an array can be non-nullable while its items are nullable.
+
+{/* SCREENSHOT: /images/products/database/native-queries/field-kinds.png
+    The Kind dropdown open on a field row, showing Scalar, Logical model, and
+    Array. */}
+
+## Create a native query
+
+<Steps>
+
+1. Next to the **Native queries** heading in the sidebar, click `+`.
+
+2. Set the **Root field name**. This is the field name clients query, and it follows the same naming rules as a logical model.
+
+3. Pick the logical model under **Returns logical model**. If the model does not exist yet, create it from inside this form rather than leaving the page.
+
+4. Write the query in the **SQL** editor. The editor highlights Postgres syntax and expands to a full-screen dialog.
+
+5. Click **Add argument** for each parameter the query takes. Arguments have a **Name**, **Type**, **Nullable** switch, and **Description**, and names must be unique within the query.
+
+6. Click **Create**.
+
+</Steps>
+
+Two rules decide whether the query works, and neither is obvious from the form:
+
+- Arguments are interpolated as `{{argument_name}}`, not `$1`.
+- The column names the SQL returns must match the logical model's field names exactly, character for character. Use `as` aliases to line them up.
+
+A query that takes an argument looks like this:
+
+```sql
+select
+  id,
+  name,
+  created_at
+from public.customers
+where country = {{country}}
+order by created_at desc
+```
+
+The query's own page shows its **SQL**, **Returns**, and **Arguments** once it is created.
+
+{/* SCREENSHOT: /images/products/database/native-queries/query-details.png
+    The native query detail page with the SQL, Returns, and Arguments sections
+    visible. */}
+
+## Query it
+
+The root field appears in the GraphQL schema as soon as the query is created. Arguments are passed in a single `args` object. A query with no arguments takes no `args`.
+
+The GraphQL explorer in the dashboard is the quickest way to check the result, because it picks up the new root field from the schema and autocompletes the fields of the returned model. Open **GraphQL** in the project's sidebar and run:
+
+```graphql
+query {
+  customers_by_country(args: { country: "Sweden" }) {
+    id
+    name
+    created_at
+  }
+}
+```
+
+{/* SCREENSHOT: /images/products/database/native-queries/graphql-explorer.png
+    The same query and its result in the dashboard GraphQL explorer. */}
+
+The field is an ordinary part of the GraphQL API, so any client works the same way, including the [JavaScript SDK](/reference/javascript) and plain HTTP:
+
+```bash
+curl -s https://{subdomain}.graphql.{region}.nhost.run/v1 \
+  -H 'content-type: application/json' \
+  -H 'x-hasura-admin-secret: {admin-secret}' \
+  --data-raw '{"query":"query { customers_by_country(args: {country: \"Sweden\"}) { id name } }"}'
+```
+
+## Permissions
+
+Permissions are defined on the **logical model**, not on the native query. A model's permissions apply everywhere that model is returned.
+
+Open the model's menu in the sidebar and choose **Edit permissions**. The grid lists the project's roles with a single **select** column, because native queries are read-only: there is no insert, update, or delete to grant. The `admin` role is absent from the grid since it always has full access.
+
+For each role you can set:
+
+- **Fields select permissions**: which fields of the model the role is allowed to read.
+- **Row select permissions**: either **Without any checks**, or **With custom check** to require that rows satisfy a condition. The rule builder works like the one for [table permissions](/products/graphql/permissions/rule-editor), including the operators that compare one field against another, and it offers the model's own fields rather than table columns.
+
+The order matters: the SQL runs first, then the row filter applies to what it returned. A native query cannot be used to bypass a model's permissions.
+
+A role with no select permission on the model does not get the root field in its schema at all, so querying it as that role is a schema error rather than an empty result.
+
+{/* SCREENSHOT: /images/products/database/native-queries/permissions.png
+    The permissions grid for a logical model with a row filter configured for a
+    role. */}
+
+## Relationships
+
+A native query can be related to another native query, so a single GraphQL query can return a nested shape built from two SQL queries. Relationships from a native query to a tracked table are not supported here.
+
+Open the native query's menu in the sidebar and choose **Edit Relationships**, then fill in:
+
+- **Relationship Name**: the field name the relationship appears under.
+- **Target Native Query**: the native query on the other end.
+- **Relationship Type**: `Object Relationship` for a single nested object, `Array Relationship` for a list.
+- **Source fields** and **Target fields**: the field mapping that joins the two. Add more than one pair for a composite join. Each source field can be used only once.
+
+The nested field is then queried like any other relationship:
+
+```graphql
+query {
+  customers_by_country(args: { country: "Sweden" }) {
+    name
+    order_totals {
+      total
+    }
+  }
+}
+```
+
+{/* SCREENSHOT: /images/products/database/native-queries/relationship-dialog.png
+    The relationship dialog with name, query, type, and a source-to-target field
+    mapping filled in. */}
+
+{/* SCREENSHOT: /images/products/database/native-queries/nested-result.png
+    The result of a query that returns a nested relationship, in the GraphQL
+    explorer. */}
+
+## Edit and delete
+
+Editing a logical model replaces it: the model is untracked and re-tracked under the new definition, which is what allows the name itself to change. Select permissions are reapplied as part of the same operation, so they survive the rename.
+
+Deletes are guarded in both directions. Deleting a logical model that a native query returns, or that another model nests, lists those dependents in the dialog. Deleting a native query that another query has a relationship to lists those queries. Clear the dependents first.
+
+{/* SCREENSHOT: /images/products/database/native-queries/delete-dependents.png
+    The delete dialog for a logical model that other objects still depend on,
+    listing them. */}
+
+## Local projects and version control
+
+How changes are saved depends on where the project runs:
+
+<Tabs>
+  <TabItem label="Nhost Cloud">
+
+Changes go straight to the metadata API and take effect immediately.
+
+  </TabItem>
+  <TabItem label="Local">
+
+Changes go through the migrations API instead, so each create, edit, and delete lands as a migration file under `nhost/migrations/` along with the metadata change under `nhost/metadata/`.
+
+This means native queries built locally are committed to Git and promoted through environments the same way as schema changes. It also means a local experiment leaves migration files behind, so use a throwaway project when trying the feature out.
+
+  </TabItem>
+</Tabs>
+
+## Limitations
+
+- Read-only. Select is the only permission, so there is nothing to grant for insert, update, or delete.
+- Permissions live on the logical model, never on the native query.
+- Relationships connect native queries to each other, not to tracked tables.
+- Postgres sources only.
+- Not available on Constellation.

@@ -1,0 +1,4 @@
+# Calibration drafts and finals are byte-exact copies of past commits (see
+# README.md), trailing whitespace included. Exempt them from whitespace checks
+# so `git diff --check` passes and `git apply --whitespace=fix` never edits them.
+docs/*/*.mdx -whitespace

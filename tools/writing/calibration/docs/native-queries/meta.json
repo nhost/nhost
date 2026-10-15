@@ -1,0 +1,16 @@
+{
+  "target": "docs",
+  "pageType": "how-to",
+  "draftSha": "d145a659387d54a8bba327a963509287f0fa37dd",
+  "finalSha": "87e663c83ac01fefe1a05bed3e0b39c2cce61041",
+  "pr": 5173,
+  "issue": 4575,
+  "grounding": [
+    "dashboard/src/features/orgs/projects/database/native-queries/",
+    "dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/",
+    "dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/graphql/settings.tsx",
+    "dashboard/src/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings/HasuraServiceVersionSettings.tsx",
+    "dashboard/src/utils/hasura-api/migrationFetch.ts",
+    "cli/dockercompose/graphql.go"
+  ]
+}
