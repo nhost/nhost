@@ -1,9 +1,12 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
-const plugin = require('tailwindcss/plugin');
-const screens = require('./src/constants/screens.cjs');
+import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+import type { Config } from 'tailwindcss';
+import defaultTheme from 'tailwindcss/defaultTheme';
+import plugin from 'tailwindcss/plugin';
+import animate from 'tailwindcss-animate';
+import screens from './src/constants/screens';
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+const config: Config = {
   darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx}',
@@ -229,17 +232,17 @@ module.exports = {
       },
       keyframes: {
         blinking: {
-          '0%': { opacity: 0 },
-          '50%': { opacity: 1 },
-          '100%': { opacity: 0 },
+          '0%': { opacity: '0' },
+          '50%': { opacity: '1' },
+          '100%': { opacity: '0' },
         },
         toastenter: {
-          '0%': { transform: 'scale(0.9)', opacity: 0 },
-          '100%': { transform: 'scale(1)', opacity: 1 },
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
         toastleave: {
-          '0%': { transform: 'scale(1)', opacity: 1 },
-          '100%': { transform: 'scale(0.9)', opacity: 0 },
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(0.9)', opacity: '0' },
         },
         progress: {
           '0%': { transform: 'translateX(0) scaleX(0)' },
@@ -269,8 +272,8 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
+    forms,
+    typography,
     plugin(({ matchUtilities, theme }) => {
       matchUtilities(
         {
@@ -281,6 +284,8 @@ module.exports = {
         { values: theme('transitionDelay') },
       );
     }),
-    require('tailwindcss-animate'),
+    animate,
   ],
 };
+
+export default config;

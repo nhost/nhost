@@ -7,7 +7,7 @@ import { NO_TRANSITION_CSS, NO_TRANSITION_STYLE_ID } from './utils';
  * the preference, so styles loading late (e.g. in development) don't animate
  * the colors in.
  *
- * Imported by `vite.config.ts`, which injects it into `index.html`, so this
+ * Imported by `vite.config.mts`, which injects it into `index.html`, so this
  * module must only use relative imports.
  */
 export function getThemeScript(storageKey: string) {

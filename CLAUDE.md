@@ -28,7 +28,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Dashboard (`dashboard/`)
 
-- Next.js admin UI for managing Nhost projects. React 19, TypeScript, TanStack Query, Apollo Client, Tailwind CSS, Shadcn/Radix components
+- Admin UI for managing Nhost projects. React 19, TypeScript, Vite, TanStack Router, TanStack Query, Apollo Client, Tailwind CSS, Shadcn/Radix components
 
 ### JavaScript SDK (`packages/nhost-js/`)
 
@@ -73,7 +73,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 Authoritative design rules live in `.claude/docs/`. Load the one that matches the file you are touching before writing or reviewing code:
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
-- **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
+- **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React + TanStack Router)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 

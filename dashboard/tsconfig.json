@@ -36,7 +36,7 @@
     },
     "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "vite.config.mts"],
   "exclude": [
     "node_modules",
     "dist",

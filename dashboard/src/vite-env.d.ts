@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Variables exposed to the browser through `envPrefix: 'NEXT_PUBLIC_'` in
-// vite.config.ts. They keep their Next.js-era names so existing `.env.local`
+// vite.config.mts. They keep their Next.js-era names so existing `.env.local`
 // files, Vercel settings and the CLI's compose configuration work unchanged.
 interface ImportMetaEnv {
   readonly NEXT_PUBLIC_ANALYTICS_WRITE_KEY?: string;

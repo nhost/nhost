@@ -54,14 +54,15 @@ let
       ./components.json
       ./graphite.graphql.config.yaml
       ./graphql.config.yaml
-      ./next.config.js
+      ./index.html
       ./package.json
       ./pnpm-lock.yaml
       ./playwright.config.ts
       ./postcss.config.js
-      ./tailwind.config.js
+      ./tailwind.config.ts
       ./tsconfig.json
       ./tsconfig.test.json
+      ./vite.config.mts
       ./vitest.config.mts
       ./vitest.global-setup.ts
       ./e2e

@@ -1,8 +1,13 @@
-import type defaultTheme from 'tailwindcss/defaultTheme';
-import screens from './screens.cjs';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
-type Screens = typeof defaultTheme.screens & {
-  'xs+': string;
+/**
+ * Tailwind breakpoints: the defaults plus `xs` and `xs+`. Shared by
+ * tailwind.config.ts and `useMediaQuery`.
+ */
+const screens = {
+  xs: '415px',
+  'xs+': '515px',
+  ...defaultTheme.screens,
 };
 
-export default screens as Screens;
+export default screens;

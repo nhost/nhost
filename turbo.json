@@ -7,9 +7,8 @@
     },
     "@nhost/dashboard#build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**"],
+      "outputs": ["dist/**"],
       "env": [
-        "NEXT_TELEMETRY_DISABLED",
         "NEXT_PUBLIC_NHOST_PLATFORM",
         "NEXT_PUBLIC_NHOST_MIGRATIONS_URL",
         "NEXT_PUBLIC_NHOST_HASURA_URL",
