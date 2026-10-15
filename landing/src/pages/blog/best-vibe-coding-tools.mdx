@@ -22,9 +22,9 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Up front: I had never used a vibe coding tool before writing this. The closest I had come was building a couple of internal apps with Claude Code and Nhost.
+Up front: I had never used a vibe coding tool before. The closest I had come was building a couple of internal apps with Claude Code and Nhost.
 
-I decided not to write an AI-generated comparison of pricing, features, integrations and other public info you already know. I built one small app on each of the most popular vibe coding platforms (Lovable, Bolt, Base44, Replit and v0), and here is what I wanted to find out:
+I didn't want this to be another generic overview of features, pricing and integrations. I wanted to see them in action, so I built the same small app on five popular vibe coding platforms: Lovable, Bolt, Base44, Replit and v0. Here's what I was trying to find out:
 
 - how long it takes to get to something that actually works
 - how many times I have to step in and fix things
@@ -81,7 +81,7 @@ The database itself only returns a vote to the person who cast it. Ask it for ev
 UNIQUE (poll_id, user_id)
 ```
 
-Totals came from a view that counts votes without showing who cast them. It's marked `security_invoker = false`, so it runs with the owner's rights.
+Lovable computed the totals with a view that counts votes without showing who cast them. The view is marked `security_invoker = false`, so it runs with the owner's rights.
 
 Then it changed its mind. The second migration replaced the view with a function and limited who can call it:
 
@@ -145,23 +145,23 @@ I sat there for ten and a half minutes looking at a loading spinner. [Replit](ht
 
 Instead of letting the page talk to the database, it wrote a server: an API in front of its own Postgres. Sign-in runs on Clerk, a third-party service it added without telling me. The browser never touches the database, so the access rules live in the API.
 
-It also ran live checks and reported them: typecheck passes, production build passes, health endpoint returns 200, and a request for poll data without a session returns 401. None of the others tested their login wall on the running app.
+Replit also ran live checks and reported them: typecheck passes, production build passes, health endpoint returns 200, and a request for poll data without a session returns 401. None of the other tools tested their login wall on the running app.
 
 ![Replit's verification list, including the 401 on unauthenticated access](/images/blog/best-vibe-coding-tools/replit.png)
 
 ## v0 never finished
 
-[v0](https://v0.app) wants your input on everything. It opened by asking permission to connect a Neon database, then wanted an auth secret generated with `openssl rand -base64 32` in a terminal and pasted into the project variables. There's a "need setup help" button right next to it, so they know it's a lot to ask from people who picked a tool to avoid exactly this.
+[v0](https://v0.app) wants your input on everything. It opened by asking permission to connect a Neon database, then wanted an auth secret generated with `openssl rand -base64 32` in a terminal and pasted into the project variables. There's a "need setup help" button right next to that step, so the v0 team seems to know that asking non-coders to run terminal commands is a lot.
 
-Five approval dialogs followed. "This task may cause potentially destructive actions, and requires approval", every time, with a block of raw SQL underneath. Creating an empty table counts as potentially destructive. One was the previous statement again with one column type changed. I only noticed because I went back and compared. By the end, the plain-English explanation was gone and only the parameters were left.
+Then came five approval dialogs. Each one said the task "may cause potentially destructive actions" and showed a block of raw SQL. Even creating an empty table needed approval. One dialog repeated the previous statement with a single column type changed, and I only caught that because I scrolled back to compare. By the end, v0 stopped explaining what each step did and just showed the SQL.
 
-The last dialog was the accounts table, passwords and tokens included. I approved it and then told v0 to stop asking for approval.
+The fifth dialog created the accounts table, with passwords and tokens. I picked "Approve all," and v0 stopped interrupting.
 
 The run then broke on `BetterAuthError: Database schema mismatch`, with the auth library's own tables missing. A "fix with v0" button handled that in two minutes.
 
 The progress tracker was still at "Task 0 of 5 complete", right under a message saying the app was built and verified. I asked v0 if it was finished. It said no: the code existed and the sign-in page loaded, but signing up, creating a poll and voting had never been tried.
 
-I stopped at fourteen minutes. There was a login page and a database full of tables, but no way to actually use the app.
+At fourteen minutes I gave up. There was a login page and a database full of tables, but no working app, and it didn't look like v0 was going to finish it.
 
 ![v0: "Task 0 of 5 complete", and its answer when I asked if the app was finished](/images/blog/best-vibe-coding-tools/v0.png)
 
@@ -171,22 +171,22 @@ Each tool counts usage differently, so it's not apples to apples. Lovable spent 
 
 ## Where the rules ended up
 
-Three of the four that finished put the privacy rule in the database, without being asked and without being told the words "row-level security". The part I worried about most turned out to be what they did best.
+I expected the database security to be the weak spot. It turned out to be the strongest part. Three of the four tools that finished put the privacy rule in the database on their own. My prompt never mentioned row-level security.
 
-Row-level rules protect rows. They don't protect a function that runs with elevated privileges, and you need one of those to show totals without showing ballots. Lovable revoked execute on its function; Bolt left the same function callable by anonymous users. **Identical schemas, one line apart.**
+Row-level security has a gap, though. It controls who can read which rows, but a function with admin rights skips those checks. And to show vote totals without showing who voted, you need exactly that kind of function. Lovable locked its function down so only logged-in users can call it. Bolt wrote the same function and left it open to anyone, logged in or not. **Same schema, one line of difference.**
 
-Replit put its rules in the API instead, so nothing in the database itself stops a query. That works until one endpoint forgets to check. And from the outside, you can't inspect an API the way you can read a database policy.
+Replit took a different route and put the rules in its API code. The database itself doesn't block anything, so if one endpoint forgets to check who's asking, the data is exposed. You also can't verify this from the outside. A database policy you can read. API code you have to trust.
 
 ## Newly: bonus run
 
-[Newly](https://newly.app) sits outside the table for two reasons. I ran it on a paid plan I happened to have (there's no free tier at all). It also builds native iOS and Android apps, generating React Native and Expo code underneath.
+[Newly](https://newly.app) isn't in the table for two reasons. I ran it on a paid plan I already had, since there's no free tier. And it builds native iOS and Android apps, with React Native and Expo code under the hood. So it's not a direct competitor to the other five, but I was curious how a mobile-first vibe coding tool would handle the same task.
 
-When the prompt mentioned different browsers, Newly built phone apps and ran them in a simulator.
+Since the prompt mentioned testing in different browsers, Newly seems to have read that as "build for both iOS and Android." It made two phone apps and ran them in a simulator.
 
-The whole run took 14 minutes 50 seconds, with no questions and nothing to fix. It took longer because it builds for two platforms, boots a simulator and compiles the app. The web tools just put a page on a URL. Underneath is Newly's own backend, with the access rules in its API, the same place Replit put them. There's no permissions screen to screenshot, but you can download everything, app and backend, as a ZIP, or point it at a GitHub repository.
+The whole run took 14 minutes 50 seconds, with no questions and nothing to fix. Building and compiling two mobile apps takes longer than building a web page. Underneath is Newly's own backend, with the access rules in its API. There's no permissions screen to screenshot, but you can download everything, app and backend, as a ZIP, or point it at a GitHub repository.
 
 ![Newly: the poll app running in the iOS simulator](/images/blog/best-vibe-coding-tools/newly.png)
 
-Newly tested its own work and listed what passed. Nobody can vote twice. Nobody can delete a poll they didn't create. A second account sees the totals but not your ballot. Signed-out requests get nothing.
+After finishing the build, Newly tested its own work and gave me a list of what passed: one vote per person, only the creator can delete a poll, a second account sees the totals but not your ballot, and signed-out requests get nothing.
 
-Then it listed **what it hadn't tested**. It had run out of automation budget in the simulator, so signing out and back in as a second user, and the delete confirmation, were never tried. None of the other five told me anything like that.
+Then Newly told me **what it hadn't tested**. The simulator's automation budget ran out before the second-user login and the delete confirmation got checked. None of the other five tools mentioned anything they'd skipped. I liked that Newly did.
