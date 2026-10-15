@@ -1,15 +1,4 @@
-import { useRouter } from 'next/router';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
-
-/**
- * Match Next.js route templates, not actual URLs: they are known on the first
- * render and tell organization pages (`[orgSlug]`) apart from pages that only
- * sit under `/orgs` (`/orgs/verify`), and existing project pages
- * (`[appSubdomain]`) from the create-project page (`new`). The create-project
- * page should show organization navigation.
- */
-const ORG_ROUTE = '/orgs/[orgSlug]';
-const PROJECT_ROUTE = '/orgs/[orgSlug]/projects/[appSubdomain]';
+import { useParams } from '@tanstack/react-router';
 
 interface CurrentRoute {
   /** Set only on organization routes. */
@@ -21,24 +10,19 @@ interface CurrentRoute {
 }
 
 /**
- * Query params are empty on the first render after a hard navigation, so the
- * slugs fall back to the path segments.
+ * Organization routes are the ones under `/orgs/$orgSlug`, project routes the
+ * ones under `/orgs/$orgSlug/projects/$appSubdomain`. Pages that only sit
+ * under `/orgs` (`/orgs/verify`) are separate routes without the params, and
+ * the create-project page has no `appSubdomain`, so it shows organization
+ * navigation.
  */
 export function useCurrentRoute(): CurrentRoute {
-  const { query, asPath, pathname } = useRouter();
-  const isOrgRoute = pathname.startsWith(ORG_ROUTE);
-  const isProjectRoute = pathname.startsWith(PROJECT_ROUTE);
-  const currentPath = asPath.split(/[?#]/)[0];
-  const [, , orgSlugFromPath, , appSubdomainFromPath] = currentPath.split('/');
+  const { orgSlug, appSubdomain } = useParams({ strict: false });
 
   return {
-    orgSlug: isOrgRoute
-      ? (getSingleQueryParam(query.orgSlug) ?? orgSlugFromPath)
-      : undefined,
-    appSubdomain: isProjectRoute
-      ? (getSingleQueryParam(query.appSubdomain) ?? appSubdomainFromPath)
-      : undefined,
-    isOrgRoute,
-    isProjectRoute,
+    orgSlug,
+    appSubdomain,
+    isOrgRoute: orgSlug !== undefined,
+    isProjectRoute: appSubdomain !== undefined,
   };
 }

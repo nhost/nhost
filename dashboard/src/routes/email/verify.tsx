@@ -53,7 +53,7 @@ function VerifyEmailPage() {
 
         <div className="flex justify-center">
           <NavLink
-            href="/signin"
+            to="/signin"
             className="px-0 font-medium text-[1.125rem] text-white"
           >
             Sign In

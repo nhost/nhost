@@ -1,20 +1,21 @@
+import { createLink, type LinkComponentProps } from '@tanstack/react-router';
 import { ExternalLinkIcon } from 'lucide-react';
-import NextLink from 'next/link';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export type TextLinkProps = React.ComponentPropsWithoutRef<typeof NextLink> & {
+export type TextAnchorProps = React.ComponentPropsWithoutRef<'a'> & {
+  /** Opens the link in a new tab and shows an external-link icon. */
   external?: boolean;
 };
 
-const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
-  (
-    { href, children, external = false, target, rel, className, ...props },
-    ref,
-  ) => (
-    <NextLink
+/**
+ * A text link to a URL outside the dashboard (docs, GitHub, `mailto:`). Use
+ * `TextLink` for dashboard pages.
+ */
+const TextAnchor = React.forwardRef<HTMLAnchorElement, TextAnchorProps>(
+  ({ children, external = false, target, rel, className, ...props }, ref) => (
+    <a
       ref={ref}
-      href={href}
       target={target ?? (external ? '_blank' : undefined)}
       rel={rel ?? (external ? 'noopener noreferrer' : undefined)}
       className={cn(
@@ -28,9 +29,17 @@ const TextLink = React.forwardRef<HTMLAnchorElement, TextLinkProps>(
       {external && (
         <ExternalLinkIcon className="h-4 w-4" aria-hidden focusable={false} />
       )}
-    </NextLink>
+    </a>
   ),
 );
-TextLink.displayName = 'TextLink';
+TextAnchor.displayName = 'TextAnchor';
 
-export { TextLink };
+/**
+ * A text link to a dashboard page. Takes the router's link options (`to`,
+ * `params`, `search`).
+ */
+const TextLink = createLink(TextAnchor);
+
+export type TextLinkProps = LinkComponentProps<typeof TextAnchor>;
+
+export { TextAnchor, TextLink };

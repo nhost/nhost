@@ -1,44 +1,58 @@
-import { useRouter } from 'next/router';
 import {
   RouteTabLink,
   RouteTabSeparator,
   RouteTabs,
 } from '@/components/ui/v3/route-tabs';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export default function GraphQLRouteTabs() {
-  const router = useRouter();
   const shouldDisableSettings = useSettingsDisabled();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const projectPath = `/orgs/${orgSlug}/projects/${appSubdomain}`;
 
   return (
     <RouteTabs aria-label="GraphQL section navigation">
-      <RouteTabLink href={`${projectPath}/graphql`} exact>
+      <RouteTabLink
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql"
+        params
+        exact
+      >
         Playground
       </RouteTabLink>
-      <RouteTabLink href={`${projectPath}/graphql/remote-schemas`}>
+      <RouteTabLink
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas"
+        params
+      >
         Remote Schemas
       </RouteTabLink>
-      <RouteTabLink href={`${projectPath}/graphql/actions`}>
+      <RouteTabLink
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql/actions"
+        params
+      >
         Actions
       </RouteTabLink>
-      <RouteTabLink href={`${projectPath}/graphql/metadata`} exact>
+      <RouteTabLink
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql/metadata"
+        params
+        exact
+      >
         Metadata
       </RouteTabLink>
-      <RouteTabLink href={`${projectPath}/graphql/console`} exact>
+      <RouteTabLink
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql/console"
+        params
+        exact
+      >
         Console
       </RouteTabLink>
       <RouteTabSeparator />
       <RouteTabLink
-        href={`${projectPath}/graphql/settings`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+        params
         exact
         disabled={shouldDisableSettings}
       >

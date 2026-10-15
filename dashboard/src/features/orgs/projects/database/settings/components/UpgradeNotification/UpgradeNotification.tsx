@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { Alert } from '@/components/ui/v3/alert';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 
 interface Props {
@@ -31,13 +31,13 @@ function UpgradeNotification({ description }: Props) {
         <p className="max-w-[50ch] text-left">{description}</p>
       </div>
       <div className="flex flex-row items-center gap-4 self-end">
-        <TextLink
+        <TextAnchor
           href="https://nhost.io/pricing"
           external
           className="justify-center font-medium text-muted-foreground"
         >
           See all features
-        </TextLink>
+        </TextAnchor>
         <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
       </div>
       <TransferProjectDialog

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
@@ -10,16 +10,15 @@ function FinishUpgradeOrganizationProcess() {
   const { refetch: refetchOrg, org } = useCurrentOrg();
   const [open, setOpen] = useState(false);
   const [hideCloseButton, setHideCloseButton] = useState(true);
-  const { query, isReady: isRouterReady } = useRouter();
-  const { session_id } = query;
+  const { session_id } = useSearch({ strict: false });
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   useEffect(() => {
-    if (session_id && isRouterReady) {
+    if (session_id) {
       setOpen(true);
     }
-  }, [session_id, isRouterReady]);
+  }, [session_id]);
 
   async function handleOnCompleted() {
     removeQueryParamsFromUrl('session_id');

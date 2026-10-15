@@ -4,9 +4,9 @@ import { useUpgradePlanLink } from '@/components/layout/AccountMenu/useUpgradePl
 import { PopoverClose } from '@/components/ui/v3/popover';
 
 export default function AccountMenuUpgrade() {
-  const { isFreeOrganization, href } = useUpgradePlanLink();
+  const { isFreeOrganization, upgradeLink } = useUpgradePlanLink();
 
-  if (!isFreeOrganization || !href) {
+  if (!isFreeOrganization || !upgradeLink) {
     return null;
   }
 
@@ -15,7 +15,7 @@ export default function AccountMenuUpgrade() {
       <NavLink
         variant="ghost"
         underline="none"
-        href={href}
+        {...upgradeLink}
         className="h-9 w-full justify-start gap-2 px-2 text-primary hover:text-primary"
       >
         <SparklesIcon className="h-4 w-4" />

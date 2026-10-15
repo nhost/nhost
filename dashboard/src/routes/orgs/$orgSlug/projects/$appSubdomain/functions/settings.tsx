@@ -1,6 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import {
   AreaSidebarGroup,
@@ -19,11 +17,27 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const functionsSettingsTabs = ['rate-limiting', 'custom-domain'] as const;
+
+type FunctionsSettingsTab = (typeof functionsSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/functions/settings',
 )({
+  validateSearch: (search): { tab?: FunctionsSettingsTab } => ({
+    tab: functionsSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/functions/settings',
+        params,
+        search: { tab: 'custom-domain' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -95,33 +109,27 @@ function FunctionsRateLimitingSettings() {
 }
 
 function FunctionsSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/functions/settings`;
-
   return (
     <AreaSidebarRoot>
       <AreaSidebarNav ariaLabel="Functions settings navigation">
         <AreaSidebarGroup label="Connectivity">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=custom-domain`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/functions/settings"
+            params
+            search={{ tab: 'custom-domain' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Custom Domain
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=rate-limiting`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/functions/settings"
+            params
+            search={{ tab: 'rate-limiting' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Rate Limiting
           </AreaSidebarLink>
@@ -132,32 +140,7 @@ function FunctionsSettingsSidebar() {
 }
 
 function FunctionsSettingsPage() {
-  const router = useRouter();
-  const tab = getSingleQueryParam(router.query.tab);
-  const isValidTab = tab === 'rate-limiting' || tab === 'custom-domain';
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'custom-domain' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const { tab } = Route.useSearch();
 
   switch (tab) {
     case 'rate-limiting':

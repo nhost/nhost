@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 /**
@@ -20,13 +20,13 @@ export default function GitHubConnectedNotice() {
       <AlertDescription>
         Run <InlineCode>nhost config pull</InlineCode> to sync your changes. To
         connect multiple projects to the same repository, use{' '}
-        <TextLink
+        <TextAnchor
           href="https://docs.nhost.io/platform/cli/configuration-overlays"
           target="_blank"
           rel="noreferrer"
         >
           configuration overlays
-        </TextLink>
+        </TextAnchor>
         .
       </AlertDescription>
     </Alert>

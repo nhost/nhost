@@ -11,6 +11,7 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
+import { getSearchParam } from '@/lib/search-params';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
@@ -78,6 +79,11 @@ function NotFoundPage() {
 }
 
 export const Route = createRootRoute({
+  // Stripe returns to the page that started a checkout with `session_id`;
+  // the dialogs finishing it are mounted on many pages.
+  validateSearch: (search): { session_id?: string } => ({
+    session_id: getSearchParam(search.session_id),
+  }),
   beforeLoad: ({ location }) => {
     const legacyRedirect = getLegacyRedirect(
       location.pathname,

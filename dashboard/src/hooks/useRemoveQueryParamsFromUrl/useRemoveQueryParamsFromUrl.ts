@@ -1,22 +1,24 @@
-import Router from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useCallback } from 'react';
 
 function useRemoveQueryParamsFromUrl() {
-  const removeQueryParam = useCallback((...paramsToRemove: string[]) => {
-    const newQuery = { ...Router.query };
+  const navigate = useNavigate();
 
-    paramsToRemove.forEach((param) => {
-      delete newQuery[param];
-    });
-    Router.push(
-      {
-        pathname: Router.pathname,
-        query: newQuery,
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, []);
+  const removeQueryParam = useCallback(
+    (...paramsToRemove: string[]) => {
+      void navigate({
+        to: '.',
+        search: (prev) =>
+          Object.fromEntries(
+            Object.entries(prev).filter(
+              ([key]) => !paramsToRemove.includes(key),
+            ),
+          ),
+        resetScroll: false,
+      });
+    },
+    [navigate],
+  );
 
   return removeQueryParam;
 }

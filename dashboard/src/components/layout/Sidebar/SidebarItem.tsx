@@ -1,12 +1,10 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { createLink } from '@tanstack/react-router';
 import { type ComponentPropsWithoutRef, forwardRef, type Ref } from 'react';
-import { isLinkActive } from '@/lib/route-navigation';
+import { useIsLinkActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
-interface SidebarItemProps
-  extends Omit<ComponentPropsWithoutRef<typeof Link>, 'aria-current'> {
-  /** The path whose pages mark the item active, when it differs from `href`. */
+export interface SidebarItemAnchorProps extends ComponentPropsWithoutRef<'a'> {
+  /** The path whose pages mark the item active, when it differs from the link. */
   activePath?: string;
   /** Only the target itself marks the item active, not the pages below it. */
   exact?: boolean;
@@ -14,11 +12,16 @@ interface SidebarItemProps
 }
 
 /**
- * A sidebar navigation link with the shared hover, active and disabled look.
- * It works out whether it is active from the current route. A disabled item
- * renders as a non-interactive span.
+ * The anchor behind `SidebarItem`, with the shared hover, active and disabled
+ * look. It works out whether it is active from the current route. A disabled
+ * item renders as a non-interactive span. Render it through a router link
+ * (`SidebarItem`, or `createLink`), which supplies `href` and the click
+ * handling.
  */
-const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(
+export const SidebarItemAnchor = forwardRef<
+  HTMLElement,
+  SidebarItemAnchorProps
+>(
   (
     {
       activePath,
@@ -27,12 +30,12 @@ const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(
       href,
       className,
       children,
+      'aria-current': ariaCurrent,
       ...props
     },
     ref,
   ) => {
-    const router = useRouter();
-    const active = isLinkActive(router, activePath ?? href, exact);
+    const active = useIsLinkActive({ href, activePath, exact, ariaCurrent });
     // The dark-mode repeats are needed: `dark:text-sidebar-foreground` would
     // otherwise win over the plain hover and active colors.
     const itemClassName = cn(
@@ -46,20 +49,8 @@ const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(
 
     if (disabled) {
       // Keep the DOM props, so a wrapping `TooltipTrigger asChild` still gets
-      // its pointer and focus handlers. Drop the Link-only props and `onClick`.
-      const {
-        as: _as,
-        replace: _replace,
-        scroll: _scroll,
-        shallow: _shallow,
-        passHref: _passHref,
-        prefetch: _prefetch,
-        locale: _locale,
-        legacyBehavior: _legacyBehavior,
-        onNavigate: _onNavigate,
-        onClick: _onClick,
-        ...spanProps
-      } = props;
+      // its pointer and focus handlers. Drop the link's `onClick`.
+      const { onClick: _onClick, role: _role, ...spanProps } = props;
 
       return (
         <span
@@ -75,18 +66,24 @@ const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(
     }
 
     return (
-      <Link
+      <a
         ref={ref as Ref<HTMLAnchorElement>}
         href={href}
+        {...props}
         aria-current={active ? 'page' : undefined}
         className={itemClassName}
-        {...props}
       >
         {children}
-      </Link>
+      </a>
     );
   },
 );
-SidebarItem.displayName = 'SidebarItem';
+SidebarItemAnchor.displayName = 'SidebarItemAnchor';
+
+/**
+ * A sidebar navigation link. Takes the router's link options (`to`,
+ * `params`, `search`) plus `activePath`, `exact` and `disabled`.
+ */
+const SidebarItem = createLink(SidebarItemAnchor);
 
 export default SidebarItem;

@@ -1,16 +1,25 @@
-import type Link from 'next/link';
-import { useRouter } from 'next/router';
+import {
+  createLink,
+  type LinkComponentProps,
+  useRouter,
+} from '@tanstack/react-router';
 import {
   Children,
   type ComponentPropsWithoutRef,
   createContext,
+  forwardRef,
   isValidElement,
   type ReactElement,
   type ReactNode,
   useContext,
+  useId,
 } from 'react';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
-import { SidebarItem, SidebarSectionTitle } from '@/components/layout/Sidebar';
+import {
+  SidebarItemAnchor,
+  type SidebarItemAnchorProps,
+  SidebarSectionTitle,
+} from '@/components/layout/Sidebar';
 import {
   Select,
   SelectContent,
@@ -20,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { isLinkActive } from '@/lib/route-navigation';
+import { isRouteActive, useCurrentHref } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 const AreaSidebarPresentationContext = createContext<'desktop' | 'mobile'>(
@@ -63,8 +72,7 @@ function getSidebarLinks(
   return Children.toArray(children).flatMap((child) => {
     if (
       isValidElement<AreaSidebarLinkProps>(child) &&
-      (typeof child.props.href === 'string' ||
-        (typeof child.props.href === 'object' && child.props.href !== null))
+      child.type === AreaSidebarLink
     ) {
       return [child];
     }
@@ -75,35 +83,34 @@ function getSidebarLinks(
   });
 }
 
-function getLinkValue(href: AreaSidebarLinkProps['href']) {
-  return typeof href === 'string' ? href : JSON.stringify(href);
-}
-
 function MobileAreaSidebar({
   ariaLabel,
   children,
 }: Pick<AreaSidebarNavProps, 'ariaLabel' | 'children'>) {
   const router = useRouter();
-  const links = getSidebarLinks(children);
-  const activeLink = links.find((link) =>
-    isLinkActive(router, link.props.href, link.props.exact),
+  const currentHref = useCurrentHref();
+  // The links' select values are the hrefs they build (see
+  // AreaSidebarLinkAnchor), so they can be compared with the current one.
+  const links = getSidebarLinks(children).map((link) => ({
+    link,
+    href: router.buildLocation(link.props).href,
+  }));
+  const activeLink = links.find(({ link, href }) =>
+    isRouteActive(currentHref, href, link.props.exact),
   );
 
   return (
     <Select
-      value={activeLink ? getLinkValue(activeLink.props.href) : ''}
+      value={activeLink?.href ?? ''}
       onValueChange={(value) => {
-        const link = links.find(
-          (item) => getLinkValue(item.props.href) === value,
-        );
-        if (!link || link.props.disabled) {
+        const selected = links.find(({ href }) => href === value);
+        if (!selected || selected.link.props.disabled) {
           return;
         }
-        const { href, as, replace, shallow, scroll, locale } = link.props;
-        void router[replace ? 'replace' : 'push'](href, as, {
-          shallow,
-          scroll,
-          locale,
+        void router.navigate({
+          href: selected.href,
+          replace: selected.link.props.replace,
+          resetScroll: selected.link.props.resetScroll,
         });
       }}
     >
@@ -202,47 +209,65 @@ export function AreaSidebarGroup({
   );
 }
 
-interface AreaSidebarLinkProps
-  extends Omit<ComponentPropsWithoutRef<typeof Link>, 'aria-current'> {
-  exact?: boolean;
-  disabled?: boolean;
+interface AreaSidebarLinkAnchorProps
+  extends Omit<SidebarItemAnchorProps, 'activePath'> {
   itemClassName?: string;
 }
 
-export function AreaSidebarLink({
-  children,
-  className,
-  disabled,
-  exact = false,
-  href,
-  itemClassName,
-  ...props
-}: AreaSidebarLinkProps) {
-  const isMobile = useContext(AreaSidebarPresentationContext) === 'mobile';
+const AreaSidebarLinkAnchor = forwardRef<
+  HTMLElement,
+  AreaSidebarLinkAnchorProps
+>(
+  (
+    {
+      children,
+      className,
+      disabled,
+      exact = false,
+      href,
+      itemClassName,
+      ...props
+    },
+    ref,
+  ) => {
+    const isMobile = useContext(AreaSidebarPresentationContext) === 'mobile';
+    // A disabled link has no href; it only needs a unique select value.
+    const disabledValue = useId();
 
-  if (isMobile) {
+    if (isMobile) {
+      return (
+        <SelectItem
+          value={href ?? disabledValue}
+          disabled={disabled}
+          className={cn('min-h-11 whitespace-normal', className, itemClassName)}
+        >
+          {children}
+        </SelectItem>
+      );
+    }
+
     return (
-      <SelectItem
-        value={getLinkValue(href)}
-        disabled={disabled}
-        className={cn('min-h-11 whitespace-normal', className, itemClassName)}
-      >
-        {children}
-      </SelectItem>
+      <li className={className}>
+        <SidebarItemAnchor
+          ref={ref}
+          href={href}
+          exact={exact}
+          disabled={disabled}
+          className={itemClassName}
+          {...props}
+        >
+          {children}
+        </SidebarItemAnchor>
+      </li>
     );
-  }
+  },
+);
+AreaSidebarLinkAnchor.displayName = 'AreaSidebarLinkAnchor';
 
-  return (
-    <li className={className}>
-      <SidebarItem
-        href={href}
-        exact={exact}
-        disabled={disabled}
-        className={itemClassName}
-        {...props}
-      >
-        {children}
-      </SidebarItem>
-    </li>
-  );
-}
+/**
+ * A link in an area sidebar. Takes the router's link options (`to`,
+ * `params`, `search`) plus `exact`, `disabled` and `itemClassName`.
+ */
+export const AreaSidebarLink = createLink(AreaSidebarLinkAnchor);
+
+type AreaSidebarLinkProps = LinkComponentProps<typeof AreaSidebarLinkAnchor>;

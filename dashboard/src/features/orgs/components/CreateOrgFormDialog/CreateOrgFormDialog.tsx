@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -223,13 +223,13 @@ function CreateOrgForm({
                         </div>
                       </div>
 
-                      <TextLink
+                      <TextAnchor
                         href="mailto:hello@nhost.io"
                         external
                         className="font-medium"
                       >
                         Contact us
-                      </TextLink>
+                      </TextAnchor>
                     </div>
                   </div>
                 </RadioGroup>

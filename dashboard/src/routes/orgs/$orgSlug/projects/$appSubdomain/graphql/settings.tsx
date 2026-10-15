@@ -1,6 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import {
   AreaSidebarGroup,
@@ -9,7 +7,6 @@ import {
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
 import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/components/HasuraDomain';
@@ -24,16 +21,35 @@ import { HasuraPoolSizeSettings } from '@/features/orgs/projects/hasura/settings
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
-import { useGetHasuraSettingsQuery } from '@/generated/graphql';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const graphQLSettingsTabs = [
+  'engine',
+  'access-and-tooling',
+  'rate-limiting',
+  'custom-domain',
+] as const;
+
+type GraphQLSettingsTab = (typeof graphQLSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/graphql/settings',
 )({
+  validateSearch: (search): { tab?: GraphQLSettingsTab } => ({
+    tab: graphQLSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/graphql/settings',
+        params,
+        search: { tab: 'engine' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -105,43 +121,45 @@ function GraphQLRateLimitingSettings() {
 }
 
 function GraphQLSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/settings`;
-
   return (
     <AreaSidebarRoot>
       <AreaSidebarNav ariaLabel="GraphQL settings navigation">
         <AreaSidebarGroup label="Engine">
-          <AreaSidebarLink href={`${settingsPath}?tab=engine`} exact shallow>
+          <AreaSidebarLink
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'engine' }}
+            exact
+          >
             Engine
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=access-and-tooling`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'access-and-tooling' }}
             exact
-            shallow
           >
             Access and tooling
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Connectivity">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=custom-domain`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'custom-domain' }}
             exact
-            shallow
           >
             Custom Domain
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=rate-limiting`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'rate-limiting' }}
             exact
-            shallow
           >
             Rate Limiting
           </AreaSidebarLink>
@@ -152,50 +170,7 @@ function GraphQLSettingsSidebar() {
 }
 
 function GraphQLSettingsPage() {
-  const router = useRouter();
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
-  const { project, loading: loadingProject } = useProject();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'engine' ||
-      tab === 'access-and-tooling' ||
-      tab === 'rate-limiting' ||
-      tab === 'custom-domain');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'engine' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  const { data, error } = useGetHasuraSettingsQuery({
-    variables: { appId: project?.id },
-    fetchPolicy: 'cache-and-network',
-    skip: !project?.id || !isValidTab,
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  const isInitialLoading = loadingProject || !project?.id || !data;
-
-  if (!isValidTab || isInitialLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const { tab } = Route.useSearch();
 
   switch (tab) {
     case 'access-and-tooling':

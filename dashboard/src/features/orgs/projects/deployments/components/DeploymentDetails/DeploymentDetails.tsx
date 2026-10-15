@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/v3/accordion';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -204,14 +204,14 @@ function PipelineRunDetails({
         <div>
           <p className="text-muted-foreground text-xs">Commit</p>
           <div className="mt-0.5">
-            <TextLink
+            <TextAnchor
               className="font-medium font-mono text-sm"
               target="_blank"
               rel="noopener noreferrer"
               href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
             >
               {input?.commit_sha?.substring(0, 7)}
-            </TextLink>
+            </TextAnchor>
             <Tooltip>
               <TooltipTrigger asChild>
                 <p className="line-clamp-1 cursor-default text-muted-foreground text-sm">
@@ -385,14 +385,14 @@ function LegacyDeploymentDetailsView({
           </div>
         </div>
         <div className="flex items-center">
-          <TextLink
+          <TextAnchor
             className="self-center font-medium font-mono"
             target="_blank"
             rel="noopener noreferrer"
             href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
           >
             {deployment.commitSHA.substring(0, 7)}
-          </TextLink>
+          </TextAnchor>
 
           <div className="w-20 text-right">
             <DeploymentDurationLabel

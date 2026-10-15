@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { cn } from '@/lib/utils';
@@ -35,13 +35,13 @@ export default function HealthCheckFormSection() {
 
           <InfoTooltip>
             Monitor the health and availability of a service. Refer to{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/health-checks"
               external
               className="font-medium"
             >
               Health Check
-            </TextLink>{' '}
+            </TextAnchor>{' '}
             for more information.
           </InfoTooltip>
         </div>

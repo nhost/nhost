@@ -36,7 +36,7 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           placeholder="Password"
         />
         <TextLink
-          href="/password/new"
+          to="/password/new"
           className="justify-self-start font-semibold"
         >
           Forgot password?

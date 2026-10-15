@@ -4,7 +4,6 @@ import { NavLink } from '@/components/common/NavLink';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export const Route = createFileRoute(
@@ -14,7 +13,6 @@ export const Route = createFileRoute(
 });
 
 function DeploymentsPage() {
-  const { org } = useCurrentOrg();
   const { project } = useProject();
 
   if (!project?.githubRepository) {
@@ -37,7 +35,9 @@ function DeploymentsPage() {
         </div>
         <div className="flex w-full justify-center">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/deployments/settings"
+            params
             underline="none"
             variant="ghost"
             className="!text-primary"

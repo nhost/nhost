@@ -5,7 +5,7 @@ import Analytics from '@/components/analytics/analytics';
 import { Container } from '@/components/layout/Container';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
@@ -69,13 +69,13 @@ export default function AuthGuard({ children }: PropsWithChildren) {
           Did you forget to start{' '}
           <HighlightedText className="font-mono">nhost up</HighlightedText>?
           Please refer to the{' '}
-          <TextLink
+          <TextAnchor
             href="https://docs.nhost.io/platform/cli/local-development"
             target="_blank"
             rel="noopener noreferrer"
           >
             CLI documentation
-          </TextLink>{' '}
+          </TextAnchor>{' '}
           if you are having trouble starting your project.
         </p>
 

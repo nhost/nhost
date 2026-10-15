@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { CookieConsent } from '@/components/common/CookieConsent';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Separator } from '@/components/ui/v3/separator';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor, TextLink } from '@/components/ui/v3/text-link';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 
@@ -130,28 +130,28 @@ function SignUpPage() {
           <SignUpTabs />
           <p className="text-center text-muted-foreground text-sm">
             By signing up, you agree to our{' '}
-            <TextLink
+            <TextAnchor
               href="https://nhost.io/legal/terms-of-service"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold"
             >
               Terms of Service
-            </TextLink>{' '}
+            </TextAnchor>{' '}
             and{' '}
-            <TextLink
+            <TextAnchor
               href="https://nhost.io/legal/privacy-policy"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold"
             >
               Privacy Policy
-            </TextLink>
+            </TextAnchor>
           </p>
         </div>
         <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
           Already have an account?{' '}
-          <TextLink href="/signin" className="font-medium">
+          <TextLink to="/signin" className="font-medium">
             Sign In
           </TextLink>
         </div>

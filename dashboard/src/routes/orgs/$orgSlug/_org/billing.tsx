@@ -3,8 +3,12 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { getSearchParam } from '@/lib/search-params';
 
 export const Route = createFileRoute('/orgs/$orgSlug/_org/billing')({
+  validateSearch: (search): { openUpgradeModal?: string } => ({
+    openUpgradeModal: getSearchParam(search.openUpgradeModal),
+  }),
   component: OrgBilling,
 });
 

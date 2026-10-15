@@ -1,12 +1,18 @@
+import { createLink } from '@tanstack/react-router';
 import {
   type ComponentPropsWithoutRef,
   createContext,
+  forwardRef,
   type ReactElement,
   type ReactNode,
   useContext,
   useId,
 } from 'react';
-import { SidebarItem, SidebarSectionTitle } from '@/components/layout/Sidebar';
+import {
+  SidebarItemAnchor,
+  type SidebarItemAnchorProps,
+  SidebarSectionTitle,
+} from '@/components/layout/Sidebar';
 import {
   Tooltip,
   TooltipContent,
@@ -32,18 +38,10 @@ interface NavigationListProps {
   className?: string;
 }
 
-interface NavigationListItemProps {
+interface NavigationListItemAnchorProps
+  extends Omit<SidebarItemAnchorProps, 'children'> {
   label: string;
-  href: string;
   icon: ReactElement;
-  /**
-   * The path whose pages mark the item active, for items that link deeper
-   * than the section they stand for. Defaults to `href`.
-   */
-  activePath?: string;
-  /** Only the path itself marks the item active, not the pages below it. */
-  exact?: boolean;
-  disabled?: boolean;
 }
 
 interface NavigationListSectionProps
@@ -79,27 +77,22 @@ function SidebarTooltip({
   );
 }
 
-function NavigationListItem({
-  label,
-  href,
-  icon,
-  activePath,
-  exact = false,
-  disabled,
-}: NavigationListItemProps) {
+const NavigationListItemAnchor = forwardRef<
+  HTMLElement,
+  NavigationListItemAnchorProps
+>(({ label, icon, className, ...props }, ref) => {
   const { collapsed } = useContext(NavigationListContext);
 
   return (
     <li>
       <SidebarTooltip collapsed={collapsed} label={label}>
-        <SidebarItem
-          href={href}
-          activePath={activePath}
-          exact={exact}
-          disabled={disabled}
+        <SidebarItemAnchor
+          ref={ref}
+          {...props}
           className={cn(
             'transition-[color,background-color,padding] ease-in-out [transition-duration:150ms,150ms,300ms] motion-reduce:transition-none',
             collapsed && 'pl-5',
+            className,
           )}
         >
           <span
@@ -118,11 +111,20 @@ function NavigationListItem({
           >
             {label}
           </span>
-        </SidebarItem>
+        </SidebarItemAnchor>
       </SidebarTooltip>
     </li>
   );
-}
+});
+NavigationListItemAnchor.displayName = 'NavigationListItemAnchor';
+
+/**
+ * A navigation entry. Takes the router's link options (`to`, `params`,
+ * `search`) plus `label`, `icon` and the `SidebarItem` matching options:
+ * `activePath` for items that link deeper than the section they stand for,
+ * and `exact`.
+ */
+const NavigationListItem = createLink(NavigationListItemAnchor);
 
 function NavigationListSection({
   label,

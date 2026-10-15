@@ -1,6 +1,4 @@
-import type { UrlObject } from 'node:url';
-import type { LinkProps } from 'next/link';
-import type { NextRouter } from 'next/router';
+import { useRouterState } from '@tanstack/react-router';
 
 function normalizePath(path: string) {
   return path.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
@@ -12,27 +10,13 @@ function getQueryString(href: string) {
   return queryStart === -1 ? '' : withoutHash.slice(queryStart + 1);
 }
 
-function toSearchParams(query: UrlObject['query']) {
-  if (typeof query === 'string') {
-    return new URLSearchParams(query);
-  }
-
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query ?? {})) {
-    const values = Array.isArray(value) ? value : [value];
-    for (const item of values) {
-      params.append(key, String(item ?? ''));
-    }
-  }
-  return params;
-}
-
-export function isQueryActive(
-  currentQuery: UrlObject['query'],
-  targetQuery: UrlObject['query'],
-) {
-  const current = toSearchParams(currentQuery);
-  const target = toSearchParams(targetQuery);
+/**
+ * Whether every search param of `targetQuery` has the same values in
+ * `currentQuery`. Params only present in `currentQuery` are ignored.
+ */
+export function isQueryActive(currentQuery: string, targetQuery: string) {
+  const current = new URLSearchParams(currentQuery);
+  const target = new URLSearchParams(targetQuery);
 
   return Array.from(new Set(target.keys())).every((key) => {
     const currentValues = current.getAll(key);
@@ -44,36 +28,62 @@ export function isQueryActive(
   });
 }
 
-export function isRouteActive(asPath: string, href: string, exact = false) {
-  const currentPath = normalizePath(asPath);
+/**
+ * Whether `href` points at the current location `currentHref`. Without
+ * `exact`, pages below `href` count too and search params are ignored; with
+ * `exact`, the path has to match and so do the search params `href` sets.
+ */
+export function isRouteActive(
+  currentHref: string,
+  href: string,
+  exact = false,
+) {
+  const currentPath = normalizePath(currentHref);
   const targetPath = normalizePath(href);
 
   return (
     (currentPath === targetPath ||
       (!exact && currentPath.startsWith(`${targetPath}/`))) &&
-    (!exact || isQueryActive(getQueryString(asPath), getQueryString(href)))
+    (!exact || isQueryActive(getQueryString(currentHref), getQueryString(href)))
   );
 }
 
-type RouterLocation = Pick<NextRouter, 'asPath' | 'pathname' | 'query'>;
+/**
+ * The current location's path, search and hash, e.g.
+ * `/orgs/acme/projects/app/settings?tab=general`.
+ */
+export function useCurrentHref() {
+  return useRouterState({ select: (state) => state.location.href });
+}
+
+interface UseIsLinkActiveOptions {
+  /** The href a router link built, `undefined` for a disabled link. */
+  href: string | undefined;
+  /** Matches instead of `href`, for links that stand for a whole section. */
+  activePath?: string;
+  exact?: boolean;
+  /** The `aria-current` the router set; used when there is no href. */
+  ariaCurrent?: unknown;
+}
 
 /**
- * Whether a link points at the current route. Accepts both string and object
- * hrefs; for object hrefs the query has to match too.
+ * Active state for the dashboard's router link components, using
+ * `isRouteActive` so section links, tabs and settings links keep their
+ * matching rules. A disabled link has no href, so the router's own active
+ * flag is used for it.
  */
-export function isLinkActive(
-  router: RouterLocation,
-  href: LinkProps['href'],
+export function useIsLinkActive({
+  href,
+  activePath,
   exact = false,
-) {
-  if (typeof href === 'string') {
-    return isRouteActive(router.asPath, href, exact);
+  ariaCurrent,
+}: UseIsLinkActiveOptions) {
+  const currentHref = useCurrentHref();
+  const target = activePath ?? href;
+
+  if (target === undefined) {
+    return ariaCurrent === 'page';
   }
 
-  const path = href.pathname ?? router.pathname;
-  return (
-    (isRouteActive(router.asPath, path, exact) ||
-      isRouteActive(router.pathname, path, exact)) &&
-    isQueryActive(router.query, href.search || href.query)
-  );
+  return isRouteActive(currentHref, target, exact);
 }

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -219,13 +219,13 @@ export default function OAuth2ProviderSettings() {
                   <FormDescription>
                     The authorization/consent page URL for the OAuth2 flow.
                     Learn more about{' '}
-                    <TextLink
+                    <TextAnchor
                       href="https://docs.nhost.io/products/auth/oauth2-provider/authorization-flow/#what-you-build-the-consent-page"
                       external
                       className="font-medium"
                     >
                       building the consent page
-                    </TextLink>
+                    </TextAnchor>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

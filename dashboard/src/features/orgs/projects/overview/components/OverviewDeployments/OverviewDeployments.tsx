@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetUnifiedDeploymentsSubSubscription,
@@ -14,7 +13,6 @@ import {
 } from '@/generated/graphql';
 
 function OverviewDeploymentsTopBar() {
-  const { org } = useCurrentOrg();
   const { project } = useProject();
 
   const isGitHubConnected = !!project?.githubRepository;
@@ -24,7 +22,9 @@ function OverviewDeploymentsTopBar() {
       <h2 className="font-semibold text-lg">Deployments</h2>
 
       <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/deployments"
+        params
         disabled={!isGitHubConnected}
         variant="ghost"
         className="text-primary"
@@ -38,7 +38,6 @@ function OverviewDeploymentsTopBar() {
 }
 
 function OverviewDeploymentList() {
-  const { org } = useCurrentOrg();
   const { project } = useProject();
 
   const { data, loading } = useGetUnifiedDeploymentsSubSubscription({
@@ -95,7 +94,9 @@ function OverviewDeploymentList() {
           </div>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/deployments/settings"
+            params
             variant="ghost"
             className="text-primary"
             underline="none"

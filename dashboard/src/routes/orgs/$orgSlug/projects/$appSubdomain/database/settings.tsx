@@ -1,6 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -18,10 +16,45 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
+import { isPlatform as isPlatformFn } from '@/utils/env';
+
+const databaseSettingsTabs = [
+  'version',
+  'capacity',
+  'point-in-time',
+  'access',
+  'custom-domain',
+  'reset-password',
+] as const;
+
+type DatabaseSettingsTab = (typeof databaseSettingsTabs)[number];
+
+const platformOnlyTabs: DatabaseSettingsTab[] = [
+  'point-in-time',
+  'access',
+  'custom-domain',
+  'reset-password',
+];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/database/settings',
 )({
+  validateSearch: (search): { tab?: DatabaseSettingsTab } => ({
+    tab: databaseSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (
+      !search.tab ||
+      (!isPlatformFn() && platformOnlyTabs.includes(search.tab))
+    ) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/database/settings',
+        params,
+        search: { tab: 'version' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -47,35 +80,14 @@ function DatabaseCustomDomainSettings() {
 }
 
 function DatabaseSettingsPage() {
-  const router = useRouter();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'version' ||
-      tab === 'capacity' ||
-      (isPlatform &&
-        ['point-in-time', 'access', 'custom-domain', 'reset-password'].includes(
-          tab,
-        )));
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'version' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
+  const { tab } = Route.useSearch();
 
   const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
-    skip: !project?.id || !isValidTab,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -85,7 +97,7 @@ function DatabaseSettingsPage() {
 
   const isInitialLoading = loadingProject || !project?.id || !data;
 
-  if (!isValidTab || isInitialLoading) {
+  if (isInitialLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spinner />

@@ -1,47 +1,44 @@
-import { useRouter } from 'next/router';
 import {
   RouteTabLink,
   RouteTabSeparator,
   RouteTabs,
 } from '@/components/ui/v3/route-tabs';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export default function AIRouteTabs() {
-  const router = useRouter();
   const shouldDisableAI = useSettingsDisabled();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const projectPath = `/orgs/${orgSlug}/projects/${appSubdomain}`;
 
   return (
     <RouteTabs aria-label="AI section navigation">
       <RouteTabLink
-        href={`${projectPath}/ai/assistants`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/ai/assistants"
+        params
         disabled={shouldDisableAI}
       >
         Agents
       </RouteTabLink>
       <RouteTabLink
-        href={`${projectPath}/ai/file-stores`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/ai/file-stores"
+        params
         disabled={shouldDisableAI}
       >
         File Stores
       </RouteTabLink>
       <RouteTabLink
-        href={`${projectPath}/ai/auto-embeddings`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/ai/auto-embeddings"
+        params
         disabled={shouldDisableAI}
       >
         Auto-Embeddings
       </RouteTabLink>
       <RouteTabSeparator />
       <RouteTabLink
-        href={`${projectPath}/ai/settings`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/ai/settings"
+        params
         exact
         disabled={shouldDisableAI}
       >

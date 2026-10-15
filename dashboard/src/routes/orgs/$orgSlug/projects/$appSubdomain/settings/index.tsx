@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { type PropsWithChildren, useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import type { PropsWithChildren } from 'react';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -16,38 +15,41 @@ import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environme
 import { GeneralSettings } from '@/features/orgs/projects/general/settings/components/GeneralSettings';
 import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/settings/components/ComputeResourcesSettings';
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+import { useCurrentHref } from '@/lib/route-navigation';
+
+const projectSettingsTabs = [
+  'general',
+  'compute-resources',
+  'environment-variables',
+  'secrets',
+  'editor',
+] as const;
+
+type ProjectSettingsTab = (typeof projectSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/settings/',
 )({
+  validateSearch: (search): { tab?: ProjectSettingsTab } => ({
+    tab: projectSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/settings',
+        params,
+        search: { tab: 'general' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
-function RedirectToGeneralTab() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'general' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [router]);
-
-  return null;
-}
-
 function ProjectSettingsTabContent() {
-  const router = useRouter();
+  const { tab } = Route.useSearch();
 
-  switch (getSingleQueryParam(router.query.tab)) {
-    case 'general':
-      return <GeneralSettings />;
+  switch (tab) {
     case 'compute-resources':
       return <ComputeResourcesSettings />;
     case 'environment-variables':
@@ -57,21 +59,11 @@ function ProjectSettingsTabContent() {
     case 'editor':
       return <TOMLEditor />;
     default:
-      return <RedirectToGeneralTab />;
+      return <GeneralSettings />;
   }
 }
 
 function ProjectSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/settings`;
-
   // Docked against the app sidebar, unlike the area settings pages whose
   // sidebar is centered with the content.
   return (
@@ -85,44 +77,54 @@ function ProjectSettingsSidebar() {
       >
         <AreaSidebarGroup label="Project">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=general`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+            params
+            search={{ tab: 'general' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             General
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=compute-resources`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+            params
+            search={{ tab: 'compute-resources' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Compute Resources
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Configuration">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=environment-variables`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+            params
+            search={{ tab: 'environment-variables' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Environment Variables
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=secrets`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+            params
+            search={{ tab: 'secrets' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Secrets
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=editor`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+            params
+            search={{ tab: 'editor' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Configuration Editor
           </AreaSidebarLink>
@@ -133,11 +135,12 @@ function ProjectSettingsSidebar() {
 }
 
 function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
-  const router = useRouter();
+  const { tab } = Route.useSearch();
+  const currentHref = useCurrentHref();
 
-  if (getSingleQueryParam(router.query.tab) === 'editor') {
+  if (tab === 'editor') {
     return (
-      <RetryableErrorBoundary resetKeys={[router.asPath]}>
+      <RetryableErrorBoundary resetKeys={[currentHref]}>
         {children}
       </RetryableErrorBoundary>
     );

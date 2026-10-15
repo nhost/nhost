@@ -6,7 +6,7 @@ import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor, TextLink } from '@/components/ui/v3/text-link';
 import { LastUsedBadge } from '@/features/auth/SignIn/components/LastUsedBadge';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
@@ -105,29 +105,29 @@ function SigninPage() {
         </SignInOption>
         <p className="text-center text-sm">
           By clicking continue, you agree to our{' '}
-          <TextLink
+          <TextAnchor
             href="https://nhost.io/legal/terms-of-service"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold"
           >
             Terms of Service
-          </TextLink>{' '}
+          </TextAnchor>{' '}
           and{' '}
-          <TextLink
+          <TextAnchor
             href="https://nhost.io/legal/privacy-policy"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold"
           >
             Privacy Policy
-          </TextLink>
+          </TextAnchor>
         </p>
       </div>
 
       <div className="rounded-md border bg-transparent p-4 text-center lg:text-lg">
         Don&apos;t have an account?{' '}
-        <TextLink href="/signup" className="font-medium">
+        <TextLink to="/signup" className="font-medium">
           Sign Up
         </TextLink>
       </div>

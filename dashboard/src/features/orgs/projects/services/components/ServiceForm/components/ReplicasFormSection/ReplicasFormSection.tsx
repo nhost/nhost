@@ -3,7 +3,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { cn } from '@/lib/utils';
@@ -50,13 +50,13 @@ export default function ReplicasFormSection() {
         <h4 className="font-semibold">Replicas ({replicas})</h4>
         <InfoTooltip>
           Learn more about{' '}
-          <TextLink
+          <TextAnchor
             href="https://docs.nhost.io/platform/cloud/service-replicas"
             external
             className="font-medium"
           >
             Service Replicas
-          </TextLink>
+          </TextAnchor>
         </InfoTooltip>
       </div>
 

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 
@@ -66,7 +66,7 @@ export default function UpgradeToProBanner({
             open={transferProjectDialogOpen}
             setOpen={setTransferProjectDialogOpen}
           />
-          <TextLink
+          <TextAnchor
             href="https://nhost.io/pricing"
             external
             className="justify-center font-medium text-muted-foreground"
@@ -78,7 +78,7 @@ export default function UpgradeToProBanner({
             }
           >
             See all features
-          </TextLink>
+          </TextAnchor>
         </div>
       </div>
 

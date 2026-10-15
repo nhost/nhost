@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -61,13 +61,13 @@ export default function PortsFormSection() {
           <h4 className="font-semibold">Ports</h4>
           <InfoTooltip>
             Network ports to configure for the service. Refer to{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/networking"
               external
               className="font-medium"
             >
               Networking
-            </TextLink>{' '}
+            </TextAnchor>{' '}
             for more information.
           </InfoTooltip>
         </div>

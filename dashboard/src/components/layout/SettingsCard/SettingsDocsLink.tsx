@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { cn } from '@/lib/utils';
 
 export interface SettingsDocsLinkProps
@@ -28,9 +28,9 @@ const SettingsDocsLink = React.forwardRef<
   >
     <p>
       Learn more about{' '}
-      <TextLink href={href} external className="font-medium">
+      <TextAnchor href={href} external className="font-medium">
         {title ?? children}
-      </TextLink>
+      </TextAnchor>
     </p>
   </div>
 ));

@@ -14,7 +14,7 @@ export default function AccountMenuActions({
         variant="ghost"
         underline="none"
         className="h-9 w-full justify-start gap-2 px-2"
-        href="/account"
+        to="/account"
         onClick={onNavigate}
       >
         <Settings className="h-4 w-4" />

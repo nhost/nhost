@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocation, useSearch } from '@tanstack/react-router';
 import { Slash } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
@@ -53,8 +53,10 @@ export default function SubscriptionPlan() {
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
   const [fetchOrganizationCustomePortalLink, { loading }] =
     useBillingOrganizationCustomePortalLazyQuery();
-  const { asPath, query, isReady } = useRouter();
-  const { openUpgradeModal } = query;
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const { openUpgradeModal } = useSearch({
+    from: '/orgs/$orgSlug/_org/billing',
+  });
 
   const isFreeOrg = org?.plan.isFree;
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
@@ -73,11 +75,11 @@ export default function SubscriptionPlan() {
   }, [form, org]);
 
   useEffect(() => {
-    if (isReady && openUpgradeModal) {
+    if (openUpgradeModal) {
       setOpen(true);
       removeQueryParamsFromUrl('openUpgradeModal');
     }
-  }, [openUpgradeModal, isReady, removeQueryParamsFromUrl]);
+  }, [openUpgradeModal, removeQueryParamsFromUrl]);
 
   const selectedPlan = form.watch('plan');
 
@@ -86,9 +88,7 @@ export default function SubscriptionPlan() {
     const { id: organizationID, plan } = org;
 
     if (plan.isFree) {
-      const path = asPath.split('?')[0];
-      const redirectURL =
-        typeof window !== 'undefined' ? `${window.location.origin}${path}` : '';
+      const redirectURL = `${window.location.origin}${pathname}`;
 
       const result = await updateFreeOrg({
         variables: {
@@ -179,12 +179,12 @@ export default function SubscriptionPlan() {
                       Downgrading is not available. To move to Starter, transfer
                       your projects to a Starter organization and cancel this
                       organization. See{' '}
-                      <TextLink
+                      <TextAnchor
                         href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
                         external
                       >
                         documentation
-                      </TextLink>{' '}
+                      </TextAnchor>{' '}
                       for details.
                     </FormDescription>
                   )}
@@ -238,16 +238,16 @@ export default function SubscriptionPlan() {
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
-              <TextLink href="https://nhost.io/pricing" external>
+              <TextAnchor href="https://nhost.io/pricing" external>
                 pricing
-              </TextLink>
+              </TextAnchor>
               <span> You can also visit our </span>
-              <TextLink
+              <TextAnchor
                 href="https://docs.nhost.io/platform/cloud/billing"
                 external
               >
                 documentation
-              </TextLink>
+              </TextAnchor>
               <span> for billing information</span>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
@@ -316,9 +316,9 @@ export default function SubscriptionPlan() {
                                 </div>
                               </div>
 
-                              <TextLink href="mailto:hello@nhost.io" external>
+                              <TextAnchor href="mailto:hello@nhost.io" external>
                                 Contact us
-                              </TextLink>
+                              </TextAnchor>
                             </div>
                           </div>
                         </RadioGroup>

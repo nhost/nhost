@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import {
@@ -78,11 +77,36 @@ import {
   useGetSmtpSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const authSettingsTabs = [
+  'sign-in-methods',
+  'oauth2-provider',
+  'smtp',
+  'authentication',
+  'roles-and-permissions',
+  'jwt',
+  'custom-domain',
+  'rate-limiting',
+] as const;
+
+type AuthSettingsTab = (typeof authSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/auth/settings',
 )({
+  validateSearch: (search): { tab?: AuthSettingsTab } => ({
+    tab: authSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/auth/settings',
+        params,
+        search: { tab: 'sign-in-methods' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -142,7 +166,7 @@ function OAuth2ProviderSettingsTab() {
   const { project, loading: loadingProject } = useProject();
   const localMimirClient = useLocalMimirClient();
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const { data, error } = useGetOAuth2ProviderSettingsQuery({
     variables: { appId: project?.id },
@@ -180,9 +204,10 @@ function OAuth2ProviderSettingsTab() {
           <Button
             className="justify-self-start"
             onClick={() =>
-              router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
-              )
+              navigate({
+                from: '/orgs/$orgSlug/projects/$appSubdomain/auth/settings',
+                search: { tab: 'authentication' },
+              })
             }
           >
             Go to Authentication settings
@@ -425,69 +450,83 @@ function AuthRateLimitingSettings() {
 }
 
 function AuthSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/auth/settings`;
-
   return (
     <AreaSidebarRoot>
       <AreaSidebarNav ariaLabel="Auth settings navigation">
         <AreaSidebarGroup label="Sign-in">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=sign-in-methods`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'sign-in-methods' }}
             exact
-            shallow
           >
             Sign-In Methods
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=oauth2-provider`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'oauth2-provider' }}
             exact
-            shallow
           >
             OAuth2 Provider
           </AreaSidebarLink>
-          <AreaSidebarLink href={`${settingsPath}?tab=smtp`} exact shallow>
+          <AreaSidebarLink
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'smtp' }}
+            exact
+          >
             SMTP
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Users and access">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=authentication`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'authentication' }}
             exact
-            shallow
           >
             Authentication
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=roles-and-permissions`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'roles-and-permissions' }}
             exact
-            shallow
           >
             Roles and Permissions
           </AreaSidebarLink>
-          <AreaSidebarLink href={`${settingsPath}?tab=jwt`} exact shallow>
+          <AreaSidebarLink
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'jwt' }}
+            exact
+          >
             JWT
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Connectivity">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=custom-domain`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'custom-domain' }}
             exact
-            shallow
           >
             Custom Domain
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=rate-limiting`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+            params
+            search={{ tab: 'rate-limiting' }}
             exact
-            shallow
           >
             Rate Limiting
           </AreaSidebarLink>
@@ -498,41 +537,7 @@ function AuthSettingsSidebar() {
 }
 
 function AuthSettingsPage() {
-  const router = useRouter();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'sign-in-methods' ||
-      tab === 'oauth2-provider' ||
-      tab === 'smtp' ||
-      tab === 'authentication' ||
-      tab === 'roles-and-permissions' ||
-      tab === 'jwt' ||
-      tab === 'custom-domain' ||
-      tab === 'rate-limiting');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'sign-in-methods' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const { tab } = Route.useSearch();
 
   switch (tab) {
     case 'oauth2-provider':

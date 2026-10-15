@@ -7,7 +7,7 @@ import {
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useDatabasePiTRSettings } from '@/features/orgs/hooks/useDatabasePiTRSettings/';
 import { useUpdateDatabasePiTRConfig } from '@/features/orgs/hooks/useUpdateDatabasePiTRConfig';
@@ -60,9 +60,9 @@ export default function DatabasePiTRSettings() {
           <InfoAlert borderLess>
             Available as an add-on for organizations on Pro, Team, or Enterprise
             plans for <strong>$100 per month.</strong>{' '}
-            <TextLink href="https://nhost.io/pricing" external>
+            <TextAnchor href="https://nhost.io/pricing" external>
               View pricing details
-            </TextLink>
+            </TextAnchor>
           </InfoAlert>
         )}
       </SettingsCardContent>

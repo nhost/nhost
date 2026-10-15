@@ -1,7 +1,7 @@
 import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
   MAX_SERVICES_MEM,
@@ -73,13 +73,13 @@ export default function ComputeFormSection({
         {showTooltip && (
           <InfoTooltip>
             Compute resources dedicated for the service. Refer to{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/resources#compute"
               external
               className="font-medium"
             >
               resources
-            </TextLink>{' '}
+            </TextAnchor>{' '}
             for more information.
           </InfoTooltip>
         )}

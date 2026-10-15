@@ -26,7 +26,7 @@ function SigninPage() {
 
       <div className="rounded-md border bg-transparent p-4 text-center text-base lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NavLink href="/signup" className="px-0 text-lg">
+        <NavLink to="/signup" className="px-0 text-lg">
           Sign Up
         </NavLink>
       </div>

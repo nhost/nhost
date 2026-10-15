@@ -1,11 +1,9 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { NavLink } from '@/components/common/NavLink';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function OverviewRepository() {
   const { project } = useProject();
-  const { org } = useCurrentOrg();
 
   return (
     <section>
@@ -18,7 +16,9 @@ export default function OverviewRepository() {
       {!project?.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/deployments/settings"
+            params
             variant="outline-emboss"
             className="h-9 w-full gap-2"
           >
@@ -36,7 +36,9 @@ export default function OverviewRepository() {
           </div>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/deployments/settings"
+            params
             className="text-primary"
             variant="ghost"
             underline="none"

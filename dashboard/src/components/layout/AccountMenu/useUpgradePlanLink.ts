@@ -1,17 +1,17 @@
+import { linkOptions } from '@tanstack/react-router';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
-export interface UpgradePlanLink {
-  isFreeOrganization: boolean;
-  href?: string;
-}
-
-export function useUpgradePlanLink(): UpgradePlanLink {
+export function useUpgradePlanLink() {
   const { org } = useCurrentOrg();
 
   return {
     isFreeOrganization: !!org?.plan?.isFree,
-    href: org?.slug
-      ? `/orgs/${org.slug}/billing?openUpgradeModal=true`
+    upgradeLink: org?.slug
+      ? linkOptions({
+          to: '/orgs/$orgSlug/billing',
+          params: { orgSlug: org.slug },
+          search: { openUpgradeModal: 'true' },
+        })
       : undefined,
   };
 }

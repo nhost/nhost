@@ -62,7 +62,9 @@ export default function OverviewTopBar() {
       <div className="flex content-center gap-4">
         {isFreeProject && <UpgradeToProButton />}
         <NavLink
-          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+          from="/orgs/$orgSlug/projects/$appSubdomain"
+          to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+          params
           className="flex h-10 gap-2"
           variant="outline-emboss"
         >

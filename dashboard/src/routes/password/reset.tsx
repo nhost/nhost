@@ -97,7 +97,7 @@ function ResetPasswordPage() {
 
       <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
         Go back to{' '}
-        <NavLink href="/signin/email" className="px-0 font-medium text-lg">
+        <NavLink to="/signin/email" className="px-0 font-medium text-lg">
           Sign In
         </NavLink>
       </div>

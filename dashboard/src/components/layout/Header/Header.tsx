@@ -1,6 +1,5 @@
+import { Link, linkOptions } from '@tanstack/react-router';
 import { Home } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { type ComponentPropsWithoutRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -31,30 +30,27 @@ import {
   useInbox,
 } from '@/features/orgs/components/members/components/InboxPopover';
 import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
 export type HeaderProps = ComponentPropsWithoutRef<'header'>;
 
 export default function Header({ className, ...props }: HeaderProps) {
-  const router = useRouter();
   // Most users are on desktop, so render it until the viewport is known.
   const isDesktop = useMediaQuery('md', { initialValue: true });
   const hasRoomForSearchBox = useMediaQuery('lg', { initialValue: true });
   // Only organization pages have navigation to open; elsewhere the mobile
   // header keeps the logo, as on desktop.
-  const { isOrgRoute } = useCurrentRoute();
+  const { isOrgRoute, orgSlug } = useCurrentRoute();
   const showNavigationSheet = !isDesktop && isOrgRoute;
-  const { isFreeOrganization, href: upgradeHref } = useUpgradePlanLink();
+  const { isFreeOrganization, upgradeLink } = useUpgradePlanLink();
   // One owner for both layouts, so switching between them neither posts the
   // pending organization request again nor drops its result.
   const inbox = useInbox();
   const { openCommandPalette, paletteProps } = useCommandPalette();
   const createOrgDialogOpen = useCreateOrgDialogOpen();
-  const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
-  const dashboardHref = currentOrgSlug
-    ? `/orgs/${currentOrgSlug}/projects`
-    : '/';
+  const dashboardLink = orgSlug
+    ? linkOptions({ to: '/orgs/$orgSlug/projects', params: { orgSlug } })
+    : linkOptions({ to: '/' });
 
   // The open state lives in a module, so it would otherwise outlive the header
   // and reopen the dialog the next time it mounts.
@@ -78,7 +74,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           <DashboardNavigationSheet />
         ) : (
           <Link
-            href={dashboardHref}
+            {...dashboardLink}
             aria-label="Dashboard"
             className="group relative grid h-6 w-6 shrink-0 place-items-center"
           >
@@ -111,9 +107,9 @@ export default function Header({ className, ...props }: HeaderProps) {
         {isDesktop ? (
           <>
             <PlatformOnly>
-              {isFreeOrganization && upgradeHref && (
+              {isFreeOrganization && upgradeLink && (
                 <Button asChild size="xs" variant="outline-emboss">
-                  <Link href={upgradeHref}>Upgrade</Link>
+                  <Link {...upgradeLink}>Upgrade</Link>
                 </Button>
               )}
 

@@ -32,7 +32,9 @@ function BackupScheduledInfo({
         <p>
           To follow its process go to the{' '}
           <TextLink
-            href={`/orgs/${orgSlug}/projects/${subdomain}/logs`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/logs"
+            params
             target="_blank"
             rel="noopener noreferrer"
           >

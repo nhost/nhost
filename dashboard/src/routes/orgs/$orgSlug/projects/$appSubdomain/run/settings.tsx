@@ -1,6 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import {
   AreaSidebarGroup,
@@ -24,11 +22,27 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const runSettingsTabs = ['custom-domain', 'rate-limiting'] as const;
+
+type RunSettingsTab = (typeof runSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/run/settings',
 )({
+  validateSearch: (search): { tab?: RunSettingsTab } => ({
+    tab: runSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/run/settings',
+        params,
+        search: { tab: 'custom-domain' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -41,15 +55,15 @@ function NoRunServices({
   title = 'No Run services yet',
   description,
 }: NoRunServicesProps) {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
   return (
     <SettingsCard>
       <SettingsCardHeader title={title} description={description} />
       <SettingsCardFooter>
-        <TextLink href={`/orgs/${orgSlug}/projects/${appSubdomain}/run`}>
+        <TextLink
+          from="/orgs/$orgSlug/projects/$appSubdomain"
+          to="/orgs/$orgSlug/projects/$appSubdomain/run"
+          params
+        >
           Go to Services
         </TextLink>
       </SettingsCardFooter>
@@ -154,33 +168,27 @@ function RunRateLimitingSettings() {
 }
 
 function RunSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/run/settings`;
-
   return (
     <AreaSidebarRoot>
       <AreaSidebarNav ariaLabel="Run settings navigation">
         <AreaSidebarGroup label="Connectivity">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=custom-domain`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/run/settings"
+            params
+            search={{ tab: 'custom-domain' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Custom Domain
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=rate-limiting`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/run/settings"
+            params
+            search={{ tab: 'rate-limiting' }}
             exact
-            shallow
-            scroll={false}
+            resetScroll={false}
           >
             Rate Limiting
           </AreaSidebarLink>
@@ -191,32 +199,7 @@ function RunSettingsSidebar() {
 }
 
 function RunSettingsPage() {
-  const router = useRouter();
-  const tab = getSingleQueryParam(router.query.tab);
-  const isValidTab = tab === 'custom-domain' || tab === 'rate-limiting';
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'custom-domain' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const { tab } = Route.useSearch();
 
   switch (tab) {
     case 'rate-limiting':

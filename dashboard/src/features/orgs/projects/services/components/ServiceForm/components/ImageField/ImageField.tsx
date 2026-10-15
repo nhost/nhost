@@ -9,7 +9,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/v3/input-group';
 import { Label } from '@/components/ui/v3/label';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -97,13 +97,13 @@ export default function ImageField({
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <p className="text-sm">
             Learn more about{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/registry#creating-a-private-repository-for-your-image"
               external
               className="font-medium"
             >
               using Nhost registry for images
-            </TextLink>
+            </TextAnchor>
           </p>
         </div>
       </>
@@ -162,13 +162,13 @@ export default function ImageField({
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <p className="text-sm">
             Learn more about{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/registry#using-your-own-private-registry"
               external
               className="font-medium"
             >
               using your own private registry for images
-            </TextLink>
+            </TextAnchor>
           </p>
         </div>
       </>

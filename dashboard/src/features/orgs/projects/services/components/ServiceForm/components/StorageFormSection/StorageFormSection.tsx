@@ -8,7 +8,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/v3/input-group';
 import { Label } from '@/components/ui/v3/label';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
   MAX_STORAGE_CAPACITY,
@@ -54,13 +54,13 @@ export default function StorageFormSection() {
             By default, services do not have persistent storage. You can add SSD
             disks to the service here. It is important to note that capacity can
             not be decreased after creation, only expanded. Refer to{' '}
-            <TextLink
+            <TextAnchor
               href="https://docs.nhost.io/products/run/resources#storage"
               external
               className="font-medium"
             >
               Storage
-            </TextLink>{' '}
+            </TextAnchor>{' '}
             for more information.
           </InfoTooltip>
         </div>

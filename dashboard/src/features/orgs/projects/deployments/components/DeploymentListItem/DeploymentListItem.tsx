@@ -16,7 +16,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
@@ -40,7 +39,6 @@ export default function DeploymentListItem({
   disableRedeploy,
 }: DeploymentListItemProps) {
   const { project } = useProject();
-  const { org } = useCurrentOrg();
   const userData = useUserData();
 
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
@@ -93,7 +91,9 @@ export default function DeploymentListItem({
         variant="ghost"
         underline="none"
         className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
+        from="/orgs/$orgSlug/projects/$appSubdomain"
+        to="/orgs/$orgSlug/projects/$appSubdomain/deployments/$deploymentId"
+        params={(params) => ({ ...params, deploymentId: deployment.id })}
         aria-label={deployment.commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">

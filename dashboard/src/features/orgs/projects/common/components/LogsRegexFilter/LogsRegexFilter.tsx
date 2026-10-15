@@ -2,7 +2,7 @@ import { InfoIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/v3/input';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -56,14 +56,14 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
               </li>
               <li>
                 See
-                <TextLink
+                <TextAnchor
                   href="https://github.com/google/re2/wiki/Syntax"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mx-1"
                 >
                   here
-                </TextLink>
+                </TextAnchor>
                 for more patterns
               </li>
             </ul>

@@ -5,8 +5,6 @@ import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon'
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
 import InfoAlert from '@/features/orgs/components/InfoAlert/InfoAlert';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export interface PermissionsGridLayoutProps {
   onCancel?: VoidFunction;
@@ -17,9 +15,6 @@ export default function PermissionsGridLayout({
   onCancel,
   children,
 }: PermissionsGridLayoutProps) {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
-
   return (
     <div className="flex flex-auto flex-col content-between overflow-hidden border-t-1">
       <div className="flex-auto overflow-y-auto">
@@ -49,7 +44,10 @@ export default function PermissionsGridLayout({
           <InfoAlert>
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+              from="/orgs/$orgSlug/projects/$appSubdomain"
+              to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+              params
+              search={{ tab: 'roles-and-permissions' }}
               underline="hover"
               className="px-0"
             >

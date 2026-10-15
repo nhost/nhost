@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import usePiTRBaseBackups from '@/features/orgs/hooks/usePiTRBaseBackups/usePiTRBaseBackups';
 import type { BackupOperation } from '@/features/orgs/projects/database/backups/components/common/backup-operation';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -8,12 +8,12 @@ import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 
 function LearnMoreAboutPiTRLink() {
   return (
-    <TextLink
+    <TextAnchor
       href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
       external
     >
       Learn more about Point-in-Time Recovery{' '}
-    </TextLink>
+    </TextAnchor>
   );
 }
 

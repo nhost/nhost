@@ -4,7 +4,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Switch } from '@/components/ui/v3/switch';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -109,14 +109,14 @@ export default function EditRepositorySettingsModal({
         </h2>
         <p className="text-center text-muted-foreground text-xs">
           Connect your GitHub repository to enable deployments.{' '}
-          <TextLink
+          <TextAnchor
             href="https://docs.nhost.io/platform/cloud/deployments"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs"
           >
             Learn more
-          </TextLink>
+          </TextAnchor>
         </p>
         <div>
           <RetryableErrorBoundary errorMessageProps={{ className: 'p-0' }}>

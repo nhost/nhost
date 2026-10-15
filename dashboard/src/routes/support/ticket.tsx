@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -268,9 +268,9 @@ function TicketPage() {
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}
-                          <TextLink href="https://nhost.io/pricing" external>
+                          <TextAnchor href="https://nhost.io/pricing" external>
                             View pricing
-                          </TextLink>
+                          </TextAnchor>
                         </>
                       ) : null
                     }

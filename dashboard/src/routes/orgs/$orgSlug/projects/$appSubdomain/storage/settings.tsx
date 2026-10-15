@@ -1,6 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -17,11 +15,27 @@ import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/setting
 import { HasuraStorageAVSettings } from '@/features/orgs/projects/storage/settings/components/StorageAVSettings';
 import { StorageServiceVersionSettings } from '@/features/orgs/projects/storage/settings/components/StorageServiceVersionSettings';
 import { useGetStorageSettingsQuery } from '@/generated/graphql';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const storageSettingsTabs = ['storage', 'rate-limiting'] as const;
+
+type StorageSettingsTab = (typeof storageSettingsTabs)[number];
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/storage/settings',
 )({
+  validateSearch: (search): { tab?: StorageSettingsTab } => ({
+    tab: storageSettingsTabs.find((tab) => tab === search.tab),
+  }),
+  beforeLoad: ({ params, search }) => {
+    if (!search.tab) {
+      throw redirect({
+        to: '/orgs/$orgSlug/projects/$appSubdomain/storage/settings',
+        params,
+        search: { tab: 'storage' },
+        replace: true,
+      });
+    }
+  },
   component: RouteComponent,
 });
 
@@ -81,29 +95,27 @@ function StorageRateLimitingSettings() {
 }
 
 function StorageSettingsSidebar() {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
-  if (!orgSlug || !appSubdomain) {
-    return null;
-  }
-
-  const settingsPath = `/orgs/${orgSlug}/projects/${appSubdomain}/storage/settings`;
-
   return (
     <AreaSidebarRoot>
       <AreaSidebarNav ariaLabel="Storage settings navigation">
         <AreaSidebarGroup label="General">
-          <AreaSidebarLink href={`${settingsPath}?tab=storage`} exact shallow>
+          <AreaSidebarLink
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/storage/settings"
+            params
+            search={{ tab: 'storage' }}
+            exact
+          >
             Storage
           </AreaSidebarLink>
         </AreaSidebarGroup>
         <AreaSidebarGroup label="Connectivity">
           <AreaSidebarLink
-            href={`${settingsPath}?tab=rate-limiting`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/storage/settings"
+            params
+            search={{ tab: 'rate-limiting' }}
             exact
-            shallow
           >
             Rate Limiting
           </AreaSidebarLink>
@@ -114,30 +126,7 @@ function StorageSettingsSidebar() {
 }
 
 function StorageSettingsPage() {
-  const router = useRouter();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' && (tab === 'storage' || tab === 'rate-limiting');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'storage' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  const { tab } = Route.useSearch();
 
   switch (tab) {
     case 'rate-limiting':

@@ -18,7 +18,6 @@ import { TextLink } from '@/components/ui/v3/text-link';
 import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
@@ -63,7 +62,6 @@ export default function EditRemoteSchemaPermissionsForm({
   } = useGetRemoteAppRolesQuery({ client });
 
   const { project } = useProject();
-  const { org } = useCurrentOrg();
   const isPlatform = useIsPlatform();
 
   const localMimirClient = useLocalMimirClient();
@@ -117,7 +115,10 @@ export default function EditRemoteSchemaPermissionsForm({
         <InfoAlert>
           To configure permissions, enable remote schema permissions first in{' '}
           <TextLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'access-and-tooling' }}
           >
             GraphQL Settings.
           </TextLink>
@@ -268,7 +269,10 @@ export default function EditRemoteSchemaPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+              from="/orgs/$orgSlug/projects/$appSubdomain"
+              to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+              params
+              search={{ tab: 'roles-and-permissions' }}
               underline="hover"
               className="px-0"
             >

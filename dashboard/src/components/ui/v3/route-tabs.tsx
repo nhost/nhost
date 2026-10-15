@@ -1,13 +1,19 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import {
+  createLink,
+  type LinkComponentProps,
+  useRouter,
+} from '@tanstack/react-router';
 import {
   Children,
   type ComponentPropsWithoutRef,
   createContext,
+  forwardRef,
   isValidElement,
   type ReactElement,
   type ReactNode,
+  type Ref,
   useContext,
+  useId,
 } from 'react';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import {
@@ -17,7 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { isRouteActive } from '@/lib/route-navigation';
+import {
+  isRouteActive,
+  useCurrentHref,
+  useIsLinkActive,
+} from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 const RouteTabsPresentationContext = createContext<'desktop' | 'mobile'>(
@@ -57,19 +67,25 @@ function MobileRouteTabs({
   ...props
 }: Omit<RouteTabsProps, 'listClassName'>) {
   const router = useRouter();
-  const activeTab = Children.toArray(children).find(
-    (child): child is ReactElement<RouteTabLinkProps> =>
-      isValidElement<RouteTabLinkProps>(child) &&
-      typeof child.props.href === 'string' &&
-      isRouteActive(router.asPath, child.props.href, child.props.exact),
+  const currentHref = useCurrentHref();
+  // The tabs' select values are the hrefs they build (see RouteTabLinkAnchor),
+  // so they can be compared with the current one.
+  const tabs = Children.toArray(children)
+    .filter(
+      (child): child is ReactElement<RouteTabLinkProps> =>
+        isValidElement<RouteTabLinkProps>(child) && child.type === RouteTabLink,
+    )
+    .map((tab) => ({ tab, href: router.buildLocation(tab.props).href }));
+  const activeTab = tabs.find(({ tab, href }) =>
+    isRouteActive(currentHref, href, tab.props.exact),
   );
 
   return (
     <nav className={cn('w-full min-w-0', className)} {...props}>
       <Select
-        value={activeTab?.props.href ?? ''}
+        value={activeTab?.href ?? ''}
         onValueChange={(href) => {
-          void router.push(href);
+          void router.navigate({ href });
         }}
       >
         <SelectTrigger aria-label={props['aria-label']} className="h-11">
@@ -102,64 +118,87 @@ export function RouteTabs({ listClassName, ...props }: RouteTabsProps) {
   );
 }
 
-export interface RouteTabLinkProps
-  extends Omit<ComponentPropsWithoutRef<typeof Link>, 'aria-current' | 'href'> {
-  href: string;
+interface RouteTabLinkAnchorProps extends ComponentPropsWithoutRef<'a'> {
   exact?: boolean;
   disabled?: boolean;
 }
 
-export function RouteTabLink({
-  children,
-  className,
-  disabled,
-  exact = false,
-  href,
-  ...props
-}: RouteTabLinkProps) {
-  const isMobile = useContext(RouteTabsPresentationContext) === 'mobile';
-  const { asPath } = useRouter();
+const RouteTabLinkAnchor = forwardRef<HTMLElement, RouteTabLinkAnchorProps>(
+  (
+    {
+      children,
+      className,
+      disabled,
+      exact = false,
+      href,
+      'aria-current': ariaCurrent,
+      ...props
+    },
+    ref,
+  ) => {
+    const isMobile = useContext(RouteTabsPresentationContext) === 'mobile';
+    const active = useIsLinkActive({ href, exact, ariaCurrent });
+    // A disabled tab has no href; it only needs a unique select value.
+    const disabledValue = useId();
 
-  if (isMobile) {
+    if (isMobile) {
+      return (
+        <SelectItem
+          value={href ?? disabledValue}
+          disabled={disabled}
+          className={cn('min-h-11 whitespace-normal', className)}
+        >
+          {children}
+        </SelectItem>
+      );
+    }
+
+    const tabClassName = cn(
+      'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-semibold text-sm ring-offset-background transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-primary data-[state=active]:text-primary',
+      disabled && 'pointer-events-none opacity-50 hover:text-muted-foreground',
+      className,
+    );
+
+    if (disabled) {
+      const { onClick: _onClick, role: _role, ...spanProps } = props;
+
+      return (
+        <span
+          ref={ref as Ref<HTMLSpanElement>}
+          {...spanProps}
+          aria-current={active ? 'page' : undefined}
+          aria-disabled="true"
+          className={tabClassName}
+          data-state={active ? 'active' : 'inactive'}
+        >
+          {children}
+        </span>
+      );
+    }
+
     return (
-      <SelectItem
-        value={href}
-        disabled={disabled}
-        className={cn('min-h-11 whitespace-normal', className)}
+      <a
+        ref={ref as Ref<HTMLAnchorElement>}
+        href={href}
+        {...props}
+        aria-current={active ? 'page' : undefined}
+        className={tabClassName}
+        data-state={active ? 'active' : 'inactive'}
       >
         {children}
-      </SelectItem>
+      </a>
     );
-  }
+  },
+);
+RouteTabLinkAnchor.displayName = 'RouteTabLinkAnchor';
 
-  const active = isRouteActive(asPath, href, exact);
-  const tabClassName = cn(
-    'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-semibold text-sm ring-offset-background transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-primary data-[state=active]:text-primary',
-    disabled && 'pointer-events-none opacity-50 hover:text-muted-foreground',
-    className,
-  );
+/**
+ * A route tab. Takes the router's link options (`to`, `params`, `search`)
+ * plus `exact` and `disabled`.
+ */
+export const RouteTabLink = createLink(RouteTabLinkAnchor);
 
-  return disabled ? (
-    <span
-      aria-current={active ? 'page' : undefined}
-      aria-disabled="true"
-      className={tabClassName}
-      data-state={active ? 'active' : 'inactive'}
-    >
-      {children}
-    </span>
-  ) : (
-    <Link
-      aria-current={active ? 'page' : undefined}
-      className={tabClassName}
-      data-state={active ? 'active' : 'inactive'}
-      href={href}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
-}
+export type RouteTabLinkProps = LinkComponentProps<typeof RouteTabLinkAnchor>;
 
 export function RouteTabSeparator({
   className,

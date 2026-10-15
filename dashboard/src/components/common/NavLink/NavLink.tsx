@@ -1,16 +1,19 @@
-import NextLink from 'next/link';
-import { type ForwardedRef, forwardRef } from 'react';
+import { createLink, type LinkComponentProps } from '@tanstack/react-router';
+import {
+  type AnchorHTMLAttributes,
+  type ForwardedRef,
+  forwardRef,
+} from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import { cn } from '@/lib/utils';
 
-export type NavLinkProps = {
+export type NavLinkAnchorProps = {
   underline?: 'none' | 'always' | 'hover';
-  href: string;
   variant?: ButtonProps['variant'];
-} & ButtonProps &
-  Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'target' | 'rel'>;
+} & Omit<ButtonProps, 'asChild'> &
+  Pick<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'>;
 
-function NavLink(
+function NavLinkAnchor(
   {
     className,
     children,
@@ -21,7 +24,7 @@ function NavLink(
     variant = 'link',
     disabled,
     ...props
-  }: NavLinkProps,
+  }: NavLinkAnchorProps,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
   return (
@@ -40,7 +43,7 @@ function NavLink(
       ref={ref}
       {...props}
     >
-      <NextLink
+      <a
         href={href}
         target={target}
         rel={rel}
@@ -48,9 +51,17 @@ function NavLink(
         aria-disabled={disabled}
       >
         {children}
-      </NextLink>
+      </a>
     </Button>
   );
 }
 
-export default forwardRef(NavLink);
+/**
+ * A button-styled link to a dashboard page. Takes the router's link options
+ * (`to`, `params`, `search`) plus the button's `variant` and `underline`.
+ */
+const NavLink = createLink(forwardRef(NavLinkAnchor));
+
+export type NavLinkProps = LinkComponentProps<typeof NavLinkAnchor>;
+
+export default NavLink;

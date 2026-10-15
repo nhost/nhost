@@ -15,7 +15,7 @@ import {
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import { TextLink } from '@/components/ui/v3/text-link';
+import { TextAnchor } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -326,14 +326,14 @@ export default function JWTSettings() {
                       <span>
                         With symmetric keys your project uses a single key for
                         both signing and verifying JWTs. Refer to{' '}
-                        <TextLink
+                        <TextAnchor
                           target="_blank"
                           rel="noopener noreferrer"
                           href="https://docs.nhost.io/products/auth/jwt#symmetric-keys"
                           className="underline"
                         >
                           symmetric keys
-                        </TextLink>{' '}
+                        </TextAnchor>{' '}
                         for more information.
                       </span>
                     </InfoTooltip>
@@ -351,14 +351,14 @@ export default function JWTSettings() {
                         With asymmetric keys your project uses a public and
                         private key pair for signing and verifying JWTs. Refer
                         to{' '}
-                        <TextLink
+                        <TextAnchor
                           target="_blank"
                           rel="noopener noreferrer"
                           href="https://docs.nhost.io/products/auth/jwt#asymmetric-keys"
                           className="underline"
                         >
                           asymmetric keys
-                        </TextLink>{' '}
+                        </TextAnchor>{' '}
                         for more information.
                       </span>
                     </InfoTooltip>
@@ -373,14 +373,14 @@ export default function JWTSettings() {
                         This will use a third party service&apos;s JWK endpoint
                         to verify JWT&apos;s. Alternatively you can configure
                         the public key directly. Refer to{' '}
-                        <TextLink
+                        <TextAnchor
                           target="_blank"
                           rel="noopener noreferrer"
                           href="https://docs.nhost.io/products/auth/jwt#external-signing"
                           className="underline"
                         >
                           external signing
-                        </TextLink>{' '}
+                        </TextAnchor>{' '}
                         for more information.
                       </span>
                     </InfoTooltip>
