@@ -30,9 +30,15 @@ type Clause []Statement
 func (w Clause) WriteCondition(
 	b *strings.Builder, source string, params []any, paramIndex int,
 ) ([]any, int, error) {
+	return w.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
+}
+
+func (w Clause) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
+) ([]any, int, error) {
 	var err error
 	for i, condition := range w {
-		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionCtx(condition, b, source, params, paramIndex, rc)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write where condition at pos %d: %w",
@@ -594,13 +600,19 @@ func (f *andFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	return f.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
+}
+
+func (f *andFilter) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
+) ([]any, int, error) {
 	var err error
 	for i, condition := range f.conditions {
 		if i > 0 {
 			b.WriteString(" AND ")
 		}
 
-		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionCtx(condition, b, source, params, paramIndex, rc)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write AND condition at pos %d: %w",
@@ -623,6 +635,12 @@ func (f *orFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	return f.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
+}
+
+func (f *orFilter) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
+) ([]any, int, error) {
 	// An empty disjunction (`_or: []`) is false, matching Hasura. Rendering the
 	// constant also avoids the invalid empty `()` fragment.
 	if len(f.conditions) == 0 {
@@ -635,7 +653,7 @@ func (f *orFilter) WriteCondition(
 
 	var err error
 	for i, clause := range f.conditions {
-		params, paramIndex, err = clause.WriteCondition(b, source, params, paramIndex)
+		params, paramIndex, err = writeConditionCtx(clause, b, source, params, paramIndex, rc)
 		if err != nil {
 			return nil, 0, fmt.Errorf(
 				"failed to write OR condition at pos %d: %w",
@@ -682,11 +700,15 @@ func (f *notFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	return f.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
+}
+
+func (f *notFilter) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
+) ([]any, int, error) {
 	b.WriteString("NOT (")
 
-	var err error
-
-	params, paramIndex, err = f.condition.WriteCondition(b, source, params, paramIndex)
+	params, paramIndex, err := writeConditionCtx(f.condition, b, source, params, paramIndex, rc)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to write NOT condition: %w", err)
 	}
