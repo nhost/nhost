@@ -13,12 +13,12 @@ const baseButtonVariants = cva(
         default: 'btn-emboss btn-emboss-primary',
         // "Soft emboss" danger button, same recipe in the destructive reds.
         destructive: 'btn-emboss btn-emboss-danger',
+        // The one outline button. Soft emboss behavior (a 1px press on click)
+        // built only from tokens. Disabled fades to 50% through the base
+        // classes; loading (data-loading, set by ButtonWithLoading) also
+        // mutes the text and border.
         outline:
-          'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
-        // "Soft emboss" secondary button: bordered, transparent background.
-        'outline-emboss': 'btn-emboss btn-emboss-secondary',
-        secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
+          'border border-input bg-transparent text-foreground transition-[color,background-color,border-color,transform] hover:bg-accent hover:text-accent-foreground active:translate-y-px data-[loading=true]:border-border data-[loading=true]:text-muted-foreground',
         ghost: 'text-accent-foreground hover:bg-accent',
         // Low-key button: no background, the content turns primary on hover.
         // Meant for icon-only buttons, so it defaults to the `icon-sm` size,
@@ -101,7 +101,12 @@ const ButtonWithLoading = React.forwardRef<
   ButtonProps & { loading?: boolean; loaderClassName?: string }
 >(({ loading, disabled, children, loaderClassName, ...props }, ref) => {
   return (
-    <Button disabled={loading || disabled} ref={ref} {...props}>
+    <Button
+      disabled={loading || disabled}
+      data-loading={loading ? 'true' : undefined}
+      ref={ref}
+      {...props}
+    >
       {loading && (
         <Loader2 className={cn('mr-2 animate-spin', loaderClassName)} />
       )}

@@ -90,7 +90,7 @@ export default function DeleteServiceModal({
             Delete Service
           </ButtonWithLoading>
 
-          <Button variant="outline-emboss" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

@@ -52,7 +52,7 @@ export default function ConfirmTrackAsQueryDialog({
             Cancel
           </Button>
           <ButtonWithLoading
-            variant="secondary"
+            variant="outline"
             onClick={onConfirm}
             loading={isPending}
             disabled={isPending}
