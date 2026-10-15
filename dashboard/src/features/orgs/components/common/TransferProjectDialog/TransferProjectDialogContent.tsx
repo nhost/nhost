@@ -8,6 +8,8 @@ import {
 import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ProjectColorBadge } from '@/features/project-colors';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
@@ -33,6 +35,7 @@ function TransferProjectDialogContent({
   const { session_id } = query;
   const { state } = useAppState();
   const { refetch: refetchOrgs } = useOrgs();
+  const { project } = useProject();
   const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [showContent, setShowContent] = useState(true);
 
@@ -71,6 +74,10 @@ function TransferProjectDialogContent({
         <DialogTitle>
           Move the current project to a different organization.
         </DialogTitle>
+        <ProjectColorBadge
+          projectId={project?.id}
+          projectName={project?.name}
+        />
       </DialogHeader>
       {showContent ? (
         <>
