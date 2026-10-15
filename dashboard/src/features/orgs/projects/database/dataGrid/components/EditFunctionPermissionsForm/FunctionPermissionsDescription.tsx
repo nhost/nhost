@@ -1,8 +1,6 @@
-import NavLink from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export interface FunctionPermissionsDescriptionProps {
   schema: string;
@@ -21,8 +19,6 @@ export function FunctionPermissionsDescription({
   inferFunctionPermissions,
   isMutationFunction,
 }: FunctionPermissionsDescriptionProps) {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
   const { closeDrawerWithDirtyGuard } = useDialog();
 
   const referencedTable = returnTableName || 'the referenced table';
@@ -33,13 +29,20 @@ export function FunctionPermissionsDescription({
         Permissions will be inherited from the SELECT permissions of the
         referenced table (
         {returnTableName ? (
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/database/browser/${dataSource}/${returnTableSchema || schema}/tables/${returnTableName}`}
+          <Link
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug"
+            params={(prev) => ({
+              ...prev,
+              dataSourceSlug: dataSource,
+              schemaSlug: returnTableSchema || schema,
+              tableSlug: returnTableName,
+            })}
             className="text-primary underline-offset-4 hover:underline"
             onClick={closeDrawerWithDirtyGuard}
           >
             {returnTableName}
-          </NavLink>
+          </Link>
         ) : (
           <span>{referencedTable}</span>
         )}
@@ -53,13 +56,16 @@ export function FunctionPermissionsDescription({
             HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS=false
           </InlineCode>{' '}
           in{' '}
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
+          <Link
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+            params
+            search={{ tab: 'access-and-tooling' }}
             className="text-primary underline-offset-4 hover:underline"
             onClick={closeDrawerWithDirtyGuard}
           >
             GraphQL Settings
-          </NavLink>
+          </Link>
           .
         </p>
       )}

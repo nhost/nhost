@@ -1,3 +1,4 @@
+import { useParams } from '@tanstack/react-router';
 import {
   ArrowDownToLine,
   ArrowRightLeft,
@@ -7,7 +8,6 @@ import {
   MessageSquareText,
   Pencil,
 } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -24,10 +24,9 @@ import ActionDetailsSkeleton from './ActionDetailsSkeleton';
 import ActionOverview from './sections/ActionOverview';
 
 export default function ActionDetails() {
-  const router = useRouter();
   const { openDrawer } = useDialog();
 
-  const { actionSlug } = router.query;
+  const { actionSlug } = useParams({ strict: false });
 
   const { data: actionsData, isLoading, error } = useGetActions();
 

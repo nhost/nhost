@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Button } from '@/components/ui/v3/button';
@@ -55,7 +55,7 @@ export default function ApplicationUnknown() {
           keeps happening,{' '}
           <Link
             className="font-semibold underline underline-offset-2"
-            href="/support"
+            to="/support"
             target="_blank"
             rel="noopener noreferrer"
           >

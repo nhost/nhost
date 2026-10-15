@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { FileSearch } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/EditNativeQueryForm';
@@ -10,8 +10,7 @@ import NativeQueryDetailsSkeleton from './NativeQueryDetailsSkeleton';
 import NativeQueryOverview from './sections/NativeQueryOverview';
 
 export default function NativeQueryDetails() {
-  const router = useRouter();
-  const { querySlug, orgSlug, appSubdomain } = router.query;
+  const { querySlug, orgSlug, appSubdomain } = useParams({ strict: false });
   const { data: queries = [], isLoading, error } = useGetNativeQueries();
   const { openDrawer } = useDialog();
 

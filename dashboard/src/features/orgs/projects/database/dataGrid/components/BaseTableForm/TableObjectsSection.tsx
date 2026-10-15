@@ -1,6 +1,6 @@
+import { useParams } from '@tanstack/react-router';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import {
   AccordionContent,
   AccordionItem,
@@ -65,8 +65,9 @@ function CheckConstraintsList({
 }
 
 function TriggersList({ triggers }: { triggers: TableTrigger[] }) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, dataSourceSlug } = router.query;
+  const { orgSlug, appSubdomain, dataSourceSlug } = useParams({
+    strict: false,
+  });
 
   if (triggers.length === 0) {
     return (

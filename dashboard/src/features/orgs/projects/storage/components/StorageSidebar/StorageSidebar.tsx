@@ -1,8 +1,6 @@
 import { useApolloClient } from '@apollo/client';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { Archive, Plus } from 'lucide-react';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -24,8 +22,6 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 interface BucketNavItemProps {
   bucketId: string;
   isSelected: boolean;
-  orgSlug: string;
-  appSubdomain: string;
   onSidebarItemClick?: VoidFunction;
   onEdit: VoidFunction;
   onDelete: VoidFunction;
@@ -34,8 +30,6 @@ interface BucketNavItemProps {
 function BucketNavItem({
   bucketId,
   isSelected,
-  orgSlug,
-  appSubdomain,
   onSidebarItemClick,
   onEdit,
   onDelete,
@@ -54,7 +48,7 @@ function BucketNavItem({
         )}
       >
         <div className="flex w-full items-center">
-          <NextLink
+          <Link
             className={cn(
               'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
               {
@@ -62,11 +56,13 @@ function BucketNavItem({
               },
             )}
             onClick={() => onSidebarItemClick?.()}
-            href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(bucketId)}`}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/$"
+            params={(prev) => ({ ...prev, _splat: bucketId })}
           >
             <Archive className="h-4 w-4 shrink-0" />
             <span className="!truncate">{bucketId}</span>
-          </NextLink>
+          </Link>
           <BucketActions onEdit={onEdit} onDelete={onDelete} />
         </div>
       </Button>
@@ -81,16 +77,9 @@ interface StorageSidebarContentProps {
 function StorageSidebarContent({
   onSidebarItemClick,
 }: StorageSidebarContentProps) {
-  const router = useRouter();
   const navigate = useNavigate();
-  const {
-    query: { orgSlug, appSubdomain, bucketId: bucketIdParam },
-  } = router;
-
-  // catch-all route returns an array; join segments to match bucket IDs with slashes
-  const bucketSlug = Array.isArray(bucketIdParam)
-    ? bucketIdParam.join('/')
-    : bucketIdParam;
+  // The catch-all route keeps slashes, so bucket IDs like "foo/bar" match.
+  const { _splat: bucketSlug } = useParams({ strict: false });
 
   const apolloClient = useApolloClient();
   const { openDrawer, closeDrawerWithDirtyGuard } = useDialog();
@@ -195,8 +184,6 @@ function StorageSidebarContent({
                   key={bucket.id}
                   bucketId={bucket.id}
                   isSelected={bucket.id === bucketSlug}
-                  orgSlug={orgSlug as string}
-                  appSubdomain={appSubdomain as string}
                   onSidebarItemClick={onSidebarItemClick}
                   onEdit={() => openEditBucketDrawer(bucket.id)}
                   onDelete={() => setBucketToDelete(bucket.id)}

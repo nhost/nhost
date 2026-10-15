@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { Shapes, SquarePen, Trash2, Users } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -49,8 +49,7 @@ interface LogicalModelListItemProps {
 export default function LogicalModelListItem({
   model,
 }: LogicalModelListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, modelSlug } = router.query;
+  const { orgSlug, appSubdomain, modelSlug } = useParams({ strict: false });
   const { openDrawer, closeDrawer } = useDialog();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

@@ -100,9 +100,15 @@ export default function ProjectsComboBox() {
       placeholder="Select a project"
       searchPlaceholder="Select a project..."
       footerSlot={footerSlot}
-      linkHref={
+      link={
         selectedProjectFromUrl && orgSlug
-          ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`
+          ? {
+              to: '/orgs/$orgSlug/projects/$appSubdomain',
+              params: {
+                orgSlug,
+                appSubdomain: selectedProjectFromUrl.subdomain,
+              },
+            }
           : undefined
       }
       linkContent={selectedLabel}

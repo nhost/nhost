@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
 import { TriangleAlert } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect } from 'react';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { Organization_Status_Enum } from '@/generated/graphql';
@@ -62,14 +61,14 @@ export default function OrgStatus() {
         description={
           <span>
             Please open a{' '}
-            <Link
+            <a
               href="https://app.nhost.io/support"
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold underline"
             >
               support ticket
-            </Link>{' '}
+            </a>{' '}
             if you need to restore access to this organization.
           </span>
         }

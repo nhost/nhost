@@ -1,7 +1,7 @@
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
+import { useParams } from '@tanstack/react-router';
 import type { Row } from '@tanstack/react-table';
 import { Plus, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -90,8 +90,9 @@ export default function DataBrowserGridControls({
     Row<UnknownDataGridRow>[]
   >([]);
 
-  const router = useRouter();
-  const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
 
   const { data: eventTriggersByTable } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },

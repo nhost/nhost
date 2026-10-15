@@ -1,6 +1,6 @@
 import type { SignUpOptions } from '@nhost/nhost-js/auth';
 import { startRegistration } from '@simplewebauthn/browser';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import toast from 'react-hot-toast';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { getAnonId } from '@/lib/segment';
@@ -10,7 +10,7 @@ import { getToastStyleProps } from '@/utils/constants/settings';
 import type { SignUpWithSecurityKeyFormValues } from './useSignupWithSecurityKeyForm';
 
 function useOnSignUpWithSecurityKeyHandler() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const nhost = useNhostClient();
 
   async function onSignUpWithSecurityKey({
@@ -52,7 +52,7 @@ function useOnSignUpWithSecurityKeyHandler() {
         codeChallenge: challenge,
       });
       if (verifyResponse.status === 200 && isEmptyValue(verifyResponse.body)) {
-        router.push(`/email/verify?email=${encodeURIComponent(email)}`);
+        navigate({ to: '/email/verify', search: { email } });
       }
     } catch (error) {
       toast.error(

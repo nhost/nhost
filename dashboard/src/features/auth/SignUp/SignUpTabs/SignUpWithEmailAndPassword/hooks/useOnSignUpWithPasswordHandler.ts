@@ -1,5 +1,5 @@
 import type { SignUpOptions } from '@nhost/nhost-js/auth';
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import toast from 'react-hot-toast';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { getAnonId } from '@/lib/segment';
@@ -10,7 +10,7 @@ import type { SignUpWithEmailAndPasswordFormValues } from './useSignUpWithEmailA
 
 function useOnSignUpWithPasswordHandler() {
   const nhost = useNhostClient();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   async function onSignUpWithPassword({
     email,
@@ -46,7 +46,7 @@ function useOnSignUpWithPasswordHandler() {
       );
 
       if (response.status === 200 && isEmptyValue(response.body)) {
-        router.push(`/email/verify?email=${encodeURIComponent(email)}`);
+        navigate({ to: '/email/verify', search: { email } });
       }
     } catch (error) {
       toast.error(

@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -15,8 +14,7 @@ export const Route = createFileRoute(
 function EventTriggerDetailsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const router = useRouter();
-  const { eventTriggerSlug } = router.query;
+  const { eventTriggerSlug } = useParams({ strict: false });
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;

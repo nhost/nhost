@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import {
   Tabs,
@@ -18,9 +18,7 @@ import CronTriggerViewSkeleton from './CronTriggerViewSkeleton';
 import CronTriggerOverview from './sections/CronTriggerOverview';
 
 export default function CronTriggerView() {
-  const router = useRouter();
-
-  const { cronTriggerSlug } = router.query;
+  const { cronTriggerSlug } = useParams({ strict: false });
 
   const { data: cronTriggers, isLoading, error } = useGetCronTriggers();
 

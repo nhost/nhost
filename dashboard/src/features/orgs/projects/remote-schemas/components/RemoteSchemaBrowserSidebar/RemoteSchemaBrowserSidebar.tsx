@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Link, useParams } from '@tanstack/react-router';
 import {
   Ellipsis as DotsHorizontalIcon,
   LinkIcon,
@@ -7,8 +8,6 @@ import {
   Trash2 as TrashIcon,
   UsersIcon,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -113,11 +112,7 @@ function RemoteSchemaBrowserSidebarContent({
   const { openDrawer, openAlertDialog } = useDialog();
   const { project } = useProject();
 
-  const router = useRouter();
-
-  const {
-    query: { orgSlug, appSubdomain, remoteSchemaSlug },
-  } = router;
+  const { remoteSchemaSlug } = useParams({ strict: false });
 
   const { data: remoteSchemas, status, refetch, error } = useGetRemoteSchemas();
 
@@ -256,7 +251,12 @@ function RemoteSchemaBrowserSidebarContent({
                     >
                       <div>
                         <Link
-                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
+                          from="/orgs/$orgSlug/projects/$appSubdomain"
+                          to="/orgs/$orgSlug/projects/$appSubdomain/graphql/remote-schemas/$remoteSchemaSlug"
+                          params={(prev) => ({
+                            ...prev,
+                            remoteSchemaSlug: remoteSchema.name,
+                          })}
                           onClick={() => {
                             onSidebarItemClick?.(remoteSchema.name);
                           }}

@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { Loader2, Lock } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
@@ -47,8 +47,9 @@ export default function InvokeEventTriggerButton({
 
   const adminSecret = project!.config!.hasura.adminSecret;
 
-  const router = useRouter();
-  const { dataSourceSlug, schemaSlug, tableSlug } = router.query;
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
 
   const { data: eventTriggersByTable, isLoading } = useGetEventTriggersByTable({
     table: { name: tableSlug as string, schema: schemaSlug as string },

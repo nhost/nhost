@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -77,10 +77,7 @@ export default function BaseForeignKeyForm({
 }: BaseForeignKeyFormProps) {
   const { setDirtySource } = useDialog();
 
-  const router = useRouter();
-  const {
-    query: { dataSourceSlug },
-  } = router;
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const form = useFormContext<BaseForeignKeySchemaValues>();
   const { control, subscribe, formState } = form;

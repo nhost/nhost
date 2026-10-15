@@ -1,5 +1,5 @@
+import { useNavigate, useParams } from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 
 export default function SelectOrganizationAndProject() {
   const { orgs, loading } = useOrgs();
-  const router = useRouter();
+  const navigate = useNavigate();
+  // The rest of a docs link such as /orgs/_/projects/_/deployments.
+  const { _splat: rest } = useParams({ strict: false });
 
   const projects = orgs.flatMap((org) =>
     org.apps.map((app) => ({
@@ -38,15 +40,8 @@ export default function SelectOrganizationAndProject() {
     projectName: string;
     value: string;
   }) => {
-    const { slug } = router.query;
-    await router.push({
-      pathname: `${project.value}/${(() => {
-        if (!slug) {
-          return '';
-        }
-        return Array.isArray(slug) ? slug.join('/') : slug;
-      })()}`,
-    });
+    // The target is built from the chosen project and the URL, not a typed route.
+    await navigate({ href: rest ? `${project.value}/${rest}` : project.value });
   };
 
   const projectsToDisplay = filter

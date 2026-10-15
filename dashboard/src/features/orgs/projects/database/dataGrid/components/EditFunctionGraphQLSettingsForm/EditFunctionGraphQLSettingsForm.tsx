@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -68,8 +68,7 @@ export default function EditFunctionGraphQLSettingsForm({
   functionOID,
   disabled,
 }: EditFunctionGraphQLSettingsFormProps) {
-  const { query } = useRouter();
-  const { dataSourceSlug } = query;
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const dataSource = dataSourceSlug as string;
   const functionCacheKey =

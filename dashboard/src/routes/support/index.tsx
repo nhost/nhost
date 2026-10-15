@@ -1,7 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowRightIcon, FileTextIcon, UsersRoundIcon } from 'lucide-react';
-import Link from 'next/link';
 import { Logo } from '@/components/presentational/Logo';
 import { Button } from '@/components/ui/v3/button';
 
@@ -13,9 +12,9 @@ function SupportPage() {
   return (
     <div className="box h-full overflow-auto pb-4">
       <div className="flex w-full justify-start border-b-1 px-4 py-3">
-        <Link href="https://app.nhost.io" rel="noopener noreferrer">
+        <a href="https://app.nhost.io" rel="noopener noreferrer">
           <Logo className="w-6" />
-        </Link>
+        </a>
       </div>
 
       <div className="flex flex-col items-center justify-center">
@@ -49,15 +48,15 @@ function SupportPage() {
                     </p>
                   </div>
                 </div>
-                <Link
+                <a
                   href="https://github.com/nhost/nhost/issues/new/choose"
                   target="_blank"
-                  rel="dofollow"
+                  rel="noopener dofollow"
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
                 >
                   Open new Issue / Feature request
                   <ArrowRightIcon className="h-4 w-4" />
-                </Link>
+                </a>
               </div>
               <div className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg bg-muted px-4 py-3 shadow-sm">
                 <div className="flex flex-col gap-4">
@@ -70,15 +69,15 @@ function SupportPage() {
                     </p>
                   </div>
                 </div>
-                <Link
+                <a
                   href="https://discord.com/invite/9V7Qb2U"
                   target="_blank"
-                  rel="dofollow"
+                  rel="noopener dofollow"
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
                 >
                   Join our Discord
                   <ArrowRightIcon className="h-4 w-4" />
-                </Link>
+                </a>
               </div>
             </div>
             <div className="flex h-full w-full xs+:flex-row flex-col place-content-between gap-4 rounded-lg border p-4 shadow-sm">
@@ -96,7 +95,7 @@ function SupportPage() {
                   type and severity of the issue.
                 </p>
                 <Link
-                  href="/support/ticket"
+                  to="/support/ticket"
                   target="_blank"
                   rel="dofollow"
                   className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"

@@ -4,7 +4,6 @@ import {
   ExternalLink as ArrowSquareOutIcon,
   CirclePlus as PlusCircleIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import type { ChangeEvent, ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -355,13 +354,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           </div>
 
           <Button asChild>
-            <Link
+            <a
               href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
               rel="noreferrer noopener"
             >
               Configure the Nhost application on GitHub
               <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
-            </Link>
+            </a>
           </Button>
         </div>
       );
@@ -403,14 +402,14 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                 ))}
               </ul>
 
-              <Link
+              <a
                 href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
                 className="grid grid-flow-col items-center justify-start gap-1 text-primary hover:underline"
               >
                 <PlusCircleIcon className="h-4 w-4" />
                 Configure the Nhost application on GitHub.
-              </Link>
+              </a>
             </div>
           ) : (
             <div>
@@ -472,13 +471,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             <p className="mt-2 text-center text-xs">
               Do you miss a repository, or do you need to connect another GitHub
               account?{' '}
-              <Link
+              <a
                 href={`${import.meta.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
                 className="font-medium text-primary text-xs hover:underline"
               >
                 Manage your GitHub configuration
-              </Link>
+              </a>
               .
             </p>
           )}

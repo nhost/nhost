@@ -1,5 +1,4 @@
 import { X } from 'lucide-react';
-import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -51,14 +50,15 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
               We use cookies for payments and analytics to improve our services.
             </h3>
             <p className="mb-4 text-neutral-400 text-xs">
-              <NextLink
+              <a
                 href="https://nhost.io/legal/privacy-policy"
+                aria-label="Learn more about our privacy policy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white underline hover:no-underline"
               >
                 Learn more
-              </NextLink>
+              </a>
             </p>
             <div className="flex gap-2">
               <Button

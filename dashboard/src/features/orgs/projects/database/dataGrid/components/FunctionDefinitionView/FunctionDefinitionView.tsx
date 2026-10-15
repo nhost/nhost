@@ -1,8 +1,8 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { useParams } from '@tanstack/react-router';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { ChevronDown, ChevronRight, Info, Pencil } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -41,10 +41,11 @@ function EditFunctionForm(props: ComponentProps<typeof EditFunctionFormLazy>) {
 
 export default function FunctionDefinitionView() {
   const { resolvedTheme } = useThemePreference();
-  const router = useRouter();
   const {
-    query: { schemaSlug, functionOID: routerFunctionOID, dataSourceSlug },
-  } = router;
+    schemaSlug,
+    functionOID: routerFunctionOID,
+    dataSourceSlug,
+  } = useParams({ strict: false });
 
   const schema = schemaSlug as string;
   const dataSource = (dataSourceSlug as string) || 'default';

@@ -1,5 +1,4 @@
 import { CircleHelp as QuestionMarkCircleIcon } from 'lucide-react';
-import Link from 'next/link';
 import { useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -55,7 +54,7 @@ export default function EditRepositoryAndBranchSettings({
               className="grid grid-flow-col items-center justify-start gap-1"
             >
               Base Directory{' '}
-              <Link
+              <a
                 href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -63,7 +62,7 @@ export default function EditRepositoryAndBranchSettings({
                 className="text-primary"
               >
                 <QuestionMarkCircleIcon className="h-4 w-4" />
-              </Link>
+              </a>
             </Label>
             <div className="grid gap-1">
               <Input

@@ -1,5 +1,4 @@
-import NavLink from 'next/link';
-import { useRouter } from 'next/router';
+import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
@@ -20,7 +19,6 @@ import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hoo
 import { useManageFunctionPermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManageFunctionPermissionMutation';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getFunctionPermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -56,8 +54,7 @@ export default function EditFunctionPermissionsForm({
   functionOID,
   onCancel,
 }: EditFunctionPermissionsFormProps) {
-  const { query } = useRouter();
-  const { dataSourceSlug } = query;
+  const { dataSourceSlug } = useParams({ strict: false });
   const dataSource = (dataSourceSlug as string) || 'default';
 
   const { project } = useProject();
@@ -118,7 +115,6 @@ export default function EditFunctionPermissionsForm({
     };
   });
 
-  const { org } = useCurrentOrg();
   const { closeDrawerWithDirtyGuard } = useDialog();
 
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
@@ -326,24 +322,30 @@ export default function EditFunctionPermissionsForm({
             <AlertDescription className="space-y-2 text-sm+">
               <p>
                 Please go to the{' '}
-                <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+                <Link
+                  from="/orgs/$orgSlug/projects/$appSubdomain"
+                  to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+                  params
+                  search={{ tab: 'roles-and-permissions' }}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
                   Settings page
-                </NavLink>{' '}
+                </Link>{' '}
                 page to add and delete roles.
               </p>
               <p>
                 To configure infer function permissions, go to{' '}
-                <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
+                <Link
+                  from="/orgs/$orgSlug/projects/$appSubdomain"
+                  to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+                  params
+                  search={{ tab: 'access-and-tooling' }}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
                   GraphQL Settings
-                </NavLink>
+                </Link>
                 .
               </p>
             </AlertDescription>

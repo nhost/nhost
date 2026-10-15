@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
@@ -48,7 +47,7 @@ function OrgProjects() {
           </div>
 
           <Button asChild>
-            <Link href={`/orgs/${currentOrg?.slug}/projects/new`}>
+            <Link from="/orgs/$orgSlug" to="/orgs/$orgSlug/projects/new" params>
               <div className="flex h-fit flex-row items-center justify-center space-x-2">
                 <Plus className="h-5 w-5" strokeWidth={2} />
                 <span>Create your first project</span>

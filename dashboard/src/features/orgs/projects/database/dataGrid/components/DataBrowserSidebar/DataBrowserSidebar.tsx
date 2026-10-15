@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { Lock, Plus, Search } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
@@ -34,11 +34,9 @@ export interface DataBrowserSidebarContentProps {
 function DataBrowserSidebarContent({
   onSidebarItemClick,
 }: DataBrowserSidebarContentProps) {
-  const router = useRouter();
-
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug, functionOID },
-  } = router;
+  const { dataSourceSlug, schemaSlug, tableSlug, functionOID } = useParams({
+    strict: false,
+  });
 
   const { data: enumTablePaths } = useGetEnumsSet({
     dataSource: dataSourceSlug as string,

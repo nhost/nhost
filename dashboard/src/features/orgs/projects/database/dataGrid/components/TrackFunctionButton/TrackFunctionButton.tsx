@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { ConfirmTrackAsQueryDialog } from '@/features/orgs/projects/database/dataGrid/components/ConfirmTrackAsQueryDialog';
@@ -19,8 +19,7 @@ export default function TrackFunctionButton({
   returnTableSchema,
   functionType,
 }: TrackFunctionButtonProps) {
-  const { query } = useRouter();
-  const { dataSourceSlug } = query;
+  const { dataSourceSlug } = useParams({ strict: false });
   const dataSource = (dataSourceSlug as string) || 'default';
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);

@@ -1,21 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
+import { getSearchParam } from '@/lib/search-params';
 
 export const Route = createFileRoute('/email/verify')({
+  // Set by sign-in and sign-up when the email is not verified yet.
+  validateSearch: (search): { email?: string } => ({
+    email: getSearchParam(search.email),
+  }),
   component: RouteComponent,
 });
 
 function VerifyEmailPage() {
-  const router = useRouter();
-
-  const {
-    query: { email },
-  } = router;
+  const { email } = Route.useSearch();
 
   const { resendVerificationEmail, loading: resendVerificationEmailLoading } =
     useResendVerificationEmail();

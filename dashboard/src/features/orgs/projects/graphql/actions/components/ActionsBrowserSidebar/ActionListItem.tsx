@@ -1,3 +1,4 @@
+import { useParams } from '@tanstack/react-router';
 import {
   Anchor,
   Ellipsis,
@@ -8,7 +9,6 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import {
   type OpenDialogOptions,
@@ -46,8 +46,7 @@ export default function ActionListItem({
   action,
   onDeleteAction,
 }: ActionListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, actionSlug } = router.query;
+  const { orgSlug, appSubdomain, actionSlug } = useParams({ strict: false });
   const isSelected = action.name === actionSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${action.name}`;
   const actionType = action.definition.type ?? 'mutation';

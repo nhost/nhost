@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   DialogDescription,
@@ -29,8 +29,7 @@ function TransferProjectDialogContent({
   selectedOrganizationId,
   onOrganizationChange,
 }: Props) {
-  const { query } = useRouter();
-  const { session_id } = query;
+  const { session_id } = useSearch({ strict: false });
   const { state } = useAppState();
   const { refetch: refetchOrgs } = useOrgs();
   const isProjectNotPaused = state !== ApplicationStatus.Paused;

@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import NextLink from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
@@ -50,10 +50,10 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           Sign In
         </ButtonWithLoading>
         <Button variant="outline-emboss" className="gap-2 text-sm+" asChild>
-          <NextLink href="/signin">
+          <Link to="/signin">
             <SiGithub size={14} />
             Sign in with GitHub
-          </NextLink>
+          </Link>
         </Button>
       </form>
     </Form>

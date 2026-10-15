@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
@@ -11,8 +11,9 @@ import {
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function TrackTableButton() {
-  const { query } = useRouter();
-  const { dataSourceSlug, tableSlug, schemaSlug } = query;
+  const { dataSourceSlug, tableSlug, schemaSlug } = useParams({
+    strict: false,
+  });
 
   const { data: isTracked, isLoading: isTrackedLoading } = useIsTrackedTable({
     dataSource: dataSourceSlug as string,

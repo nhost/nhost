@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import {
   Tabs,
@@ -17,9 +17,7 @@ import { useGetEventTriggers } from '@/features/orgs/projects/events/event-trigg
 import { isEmptyValue } from '@/lib/utils';
 
 export default function EventTriggerView() {
-  const router = useRouter();
-
-  const { eventTriggerSlug } = router.query;
+  const { eventTriggerSlug } = useParams({ strict: false });
 
   const { data: eventTriggers, isLoading, error } = useGetEventTriggers();
 

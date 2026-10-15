@@ -56,7 +56,14 @@ export default function OrganizationsCombobox() {
       placeholder="Select organization"
       searchPlaceholder="Select organization..."
       footerSlot={footerSlot}
-      linkHref={selectedOrg ? `/orgs/${selectedOrg.slug}/projects` : undefined}
+      link={
+        selectedOrg
+          ? {
+              to: '/orgs/$orgSlug/projects',
+              params: { orgSlug: selectedOrg.slug },
+            }
+          : undefined
+      }
       linkContent={selectedLabel}
       aria-label="Switch organization"
       onChange={(slug) => {

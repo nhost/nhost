@@ -1,4 +1,4 @@
-import NavLink from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -11,8 +11,6 @@ import {
 } from '@/features/orgs/projects/common/components/RolePermissionsGrid';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { useManageActionPermissionMutation } from '@/features/orgs/projects/graphql/actions/hooks/useManageActionPermissionMutation';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 
@@ -31,9 +29,6 @@ export default function EditActionPermissionsForm({
   actionName,
   onCancel,
 }: EditActionPermissionsFormProps) {
-  const { project } = useProject();
-  const { org } = useCurrentOrg();
-
   const client = useRemoteApplicationGQLClient();
   const {
     data: rolesData,
@@ -156,13 +151,16 @@ export default function EditActionPermissionsForm({
             <AlertDescription className="text-sm+">
               <p>
                 Go to the{' '}
-                <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+                <Link
+                  from="/orgs/$orgSlug/projects/$appSubdomain"
+                  to="/orgs/$orgSlug/projects/$appSubdomain/auth/settings"
+                  params
+                  search={{ tab: 'roles-and-permissions' }}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={onCancel}
                 >
                   Settings page
-                </NavLink>{' '}
+                </Link>{' '}
                 to add and delete roles.
               </p>
             </AlertDescription>

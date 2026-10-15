@@ -1,5 +1,5 @@
+import { useNavigate, useParams } from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 
 export default function SelectOrganization() {
   const { orgs, loading } = useOrgs();
-  const router = useRouter();
+  const navigate = useNavigate();
+  // The rest of a docs link such as /orgs/_/projects/_/deployments.
+  const { _splat: rest } = useParams({ strict: false });
 
   const organizations = orgs.map((org) => ({
     name: org.name,
@@ -31,15 +33,8 @@ export default function SelectOrganization() {
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
   const goToOrgPage = async (org: { name: string; value: string }) => {
-    const { slug } = router.query;
-    await router.push({
-      pathname: `${org.value}/${(() => {
-        if (!slug) {
-          return '';
-        }
-        return Array.isArray(slug) ? slug.join('/') : slug;
-      })()}`,
-    });
+    // The target is built from the chosen org and the URL, not a typed route.
+    await navigate({ href: rest ? `${org.value}/${rest}` : org.value });
   };
 
   const orgsToDisplay = filter

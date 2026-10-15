@@ -1,7 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { Lock, TriangleAlert } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -267,7 +266,7 @@ export default function GeneralSettings() {
                               backups are made. Please backup your data manually
                               to prevent loss. Contact{' '}
                               <Link
-                                href="/support"
+                                to="/support"
                                 target="_blank"
                                 className="text-primary-text underline"
                                 rel="noopener noreferrer"

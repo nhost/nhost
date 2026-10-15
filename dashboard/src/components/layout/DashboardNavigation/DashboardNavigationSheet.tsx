@@ -1,5 +1,5 @@
+import { useRouter } from '@tanstack/react-router';
 import { MenuIcon, XIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import DashboardNavigation from '@/components/layout/DashboardNavigation/DashboardNavigation';
 import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
@@ -17,7 +17,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function DashboardNavigationSheet() {
   const [open, setOpen] = useState(false);
-  const { events } = useRouter();
+  const router = useRouter();
   const { isProjectRoute } = useCurrentRoute();
   const { currentOrg } = useOrgs();
   const { project } = useProject();
@@ -26,13 +26,10 @@ export default function DashboardNavigationSheet() {
 
   // The shell stays mounted across navigation, so a picked link would leave
   // the sheet open otherwise.
-  useEffect(() => {
-    const close = () => setOpen(false);
-
-    events.on('routeChangeStart', close);
-
-    return () => events.off('routeChangeStart', close);
-  }, [events]);
+  useEffect(
+    () => router.subscribe('onBeforeNavigate', () => setOpen(false)),
+    [router],
+  );
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>

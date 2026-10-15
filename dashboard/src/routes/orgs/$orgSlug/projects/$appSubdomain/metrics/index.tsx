@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
-import Link from 'next/link';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -132,7 +131,7 @@ function MetricsPageContent() {
 
           <div className="mt-6 grid grid-flow-row gap-2">
             <Button asChild>
-              <Link
+              <a
                 href={generateAppServiceUrl(
                   project!.subdomain,
                   project!.region,
@@ -143,7 +142,7 @@ function MetricsPageContent() {
               >
                 Open Grafana
                 <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>

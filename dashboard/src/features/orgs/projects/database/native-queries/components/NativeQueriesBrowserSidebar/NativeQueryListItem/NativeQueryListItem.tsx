@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { Anchor, DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -49,8 +49,7 @@ interface NativeQueryListItemProps {
 export default function NativeQueryListItem({
   query,
 }: NativeQueryListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, querySlug } = router.query;
+  const { orgSlug, appSubdomain, querySlug } = useParams({ strict: false });
   const { openDrawer } = useDialog();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 

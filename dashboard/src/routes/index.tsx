@@ -1,6 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { TriangleAlert } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
@@ -60,9 +59,8 @@ function IndexPage() {
 
         if (org) {
           navigate({
-            from: '/orgs/$orgSlug',
             to: '/orgs/$orgSlug/projects',
-            params: true,
+            params: { orgSlug: org.slug },
           });
         }
       }
@@ -126,7 +124,7 @@ function IndexPage() {
           <p className="text-muted-foreground text-sm">
             If this issue persists, please{' '}
             <Link
-              href="/support"
+              to="/support"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold underline underline-offset-2"

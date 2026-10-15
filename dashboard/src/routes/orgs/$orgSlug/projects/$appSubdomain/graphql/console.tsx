@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
-import Link from 'next/link';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -100,14 +99,10 @@ function HasuraPageContent() {
           <div className="mt-6 grid grid-flow-row gap-2">
             {settings?.enableConsole ? (
               <Button asChild>
-                <Link
-                  href={hasuraUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
+                <a href={hasuraUrl} target="_blank" rel="noreferrer noopener">
                   Open Hasura
                   <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
-                </Link>
+                </a>
               </Button>
             ) : (
               <Button variant="outline" disabled>

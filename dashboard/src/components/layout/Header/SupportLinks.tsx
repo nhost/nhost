@@ -4,7 +4,6 @@ import {
   ExternalLinkIcon,
   LifeBuoyIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
 
@@ -19,7 +18,7 @@ interface SupportLinkProps {
 
 function SupportLink({ href, icon, children }: SupportLinkProps) {
   return (
-    <Link
+    <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
@@ -30,7 +29,7 @@ function SupportLink({ href, icon, children }: SupportLinkProps) {
       </span>
       <span className="flex-1">{children}</span>
       <ExternalLinkIcon className="size-4 shrink-0 text-neutral-600 dark:text-sidebar-foreground" />
-    </Link>
+    </a>
   );
 }
 

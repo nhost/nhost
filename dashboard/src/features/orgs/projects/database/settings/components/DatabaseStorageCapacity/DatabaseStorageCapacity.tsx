@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -198,7 +198,9 @@ export default function DatabaseStorageCapacity() {
                     To enable encryption in this project all you have to do is
                     pause & unpause it in{' '}
                     <Link
-                      href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+                      from="/orgs/$orgSlug/projects/$appSubdomain"
+                      to="/orgs/$orgSlug/projects/$appSubdomain/settings"
+                      params
                       className="text-primary hover:underline"
                     >
                       General Settings

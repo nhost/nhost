@@ -1,6 +1,6 @@
+import { useParams } from '@tanstack/react-router';
 import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -26,8 +26,9 @@ export interface EventTriggerListItemProps {
 export default function EventTriggerListItem({
   eventTrigger,
 }: EventTriggerListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, eventTriggerSlug } = router.query;
+  const { orgSlug, appSubdomain, eventTriggerSlug } = useParams({
+    strict: false,
+  });
   const editTriggerRef = useRef<BaseEventTriggerFormTriggerProps | null>(null);
   const isSelected = eventTrigger.name === eventTriggerSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${eventTrigger.name}`;

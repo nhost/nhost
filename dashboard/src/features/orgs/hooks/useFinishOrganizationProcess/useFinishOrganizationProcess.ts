@@ -1,3 +1,4 @@
+import { useSearch } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -30,7 +31,7 @@ function useFinishOrganizationProcess({
   onError,
 }: UseFinishOrgCreationProps) {
   const router = useRouter();
-  const { session_id } = router.query;
+  const { session_id } = useSearch({ strict: false });
 
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);

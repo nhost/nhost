@@ -1,5 +1,9 @@
+import {
+  Link,
+  type RegisteredRouter,
+  type ValidateLinkOptions,
+} from '@tanstack/react-router';
 import { ChevronsUpDown } from 'lucide-react';
-import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 import { Combobox, type ComboboxProps } from '@/components/ui/v3/combobox';
 import { cn } from '@/lib/utils';
@@ -17,30 +21,36 @@ const headerComboboxIconClassName =
 const headerComboboxLinkClassName =
   'inline-flex h-9 min-w-0 max-w-52 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-transparent px-3 py-0 font-medium text-foreground whitespace-nowrap transition-colors hover:bg-background hover:text-primary';
 
-interface HeaderComboboxProps
-  extends Omit<
+interface HeaderComboboxProps<
+  TRouter extends RegisteredRouter = RegisteredRouter,
+  TOptions = unknown,
+> extends Omit<
     ComboboxProps,
     'popoverAnchor' | 'triggerContent' | 'triggerLabel'
   > {
-  linkHref?: string;
+  /** Where the selected item's name links to. */
+  link?: ValidateLinkOptions<TRouter, TOptions>;
   linkContent?: ReactNode;
 }
 
+export default function HeaderCombobox<
+  TRouter extends RegisteredRouter,
+  TOptions,
+>(props: HeaderComboboxProps<TRouter, TOptions>): ReactNode;
 export default function HeaderCombobox({
   className,
-  linkHref,
+  link,
   linkContent,
   popoverContentClassName,
   ...props
-}: HeaderComboboxProps) {
+}: HeaderComboboxProps): ReactNode {
   const [anchor, setAnchor] = useState<HTMLDivElement | null>(null);
-  const hasLink =
-    !!linkHref && linkContent !== undefined && linkContent !== null;
+  const hasLink = !!link && linkContent !== undefined && linkContent !== null;
 
   return (
     <div ref={setAnchor} className="flex min-w-0 items-center">
       {hasLink && (
-        <Link href={linkHref} className={headerComboboxLinkClassName}>
+        <Link {...link} className={headerComboboxLinkClassName}>
           {linkContent}
         </Link>
       )}

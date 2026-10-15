@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -226,9 +226,7 @@ export function useDataBrowserActions({
   const { openDrawer, openAlertDialog } = useDialog();
   const router = useRouter();
   const navigate = useNavigate();
-  const {
-    query: { orgSlug, appSubdomain },
-  } = router;
+  const { orgSlug, appSubdomain } = useParams({ strict: false });
   const { project } = useProject();
   const { mutateAsync: deleteDatabaseObject } =
     useDeleteDatabaseObjectWithToastMutation({ dataSource: dataSourceSlug });

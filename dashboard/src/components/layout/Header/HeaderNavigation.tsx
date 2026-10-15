@@ -1,12 +1,11 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import OrganizationsCombobox from '@/components/layout/Header/OrganizationsCombobox';
 import ProjectsComboBox from '@/components/layout/Header/ProjectsComboBox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 
 export default function HeaderNavigation() {
   const isPlatform = useIsPlatform();
-  const { query } = useRouter();
-  const { appSubdomain } = query;
+  const { appSubdomain } = useParams({ strict: false });
 
   if (!isPlatform) {
     return null;

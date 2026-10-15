@@ -1,6 +1,6 @@
+import { useParams } from '@tanstack/react-router';
 import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -26,8 +26,9 @@ export interface CronTriggerListItemProps {
 export default function CronTriggerListItem({
   cronTrigger,
 }: CronTriggerListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, cronTriggerSlug } = router.query;
+  const { orgSlug, appSubdomain, cronTriggerSlug } = useParams({
+    strict: false,
+  });
   const editTriggerRef = useRef<BaseCronTriggerFormTriggerProps | null>(null);
   const isSelected = cronTrigger.name === cronTriggerSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/events/cron-triggers/${cronTrigger.name}`;

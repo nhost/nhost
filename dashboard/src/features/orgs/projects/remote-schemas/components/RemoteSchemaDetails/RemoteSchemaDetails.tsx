@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { InfoIcon, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
@@ -20,9 +20,7 @@ export default function RemoteSchemaDetails() {
   const { mutateAsync: reloadRemoteSchema, isPending: isReloading } =
     useReloadRemoteSchemaMutation();
 
-  const router = useRouter();
-
-  const { remoteSchemaSlug } = router.query;
+  const { remoteSchemaSlug } = useParams({ strict: false });
 
   const { data: remoteSchemas, status } = useGetRemoteSchemas();
 

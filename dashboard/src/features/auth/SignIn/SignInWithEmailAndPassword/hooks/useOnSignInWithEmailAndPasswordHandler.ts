@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useNavigate } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
@@ -20,7 +20,7 @@ type EmailAndPasswordRef = {
 function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
   const [isLoading, setIsloading] = useState(false);
   const nhost = useNhostClient();
-  const router = useRouter();
+  const navigate = useNavigate();
   const emailAndPasswordRef = useRef<EmailAndPasswordRef>(null);
 
   async function onSignInWithEmailAndPassword({
@@ -59,7 +59,7 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
               redirectTo: appendPkceId(window.location.origin, id),
             },
           });
-          router.push(`/email/verify?email=${encodeURIComponent(email)}`);
+          navigate({ to: '/email/verify', search: { email } });
           return;
         }
         errorMessage = error.body.message;

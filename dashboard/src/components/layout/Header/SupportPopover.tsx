@@ -1,6 +1,5 @@
 import { SiDiscord as DiscordIcon } from '@icons-pack/react-simple-icons';
 import { CircleHelpIcon, ExternalLinkIcon } from 'lucide-react';
-import Link from 'next/link';
 import SupportLinks from '@/components/layout/Header/SupportLinks';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -36,7 +35,7 @@ export default function SupportPopover() {
         </div>
 
         <div className="px-3 pb-3">
-          <Link
+          <a
             href={DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
@@ -52,7 +51,7 @@ export default function SupportPopover() {
               </span>
             </span>
             <ExternalLinkIcon className="size-4 shrink-0" />
-          </Link>
+          </a>
         </div>
       </PopoverContent>
     </Popover>

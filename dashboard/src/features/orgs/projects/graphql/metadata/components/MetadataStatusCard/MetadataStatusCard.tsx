@@ -1,14 +1,10 @@
+import { Link } from '@tanstack/react-router';
 import { Loader2, TriangleAlert } from 'lucide-react';
-import Link from 'next/link';
 import { MetadataConsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataConsistentStatus';
 import { MetadataInconsistentStatus } from '@/features/orgs/projects/graphql/metadata/components/MetadataInconsistentStatus';
 import { useGetInconsistentMetadata } from '@/features/orgs/projects/graphql/metadata/hooks/useGetInconsistentMetadata';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function MetadataStatusCard() {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
   const {
     data: metadataStatus,
     isLoading,
@@ -43,7 +39,10 @@ export default function MetadataStatusCard() {
             <p>
               You can verify the{' '}
               <Link
-                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=engine`}
+                from="/orgs/$orgSlug/projects/$appSubdomain"
+                to="/orgs/$orgSlug/projects/$appSubdomain/graphql/settings"
+                params
+                search={{ tab: 'engine' }}
                 className="text-primary underline"
               >
                 GraphQL settings page

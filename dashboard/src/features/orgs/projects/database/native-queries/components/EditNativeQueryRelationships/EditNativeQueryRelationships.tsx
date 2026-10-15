@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { NativeQueryRelationships } from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
@@ -14,8 +14,7 @@ export default function EditNativeQueryRelationships({
   queryName,
   onCancel,
 }: EditNativeQueryRelationshipsProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain } = router.query;
+  const { orgSlug, appSubdomain } = useParams({ strict: false });
   const {
     data: queries = [],
     isLoading: queriesLoading,

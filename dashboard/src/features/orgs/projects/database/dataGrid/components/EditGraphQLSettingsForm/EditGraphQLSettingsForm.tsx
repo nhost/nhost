@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
@@ -40,8 +40,7 @@ export default function EditGraphQLSettingsForm({
   schema,
   tableName,
 }: EditGraphQLSettingsFormProps) {
-  const { query } = useRouter();
-  const { dataSourceSlug } = query;
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const { data: isTracked } = useIsTrackedTable({
     dataSource: dataSourceSlug as string,

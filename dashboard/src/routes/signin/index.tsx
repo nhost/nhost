@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Mail } from 'lucide-react';
-import NextLink from 'next/link';
 import { type PropsWithChildren, useEffect, useId } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
@@ -102,10 +101,10 @@ function SigninPage() {
             )}
             aria-describedby={isEmailLastUsed ? lastUsedBadgeId : undefined}
           >
-            <NextLink href="/signin/email">
+            <Link to="/signin/email">
               <Mail size={14} />
               Continue with Email
-            </NextLink>
+            </Link>
           </Button>
         </SignInOption>
         <p className="text-center text-sm">

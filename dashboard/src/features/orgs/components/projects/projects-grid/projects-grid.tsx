@@ -1,16 +1,13 @@
+import { Link } from '@tanstack/react-router';
 import { ArrowRight, Box, Plus } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import type { GetProjectsQuery } from '@/generated/graphql';
 
 type Project = GetProjectsQuery['apps'][0];
 
 function ProjectCard({ project }: { project: Project }) {
-  const { org } = useCurrentOrg();
-
   const [latestPipelineRun] = project.pipelineRuns;
   const [latestDeployment] = project.deployments;
 
@@ -26,7 +23,9 @@ function ProjectCard({ project }: { project: Project }) {
 
   return (
     <Link
-      href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
+      from="/orgs/$orgSlug"
+      to="/orgs/$orgSlug/projects/$appSubdomain"
+      params={(prev) => ({ ...prev, appSubdomain: project.subdomain })}
       className="flex h-44 cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
     >
       <div className="flex flex-row items-start gap-2">
@@ -62,13 +61,11 @@ interface ProjectGridProps {
 }
 
 export default function ProjectsGrid({ projects }: ProjectGridProps) {
-  const { org } = useCurrentOrg();
-
   return (
     <div className="mx-auto h-full overflow-auto bg-background">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b bg-background p-2">
         <Button asChild>
-          <Link href={`/orgs/${org?.slug}/projects/new`}>
+          <Link from="/orgs/$orgSlug" to="/orgs/$orgSlug/projects/new" params>
             <div className="flex h-fit flex-row items-center justify-center space-x-2">
               <Plus className="h-5 w-5" strokeWidth={2} />
               <span>Create project</span>

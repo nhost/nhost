@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -97,7 +97,7 @@ export default function AppLoader({
       {timeElapsed > 180 && (
         <Link
           className="font-semibold text-primary underline underline-offset-2"
-          href="/support"
+          to="/support"
           target="_blank"
           rel="noopener noreferrer"
         >

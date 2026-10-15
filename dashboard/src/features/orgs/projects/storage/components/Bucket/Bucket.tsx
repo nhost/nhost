@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { FolderX } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
@@ -7,18 +7,13 @@ import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/compone
 import { useGetBucketQuery } from '@/generated/graphql';
 
 export default function Bucket() {
-  const {
-    query: { bucketId: bucketIdParam },
-  } = useRouter();
-
-  // catch-all route returns an array of path segments; join them to reconstruct
-  // bucket IDs that contain slashes (e.g. "foo/bar")
-  const bucketId = Array.isArray(bucketIdParam)
-    ? bucketIdParam.join('/')
-    : bucketIdParam;
+  // The catch-all route keeps slashes, so bucket IDs like "foo/bar" work.
+  const { _splat: bucketId } = useParams({
+    from: '/orgs/$orgSlug/projects/$appSubdomain/storage/buckets/$',
+  });
 
   const { data, loading, error } = useGetBucketQuery({
-    variables: { id: bucketId as string },
+    variables: { id: bucketId ?? '' },
     skip: !bucketId,
   });
 

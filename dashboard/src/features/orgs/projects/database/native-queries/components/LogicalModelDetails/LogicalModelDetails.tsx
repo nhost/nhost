@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import { Shapes } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelForm';
@@ -11,8 +11,7 @@ import LogicalModelDetailsSkeleton from './LogicalModelDetailsSkeleton';
 import LogicalModelOverview from './sections/LogicalModelOverview';
 
 export default function LogicalModelDetails() {
-  const router = useRouter();
-  const { modelSlug, orgSlug, appSubdomain } = router.query;
+  const { modelSlug, orgSlug, appSubdomain } = useParams({ strict: false });
   const { data: models = [], isLoading, error } = useGetLogicalModels();
   const {
     data: queries = [],
