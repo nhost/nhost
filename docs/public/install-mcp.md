@@ -4,171 +4,269 @@
 
 STOP FIRST: If all I want is to ask questions about my organizations, projects and deployments, do not use this file. Tell me to add <https://mcp.nhost.io> as a remote connector in my client and sign in when prompted. That server is hosted by Nhost and needs no CLI, no config file and no token, but it is read-only and cannot reach a project's own data or change anything. Ask me which I want before continuing. Everything below is for reaching a project's own data and schema, or for write access.
 
-I want you to set up the Nhost MCP server for me. Ask me the question in step 1 first, then follow only the branch that matches my answer. Stop to ask me whenever a step needs a decision or a value only I have.
+I want you to set up the Nhost MCP server for me. Work through the phases in order. Phase 1 collects every decision, so ask all of its questions before you run a command or write a file.
 
 OBJECTIVE: Configure the Nhost CLI MCP server against the project I name and register it with my AI assistant, granting nothing I did not explicitly ask for.
 
 DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns the schema of the project I named.
 
+## Credential rules
+
+These apply to every phase and override any step that looks like it asks otherwise.
+
+- Never print, echo, `cat` or repeat a credential value: not in your reply, not in a command you run, not in a file inside the repository. Assume everything you output is written to a log that I cannot redact afterwards.
+- Never open or print a file that can hold a credential. That includes an existing `.nhost/mcp-nhost.toml`, which may already hold a hardcoded token, and every client configuration file, which holds real values by design: `~/.claude.json`, `~/.codex/config.toml`, `~/.gemini/settings.json`, `.gemini/settings.json`, `.cursor/mcp.json` and the Cursor user settings. If you need to know what is in one of them, ask me and let me look.
+- Never run `nhost mcp config dump`. It resolves `$VAR` references against the environment and prints the real values, so it leaks a credential even when the file itself stores it correctly. The same goes for any client command that prints a server's environment, such as `claude mcp get`.
+- In `mcp-nhost.toml`, a credential is always a `$VAR` reference and never a literal value.
+- When a command needs a real value, write `"$VAR"` and let the shell expand it, so the literal never appears in the command you run.
+- To check a variable is set, test it without revealing it:
+
+  ```bash
+  [ -n "${NHOST_PROJECT_PAT:-}" ] && echo set || echo unset
+  ```
+
+- If a command you run returns something that looks like a credential, do not repeat it back to me. Say which command it came from and that you are not quoting it.
+- If a step cannot be completed without a literal credential passing through you, stop and give me the exact command to run myself.
+
 ## TODO
 
-- [ ] Ask whether this is a local project or a project on Nhost Cloud
-- [ ] Confirm the Nhost CLI is installed and the prerequisites for that branch are met
-- [ ] Cloud only: ask which project and which kind of access I want
-- [ ] Check for an existing config file, then create `.nhost/mcp-nhost.toml`
-- [ ] Register the MCP server with my AI assistant
-- [ ] Verify the tools are available and `get-schema` works
+- [ ] Phase 1: collect every decision
+- [ ] Phase 2: check prerequisites and any existing configuration
+- [ ] Phase 3: confirm the credentials are in the environment
+- [ ] Phase 4: agree the configuration before writing it
+- [ ] Phase 5: write it, register the server, verify
+- [ ] Phase 6: report back
 
-## Steps
+## Phase 1. Collect every decision
 
-1. Ask me which kind of project this is, and do not write anything until I answer:
+Ask all of the questions that apply before you run a command or write a file. Do not start work after the first answer.
 
-   - **Local**: a project running on my machine through `nhost up`. Full access is fine; nothing here is real.
-   - **Nhost Cloud**: a hosted project that may hold real data. Access is scoped, and credentials are involved.
+1. Is this a local project, a project on Nhost Cloud, or both?
 
-   Everything below is split into a **Local** and a **Cloud** branch. Follow only the one I chose. If I want both in one configuration, do the Local branch first and then work through steps 4 and 5 in full for the cloud half, adding it as a second `[[projects]]` entry instead of replacing the local one. Do not skip those steps: they carry the access questions and the credential rules, and neither is optional just because a local project is already configured.
+   - Local: a project running on my machine through `nhost up`. Full access is fine, nothing there is real.
+   - Nhost Cloud: a hosted project that may hold real data. Access is scoped and credentials are involved.
+   - Both: two `[[projects]]` entries in one configuration. Ask the cloud questions below as well.
 
-2. **Local branch.** Confirm prerequisites. Run `nhost --version` to check the CLI is installed. If it is missing, install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`. Then make sure the local stack is running with `nhost up` (this requires Docker). The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
+   If I said local only, skip to question 6.
 
-3. **Local branch.** Check whether `.nhost/mcp-nhost.toml` already exists before writing anything. If it is there, show me what it holds and ask before overwriting it, and offer to keep both by adding the local project as another `[[projects]]` entry.
+2. Which cloud project? I need to give you its subdomain and region.
 
-   Then create the config file at `.nhost/mcp-nhost.toml` in the project root with the following contents. This grants full access, which is appropriate only because `subdomain = "local"` names a stack running on my machine. Never use this template with a real subdomain and region; that is what the Cloud branch is for.
+3. Should the assistant be able to change that project's data? Default to read-only.
 
-   ```toml
-   [[projects]]
-   subdomain = "local"
-   region = "local"
-   description = "Local development project running via the Nhost CLI"
-   admin_secret = "nhost-admin-secret"
-   manage_metadata = true
-   allow_queries = ["*"]
-   allow_mutations = ["*"]
-   ```
+4. Should the assistant be able to change that project's schema, metadata and permissions? Default to no. This requires an admin secret, which bypasses every permission rule, so it is only appropriate for a throwaway or staging project.
 
-   No credentials are involved: `nhost-admin-secret` is the CLI's fixed local value, not a secret.
+5. Should the assistant be able to manage the Nhost Cloud platform, meaning list organizations and projects and read and change project configuration? Default to no.
 
-   If I asked for a local project only, skip to step 6. If I asked for both, continue to step 4 now and do the cloud half before registering anything.
+   Before I answer, tell me what read access to the platform actually includes: every project's environment variables and secrets, in plaintext, for every project my account can see, including the Hasura admin secret. Setting `enable_mutations = false` does not reduce that. It blocks writes only, and the entire platform schema stays readable, so an assistant with platform access can read the admin secret of a production project and use it elsewhere. Only say yes if I want that. If I do, ask separately whether mutations should be enabled, and default to no.
 
-4. **Cloud branch.** Confirm prerequisites. Run `nhost --version`. If the CLI is missing, either install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`, or plan to run it through `npx -y @nhost/cli@latest` and use that form everywhere below. Then run `nhost login` so the CLI has credentials for the Nhost Cloud platform. If an interactive login is not possible, ask me for a personal access token and use it as `NHOST_PAT` in the environment rather than writing it to a file. I create that token under "Personal Access Tokens" at <https://app.nhost.io/account>.
+6. Which client am I registering this with? Detect it if you can and confirm with me. Claude Code, Codex CLI, Gemini CLI and Cursor have known setups; anything else that takes an `mcpServers` JSON block works like Cursor.
 
-   IMPORTANT, for this branch only: this points at real data. Do not widen access beyond what I ask for. Never write a real token or admin secret into `mcp-nhost.toml`, or into any other file inside the repository. In the config file use `$VAR` interpolation, which the server expands at startup. Note the syntax is `$VAR` and not `${VAR}`; braces are not supported and would be sent literally as the credential. The real value belongs in my client's own configuration (step 6) and nowhere else. Never commit credentials. Read-only is not the same as harmless: platform read access exposes secrets in plaintext, so treat the second question below as a real decision rather than a safe default.
+Then restate my answers as a short list: which projects, what each one may read and write, whether platform access is on, and which client. Wait for me to confirm that list before moving to phase 2. Everything after this point follows the list and adds nothing to it.
 
-5. **Cloud branch.** Ask me these questions before writing anything:
+## Phase 2. Prerequisites and existing configuration
 
-   - Which project? I need to give you its subdomain and region.
-   - Should the assistant be able to manage the Nhost Cloud platform (list organizations and projects, read and change project configuration)? Default to no. Before I answer, tell me what read access to the platform actually includes: every project's environment variables and secrets, in plaintext, for every project my account can see, including the Hasura admin secret. Setting `enable_mutations = false` does not reduce that. It blocks writes only, and the entire platform schema stays readable, so an assistant with platform access can read the admin secret of a production project and use it elsewhere. Only say yes if I want that. If I do, ask separately whether mutations should be enabled, and default to no.
-   - Should the assistant be able to change project data? Default to read-only.
-   - Should the assistant be able to change the project's schema, metadata, and permissions? Default to no. This requires an admin secret and is only appropriate for a throwaway or staging project.
+Run `nhost --version` to check the CLI is installed. If it is missing, either install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`, or plan to run it through `npx -y @nhost/cli@latest` and use that form everywhere below.
 
-   Then check whether `.nhost/mcp-nhost.toml` already exists before writing anything. If it is there, show me what it holds and ask before overwriting it, and offer to keep both by adding the cloud project as another `[[projects]]` entry.
+For a local project, make sure the stack is running with `nhost up`. This requires Docker. The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
 
-   Create the config file at `.nhost/mcp-nhost.toml`. Start from this template, which grants project access only, and adjust it to match my answers:
+For a cloud project, run `nhost login` so the CLI has credentials for the Nhost Cloud platform. If an interactive login is not possible, I will set a personal access token as `NHOST_PAT` in the environment instead, and you confirm it in phase 3 rather than asking me to paste it. I create that token under "Personal Access Tokens" at <https://app.nhost.io/account>.
 
-   ```toml
-   [[projects]]
-   subdomain = "MY_SUBDOMAIN"
-   region = "MY_REGION"
-   description = "Describe the project here, including whether it holds production data"
-   pat = "$NHOST_PROJECT_PAT"
-   allow_queries = ["*"]
-   allow_mutations = []
-   ```
+Then check whether `.nhost/mcp-nhost.toml` exists. Test for its presence only:
 
-   Notes:
+```bash
+[ -f .nhost/mcp-nhost.toml ] && echo exists || echo absent
+```
 
-   - Add a `[cloud]` section only if I explicitly said yes to platform access, and only then:
+If it is absent, say so and go to phase 3.
 
-     ```toml
-     [cloud]
-     enable_mutations = false
-     ```
+If it exists, do not open it, do not print it, and do not try to summarise it. It may hold a hardcoded token or admin secret, and any attempt to filter the file as you read it will leak the cases you did not anticipate. Ask me instead:
 
-     This is the section that exposes every project's secrets and admin secret to the assistant, so leave it out unless I asked for it.
-   - `pat` is a project PAT, created against that project's own Auth service. If I do not have one, tell me how to create it: `curl -X POST https://<subdomain>.auth.<region>.nhost.run/v1/pat -H "Authorization: Bearer <access-token>" -H "Content-Type: application/json" -d '{"expiresAt":"2027-01-01T00:00:00Z","metadata":{"name":"mcp"}}'`, using the access token of a signed-in user of that project.
-   - Use `admin_secret = "$NHOST_ADMIN_SECRET"` in place of `pat` only if I asked for schema/metadata management, and add `manage_metadata = true` in that case. An admin secret bypasses all permissions.
-   - Keep the `$VAR` form and note which variables the file names. The server interpolates them from its own environment at startup, and an unset variable becomes an empty string instead of an error, so step 6 has to put them there.
-   - If I asked for specific write access, prefer naming the mutations (`allow_mutations = ["insertComment"]`) over `["*"]`.
+- Open `.nhost/mcp-nhost.toml` yourself and confirm that every `pat` and `admin_secret` value is a `$VAR` reference rather than a literal. Tell me yes or no. Do not paste the file.
+- Tell me which projects it already configures, by subdomain, and whether it has a `[cloud]` section.
 
-6. **Both branches.** Register the MCP server with my AI assistant. Detect which client I use and apply the matching setup.
+If I say no, or if I am not sure, stop. Tell me to move the value into an environment variable and rotate the credential that was sitting in the file, and do not continue until I say so.
 
-   On the Local branch there are no credentials to pass, so use the plain form:
+If I say yes, add my new entry alongside what is there rather than rewriting the file, so you never need its contents. Appending does not require reading it.
 
-   - Claude Code: `claude mcp add nhost nhost mcp start`
-   - Codex CLI: `codex mcp add nhost -- nhost mcp start`
-   - Gemini CLI: `gemini mcp add -s user nhost nhost mcp start`
-   - Cursor (or any client using an `mcpServers` JSON block):
+## Phase 3. Confirm the credentials are in the environment
 
-     ```json
-     {
-       "mcpServers": {
-         "nhost": {
-           "command": "nhost",
-           "args": ["mcp", "start"]
-         }
-       }
-     }
-     ```
+A local project needs no credentials. Its `admin_secret` is `nhost-admin-secret`, the CLI's fixed local value, which is not a secret. If I asked for a local project only, go to phase 4.
 
-   On the Cloud branch, pass the credential variables through the client's own server definition: the server reads them from the environment of the process the client spawns, and exporting them in my shell only reaches that process if I launch the client from the same shell, which is never the case for Cursor or any other GUI client.
+For a cloud project, tell me which variables the configuration will name, based on my phase 1 answers:
 
-   - Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start`
-   - Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start`
-   - Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<your-project-pat> nhost nhost mcp start`
-   - Cursor (or any client using an `mcpServers` JSON block):
+- `NHOST_PROJECT_PAT` for project access through a PAT, which is the default.
+- `NHOST_ADMIN_SECRET` instead, if I said yes to managing schema and metadata.
+- `NHOST_PAT` as well, if I said yes to platform access and `nhost login` was not possible.
 
-     ```json
-     {
-       "mcpServers": {
-         "nhost": {
-           "command": "nhost",
-           "args": ["mcp", "start"],
-           "env": {
-             "NHOST_PROJECT_PAT": "<your-project-pat>"
-           }
-         }
-       }
-     }
-     ```
+Ask me to export each one in the shell you run commands in, then confirm it is set without printing it:
 
-   Repeat the flag or the key for every variable the config file names, including `NHOST_PAT` and `NHOST_ADMIN_SECRET` if I used those, and drop them if it names none. This is the one place the real credential gets written, so use the client's user-level configuration rather than a project-local file such as `.cursor/mcp.json` that lives in the repository, and never commit it. `-s user` is required for Gemini and not cosmetic: `gemini mcp add` defaults to `-s project`, which puts the token in `.gemini/settings.json` inside the working directory.
+```bash
+for v in NHOST_PROJECT_PAT NHOST_ADMIN_SECRET NHOST_PAT; do
+  eval "val=\${$v:-}"
+  [ -n "$val" ] && echo "$v: set" || echo "$v: unset"
+done
+```
 
-   The CLI-based clients refuse to overwrite a server that already exists rather than updating it, so if `nhost` was registered earlier, remove it first with `claude mcp remove nhost`, `codex mcp remove nhost`, or `gemini mcp remove -s user nhost`, then run the command above again.
+Only report set or unset. Do not print a length, a prefix, a suffix or any other part of a value.
 
-   If you are running the CLI through `npx`, swap the command inside those same registrations. The `--` separator is not optional: without it the client CLI parses `-y` as one of its own flags instead of passing it to `npx`.
+If I need a project PAT and do not have one, tell me how to create one and let me run it myself. It is made against that project's own Auth service, using the access token of a signed-in user of that project:
 
-   - Claude Code: `claude mcp add nhost -- npx -y @nhost/cli@latest mcp start`
-   - Codex CLI: `codex mcp add nhost -- npx -y @nhost/cli@latest mcp start`
-   - Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`, or with a credential on the Cloud branch, `gemini mcp add -s user -e NHOST_PROJECT_PAT=<your-project-pat> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
-   - Cursor (or any client using an `mcpServers` JSON block): set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
+```bash
+curl -X POST https://<subdomain>.auth.<region>.nhost.run/v1/pat \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expiresAt":"2027-01-01T00:00:00Z","metadata":{"name":"mcp"}}'
+```
 
-   Add the credential flags or the `env` object to those `npx` forms too if I am on the Cloud branch.
+If a variable I asked for stays unset, do not work around it and do not write the value into the configuration. Say which one is missing and wait.
 
-   The server reads `.nhost/mcp-nhost.toml` relative to the directory it starts in. If my client launches it somewhere else, add `--config-file=<absolute path>` to the arguments.
+## Phase 4. Agree the configuration before writing it
 
-7. **Both branches.** Verify the setup. Confirm the client lists the `nhost` server and its tools.
+Build the exact configuration from my phase 1 answers, show it to me, and wait for me to confirm before writing anything. If phase 2 found an existing file, show only the entry you intend to append, not a rewritten file.
 
-   On the Cloud branch the tool list alone does not prove the credentials arrived: an unset variable interpolates to an empty string, so the server starts and registers every tool either way. A call that fails with an authentication error while the tool list looks correct means the variable did not reach the server, so check step 6 before you suspect the token itself.
+For a local project:
 
-   If the client is unavailable, run the project check directly. On the Local branch:
+```toml
+[[projects]]
+subdomain = "local"
+region = "local"
+description = "Local development project running via the Nhost CLI"
+admin_secret = "nhost-admin-secret"
+manage_metadata = true
+allow_queries = ["*"]
+allow_mutations = ["*"]
+```
 
-   ```bash
-   echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
-   ```
+Full access is appropriate here only because `subdomain = "local"` names a stack running on my machine. Never use this template with a real subdomain and region.
 
-   On the Cloud branch, substituting my subdomain. This runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<your-project-pat>`), or it will fail on auth for that reason alone:
+For a cloud project, start from this, which grants read access to one project's data and nothing else, and widen it only where my answers said to:
 
-   ```bash
-   echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"MY_SUBDOMAIN","role":"user","summary":true}},"id":1}' | nhost mcp start
-   ```
+```toml
+[[projects]]
+subdomain = "MY_SUBDOMAIN"
+region = "MY_REGION"
+description = "Describe the project here, including whether it holds production data"
+pat = "$NHOST_PROJECT_PAT"
+allow_queries = ["*"]
+allow_mutations = []
+```
 
-   Run the next one only if I said yes to platform access and you added a `[cloud]` section. Otherwise skip it: `cloud-graphql-query` is registered only when `[cloud]` is present, so without that section the call returns `tool 'cloud-graphql-query' not found`, which is the expected result rather than something to debug. This command authenticates from my CLI session (`nhost login`) or `NHOST_PAT`, not from the config file, so the exports above do not apply to it:
+Adjust it as follows:
 
-   ```bash
-   echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"cloud-graphql-query","arguments":{"query":"{ apps { id subdomain name } }"}},"id":1}' | nhost mcp start
-   ```
+- If I said the assistant may change project data, fill in `allow_mutations`. Prefer naming the mutations, as in `allow_mutations = ["insertComment"]`, over `["*"]`.
+- If I said yes to managing schema and metadata, replace `pat` with `admin_secret = "$NHOST_ADMIN_SECRET"` and add `manage_metadata = true`.
+- If I said yes to platform access, and only then, add a `[cloud]` section:
 
-8. **Both branches.** Report back what you configured: which branch, which project, which credential type if any, whether mutations and metadata management are on, which environment variables the config file reads, and which client configuration file now holds their values.
+  ```toml
+  [cloud]
+  enable_mutations = false
+  ```
 
-EXECUTE NOW: Work through the TODO list above, asking me the question in step 1 first.
+  Set `enable_mutations = true` only if I separately said yes to that. This is the section that exposes every project's secrets and admin secret to the assistant, so leave it out unless I asked for it.
+- If I asked for both a local and a cloud project, the file holds two `[[projects]]` entries, one of each.
+
+Two things about the `$VAR` form, which both branches depend on:
+
+- The syntax is `$VAR`, not `${VAR}`. Braces are not supported and the whole `${VAR}` would be sent literally as the credential.
+- An unset variable interpolates to an empty string rather than raising an error, so the server starts and registers every tool either way. That is why phase 3 confirms the variables first.
+
+When you show me the file, list which environment variables it names. Phase 5 has to put those same variables into my client's configuration.
+
+## Phase 5. Write it, register the server, verify
+
+Write the agreed configuration to `.nhost/mcp-nhost.toml` in the project root, appending to the file if phase 2 found one.
+
+The file holds only `$VAR` references, so it is safe to commit, but check whether it is tracked and tell me what you find, because anyone who later replaces a reference with a literal would be committing a credential:
+
+```bash
+git check-ignore -q .nhost/mcp-nhost.toml && echo ignored || echo "not ignored"
+```
+
+Then register the server with the client I named in phase 1.
+
+With no credentials, which is the local-only case, use the plain form:
+
+- Claude Code: `claude mcp add nhost nhost mcp start`
+- Codex CLI: `codex mcp add nhost -- nhost mcp start`
+- Gemini CLI: `gemini mcp add -s user nhost nhost mcp start`
+- Cursor, or any client using an `mcpServers` JSON block:
+
+  ```json
+  {
+    "mcpServers": {
+      "nhost": {
+        "command": "nhost",
+        "args": ["mcp", "start"]
+      }
+    }
+  }
+  ```
+
+With credentials, pass them through the client's own server definition. The server reads them from the environment of the process the client spawns, and exporting them in my shell only reaches that process if I launch the client from the same shell, which is never the case for Cursor or any other GUI client.
+
+Write the variable, not the value, and let the shell expand it, so the literal never appears in the command you run:
+
+- Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT="$NHOST_PROJECT_PAT" -- nhost mcp start`
+- Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT="$NHOST_PROJECT_PAT" -- nhost mcp start`
+- Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT="$NHOST_PROJECT_PAT" nhost nhost mcp start`
+
+For Cursor and other JSON clients the value has to be written into the file. Do not do that yourself, because it would mean putting the literal in your output. Give me the block to fill in and tell me where it goes:
+
+```json
+{
+  "mcpServers": {
+    "nhost": {
+      "command": "nhost",
+      "args": ["mcp", "start"],
+      "env": {
+        "NHOST_PROJECT_PAT": "<paste your project PAT here>"
+      }
+    }
+  }
+}
+```
+
+Repeat the flag or the key for every variable the configuration file names, including `NHOST_PAT` and `NHOST_ADMIN_SECRET` if I used those. This is the one place the real credential gets written, so use the client's user-level configuration rather than a project-local file such as `.cursor/mcp.json` that lives in the repository, and never commit it. `-s user` is required for Gemini and not cosmetic: `gemini mcp add` defaults to `-s project`, which puts the token in `.gemini/settings.json` inside the working directory.
+
+The CLI-based clients refuse to overwrite a server that already exists rather than updating it, so if `nhost` was registered earlier, remove it first with `claude mcp remove nhost`, `codex mcp remove nhost` or `gemini mcp remove -s user nhost`, then run the command again.
+
+If I am running the CLI through `npx`, swap the command inside those same registrations. The `--` separator is not optional: without it the client CLI parses `-y` as one of its own flags instead of passing it to `npx`.
+
+- Claude Code: `claude mcp add nhost -- npx -y @nhost/cli@latest mcp start`
+- Codex CLI: `codex mcp add nhost -- npx -y @nhost/cli@latest mcp start`
+- Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
+- Cursor, or any client using an `mcpServers` JSON block: set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
+
+Add the credential flags or the `env` object to those `npx` forms too.
+
+The server reads `.nhost/mcp-nhost.toml` relative to the directory it starts in. If my client launches it somewhere else, add `--config-file=<absolute path>` to the arguments.
+
+Then verify. Confirm the client lists the `nhost` server and its tools. For a cloud project the tool list alone does not prove the credentials arrived, because an unset variable interpolates to an empty string and the server registers every tool either way. A call that fails with an authentication error while the tool list looks correct means the variable did not reach the server, so check the registration before suspecting the token.
+
+If the client is unavailable, run the check directly. For a local project:
+
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
+```
+
+For a cloud project, substituting my subdomain. This runs in your own shell rather than the one the client spawns, so it uses the variables confirmed in phase 3:
+
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"MY_SUBDOMAIN","role":"user","summary":true}},"id":1}' | nhost mcp start
+```
+
+Run the next one only if I said yes to platform access and you added a `[cloud]` section. Otherwise skip it: `cloud-graphql-query` is registered only when `[cloud]` is present, so without that section the call returns `tool 'cloud-graphql-query' not found`, which is the expected result rather than something to debug. This command authenticates from my CLI session or `NHOST_PAT`, not from the configuration file:
+
+```bash
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"cloud-graphql-query","arguments":{"query":"{ apps { id subdomain name } }"}},"id":1}' | nhost mcp start
+```
+
+## Phase 6. Report back
+
+Tell me what you configured: which projects, which credential type each one uses, whether mutations and metadata management are on, whether `[cloud]` is present, which environment variables the configuration file reads, and which client configuration file now holds their values. Name the variables, never their values.
+
+Then tell me what is left for me to do, including anything you stopped on: a plaintext credential found in phase 2, a variable that stayed unset, or a JSON client block I still have to fill in.
+
+EXECUTE NOW: Start with phase 1 and ask every question that applies before you run a command or write a file.
 
 For configuration options, client examples, and the rules for scoping access, see <https://docs.nhost.io/platform/cli/mcp> and <https://docs.nhost.io/platform/cli/mcp/cloud-setup>.
