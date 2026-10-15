@@ -6,7 +6,7 @@ head:
   - tag: title
     content: "Native Queries and Logical Models | Nhost Docs"
 ---
-import { Icon, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Icon, Steps } from '@astrojs/starlight/components';
 
 A native query turns a hand-written SQL query into a GraphQL root field. Native queries are useful when the generated GraphQL API from your tables cannot express what you need, such as window functions, recursive CTEs, aggregates across several tables, or queries that are better kept in SQL than rebuilt in your application.
 
@@ -44,18 +44,18 @@ A logical model can be reused by more than one native query, and can be nested i
 
 <Steps>
 
-1. Next to the **Logical models** heading in the sidebar, click `+`. ![Logical Model New](/images/products/database/native-queries/logical-model-new.png) 
+1. Next to the **Logical models** heading in the sidebar, click `+`. ![Logical Models New](/images/products/database/native-queries/logical-models-new.png) 
 2. Give the model a **Name**. Names must start with a letter or an underscore and contain only letters, numbers, and underscores, because the name becomes a GraphQL type.
 
-3. Add a **Description** if the model needs one. Descriptions are optional throughout this feature.
+3. Add an optional **Description**. This becomes the GraphQL description for the generated type.
 
-4. Click **Add field** once per field. Each row has **Name**, **Kind**, **Type/value**, **Nullable**, and **Description**.
+4. Click **Add field**. Each field row has **Name**, **Kind**, **Type/value**, **Nullable**, and **Description**. Field names follow the same rules as the model name, and must be unique within the model.
 
-5. Click **Create**. ![Logical Model Create](/images/products/database/native-queries/logical-model-create.png) 
+5. Click **Create**. ![Logical Models Create](/images/products/database/native-queries/logical-models-create.png) 
 
 </Steps>
 
-Field names follow the same rules as the model name, and must be unique within the model. (note to paul: mention the example of posts we are using, which we will continue to use in the rest of guide)
+In our example, we have a `post_summary` logical model with fields `id`, `title`, `body`, `views`, and `popularity`.
 
 ### The `Kind` Field
 
@@ -63,9 +63,7 @@ Field names follow the same rules as the model name, and must be unique within t
 
 - **Scalar**: a Postgres type such as `text`, `integer`, or `uuid`. The type list is searchable, and it also accepts a type you type yourself, so a type the dashboard does not list still works.
 - **Logical model**: another logical model, which nests that model's shape inside this one.
-- **Array**: a list of either of the above. Choosing Array reveals a second row for the item type, so an array of scalars and an array of models are both possible.
-
-Each row also has a **Nullable** checkbox, so an array can be non-nullable while its items are nullable.
+- **Array**: a list of either of the above. Choosing Array adds a second row for the item type, with its own **Nullable** checkbox, so the list and its items are set independently.
 
 ## Create a native query
 
@@ -73,7 +71,7 @@ Each row also has a **Nullable** checkbox, so an array can be non-nullable while
 
 1. Next to the **Native queries** heading in the sidebar, click `+`. ![Native Queries New](/images/products/database/native-queries/native-queries-new.png) 
 
-2. Set the **Root field name**. This is the field name clients query, and it follows the same naming rules as a logical model. (note to paul: again continuing with example of posts)
+2. Set the **Root field name**. This is the field name clients query, and it follows the same naming rules as a logical model. 
 
 3. Pick the logical model under **Returns logical model**. If the model does not exist yet, create it from inside this form rather than leaving the page.
 
@@ -83,6 +81,7 @@ Each row also has a **Nullable** checkbox, so an array can be non-nullable while
    select
      id,
      title,
+     body,
      views,
      case when views >= 300 then 'hot' else 'warm' end as popularity
    from public.posts
@@ -91,9 +90,9 @@ Each row also has a **Nullable** checkbox, so an array can be non-nullable while
    order by views desc
    ```
 
-   _Note: Arguments are interpolated as `{{min_views}}`, not `$1`. Column names must match the model's fields exactly, which is why `popularity` is aliased._
+   _Note: Arguments are interpolated by name, `{{min_views}}` here, not `$1`. Column names must match the model's fields exactly, which is why `popularity` is aliased._
 
-5. Click **Add argument** for each parameter the query takes (here, `min_views` of type `integer`). Arguments have a **Name**, **Type**, **Nullable** checkbox, and **Description**, and names must be unique within the query.
+5. Click **Add argument** for each parameter the query takes. Each argument has a **Name**, **Type**, **Nullable**, and **Description**, and names must be unique within the query.
 
 6. Click **Create**. ![Native Queries Create](/images/products/database/native-queries/native-queries-create.png)
 
@@ -105,7 +104,7 @@ Once the native query is created, the details page shows its **SQL**, **Returns*
 
 The native query is available as a root field in the GraphQL schema.
 
-The GraphQL Playground autocompletes the root field and the fields of the returned model, which makes it a convenient way to test the query. In the project’s sidebar, open **GraphQL → Playground**:
+The GraphQL Playground autocompletes the root field and the fields of the returned model, which makes it a convenient way to test the query. In the project’s sidebar, open **GraphQL → Playground** <a href="https://app.nhost.io/orgs/_/projects/_/graphql" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>:
 
 ![GraphQL Playground Navigation](/images/products/database/native-queries/graphql-playground-nav.png)
 
@@ -141,7 +140,15 @@ curl -s https://{subdomain}.graphql.{region}.nhost.run/v1 \
 
 Permissions are defined on the **logical model**, not on the native query. A model's permissions apply everywhere that model is returned.
 
-Open the model's menu in the sidebar and choose **Edit permissions**. The grid lists the project's roles with a single **select** column, because native queries are read-only: there is no insert, update, or delete to grant. The `admin` role is absent from the grid since it always has full access.
+![Permissions Navigation](/images/products/database/native-queries/permissions-nav.png)
+
+Open the model's menu in the sidebar and choose **Edit permissions**. 
+
+![Permissions Select](/images/products/database/native-queries/permissions-select.png)
+
+The grid lists the project's roles with a single **select** column, because native queries are read-only: there is no insert, update, or delete to grant. The `admin` role is absent from the grid since it always has full access.
+
+![Permissions Save](/images/products/database/native-queries/permissions-save.png)
 
 For each role you can set:
 
@@ -160,7 +167,15 @@ A role with no select permission on the model does not get the root field in its
 
 A native query can be related to another native query, so a single GraphQL query can return a nested shape built from two SQL queries. Relationships from a native query to a tracked table are not supported here.
 
-Open the native query's menu in the sidebar and choose **Edit Relationships**, then fill in:
+![Relationships Navigation](/images/products/database/native-queries/relationships-nav.png)
+
+Open the native query's menu in the sidebar and choose **Edit Relationships**.
+
+The page lists existing relationships, each editable or removable. To create a new relationship, click on the **Relationship +** button.
+
+![Relationships Create](/images/products/database/native-queries/relationships-create.png)
+
+In the **Create Relationship** dialog, fill in:
 
 - **Relationship Name**: the field name the relationship appears under.
 - **Target Native Query**: the native query on the other end.
@@ -173,6 +188,7 @@ The nested field is then queried like any other relationship:
 query {
   popular_posts(args: { min_views: 100 }) {
     title
+    body
     stats {
       word_count
     }
@@ -180,47 +196,37 @@ query {
 }
 ```
 
-{/* SCREENSHOT: /images/products/database/native-queries/relationship-dialog.png
-    The relationship dialog with name, query, type, and a source-to-target field
-    mapping filled in. */}
-
-{/* SCREENSHOT: /images/products/database/native-queries/nested-result.png
-    The result of a query that returns a nested relationship, in the GraphQL
-    explorer. */}
+![GraphQL Playground Query Nested Field](/images/products/database/native-queries/graphql-playground-query-nested-field.png)
 
 ## Edit and delete
 
-Editing a logical model replaces it: the model is untracked and re-tracked under the new definition, which is what allows the name itself to change. Select permissions are reapplied as part of the same operation, so they survive the rename.
+Editing a logical model untracks it and re-tracks it under the new definition, which is what lets the name change. Select permissions are replayed in the same operation, so they survive the edit.
 
-Deletes are guarded in both directions. Deleting a logical model that a native query returns, or that another model nests, lists those dependents in the dialog. Deleting a native query that another query has a relationship to lists those queries. Clear the dependents first.
+An object cannot be deleted while something else still depends on it:
 
-{/* SCREENSHOT: /images/products/database/native-queries/delete-dependents.png
-    The delete dialog for a logical model that other objects still depend on,
-    listing them. */}
+- A logical model returned by a native query, or nested in another logical model.
+- A native query that another native query has a relationship to.
 
-## Local projects and version control
+The delete dialog warns and lists the dependents. Update them first, then delete.
 
-How changes are saved depends on where the project runs:
+![Logical Models Delete](/images/products/database/native-queries/logical-models-delete.png)
 
-<Tabs>
-  <TabItem label="Nhost Cloud">
+## Cloud and local projects
 
-Changes go straight to the metadata API and take effect immediately.
+Every create, edit, and delete is saved differently depending on where the project runs:
 
-  </TabItem>
-  <TabItem label="Local">
+| | Nhost Cloud | Local |
+| --- | --- | --- |
+| Saved through | Metadata API | Migrations API |
+| Result | Metadata updated in place, effective immediately | A migration file under `nhost/migrations/`, plus the metadata change under `nhost/metadata/` |
+| In version control | No | Yes, promoted through environments like any schema change |
 
-Changes go through the migrations API instead, so each create, edit, and delete lands as a migration file under `nhost/migrations/` along with the metadata change under `nhost/metadata/`.
-
-This means native queries built locally are committed to Git and promoted through environments the same way as schema changes. It also means a local experiment leaves migration files behind, so use a throwaway project when trying the feature out.
-
-  </TabItem>
-</Tabs>
+Because every local change is a migration, experimenting locally leaves migration files behind. Use a throwaway project when trying the feature out.
 
 ## Limitations
+
+Keep these constraints in mind when designing around native queries:
 
 - Read-only. Select is the only permission, so there is nothing to grant for insert, update, or delete.
 - Permissions live on the logical model, never on the native query.
 - Relationships connect native queries to each other, not to tracked tables.
-- Postgres sources only.
-- Not available on Constellation.
