@@ -56,6 +56,16 @@ export function useCurrentHref() {
   return useRouterState({ select: (state) => state.location.href });
 }
 
+/**
+ * The route full path of the page being shown, e.g.
+ * `/orgs/$orgSlug/projects/$appSubdomain/graphql/` (index routes end with `/`).
+ */
+export function useCurrentPagePath(): string | undefined {
+  return useRouterState({
+    select: (state) => state.matches.at(-1)?.fullPath,
+  });
+}
+
 interface UseIsLinkActiveOptions {
   /** The href a router link built, `undefined` for a disabled link. */
   href: string | undefined;

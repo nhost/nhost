@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useParams, useSearch } from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
 import { PlusIcon, SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -27,12 +27,16 @@ import {
   useGetOAuth2ClientsQuery,
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
+import { getSearchParam } from '@/lib/search-params';
 import { isVersionGte } from '@/utils/compareVersions';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/auth/oauth2-clients',
 )({
+  validateSearch: (search): { page?: string } => ({
+    page: getSearchParam(search.page),
+  }),
   component: OAuth2ClientsPage,
 });
 
@@ -53,10 +57,12 @@ function OAuth2ClientsPageContent() {
   const localMimirClient = useLocalMimirClient();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const router = useRouter();
+  const { appSubdomain, orgSlug } = useParams({ strict: false });
+  const { page } = useSearch({ strict: false });
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
 
   const [searchString, setSearchString] = useState('');
-  const currentPage = getPageNumberFromQuery(router.query.page);
+  const currentPage = getPageNumberFromQuery(page);
 
   const offset = useMemo(
     () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
@@ -167,7 +173,7 @@ function OAuth2ClientsPageContent() {
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
+                `/orgs/${orgSlug}/projects/${appSubdomain}/auth/settings?tab=authentication`,
               )
             }
           >
@@ -212,7 +218,7 @@ function OAuth2ClientsPageContent() {
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=oauth2-provider`,
+                `/orgs/${orgSlug}/projects/${appSubdomain}/auth/settings?tab=oauth2-provider`,
               )
             }
           >

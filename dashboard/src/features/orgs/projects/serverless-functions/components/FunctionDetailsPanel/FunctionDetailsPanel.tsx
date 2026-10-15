@@ -1,6 +1,6 @@
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Clock, Code, FileCode, History } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
@@ -19,10 +19,9 @@ import { ExecuteTab } from '@/features/orgs/projects/serverless-functions/compon
 import { FunctionLogsTab } from '@/features/orgs/projects/serverless-functions/components/FunctionLogsTab';
 import { MetricsTab } from '@/features/orgs/projects/serverless-functions/components/MetricsTab';
 import { OverviewTab } from '@/features/orgs/projects/serverless-functions/components/OverviewTab';
-import {
-  type FunctionTab,
-  isFunctionTab,
-  type NhostFunction,
+import type {
+  FunctionTab,
+  NhostFunction,
 } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 
@@ -41,28 +40,27 @@ export interface FunctionDetailsPanelProps {
 export default function FunctionDetailsPanel({
   fn,
 }: FunctionDetailsPanelProps) {
-  const router = useRouter();
+  const navigate = useNavigate({
+    from: '/orgs/$orgSlug/projects/$appSubdomain/functions/browser/$',
+  });
+  const { tab } = useSearch({
+    from: '/orgs/$orgSlug/projects/$appSubdomain/functions/browser/$',
+  });
   const isPlatform = useIsPlatform();
-  const activeTab: FunctionTab = isFunctionTab(router.query.tab)
-    ? router.query.tab
-    : 'overview';
+  const activeTab: FunctionTab = tab ?? 'overview';
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: router is stable
   useEffect(() => {
     if (activeTab === 'metrics' && !isPlatform) {
-      router.push('/404');
+      navigate({ to: '/404' });
     }
-  }, [activeTab, isPlatform]);
+  }, [activeTab, isPlatform, navigate]);
 
   const handleTabChange = (newTab: FunctionTab) => {
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: newTab },
-      },
-      undefined,
-      { shallow: true, scroll: false },
-    );
+    navigate({
+      search: (prev) => ({ ...prev, tab: newTab }),
+      replace: true,
+      resetScroll: false,
+    });
   };
 
   const { org } = useCurrentOrg();

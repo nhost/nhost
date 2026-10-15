@@ -1,7 +1,6 @@
 import { Shapes, SquarePen, Trash2, Users } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
@@ -9,27 +8,39 @@ import { DeleteLogicalModelDialog } from '@/features/orgs/projects/database/nati
 import { NativeQueriesSidebarListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesSidebarListItem';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
-const EditLogicalModelPermissionsForm = dynamic(
+const EditLogicalModelPermissionsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm/EditLogicalModelPermissionsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditLogicalModelForm = dynamic(
+function EditLogicalModelPermissionsForm(
+  props: ComponentProps<typeof EditLogicalModelPermissionsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditLogicalModelPermissionsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditLogicalModelFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/EditLogicalModelForm/EditLogicalModelForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function EditLogicalModelForm(
+  props: ComponentProps<typeof EditLogicalModelFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditLogicalModelFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 interface LogicalModelListItemProps {
   model: LogicalModelItem;

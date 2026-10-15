@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { AppLoader } from '@/features/orgs/projects/common/components/AppLoader';
@@ -15,7 +14,7 @@ export default function ApplicationProvisioning() {
   return (
     <Container className="mx-auto mt-12 grid max-w-md grid-flow-row gap-8 text-center">
       <div className="mx-auto flex w-centImage flex-col text-center">
-        <Image
+        <img
           src="/terminal-text.svg"
           alt="Terminal with a green dot"
           width={72}

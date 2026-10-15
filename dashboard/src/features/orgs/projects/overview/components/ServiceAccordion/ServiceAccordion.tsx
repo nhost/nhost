@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
@@ -56,7 +55,7 @@ export default function ServiceAccordion({
               {iconIsComponent
                 ? icon
                 : typeof icon === 'string' && (
-                    <Image src={icon} alt={alt || ''} width={16} height={16} />
+                    <img src={icon} alt={alt || ''} width={16} height={16} />
                   )}
               <span className="font-semibold text-base text-foreground">
                 {serviceName}{' '}

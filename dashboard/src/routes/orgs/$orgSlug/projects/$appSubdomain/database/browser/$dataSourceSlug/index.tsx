@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -13,9 +12,7 @@ export const Route = createFileRoute(
 });
 
 function DataBrowserDatabaseDetailsContent() {
-  const {
-    query: { dataSourceSlug },
-  } = useRouter();
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const { status, error } = useDatabaseQuery([dataSourceSlug as string]);
 

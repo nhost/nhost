@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
@@ -260,7 +259,7 @@ export function NewProjectPageContent({
                     >
                       <span className="inline-flex items-center gap-2">
                         <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                          <Image
+                          <img
                             src="/logos/new.svg"
                             alt="Nhost Logo"
                             width={24}
@@ -318,7 +317,7 @@ export function NewProjectPageContent({
                 >
                   <SelectValue placeholder="Select Region">
                     <span className="flex min-w-0 items-center gap-3">
-                      <Image
+                      <img
                         src={`/assets/flags/${selectedRegion.code}.svg`}
                         alt={`${selectedRegion.name} country flag`}
                         width={16}
@@ -339,7 +338,7 @@ export function NewProjectPageContent({
                     >
                       <span className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-2 items-center gap-x-3">
                         <span className="row-span-2 flex">
-                          <Image
+                          <img
                             src={`/assets/flags/${option.code}.svg`}
                             alt={`${option.country} country flag`}
                             width={16}

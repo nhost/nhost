@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { Link, useParams, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import {
@@ -15,25 +14,12 @@ export interface FunctionListItemProps {
 export default function FunctionListItem({
   nhostFunction,
 }: FunctionListItemProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, functionSlug, tab } = router.query;
+  const { _splat: currentSlug } = useParams({ strict: false });
+  const { tab } = useSearch({ strict: false });
 
   const slug = nhostFunction.route.replace(/^\//, '');
-  const currentSlug = Array.isArray(functionSlug)
-    ? functionSlug.join('/')
-    : functionSlug;
   const isSelected = slug === currentSlug;
   const preservedTab = isFunctionTab(tab) ? tab : undefined;
-  const href = {
-    pathname:
-      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/browser/[...functionSlug]',
-    query: {
-      orgSlug,
-      appSubdomain,
-      functionSlug: slug,
-      ...(preservedTab ? { tab: preservedTab } : {}),
-    },
-  };
 
   return (
     <div className="group">
@@ -50,7 +36,10 @@ export default function FunctionListItem({
       >
         <div className="flex w-full max-w-full items-center">
           <Link
-            href={href}
+            from="/orgs/$orgSlug/projects/$appSubdomain"
+            to="/orgs/$orgSlug/projects/$appSubdomain/functions/browser/$"
+            params={(params) => ({ ...params, _splat: slug })}
+            search={preservedTab ? { tab: preservedTab } : {}}
             className={cn(
               'flex h-full w-full flex-col items-start px-[0.625rem] py-1.5 text-left',
               {

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 
 /**
  * Get the current database table path. Use where data browser is available.
@@ -6,9 +6,9 @@ import { useRouter } from 'next/router';
  * @returns The current database table path.
  */
 export default function useTablePath() {
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
-  } = useRouter();
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
 
   if (!dataSourceSlug || !schemaSlug || !tableSlug) {
     return '';

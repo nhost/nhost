@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import Image from 'next/image';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -200,7 +199,7 @@ export default function SMSSettings() {
                 <SelectContent>
                   <SelectItem value="twilio" textContent="Twilio">
                     <span className="grid grid-flow-col items-center gap-1 text-sm+">
-                      <Image
+                      <img
                         src="/assets/brands/twilio.svg"
                         alt="Logo of Twilio"
                         width={20}

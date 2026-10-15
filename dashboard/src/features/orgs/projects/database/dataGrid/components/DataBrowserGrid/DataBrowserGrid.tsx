@@ -1,9 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { useParams } from '@tanstack/react-router';
 import type { CellContext, Row } from '@tanstack/react-table';
 import { Copy, Edit, KeyRound, Trash2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  type ComponentProps,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
@@ -55,21 +62,35 @@ import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
 import GeneratedColumnIndicator from './GeneratedColumnIndicator';
 import NoMatchesFound from './NoMatchesFound';
 
-const CreateRecordForm = dynamic(
+const CreateRecordFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/CreateRecordForm/CreateRecordForm'
     ),
-  { ssr: false, loading: () => <FormActivityIndicator /> },
 );
 
-const EditRecordForm = dynamic(
+function CreateRecordForm(props: ComponentProps<typeof CreateRecordFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <CreateRecordFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditRecordFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditRecordForm/EditRecordForm'
     ),
-  { ssr: false, loading: () => <FormActivityIndicator /> },
 );
+
+function EditRecordForm(props: ComponentProps<typeof EditRecordFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditRecordFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 interface DataBrowserGridProps extends Partial<DataGridProps> {}
 
@@ -212,9 +233,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const dataGridRef = useRef<HTMLDivElement | null>(null);
 
   const queryClient = useQueryClient();
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
-  } = useRouter();
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
   const currentTablePath = useTablePath();
 
   const { openDrawer, openAlertDialog } = useDialog();

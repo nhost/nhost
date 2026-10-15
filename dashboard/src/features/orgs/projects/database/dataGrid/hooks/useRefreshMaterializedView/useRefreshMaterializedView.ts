@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useRefreshMaterializedViewMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedViewMutation';
 import { triggerToast } from '@/utils/toast';
 
@@ -9,9 +9,7 @@ export interface UseRefreshMaterializedViewOptions {
 export default function useRefreshMaterializedView({
   refetch,
 }: UseRefreshMaterializedViewOptions) {
-  const {
-    query: { schemaSlug, tableSlug },
-  } = useRouter();
+  const { schemaSlug, tableSlug } = useParams({ strict: false });
 
   const { mutateAsync, status } = useRefreshMaterializedViewMutation();
 

@@ -5,13 +5,11 @@ import { ApplicationProvisioning } from '@/features/orgs/projects/common/compone
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { usePollWhileTransitioning } from '@/features/orgs/projects/common/hooks/usePollWhileTransitioning';
+import { useCurrentPagePath } from '@/lib/route-navigation';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectStateScreen from './ProjectStateScreen';
-import {
-  requiresRunningProject,
-  useCurrentPagePath,
-} from './projectStatePages';
+import { requiresRunningProject } from './projectStatePages';
 
 function ProjectStateGate({ children }: PropsWithChildren) {
   const { appSubdomain } = useParams({ strict: false });

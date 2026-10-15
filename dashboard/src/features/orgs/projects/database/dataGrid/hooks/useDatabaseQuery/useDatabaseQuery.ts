@@ -1,6 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type {
   FetchDatabaseOptions,
@@ -34,10 +34,7 @@ export default function useDatabaseQuery(
     queryOptions,
   }: UseDatabaseQueryOptions = {},
 ) {
-  const {
-    query: { dataSourceSlug },
-    isReady,
-  } = useRouter();
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const adminApi = useAdminApiTarget();
 
@@ -56,6 +53,6 @@ export default function useDatabaseQuery(
       });
     },
     ...queryOptions,
-    enabled: adminApi && isReady ? queryOptions?.enabled : false,
+    enabled: adminApi ? queryOptions?.enabled : false,
   });
 }

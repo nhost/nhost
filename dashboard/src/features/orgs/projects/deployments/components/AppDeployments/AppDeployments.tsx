@@ -1,6 +1,6 @@
+import { useSearch } from '@tanstack/react-router';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { Fragment } from 'react';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -56,10 +56,10 @@ function NextPrevPageLink({
 export default function AppDeployments(props: AppDeploymentsProps) {
   const { appId } = props;
 
-  const router = useRouter();
+  const { page: pageParam } = useSearch({ strict: false });
 
   // get current page. Default to 1 if not specified
-  let page = parseInt(router.query.page as string, 10) || 1;
+  let page = parseInt(pageParam ?? '', 10) || 1;
   page = Math.max(1, page);
 
   const limit = 10;

@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef } from 'react';
 import {
   PipelineRunSubDocument,
@@ -7,9 +7,7 @@ import {
 } from '@/generated/graphql';
 
 function useDeployment() {
-  const {
-    query: { deploymentId },
-  } = useRouter();
+  const { deploymentId } = useParams({ strict: false });
 
   const unsubscribe = useRef<(() => void) | null>(null);
 

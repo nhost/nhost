@@ -1,15 +1,14 @@
-import { useRouter } from 'next/router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback, useMemo } from 'react';
 import {
   DEFAULT_METRICS_TIME_RANGE,
   isMetricsRangePreset,
   type MetricsTimeRange,
 } from '@/features/orgs/projects/common/metrics/utils/timeRange';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
-const RANGE_KEY = 'metricRange';
-const FROM_KEY = 'metricFrom';
-const TO_KEY = 'metricTo';
+// The function details page is the one page with metrics time ranges.
+const functionRoute =
+  '/orgs/$orgSlug/projects/$appSubdomain/functions/browser/$';
 
 interface MetricsTimeRangeUrlState {
   range: MetricsTimeRange;
@@ -21,12 +20,21 @@ function isValidIso(value: string): boolean {
 }
 
 export default function useMetricsTimeRangeUrlState(): MetricsTimeRangeUrlState {
-  const router = useRouter();
+  const navigate = useNavigate({ from: functionRoute });
   // Read each relevant key individually so unrelated URL changes (e.g. opening a
   // panel via the eye icon) don't churn `range`'s identity and trigger refetches.
-  const rangeParam = getSingleQueryParam(router.query[RANGE_KEY]);
-  const fromParam = getSingleQueryParam(router.query[FROM_KEY]);
-  const toParam = getSingleQueryParam(router.query[TO_KEY]);
+  const rangeParam = useSearch({
+    from: functionRoute,
+    select: (search) => search.metricRange,
+  });
+  const fromParam = useSearch({
+    from: functionRoute,
+    select: (search) => search.metricFrom,
+  });
+  const toParam = useSearch({
+    from: functionRoute,
+    select: (search) => search.metricTo,
+  });
 
   const range = useMemo<MetricsTimeRange>(() => {
     if (rangeParam && isMetricsRangePreset(rangeParam)) {
@@ -40,22 +48,18 @@ export default function useMetricsTimeRangeUrlState(): MetricsTimeRangeUrlState 
 
   const setRange = useCallback(
     (next: MetricsTimeRange) => {
-      const query = { ...router.query };
-      delete query[RANGE_KEY];
-      delete query[FROM_KEY];
-      delete query[TO_KEY];
-      if (next.kind === 'preset') {
-        query[RANGE_KEY] = next.preset;
-      } else {
-        query[FROM_KEY] = next.from;
-        query[TO_KEY] = next.to;
-      }
-      router.replace({ pathname: router.pathname, query }, undefined, {
-        shallow: true,
-        scroll: false,
+      navigate({
+        search: (prev) => ({
+          ...prev,
+          metricRange: next.kind === 'preset' ? next.preset : undefined,
+          metricFrom: next.kind === 'absolute' ? next.from : undefined,
+          metricTo: next.kind === 'absolute' ? next.to : undefined,
+        }),
+        replace: true,
+        resetScroll: false,
       });
     },
-    [router],
+    [navigate],
   );
 
   return { range, setRange };

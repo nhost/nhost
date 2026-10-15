@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useCallback, useEffect } from 'react';
 
 /**
  * Parse the `page` query param into a 1-based page number. Missing, non-numeric
@@ -63,25 +63,25 @@ export default function useUrlPagination({
   totalNrOfElements,
   loading = false,
 }: UseUrlPaginationOptions): UseUrlPaginationResult {
-  const router = useRouter();
-
-  // Keep the latest router in a ref so `navigate`/`goToPage` stay referentially
-  // stable — callers pass them into memoized/debounced handlers (e.g. search).
-  const routerRef = useRef(router);
-  routerRef.current = router;
+  // Stable across renders, so `goToPage` is too — callers pass it into
+  // memoized/debounced handlers (e.g. search).
+  const navigateTo = useNavigate();
 
   const nrOfPages = Math.max(1, Math.ceil(totalNrOfElements / elementsPerPage));
 
-  const navigate = useCallback((page: number, method: 'push' | 'replace') => {
-    const { pathname, query: currentQuery } = routerRef.current;
-    const query = { ...currentQuery };
-    if (page <= 1) {
-      delete query.page;
-    } else {
-      query.page = String(page);
-    }
-    routerRef.current[method]({ pathname, query });
-  }, []);
+  const navigate = useCallback(
+    (page: number, method: 'push' | 'replace') => {
+      void navigateTo({
+        to: '.',
+        search: (prev) => ({
+          ...prev,
+          page: page <= 1 ? undefined : String(page),
+        }),
+        replace: method === 'replace',
+      });
+    },
+    [navigateTo],
+  );
 
   const goToPage = useCallback(
     (page: number) => navigate(page, 'push'),

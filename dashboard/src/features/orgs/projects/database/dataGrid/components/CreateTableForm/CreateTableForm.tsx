@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useParams } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -54,11 +55,14 @@ export default function CreateTableForm({
   ...props
 }: CreateTableFormProps) {
   const router = useRouter();
+  const { appSubdomain, dataSourceSlug, orgSlug } = useParams({
+    strict: false,
+  });
   const { closeDrawer } = useDialog();
   const track = useTrackEvent();
   const [selectedSchema, setSelectedSchema] = useState<string>(schema);
 
-  const dataSource = router.query.dataSourceSlug as string;
+  const dataSource = dataSourceSlug as string;
 
   const {
     mutateAsync: createTable,
@@ -164,7 +168,7 @@ export default function CreateTableForm({
 
       if (redirectOnSuccess && dataSource) {
         await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${dataSource}/${selectedSchema}/tables/${table.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSource}/${selectedSchema}/tables/${table.name}`,
         );
       } else {
         closeDrawer();

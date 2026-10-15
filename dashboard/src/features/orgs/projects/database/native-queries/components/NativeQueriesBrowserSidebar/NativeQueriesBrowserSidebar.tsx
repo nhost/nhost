@@ -1,6 +1,5 @@
 import { Plus, Search } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -19,27 +18,39 @@ import { useGetLogicalModels } from '@/features/orgs/projects/database/native-qu
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-const CreateLogicalModelForm = dynamic(
+const CreateLogicalModelFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/CreateLogicalModelForm/CreateLogicalModelForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const CreateNativeQueryForm = dynamic(
+function CreateLogicalModelForm(
+  props: ComponentProps<typeof CreateLogicalModelFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <CreateLogicalModelFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const CreateNativeQueryFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/CreateNativeQueryForm/CreateNativeQueryForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function CreateNativeQueryForm(
+  props: ComponentProps<typeof CreateNativeQueryFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <CreateNativeQueryFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 function NativeQueriesBrowserSidebarContent() {
   const modelsResult = useGetLogicalModels();

@@ -2,9 +2,8 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { ChevronDown, ChevronRight, Info, Pencil } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
@@ -25,16 +24,20 @@ import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { useThemePreference } from '@/providers/Theme';
 
-const EditFunctionForm = dynamic(
+const EditFunctionFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function EditFunctionForm(props: ComponentProps<typeof EditFunctionFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditFunctionFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 export default function FunctionDefinitionView() {
   const { resolvedTheme } = useThemePreference();

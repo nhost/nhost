@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { FunctionDetailsPanel } from '@/features/orgs/projects/serverless-functions/components/FunctionDetailsPanel';
 import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
@@ -6,11 +6,9 @@ import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functi
 import { isEmptyValue } from '@/lib/utils';
 
 export default function ServerlessFunctionView() {
-  const router = useRouter();
-  const { functionSlug } = router.query;
-  const slug = Array.isArray(functionSlug)
-    ? functionSlug.join('/')
-    : (functionSlug as string);
+  const { _splat: slug } = useParams({
+    from: '/orgs/$orgSlug/projects/$appSubdomain/functions/browser/$',
+  });
 
   const { data: functions, loading, error } = useGetNhostFunctions();
 

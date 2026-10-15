@@ -1,6 +1,6 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Box, Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import ProjectLabel from '@/components/layout/Header/ProjectLabel';
 import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
@@ -10,12 +10,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useCurrentPagePath } from '@/lib/route-navigation';
 import { getProjectSwitchHref } from '@/utils/getProjectSwitchHref';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export default function ProjectsComboBox() {
-  const { query, pathname, push } = useRouter();
-  const { appSubdomain } = query;
+  const navigate = useNavigate();
+  const pagePath = useCurrentPagePath();
+  const { appSubdomain } = useParams({ strict: false });
+  const { tab } = useSearch({ strict: false });
 
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
 
@@ -24,18 +26,14 @@ export default function ProjectsComboBox() {
   );
 
   const handleProjectSelect = (subdomain: string) => {
-    if (!orgSlug) {
+    if (!orgSlug || !pagePath) {
       return;
     }
 
-    push(
-      getProjectSwitchHref({
-        pathname,
-        tab: getSingleQueryParam(query.tab),
-        orgSlug,
-        subdomain,
-      }),
-    );
+    // The same page in the other project, built from the current route.
+    navigate({
+      href: getProjectSwitchHref({ pagePath, tab, orgSlug, subdomain }),
+    });
   };
 
   const options = apps.map((app) => ({
@@ -83,7 +81,10 @@ export default function ProjectsComboBox() {
             return;
           }
 
-          push(`/orgs/${orgSlug}/projects/new`);
+          navigate({
+            to: '/orgs/$orgSlug/projects/new',
+            params: { orgSlug },
+          });
         }}
       >
         <Plus className="mr-2 h-4 w-4" />

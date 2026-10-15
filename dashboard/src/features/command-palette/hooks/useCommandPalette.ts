@@ -1,3 +1,4 @@
+import { useParams } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useReducer, useState } from 'react';
 import type { CommandPaletteProps } from '@/features/command-palette/components/CommandPalette';
@@ -66,6 +67,7 @@ const findProjectNode = (
  */
 export function useCommandPalette(): CommandPaletteController {
   const router = useRouter();
+  const { appSubdomain, orgSlug } = useParams({ strict: false });
   const [open, setOpen] = useState(false);
   const [state, dispatch] = useReducer(
     commandPaletteReducer,
@@ -80,8 +82,8 @@ export function useCommandPalette(): CommandPaletteController {
     ? 'Search organizations, projects, account, support, docs...'
     : 'Search pages, settings, docs...';
 
-  const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
-  const currentAppSubdomain = getSingleQueryParam(router.query.appSubdomain);
+  const currentOrgSlug = getSingleQueryParam(orgSlug);
+  const currentAppSubdomain = getSingleQueryParam(appSubdomain);
   const routeScope = useMemo(
     () => ({ orgSlug: currentOrgSlug, appSubdomain: currentAppSubdomain }),
     [currentOrgSlug, currentAppSubdomain],

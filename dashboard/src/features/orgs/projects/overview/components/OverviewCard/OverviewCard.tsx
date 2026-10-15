@@ -1,6 +1,5 @@
 import { ArrowRightIcon } from 'lucide-react';
 import type { ImageProps } from 'next/image';
-import Image from 'next/image';
 import Link from 'next/link';
 import type { HTMLAttributes, ReactElement } from 'react';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
@@ -42,7 +41,7 @@ function renderIcon({
   if (typeof lightIcon === 'string') {
     return (
       <>
-        <Image
+        <img
           src={icon}
           alt={title}
           width={width}
@@ -50,7 +49,7 @@ function renderIcon({
           className={cn('dark:hidden', className)}
           {...props}
         />
-        <Image
+        <img
           src={lightIcon}
           alt={title}
           width={width}
@@ -63,7 +62,7 @@ function renderIcon({
   }
 
   return (
-    <Image
+    <img
       src={icon}
       alt={title}
       width={width}

@@ -4,10 +4,14 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserGridContainer } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getSearchParam } from '@/lib/search-params';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/database/browser/$dataSourceSlug/$schemaSlug/tables/$tableSlug',
 )({
+  validateSearch: (search): { page?: string } => ({
+    page: getSearchParam(search.page),
+  }),
   component: DataBrowserTableDetailsPage,
 });
 

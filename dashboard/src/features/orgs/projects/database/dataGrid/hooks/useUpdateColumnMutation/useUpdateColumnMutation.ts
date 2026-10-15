@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type {
@@ -34,9 +34,9 @@ export default function useUpdateColumnMutation({
   mutationOptions,
 }: UseUpdateColumnMutationOptions = {}) {
   const isPlatform = useIsPlatform();
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
-  } = useRouter();
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
 
   const adminApi = useAdminApiTarget();
 

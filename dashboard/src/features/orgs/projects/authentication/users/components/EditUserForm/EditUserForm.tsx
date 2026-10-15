@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
 import { ChevronDownIcon, CopyIcon } from 'lucide-react';
-import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -436,7 +435,7 @@ export default function EditUserForm({
                   key={provider.id}
                 >
                   <div className="span-cols-1 grid grid-flow-col gap-2">
-                    <Image
+                    <img
                       src={
                         resolvedTheme === 'dark'
                           ? `/assets/brands/light/${kebabCase(

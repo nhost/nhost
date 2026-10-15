@@ -5,8 +5,7 @@ import {
   Trash2 as TrashIcon,
   UserIcon,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import Image from 'next/image';
+import { type ComponentProps, lazy, Suspense } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Avatar } from '@/components/ui/v3/avatar';
@@ -32,16 +31,20 @@ import {
 import { useThemePreference } from '@/providers/Theme';
 import type { Role } from '@/types/application';
 
-const EditUserForm = dynamic(
+const EditUserFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/authentication/users/components/EditUserForm/EditUserForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function EditUserForm(props: ComponentProps<typeof EditUserFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditUserFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 export interface UsersBodyProps {
   /**
@@ -265,7 +268,7 @@ export default function UsersBody({
                   variant="secondary"
                   className="gap-1.5 font-medium"
                 >
-                  <Image
+                  <img
                     src={
                       resolvedTheme === 'dark'
                         ? `/assets/brands/light/${kebabCase(

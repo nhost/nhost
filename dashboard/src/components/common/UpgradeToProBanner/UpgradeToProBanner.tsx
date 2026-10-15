@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
@@ -82,12 +81,11 @@ export default function UpgradeToProBanner({
         </div>
       </div>
 
-      <Image
+      <img
         src="/illustration-unbox.png"
         width={300}
         height={140}
-        objectFit="contain"
-        className=""
+        className="object-contain"
         alt="Upgrade to Pro illustration"
       />
     </div>

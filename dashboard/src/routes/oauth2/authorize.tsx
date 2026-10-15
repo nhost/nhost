@@ -1,18 +1,21 @@
 import type { ErrorResponse, OAuth2LoginResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { createFileRoute } from '@tanstack/react-router';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { getSearchParam } from '@/lib/search-params';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
 export const Route = createFileRoute('/oauth2/authorize')({
+  // Set by the OAuth2 client that started the authorization flow.
+  validateSearch: (search): { request_id?: string } => ({
+    request_id: getSearchParam(search.request_id),
+  }),
   component: RouteComponent,
 });
 
@@ -25,14 +28,12 @@ function clientDisplayName(info: OAuth2LoginResponse): string {
 }
 
 function OAuth2AuthorizePage() {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { request_id } = Route.useSearch();
   const nhost = useNhostClient();
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
 
-  const requestId =
-    typeof router.query.request_id === 'string'
-      ? router.query.request_id
-      : null;
+  const requestId = request_id ?? null;
 
   const [authRequest, setAuthRequest] = useState<OAuth2LoginResponse | null>(
     null,
@@ -42,7 +43,7 @@ function OAuth2AuthorizePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthLoading || !router.isReady) {
+    if (isAuthLoading) {
       return;
     }
 
@@ -54,12 +55,16 @@ function OAuth2AuthorizePage() {
       // email/password sign-in, while sessionStorage is used by AuthProvider for
       // OAuth sign-in (where the redirect to the external provider loses the query param).
       sessionStorage.setItem('postSignInRedirect', consentPath);
-      router.replace(`/signin?redirect=${encodeURIComponent(consentPath)}`);
+      navigate({
+        to: '/signin',
+        search: { redirect: consentPath },
+        replace: true,
+      });
     }
-  }, [isAuthLoading, isAuthenticated, router, requestId]);
+  }, [isAuthLoading, isAuthenticated, navigate, requestId]);
 
   useEffect(() => {
-    if (!router.isReady || isAuthLoading || !isAuthenticated) {
+    if (isAuthLoading || !isAuthenticated) {
       return;
     }
 
@@ -86,7 +91,7 @@ function OAuth2AuthorizePage() {
     };
 
     fetchAuthRequest();
-  }, [nhost, requestId, router.isReady, isAuthLoading, isAuthenticated]);
+  }, [nhost, requestId, isAuthLoading, isAuthenticated]);
 
   const handleAuthorize = useCallback(async () => {
     if (!authRequest) {
@@ -108,7 +113,7 @@ function OAuth2AuthorizePage() {
     }
   }, [authRequest, nhost]);
 
-  if (isAuthLoading || !router.isReady || !isAuthenticated) {
+  if (isAuthLoading || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner size="small">
@@ -126,7 +131,7 @@ function OAuth2AuthorizePage() {
       >
         <div className="relative flex items-center justify-center">
           <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-3xl" />
-          <Image
+          <img
             src="/assets/logo.svg"
             width={119}
             height={40}

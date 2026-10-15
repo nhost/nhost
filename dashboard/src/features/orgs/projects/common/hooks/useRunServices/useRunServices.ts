@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useSearch } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -35,12 +35,12 @@ export type RunServiceConfig = Omit<
 const ELEMENTS_PER_PAGE = 25;
 
 export default function useRunServices() {
-  const router = useRouter();
+  const { page } = useSearch({ strict: false });
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const currentPage = getPageNumberFromQuery(router.query.page);
+  const currentPage = getPageNumberFromQuery(page);
   const offset = useMemo(
     () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],

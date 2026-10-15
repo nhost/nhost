@@ -1,6 +1,6 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { Box, ChevronsUpDown, Plus } from 'lucide-react';
-import { useRouter } from 'next/router';
 import OrganizationLabel from '@/components/layout/Header/OrganizationLabel';
 import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
 import ProjectLabel from '@/components/layout/Header/ProjectLabel';
@@ -19,8 +19,8 @@ import { openCreateOrgDialog } from '@/features/orgs/components/CreateOrgFormDia
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { useCurrentPagePath } from '@/lib/route-navigation';
 import { getProjectSwitchHref } from '@/utils/getProjectSwitchHref';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 /**
  * The org and project switchers as one trigger and a bottom drawer, for
@@ -28,7 +28,10 @@ import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
  */
 export default function HeaderNavigationSheet() {
   const isPlatform = useIsPlatform();
-  const router = useRouter();
+  const navigate = useNavigate();
+  const pagePath = useCurrentPagePath();
+  const { appSubdomain } = useParams({ strict: false });
+  const { tab } = useSearch({ strict: false });
   const { orgs, currentOrg } = useOrgs();
   const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
 
@@ -36,29 +39,29 @@ export default function HeaderNavigationSheet() {
     return null;
   }
 
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
   const currentProject = currentOrg?.apps.find(
     (app) => app.subdomain === appSubdomain,
   );
 
   function switchOrganization(slug: string) {
     setLastSlug(slug);
-    router.push(`/orgs/${slug}/projects`);
+    navigate({ to: '/orgs/$orgSlug/projects', params: { orgSlug: slug } });
   }
 
   function switchProject(subdomain: string) {
-    if (!currentOrg) {
+    if (!currentOrg || !pagePath) {
       return;
     }
 
-    router.push(
-      getProjectSwitchHref({
-        pathname: router.pathname,
-        tab: getSingleQueryParam(router.query.tab),
+    // The same page in the other project, built from the current route.
+    navigate({
+      href: getProjectSwitchHref({
+        pagePath,
+        tab,
         orgSlug: currentOrg.slug,
         subdomain,
       }),
-    );
+    });
   }
 
   return (
@@ -133,7 +136,10 @@ export default function HeaderNavigationSheet() {
               ))}
               <SheetListItem
                 onClick={() =>
-                  router.push(`/orgs/${currentOrg.slug}/projects/new`)
+                  navigate({
+                    to: '/orgs/$orgSlug/projects/new',
+                    params: { orgSlug: currentOrg.slug },
+                  })
                 }
               >
                 <Plus className="size-4 shrink-0" />

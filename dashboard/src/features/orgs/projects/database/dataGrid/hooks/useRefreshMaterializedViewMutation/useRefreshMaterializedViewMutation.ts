@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type {
   RefreshMaterializedViewOptions,
@@ -26,9 +26,7 @@ export default function useRefreshMaterializedViewMutation({
   adminSecret: customAdminSecret,
   mutationOptions,
 }: UseRefreshMaterializedViewMutationOptions = {}) {
-  const {
-    query: { dataSourceSlug },
-  } = useRouter();
+  const { dataSourceSlug } = useParams({ strict: false });
   const adminApi = useAdminApiTarget();
 
   const mutation = useMutation(

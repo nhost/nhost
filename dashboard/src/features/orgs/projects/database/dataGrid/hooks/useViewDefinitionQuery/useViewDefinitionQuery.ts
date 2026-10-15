@@ -1,6 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -35,11 +35,9 @@ export default function useViewDefinitionQuery(
     queryOptions,
   }: UseViewDefinitionQueryOptions = {},
 ) {
-  const router = useRouter();
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
-    isReady,
-  } = router;
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
 
@@ -58,7 +56,6 @@ export default function useViewDefinitionQuery(
     ...queryOptions,
     enabled:
       project?.config?.hasura.adminSecret &&
-      isReady &&
       (customSchema || schemaSlug) &&
       (customTable || tableSlug)
         ? queryOptions?.enabled

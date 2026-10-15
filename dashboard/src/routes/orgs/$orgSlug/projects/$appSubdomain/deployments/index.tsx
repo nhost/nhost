@@ -1,14 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
-import Image from 'next/image';
 import { NavLink } from '@/components/common/NavLink';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getSearchParam } from '@/lib/search-params';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/deployments/',
 )({
+  validateSearch: (search): { page?: string } => ({
+    page: getSearchParam(search.page),
+  }),
   component: DeploymentsPage,
 });
 
@@ -19,7 +22,7 @@ function DeploymentsPage() {
     return (
       <Container className="grid max-w-3xl grid-flow-row gap-4 pt-8 pb-8 text-center antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
-          <Image
+          <img
             src="/assets/githubRepo.svg"
             width={72}
             height={72}

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
@@ -17,15 +16,20 @@ import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
+import { getSearchParam } from '@/lib/search-params';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/run/',
 )({
+  validateSearch: (search): { page?: string; config?: string } => ({
+    page: getSearchParam(search.page),
+    config: getSearchParam(search.config),
+  }),
   component: RunPage,
 });
 
 function RunPage() {
-  const router = useRouter();
+  const { config } = Route.useSearch();
   const isPlatform = useIsPlatform();
   const { openDrawer, openAlertDialog } = useDialog();
   const { org } = useCurrentOrg();
@@ -48,10 +52,6 @@ function RunPage() {
 
   const checkConfigFromQuery = useCallback(
     (base64Config: string) => {
-      if (!router.query?.config) {
-        return;
-      }
-
       try {
         const initialData = parseConfigFromInstallLink(base64Config);
 
@@ -74,14 +74,14 @@ function RunPage() {
         });
       }
     },
-    [router.query.config, openDrawer, refetch, openAlertDialog],
+    [openDrawer, refetch, openAlertDialog],
   );
 
   useEffect(() => {
-    if (router.query?.config) {
-      checkConfigFromQuery(router.query.config as string);
+    if (config) {
+      checkConfigFromQuery(config);
     }
-  }, [checkConfigFromQuery, router.query]);
+  }, [checkConfigFromQuery, config]);
 
   const openCreateServiceDialog = () => {
     // creating services using the local dashboard is not supported

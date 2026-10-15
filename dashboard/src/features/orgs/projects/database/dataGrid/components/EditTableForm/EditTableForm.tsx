@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useParams } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,6 +48,9 @@ export default function EditTableForm({
 }: EditTableFormProps) {
   const [formInitialized, setFormInitialized] = useState(false);
   const router = useRouter();
+  const { appSubdomain, dataSourceSlug, orgSlug } = useParams({
+    strict: false,
+  });
 
   const {
     data,
@@ -192,7 +196,7 @@ export default function EditTableForm({
 
       if (originalTableName !== updatedTable.name) {
         await router.push(
-          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/${dataSourceSlug}/${schema}/tables/${updatedTable.name}`,
         );
       }
 

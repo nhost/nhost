@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -47,7 +46,7 @@ const SettingsCardHeader = React.forwardRef<
       <div className="flex min-w-0 flex-1 gap-4">
         {typeof icon === 'string' ? (
           <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
-            <Image src={icon} alt="" width={32} height={32} />
+            <img src={icon} alt="" width={32} height={32} />
           </div>
         ) : (
           icon

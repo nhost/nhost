@@ -1,4 +1,3 @@
-import { useRouterState } from '@tanstack/react-router';
 import type { FileRoutesByFullPath } from '@/routeTree.gen';
 
 /** A project page, by its route's full path (index routes end with `/`). */
@@ -58,16 +57,6 @@ const sidebarSkeletonPages = new Set<string>([
   '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/models/$modelSlug',
   '/orgs/$orgSlug/projects/$appSubdomain/database/native-queries/$dataSourceSlug/queries/$querySlug',
 ] satisfies ProjectPagePath[]);
-
-/**
- * The full path of the page being shown, e.g.
- * `/orgs/$orgSlug/projects/$appSubdomain/graphql/`.
- */
-export function useCurrentPagePath(): string | undefined {
-  return useRouterState({
-    select: (state) => state.matches.at(-1)?.fullPath,
-  });
-}
 
 /**
  * Whether the given page only works when the project's services are running,

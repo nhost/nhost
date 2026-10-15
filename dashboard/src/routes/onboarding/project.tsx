@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute } from '@tanstack/react-router';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -230,7 +229,7 @@ function OnboardingProjectPage() {
                           {orgs?.map((org) => (
                             <SelectItem key={org.id} value={org.id}>
                               <div className="flex items-center space-x-3">
-                                <Image
+                                <img
                                   src="/logos/new.svg"
                                   alt="Organization"
                                   width={16}
@@ -286,7 +285,7 @@ function OnboardingProjectPage() {
                               disabled={!region.active}
                             >
                               <div className="flex items-center space-x-3">
-                                <Image
+                                <img
                                   src={`/assets/flags/${region.country.code}.svg`}
                                   alt={`${region.country.name} flag`}
                                   width={16}

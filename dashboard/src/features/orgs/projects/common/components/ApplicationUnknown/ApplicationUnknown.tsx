@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -40,7 +39,7 @@ export default function ApplicationUnknown() {
   return (
     <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
       <div className="mx-auto flex w-centImage flex-col text-center">
-        <Image
+        <img
           src="/assets/ProvisioningFailed.svg"
           alt="Danger sign"
           width={72}

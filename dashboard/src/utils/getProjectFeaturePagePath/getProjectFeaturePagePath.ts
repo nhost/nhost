@@ -11,16 +11,19 @@ const featurePathOverrides: Record<string, string> = {
 };
 
 /**
- * Extracts the dashboard feature page's path from a Next.js route pathname,
- * stripping any dynamic segments after `[appSubdomain]`.
+ * Extracts the dashboard feature page's path from a route's full path,
+ * stripping any dynamic segments after `$appSubdomain`.
  *
- * For example, given a pathname like
- * `/orgs/[orgSlug]/projects/[appSubdomain]/events/cron-triggers/[cronTriggerSlug]`,
+ * For example, given
+ * `/orgs/$orgSlug/projects/$appSubdomain/events/cron-triggers/$cronTriggerSlug`,
  * it returns `/events/cron-triggers`.
  */
-export default function getProjectFeaturePagePath(pathname: string): string {
-  const afterProject = pathname.split('[appSubdomain]')[1] || '';
-  const firstDynamic = afterProject.indexOf('[');
+export default function getProjectFeaturePagePath(pagePath: string): string {
+  const afterProject = (pagePath.split('$appSubdomain')[1] || '').replace(
+    /\/$/,
+    '',
+  );
+  const firstDynamic = afterProject.indexOf('$');
 
   if (firstDynamic === -1) {
     return afterProject;

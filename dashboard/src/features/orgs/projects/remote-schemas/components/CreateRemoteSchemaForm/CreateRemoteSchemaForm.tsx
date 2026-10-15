@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useParams } from '@tanstack/react-router';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/v3/form';
@@ -29,6 +30,7 @@ export default function CreateRemoteSchemaForm({
   ...props
 }: CreateRemoteSchemaFormProps) {
   const router = useRouter();
+  const { appSubdomain, orgSlug } = useParams({ strict: false });
   const track = useTrackEvent();
 
   const { mutateAsync: createRemoteSchema } = useCreateRemoteSchemaMutation();
@@ -100,7 +102,7 @@ export default function CreateRemoteSchemaForm({
           await onSubmit?.();
 
           await router.push(
-            `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/graphql/remote-schemas/${values.name}`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${values.name}`,
           );
         } catch (error) {
           if (error?.code === 'invalid-configuration') {

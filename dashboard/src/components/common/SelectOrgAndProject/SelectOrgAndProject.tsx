@@ -1,5 +1,4 @@
 import debounce from 'lodash.debounce';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -99,7 +98,7 @@ export default function SelectOrganizationAndProject() {
                     )}
                   >
                     <div className="flex h-full items-center justify-center">
-                      <Image
+                      <img
                         src="/logos/new.svg"
                         alt="Nhost Logo"
                         className="h-10 w-10 rounded-md"

@@ -6,9 +6,10 @@ import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useApp
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
 import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
+import { useCurrentPagePath } from '@/lib/route-navigation';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewSkeleton from './ProjectViewSkeleton';
-import { hasSidebarSkeleton, useCurrentPagePath } from './projectStatePages';
+import { hasSidebarSkeleton } from './projectStatePages';
 
 export default function ProjectStateScreen() {
   const pagePath = useCurrentPagePath();

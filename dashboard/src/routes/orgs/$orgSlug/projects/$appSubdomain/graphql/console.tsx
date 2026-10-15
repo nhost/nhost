@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -57,7 +56,7 @@ function HasuraPageContent() {
       <div className="mx-auto w-full max-w-md px-6 text-left">
         <div className="grid grid-flow-row gap-1">
           <div className="mx-auto">
-            <Image
+            <img
               src="/assets/hasuramodal.svg"
               width={72}
               height={72}

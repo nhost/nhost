@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Badge } from '@/components/ui/v3/badge';
@@ -40,104 +39,152 @@ const deleteObjectTypeLabels: Record<
   FUNCTION: { label: 'function', title: 'Delete Function' },
 };
 
-const CreateTableForm = dynamic(
+const CreateTableFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/CreateTableForm/CreateTableForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditTableForm = dynamic(
+function CreateTableForm(props: ComponentProps<typeof CreateTableFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <CreateTableFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditTableFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const ViewDefinitionView = dynamic(
+function EditTableForm(props: ComponentProps<typeof EditTableFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditTableFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const ViewDefinitionViewLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/ViewDefinitionView/ViewDefinitionView'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditFunctionForm = dynamic(
+function ViewDefinitionView(
+  props: ComponentProps<typeof ViewDefinitionViewLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <ViewDefinitionViewLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditFunctionFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditFunctionGraphQLSettingsForm = dynamic(
+function EditFunctionForm(props: ComponentProps<typeof EditFunctionFormLazy>) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditFunctionFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditFunctionGraphQLSettingsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditFunctionGraphQLSettingsForm/EditFunctionGraphQLSettingsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditPermissionsForm = dynamic(
+function EditFunctionGraphQLSettingsForm(
+  props: ComponentProps<typeof EditFunctionGraphQLSettingsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditFunctionGraphQLSettingsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditPermissionsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/EditPermissionsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditFunctionPermissionsForm = dynamic(
+function EditPermissionsForm(
+  props: ComponentProps<typeof EditPermissionsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditPermissionsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditFunctionPermissionsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/EditFunctionPermissionsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditGraphQLSettingsForm = dynamic(
+function EditFunctionPermissionsForm(
+  props: ComponentProps<typeof EditFunctionPermissionsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditFunctionPermissionsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditGraphQLSettingsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/EditGraphQLSettingsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditRelationshipsForm = dynamic(
+function EditGraphQLSettingsForm(
+  props: ComponentProps<typeof EditGraphQLSettingsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditGraphQLSettingsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditRelationshipsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/EditRelationshipsForm/EditRelationshipsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function EditRelationshipsForm(
+  props: ComponentProps<typeof EditRelationshipsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditRelationshipsFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 export interface UseDataBrowserActionsParams {
   dataSourceSlug: string;

@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { type ReactNode, useEffect, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
@@ -48,7 +47,7 @@ export default function FeatureSidebar({
     typeof children === 'function' ? children(collapse) : children;
 
   const defaultToggleIcon = (
-    <Image
+    <img
       width={16}
       height={16}
       src="/assets/table.svg"

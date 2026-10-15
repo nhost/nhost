@@ -1,6 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -28,10 +28,7 @@ export default function usePostgresFunctionsQuery({
   adminSecret: customAdminSecret,
   queryOptions,
 }: UsePostgresFunctionsQueryOptions = {}) {
-  const {
-    query: { dataSourceSlug },
-    isReady,
-  } = useRouter();
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const { project } = useProject();
 
@@ -57,9 +54,8 @@ export default function usePostgresFunctionsQuery({
       });
     },
     ...queryOptions,
-    enabled:
-      project?.config?.hasura.adminSecret && isReady
-        ? queryOptions?.enabled
-        : false,
+    enabled: project?.config?.hasura.adminSecret
+      ? queryOptions?.enabled
+      : false,
   });
 }

@@ -1,7 +1,6 @@
 import { Anchor, DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/ui/v3/inline-code';
@@ -9,27 +8,39 @@ import { DeleteNativeQueryDialog } from '@/features/orgs/projects/database/nativ
 import { NativeQueriesSidebarListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesSidebarListItem';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
-const EditNativeQueryRelationships = dynamic(
+const EditNativeQueryRelationshipsLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/EditNativeQueryRelationships/EditNativeQueryRelationships'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditNativeQueryForm = dynamic(
+function EditNativeQueryRelationships(
+  props: ComponentProps<typeof EditNativeQueryRelationshipsLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditNativeQueryRelationshipsLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditNativeQueryFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/database/native-queries/components/EditNativeQueryForm/EditNativeQueryForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
+
+function EditNativeQueryForm(
+  props: ComponentProps<typeof EditNativeQueryFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditNativeQueryFormLazy {...props} />
+    </Suspense>
+  );
+}
 
 interface NativeQueryListItemProps {
   query: NativeQueryItem;

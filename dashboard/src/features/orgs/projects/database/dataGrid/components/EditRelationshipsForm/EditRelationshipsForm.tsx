@@ -1,3 +1,4 @@
+import { useParams } from '@tanstack/react-router';
 import { ArrowDown, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Alert } from '@/components/ui/v3/alert';
@@ -40,8 +41,8 @@ export default function EditRelationshipsForm({
   onCancel,
 }: EditRelationshipsFormProps) {
   const router = useRouter();
-  const dataSource =
-    (router.query.dataSourceSlug as string | undefined) || 'default';
+  const { dataSourceSlug } = useParams({ strict: false });
+  const dataSource = (dataSourceSlug as string | undefined) || 'default';
 
   const {
     relationships: existingRelationshipsViewModel,

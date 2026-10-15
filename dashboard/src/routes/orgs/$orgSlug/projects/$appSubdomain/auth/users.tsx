@@ -1,7 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 import debounce from 'lodash.debounce';
 import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -20,12 +19,17 @@ import {
 } from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
+import { getSearchParam } from '@/lib/search-params';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/auth/users',
 )({
+  validateSearch: (search): { page?: string; userId?: string } => ({
+    page: getSearchParam(search.page),
+    userId: getSearchParam(search.userId),
+  }),
   component: UsersPage,
 });
 
@@ -44,9 +48,9 @@ function UsersPageContent() {
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
 
-  const router = useRouter();
+  const { page, userId } = useSearch({ strict: false });
 
-  const currentPage = getPageNumberFromQuery(router.query.page);
+  const currentPage = getPageNumberFromQuery(page);
 
   const offset = useMemo(
     () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
@@ -56,7 +60,7 @@ function UsersPageContent() {
   const remoteAppGetUserVariables = useMemo(
     () => ({
       where:
-        router.query.userId !== undefined
+        userId !== undefined
           ? {
               id: {
                 _eq: searchString,
@@ -79,7 +83,7 @@ function UsersPageContent() {
       limit: ELEMENTS_PER_PAGE,
       offset,
     }),
-    [router.query.userId, searchString, offset],
+    [userId, searchString, offset],
   );
 
   const {
@@ -112,10 +116,10 @@ function UsersPageContent() {
    *
    */
   useEffect(() => {
-    if (router.query.userId && typeof router.query.userId === 'string') {
-      setSearchString(router.query.userId);
+    if (userId && typeof userId === 'string') {
+      setSearchString(userId);
     }
-  }, [router.query.userId]);
+  }, [userId]);
 
   const handleSearchStringChange = useMemo(
     () =>

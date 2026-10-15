@@ -1,6 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -39,10 +39,9 @@ export default function useTableQuery(
     ...options
   }: UseDataBrowserDatabaseQueryOptions = {},
 ) {
-  const {
-    query: { dataSourceSlug, schemaSlug, tableSlug },
-    isReady,
-  } = useRouter();
+  const { dataSourceSlug, schemaSlug, tableSlug } = useParams({
+    strict: false,
+  });
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
 
@@ -55,10 +54,9 @@ export default function useTableQuery(
     schema,
     name: table,
     queryOptions: {
-      enabled:
-        isNotEmptyValue(project?.config?.hasura.adminSecret) && isReady
-          ? queryOptions?.enabled
-          : false,
+      enabled: isNotEmptyValue(project?.config?.hasura.adminSecret)
+        ? queryOptions?.enabled
+        : false,
     },
   });
 
@@ -83,7 +81,6 @@ export default function useTableQuery(
     enabled:
       isNotEmptyValue(project) &&
       project?.config?.hasura.adminSecret &&
-      isReady &&
       isTableTypeFetched
         ? queryOptions?.enabled
         : false,

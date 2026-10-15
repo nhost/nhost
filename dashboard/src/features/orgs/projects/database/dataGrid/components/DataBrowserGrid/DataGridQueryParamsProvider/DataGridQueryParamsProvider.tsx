@@ -1,5 +1,5 @@
+import { useSearch } from '@tanstack/react-router';
 import type { ColumnSort } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import {
   createContext,
   type Dispatch,
@@ -47,9 +47,7 @@ function DataGridQueryParamsProvider({
   children,
   storageKey,
 }: DataGridQueryParamsProviderProps) {
-  const {
-    query: { page },
-  } = useRouter();
+  const { page } = useSearch({ strict: false });
 
   const [sortBy, setSortBy] = useState<ColumnSort[]>([]);
   const currentOffset = Math.max((parseInt(page as string, 10) || 1) - 1, 0);

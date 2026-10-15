@@ -1,5 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useRouter } from 'next/router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import DeploymentDetails from '@/features/orgs/projects/deployments/components/DeploymentDetails/DeploymentDetails';
 
 export const Route = createFileRoute(
@@ -9,8 +8,6 @@ export const Route = createFileRoute(
 });
 
 function DeploymentDetailsPage() {
-  const {
-    query: { deploymentId },
-  } = useRouter();
+  const { deploymentId } = useParams({ strict: false });
   return deploymentId && <DeploymentDetails />;
 }

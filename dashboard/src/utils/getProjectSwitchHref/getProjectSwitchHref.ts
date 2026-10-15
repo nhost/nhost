@@ -2,10 +2,10 @@ import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
 interface ProjectSwitchTarget {
   /**
-   * The current Next.js route template, e.g.
-   * `/orgs/[orgSlug]/projects/[appSubdomain]/settings`.
+   * The current page's route full path, e.g.
+   * `/orgs/$orgSlug/projects/$appSubdomain/settings/`.
    */
-  pathname: string;
+  pagePath: string;
   /** The current `tab` query param, if any. */
   tab?: string;
   orgSlug: string;
@@ -19,14 +19,14 @@ interface ProjectSwitchTarget {
  * list).
  */
 export default function getProjectSwitchHref({
-  pathname,
+  pagePath,
   tab,
   orgSlug,
   subdomain,
 }: ProjectSwitchTarget): string {
-  const isSamePage = !pathname.split('[appSubdomain]')[1]?.includes('[');
+  const isSamePage = !pagePath.split('$appSubdomain')[1]?.includes('$');
   const search =
     tab && isSamePage ? `?${new URLSearchParams({ tab }).toString()}` : '';
 
-  return `/orgs/${orgSlug}/projects/${subdomain}${getProjectFeaturePagePath(pathname)}${search}`;
+  return `/orgs/${orgSlug}/projects/${subdomain}${getProjectFeaturePagePath(pagePath)}${search}`;
 }

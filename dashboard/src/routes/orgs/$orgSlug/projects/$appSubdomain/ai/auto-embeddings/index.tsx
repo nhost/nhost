@@ -1,7 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
@@ -24,18 +23,22 @@ import {
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetGraphiteAutoEmbeddingsConfigurationsQuery } from '@/generated/graphite';
+import { getSearchParam } from '@/lib/search-params';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export const Route = createFileRoute(
   '/orgs/$orgSlug/projects/$appSubdomain/ai/auto-embeddings/',
 )({
+  validateSearch: (search): { page?: string } => ({
+    page: getSearchParam(search.page),
+  }),
   component: AutoEmbeddingsPage,
 });
 
 const ELEMENTS_PER_PAGE = 25;
 
 function AutoEmbeddingsPage() {
-  const router = useRouter();
+  const { page } = useSearch({ strict: false });
 
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
@@ -49,7 +52,7 @@ function AutoEmbeddingsPage() {
 
   const isProjectReady = !isPlatform || !!project;
 
-  const currentPage = getPageNumberFromQuery(router.query.page);
+  const currentPage = getPageNumberFromQuery(page);
   const offset = useMemo(
     () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],

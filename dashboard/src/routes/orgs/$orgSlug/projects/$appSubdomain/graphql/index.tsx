@@ -34,7 +34,6 @@ import { GraphiQLInterface } from 'graphiql';
 import 'graphiql/graphiql.min.css';
 import { createClient } from 'graphql-ws';
 import debounce from 'lodash.debounce';
-import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export const Route = createFileRoute(
@@ -269,101 +268,95 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
   );
 }
 
-const GraphQLPageContent = dynamic(
-  () =>
-    Promise.resolve(() => {
-      const { project } = useProject();
-      const track = useTrackEvent();
-      const [selection, setSelection] = useState<GraphQLPlaygroundSelection>({
-        userId: '',
-        role: '',
-      });
-      const [headersTabOverrides, setHeadersTabOverrides] = useState<
-        Record<string, unknown>
-      >({});
-      const handleSelectionChange = useCallback(
-        (nextSelection: GraphQLPlaygroundSelection) => {
-          setSelection(nextSelection);
-        },
-        [],
-      );
+function GraphQLPageContent() {
+  const { project } = useProject();
+  const track = useTrackEvent();
+  const [selection, setSelection] = useState<GraphQLPlaygroundSelection>({
+    userId: '',
+    role: '',
+  });
+  const [headersTabOverrides, setHeadersTabOverrides] = useState<
+    Record<string, unknown>
+  >({});
+  const handleSelectionChange = useCallback(
+    (nextSelection: GraphQLPlaygroundSelection) => {
+      setSelection(nextSelection);
+    },
+    [],
+  );
 
-      if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
-        return <LoadingScreen />;
-      }
+  if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
+    return <LoadingScreen />;
+  }
 
-      const appUrl = generateAppServiceUrl(
-        project.subdomain,
-        project.region,
-        'graphql',
-      );
+  const appUrl = generateAppServiceUrl(
+    project.subdomain,
+    project.region,
+    'graphql',
+  );
 
-      const subscriptionUrl = `${appUrl
-        .replace('https', 'wss')
-        .replace('http', 'ws')}`;
+  const subscriptionUrl = `${appUrl
+    .replace('https', 'wss')
+    .replace('http', 'ws')}`;
 
-      const adminSecret = project.config?.hasura.adminSecret;
+  const adminSecret = project.config?.hasura.adminSecret;
 
-      let socketHeaders: Record<string, string>;
+  let socketHeaders: Record<string, string>;
 
-      try {
-        socketHeaders = composeRequestHeaders({
-          adminSecret,
-          selection,
-          headersTabOverrides,
-        });
-      } catch {
-        // Header names are invalid while one is still being typed; executing a
-        // query re-composes them and surfaces the rejection in the response pane.
-        socketHeaders = composeRequestHeaders({ adminSecret, selection });
-      }
-      const baseFetcher = createGraphiQLFetcher({
-        url: appUrl,
-        // Response analytics cover non-incremental HTTP queries and mutations.
-        // WebSocket subscriptions are returned unchanged and intentionally untracked.
-        enableIncrementalDelivery: false,
-        wsClient: createClient({
-          url: subscriptionUrl,
-          keepAlive: 2000,
-          // @graphiql/toolkit ignores per-execution headers for subscriptions
-          // when a wsClient is supplied, so they must use connectionParams.
-          connectionParams: {
-            headers: socketHeaders,
-          },
-        }),
-      });
-      const requestFetcher = withRequestHeaders({
-        fetcher: baseFetcher,
-        adminSecret,
-        selection,
-      });
-      const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
-        const result = requestFetcher(graphQLParams, fetcherOpts);
-
-        if (
-          graphQLParams.operationName !== 'IntrospectionQuery' &&
-          result instanceof Promise
-        ) {
-          result
-            .then((payload) => trackGraphQLResponse(track, payload))
-            .catch(() =>
-              track('GraphQL Query Run', { outcome: 'request_error' }),
-            );
-        }
-
-        return result;
-      };
-
-      return (
-        <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
-          <GraphiQLHeader onSelectionChange={handleSelectionChange} />
-
-          <GraphiQLEditor onHeaderChange={setHeadersTabOverrides} />
-        </GraphiQLProvider>
-      );
+  try {
+    socketHeaders = composeRequestHeaders({
+      adminSecret,
+      selection,
+      headersTabOverrides,
+    });
+  } catch {
+    // Header names are invalid while one is still being typed; executing a
+    // query re-composes them and surfaces the rejection in the response pane.
+    socketHeaders = composeRequestHeaders({ adminSecret, selection });
+  }
+  const baseFetcher = createGraphiQLFetcher({
+    url: appUrl,
+    // Response analytics cover non-incremental HTTP queries and mutations.
+    // WebSocket subscriptions are returned unchanged and intentionally untracked.
+    enableIncrementalDelivery: false,
+    wsClient: createClient({
+      url: subscriptionUrl,
+      keepAlive: 2000,
+      // @graphiql/toolkit ignores per-execution headers for subscriptions
+      // when a wsClient is supplied, so they must use connectionParams.
+      connectionParams: {
+        headers: socketHeaders,
+      },
     }),
-  { ssr: false },
-);
+  });
+  const requestFetcher = withRequestHeaders({
+    fetcher: baseFetcher,
+    adminSecret,
+    selection,
+  });
+  const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
+    const result = requestFetcher(graphQLParams, fetcherOpts);
+
+    if (
+      graphQLParams.operationName !== 'IntrospectionQuery' &&
+      result instanceof Promise
+    ) {
+      result
+        .then((payload) => trackGraphQLResponse(track, payload))
+        .catch(() => track('GraphQL Query Run', { outcome: 'request_error' }));
+    }
+
+    return result;
+  };
+
+  return (
+    <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
+      <GraphiQLHeader onSelectionChange={handleSelectionChange} />
+
+      <GraphiQLEditor onHeaderChange={setHeadersTabOverrides} />
+    </GraphiQLProvider>
+  );
+}
 
 function GraphQLPage() {
   return (

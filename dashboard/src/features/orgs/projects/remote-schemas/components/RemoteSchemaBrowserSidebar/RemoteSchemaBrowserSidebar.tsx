@@ -7,10 +7,9 @@ import {
   Trash2 as TrashIcon,
   UsersIcon,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -31,48 +30,73 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { cn } from '@/lib/utils';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
-const CreateRemoteSchemaForm = dynamic(
+const CreateRemoteSchemaFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaForm/CreateRemoteSchemaForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditRemoteSchemaForm = dynamic(
+function CreateRemoteSchemaForm(
+  props: ComponentProps<typeof CreateRemoteSchemaFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <CreateRemoteSchemaFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditRemoteSchemaFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaForm/EditRemoteSchemaForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditRemoteSchemaPermissionsForm = dynamic(
+function EditRemoteSchemaForm(
+  props: ComponentProps<typeof EditRemoteSchemaFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditRemoteSchemaFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditRemoteSchemaPermissionsFormLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/EditRemoteSchemaPermissionsForm'
     ),
-  {
-    ssr: false,
-    loading: () => <FormActivityIndicator />,
-  },
 );
 
-const EditRemoteSchemaRelationships = dynamic(
+function EditRemoteSchemaPermissionsForm(
+  props: ComponentProps<typeof EditRemoteSchemaPermissionsFormLazy>,
+) {
+  return (
+    <Suspense fallback={<FormActivityIndicator />}>
+      <EditRemoteSchemaPermissionsFormLazy {...props} />
+    </Suspense>
+  );
+}
+
+const EditRemoteSchemaRelationshipsLazy = lazy(
   () =>
     import(
       '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationships/EditRemoteSchemaRelationships'
     ),
-  {
-    ssr: false,
-  },
 );
+
+function EditRemoteSchemaRelationships(
+  props: ComponentProps<typeof EditRemoteSchemaRelationshipsLazy>,
+) {
+  return (
+    <Suspense fallback={null}>
+      <EditRemoteSchemaRelationshipsLazy {...props} />
+    </Suspense>
+  );
+}
 
 const menuItemClassName =
   'flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg';

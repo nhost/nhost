@@ -1,6 +1,5 @@
+import { Link } from '@tanstack/react-router';
 import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -8,7 +7,6 @@ import {
 } from '@/components/layout/SettingsCard';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { RunServicePortDomain } from '@/features/orgs/projects/custom-domains/settings/components/RunServicePortDomain';
-import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export interface RunServiceDomainsProps {
   services: RunService[];
@@ -17,10 +15,6 @@ export interface RunServiceDomainsProps {
 export default function RunServiceDomains({
   services,
 }: RunServiceDomainsProps) {
-  const router = useRouter();
-  const orgSlug = getSingleQueryParam(router.query.orgSlug);
-  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-
   return (
     <div className="flex flex-col gap-6">
       {services
@@ -34,7 +28,9 @@ export default function RunServiceDomains({
                     {service.config?.name ?? 'unset'}
                   </p>
                   <Link
-                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/run`}
+                    from="/orgs/$orgSlug/projects/$appSubdomain"
+                    to="/orgs/$orgSlug/projects/$appSubdomain/run"
+                    params
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium text-primary hover:underline"

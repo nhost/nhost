@@ -1,6 +1,6 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -25,10 +25,9 @@ export default function useFunctionQuery(
     queryOptions,
   }: UseFunctionQueryOptions = {},
 ) {
-  const {
-    query: { dataSourceSlug, functionOID: routerFunctionOID },
-    isReady,
-  } = useRouter();
+  const { dataSourceSlug, functionOID: routerFunctionOID } = useParams({
+    strict: false,
+  });
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
 
@@ -50,9 +49,7 @@ export default function useFunctionQuery(
     keepPreviousData: true,
     ...queryOptions,
     enabled:
-      isNotEmptyValue(project?.config?.hasura.adminSecret) &&
-      isReady &&
-      functionOID
+      isNotEmptyValue(project?.config?.hasura.adminSecret) && functionOID
         ? queryOptions?.enabled
         : false,
   });

@@ -1,5 +1,5 @@
+import { useParams } from '@tanstack/react-router';
 import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -29,15 +29,13 @@ export default function DatabaseObjectListItem({
   onSidebarItemClick,
 }: DatabaseObjectListItemProps) {
   const {
-    query: {
-      orgSlug,
-      appSubdomain,
-      dataSourceSlug,
-      schemaSlug,
-      tableSlug,
-      functionOID,
-    },
-  } = useRouter();
+    appSubdomain,
+    dataSourceSlug,
+    functionOID,
+    orgSlug,
+    schemaSlug,
+    tableSlug,
+  } = useParams({ strict: false });
 
   const {
     removableObject,

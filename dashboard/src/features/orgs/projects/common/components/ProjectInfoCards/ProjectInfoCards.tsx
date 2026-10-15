@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import {
   InfoCard,
   type InfoCardProps,
@@ -35,7 +34,7 @@ export default function ProjectInfoCards({ layout }: ProjectInfoCardsProps) {
         customValue={
           isRegionAvailable && (
             <div className="grid grid-flow-col items-center gap-1 self-center">
-              <Image
+              <img
                 src={`/assets/flags/${project.region.countryCode}.svg`}
                 alt={`Logo of ${project.region.countryCode}`}
                 width={16}

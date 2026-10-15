@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
+import { useParams } from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
@@ -31,11 +31,7 @@ export default function useRunSQL(
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([[]]);
 
-  const router = useRouter();
-
-  const {
-    query: { dataSourceSlug },
-  } = router;
+  const { dataSourceSlug } = useParams({ strict: false });
 
   const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 

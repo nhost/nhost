@@ -1,3 +1,4 @@
+import { useParams } from '@tanstack/react-router';
 import '@xyflow/react/dist/style.css';
 
 import {
@@ -9,7 +10,6 @@ import {
   ReactFlowProvider,
   useReactFlow,
 } from '@xyflow/react';
-import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -166,9 +166,7 @@ function EdgeMarkerDefs() {
 
 function SchemaDiagramContent() {
   const { fitView } = useReactFlow();
-  const {
-    query: { dataSourceSlug },
-  } = useRouter();
+  const { dataSourceSlug } = useParams({ strict: false });
   const dataSource = (dataSourceSlug as string | undefined) ?? 'default';
 
   const {
