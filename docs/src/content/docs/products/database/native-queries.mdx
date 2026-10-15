@@ -15,7 +15,7 @@ Native queries are read-only. They execute a `SELECT` query and return rows. To 
 Every native query needs a **logical model**, which describes the shape of the rows it returns. The model is what the GraphQL API exposes as a type, and it is also where permissions are defined. The following sections explain how logical models work and how they fit into native queries.
 
 :::caution[Requirements]
-- Native queries require GraphQL Engine v2.33.0 or later. On older versions the page loads, but creating or updating native queries will fail. Check and change the version under **Settings -> Hasura**.
+- Native queries require GraphQL Engine v2.33.0 or later. On older versions the page loads, but creating or updating native queries will fail. Check and change the version under **GraphQL -> Settings -> Engine** <a href="https://app.nhost.io/orgs/_/projects/_/graphql/settings?tab=engine" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>.
 - Postgres sources only.
 :::
 
