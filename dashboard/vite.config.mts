@@ -43,6 +43,11 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  build: {
+    // Only content-hashed build output goes here, so hosts can cache /static
+    // forever; public/assets keeps its file names and must be revalidated.
+    assetsDir: 'static',
+  },
   server: {
     port: 3000,
   },

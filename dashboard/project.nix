@@ -299,8 +299,9 @@ rec {
   };
 
   # Unknown paths fall back to index.html so client-side routes load. Only the
-  # content-hashed files under /assets are cacheable; everything else, including
-  # index.html served as fallback, is revalidated so new images take effect.
+  # content-hashed build output under /static is cacheable; everything else,
+  # including index.html served as fallback, is revalidated so new images take
+  # effect.
   staticWebServerConfig = pkgs.writeText "static-web-server.toml" ''
     [general]
     port = 3000
@@ -315,7 +316,7 @@ rec {
     headers = { Cache-Control = "no-cache" }
 
     [[advanced.headers]]
-    source = "/assets/**"
+    source = "/static/**"
     headers = { Cache-Control = "public, max-age=31536000, immutable" }
   '';
 
