@@ -1,4 +1,8 @@
-import { useMatchRoute, useNavigate } from '@tanstack/react-router';
+import {
+  useMatchRoute,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router';
 import { type PropsWithChildren, useEffect } from 'react';
 import { PageTitle } from '@/components/common/PageTitle';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -8,14 +12,17 @@ import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
 
-const platformOnlyPages = [
-  '/orgs/$orgSlug/projects/$appSubdomain/deployments',
-  '/orgs/$orgSlug/projects/$appSubdomain/database/backups',
+// Route IDs of the pages themselves (index routes end in `/`), compared
+// exactly: the deployments and metrics settings pages below them stay
+// available off-platform.
+const platformOnlyPages: ReadonlySet<string> = new Set([
+  '/orgs/$orgSlug/projects/$appSubdomain/deployments/',
+  '/orgs/$orgSlug/projects/$appSubdomain/database/backups/',
   '/orgs/$orgSlug/projects/$appSubdomain/database/backups/point-in-time',
   '/orgs/$orgSlug/projects/$appSubdomain/database/backups/import',
-  '/orgs/$orgSlug/projects/$appSubdomain/metrics',
+  '/orgs/$orgSlug/projects/$appSubdomain/metrics/',
   '/orgs/$orgSlug/projects/$appSubdomain/deployments/$deploymentId',
-] as const;
+]);
 
 /**
  * Pages that can't be shown for this project: platform-only pages on a local
@@ -23,10 +30,14 @@ const platformOnlyPages = [
  */
 function useIsUnavailablePage() {
   const matchRoute = useMatchRoute();
+  const currentRouteId = useRouterState({
+    select: (state) => state.matches.at(-1)?.routeId,
+  });
 
   const isPlatformOnlyPage =
     !isPlatformFn() &&
-    platformOnlyPages.some((to) => matchRoute({ to }) !== false);
+    currentRouteId !== undefined &&
+    platformOnlyPages.has(currentRouteId);
   const isSelfHostedAndGraphitePage =
     getConfigServerUrl() === '' &&
     matchRoute({
