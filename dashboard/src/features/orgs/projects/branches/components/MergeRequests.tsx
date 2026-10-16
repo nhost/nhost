@@ -74,7 +74,12 @@ export default function MergeRequests() {
             onClick={() => setFilter(f.value)}
           >
             {f.label}
-            <span className="ml-1.5 text-muted-foreground">
+            <span
+              className={cn(
+                'ml-1.5',
+                filter === f.value ? 'text-primary' : 'text-muted-foreground',
+              )}
+            >
               {count(f.value)}
             </span>
           </Button>

@@ -4,7 +4,6 @@ import {
   FileText,
   GitMerge,
   GitPullRequestCreateArrow,
-  LogIn,
   MoreHorizontal,
   Plus,
   Search,
@@ -52,6 +51,7 @@ import {
   timeAgo,
   useDummyBranches,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
+import { cn } from '@/lib/utils';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { triggerToast } from '@/utils/toast';
 
@@ -131,12 +131,30 @@ export default function AllBranches() {
     const request = openRequestFor(branch.name);
     const stale = isStale(branch);
     const busy = branch.status !== 'ready';
+    // The whole row opens the branch (except the one you're on).
+    const canOpen = !isCurrent && !busy;
 
     return (
       <li
         key={branch.id}
-        className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
+        className={cn(
+          'relative flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3',
+          canOpen && 'cursor-pointer hover:bg-accent',
+        )}
       >
+        {canOpen && (
+          // Covers the row so a click anywhere opens the branch. The tags with
+          // tooltips and the actions sit above it (relative z-10).
+          <button
+            type="button"
+            aria-label={`Open ${branch.name}`}
+            className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+            onClick={() => {
+              switchTo(branch.id);
+              triggerToast(`Opened ${branch.name}`);
+            }}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <BranchIcon branch={branch} />
@@ -145,9 +163,15 @@ export default function AllBranches() {
             </span>
             {branch.isProduction && <ProductionBadge />}
             {branch.source === 'github' && (
-              <GitHubMirrorMark gitBranch={branch.gitBranch} />
+              <span className="relative z-10 flex">
+                <GitHubMirrorMark gitBranch={branch.gitBranch} />
+              </span>
             )}
-            {request && <OpenRequestChip request={request} />}
+            {request && (
+              <span className="relative z-10 flex">
+                <OpenRequestChip request={request} />
+              </span>
+            )}
             {isCurrent && <CurrentBadge />}
             <BranchStatusMark branch={branch} />
           </div>
@@ -181,19 +205,8 @@ export default function AllBranches() {
           </p>
         </div>
 
-        {/* Open, the merge action and More always sit in the same place. */}
-        <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          <RowAction
-            label="Open"
-            tooltip={isCurrent ? "You're on this branch" : 'Open'}
-            icon={<LogIn />}
-            disabled={isCurrent || busy}
-            onClick={() => {
-              switchTo(branch.id);
-              triggerToast(`Opened ${branch.name}`);
-            }}
-          />
-
+        {/* The merge action and More always sit in the same place. */}
+        <div className="relative z-10 flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
           {branch.isProduction ? (
             <RowAction
               label="Merge"
@@ -281,7 +294,9 @@ export default function AllBranches() {
         <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
           Production
         </h2>
-        <ul className="rounded-lg border">{renderRow(production)}</ul>
+        <ul className="overflow-hidden rounded-lg border">
+          {renderRow(production)}
+        </ul>
       </section>
 
       <section className="grid gap-3">
@@ -310,7 +325,7 @@ export default function AllBranches() {
         </div>
 
         {others.length > 0 ? (
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y overflow-hidden rounded-lg border">
             {others.map(renderRow)}
           </ul>
         ) : (

@@ -43,7 +43,8 @@ export function ProductionBadge({ className }: { className?: string }) {
 
 export function CurrentBadge() {
   return (
-    <span className="inline-flex shrink-0 items-center rounded-full border px-2 py-px font-medium text-muted-foreground text-xs">
+    // Hardcoded green for now (no success token yet), to be swapped later.
+    <span className="inline-flex shrink-0 items-center rounded-full border border-green-600/40 bg-green-500/10 px-2 py-px font-medium text-green-600 text-xs dark:border-green-400/40 dark:text-green-400">
       You're here
     </span>
   );
