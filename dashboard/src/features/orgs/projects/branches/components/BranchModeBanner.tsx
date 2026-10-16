@@ -21,6 +21,8 @@ function Banner() {
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
   const { isReady, currentBranch, production, switchTo } = useDummyBranches();
   const manageHref = `/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=all`;
+  // Already on the Branches page: the shortcut has nowhere to go.
+  const onBranchesPage = router.pathname.endsWith('/branches');
 
   if (!isReady || currentBranch.isProduction) {
     return null;
@@ -52,18 +54,35 @@ function Banner() {
         </Button>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              asChild
-              variant="outline"
-              size="icon-xs"
-              className="shrink-0 bg-background"
-            >
-              <Link href={manageHref} aria-label="Manage branches">
-                <ListTree />
-              </Link>
-            </Button>
+            {onBranchesPage ? (
+              // The span keeps the tooltip working on the disabled button.
+              <span className="inline-flex shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon-xs"
+                  className="bg-background"
+                  aria-label="Manage branches"
+                  disabled
+                >
+                  <ListTree />
+                </Button>
+              </span>
+            ) : (
+              <Button
+                asChild
+                variant="outline"
+                size="icon-xs"
+                className="shrink-0 bg-background"
+              >
+                <Link href={manageHref} aria-label="Manage branches">
+                  <ListTree />
+                </Link>
+              </Button>
+            )}
           </TooltipTrigger>
-          <TooltipContent>Manage branches</TooltipContent>
+          <TooltipContent>
+            {onBranchesPage ? "You're in Manage branches" : 'Manage branches'}
+          </TooltipContent>
         </Tooltip>
       </div>
     </div>
