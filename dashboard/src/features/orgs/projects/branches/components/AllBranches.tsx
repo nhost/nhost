@@ -157,8 +157,8 @@ export default function AllBranches() {
           'relative flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3',
           clickable && 'cursor-pointer hover:bg-accent',
           // The branch you're on gets the same yellow as the "on a branch"
-          // strip at the top.
-          isCurrent && 'bg-warning/10',
+          // strip at the top (not production: there's no strip there).
+          isCurrent && !branch.isProduction && 'bg-warning/10',
         )}
       >
         {clickable && (
@@ -205,7 +205,7 @@ export default function AllBranches() {
                 <OpenRequestChip request={request} />
               </span>
             )}
-            {isCurrent && <CurrentBadge />}
+            {isCurrent && !branch.isProduction && <CurrentBadge />}
             <BranchStatusMark branch={branch} />
           </div>
           <p className="mt-1 truncate pl-6 text-muted-foreground text-xs">
