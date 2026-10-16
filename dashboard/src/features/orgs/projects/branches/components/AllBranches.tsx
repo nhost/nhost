@@ -111,14 +111,8 @@ export default function AllBranches() {
     useDummyBranches();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<DialogState>(null);
-  // Bulk delete: "Select" turns on selecting, which shows the checkboxes.
-  const [selecting, setSelecting] = useState(false);
+  // Bulk delete: ids of the selected branches.
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  function stopSelecting() {
-    setSelecting(false);
-    setSelected(new Set());
-  }
 
   const others = branches
     .filter((b) => !b.isProduction)
@@ -153,9 +147,8 @@ export default function AllBranches() {
     const busy = branch.status !== 'ready';
     // The whole row opens the branch (except the one you're on).
     const canSelect = !branch.isProduction && !isCurrent;
-    // Normally a click on the row opens the branch; while selecting, it
-    // selects it instead. The branch you're on does neither.
-    const clickable = selecting ? canSelect : !isCurrent && !busy;
+    // A click on the row opens the branch (not the one you're on).
+    const clickable = !isCurrent && !busy;
 
     return (
       <li
@@ -163,29 +156,26 @@ export default function AllBranches() {
         className={cn(
           'relative flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3',
           clickable && 'cursor-pointer hover:bg-accent',
+          // The branch you're on gets a light green fill, like its tag.
+          // Hardcoded green for now (no success token yet).
+          isCurrent && 'bg-green-500/5',
         )}
       >
         {clickable && (
-          // Covers the row so a click anywhere acts on it. The tags with
+          // Covers the row so a click anywhere opens the branch. The tags with
           // tooltips, the checkbox and the actions sit above it (z-10).
           <button
             type="button"
-            aria-label={
-              selecting ? `Select ${branch.name}` : `Open ${branch.name}`
-            }
+            aria-label={`Open ${branch.name}`}
             className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             onClick={() => {
-              if (selecting) {
-                toggle(branch.id, !selected.has(branch.id));
-                return;
-              }
               switchTo(branch.id);
               triggerToast(`Opened ${branch.name}`);
             }}
           />
         )}
-        {/* Checkboxes only while selecting; production never gets one. */}
-        {selecting && !branch.isProduction && (
+        {/* Checkbox column for bulk delete; production never gets one. */}
+        {!branch.isProduction && (
           <div className="relative z-10 flex w-4 shrink-0 justify-center">
             {canSelect && (
               <Checkbox
@@ -322,17 +312,6 @@ export default function AllBranches() {
             Branches ({branches.length - 1})
           </h2>
           <div className="flex items-center gap-2">
-            {selectable.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  selecting ? stopSelecting() : setSelecting(true)
-                }
-              >
-                {selecting ? 'Done' : 'Select'}
-              </Button>
-            )}
             <InputGroup className="w-64">
               <InputGroupAddon>
                 <Search />
@@ -354,8 +333,9 @@ export default function AllBranches() {
 
         {others.length > 0 ? (
           <ul className="divide-y overflow-hidden rounded-lg border">
-            {/* While selecting: select all, a count, and the bulk actions. */}
-            {selecting && (
+            {/* Select all, a count, and (once something is selected) the bulk
+                actions. */}
+            {selectable.length > 0 && (
               <li className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
                 <div className="flex w-4 shrink-0 justify-center">
                   <Checkbox
@@ -383,7 +363,7 @@ export default function AllBranches() {
                     : 'Select the branches to delete'}
                 </span>
                 <div className="flex items-center gap-2">
-                  {inactive.length > 0 && (
+                  {selectedBranches.length > 0 && inactive.length > 0 && (
                     <Button
                       variant="ghost"
                       size="xs"
@@ -441,7 +421,7 @@ export default function AllBranches() {
         branches={dialog?.kind === 'delete' ? dialog.branches : []}
         open={dialog?.kind === 'delete'}
         onOpenChange={close}
-        onDeleted={stopSelecting}
+        onDeleted={() => setSelected(new Set())}
       />
       <BranchLogsDialog
         branch={branchFor('logs')}
