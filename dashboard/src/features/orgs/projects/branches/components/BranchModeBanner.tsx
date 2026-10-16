@@ -21,7 +21,7 @@ function Banner() {
   }
 
   return (
-    <div className="flex h-9 shrink-0 items-center justify-center gap-3 border-warning/40 border-b bg-warning/10 px-4 text-sm">
+    <div className="flex h-9 shrink-0 items-center justify-center gap-3 border-b bg-warning/10 px-4 text-sm">
       <GitBranch className="size-4 shrink-0 text-warning" />
       <p className="truncate">
         You're working on the branch{' '}

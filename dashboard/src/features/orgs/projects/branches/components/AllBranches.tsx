@@ -2,6 +2,9 @@ import {
   Clock,
   ExternalLink,
   FileText,
+  GitMerge,
+  GitPullRequestCreateArrow,
+  LogIn,
   MoreHorizontal,
   Plus,
   Search,
@@ -9,7 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -56,6 +59,57 @@ type DialogState =
   | { kind: 'delete' | 'logs' | 'open-request'; branch: Branch }
   | { kind: 'merge'; request: MergeRequest }
   | null;
+
+interface RowActionProps {
+  label: string;
+  icon: ReactNode;
+  tooltip?: ReactNode;
+  disabled?: boolean;
+  href?: string;
+  onClick?: () => void;
+}
+
+/**
+ * Icon button for a branch row action, with its name in a tooltip. Every row
+ * shows the same actions in the same order; one that doesn't apply stays in
+ * place but disabled, so the icons line up across rows.
+ */
+function RowAction({
+  label,
+  icon,
+  tooltip,
+  disabled = false,
+  href,
+  onClick,
+}: RowActionProps) {
+  const button = href ? (
+    <Button asChild variant="outline" size="icon-sm" aria-label={label}>
+      <a href={href} target="_blank" rel="noreferrer">
+        {icon}
+      </a>
+    </Button>
+  ) : (
+    <Button
+      variant="outline"
+      size="icon-sm"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {icon}
+    </Button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {/* The span keeps the tooltip working on disabled buttons. */}
+        <span className="inline-flex">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-60">{tooltip ?? label}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function AllBranches() {
   const router = useRouter();
@@ -127,75 +181,54 @@ export default function AllBranches() {
           </p>
         </div>
 
-        {/* Fixed slots (Open, merge action, more) keep buttons aligned
-            across rows. A slot stays empty when its action doesn't apply. */}
+        {/* Open, the merge action and More always sit in the same place. */}
         <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          <div className="flex w-16 justify-end">
-            {!isCurrent && (
-              <Button
-                variant="outline"
-                size="xs"
-                className="w-full"
-                disabled={busy}
-                onClick={() => {
-                  switchTo(branch.id);
-                  triggerToast(`Opened ${branch.name}`);
-                }}
-              >
-                Open
-              </Button>
-            )}
-          </div>
+          <RowAction
+            label="Open"
+            tooltip={isCurrent ? "You're on this branch" : 'Open'}
+            icon={<LogIn />}
+            disabled={isCurrent || busy}
+            onClick={() => {
+              switchTo(branch.id);
+              triggerToast(`Opened ${branch.name}`);
+            }}
+          />
 
-          <div className="flex w-40">
-            {!branch.isProduction &&
-              (branch.source === 'github' ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="xs"
-                      className="w-full"
-                    >
-                      <a
-                        href="https://github.com"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Merge on GitHub
-                        <ExternalLink className="ml-1.5 size-3.5" />
-                      </a>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-60">
-                    This branch mirrors{' '}
-                    <span className="font-mono">{branch.gitBranch}</span>, so
-                    it merges through its pull request on GitHub.
-                  </TooltipContent>
-                </Tooltip>
-              ) : request ? (
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => setDialog({ kind: 'merge', request })}
-                >
-                  Merge
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="xs"
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => setDialog({ kind: 'open-request', branch })}
-                >
-                  Open merge request
-                </Button>
-              ))}
-          </div>
+          {branch.isProduction ? (
+            <RowAction
+              label="Merge"
+              tooltip="Production can't be merged"
+              icon={<GitMerge />}
+              disabled
+            />
+          ) : branch.source === 'github' ? (
+            <RowAction
+              label="Merge on GitHub"
+              tooltip={
+                <>
+                  Merge on GitHub. This branch mirrors{' '}
+                  <span className="font-mono">{branch.gitBranch}</span>, so it
+                  merges through its pull request.
+                </>
+              }
+              icon={<ExternalLink />}
+              href="https://github.com"
+            />
+          ) : request ? (
+            <RowAction
+              label="Merge"
+              icon={<GitMerge />}
+              disabled={busy}
+              onClick={() => setDialog({ kind: 'merge', request })}
+            />
+          ) : (
+            <RowAction
+              label="Open merge request"
+              icon={<GitPullRequestCreateArrow />}
+              disabled={busy}
+              onClick={() => setDialog({ kind: 'open-request', branch })}
+            />
+          )}
 
           <DropdownMenu>
             <Tooltip>
@@ -203,6 +236,7 @@ export default function AllBranches() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="subtle"
+                    size="icon-sm"
                     aria-label={`More actions for ${branch.name}`}
                   >
                     <MoreHorizontal />
