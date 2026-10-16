@@ -62,6 +62,7 @@ let
       ./tailwind.config.ts
       ./tsconfig.json
       ./tsconfig.test.json
+      ./vercel.json
       ./vite.config.mts
       ./vitest.config.mts
       ./vitest.global-setup.ts
