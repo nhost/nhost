@@ -90,7 +90,7 @@ export default function SigninPage() {
         <SignInOption isLastUsed={isEmailLastUsed} badgeId={lastUsedBadgeId}>
           <Button
             asChild
-            variant="outline-emboss"
+            variant="outline"
             className={cn(
               'w-full gap-2 text-sm+',
               isEmailLastUsed && lastUsedOutline,

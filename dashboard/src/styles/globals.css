@@ -276,7 +276,6 @@ html.dark .graphiql-themed .graphiql-container {
     --primary-foreground: 210 40% 98%;
     --secondary: 215.4, 16.3%, 46.9%;
     --secondary-foreground: 210 40% 98%;
-    --secondary-hover: 215.3, 19.3%, 34.5%;
     --muted: 0 0% 98%;
     --muted-foreground: 0 0% 38.8%;
     --accent: 0 0% 96.1%;
@@ -614,57 +613,6 @@ html.dark .graphiql-themed .graphiql-container {
     hsl(var(--primary-gradient-disabled-from)) 0%,
     hsl(var(--primary-gradient-disabled-to)) 100%
   );
-}
-
-/* ------------------------------------------------------------------
- * SECONDARY button ("soft emboss").
- * Border only, transparent background.
- * ------------------------------------------------------------------ */
-.btn-emboss-secondary {
-  color: #26303f;
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.18);
-}
-.btn-emboss-secondary:hover:not(:disabled) {
-  color: #16202e;
-  background: rgba(16, 38, 74, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.26);
-}
-.btn-emboss-secondary:active:not(:disabled) {
-  transform: translateY(1px);
-  background: rgba(16, 38, 74, 0.09);
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.28);
-}
-.btn-emboss-secondary:disabled,
-.btn-emboss-secondary[aria-disabled="true"] {
-  color: rgba(38, 48, 63, 0.3);
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.1);
-}
-.dark .btn-emboss-secondary {
-  color: #dbe4f0;
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-}
-.dark .btn-emboss-secondary:hover:not(:disabled) {
-  color: #f0f5fb;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-.dark .btn-emboss-secondary:active:not(:disabled) {
-  transform: translateY(1px);
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-}
-.dark .btn-emboss-secondary:disabled,
-.dark .btn-emboss-secondary[aria-disabled="true"] {
-  color: rgba(219, 228, 240, 0.3);
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* ------------------------------------------------------------------

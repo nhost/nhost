@@ -37,7 +37,6 @@ module.exports = {
         'error-main': '#f13154',
         'error-bg': '#f131541a',
         'error-toast-bg': 'hsl(var(--error-toast-bg))',
-        'secondary-hover': '#475569',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
