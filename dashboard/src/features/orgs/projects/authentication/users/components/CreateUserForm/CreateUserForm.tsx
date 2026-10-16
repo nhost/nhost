@@ -139,9 +139,8 @@ export default function CreateUserForm({
             </AlertDescription>
 
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateUserFormError(null);
               }}

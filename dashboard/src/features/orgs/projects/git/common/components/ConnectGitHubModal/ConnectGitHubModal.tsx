@@ -455,7 +455,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                           </span>
                         </div>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => setSelectedRepoId(repo.node_id)}
                         >
                           Connect

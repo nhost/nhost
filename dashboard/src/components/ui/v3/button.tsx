@@ -26,6 +26,11 @@ const baseButtonVariants = cva(
         subtle:
           'text-neutral-600 hover:text-primary-main dark:text-sidebar-foreground dark:hover:text-primary-main',
         link: 'text-primary underline-offset-4 hover:underline',
+        // Rows inside a menu, like the account menu. No border or fill until
+        // hover; menu-destructive is the same row in the danger color.
+        menu: 'text-accent-foreground hover:bg-accent',
+        'menu-destructive':
+          'text-destructive hover:bg-destructive-hover hover:text-destructive',
       },
       // Icon size uses zero-specificity `:where()`, so icon classes override
       // it. Icon props like `size={16}` don't (CSS beats SVG attributes).
@@ -39,6 +44,14 @@ const baseButtonVariants = cva(
         icon: 'h-10 w-10 [:where(&_svg)]:size-5',
       },
     },
+    compoundVariants: [
+      {
+        // Full width, left aligned rows; set here so they win over the size
+        // padding.
+        variant: ['menu', 'menu-destructive'],
+        class: 'h-9 w-full justify-start gap-2 px-2',
+      },
+    ],
     defaultVariants: {
       variant: 'default',
       size: 'sm',
