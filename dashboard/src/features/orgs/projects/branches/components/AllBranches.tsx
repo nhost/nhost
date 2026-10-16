@@ -1,10 +1,4 @@
-import {
-  ExternalLink,
-  FileText,
-  Plus,
-  Search,
-  Trash2,
-} from 'lucide-react';
+import { ExternalLink, FileText, Plus, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
@@ -226,7 +220,8 @@ export default function AllBranches() {
                     <span className="font-mono">{branch.gitBranch}</span>
                   </>
                 )}
-                <> · Updated {timeAgo(branch.lastActivityAt)}</>
+                {' '}
+                · Updated {timeAgo(branch.lastActivityAt)}
               </>
             )}
           </p>
