@@ -219,8 +219,7 @@ export default function AllBranches() {
                     · Mirrors{' '}
                     <span className="font-mono">{branch.gitBranch}</span>
                   </>
-                )}
-                {' '}
+                )}{' '}
                 · Updated {timeAgo(branch.lastActivityAt)}
               </>
             )}
