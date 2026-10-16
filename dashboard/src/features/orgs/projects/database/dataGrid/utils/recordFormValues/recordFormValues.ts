@@ -1,9 +1,14 @@
 import type {
   ColumnInsertOptions,
+  ColumnUpdateOptions,
   DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { serializeTemporalValue } from '@/features/orgs/projects/database/dataGrid/utils/serializeTemporalValue';
+import {
+  isGeoJSONGeometry,
+  isSpatialType,
+} from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 
 function isBooleanColumn(column: DataBrowserColumnMetadata) {
   return column.baseType === 'boolean' && !column.isArray;
@@ -40,7 +45,11 @@ export function getRecordFormValue(
     return getBooleanFormValue(value, column);
   }
 
-  if (value !== null && typeof value === 'object' && isJsonColumn(column)) {
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    (isJsonColumn(column) || isSpatialType(column.baseType))
+  ) {
     return JSON.stringify(value, null, 2);
   }
 
@@ -138,4 +147,58 @@ export function getColumnInsertOptions(
     value: serializeTemporalValue(value, column.baseType),
     isArray: column.isArray,
   };
+}
+
+function isObject(value: unknown): value is object {
+  return value !== null && typeof value === 'object';
+}
+
+/**
+ * Compares an edit-form value with the row's original value and returns the
+ * update to apply for the column, or `null` when the value is unchanged.
+ */
+export function getColumnUpdateOptions(
+  column: DataBrowserColumnMetadata,
+  insertOptions: ColumnInsertOptions,
+  originalValue: unknown,
+): ColumnUpdateOptions | null {
+  if (insertOptions.fallbackValue === 'DEFAULT') {
+    return { reset: 'default' };
+  }
+
+  if (insertOptions.fallbackValue === 'NULL') {
+    return originalValue !== null ? { reset: 'null' } : null;
+  }
+
+  let newValue = insertOptions.value;
+
+  // geometry input parses GeoJSON text, so the edited text is sent as-is and
+  // only compared structurally with the GeoJSON object read back by the grid.
+  if (
+    isSpatialType(column.baseType) &&
+    typeof newValue === 'string' &&
+    isObject(originalValue) &&
+    isGeoJSONGeometry(newValue)
+  ) {
+    return JSON.stringify(JSON.parse(newValue)) !==
+      JSON.stringify(originalValue)
+      ? { value: newValue }
+      : null;
+  }
+
+  if (isJsonColumn(column) && typeof newValue === 'string') {
+    try {
+      newValue = JSON.parse(newValue);
+    } catch {
+      // Keep as string if parsing fails
+    }
+  }
+
+  if (isObject(newValue) && isObject(originalValue)) {
+    return JSON.stringify(newValue) !== JSON.stringify(originalValue)
+      ? { value: newValue }
+      : null;
+  }
+
+  return newValue !== originalValue ? { value: newValue } : null;
 }

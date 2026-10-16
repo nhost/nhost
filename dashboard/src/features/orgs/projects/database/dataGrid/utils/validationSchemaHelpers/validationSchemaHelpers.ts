@@ -3,6 +3,10 @@ import { TIME_PATTERN } from '@/components/common/TimePickerField/isValidTime';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import {
+  getSpatialValueError,
+  isSpatialType,
+} from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
+import {
   isDateType,
   isIntervalType,
   isTimestampType,
@@ -56,6 +60,25 @@ function createJSONValidationSchema(details: ColumnDetails) {
     });
 
   return createGenericValidationSchema(jsonSchema, details);
+}
+
+function createSpatialValidationSchema(
+  details: ColumnDetails,
+  baseType: string,
+) {
+  const spatialSchema = yup
+    .string()
+    .test('is-spatial', (value, { createError }) => {
+      if (!value || value === POSTGRES_DEFAULT_PLACEHOLDER) {
+        return true;
+      }
+
+      const message = getSpatialValueError(value, baseType);
+
+      return message ? createError({ message }) : true;
+    });
+
+  return createGenericValidationSchema(spatialSchema, details);
 }
 
 function createUUIDValidationSchema(details: ColumnDetails) {
@@ -183,6 +206,13 @@ export function createDynamicValidationSchema(
       return {
         ...currentSchema,
         [column.id]: createJSONValidationSchema(details),
+      };
+    }
+
+    if (isSpatialType(baseType)) {
+      return {
+        ...currentSchema,
+        [column.id]: createSpatialValidationSchema(details, baseType),
       };
     }
 
