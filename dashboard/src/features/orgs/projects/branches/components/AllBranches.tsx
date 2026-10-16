@@ -2,8 +2,6 @@ import {
   Clock,
   ExternalLink,
   FileText,
-  GitMerge,
-  GitPullRequestCreateArrow,
   Plus,
   Search,
   Trash2,
@@ -231,43 +229,48 @@ export default function AllBranches() {
           </p>
         </div>
 
-        {/* The merge action and More always sit in the same place. */}
+        {/* Merge action as text, then View logs as an icon, always last. */}
         <div className="relative z-10 flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          {branch.isProduction ? (
-            <RowAction
-              label="Merge"
-              tooltip="Production can't be merged"
-              icon={<GitMerge />}
-              disabled
-            />
-          ) : branch.source === 'github' ? (
-            <RowAction
-              label="Merge on GitHub"
-              tooltip={
-                <>
-                  Merge on GitHub. This branch mirrors{' '}
+          {!branch.isProduction &&
+            (branch.source === 'github' ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button asChild variant="outline" size="xs">
+                    <a
+                      href="https://github.com"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Merge on GitHub
+                      <ExternalLink className="ml-1.5 size-3.5" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-60">
+                  This branch mirrors{' '}
                   <span className="font-mono">{branch.gitBranch}</span>, so it
-                  merges through its pull request.
-                </>
-              }
-              icon={<ExternalLink />}
-              href="https://github.com"
-            />
-          ) : request ? (
-            <RowAction
-              label="Merge"
-              icon={<GitMerge />}
-              disabled={busy}
-              onClick={() => setDialog({ kind: 'merge', request })}
-            />
-          ) : (
-            <RowAction
-              label="Open merge request"
-              icon={<GitPullRequestCreateArrow />}
-              disabled={busy}
-              onClick={() => setDialog({ kind: 'open-request', branch })}
-            />
-          )}
+                  merges through its pull request on GitHub.
+                </TooltipContent>
+              </Tooltip>
+            ) : request ? (
+              <Button
+                variant="outline"
+                size="xs"
+                disabled={busy}
+                onClick={() => setDialog({ kind: 'merge', request })}
+              >
+                Merge
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="xs"
+                disabled={busy}
+                onClick={() => setDialog({ kind: 'open-request', branch })}
+              >
+                Open merge request
+              </Button>
+            ))}
 
           <RowAction
             label="View logs"
