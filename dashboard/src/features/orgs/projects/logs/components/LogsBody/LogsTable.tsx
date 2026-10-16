@@ -1,16 +1,3 @@
-import type { SearchRange } from '@/features/orgs/projects/logs/components/LogsBody/highlightLog';
-import {
-  ACTIONS_WIDTH,
-  LOG_LEVEL_WIDTH,
-  type LogsTableMeta,
-  ROW_HEIGHT,
-  SERVICE_WIDTH,
-  TIMESTAMP_WIDTH,
-  logsColumns,
-} from '@/features/orgs/projects/logs/components/LogsBody/columns';
-import { isSameLogEntry } from '@/features/orgs/projects/logs/components/LogsBody/isSameLogEntry';
-import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
-import { cn } from '@/lib/utils';
 import {
   flexRender,
   getCoreRowModel,
@@ -25,6 +12,19 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import {
+  ACTIONS_WIDTH,
+  LOG_LEVEL_WIDTH,
+  type LogsTableMeta,
+  logsColumns,
+  ROW_HEIGHT,
+  SERVICE_WIDTH,
+  TIMESTAMP_WIDTH,
+} from '@/features/orgs/projects/logs/components/LogsBody/columns';
+import type { SearchRange } from '@/features/orgs/projects/logs/components/LogsBody/highlightLog';
+import { isSameLogEntry } from '@/features/orgs/projects/logs/components/LogsBody/isSameLogEntry';
+import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
+import { cn } from '@/lib/utils';
 
 const SCROLL_BUFFER = 32;
 
@@ -42,7 +42,7 @@ export interface LogsTableProps {
   className?: string;
 }
 
-export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
+const ForwardedLogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
   function LogsTable(
     {
       data,
@@ -97,7 +97,9 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
         rowVirtualizer.scrollToIndex(rowIndex, { align: 'center' });
 
         const scrollEl = scrollRef.current;
-        if (!scrollEl) return;
+        if (!scrollEl) {
+          return;
+        }
 
         const stickyCover = ACTIONS_WIDTH + TIMESTAMP_WIDTH;
 
@@ -105,18 +107,26 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
           const segments = scrollEl.querySelectorAll<HTMLElement>(
             '[data-search-current]',
           );
-          if (segments.length === 0) return;
+          if (segments.length === 0) {
+            return;
+          }
           const containerRect = scrollEl.getBoundingClientRect();
           let segLeft = Number.POSITIVE_INFINITY;
           let segRight = Number.NEGATIVE_INFINITY;
           for (const seg of segments) {
             const r = seg.getBoundingClientRect();
-            if (r.left < segLeft) segLeft = r.left;
-            if (r.right > segRight) segRight = r.right;
+            if (r.left < segLeft) {
+              segLeft = r.left;
+            }
+            if (r.right > segRight) {
+              segRight = r.right;
+            }
           }
           const matchLeft = segLeft - containerRect.left + scrollEl.scrollLeft;
-          const matchRight = segRight - containerRect.left + scrollEl.scrollLeft;
-          const userVisibleLeft = scrollEl.scrollLeft + stickyCover + SCROLL_BUFFER;
+          const matchRight =
+            segRight - containerRect.left + scrollEl.scrollLeft;
+          const userVisibleLeft =
+            scrollEl.scrollLeft + stickyCover + SCROLL_BUFFER;
           const userVisibleRight =
             scrollEl.scrollLeft + scrollEl.clientWidth - SCROLL_BUFFER;
           if (matchLeft < userVisibleLeft || matchRight > userVisibleRight) {
@@ -162,7 +172,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
               <tr key={headerGroup.id}>
                 <th
                   scope="col"
-                  className="sticky left-0 top-0 z-[3] border-b border-divider bg-background p-2"
+                  className="sticky top-0 left-0 z-[3] border-divider border-b bg-background p-2"
                   aria-label="Actions"
                 />
                 {headerGroup.headers.map((header) => {
@@ -176,7 +186,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
                         stickyLeft !== null ? { left: stickyLeft } : undefined
                       }
                       className={cn(
-                        'sticky top-0 border-b border-divider bg-background p-2 text-left align-middle font-display text-xs- font-semibold',
+                        'sticky top-0 border-divider border-b bg-background p-2 text-left align-middle font-display font-semibold text-xs-',
                         stickyLeft !== null ? 'z-[3]' : 'z-[2]',
                       )}
                     >
@@ -215,7 +225,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
                 >
                   <td
                     className={cn(
-                      'sticky left-0 z-[1] border-b border-divider px-2 align-middle',
+                      'sticky left-0 z-[1] border-divider border-b px-2 align-middle',
                       cellBg,
                     )}
                   >
@@ -237,12 +247,10 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
                       <td
                         key={cell.id}
                         style={
-                          stickyLeft !== null
-                            ? { left: stickyLeft }
-                            : undefined
+                          stickyLeft !== null ? { left: stickyLeft } : undefined
                         }
                         className={cn(
-                          'overflow-hidden whitespace-nowrap border-b border-divider px-2 align-middle text-[0.75rem] leading-[0.875rem] font-normal tracking-tight',
+                          'overflow-hidden whitespace-nowrap border-divider border-b px-2 align-middle font-normal text-[0.75rem] leading-[0.875rem] tracking-tight',
                           cellBg,
                           stickyLeft !== null && 'sticky z-[1]',
                         )}
@@ -265,7 +273,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
 
         {rows.length === 0 && (
           <div
-            className="px-4 py-3 text-center font-mono text-xs- text-muted-foreground"
+            className="px-4 py-3 text-center font-mono text-muted-foreground text-xs-"
             style={{ minWidth: totalTableWidth }}
           >
             No logs match the current filter.
@@ -275,3 +283,5 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
     );
   },
 );
+
+export { ForwardedLogsTable as LogsTable };
