@@ -127,61 +127,75 @@ export default function AllBranches() {
           </p>
         </div>
 
+        {/* Fixed slots (Open, merge action, more) keep buttons aligned
+            across rows. A slot stays empty when its action doesn't apply. */}
         <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          {!isCurrent && (
-            <Button
-              variant="outline"
-              size="xs"
-              disabled={busy}
-              onClick={() => {
-                switchTo(branch.id);
-                triggerToast(`Opened ${branch.name}`);
-              }}
-            >
-              Open
-            </Button>
-          )}
+          <div className="flex w-16 justify-end">
+            {!isCurrent && (
+              <Button
+                variant="outline"
+                size="xs"
+                className="w-full"
+                disabled={busy}
+                onClick={() => {
+                  switchTo(branch.id);
+                  triggerToast(`Opened ${branch.name}`);
+                }}
+              >
+                Open
+              </Button>
+            )}
+          </div>
 
-          {!branch.isProduction &&
-            (branch.source === 'github' ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="xs">
-                    <a
-                      href="https://github.com"
-                      target="_blank"
-                      rel="noreferrer"
+          <div className="flex w-40">
+            {!branch.isProduction &&
+              (branch.source === 'github' ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="xs"
+                      className="w-full"
                     >
-                      Merge on GitHub
-                      <ExternalLink className="ml-1.5 size-3.5" />
-                    </a>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-60">
-                  This branch mirrors{' '}
-                  <span className="font-mono">{branch.gitBranch}</span>, so it
-                  merges through its pull request on GitHub.
-                </TooltipContent>
-              </Tooltip>
-            ) : request ? (
-              <Button
-                variant="outline"
-                size="xs"
-                disabled={busy}
-                onClick={() => setDialog({ kind: 'merge', request })}
-              >
-                Merge
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="xs"
-                disabled={busy}
-                onClick={() => setDialog({ kind: 'open-request', branch })}
-              >
-                Open merge request
-              </Button>
-            ))}
+                      <a
+                        href="https://github.com"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Merge on GitHub
+                        <ExternalLink className="ml-1.5 size-3.5" />
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-60">
+                    This branch mirrors{' '}
+                    <span className="font-mono">{branch.gitBranch}</span>, so
+                    it merges through its pull request on GitHub.
+                  </TooltipContent>
+                </Tooltip>
+              ) : request ? (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="w-full"
+                  disabled={busy}
+                  onClick={() => setDialog({ kind: 'merge', request })}
+                >
+                  Merge
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="w-full"
+                  disabled={busy}
+                  onClick={() => setDialog({ kind: 'open-request', branch })}
+                >
+                  Open merge request
+                </Button>
+              ))}
+          </div>
 
           <DropdownMenu>
             <Tooltip>
