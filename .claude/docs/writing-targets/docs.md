@@ -1,26 +1,34 @@
 # Target: docs
 
 What a page under `docs/src/content/docs/**` requires, on top of the shared
-rules in `.claude/docs/writing-rules.md`. The site is Astro with Starlight;
-pages are MDX. The voice is `nhost-docs` (`.claude/docs/voices/nhost-docs.md`).
-The page exemplar is `products/auth/sign-in-magic-link.mdx`: short, one
-feature, code before prose, callouts in Markdown syntax, a UI path in bold.
+rules in `.claude/docs/writing-rules.md`. The docs are four sections:
+`getting-started/` (quickstart, local-development, tutorials), `products/`
+(one per product), `platform/` (cli, cloud, self-hosting) and `reference/`
+(hand-written only under `reference/graphql/**`, the rest generated). A blog
+post is not a docs page; it resolves to the `blog` target. The site is Astro
+with Starlight; pages are MDX. The voice is `nhost-docs`
+(`.claude/docs/voices/nhost-docs.md`). The page exemplar is
+`products/auth/sign-in-magic-link.mdx`: short, one feature, code before
+prose, callouts in Markdown syntax, a UI path in bold.
 
 - **TGT-DOCS-01** Every page is one of four types and follows its skeleton.
-  - *quickstart*: opening (who, what they build), prerequisites, numbered
-    steps that each end in something the reader can run or see, a final
-    step that shows the result; no concept sections.
-  - *how-to*: opening (who, what they will have done), a requirements
-    callout only when the task has prerequisites, one task per `##` section
-    in the order the reader performs them, each with the dashboard, config
-    or SDK code that does it; limitations, if any, last, before related
-    resources.
-  - *concept*: opening (what the thing is, in one sentence), how it works,
-    when to use it and when not to, where it is configured; links to the
-    how-to pages that act on it.
-  - *reference*: one entity per `##` section (option, field, endpoint,
-    command), each with type, default and a one-sentence description; a
-    table when entries share a shape.
+  The section sets the type; where it allows two, the page's job decides.
+  - *quickstart* (`getting-started/quickstart/**` and `tutorials/**`):
+    opening (who, what they build), prerequisites, numbered steps that each
+    end in something the reader can run or see, a final step that shows the
+    result; no concept sections.
+  - *how-to* (`products/**`, `platform/**`, `local-development/**`): opening
+    (who, what they will have done), a requirements callout only when the
+    task has prerequisites, one task per `##` section in the order the
+    reader performs them, each with the dashboard, config or SDK code that
+    does it; limitations, if any, last, before related resources.
+  - *concept* (the page a `products/**` or `platform/**` section opens on):
+    opening (what the thing is, in one sentence), how it works, when to use
+    it and when not to, where it is configured; links to the how-to pages
+    that act on it.
+  - *reference* (`reference/graphql/**` only): one entity per `##` section
+    (option, field, endpoint, command), each with type, default and a
+    one-sentence description; a table when entries share a shape.
 - **TGT-DOCS-02** A page starts from a brief that carries, in this order:
   audience; page type; source paths the claims are checked against; the one
   running example, with the names used in code; dashboard paths; caveats
