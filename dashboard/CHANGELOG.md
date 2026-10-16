@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.7.1] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Added CA flag (#5175)
+
 ## [@nhost/dashboard@3.7.0] - 2026-10-14
 
 ### 🚀 Features
