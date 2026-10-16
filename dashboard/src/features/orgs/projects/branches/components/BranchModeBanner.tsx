@@ -1,7 +1,12 @@
-import { GitBranch } from 'lucide-react';
+import { GitBranch, ListTree } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useDummyBranches } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
@@ -15,6 +20,7 @@ function Banner() {
   const orgSlug = getSingleQueryParam(router.query.orgSlug);
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
   const { isReady, currentBranch, production, switchTo } = useDummyBranches();
+  const manageHref = `/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=all`;
 
   if (!isReady || currentBranch.isProduction) {
     return null;
@@ -29,7 +35,7 @@ function Banner() {
         <p className="truncate">
           You're working on the branch{' '}
           <Link
-            href={`/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=all`}
+            href={manageHref}
             className="font-medium font-mono underline-offset-4 hover:underline"
           >
             {currentBranch.name}
@@ -44,6 +50,21 @@ function Banner() {
         >
           Back to production
         </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              asChild
+              variant="outline"
+              size="icon-xs"
+              className="shrink-0 bg-background"
+            >
+              <Link href={manageHref} aria-label="Manage branches">
+                <ListTree />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Manage branches</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
