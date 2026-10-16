@@ -21,26 +21,30 @@ function Banner() {
   }
 
   return (
-    <div className="flex h-9 shrink-0 items-center justify-center gap-3 bg-warning/10 px-4 text-sm">
-      <GitBranch className="size-4 shrink-0 text-warning" />
-      <p className="truncate">
-        You're working on the branch{' '}
-        <Link
-          href={`/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=all`}
-          className="font-medium font-mono underline-offset-4 hover:underline"
+    // Moved 1px up, opaque and above the header (z-50 > the header's z-40),
+    // so it covers the header's bottom border: no gray line between them.
+    <div className="relative z-50 -mt-px shrink-0 bg-background">
+      <div className="flex h-9 items-center justify-center gap-3 bg-warning/10 px-4 text-sm">
+        <GitBranch className="size-4 shrink-0 text-warning" />
+        <p className="truncate">
+          You're working on the branch{' '}
+          <Link
+            href={`/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=all`}
+            className="font-medium font-mono underline-offset-4 hover:underline"
+          >
+            {currentBranch.name}
+          </Link>
+          . Changes here don't affect production.
+        </p>
+        <Button
+          variant="outline"
+          size="xs"
+          className="h-6 shrink-0 bg-background px-2 text-xs"
+          onClick={() => switchTo(production.id)}
         >
-          {currentBranch.name}
-        </Link>
-        . Changes here don't affect production.
-      </p>
-      <Button
-        variant="outline"
-        size="xs"
-        className="h-6 shrink-0 bg-background px-2 text-xs"
-        onClick={() => switchTo(production.id)}
-      >
-        Back to production
-      </Button>
+          Back to production
+        </Button>
+      </div>
     </div>
   );
 }
