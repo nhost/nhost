@@ -240,16 +240,20 @@ export function useDummyBranches() {
     return id;
   };
 
-  const deleteBranch = (branchId: string) =>
+  // Deletes one or more branches at once (bulk delete in All branches).
+  const deleteBranches = (branchIds: string[]) =>
     update((s) => {
-      const branch = s.branches.find((b) => b.id === branchId);
+      const names = s.branches
+        .filter((b) => branchIds.includes(b.id))
+        .map((b) => b.name);
       return {
         ...s,
-        currentBranchId:
-          s.currentBranchId === branchId ? 'production' : s.currentBranchId,
-        branches: s.branches.filter((b) => b.id !== branchId),
+        currentBranchId: branchIds.includes(s.currentBranchId)
+          ? 'production'
+          : s.currentBranchId,
+        branches: s.branches.filter((b) => !branchIds.includes(b.id)),
         mergeRequests: s.mergeRequests.map((mr) =>
-          mr.branchName === branch?.name && mr.state === 'open'
+          names.includes(mr.branchName) && mr.state === 'open'
             ? { ...mr, state: 'closed', closedAt: new Date().toISOString() }
             : mr,
         ),
@@ -318,7 +322,7 @@ export function useDummyBranches() {
     openRequestFor,
     switchTo,
     createBranch,
-    deleteBranch,
+    deleteBranches,
     openMergeRequest,
     merge,
     closeMergeRequest,

@@ -4,7 +4,6 @@ import {
   FileText,
   GitMerge,
   GitPullRequestCreateArrow,
-  MoreHorizontal,
   Plus,
   Search,
   Trash2,
@@ -13,13 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
   InputGroup,
   InputGroupAddon,
@@ -56,7 +49,8 @@ import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { triggerToast } from '@/utils/toast';
 
 type DialogState =
-  | { kind: 'delete' | 'logs' | 'open-request'; branch: Branch }
+  | { kind: 'logs' | 'open-request'; branch: Branch }
+  | { kind: 'delete'; branches: Branch[] }
   | { kind: 'merge'; request: MergeRequest }
   | null;
 
@@ -119,10 +113,32 @@ export default function AllBranches() {
     useDummyBranches();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<DialogState>(null);
+  // Bulk delete: ids of the selected branches.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const others = branches
     .filter((b) => !b.isProduction)
     .filter((b) => b.name.includes(search.trim().toLowerCase()));
+
+  // Production and the branch you're on can't be deleted, so they can't be
+  // selected either.
+  const selectable = others.filter((b) => b.id !== currentBranch.id);
+  const selectedBranches = selectable.filter((b) => selected.has(b.id));
+  const inactive = selectable.filter(isStale);
+  const allSelected =
+    selectable.length > 0 && selectedBranches.length === selectable.length;
+
+  function toggle(branchId: string, checked: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(branchId);
+      } else {
+        next.delete(branchId);
+      }
+      return next;
+    });
+  }
 
   const newBranchHref = `/orgs/${orgSlug}/projects/${appSubdomain}/branches?tab=new`;
 
@@ -155,6 +171,16 @@ export default function AllBranches() {
             }}
           />
         )}
+        {/* Checkbox for bulk delete; empty when the branch can't be deleted. */}
+        <div className="relative z-10 flex w-4 shrink-0 justify-center">
+          {!branch.isProduction && !isCurrent && (
+            <Checkbox
+              checked={selected.has(branch.id)}
+              onCheckedChange={(checked) => toggle(branch.id, checked === true)}
+              aria-label={`Select ${branch.name}`}
+            />
+          )}
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <BranchIcon branch={branch} />
@@ -243,42 +269,11 @@ export default function AllBranches() {
             />
           )}
 
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="subtle"
-                    size="icon-sm"
-                    aria-label={`More actions for ${branch.name}`}
-                  >
-                    <MoreHorizontal />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>More actions</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={() => setDialog({ kind: 'logs', branch })}
-              >
-                <FileText className="mr-2 size-4" />
-                View logs
-              </DropdownMenuItem>
-              {!branch.isProduction && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onSelect={() => setDialog({ kind: 'delete', branch })}
-                  >
-                    <Trash2 className="mr-2 size-4" />
-                    Delete branch
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowAction
+            label="View logs"
+            icon={<FileText />}
+            onClick={() => setDialog({ kind: 'logs', branch })}
+          />
         </div>
       </li>
     );
@@ -326,6 +321,71 @@ export default function AllBranches() {
 
         {others.length > 0 ? (
           <ul className="divide-y overflow-hidden rounded-lg border">
+            {/* Selection header: select all, a count, and the bulk actions. */}
+            <li className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
+              <div className="flex w-4 shrink-0 justify-center">
+                <Checkbox
+                  checked={
+                    allSelected
+                      ? true
+                      : selectedBranches.length > 0
+                        ? 'indeterminate'
+                        : false
+                  }
+                  disabled={selectable.length === 0}
+                  onCheckedChange={() =>
+                    setSelected(
+                      allSelected
+                        ? new Set()
+                        : new Set(selectable.map((b) => b.id)),
+                    )
+                  }
+                  aria-label="Select all branches"
+                />
+              </div>
+              <span className="flex-1 text-muted-foreground">
+                {selectedBranches.length > 0
+                  ? `${selectedBranches.length} selected`
+                  : 'Select branches to delete them'}
+              </span>
+              <div className="flex items-center gap-2">
+                {inactive.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() =>
+                      setSelected(new Set(inactive.map((b) => b.id)))
+                    }
+                  >
+                    Select inactive ({inactive.length})
+                  </Button>
+                )}
+                {selectedBranches.length > 0 && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => setSelected(new Set())}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="xs"
+                      onClick={() =>
+                        setDialog({
+                          kind: 'delete',
+                          branches: selectedBranches,
+                        })
+                      }
+                    >
+                      <Trash2 className="mr-1.5 size-3.5" />
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </div>
+            </li>
             {others.map(renderRow)}
           </ul>
         ) : (
@@ -343,9 +403,10 @@ export default function AllBranches() {
       </section>
 
       <DeleteBranchDialog
-        branch={branchFor('delete')}
+        branches={dialog?.kind === 'delete' ? dialog.branches : []}
         open={dialog?.kind === 'delete'}
         onOpenChange={close}
+        onDeleted={() => setSelected(new Set())}
       />
       <BranchLogsDialog
         branch={branchFor('logs')}

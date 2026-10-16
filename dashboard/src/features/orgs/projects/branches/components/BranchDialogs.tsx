@@ -27,40 +27,75 @@ interface DialogBaseProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Deletes one branch or several selected ones. One branch: type its name to
+ * confirm. Several: type "delete".
+ */
 export function DeleteBranchDialog({
-  branch,
+  branches,
   open,
   onOpenChange,
-}: DialogBaseProps & { branch: Branch | null }) {
-  const { deleteBranch, openRequestFor } = useDummyBranches();
+  onDeleted,
+}: DialogBaseProps & { branches: Branch[]; onDeleted?: () => void }) {
+  const { deleteBranches, openRequestFor } = useDummyBranches();
   const [confirm, setConfirm] = useState('');
-  useEffect(() => setConfirm(''), []);
+  useEffect(() => {
+    if (open) {
+      setConfirm('');
+    }
+  }, [open]);
 
-  if (!branch) {
+  if (branches.length === 0) {
     return null;
   }
-  const request = openRequestFor(branch.name);
+  const single = branches.length === 1 ? branches[0] : null;
+  const phrase = single ? single.name : 'delete';
+  const requests = branches
+    .map((b) => openRequestFor(b.name))
+    .filter((r): r is MergeRequest => r !== undefined);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete branch</DialogTitle>
+          <DialogTitle>
+            {single ? 'Delete branch' : `Delete ${branches.length} branches`}
+          </DialogTitle>
           <DialogDescription>
-            This removes <span className={mono}>{branch.name}</span> and
-            everything in it. Production isn't affected.
+            {single ? (
+              <>
+                This removes <span className={mono}>{single.name}</span> and
+                everything in it. Production isn't affected.
+              </>
+            ) : (
+              <>
+                This removes these branches and everything in them. Production
+                isn't affected.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
-        {request && (
+        {!single && (
+          <ul className="max-h-40 overflow-y-auto rounded-md border px-3 py-2 font-mono text-sm">
+            {branches.map((b) => (
+              <li key={b.id} className="truncate py-0.5">
+                {b.name}
+              </li>
+            ))}
+          </ul>
+        )}
+        {requests.length > 0 && (
           <Alert variant="warning" className="py-3">
             <AlertDescription>
-              Merge request #{request.number} will be closed without merging.
+              {requests.length === 1
+                ? `Merge request #${requests[0].number} will be closed without merging.`
+                : `${requests.length} open merge requests will be closed without merging.`}
             </AlertDescription>
           </Alert>
         )}
         <div className="grid gap-2">
           <Label htmlFor="confirm-delete-branch">
-            Type <span className={mono}>{branch.name}</span> to confirm
+            Type <span className={mono}>{phrase}</span> to confirm
           </Label>
           <Input
             id="confirm-delete-branch"
@@ -75,14 +110,19 @@ export function DeleteBranchDialog({
           </Button>
           <Button
             variant="destructive"
-            disabled={confirm !== branch.name}
+            disabled={confirm !== phrase}
             onClick={() => {
-              deleteBranch(branch.id);
+              deleteBranches(branches.map((b) => b.id));
               onOpenChange(false);
-              triggerToast(`Deleted ${branch.name}`);
+              onDeleted?.();
+              triggerToast(
+                single
+                  ? `Deleted ${single.name}`
+                  : `Deleted ${branches.length} branches`,
+              );
             }}
           >
-            Delete branch
+            {single ? 'Delete branch' : `Delete ${branches.length} branches`}
           </Button>
         </DialogFooter>
       </DialogContent>
