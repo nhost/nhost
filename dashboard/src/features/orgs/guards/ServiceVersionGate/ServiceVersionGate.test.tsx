@@ -2,11 +2,11 @@ import { graphql, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen } from '@/tests/testUtils';
+import { render, screen, waitForElementToBeRemoved } from '@/tests/testUtils';
 import ServiceVersionGate from './ServiceVersionGate';
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
-  useProject: () => ({ project: { id: 'test-app-id' }, loading: false }),
+  useProject: () => ({ project: { id: 'test-app-id' } }),
 }));
 
 const server = setupServer(tokenQuery);
@@ -64,6 +64,25 @@ describe('ServiceVersionGate', () => {
     renderGate();
 
     expect(await screen.findByText('Upgrade required')).toBeInTheDocument();
+    expect(screen.queryByText('Feature content')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing when the version is older than the minimum and no fallback is given', async () => {
+    server.use(hasuraVersionHandler('v2.25.1-ce'));
+
+    render(
+      <ServiceVersionGate
+        service="hasura"
+        minVersion="v2.33.0"
+        loadingFallback={<p>Checking version</p>}
+      >
+        <p>Feature content</p>
+      </ServiceVersionGate>,
+    );
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText('Checking version'),
+    );
     expect(screen.queryByText('Feature content')).not.toBeInTheDocument();
   });
 

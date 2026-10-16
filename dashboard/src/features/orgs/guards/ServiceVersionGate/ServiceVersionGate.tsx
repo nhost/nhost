@@ -17,25 +17,25 @@ export type VersionedService = Exclude<
 export interface ServiceVersionGateProps {
   service: VersionedService;
   minVersion: string;
-  fallback: ReactNode;
+  fallback?: ReactNode;
   loadingFallback?: ReactNode;
   children: ReactNode;
 }
 
 /**
- * Renders `fallback` instead of its children when the project's configured
- * `service` version is older than `minVersion`. When the version can't be
- * loaded, the children render.
+ * Renders `fallback` (nothing by default) instead of its children when the
+ * project's configured `service` version is older than `minVersion`. When the
+ * version can't be loaded, the children render.
  */
 export default function ServiceVersionGate({
   service,
   minVersion,
-  fallback,
+  fallback = null,
   loadingFallback = null,
   children,
 }: ServiceVersionGateProps) {
   const isPlatform = useIsPlatform();
-  const { project, loading: loadingProject } = useProject();
+  const { project } = useProject();
   const localMimirClient = useLocalMimirClient();
   const isSettingsDisabled = useSettingsDisabled();
 
@@ -46,7 +46,7 @@ export default function ServiceVersionGate({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loadingProject || (loading && !data)) {
+  if (loading && !data) {
     return loadingFallback;
   }
 
