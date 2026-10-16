@@ -1,0 +1,330 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Supabase vs Appwrite vs Nhost: I built two apps with Claude Code',
+  description:
+    'I had Claude Code build the same two apps on Supabase, Appwrite and Nhost using their CLIs, then checked where it put the access rules, how long it took and what it got wrong.',
+  image: '/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/cover.png',
+  date: '2026-10-09',
+  seoTitle: 'Supabase vs Appwrite vs Nhost: Building with Claude Code and the CLI',
+  seoDescription:
+    'Claude Code built the same two apps on Supabase, Appwrite and Nhost through their CLIs. Time, cost, mistakes, and where each platform led it to put the access rules.',
+  authors: [
+    {
+      name: 'Max Serdiukov',
+      title: 'Product Marketer',
+      avatarUrl: '/images/avatars/max.jpeg',
+      url: 'https://twitter.com/true_marketer',
+    },
+  ],
+  tags: ['Comparison', 'Supabase', 'Appwrite', 'Nhost', 'Claude Code'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+AI agents now write a lot of backend code, and the platform you pick decides how much they get right on their own. I wanted to see that in practice: what happens when Claude Code builds the same app on Supabase, Appwrite and Nhost through each platform's CLI, with nobody telling it where the access rules should go.
+
+I used two apps. The first is a polling app with a secret ballot, the same one I used to test [five vibe coding tools](/blog/best-vibe-coding-tools). It's small, but it has one requirement that's easy to get wrong: nobody can see how anyone else voted. The second is a team incident logger with file uploads, team membership and a server function, so it tests much more of each backend.
+
+Each app ran once per platform, from the same clean start. Both prompts are below, so you can run them yourself.
+
+## Setup
+
+Every run used the same setup:
+
+- Claude Code running Opus 5.5 on medium reasoning
+- A new session, an empty folder and an empty cloud project for every run
+- Everything ran against the cloud, with no local stack and no Docker
+- Email confirmation switched off on all three, so test accounts could sign in right away
+- No plugins, skills or notes from earlier work, so everything the agent knew about a platform came from its training
+
+Neither prompt mentions permissions, roles or backends. The main thing I watched was where each platform leads the agent to put the access rules when nobody tells it to. I also tracked how smoothly it worked with each platform, how often I had to step in, and how long each run took.
+
+## First app: a poll with a secret ballot
+
+The first line of each prompt named the platform and the project. The rest was the same in all three:
+
+> Build a polling app.
+>
+> Users sign up and log in with email and password. Different users log in from different browsers and share the same data.
+>
+> Anyone logged in can create a poll with a question and a few options, and can vote once per poll.
+>
+> Everyone sees the total votes for each option. Each user sees which option they voted for. Nobody can find out how another specific user voted.
+>
+> Only the person who created a poll can delete it.
+>
+> Keep it minimal, styling does not matter.
+
+I expected "nobody can find out how another specific user voted" to be the hardest part. If people can read the votes to count them, they can also see who cast each one. So the votes have to be locked down, and the totals have to come from somewhere else.
+
+## Poll app results
+
+**All three produced a working app with the access rules enforced in the data.**
+
+|  | Nhost | Supabase | Appwrite |
+| --- | --- | --- | --- |
+| Time | 2:46 | 3:11 | 4:43 |
+| Cost | $0.56 | $0.70 | $1.00 |
+| Tokens read | 705K | 1.3M | 1.7M |
+| Mistakes it had to fix | 1 | 2 | 3 |
+| Times it stopped to ask me something | 0 | 0 | 0 |
+| Docs pages opened | 0 | 0 | 0 |
+| Where the rules ended up | row rules in the database | row-level policies in the database | database closed, everything through a server function |
+| What it handed back | a local page | a local page | a deployed site on a public URL |
+
+Appwrite took the longest because it did two extra things: it wrote a server function and put the finished app on a public URL. I never asked for either, and neither Nhost nor Supabase did that. My guess is that since Appwrite hosts sites itself, deploying looked like the obvious next step.
+
+## Nhost: fastest, but with an extra setup step
+
+Nhost finished in 2 minutes 46 seconds. It created three tables and a view, set the permissions, wrote the page, then ran a two-user test against the live project and reported each rule as passing.
+
+Votes are readable only by the person who cast them. The rule in the dashboard reads `user_id _eq X-Hasura-User-Id` on the `user` role, and the `public` and `anonymous` roles have no access to the table at all. Update and delete are closed too, so a vote can't be changed once it's cast.
+
+![Nhost: the select rule on the votes table](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/nhost-votes-permissions.png)
+
+The totals come from a separate view, `poll_option_totals`, which counts rows without exposing them. It came up with that on its own.
+
+Its only mistake was in its test script, not the app: it used single quotes in a GraphQL query, which GraphQL doesn't accept. It noticed, fixed it, and the check passed. The schema and permissions worked on the first try.
+
+There was one extra step before I started the clock. You can't view an Nhost admin secret anywhere, in the dashboard or the CLI, so I replaced it with my own and gave it to the agent in the prompt. On Supabase and Appwrite, the agent used a CLI login I'd already done.
+
+## Supabase: no questions, two wrong turns
+
+Supabase took 3 minutes 11 seconds and didn't ask me anything. It applied the schema, tested with two throwaway users and deleted them afterward.
+
+Row-level security is on for all three tables, with policies written only for the `authenticated` role: `cast own vote` on insert and `read own votes` on select for the votes table, `read polls` and `creator deletes poll` for polls, `read options` for options. Nothing for anonymous visitors.
+
+![Supabase: the policies on the polling app](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/supabase-poll-policies.png)
+
+It made two mistakes, both involving the CLI:
+
+1. It combined two CLI flags that can't be used together. The error message said how to fix it, and the next try worked.
+2. The admin key it saved was cut off. The CLI hides most of a secret key unless you pass a reveal flag, and doesn't warn you that you only got part of it. So its test users were never created. The first error it got was `permission denied for function create_poll`, and it spent two debugging steps chasing a permissions bug that was really a failed login.
+
+It also avoided a trap: loading data inside the login-change handler can freeze the Supabase client, so it delayed that call on purpose. It only mentioned this when I asked.
+
+The project kept Supabase's default security settings, so new tables didn't get row-level security automatically. The agent turned it on by itself.
+
+## Appwrite: the slowest, with the database closed
+
+The run took 4 minutes 43 seconds and cost a dollar.
+
+The votes table has no permissions at all: the Security tab is empty, and row-level security is on. No client can read or write it directly, signed in or not. Every read and write goes through a single server function that checks who's asking.
+
+![Appwrite: no table permissions on votes, row security on](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/appwrite-votes-permissions.png)
+
+That's stricter than the other two, where a signed-in client talks to the database and a rule limits what comes back. Here, the client never touches the data.
+
+The agent explained why afterward. In Appwrite, client-side permissions can't stop someone from writing a row with another person's ID in it, because the platform doesn't check that the ID belongs to whoever created the row. The only way to prevent fake votes was to move every write to the server, and that explains most of the extra time and cost.
+
+Three mistakes. It typed `appwrite projects` where the command is `project`. Its first check of the SDK version failed. And after deploying, it took the first URL the tool printed, which turned out to be a private preview link that sends visitors to an Appwrite sign-in page. It had to create a public domain separately. In its own words, a real user would have hit a login wall.
+
+One side effect: Appwrite usually requires you to register a web platform for a hostname before a browser can talk to it. Deploying to Appwrite's hosting skipped that step on the polling app.
+
+## Three answers to the same question
+
+**Nhost** closed the votes table to everyone but the row's owner and added a view that returns counts without the rows behind them.
+
+**Supabase** wrote a policy letting each user read their own votes, and a function running with extra privileges to return the totals.
+
+**Appwrite** closed the table to every client and routed all reads and writes through one server function.
+
+The idea is the same in all three: votes are locked to their owner, and something with more access serves the totals. Where that something lives depends on the platform, and each one steered the agent there without being asked.
+
+## A harder second app
+
+The polling app is small, and a task that size can't really tell three mature platforms apart. So each one got a second, harder job on a fresh project.
+
+> Build a team incident logger.
+>
+> Users sign up and log in with email and password.
+>
+> Anyone logged in can create a team and invite other users to it by email address. A user can belong to several teams.
+>
+> Incidents belong to a team. Anyone on that team can report one with a title, a description, and a severity of low, medium, high or critical, and can attach a .txt log file to it.
+>
+> People on a team can see that team's incidents and open their attachments. People outside the team cannot see either, including the attached files.
+>
+> Only the person who reported an incident can edit it, delete it, or mark it resolved.
+>
+> When an incident is reported as critical, the platform itself should react to that and run a server function that records an alert was sent.
+>
+> Keep it minimal, styling does not matter.
+
+The incident logger needs four things the polling app didn't:
+
+**File storage**, which means permissions on files, not just rows. This is the classic leak: the record is locked down, but the file sits at a URL anyone can open.
+
+**Access by membership** instead of by ownership. In the polling app the rule was "is this row mine". Here it's "am I on the team this incident belongs to", which means following a relationship to a third table.
+
+**A server function** the agent has to deploy, not just write into the page.
+
+**The platform reacting on its own.** The function has to run because the data changed, not because the app called it. Each platform has a different mechanism for that, and none of them came up in the polling app.
+
+The main question here: can someone outside a team open another team's attachment from a direct link?
+
+### Incident logger results
+
+|  | Supabase | Appwrite | Nhost |
+| --- | --- | --- | --- |
+| Time | 4:48 | 6:22 | 8:20 |
+| Cost | $1.25 | $2.21 | $2.64 |
+| Tokens read | 1.0M | 3.3M | 5.0M |
+| Mistakes it had to fix | 2 | 2 | 1 |
+| Times it stopped to ask me something | 0 | 0 | 0 |
+| Docs pages opened | 0 | 0 | several |
+| Its own end-to-end checks | 30 | 20 | 31 |
+| Where the file rule ended up | a policy on the storage path | row permissions granted to a team | a relationship chain in the database |
+| What it handed back | a local page | a deployed site on a public URL | a local page |
+
+This time the order flipped. Supabase came first, Appwrite second, and Nhost, the fastest on the polling app, came last.
+
+The row that explains the rest is tokens read: 1M, 3.3M, 5M. Time and cost follow it in the same order. The more an agent has to read and re-read to find its way around a platform, the longer the job takes and the more it costs.
+
+All three got the access rules right again, each in its own way. I checked the permissions in the projects themselves instead of trusting what the agents told me, so the code below is what's actually deployed.
+
+## Supabase on the incident logger
+
+### It didn't need me
+
+The agent got project access from my existing CLI login, applied the migration, deployed the Edge Function straight from the CLI, and was done before I'd read half its output.
+
+To test its permission rules, it used a transaction it forced to roll back, so none of its test data was ever written. Then it ran Supabase's security advisor unprompted and fixed two of its findings: a trigger function that was callable over RPC, and a function without a fixed `search_path`.
+
+At the end, it told me to turn off email confirmation for testing, which I had already done. It never checked the project's auth settings, and nothing in the platform pushed it to.
+
+### Eight policies and a folder name
+
+Eight row-level policies across five tables, all scoped to the `authenticated` role. Read-if-member on everything, insert for members, update and delete for the reporter only. `teams` and `team_invites` have no write policies at all, because creating a team and inviting someone go through functions running with elevated privileges instead.
+
+Files are the interesting part. Each attachment is stored in a folder named after the team, and the read policy checks the path:
+
+```sql
+bucket_id = 'incident-logs'
+AND is_team_member(try_uuid(storage.foldername(name)[1]))
+```
+
+Upload and delete are restricted to the reporter. Critical incidents are handled by a database trigger calling the Edge Function through `pg_net`, with the shared secret held in Vault.
+
+## Appwrite on the incident logger
+
+### The only one that shipped it
+
+Just like on the polling app, the agent put the app on Appwrite's hosting without being asked. This time that led to a detour: a browser won't talk to an Appwrite project until the site's domain is registered as a web platform, and it hit an error setting that up.
+
+Its `setup.sh` just lists the commands it ran and won't work from scratch: the first attempt failed partway because optional columns need an explicit flag.
+
+The agent checked that an outsider can't list incidents, open one by ID, view or download a file, or post into a team. It didn't click through the finished app, because that would have created a real account on a live public site.
+
+### Teams it didn't have to build
+
+The agent used Appwrite's built-in Teams feature, which already handles invitations, membership and email delivery. The other two built all of this by hand.
+
+Access is granted per row to a team, and the incidents table grants All users nothing but `create`. Appwrite combines table and row permissions with OR, so any read access at the table level would quietly override row-level privacy. It also won't let a user grant access to a team they aren't in, so nobody can share an incident with a team they're not part of.
+
+The downside: only the team's creator can invite people, because that's Appwrite's default for team owners. Letting every member invite would have needed a server function. The agent flagged this itself as something I might want to change.
+
+The alert function is attached to Appwrite's database events, so the platform invokes it on create and update with no extra code in between.
+
+## Nhost on the incident logger
+
+### Two-thirds of it was plumbing
+
+By the agent's count, about two-thirds of the run went into deploying, figuring out the platform and rebuilding metadata.
+
+There's no CLI command that applies migrations and metadata to a cloud project. So the agent pushed schema and metadata through Hasura's HTTP API, created the migration-tracking table by hand, and inserted a row so the later deploy wouldn't run the same migration twice. It also found that `nhost init` leaves the metadata folder empty while a deploy applies whatever is in it, so it wrote out metadata for every table including the built-in auth and storage ones, to avoid wiping them. Functions deploy only from a connected GitHub repo, so the alert function sat untested until a full push-and-deploy cycle near the end.
+
+### The tightest rules of the three
+
+Nhost ended up with five tables. I'm going by the deployed metadata here, not the agent's summary.
+
+Reading a file is allowed if you uploaded it, or if it's attached to an incident in a team you belong to, three relationships away:
+
+```yaml
+_or:
+- uploaded_by_user_id: {_eq: X-Hasura-User-Id}
+- incidents: {team: {members: {user_id: {_eq: X-Hasura-User-Id}}}}
+```
+
+Uploads are restricted by bucket, by filename and by MIME type, so a binary renamed to `.txt` still gets refused because of its type. The uploader's ID is stamped from the token and can't be set by the client. Editing an incident is restricted to its reporter, and a separate check stops anyone from attaching a file they didn't upload themselves.
+
+Critical incidents fire a Hasura event trigger on insert, and on update only when the severity column changes, with three retries and a shared secret in the header.
+
+![Nhost: the file read rule follows three relationships to the team](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/nhost-file-permissions.png)
+
+## I checked the files myself
+
+This is the one thing I didn't want to take anyone's word for. On each platform I made an account, created a team, reported an incident with a `.txt` attached, and then tried to reach that file from three places: signed out, signed in as someone who isn't on the team, and signed in as a team member.
+
+**All three held.** Only the team member got the file.
+
+What differed was how each one said no.
+
+Appwrite is the only one where the attachment has a URL you could paste into a chat. The session travels in a cookie, so the same link behaves differently depending on who opens it: a file for a team member, a 404 for everyone else.
+
+Supabase and Nhost never hand you a link at all. The file comes down through the SDK with a token attached, which means there's nothing to copy and forward in the first place. Hitting the storage endpoint directly returns an error for everyone, because the browser doesn't send that token when you type a URL into the address bar.
+
+Here's what each one returns to an anonymous request:
+
+|  | Anonymous request to the file |
+| --- | --- |
+| Appwrite | `The requested file could not be found` |
+| Supabase | `Bucket not found` |
+| Nhost | `you are not authorized` |
+
+Two of them pretend the thing doesn't exist. Nhost tells you it exists and you can't have it. Appwrite's agent had flagged exactly this behavior as a debugging annoyance when I asked it about pitfalls, and here it is.
+
+## One docs visit in six builds
+
+Across six runs on three platforms, **five of them opened zero documentation pages.**
+
+What they read instead was the CLI's `--help` output and the type definitions inside the installed SDK. On Supabase, the help text is how the agent found the `--reveal` flag it was missing, and later the `--use-api` flag that let it deploy a function without Deno installed. On Appwrite it was `--help`, `npm view` for SDK versions, and the error messages themselves.
+
+The single exception was Nhost on the incident logger, where the agent opened the docs on functions, event triggers and storage permissions before writing anything. My guess is it didn't know those parts well enough from training.
+
+## The same trap, three times over
+
+When I asked afterward what's easy to get wrong about permissions on their platform, all three gave the same answer: showing vote totals without revealing who voted for what.
+
+The Nhost agent explained it best. Permissions there work row by row, so letting everyone read the votes table to count votes also lets them read who cast each one. Its fix was a separate view. As it put it, you have to come up with that yourself, because it's not the obvious first move.
+
+Supabase's fix was a function running with elevated privileges, and its agent warned that writing that function carelessly leaks exactly what you were protecting. Appwrite's agent pointed out that table and row permissions are combined with OR, so unless the table grants no read at all, row-level privacy silently does nothing.
+
+## What they knew was wrong with their own work
+
+I also asked each one where its own work was most likely to be broken in a way its tests wouldn't catch. All three came back with long lists.
+
+The worst was Supabase's. Invites there are applied the moment the user row is created, which is before the email address has been confirmed. That's fine as long as confirmation is on, since an unconfirmed account can't log in. But this is the same agent that told me to turn confirmation off for testing. Do that, and anyone who guesses an invited address can sign up with it and land inside that team, incidents and files included. The agent's own advice: until that's fixed, don't turn confirmation off.
+
+Nhost's agent ran into a smaller invite problem, but caught it while building. Its invite trigger ran before the permission check, so someone outside a team could use invites to test whether an email had an account. It added a membership check and reran its tests. Supabase's build has this hole too, and its agent mentioned it only when I asked.
+
+Other things they volunteered, none of which their test suites covered:
+
+- **"Only `.txt`" is weaker than it sounds on Supabase and Appwrite.** Both check the file extension and the content type the browser declares, so neither looks at what's actually in the file. Nhost detects the type from the file's contents, which is why a renamed binary gets refused there.
+- **Alerts can vanish silently.** Supabase's `pg_net` call fires once with no retry; if the function is down, nothing is recorded and nothing says so. Nhost retries three times and then gives up just as quietly.
+- **Orphaned files.** On Supabase and Appwrite, a failure between uploading a file and saving the incident leaves the file in storage with nothing pointing at it, and in one case nobody can delete it.
+- **Membership changes.** On all three, someone removed from a team keeps edit rights on incidents they reported. None of them built a way to remove a member, so it doesn't come up yet.
+- **Weak assertions in their own tests.** Appwrite's agent admitted that any 404 counted as "access denied" in its suite, so a typo in an ID would have passed too, and that its "no alert for a low-severity incident" check simply waited six seconds.
+
+## What the rules cost
+
+Then I asked how the file permission check would hold up as data grows. The answers varied a lot in how honest they were.
+
+Supabase's agent was the most specific and the most self-critical. Opening one file is two indexed lookups. Listing them is where it degrades: the membership check is a function Postgres can't fold into the query, so it runs once per row, and `try_uuid` opens a mini-transaction on every call. It offered a cheaper pattern the planner could evaluate once per query, then said plainly that it had run no `EXPLAIN`, no load test and no volume test.
+
+Appwrite's agent noted that each team a user joins lengthens the list of roles checked on every query, that the app stops at a hundred incidents with no paging beyond that, and that viewing an attachment costs an extra rate-limited request. It added an index and measured nothing.
+
+Nhost's agent added indexes on the columns its file permission rule checks, and said it couldn't measure anything without direct database access.
+
+## What I took away from this
+
+After testing the vibe coding tools, I was pretty sure the backends would handle both apps. They did, though getting there was a lot rougher on some than others.
+
+Claude Code worked very differently on each platform, and I think most of that comes down to how well it already knows each one, which also varies by task.
+
+One visit to the docs across six builds still surprises me. Everything else came from the CLI's help text, the SDK's types, and whatever the model already knew. If that's how people are building now, then help output and type definitions are doing work most teams think their documentation site is doing.
+
+The other thing I noticed is that the agents kept most of the risks to themselves until I asked. All three had a list ready about where their own work might break, and almost none of it came up on its own.
+
+Both of these are still small apps. What happens on something real, with a schema that keeps changing and features piling up, is another question. That's the next test.
