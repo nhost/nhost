@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.7.2] - 2026-10-16
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Gate native queries when running old graphql engine version (#5121)
+
 ## [@nhost/dashboard@3.7.1] - 2026-10-14
 
 ### 🐛 Bug Fixes
