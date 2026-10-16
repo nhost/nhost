@@ -156,9 +156,9 @@ export default function AllBranches() {
         className={cn(
           'relative flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3',
           clickable && 'cursor-pointer hover:bg-accent',
-          // The branch you're on gets a light green fill, like its tag.
-          // Hardcoded green for now (no success token yet).
-          isCurrent && 'bg-green-500/5',
+          // The branch you're on gets the same yellow as the "on a branch"
+          // strip at the top.
+          isCurrent && 'bg-warning/10',
         )}
       >
         {clickable && (
@@ -263,7 +263,6 @@ export default function AllBranches() {
               </Tooltip>
             ) : request ? (
               <Button
-                variant="outline"
                 size="xs"
                 disabled={busy}
                 onClick={() => setDialog({ kind: 'merge', request })}
