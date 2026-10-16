@@ -17,25 +17,10 @@ import (
 // semantics — to the parent CTE that holds the just-inserted rows.
 type TableSubstitutions map[string]string
 
-// substitutingStatement is implemented by Statement types that can rewrite
-// themselves under a TableSubstitutions map. Leaf filters that never touch a
-// target table need not implement it; the dispatch helper falls back to
-// regular [Statement.WriteCondition] for them.
-type substitutingStatement interface {
-	writeConditionSubstituted(
-		b *strings.Builder,
-		source string,
-		params []any,
-		paramIndex int,
-		subs TableSubstitutions,
-	) ([]any, int, error)
-}
-
 // WriteConditionSubstituted renders stmt like [Statement.WriteCondition] but
 // applies subs to any relationship-EXISTS subqueries it encounters. Composite
 // filters (Clause, _and, _or, _not) propagate subs into their children;
-// leaf filters that don't reference a target table fall through to the
-// standard WriteCondition path.
+// leaf filters that don't reference a target table ignore them.
 //
 // Passing a nil or empty subs is equivalent to calling stmt.WriteCondition
 // directly.
@@ -47,108 +32,18 @@ func WriteConditionSubstituted(
 	paramIndex int,
 	subs TableSubstitutions,
 ) ([]any, int, error) {
-	if len(subs) == 0 {
-		return stmt.WriteCondition(b, source, params, paramIndex) //nolint:wrapcheck
-	}
-
-	if ss, ok := stmt.(substitutingStatement); ok {
-		return ss.writeConditionSubstituted(b, source, params, paramIndex, subs)
-	}
-
-	return stmt.WriteCondition(b, source, params, paramIndex) //nolint:wrapcheck
+	return writeConditionCtx(stmt, b, source, params, paramIndex, newRenderContext(source, subs))
 }
 
-// writeConditionSubstituted on Clause forwards subs to each child statement.
-func (w Clause) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
-) ([]any, int, error) {
-	var err error
-	for i, condition := range w {
-		params, paramIndex, err = WriteConditionSubstituted(
-			condition, b, source, params, paramIndex, subs,
-		)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write where condition at pos %d: %w", i, err)
-		}
-
-		if i < len(w)-1 {
-			b.WriteString(" AND ")
-		}
-	}
-
-	return params, paramIndex, nil
-}
-
-func (f *andFilter) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
-) ([]any, int, error) {
-	var err error
-	for i, condition := range f.conditions {
-		if i > 0 {
-			b.WriteString(" AND ")
-		}
-
-		params, paramIndex, err = WriteConditionSubstituted(
-			condition, b, source, params, paramIndex, subs,
-		)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write AND condition at pos %d: %w", i, err)
-		}
-	}
-
-	return params, paramIndex, nil
-}
-
-func (f *orFilter) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
-) ([]any, int, error) {
-	b.WriteByte('(')
-
-	var err error
-	for i, clause := range f.conditions {
-		params, paramIndex, err = WriteConditionSubstituted(
-			clause, b, source, params, paramIndex, subs,
-		)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write OR condition at pos %d: %w", i, err)
-		}
-
-		if i < len(f.conditions)-1 {
-			b.WriteString(" OR ")
-		}
-	}
-
-	b.WriteByte(')')
-
-	return params, paramIndex, nil
-}
-
-func (f *notFilter) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
-) ([]any, int, error) {
-	b.WriteString("NOT (")
-
-	params, paramIndex, err := WriteConditionSubstituted(
-		f.condition, b, source, params, paramIndex, subs,
-	)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to write NOT condition: %w", err)
-	}
-
-	b.WriteByte(')')
-
-	return params, paramIndex, nil
-}
-
-// writeConditionSubstituted on relationshipFilter swaps the target's
+// writeConditionCtx on relationshipFilter swaps the target's
 // TableFromClause for the substitution (if any), then walks any nested
 // conditions with the same subs so deeper EXISTS subqueries see the same
 // rewrites. The row-level permission filter on the target is intentionally
 // skipped when the target was substituted: the substitute is typically the
 // parent's just-inserted RETURNING (the parent's own insert-permission gate
 // has already validated those rows), not a generic SELECT against the table.
-func (r *relationshipFilter) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
+func (r *relationshipFilter) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
 ) ([]any, int, error) {
 	targetAlias := fmt.Sprintf("\"%s%d\"", r.aliasPrefix, r.nestingLevel)
 	if r.nestingLevel == 0 {
@@ -160,7 +55,7 @@ func (r *relationshipFilter) writeConditionSubstituted(
 
 	substituted := false
 
-	if alt, ok := subs[fromClause]; ok {
+	if alt, ok := rc.subs[fromClause]; ok {
 		fromClause = alt
 		substituted = true
 	}
@@ -178,8 +73,8 @@ func (r *relationshipFilter) writeConditionSubstituted(
 	if r.conditions != nil {
 		b.WriteString(" AND ")
 
-		params, paramIndex, err = WriteConditionSubstituted(
-			r.conditions, b, targetAlias, params, paramIndex, subs,
+		params, paramIndex, err = writeConditionCtx(
+			r.conditions, b, targetAlias, params, paramIndex, rc,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to write relationship conditions: %w", err)
@@ -202,7 +97,7 @@ func (r *relationshipFilter) writeConditionSubstituted(
 	return params, paramIndex, nil
 }
 
-// writeConditionSubstituted on aggregateRelationshipFilter mirrors
+// writeConditionCtx on aggregateRelationshipFilter mirrors
 // relationshipFilter: it swaps the target's TableFromClause for the
 // substitution (if any) so the correlated aggregate subquery reads the parent's
 // in-flight CTE instead of the base table under Postgres' WITH snapshot
@@ -210,8 +105,8 @@ func (r *relationshipFilter) writeConditionSubstituted(
 // subqueries see the rewrites too, and skips the target's row-level permission
 // filter when the target was substituted (the substitute is the parent's
 // already-validated RETURNING, not a generic table SELECT).
-func (f *aggregateRelationshipFilter) writeConditionSubstituted(
-	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
+func (f *aggregateRelationshipFilter) writeConditionCtx(
+	b *strings.Builder, source string, params []any, paramIndex int, rc renderContext,
 ) ([]any, int, error) {
 	targetAlias := fmt.Sprintf("%saggt%d", f.aliasPrefix, f.nestingLevel)
 	subAlias := fmt.Sprintf("%saggs%d", f.aliasPrefix, f.nestingLevel)
@@ -222,7 +117,7 @@ func (f *aggregateRelationshipFilter) writeConditionSubstituted(
 
 	substituted := false
 
-	if alt, ok := subs[fromClause]; ok {
+	if alt, ok := rc.subs[fromClause]; ok {
 		fromClause = alt
 		substituted = true
 	}
@@ -244,8 +139,8 @@ func (f *aggregateRelationshipFilter) writeConditionSubstituted(
 	if f.filter != nil {
 		b.WriteString(" AND ")
 
-		params, paramIndex, err = WriteConditionSubstituted(
-			f.filter, b, quotedTarget, params, paramIndex, subs,
+		params, paramIndex, err = writeConditionCtx(
+			f.filter, b, quotedTarget, params, paramIndex, rc,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to write aggregate filter: %w", err)
@@ -265,8 +160,8 @@ func (f *aggregateRelationshipFilter) writeConditionSubstituted(
 	b.WriteString(quotedSub)
 	b.WriteString(" WHERE ")
 
-	params, paramIndex, err = WriteConditionSubstituted(
-		f.predicate, b, quotedSub, params, paramIndex, subs,
+	params, paramIndex, err = writeConditionCtx(
+		f.predicate, b, quotedSub, params, paramIndex, rc,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to write aggregate predicate: %w", err)
@@ -302,10 +197,11 @@ func (f *aggregateRelationshipFilter) writeTargetRowLevelPermissions(
 	return params, paramIndex, nil
 }
 
-// writeConditionSubstituted on existsFilter recurses into its inner where
-// clause so any relationship filters inside _exists also see subs.
-func (f *existsFilter) writeConditionSubstituted(
-	b *strings.Builder, _ string, params []any, paramIndex int, subs TableSubstitutions,
+// writeConditionCtx on existsFilter recurses into its inner where
+// clause so any relationship filters inside _exists also see subs and the
+// root alias.
+func (f *existsFilter) writeConditionCtx(
+	b *strings.Builder, _ string, params []any, paramIndex int, rc renderContext,
 ) ([]any, int, error) {
 	targetAlias := fmt.Sprintf("\"%s%d\"", f.aliasPrefix, f.nestingLevel)
 	if f.nestingLevel == 0 {
@@ -322,8 +218,8 @@ func (f *existsFilter) writeConditionSubstituted(
 
 		var err error
 
-		params, paramIndex, err = WriteConditionSubstituted(
-			f.conditions, b, targetAlias, params, paramIndex, subs,
+		params, paramIndex, err = writeConditionCtx(
+			f.conditions, b, targetAlias, params, paramIndex, rc,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to write _exists conditions: %w", err)

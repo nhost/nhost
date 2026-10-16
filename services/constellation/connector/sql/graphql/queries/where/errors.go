@@ -37,6 +37,9 @@ var (
 	errIsNullMustBeBoolean         = errors.New("_is_null must be a boolean")
 	errFieldComparisonMustBeObject = errors.New("field comparison must be an object")
 	errUnknownWhereOperator        = errors.New("unknown operator")
+	errInvalidColumnReference      = errors.New(
+		`column comparison operand must be "column", ["column"] or ["$", "column"]`,
+	)
 
 	errAggregateOnNonArrayRelationship = errors.New(
 		"aggregate filter is only valid on array relationships",
