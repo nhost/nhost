@@ -99,6 +99,9 @@ export default function BranchesComboBox() {
       emptyText="No branch with that name."
       footerSlot={footerSlot}
       popoverContentClassName="min-w-80"
+      // Like the organization and project switchers: the name goes to the
+      // project's overview (on this branch), the chevron opens the list.
+      linkHref={`/orgs/${orgSlug}/projects/${appSubdomain}`}
       linkContent={label}
       aria-label="Switch branch"
       onChange={(id) => {

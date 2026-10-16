@@ -1,5 +1,4 @@
 import {
-  Clock,
   ExternalLink,
   FileText,
   Plus,
@@ -26,6 +25,7 @@ import {
   BranchStatusMark,
   CurrentBadge,
   GitHubMirrorMark,
+  InactiveChip,
   OpenRequestChip,
   ProductionBadge,
 } from '@/features/orgs/projects/branches/components/BranchBits';
@@ -206,6 +206,7 @@ export default function AllBranches() {
               </span>
             )}
             {isCurrent && !branch.isProduction && <CurrentBadge />}
+            {stale && <InactiveChip branch={branch} />}
             <BranchStatusMark branch={branch} />
           </div>
           <p className="mt-1 truncate pl-6 text-muted-foreground text-xs">
@@ -225,14 +226,7 @@ export default function AllBranches() {
                     <span className="font-mono">{branch.gitBranch}</span>
                   </>
                 )}
-                {stale ? (
-                  <span className="ml-1 inline-flex items-center gap-1 font-medium text-foreground">
-                    · <Clock className="size-3" /> No activity for{' '}
-                    {timeAgo(branch.lastActivityAt).replace(' ago', '')}
-                  </span>
-                ) : (
-                  <> · Updated {timeAgo(branch.lastActivityAt)}</>
-                )}
+                <> · Updated {timeAgo(branch.lastActivityAt)}</>
               </>
             )}
           </p>

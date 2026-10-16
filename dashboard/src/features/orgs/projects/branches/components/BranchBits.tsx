@@ -1,13 +1,20 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { GitBranch, GitPullRequest, Loader2, Shield } from 'lucide-react';
+import {
+  Clock,
+  GitBranch,
+  GitPullRequest,
+  Loader2,
+  Shield,
+} from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import type {
-  Branch,
-  MergeRequest,
+import {
+  type Branch,
+  type MergeRequest,
+  timeAgo,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +53,16 @@ export function CurrentBadge() {
     // Same yellow as the "on a branch" strip at the top.
     <span className="inline-flex shrink-0 items-center rounded-full border border-warning/40 px-2 py-px font-medium text-warning text-xs">
       You're here
+    </span>
+  );
+}
+
+/** Gray tag for a branch with no recent activity, e.g. "Inactive 41 days". */
+export function InactiveChip({ branch }: { branch: Branch }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted px-2 py-px font-medium text-muted-foreground text-xs">
+      <Clock className="size-3" />
+      Inactive {timeAgo(branch.lastActivityAt).replace(' ago', '')}
     </span>
   );
 }
