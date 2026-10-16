@@ -226,7 +226,7 @@ export default function AllBranches() {
                   </>
                 )}
                 {stale ? (
-                  <span className="ml-1 inline-flex items-center gap-1 text-warning">
+                  <span className="ml-1 inline-flex items-center gap-1 font-medium text-foreground">
                     · <Clock className="size-3" /> No activity for{' '}
                     {timeAgo(branch.lastActivityAt).replace(' ago', '')}
                   </span>
