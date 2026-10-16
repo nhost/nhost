@@ -2,6 +2,7 @@ import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { isSpatialType } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 import { CellResetButtons } from '@/features/orgs/projects/storage/dataGrid/components/CellResetButtons';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import {
@@ -34,7 +35,8 @@ export default function DataGridTextCell<
     baseType === 'character' ||
     baseType === 'character varying' ||
     baseType === 'json' ||
-    baseType === 'jsonb';
+    baseType === 'jsonb' ||
+    isSpatialType(baseType);
 
   const normalizedOptimisticValue =
     optimisticValue !== null && typeof optimisticValue === 'object'
