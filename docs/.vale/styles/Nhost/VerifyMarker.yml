@@ -1,0 +1,12 @@
+# Nhost rule. Raw scope, because the TokenIgnores in .vale.ini drop MDX
+# comments, which is where the marker lives.
+extends: existence
+message: "WR-CONTENT-05: check the claim against its source and remove the
+  '%s' marker, or remove the claim."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'VERIFY:'

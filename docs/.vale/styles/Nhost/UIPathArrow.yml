@@ -1,0 +1,11 @@
+# Nhost rule. Raw scope, so a path inside a JSX-wrapped paragraph is seen too.
+extends: existence
+message: "TGT-DOCS-06: separate the segments of a bold UI path with '→',
+  not '->'."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '\*\*[^*\n]*->[^*\n]*\*\*'

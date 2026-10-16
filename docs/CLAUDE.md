@@ -38,12 +38,16 @@ or from inside `nix develop .#docs`. Outside the shell they fail with
 - `pnpm lint:prose:changed`: only pages changed against `origin/main` (or
   `main`) plus untracked pages
 - `vale --minAlertLevel=suggestion src/content/docs/`: the suggestion tier too
+- `pnpm test:prose-rules`: fixture tests for the Nhost rules and the
+  calibration golden (`vale_test.sh`; `--update` regenerates the expected
+  files); part of `pnpm test`
 
 Config is `.vale.ini`; rules, severity tiers and their measured counts are
 in `.vale/styles/Nhost/README.md`. Raise a rule's tier only with a new count
 there. `.vale.ini` ignores imports, `export const` blocks, `{/* */}` comments
 and JSX tags; a rule that must see a comment (`SCREENSHOT:`, `VERIFY:`) needs
-`scope: raw`. When Vale flags text inside a JSX-wrapped paragraph (a `<Card>`
+`scope: raw`, plus `vocab: false` so an `accept.txt` term (`Hasura`) inside
+the match cannot hide it. When Vale flags text inside a JSX-wrapped paragraph (a `<Card>`
 body, say) and the same text also sits earlier in the page inside ignored
 content (a tag attribute such as an `href`, an `export const` value), the
 alert is reported at that earlier line, not the line holding the prose.

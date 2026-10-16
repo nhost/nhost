@@ -1,0 +1,8 @@
+# Nhost rule.
+extends: existence
+message: "WR-ANTI-09: give the reader the instruction or the fact instead of
+  '%s'."
+level: warning
+ignorecase: true
+tokens:
+  - "in this (?:section|guide),? we(?: will|['’]ll)"

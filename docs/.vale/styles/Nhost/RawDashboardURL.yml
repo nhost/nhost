@@ -1,0 +1,15 @@
+# Nhost rule. Raw scope, so URL templates in code fences and in JSX
+# attributes are seen too.
+extends: existence
+message: "TGT-DOCS-07: give the UI path and a deep link through
+  'app.nhost.io/orgs/_/projects/_/', not '%s'."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  # A dashboard URL template such as /orgs/{org}/projects/{project}/...
+  - '/orgs/\{[^}\s/]+\}/projects/'
+  # A dashboard link naming an organisation instead of the '_' placeholder.
+  - 'app\.nhost\.io/orgs/[^_\s"/][^\s"/]*'

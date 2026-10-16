@@ -1,0 +1,1 @@
+docs/.vale/tests/ScreenshotPlaceholder/fail.mdx:7:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.

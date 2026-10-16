@@ -1,0 +1,11 @@
+# Nhost rule. The words with no hits on the docs tree, so it runs at error;
+# the rest are in LLMPhrases.yml.
+extends: existence
+message: "WR-ANTI-05: describe what the product does instead of '%s'."
+level: error
+ignorecase: true
+tokens:
+  - effortless(?:ly)?
+  - delv(?:e|es|ed|ing)
+  - "let['’]s dive"
+  - "it['’]s worth noting"

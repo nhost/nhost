@@ -52,6 +52,7 @@ feature, code before prose, callouts in Markdown syntax, a UI path in bold.
   row per property.
   `<Tabs>` is kept for parallel sets of instructions, such as the same step
   in the dashboard and in `nhost.toml`, or the same code in two languages.
+  Vale-enforced: `Nhost.Aside`.
 
   ```mdx
   :::caution[Requirements]
@@ -67,12 +68,12 @@ feature, code before prose, callouts in Markdown syntax, a UI path in bold.
 - **TGT-DOCS-06** A path through the dashboard is written in bold with
   `→` (U+2192) between segments, `**Auth → Settings → Sign-In Methods →
   Magic Link**`, matching the labels in the sidebar and tabs. Never `->` or
-  `>`.
+  `>`. Vale-enforced: `Nhost.UIPathArrow`, `Nhost.NavPaths`.
 - **TGT-DOCS-07** Every dashboard UI path is followed by the deep-link
   snippet below, verbatim, pointing at
   `https://app.nhost.io/orgs/_/projects/_/<route>`; `_` lets the dashboard
   substitute the reader's organisation and project. The page imports `Icon`
-  once.
+  once. Vale-enforced: `Nhost.RawDashboardURL`, `Nhost.DeepLinkRel`.
 
   ```mdx
   import { Icon } from '@astrojs/starlight/components';
@@ -85,6 +86,7 @@ feature, code before prose, callouts in Markdown syntax, a UI path in bold.
   numbered step sits inside that `<Steps>` item; any other image sits
   directly beside the paragraph or code block it illustrates, never grouped
   at the end. Every `SCREENSHOT:` placeholder is replaced before merge.
+  Vale-enforced: `Nhost.ScreenshotPlaceholder`.
 - **TGT-DOCS-09** Grounding is blocking for docs. A page with an unsourced
   product-behaviour claim or a `VERIFY:` marker does not merge, and a judge
   scores it as failing regardless of its other dimensions. Sources are the

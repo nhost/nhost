@@ -96,16 +96,15 @@ explicit voice; an unknown single byline gets the neutral house voice.
   default, a limit, a version requirement, what an action writes or changes)
   is checked against a cited source in the repository, or carries a
   `{/* VERIFY: <claim> — <what to check it against> */}` marker. A claim that
-  cannot be sourced is removed.
+  cannot be sourced is removed. Vale-enforced: `Nhost.VerifyMarker`.
 
 ## Style (`WR-STYLE`)
 
 Mechanical prose style that holds in docs and posts alike. The first three
-entries do not depend on Vale. Rules vendored from the Google Vale package
-are appended to this section, numbered from 04 onward, one ID per vendored
-rule, each named in its Vale message. An entry marked Advisory is a
-suggestion-tier rule the hand-written docs do not follow; it informs a
-revision and never blocks one.
+entries do not depend on Vale. Entries 04 to 15 are rules vendored from the
+Google Vale package, one ID per vendored rule, each named in its Vale
+message; 16 is an Nhost rule. An entry marked Advisory is a suggestion-tier
+rule: it informs a revision and never blocks one.
 
 - **WR-STYLE-01** Sentences are short, declarative and in the present tense.
   One idea per sentence; the subject performs the verb; a procedure is
@@ -142,10 +141,10 @@ revision and never blocks one.
 - **WR-STYLE-15** Advisory: terms from Google's word list, such as `URL` for
   `url`; its `Cloud` entry does not apply to Nhost Cloud. Vale-enforced:
   `Nhost.WordList`.
-
-Em dashes are house style: the hand-written docs use them freely, 275 times
-at the commit this standard was written against, so no rule here bans them
-and no reviewer treats them as a sign of generated text.
+- **WR-STYLE-16** Advisory: em dashes are house style. The hand-written docs
+  use them freely, 275 times at the commit this standard was written
+  against, so nothing bans them and no reviewer treats them as a sign of
+  generated text; the rule only lists them. Vale-enforced: `Nhost.EmDash`.
 
 ## Anti-patterns (`WR-ANTI`)
 
@@ -164,11 +163,13 @@ paraphrases around it.
   behave. A side effect is stated only when the source shows it.
 - **WR-ANTI-04** Filler sections: a heading named Overview, Introduction,
   Benefits, Summary or Conclusion, and any paragraph that tells the reader
-  what the page is about to say or has just said.
+  what the page is about to say or has just said. Vale-enforced:
+  `Nhost.FillerHeadings`.
 - **WR-ANTI-05** Hedge and marketing words: "seamless", "leverage", "robust",
   "powerful", "effortless", "unlock", "delve", "simply", "it's worth noting",
   "let's dive in", and any adjective that praises the product instead of
-  describing it.
+  describing it. Vale-enforced: `Nhost.LLMPhrases`,
+  `Nhost.LLMPhrasesStrict`.
 - **WR-ANTI-06** Restating the heading as the first sentence of its section
   ("## Create a bucket" followed by "In this section you create a bucket").
   The first sentence does the work the heading announces.
@@ -182,7 +183,8 @@ paraphrases around it.
   throughout.
 - **WR-ANTI-09** Tutorial voice: "In this guide, we will", "Let's", "Now that
   we have", and any sentence that narrates the writer's plan instead of
-  giving the reader an instruction or a fact.
+  giving the reader an instruction or a fact. Vale-enforced:
+  `Nhost.TutorialVoice`.
 
 ## Placeholders
 
@@ -194,9 +196,9 @@ comment where the image or the fact belongs:
 
 Neither ever merges. A screenshot placeholder is replaced by the image at the
 path it names; a verify marker is resolved by checking the claim against the
-source it names and then removing the marker, or by removing the claim. A
-Vale rule fails docs CI on either marker, so a page carrying one cannot pass
-the docs check.
+source it names and then removing the marker, or by removing the claim.
+`Nhost.ScreenshotPlaceholder` and `Nhost.VerifyMarker` fail docs CI on either
+marker, so a page carrying one cannot pass the docs check.
 
 ## Evidence
 

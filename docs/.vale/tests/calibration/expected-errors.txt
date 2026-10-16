@@ -1,0 +1,14 @@
+tools/writing/calibration/docs/native-queries/draft.mdx:17:1:Nhost.Aside:TGT-DOCS-04: use a ':::note', ':::tip' or ':::caution' callout, never the '<Aside' component.
+tools/writing/calibration/docs/native-queries/draft.mdx:18:160:Nhost.UIPathArrow:TGT-DOCS-06: separate the segments of a bold UI path with '→', not '->'.
+tools/writing/calibration/docs/native-queries/draft.mdx:18:162:Nhost.NavPaths:TGT-DOCS-06: the dashboard path is now 'GraphQL → Settings → Engine', not 'Settings -> Hasura'.
+tools/writing/calibration/docs/native-queries/draft.mdx:25:24:Nhost.UIPathArrow:TGT-DOCS-06: separate the segments of a bold UI path with '→', not '->'.
+tools/writing/calibration/docs/native-queries/draft.mdx:30:1:Nhost.RawDashboardURL:TGT-DOCS-07: give the UI path and a deep link through 'app.nhost.io/orgs/_/projects/_/', not '/orgs/{org}/projects/'.
+tools/writing/calibration/docs/native-queries/draft.mdx:35:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:68:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:82:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:123:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:143:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:170:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:198:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:202:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
+tools/writing/calibration/docs/native-queries/draft.mdx:212:5:Nhost.ScreenshotPlaceholder:TGT-DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.

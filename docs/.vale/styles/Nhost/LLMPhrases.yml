@@ -1,0 +1,12 @@
+# Nhost rule. The words with hits on the docs tree; the zero-hit ones are in
+# LLMPhrasesStrict.yml, so no word is reported twice.
+extends: existence
+message: "WR-ANTI-05: describe what the product does instead of '%s'."
+level: warning
+ignorecase: true
+tokens:
+  - seamless(?:ly)?
+  - leverag(?:e|es|ed|ing)
+  - robust
+  - powerful
+  - unlock(?:s|ed|ing)?

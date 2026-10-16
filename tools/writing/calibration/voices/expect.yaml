@@ -18,6 +18,8 @@
 #   blob       `git rev-parse <chosen_at>:<path>`; a docs page is live, so the
 #              voice check compares this against the current blob before
 #              scoring and refuses a page that has changed
+#   note       optional; why blob differs from the chosen_at blob, when a
+#              deliberate edit re-recorded it
 #   chosen_at  commit the rule was run at
 #   rule       the selection rule, one line
 #   reason     why this document is the pick
@@ -28,7 +30,7 @@ voices:
   nhost-docs:
     held_out:
       path: docs/src/content/docs/platform/cloud/environment-variables.mdx
-      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      blob: de433d4c53239adaad28568a51e991aad7e393b5
       chosen_at: 79bfe1016b
       rule: >-
         Latest last-commit date (git log -1 --format=%ct at chosen_at) among
@@ -40,4 +42,10 @@ voices:
         functions example that touched both this page and
         products/functions/guides/getting-started.mdx; ascending path breaks
         the tie.
+      note: >-
+        The Phase 3 UIPathArrow sweep changed one line of this page (the bold
+        Project Dashboard path, -> to →), so blob was re-recorded with
+        git hash-object after that commit's edit; chosen_at still names the
+        commit the pick was made at, whose blob was
+        593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0.
     vetoed: []

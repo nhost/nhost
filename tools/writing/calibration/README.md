@@ -124,7 +124,9 @@ mechanical and auditable.
 A docs page is live: anyone can edit it after it is chosen. `expect.yaml`
 records its blob SHA (`git rev-parse 79bfe1016b:<path>`), and the voice check
 compares it with the current blob before scoring, refusing a page that has
-changed.
+changed. A deliberate edit to the page, such as a mechanical sweep,
+re-records the blob with `git hash-object <path>` and adds a `note:` saying
+what changed.
 
 ### Blog
 

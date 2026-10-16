@@ -1,0 +1,12 @@
+# Nhost rule. Raw scope, because the TokenIgnores in .vale.ini drop MDX
+# comments, which is where the placeholder lives.
+extends: existence
+message: "TGT-DOCS-08: replace the '%s' placeholder with the captured image
+  before merge."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'SCREENSHOT:'

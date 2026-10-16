@@ -59,6 +59,8 @@ let
       ../vendor/cuelang.org/go
       ../vendor/github.com/cockroachdb/apd
       ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
+      # Calibration set, read in place as Vale fixtures by vale_test.sh.
+      ../tools/writing/calibration
     ];
   };
 
