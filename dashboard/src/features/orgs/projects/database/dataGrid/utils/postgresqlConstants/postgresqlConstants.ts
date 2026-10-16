@@ -51,6 +51,13 @@ export const POSTGRESQL_CHARACTER_TYPES = [
 export const POSTGRESQL_JSON_TYPES = ['json', 'jsonb'];
 
 /**
+ * Spatial data types provided by the PostGIS extension.
+ *
+ * @docs https://postgis.net/docs/using_postgis_dbmanagement.html#RefObject
+ */
+export const POSTGIS_SPATIAL_TYPES = ['geometry', 'geography'];
+
+/**
  * PostgreSQL types that have no default B-tree ordering operator and therefore
  * cannot be used in ORDER BY. Sorting on these via Hasura's run_sql endpoint
  * fails with: "could not identify an ordering operator for type ...".
