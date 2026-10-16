@@ -155,7 +155,7 @@ export default function SocialProvidersSettings() {
         ) : (
           <Button
             variant="outline"
-            className="flex w-fit flex-row gap-2 bg-background text-sm+ hover:bg-accent"
+            className="flex w-fit flex-row gap-2 text-sm+"
             onClick={handleConnectGithub}
           >
             <GitHubIcon />
