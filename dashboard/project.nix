@@ -276,6 +276,8 @@ rec {
       export NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
       export NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
       export NEXT_PUBLIC_NHOST_APP_ID=__NEXT_PUBLIC_NHOST_APP_ID__
+      export NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL=__NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL__
+      export NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET=__NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET__
     '';
 
     buildPhase = ''
@@ -291,25 +293,31 @@ rec {
     '';
 
     installPhase = ''
-      cp -r .next/standalone $out
-
-      mkdir -p $out/dashboard/.next
-      cp -r .next/static $out/dashboard/.next/static
-      cp -r public $out/dashboard/public
-
-      # pnpm 11 produces more .pnpm/node_modules/<pkg> indirection symlinks
-      # than pnpm 10. Next.js NFT copies some of these without their targets,
-      # leaving dangling symlinks that fail Nix's noBrokenSymlinks fixup check.
-      # These point at packages that aren't runtime deps, so prune them.
-      find $out -xtype l -delete
+      mkdir -p $out
+      cp -r dist $out/dashboard
     '';
   };
 
-  packageWithDisabledCSP = package.overrideAttrs (oldAttrs: {
-    configurePhase = oldAttrs.configurePhase + ''
-      export CSP_MODE=disabled
-    '';
-  });
+  # Unknown paths fall back to index.html so client-side routes load. Only the
+  # content-hashed files under /assets are cacheable; everything else, including
+  # index.html served as fallback, is revalidated so new images take effect.
+  staticWebServerConfig = pkgs.writeText "static-web-server.toml" ''
+    [general]
+    port = 3000
+    root = "/dashboard"
+    page-fallback = "/dashboard/index.html"
+    cache-control-headers = false
+
+    [advanced]
+
+    [[advanced.headers]]
+    source = "**"
+    headers = { Cache-Control = "no-cache" }
+
+    [[advanced.headers]]
+    source = "/assets/**"
+    headers = { Cache-Control = "public, max-age=31536000, immutable" }
+  '';
 
   dockerImage = pkgs.runCommand "image-as-dir" { } ''
     ${
@@ -321,7 +329,7 @@ rec {
         copyToRoot = pkgs.buildEnv {
           name = "image";
           paths = [
-            packageWithDisabledCSP
+            package
             (pkgs.writeTextFile {
               name = "tmp-file";
               text = ''
@@ -337,7 +345,6 @@ rec {
           Env = [
             "TMPDIR=/tmp"
             "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-            "NEXT_TELEMETRY_DISABLED=1"
             "NEXT_PUBLIC_ENV=dev"
             "NEXT_PUBLIC_NHOST_PLATFORM=false"
             "NEXT_PUBLIC_DASHBOARD_VERSION=${version}"
@@ -355,8 +362,9 @@ rec {
           ];
           Entrypoint = [
             "${entrypoint}/bin/docker-entrypoint.sh"
-            "${pkgs.nhost.nodejs}/bin/node"
-            "/dashboard/server.js"
+            "${pkgs.static-web-server}/bin/static-web-server"
+            "--config-file"
+            "${staticWebServerConfig}"
           ];
         };
       }).copyTo
