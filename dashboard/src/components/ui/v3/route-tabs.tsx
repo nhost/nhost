@@ -1,5 +1,6 @@
 import {
   createLink,
+  type LinkComponent,
   type LinkComponentProps,
   useRouter,
 } from '@tanstack/react-router';
@@ -192,11 +193,16 @@ const RouteTabLinkAnchor = forwardRef<HTMLElement, RouteTabLinkAnchorProps>(
 );
 RouteTabLinkAnchor.displayName = 'RouteTabLinkAnchor';
 
+const RouterTabLink = createLink(RouteTabLinkAnchor);
+
 /**
  * A route tab. Takes the router's link options (`to`, `params`, `search`)
- * plus `exact` and `disabled`.
+ * plus `exact` and `disabled`. A disabled tab has no href, so its active state
+ * comes from the router; `exact` is passed on so that follows the same rule.
  */
-export const RouteTabLink = createLink(RouteTabLinkAnchor);
+export const RouteTabLink: LinkComponent<typeof RouteTabLinkAnchor> = (
+  props,
+) => <RouterTabLink activeOptions={{ exact: props.exact }} {...props} />;
 
 export type RouteTabLinkProps = LinkComponentProps<typeof RouteTabLinkAnchor>;
 
