@@ -1,7 +1,6 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
-import { useTheme } from '@mui/material';
 import { bbedit } from '@uiw/codemirror-theme-bbedit';
 import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
@@ -19,6 +18,7 @@ import {
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const removeTOMLIndentation = (tomlStr: string) => {
@@ -27,7 +27,7 @@ const removeTOMLIndentation = (tomlStr: string) => {
 };
 
 export default function TOMLEditor() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
 
   const [tomlCode, setTOMLCode] = useState('');
@@ -155,7 +155,7 @@ export default function TOMLEditor() {
             className="h-full"
             height="100%"
             width="100%"
-            theme={theme.palette.mode === 'light' ? bbedit : githubDark}
+            theme={resolvedTheme === 'light' ? bbedit : githubDark}
             extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
             onChange={onChange}
           />

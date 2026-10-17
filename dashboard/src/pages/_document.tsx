@@ -1,7 +1,32 @@
-import createEmotionServer from '@emotion/server/create-instance';
 import type { DocumentContext } from 'next/document';
 import Document, { Head, Html, Main, NextScript } from 'next/document';
-import { createEmotionCache } from '@/utils/createEmotionCache';
+import {
+  NO_TRANSITION_CSS,
+  NO_TRANSITION_STYLE_ID,
+} from '@/providers/Theme/utils';
+import { THEME_STORAGE_KEY } from '@/utils/constants/common';
+
+// Runs before the body is painted so the first frame already uses the right
+// theme tokens. Mirrors readStoredThemePreference and resolveTheme.
+// Transitions stay disabled until ThemeDocumentClass applies the preference,
+// so styles loading late (e.g. in development) don't animate the colors in.
+const setThemeClassScript = `(function () {
+  try {
+    var style = document.createElement('style');
+    style.id = '${NO_TRANSITION_STYLE_ID}';
+    style.textContent = '${NO_TRANSITION_CSS}';
+    document.head.appendChild(style);
+    var preference = localStorage.getItem('${THEME_STORAGE_KEY}');
+    var theme =
+      preference === 'light' || preference === 'dark'
+        ? preference
+        : window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme);
+  } catch (error) {}
+})();`;
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
@@ -19,6 +44,8 @@ export default class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head>
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: must run before first paint */}
+          <script dangerouslySetInnerHTML={{ __html: setThemeClassScript }} />
           <meta name="robots" content="follow, index" />
           <meta name="description" content={meta.description} />
           <meta property="og:site_name" content={meta.title} />
@@ -31,9 +58,6 @@ export default class MyDocument extends Document {
           <meta name="twitter:description" content={meta.description} />
           <meta name="twitter:image" content={meta.image} />
           <link rel="shortcut icon" href="/assets/favicon.png" />
-          {/* Inject MUI styles first to match with the prepend: true configuration. */}
-          {/* biome-ignore lint/suspicious/noExplicitAny: TODO */}
-          {(this.props as any).emotionStyleTags}
         </Head>
         <body>
           <Main />
@@ -44,40 +68,3 @@ export default class MyDocument extends Document {
     );
   }
 }
-
-MyDocument.getInitialProps = async (ctx) => {
-  const originalRenderPage = ctx.renderPage;
-
-  // You can consider sharing the same Emotion cache between all the SSR requests to speed up performance.
-  // However, be aware that it can have global side effects.
-  const cache = createEmotionCache();
-  const { extractCriticalToChunks } = createEmotionServer(cache);
-
-  // biome-ignore lint/style/noParameterAssign: need to override the original renderPage to add the cache
-  ctx.renderPage = () =>
-    originalRenderPage({
-      // biome-ignore lint/suspicious/noExplicitAny: TODO
-      enhanceApp: (App: any) =>
-        function EnhanceApp(props) {
-          return <App emotionCache={cache} {...props} />;
-        },
-    });
-
-  const initialProps = await Document.getInitialProps(ctx);
-  // This is important. It prevents Emotion to render invalid HTML.
-  // See https://github.com/mui/material-ui/issues/26561#issuecomment-855286153
-  const emotionStyles = extractCriticalToChunks(initialProps.html);
-  const emotionStyleTags = emotionStyles.styles.map((style) => (
-    <style
-      data-emotion={`${style.key} ${style.ids.join(' ')}`}
-      key={style.key}
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: This is the way Emotion injects CSS into the page.
-      dangerouslySetInnerHTML={{ __html: style.css }}
-    />
-  ));
-
-  return {
-    ...initialProps,
-    emotionStyleTags,
-  };
-};

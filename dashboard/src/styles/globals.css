@@ -408,6 +408,10 @@ html.dark .graphiql-themed .graphiql-container {
   }
   body {
     @apply bg-background text-foreground;
+    /* Base text size the dashboard was designed around. */
+    font-size: 0.9375rem;
+    /* 22px at 15px; unitless so children scale with their own font size. */
+    line-height: 1.4667;
   }
 }
 
