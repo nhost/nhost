@@ -47,7 +47,9 @@ export default function ReplicasFormSection() {
   return (
     <div className="space-y-4 rounded border-1 p-4">
       <div className="flex flex-row items-center space-x-2">
-        <h4 className="font-semibold">Replicas ({replicas})</h4>
+        <h4 className="font-semibold">
+          Replicas{Number.isFinite(replicas) ? ` (${replicas})` : ''}
+        </h4>
         <InfoTooltip>
           Learn more about{' '}
           <TextLink
@@ -97,7 +99,11 @@ export default function ReplicasFormSection() {
             </Label>
             <div className="space-y-1">
               <Input
-                value={autoscaler?.maxReplicas ?? ''}
+                value={
+                  Number.isFinite(autoscaler?.maxReplicas)
+                    ? autoscaler?.maxReplicas
+                    : ''
+                }
                 onChange={(event) =>
                   handleMaxReplicasChange(event.target.value)
                 }
