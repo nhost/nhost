@@ -22,7 +22,72 @@ const originalColumns: DatabaseColumn[] = [
 ];
 
 describe('prepareUpdateTableQuery', () => {
-  test('should prepare a query for renaming the table', () => {
+  it('should drop removed and add new multi-column unique constraints', () => {
+    const columns: DatabaseColumn[] = [
+      { id: 'a', name: 'a', type: 'text', uniqueConstraints: ['t_a_b_key'] },
+      { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_a_b_key'] },
+      { id: 'c', name: 'c', type: 'text', uniqueConstraints: ['t_c_key'] },
+      { id: 'd', name: 'd', type: 'text', uniqueConstraints: ['t_d_e_key'] },
+      { id: 'e', name: 'e', type: 'text', uniqueConstraints: ['t_d_e_key'] },
+    ];
+
+    const transaction = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable: {
+        name: originalTableName,
+        primaryKey: [],
+        columns,
+        uniqueKeys: [
+          { name: 't_a_b_key', columns: ['a', 'b'] },
+          { columns: ['b', 'c'] },
+          { newName: 't_c_e_key', columns: ['c', 'e'] },
+        ],
+      },
+      originalColumns: columns,
+      originalForeignKeyRelations: [],
+    });
+
+    expect(transaction.map(({ args }) => args.sql)).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS t_d_e_key;',
+      'ALTER TABLE public.test_table ADD UNIQUE (b,c);',
+      'ALTER TABLE public.test_table ADD CONSTRAINT t_c_e_key UNIQUE (c,e);',
+    ]);
+  });
+
+  it('unticking Unique only drops single-column unique constraints', () => {
+    const columns: DatabaseColumn[] = [
+      { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_b_c_key'] },
+      {
+        id: 'c',
+        name: 'c',
+        type: 'text',
+        isUnique: true,
+        uniqueConstraints: ['t_c_key', 't_b_c_key'],
+      },
+    ];
+
+    const transaction = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable: {
+        name: originalTableName,
+        primaryKey: [],
+        columns: [columns[0], { ...columns[1], isUnique: false }],
+        uniqueKeys: [{ name: 't_b_c_key', columns: ['b', 'c'] }],
+      },
+      originalColumns: columns,
+      originalForeignKeyRelations: [],
+    });
+
+    expect(transaction.map(({ args }) => args.sql)).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS t_c_key;',
+    ]);
+  });
+
+  it('should prepare a query for renaming the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -57,7 +122,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a column', () => {
+  it('should prepare a query for adding a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -93,7 +158,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a column', () => {
+  it('should prepare a query for removing a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -123,7 +188,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a column', () => {
+  it('should prepare a query for updating a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -164,7 +229,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a foreign key', () => {
+  it('should prepare a query for adding a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -208,7 +273,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a foreign key', () => {
+  it('should prepare a query for removing a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -253,7 +318,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a foreign key', () => {
+  it('should prepare a query for updating a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -311,7 +376,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should not modify primary keys when they are the same', () => {
+  it('should not modify primary keys when they are the same', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -363,7 +428,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(primaryKeyQueries).toHaveLength(0);
   });
 
-  test('should handle primary key changes from single to composite', () => {
+  it('should handle primary key changes from single to composite', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -423,7 +488,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should handle removing primary key entirely', () => {
+  it('should handle removing primary key entirely', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -477,7 +542,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(dropConstraintQuery).toBeDefined();
     expect(addPrimaryKeyQuery).toBeUndefined();
   });
-  test('should prepare a query for adding comment to with the old table name', () => {
+  it('should prepare a query for adding comment to with the old table name', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -513,7 +578,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding comment to the table', () => {
+  it('should prepare a query for adding comment to the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],

@@ -59,6 +59,20 @@ export default function prepareCreateTableQuery({
     );
   }
 
+  if (isNotEmptyValue(table.uniqueKeys)) {
+    columnsAndConstraints = format(
+      '%s, %s',
+      columnsAndConstraints,
+      table.uniqueKeys
+        .map(({ newName, columns }) =>
+          newName
+            ? format('CONSTRAINT %I UNIQUE (%I)', newName, columns)
+            : format('UNIQUE (%I)', columns),
+        )
+        .join(', '),
+    );
+  }
+
   if (isNotEmptyValue(table.foreignKeyRelations)) {
     columnsAndConstraints = format(
       `${columnsAndConstraints}, %s`,
