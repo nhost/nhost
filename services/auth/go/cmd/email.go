@@ -17,7 +17,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/notifications/postmark"
 	"github.com/nhost/nhost/services/auth/go/notifications/sms"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	"github.com/urfave/cli/v3"
 )
 
 // providerTimeoutDefault matches the timeout the legacy Modica client used and
@@ -25,21 +24,21 @@ import (
 const providerTimeoutDefault = 30 * time.Second
 
 func getSMTPEmailer(
-	cmd *cli.Command,
+	opts Options,
 	templates *notifications.Templates,
 ) (*notifications.Email, error) {
 	headers := make(map[string]string)
-	if cmd.String(flagSMTPAPIHedaer) != "" {
-		headers["X-SMTPAPI"] = cmd.String(flagSMTPAPIHedaer)
+	if opts.SMTP.APIHeader != "" {
+		headers["X-SMTPAPI"] = opts.SMTP.APIHeader
 	}
 
-	host := cmd.String(flagSMTPHost)
-	user := cmd.String(flagSMTPUser)
-	password := cmd.String(flagSMTPPassword)
+	host := opts.SMTP.Host
+	user := opts.SMTP.User
+	password := opts.SMTP.Password
 
 	var auth smtp.Auth
 
-	switch cmd.String(flagSMTPAuthMethod) {
+	switch opts.SMTP.AuthMethod {
 	case "LOGIN":
 		auth = notifications.LoginAuth(user, password, host)
 	case "PLAIN":
@@ -51,20 +50,20 @@ func getSMTPEmailer(
 	}
 
 	return notifications.NewEmail(
-		cmd.String(flagSMTPHost),
-		uint16(cmd.Uint(flagSMTPPort)), //nolint:gosec
-		cmd.Bool(flagSMTPSecure),
+		opts.SMTP.Host,
+		opts.SMTP.Port,
+		opts.SMTP.Secure,
 		auth,
-		cmd.String(flagSMTPSender),
+		opts.SMTP.Sender,
 		headers,
 		templates,
 	), nil
 }
 
-func getTemplates(cmd *cli.Command, logger *slog.Logger) (*notifications.Templates, error) {
+func getTemplates(opts Options, logger *slog.Logger) (*notifications.Templates, error) {
 	var templatesPath string
 	for _, p := range []string{
-		cmd.String(flagEmailTemplatesPath),
+		opts.EmailTemplatesPath,
 		"email-templates",
 		filepath.Join("share", "email-templates"),
 	} {
@@ -80,7 +79,7 @@ func getTemplates(cmd *cli.Command, logger *slog.Logger) (*notifications.Templat
 
 	templates, err := notifications.NewTemplatesFromFilesystem(
 		templatesPath,
-		cmd.String(flagDefaultLocale),
+		opts.DefaultLocale,
 		logger.With(slog.String("component", "mailer")),
 	)
 	if err != nil {
@@ -91,47 +90,47 @@ func getTemplates(cmd *cli.Command, logger *slog.Logger) (*notifications.Templat
 }
 
 func getEmailer( //nolint:ireturn
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) (controller.Emailer, *notifications.Templates, error) {
-	if cmd.String(flagSMTPHost) == "postmark" {
-		return postmark.New(cmd.String(flagSMTPSender), cmd.String(flagSMTPPassword)), nil, nil
+	if opts.SMTP.Host == "postmark" {
+		return postmark.New(opts.SMTP.Sender, opts.SMTP.Password), nil, nil
 	}
 
-	templates, err := getTemplates(cmd, logger)
+	templates, err := getTemplates(opts, logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating templates: %w", err)
 	}
 
-	emailer, err := getSMTPEmailer(cmd, templates)
+	emailer, err := getSMTPEmailer(opts, templates)
 
 	return emailer, templates, err
 }
 
 func getSMS( //nolint:ireturn
-	cmd *cli.Command,
+	opts Options,
 	templates *notifications.Templates,
 	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
-	if !cmd.Bool(flagSMSPasswordlessEnabled) {
+	if !opts.SMS.PasswordlessEnabled {
 		return nil, nil //nolint:nilnil // SMS disabled, return nil client
 	}
 
-	provider := strings.ToLower(cmd.String(flagSMSProvider))
+	provider := strings.ToLower(opts.SMS.Provider)
 	if provider == "" {
 		provider = "twilio" // Default to Twilio for backward compatibility
 	}
 
 	switch provider {
 	case "modica":
-		return getModicaSMS(cmd, templates, db, logger)
+		return getModicaSMS(opts, templates, db, logger)
 	case "twilio":
-		return getTwilioSMS(cmd, templates, db, logger)
+		return getTwilioSMS(opts, templates, db, logger)
 	case "generic":
-		return getGenericSMS(cmd, templates, db, logger)
+		return getGenericSMS(opts, templates, db, logger)
 	case "dev":
-		return sms.NewDev(templates, db, cmd.String(flagSMSDevOutputDir), logger), nil
+		return sms.NewDev(templates, db, opts.SMS.DevOutputDir, logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported SMS provider: %s", provider) //nolint:err113
 	}
@@ -142,14 +141,14 @@ func getSMS( //nolint:ireturn
 // are no longer supported — operators must switch to a Messaging Service or
 // a From phone number.
 func getTwilioSMS( //nolint:ireturn
-	cmd *cli.Command,
+	opts Options,
 	templates *notifications.Templates,
 	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
-	accountSid := cmd.String(flagSMSTwilioAccountSid)
-	authToken := cmd.String(flagSMSTwilioAuthToken)
-	messagingServiceID := cmd.String(flagSMSTwilioMessagingServiceID)
+	accountSid := opts.SMS.Twilio.AccountSID
+	authToken := opts.SMS.Twilio.AuthToken
+	messagingServiceID := opts.SMS.Twilio.MessagingServiceID
 
 	if accountSid == "" || authToken == "" || messagingServiceID == "" {
 		return nil, errors.New("SMS is enabled but Twilio credentials are missing") //nolint:err113
@@ -172,7 +171,7 @@ func getTwilioSMS( //nolint:ireturn
 	if templates == nil {
 		var err error
 
-		templates, err = getTemplates(cmd, logger)
+		templates, err = getTemplates(opts, logger)
 		if err != nil {
 			return nil, fmt.Errorf("problem creating templates: %w", err)
 		}
@@ -213,13 +212,13 @@ func getTwilioSMS( //nolint:ireturn
 
 // getModicaSMS configures the generic SMS provider for Modica's REST API.
 func getModicaSMS( //nolint:ireturn
-	cmd *cli.Command,
+	opts Options,
 	templates *notifications.Templates,
 	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
-	username := cmd.String(flagSMSModicaUsername)
-	password := cmd.String(flagSMSModicaPassword)
+	username := opts.SMS.Modica.Username
+	password := opts.SMS.Modica.Password
 
 	if username == "" || password == "" {
 		return nil, errors.New("SMS is enabled but Modica credentials are missing") //nolint:err113
@@ -228,7 +227,7 @@ func getModicaSMS( //nolint:ireturn
 	if templates == nil {
 		var err error
 
-		templates, err = getTemplates(cmd, logger)
+		templates, err = getTemplates(opts, logger)
 		if err != nil {
 			return nil, fmt.Errorf("problem creating templates: %w", err)
 		}
@@ -279,7 +278,7 @@ func jsonBodyTemplate(fields map[string]string) (string, error) {
 }
 
 func getGenericSMS( //nolint:ireturn
-	cmd *cli.Command,
+	opts Options,
 	templates *notifications.Templates,
 	db *sql.Queries,
 	logger *slog.Logger,
@@ -287,7 +286,7 @@ func getGenericSMS( //nolint:ireturn
 	if templates == nil {
 		var err error
 
-		templates, err = getTemplates(cmd, logger)
+		templates, err = getTemplates(opts, logger)
 		if err != nil {
 			return nil, fmt.Errorf("problem creating templates: %w", err)
 		}
@@ -295,7 +294,7 @@ func getGenericSMS( //nolint:ireturn
 
 	headers := make(map[string]string)
 
-	headersJSON := cmd.String(flagSMSGenericHeaders)
+	headersJSON := opts.SMS.Generic.Headers
 	if headersJSON != "" {
 		if err := json.Unmarshal([]byte(headersJSON), &headers); err != nil {
 			return nil, fmt.Errorf("failed to parse generic SMS headers: %w", err)
@@ -303,11 +302,11 @@ func getGenericSMS( //nolint:ireturn
 	}
 
 	provider, err := sms.NewGenericSMSProvider(
-		cmd.String(flagSMSGenericURL),
-		cmd.String(flagSMSGenericContentType),
-		cmd.String(flagSMSGenericBodyTemplate),
+		opts.SMS.Generic.URL,
+		opts.SMS.Generic.ContentType,
+		opts.SMS.Generic.BodyTemplate,
 		headers,
-		cmd.Duration(flagSMSGenericTimeout),
+		opts.SMS.Generic.Timeout,
 		templates,
 		db,
 	)

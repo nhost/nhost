@@ -7,24 +7,23 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/services/auth/go/controller"
-	"github.com/urfave/cli/v3"
 )
 
-func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGetter, error) {
+func getJWTGetter(opts Options, db controller.DBClient) (*controller.JWTGetter, error) {
 	var (
 		rawClaims map[string]string
 		defaults  map[string]any
 	)
 
-	if cmd.String(flagCustomClaims) != "" {
-		if err := json.Unmarshal([]byte(cmd.String(flagCustomClaims)), &rawClaims); err != nil {
+	if opts.JWT.CustomClaims != "" {
+		if err := json.Unmarshal([]byte(opts.JWT.CustomClaims), &rawClaims); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims: %w", err)
 		}
 	}
 
-	if cmd.String(flagCustomClaimsDefaults) != "" {
+	if opts.JWT.CustomClaimsDefaults != "" {
 		if err := json.Unmarshal(
-			[]byte(cmd.String(flagCustomClaimsDefaults)),
+			[]byte(opts.JWT.CustomClaimsDefaults),
 			&defaults,
 		); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal custom claims defaults: %w", err)
@@ -40,9 +39,9 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		customClaimer, err = controller.NewCustomClaims(
 			rawClaims,
 			&http.Client{}, //nolint:exhaustruct
-			cmd.String(flagGraphqlURL),
+			opts.HasuraGraphqlURL,
 			defaults,
-			controller.CustomClaimerAddAdminSecret(cmd.String(flagHasuraAdminSecret)),
+			controller.CustomClaimerAddAdminSecret(opts.HasuraAdminSecret),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error creating custom claimer: %w", err)
@@ -50,12 +49,12 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 	}
 
 	jwtGetter, err := controller.NewJWTGetter(
-		[]byte(cmd.String(flagHasuraGraphqlJWTSecret)),
-		time.Duration(cmd.Int(flagAccessTokensExpiresIn))*time.Second,
+		[]byte(opts.JWT.Secret),
+		time.Duration(opts.JWT.AccessTokenExpiresIn)*time.Second,
 		customClaimer,
-		cmd.String(flagRequireElevatedClaim),
+		opts.JWT.RequireElevatedClaim,
 		db,
-		cmd.String(flagServerURL),
+		opts.ServerURL,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating jwt getter: %w", err)

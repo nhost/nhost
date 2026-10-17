@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/nhost/nhost/services/auth/go/cmd"
 	docs "github.com/urfave/cli-docs/v3"
@@ -58,6 +60,8 @@ func markdownDocs() *cli.Command {
 //go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml
 //go:generate oapi-codegen -config go/api/types.cfg.yaml docs/openapi.yaml
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	serveCmd := cmd.CommandServe()
 	app := &cli.Command{ //nolint:exhaustruct
 		Name:    "auth",
@@ -70,7 +74,10 @@ func main() {
 		Action: serveCmd.Action,
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	err := app.Run(ctx, os.Args)
+	stop()
+
+	if err != nil {
 		log.Fatal(err)
 	}
 }

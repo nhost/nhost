@@ -10,6 +10,7 @@ import (
 	connectormock "github.com/nhost/nhost/services/constellation/connector/mock"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	metadatamock "github.com/nhost/nhost/services/constellation/metadata/mock"
+	metadatasource "github.com/nhost/nhost/services/constellation/metadata/source"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	subscriptionmock "github.com/nhost/nhost/services/constellation/subscription/mock"
 	"go.uber.org/mock/gomock"
@@ -125,6 +126,57 @@ func TestSwapState(t *testing.T) {
 	}
 }
 
+func TestSwapStateAfterCloseReleasesNewState(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	oldClosed := make(chan struct{})
+	oldConn := connectormock.NewMockConnector(ctrl)
+	oldConn.EXPECT().Close().Do(func() { close(oldClosed) })
+	oldState := newControllerState(
+		nil,
+		map[string]connector.Connector{"old": oldConn},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+
+	newClosed := make(chan struct{})
+	newConn := connectormock.NewMockConnector(ctrl)
+	newConn.EXPECT().Close().Do(func() { close(newClosed) })
+	newState := newControllerState(
+		nil,
+		map[string]connector.Connector{"new": newConn},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+
+	c := &Controller{logger: slog.Default()}
+	c.state.Store(oldState)
+
+	c.Close()
+
+	select {
+	case <-oldClosed:
+	default:
+		t.Fatal("Close did not release the original state")
+	}
+
+	c.swapState(t.Context(), newState, slog.Default())
+
+	select {
+	case <-newClosed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("state swapped in after Close was not released")
+	}
+}
+
 // --- Run tests ------------------------------------------------------------
 
 func TestRun_FileSource_ShutdownOnCancel(t *testing.T) {
@@ -144,11 +196,8 @@ func TestRun_FileSource_ShutdownOnCancel(t *testing.T) {
 		done:        make(chan struct{}),
 	}
 
-	// Simulate a file source whose Watch channel is already closed.
-	source := metadatamock.NewMockSource(ctrl)
-	ch := make(chan metadata.Update)
-	close(ch)
-	source.EXPECT().Watch(gomock.Any()).Return(ch)
+	source := metadatasource.NewFileMetadataSource("/irrelevant")
+	t.Cleanup(source.Close)
 
 	c := &Controller{
 		source: source,
@@ -173,6 +222,10 @@ func TestRun_FileSource_ShutdownOnCancel(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("Run did not return after context cancellation")
 	}
+
+	// Run's deferred shutdown and an explicit owner cleanup share the same
+	// per-state release guard, so the connector expectation remains exactly one.
+	c.Close()
 }
 
 func TestRun_WithSource_ShutdownOnClose(t *testing.T) {

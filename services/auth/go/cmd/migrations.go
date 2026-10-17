@@ -4,23 +4,20 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/migrations"
 	"github.com/nhost/nhost/services/auth/go/sql"
-	"github.com/urfave/cli/v3"
 )
 
 func insertRoles(
-	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context, opts Options, db *sql.Queries, logger *slog.Logger,
 ) error {
 	logger.InfoContext(ctx, "inserting default roles into the database if needed")
 
-	defaultRoles := append(
-		cmd.StringSlice(flagDefaultAllowedRoles),
-		cmd.String(flagDefaultRole),
-	)
+	defaultRoles := append(slices.Clone(opts.DefaultAllowedRoles), opts.DefaultRole)
 
 	roleSet := make(map[string]bool)
 	uniqueRoles := make([]string, 0)
@@ -51,14 +48,14 @@ func insertRoles(
 
 func applyMigrations(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
 	logger *slog.Logger,
 ) error {
-	postgresURL := cmd.String(flagPostgresMigrationsConnection)
+	postgresURL := opts.PostgresMigrationsConnection
 	if postgresURL == "" {
-		postgresURL = cmd.String(flagPostgresConnection)
+		postgresURL = opts.PostgresConnection
 	}
 
 	if err := migrations.ApplyPostgresMigration(ctx, postgresURL, logger); err != nil {
@@ -68,8 +65,8 @@ func applyMigrations(
 
 	if err := migrations.ApplyHasuraMetadata(
 		ctx,
-		strings.Replace(cmd.String(flagGraphqlURL), "/v1/graphql", "/v1/metadata", 1),
-		cmd.String(flagHasuraAdminSecret),
+		strings.Replace(opts.HasuraGraphqlURL, "/v1/graphql", "/v1/metadata", 1),
+		opts.HasuraAdminSecret,
 		logger,
 	); err != nil {
 		logger.ErrorContext(
@@ -89,5 +86,5 @@ func applyMigrations(
 		return fmt.Errorf("failed to encrypt TOTP secrets: %w", err)
 	}
 
-	return insertRoles(ctx, cmd, db, logger)
+	return insertRoles(ctx, opts, db, logger)
 }

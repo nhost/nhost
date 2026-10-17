@@ -8,7 +8,6 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 	"runtime"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -18,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/image"
@@ -62,10 +62,10 @@ const (
 	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
 )
 
-func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
+func corsOptions(allowedOrigins []string, allowCredentials bool) oapimw.CORSOptions {
 	return oapimw.CORSOptions{
 		AllowOriginFunc:  nil,
-		AllowedOrigins:   cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowHeadersFunc: nil,
 		AllowedHeaders: []string{
@@ -90,11 +90,11 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"Last-Modified",
 			"X-Error",
 		},
-		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
+		AllowCredentials: allowCredentials,
 		// Conditionally required: the shared CORS middleware is fail-closed and
 		// rejects allow-all origins combined with credentials, so without this
 		// flag NewRouter would error at startup for any deployment that runs the
-		// default ["*"] origins together with --cors-allow-credentials. Because
+		// default ["*"] origins together with credentials. Because
 		// both AllowedOrigins and AllowCredentials are config-driven here,
 		// deployments with explicit origins are unaffected; the flag only
 		// preserves boot for the legacy allow-all + credentials combination.
@@ -104,39 +104,37 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	}
 }
 
-func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+func configureMiddleware(opts Options, router *gin.Engine, logger *slog.Logger) {
 	// Always set standard security headers on every response. Not behind a flag.
 	router.Use(securityheaders.New())
 
-	if cmd.Bool(flagCDNCacheControl) {
+	if opts.CDNCacheControl {
 		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
 		router.Use(cdncachecontrol.New())
 	}
 
-	if cmd.String(flagFastlyService) != "" {
+	if opts.FastlyService != "" {
 		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		router.Use(
-			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
-		)
+		router.Use(fastly.New(opts.FastlyService, opts.FastlyKey, logger))
 	}
 }
 
-func getServer(
-	cmd *cli.Command,
+func getHandler(
+	opts Options,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
-) (*http.Server, error) {
-	av, err := getAv(cmd.String(flagClamavServer))
+) (http.Handler, error) {
+	av, err := getAv(opts.ClamavServer)
 	if err != nil {
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
 	ctrl := controller.New(
-		cmd.String(flagPublicURL),
-		cmd.String(flagAPIRootPrefix),
-		cmd.String(flagHasuraAdminSecret),
+		opts.PublicURL,
+		opts.APIRootPrefix,
+		opts.HasuraAdminSecret,
 		metadataStorage,
 		contentStorage,
 		imageTransformer,
@@ -153,9 +151,9 @@ func getServer(
 
 	router, mw, err := oapi.NewRouter(
 		swagger,
-		cmd.String(flagAPIRootPrefix),
-		middleware.AuthenticationFunc(cmd.String(flagHasuraAdminSecret)),
-		getCORSOptions(cmd),
+		opts.APIRootPrefix,
+		middleware.AuthenticationFunc(opts.HasuraAdminSecret),
+		corsOptions(opts.CORSAllowOrigins, opts.CORSAllowCredentials),
 		logger,
 	)
 	if err != nil {
@@ -166,25 +164,19 @@ func getServer(
 		c.String(http.StatusOK, "ok")
 	})
 
-	configureMiddleware(cmd, router, logger)
+	configureMiddleware(opts, router, logger)
 
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:      cmd.String(flagAPIRootPrefix),
+			BaseURL:      opts.APIRootPrefix,
 			Middlewares:  []api.MiddlewareFunc{mw},
 			ErrorHandler: oapi.RecordError,
 		},
 	)
 
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBind),
-		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	return server, nil
+	return router, nil
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -192,28 +184,26 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 }
 
 func getContentStorage(
-	ctx context.Context,
-	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string,
-	disableHTTPS bool,
-	logger *slog.Logger,
-) *storage.S3 {
+	ctx context.Context, opts Options, logger *slog.Logger,
+) (*storage.S3, error) {
 	var (
 		cfg aws.Config
 		err error
 	)
 
+	region := opts.S3Region
 	if region == "" {
 		region = "no-region"
 	}
 
-	if s3AccessKey != "" && s3SecretKey != "" {
+	if opts.S3AccessKey != "" && opts.S3SecretKey != "" {
 		logger.InfoContext(ctx, "Using static aws credentials")
 
 		cfg, err = config.LoadDefaultConfig(
 			ctx,
 			config.WithRegion(region),
 			config.WithCredentialsProvider(
-				credentials.NewStaticCredentialsProvider(s3AccessKey, s3SecretKey, ""),
+				credentials.NewStaticCredentialsProvider(opts.S3AccessKey, opts.S3SecretKey, ""),
 			),
 		)
 	} else {
@@ -223,45 +213,35 @@ func getContentStorage(
 	}
 
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("loading S3 configuration: %w", err)
 	}
 
 	client := s3.NewFromConfig(
 		cfg,
 		func(o *s3.Options) {
-			o.BaseEndpoint = aws.String(s3Endpoint)
+			o.BaseEndpoint = aws.String(opts.S3Endpoint)
 			o.UsePathStyle = true
-			o.EndpointOptions.DisableHTTPS = disableHTTPS
+			o.EndpointOptions.DisableHTTPS = opts.S3DisableHTTPS
 		},
 	)
-	st := storage.NewS3(client, bucket, rootFolder, s3Endpoint, logger)
 
-	return st
+	return storage.NewS3(client, opts.S3Bucket, opts.S3RootFolder, opts.S3Endpoint, logger), nil
 }
 
-func applyMigrations(
-	ctx context.Context,
-	postgresMigrations bool,
-	postgresSource string,
-	hasuraMetadata bool,
-	hasuraEndpoint string,
-	hasuraSecret string,
-	hasuraDBName string,
-	logger *slog.Logger,
-) error {
-	if postgresMigrations {
+func applyMigrations(ctx context.Context, opts Options, logger *slog.Logger) error {
+	if opts.ApplyPostgresMigrations {
 		logger.InfoContext(ctx, "applying postgres migrations")
 
-		if err := migrations.ApplyPostgresMigration(postgresSource); err != nil {
+		if err := migrations.ApplyPostgresMigration(opts.PostgresMigrationsSource); err != nil {
 			return fmt.Errorf("problem applying postgres migrations: %w", err)
 		}
 	}
 
-	if hasuraMetadata {
+	if opts.ApplyHasuraMetadata {
 		logger.InfoContext(ctx, "applying hasura metadata")
 
 		if err := migrations.ApplyHasuraMetadata(
-			ctx, hasuraEndpoint, hasuraSecret, hasuraDBName, logger,
+			ctx, opts.HasuraEndpoint, opts.HasuraAdminSecret, opts.HasuraDBName, logger,
 		); err != nil {
 			return fmt.Errorf("problem applying hasura metadata: %w", err)
 		}
@@ -325,10 +305,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagHasuraAdminSecret,
 				Usage:    "Hasura admin secret",
 				Category: "hasura",
-				Sources: cli.EnvVars(
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-				),
+				Sources:  cli.EnvVars("HASURA_GRAPHQL_ADMIN_SECRET"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagHasuraDBName,
@@ -463,11 +440,11 @@ func CommandServe() *cli.Command { //nolint:funlen
 	}
 }
 
-func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
-	if bind == "" {
-		return
-	}
-
+// registerVipsDebugHandler adds storage's libvips memory report to
+// http.DefaultServeMux, alongside the pprof handlers registered there by the
+// net/http/pprof blank import. The shared serve runtime exposes that mux through
+// Options.DebugAddr, so the route is reachable only when pprof is enabled.
+func registerVipsDebugHandler() {
 	http.HandleFunc("/debug/vips", func(w http.ResponseWriter, _ *http.Request) {
 		var stats vips.MemoryStats
 		vips.ReadVipsMemStats(&stats)
@@ -475,106 +452,115 @@ func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(stats) //nolint:errcheck
 	})
-
-	logger.InfoContext(ctx, "starting pprof server", slog.String("bind", bind))
-
-	pprofServer := &http.Server{ //nolint:exhaustruct
-		Addr:              bind,
-		Handler:           http.DefaultServeMux,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	go func() {
-		if err := pprofServer.ListenAndServe(); err != nil {
-			logger.ErrorContext(ctx, "pprof server failed", slog.String("error", err.Error()))
-		}
-	}()
 }
 
-func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+func serve(ctx context.Context, cmd *cli.Command) error {
+	logger := serveutil.NewLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
+	serveutil.LogFlags(ctx, logger, cmd)
 
-	imageTransformerWorkers := cmd.Int(flagImageTransformerWorkers)
-	if imageTransformerWorkers <= 0 {
-		imageTransformerWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+	opts := optionsFromCommand(cmd)
+
+	debugAddr := cmd.String(flagPprofBind)
+	if debugAddr != "" {
+		registerVipsDebugHandler()
+	}
+
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(ctx, serveutil.Options{
+		Logger: logger,
+		Addr:   cmd.String(flagBind),
+		// Only the default read-header deadline applies, so large uploads and
+		// downloads are not aborted mid-transfer.
+		HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
+		DebugAddr:       debugAddr,
+		ShutdownTimeout: 0,
+		Compose:         nil,
+	}, serveutil.Definition{
+		Name: "storage", Prefix: "",
+		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+			return NewService(ctx, opts, logger)
+		},
+	})
+}
+
+// NewService builds storage's serving surface from opts, which it validates
+// first: the HTTP handler and the image transformer. Storage has no long-lived
+// background loop, so Background is nil: the transformer bounds concurrency
+// with a semaphore rather than worker goroutines. Close calls
+// Transformer.Shutdown, which tears down process-global libvips state and is
+// not re-entrant: image.NewTransformer cannot restart libvips afterward. Close
+// must therefore run exactly once, after all in-flight requests have drained,
+// which serve.Run guarantees. NewService is consumed both by the standalone
+// serve command and by the engine unified binary, which mounts the handler
+// behind a shared listener. Past validation, its construction and cleanup
+// error paths are integration-only because they require the storage service's
+// PostgreSQL, S3, and Hasura environment.
+func NewService(
+	ctx context.Context,
+	opts Options,
+	logger *slog.Logger,
+) (_ *serveutil.Service, err error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
+	imageTransformer := newImageTransformer(ctx, opts, logger)
+
+	// Tear libvips down again if the rest of construction fails. On success the
+	// returned Service owns the transformer and frees it through its Close.
+	defer func() {
+		if err != nil {
+			imageTransformer.Shutdown()
+		}
+	}()
+
+	contentStorage, err := getContentStorage(ctx, opts, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := applyMigrations(ctx, opts, logger); err != nil {
+		return nil, err
+	}
+
+	metadataStorage := getMetadataStorage(opts.HasuraEndpoint + "/graphql")
+
+	handler, err := getHandler( //nolint:contextcheck
+		opts, metadataStorage, contentStorage, imageTransformer, logger,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &serveutil.Service{
+		Handler:    handler,
+		Background: nil,
+		Close:      serveutil.CloseFunc(imageTransformer.Shutdown),
+	}, nil
+}
+
+// newImageTransformer builds the image transformer, defaulting the worker count
+// to 2×GOMAXPROCS when it is not explicitly configured.
+func newImageTransformer(
+	ctx context.Context,
+	opts Options,
+	logger *slog.Logger,
+) *image.Transformer {
+	workers := opts.ImageTransformerWorkers
+	if workers <= 0 {
+		workers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
 		logger.InfoContext(
 			ctx,
 			"calculating number of image transformer workers based on GOMAXPROCS",
-			slog.Int("workers", imageTransformerWorkers),
+			slog.Int("workers", workers),
 		)
 	}
 
-	imageTransformer := image.NewTransformer(
-		imageTransformerWorkers,
-		cmd.Int(flagImageTransformerMaxDim),
-		cmd.Float(flagImageTransformerMaxBlur),
+	return image.NewTransformer(
+		workers,
+		opts.ImageTransformerMaxDimension,
+		opts.ImageTransformerMaxBlurSigma,
 	)
-	defer imageTransformer.Shutdown()
-
-	servCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	contentStorage := getContentStorage(
-		servCtx,
-		cmd.String(flagS3Endpoint),
-		cmd.String(flagS3Region),
-		cmd.String(flagS3AccessKey),
-		cmd.String(flagS3SecretKey),
-		cmd.String(flagS3Bucket),
-		cmd.String(flagS3RootFolder),
-		cmd.Bool(flagS3DisableHTTPS),
-		logger,
-	)
-
-	if err := applyMigrations(
-		ctx,
-		cmd.Bool(flagPostgresMigrations),
-		cmd.String(flagPostgresMigrationsSource),
-		cmd.Bool(flagHasuraMetadata),
-		cmd.String(flagHasuraEndpoint),
-		cmd.String(flagHasuraAdminSecret),
-		cmd.String(flagHasuraDBName),
-		logger,
-	); err != nil {
-		return err
-	}
-
-	metadataStorage := getMetadataStorage(
-		cmd.String(flagHasuraEndpoint) + "/graphql",
-	)
-
-	server, err := getServer( //nolint: contextcheck
-		cmd,
-		metadataStorage,
-		contentStorage,
-		imageTransformer,
-		logger,
-	)
-	if err != nil {
-		return err
-	}
-
-	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
-
-	go func() {
-		defer cancel()
-
-		logger.InfoContext(servCtx, "starting server")
-
-		if err := server.ListenAndServe(); err != nil {
-			logger.ErrorContext(servCtx, "server failed", slog.String("error", err.Error()))
-		}
-	}()
-
-	<-servCtx.Done()
-
-	logger.InfoContext(ctx, "shutting down server")
-
-	if err := server.Shutdown(ctx); err != nil {
-		logger.ErrorContext(ctx, "problem shutting down server", slog.String("error", err.Error()))
-	}
-
-	return nil
 }
