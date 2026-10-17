@@ -140,6 +140,7 @@ func getHandler(
 		imageTransformer,
 		av,
 		logger,
+		opts.Version,
 	)
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})

@@ -92,6 +92,7 @@ type Controller struct {
 	imageTransformer  *image.Transformer
 	av                Antivirus
 	logger            *slog.Logger
+	version           string
 }
 
 func New(
@@ -103,15 +104,17 @@ func New(
 	imageTransformer *image.Transformer,
 	av Antivirus,
 	logger *slog.Logger,
+	version string,
 ) *Controller {
 	return &Controller{
-		publicURL,
-		apiRootPrefix,
-		hasuraAdminSecret,
-		metadataStorage,
-		contentStorage,
-		imageTransformer,
-		av,
-		logger,
+		publicURL:         publicURL,
+		apiRootPrefix:     apiRootPrefix,
+		hasuraAdminSecret: hasuraAdminSecret,
+		metadataStorage:   metadataStorage,
+		contentStorage:    contentStorage,
+		imageTransformer:  imageTransformer,
+		av:                av,
+		logger:            logger,
+		version:           version,
 	}
 }

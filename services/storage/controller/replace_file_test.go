@@ -182,6 +182,7 @@ func TestReplaceFile(t *testing.T) {
 				nil,
 				av,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.ReplaceFile(
@@ -312,6 +313,7 @@ func TestReplaceFile_FileSize(t *testing.T) {
 				nil,
 				av,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.ReplaceFile(
