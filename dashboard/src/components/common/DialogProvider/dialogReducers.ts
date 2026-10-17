@@ -1,6 +1,9 @@
 import type { ReactElement, ReactNode } from 'react';
-import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
-import type { DialogConfig, OpenDialogOptions } from './DialogContext';
+import type {
+  DialogConfig,
+  DialogProviderProps,
+  OpenDialogOptions,
+} from './DialogContext';
 
 export interface DialogState {
   /**
@@ -23,7 +26,7 @@ export interface DialogState {
   /**
    * Props passed to the currently active dialog.
    */
-  dialogProps?: Partial<CommonDialogProps>;
+  dialogProps?: DialogProviderProps;
   /**
    * Custom payload to be passed to the currently active dialog. This is the
    * data needed by the active dialog.
@@ -34,8 +37,7 @@ export interface DialogState {
 
 export type DialogAction =
   | { type: 'OPEN_DIALOG'; payload: OpenDialogOptions }
-  | { type: 'HIDE_DIALOG' }
-  | { type: 'CLEAR_DIALOG_CONTENT' };
+  | { type: 'HIDE_DIALOG' };
 
 /**
  * Reducer for the main dialog.
@@ -62,13 +64,6 @@ export function dialogReducer(
         ...state,
         open: false,
       };
-    case 'CLEAR_DIALOG_CONTENT':
-      return {
-        ...state,
-        title: undefined,
-        activeDialog: undefined,
-        dialogProps: undefined,
-      };
     default:
       return { ...state };
   }
@@ -76,8 +71,7 @@ export function dialogReducer(
 
 export type DrawerAction =
   | { type: 'OPEN_DRAWER'; payload: OpenDialogOptions }
-  | { type: 'HIDE_DRAWER' }
-  | { type: 'CLEAR_DRAWER_CONTENT' };
+  | { type: 'HIDE_DRAWER' };
 
 /**
  * Reducer for the main drawer.
@@ -104,13 +98,6 @@ export function drawerReducer(
         ...state,
         open: false,
       };
-    case 'CLEAR_DRAWER_CONTENT':
-      return {
-        ...state,
-        title: undefined,
-        activeDialog: undefined,
-        dialogProps: undefined,
-      };
     default:
       return { ...state };
   }
@@ -118,8 +105,7 @@ export function drawerReducer(
 
 export type AlertDialogAction =
   | { type: 'OPEN_ALERT'; payload: DialogConfig }
-  | { type: 'HIDE_ALERT' }
-  | { type: 'CLEAR_ALERT_CONTENT' };
+  | { type: 'HIDE_ALERT' };
 
 /**
  * Reducer for the alert dialog.
@@ -143,13 +129,6 @@ export function alertDialogReducer(
       };
     case 'HIDE_ALERT':
       return { ...state, open: false };
-    case 'CLEAR_ALERT_CONTENT':
-      return {
-        ...state,
-        title: undefined,
-        payload: undefined,
-        dialogProps: undefined,
-      };
     default:
       return { ...state };
   }

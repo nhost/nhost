@@ -828,7 +828,9 @@ export async function openRelationshipDialog({
   tableName: string;
 }) {
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit relationships/i }).click();

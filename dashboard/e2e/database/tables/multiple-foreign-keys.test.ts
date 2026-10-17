@@ -151,7 +151,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   // Now reopen the table to edit foreign keys
   await page
     .locator(
-      `li:has-text("${mainTableName}") #table-management-menu-${mainTableName}`,
+      `li:has-text("${mainTableName}") [data-testid="table-management-menu-${mainTableName}"]`,
     )
     .click();
   await page.getByText('Edit Table').click();
