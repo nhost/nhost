@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-FOLDER=./build/backend
+FOLDER=../backend-sdk-tests
 
 
 up() {

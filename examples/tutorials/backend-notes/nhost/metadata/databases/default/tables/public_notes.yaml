@@ -1,0 +1,95 @@
+table:
+  name: notes
+  schema: public
+object_relationships:
+  - name: notebook
+    using:
+      foreign_key_constraint_on: notebook_id
+array_relationships:
+  - name: noteTags
+    using:
+      foreign_key_constraint_on:
+        column: note_id
+        table:
+          name: note_tags
+          schema: public
+  - name: attachments
+    using:
+      foreign_key_constraint_on:
+        column: note_id
+        table:
+          name: note_attachments
+          schema: public
+  - name: collaborators
+    using:
+      foreign_key_constraint_on:
+        column: note_id
+        table:
+          name: note_collaborators
+          schema: public
+insert_permissions:
+  - role: user
+    permission:
+      # A note may only be filed into a notebook the caller owns.
+      check:
+        _or:
+          - notebook_id:
+              _is_null: true
+          - notebook:
+              user_id:
+                _eq: X-Hasura-User-Id
+      set:
+        user_id: X-Hasura-User-Id
+      columns:
+        - title
+        - content
+        - notebook_id
+        - is_pinned
+        - is_archived
+select_permissions:
+  - role: user
+    permission:
+      # `updated_at` is exposed because `note ls` orders by it, and Hasura only
+      # allows order_by on columns the select permission exposes.
+      columns:
+        - id
+        - title
+        - content
+        - notebook_id
+        - is_pinned
+        - is_archived
+        - updated_at
+      filter:
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - collaborators:
+              user_id:
+                _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - title
+        - content
+        - notebook_id
+        - is_pinned
+        - is_archived
+      filter:
+        _or:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - collaborators:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _eq: editor
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      # Deleting stays owner-only; a collaborator can edit but not destroy.
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

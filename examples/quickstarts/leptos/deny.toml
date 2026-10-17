@@ -1,0 +1,21 @@
+# Advisory policy for `cargo deny check advisories`, run by the Nix check in
+# project.nix. This example has its own lockfile, so it is scanned separately
+# from the SDK.
+#
+# Vulnerabilities are denied, exactly as they are for the SDK. What differs is
+# `unmaintained`: this example's dependency tree is Leptos', not ours. The
+# framework transitively pulls in two unmaintained build-time crates —
+# `paste` (RUSTSEC-2024-0436, via leptos/reactive_graph/tachys/...) and
+# `proc-macro-error2` (RUSTSEC-2026-0173, via leptos_macro/syn_derive) — and
+# neither is a vulnerability nor something a quickstart can fix; the fix has to
+# land in Leptos.
+#
+# Failing this check on them would leave only two options, both worse than
+# scoping it: pin `ignore` entries that go stale silently, or turn the advisory
+# scan off for this example and lose the vulnerability gate with it.
+#
+# `workspace` still denies an unmaintained crate this example depends on
+# directly, which is the part we control. The SDK keeps the stricter default,
+# since its dependencies are chosen by us.
+[advisories]
+unmaintained = "workspace"
