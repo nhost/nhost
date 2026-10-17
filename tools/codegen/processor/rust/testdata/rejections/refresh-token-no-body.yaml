@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  title: Invalid refresh token without a body
+  version: 1.0.0
+paths:
+  /token:
+    post:
+      operationId: refreshToken
+      responses:
+        "204":
+          description: Refreshed

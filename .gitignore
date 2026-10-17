@@ -69,6 +69,7 @@ out/
 
 result
 /cli/build/npm/dist
+/tools/codegen/processor/rust/testdata/compile-fixture/target/
 
 .vitest
 

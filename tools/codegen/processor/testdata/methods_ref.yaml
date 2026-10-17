@@ -83,6 +83,8 @@ paths:
                 - nullable-tags
                 - nullable-metadata
             encoding:
+              metadata[]:
+                contentType: application/vnd.nhost.metadata+json
               file[]:
                 contentType: application/octet-stream
       responses:

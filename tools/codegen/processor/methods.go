@@ -13,9 +13,12 @@ import (
 
 const (
 	minStatusForError           = 300
+	parameterLocationHeader     = "header"
 	mediaApplicationJSON        = "application/json"
 	mediaApplicationOctetStream = "application/octet-stream"
 	mediaFormURLEncoded         = "application/x-www-form-urlencoded"
+	mediaMultipartFormData      = "multipart/form-data"
+	mediaTextPlain              = "text/plain"
 )
 
 type Method struct {
@@ -35,6 +38,11 @@ type Method struct {
 
 func (m *Method) Name() string {
 	return m.p.MethodName(m.name)
+}
+
+// RawName returns the operationId before target-specific name mapping.
+func (m *Method) RawName() string {
+	return m.name
 }
 
 func (m *Method) Method() string {
@@ -66,6 +74,17 @@ func (m *Method) HasQueryParameters() bool {
 	return false
 }
 
+// HasRequiredQueryParameters reports whether a query parameter must be supplied.
+func (m *Method) HasRequiredQueryParameters() bool {
+	for _, param := range m.Parameters {
+		if param.Parameter.In == "query" && param.Required() {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (m *Method) QueryParameters() []*Parameter {
 	params := make([]*Parameter, 0, 10) //nolint:mnd
 	for _, param := range m.Parameters {
@@ -75,6 +94,42 @@ func (m *Method) QueryParameters() []*Parameter {
 	}
 
 	return params
+}
+
+// HasHeaderParameters reports whether the operation declares a request header parameter.
+func (m *Method) HasHeaderParameters() bool {
+	return slices.ContainsFunc(m.Parameters, func(param *Parameter) bool {
+		return param.Parameter.In == parameterLocationHeader
+	})
+}
+
+// HasRequiredHeaderParameters reports whether a request header parameter must be supplied.
+func (m *Method) HasRequiredHeaderParameters() bool {
+	return slices.ContainsFunc(m.Parameters, func(param *Parameter) bool {
+		return param.Parameter.In == parameterLocationHeader && param.Required()
+	})
+}
+
+// HeaderParameters returns the operation's request header parameters in specification order.
+func (m *Method) HeaderParameters() []*Parameter {
+	params := make([]*Parameter, 0, 10) //nolint:mnd
+	for _, param := range m.Parameters {
+		if param.Parameter.In == parameterLocationHeader {
+			params = append(params, param)
+		}
+	}
+
+	return params
+}
+
+// HasRequestParameters reports whether a generated request method needs a params value.
+func (m *Method) HasRequestParameters() bool {
+	return m.HasQueryParameters() || m.HasHeaderParameters()
+}
+
+// HasRequiredRequestParameters reports whether a generated params value must be supplied.
+func (m *Method) HasRequiredRequestParameters() bool {
+	return m.HasRequiredQueryParameters() || m.HasRequiredHeaderParameters()
 }
 
 func (m *Method) QueryParametersTypeName() string {
@@ -131,7 +186,7 @@ func (m *Method) RequestJSON() Type { //nolint:ireturn
 
 func (m *Method) RequestFormData() Type { //nolint:ireturn
 	for m, t := range m.Bodies {
-		if m == "multipart/form-data" {
+		if m == mediaMultipartFormData {
 			return t
 		}
 	}
@@ -147,6 +202,76 @@ func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
 	}
 
 	return nil
+}
+
+// MultipartContentType returns the content type for the multipart/form-data
+// part corresponding to prop. It honors an explicit encoding.contentType from
+// the spec and otherwise applies OpenAPI's type-dependent default.
+func (m *Method) MultipartContentType(prop *Property) string {
+	if ct := m.encodingContentType(prop.RawName()); ct != "" {
+		return ct
+	}
+
+	return defaultPartContentType(prop.Type)
+}
+
+func defaultPartContentType(typ Type) string {
+	for typ.Kind() == KindIdentifierArray {
+		array, ok := typ.(*TypeArray)
+		if !ok || array.Item == nil {
+			return mediaTextPlain
+		}
+
+		typ = array.Item
+	}
+
+	switch typ.Kind() {
+	case KindIdentifierObject, KindIdentifierMap:
+		return mediaApplicationJSON
+	case KindIdentifierScalar:
+		schema := typ.Schema()
+		if schema != nil && schema.Schema() != nil && schema.Schema().Format == "binary" {
+			return mediaApplicationOctetStream
+		}
+
+		return mediaTextPlain
+	case KindIdentifierArray, KindIdentifierEnum, KindIdentifierAlias:
+		return mediaTextPlain
+	}
+
+	return mediaTextPlain
+}
+
+// encodingContentType looks up requestBody.content["multipart/form-data"].
+// encoding[rawName].contentType, returning "" when it is not declared.
+func (m *Method) encodingContentType(rawName string) string {
+	if m.Operation == nil || m.Operation.RequestBody == nil {
+		return ""
+	}
+
+	content := m.Operation.RequestBody.Content
+	if content == nil {
+		return ""
+	}
+
+	for pair := content.First(); pair != nil; pair = pair.Next() {
+		if pair.Key() != mediaMultipartFormData {
+			continue
+		}
+
+		enc := pair.Value().Encoding
+		if enc == nil {
+			return ""
+		}
+
+		for e := enc.First(); e != nil; e = e.Next() {
+			if e.Key() == rawName {
+				return e.Value().ContentType
+			}
+		}
+	}
+
+	return ""
 }
 
 func (m *Method) RequestHasBody() bool {
@@ -227,6 +352,11 @@ func (p *Parameter) Name() string {
 	return p.p.ParameterName(p.name)
 }
 
+// RawName returns the unmapped wire name (used for query keys / serde renames).
+func (p *Parameter) RawName() string {
+	return p.name
+}
+
 func (p *Parameter) Required() bool {
 	if p.Parameter.Required != nil {
 		return *p.Parameter.Required
@@ -237,6 +367,12 @@ func (p *Parameter) Required() bool {
 	}
 
 	return false
+}
+
+// HasContent reports whether the parameter uses content-based serialization.
+func (p *Parameter) HasContent() bool {
+	// libopenapi can materialize an empty content map when the field is absent.
+	return p.Parameter.Content != nil && p.Parameter.Content.First() != nil
 }
 
 func (p *Parameter) Style() string {
@@ -328,11 +464,13 @@ func getMethodParameters(
 	for i, param := range operation.Parameters {
 		var t Type
 		if param.GoLow().IsReference() {
+			name := format.GetNameFromComponentRef(param.GoLow().GetReference())
 			t = &TypeEnum{
-				schema: param.Schema,
-				name:   format.GetNameFromComponentRef(param.GoLow().GetReference()),
-				values: nil, // No values for reference types
-				p:      p,
+				schema:  param.Schema,
+				name:    name,
+				rawName: name,
+				values:  nil, // No values for reference types
+				p:       p,
 			}
 		} else {
 			switch {

@@ -1,0 +1,66 @@
+openapi: "3.0.0"
+info:
+  title: Rust doc-comment escaping
+  version: "1.0"
+paths:
+  /hostile:
+    get:
+      operationId: hostileDocs
+      summary: Hostile `summary` with [brackets], a backslash \, and */
+      description: |-
+        Method prose preserves `backticks`, [square brackets], and a \ backslash.
+            compile_error!("indented method doctest must remain text");
+        ~~~rust
+        compile_error!("fenced method doctest must remain text");
+        ~~~
+        Final steps:
+        1. Validate input
+        2) Persist the result
+      parameters:
+        - name: includeDetails
+          in: query
+          description: Query [details] with `formatting` and */
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Hostile payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HostilePayload"
+  /redirect:
+    get:
+      operationId: redirectDocs
+      description: |-
+        Redirect steps:
+        1. Validate redirect
+        2) Follow the redirect
+      responses:
+        "302":
+          description: Redirect response
+components:
+  schemas:
+    HostileChoice:
+      description: |-
+        Ordered choices:
+        1. First choice
+        2) Second choice
+      type: string
+      enum:
+        - first
+        - second
+    HostilePayload:
+      description: |-
+        Payload [documentation] contains `ticks`, */ and a \ backslash.
+            compile_error!("indented type doctest must remain text");
+        ```rust
+        compile_error!("fenced type doctest must remain text");
+        ```
+      type: object
+      properties:
+        value:
+          description: Field [documentation] with `ticks`, */ and a \ backslash.
+          type: string
+      required:
+        - value

@@ -1,0 +1,76 @@
+openapi: "3.0.0"
+
+paths:
+  /required-request:
+    get:
+      operationId: requiredRequest
+      parameters:
+        - name: required
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: optional
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+  /optional-request:
+    get:
+      operationId: optionalRequest
+      parameters:
+        - name: optional
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+
+  /required-redirect:
+    get:
+      operationId: requiredRedirect
+      parameters:
+        - name: required
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+
+  /optional-redirect:
+    get:
+      operationId: optionalRedirect
+      parameters:
+        - name: optional
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+
+components:
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true
