@@ -38,8 +38,8 @@ interface FormSelectProps<
   placeholder?: string;
   className?: string;
   containerClassName?: string;
-  // Forwarded to the dropdown content. Needed to raise the z-index when the
-  // select lives inside a higher-stacked container such as a MUI dialog.
+  // Forwarded to the dropdown content, e.g. to raise its z-index when the
+  // select lives inside a higher-stacked container.
   contentClassName?: string;
   inline?: boolean;
   helperText?: ReactNode;
