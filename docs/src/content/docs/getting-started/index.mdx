@@ -10,10 +10,6 @@ sidebar:
 ---
 import { Card, CardGroup, ThemeImage } from '@components';
 
-Nhost is a backend development platform designed to help you build and scale production-ready applications fast, with powerful, fully managed infrastructure.
-
-It eliminates backend complexity by providing a performant and reliable software stack ready-to-go, while still offering the flexibility to customize and grow as your app grows.
-
 <ThemeImage
   light="/images/nhost-overview-light.svg"
   dark="/images/nhost-overview-dark.svg"
@@ -22,17 +18,19 @@ It eliminates backend complexity by providing a performant and reliable software
   height={486}
 />
 
-## Next steps
+Run the whole stack on your machine with the CLI, then deploy to Nhost Cloud for fully managed hosting, or self-host it on your own infrastructure.
 
-Follow one of our quick start guides for learning how to quickly setup Nhost with your framework of choice, in just a few easy steps.
+## Quickstarts
+
+The fastest way in. Each one gets you a working backend and a running app, and opens with a prompt you can hand to an AI assistant instead.
 
 <CardGroup cols={2}>
   <Card
-    title="Nhost CLI"
-    icon="terminal"
-    href="/getting-started/local-development/cli"
+    title="React"
+    icon="react"
+    href="/getting-started/quickstart/react"
   >
-    Learn how to setup a local Nhost environment
+    Learn how to connect Nhost with React
   </Card>
   <Card
     title="Next.js"
@@ -42,18 +40,18 @@ Follow one of our quick start guides for learning how to quickly setup Nhost wit
     Learn how to connect Nhost with Next.js
   </Card>
   <Card
-    title="React"
-    icon="react"
-    href="/getting-started/quickstart/react"
-  >
-    Learn how to connect Nhost with React
-  </Card>
-  <Card
     title="Vue"
     icon="vuejs"
     href="/getting-started/quickstart/vue"
   >
     Learn how to connect Nhost with Vue
+  </Card>
+  <Card
+    title="SvelteKit"
+    icon="S"
+    href="/getting-started/quickstart/sveltekit"
+  >
+    Learn how to connect Nhost with SvelteKit
   </Card>
   <Card
     title="React Native"
@@ -64,9 +62,37 @@ Follow one of our quick start guides for learning how to quickly setup Nhost wit
   </Card>
 </CardGroup>
 
-## Follow a tutorial to build a Todo Manager
+## Choose how you develop
 
-Follow one of your tutorials where we walk you through building a Todo Manager application using features from Nhost.
+Describe what you want to an AI assistant and let it run the commands, or run them yourself with the CLI. Either way the backend can live on your machine or on Nhost Cloud.
+
+<CardGroup cols={3}>
+  <Card
+    title="Build with an assistant"
+    icon="robot"
+    href="/getting-started/build-with-an-assistant"
+  >
+    Describe the change and let an AI assistant run the CLI and write the migration
+  </Card>
+  <Card
+    title="Agentic Workflows"
+    icon="plug"
+    href="/getting-started/agentic-workflows"
+  >
+    Connect an AI assistant to your backend over MCP
+  </Card>
+  <Card
+    title="Local Development"
+    icon="terminal"
+    href="/getting-started/local-development/cli"
+  >
+    Run PostgreSQL, GraphQL, Auth, and Storage on your machine with the CLI
+  </Card>
+</CardGroup>
+
+## Follow a tutorial
+
+Longer than a quickstart. You build one Todo Manager app end to end, picking up the database, GraphQL, auth, and permissions as you go.
 
 <CardGroup cols={2}>
   <Card

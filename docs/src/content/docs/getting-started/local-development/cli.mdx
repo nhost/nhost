@@ -8,8 +8,22 @@ head:
 sidebar:
   label: Nhost CLI
 ---
-import { Card, CardGroup, AsciinemaPlayer } from '@components';
+import { Card, CardGroup, AsciinemaPlayer, Divider, Prompt } from '@components';
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Prompt
+  label="Build with an assistant"
+  title="Share this with Claude Code, Codex, or any AI assistant."
+  copy="Set up a local Nhost backend in this directory by following https://docs.nhost.io/getting-started/local-development/cli. Install the Nhost CLI, run nhost init, then nhost up. Docker has to be running first, so check that before you start."
+>
+Set up a local Nhost backend in this directory by following https://docs.nhost.io/getting-started/local-development/cli. Install the Nhost CLI, run nhost init, then nhost up. Docker has to be running first, so check that before you start.
+
+<Fragment slot="footer">
+[Connect your assistant](/getting-started/agentic-workflows#connect-your-assistant) | [What to check afterwards](/getting-started/build-with-an-assistant#check-3-things-yourself)
+</Fragment>
+</Prompt>
+
+<Divider label="Or set it up yourself" />
 
 The Nhost CLI is the recommended way to start building your application. It sets up a full local development environment including PostgreSQL, GraphQL, Authentication, and Storage, tracking all migrations and metadata.
 
@@ -192,7 +206,7 @@ curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
 </TabItem>
 </Tabs>
 
-See [MCP Development Setup](/platform/cli/mcp/development-setup) for the manual steps and client configuration.
+See [MCP Local Development Setup](/platform/cli/mcp/local-development-setup) for the manual steps and client configuration, or [Agentic workflows](/getting-started/agentic-workflows) for the other ways to connect an assistant.
 
 ### Next Steps
 
@@ -211,7 +225,10 @@ Now that your local backend is running, you can connect your frontend applicatio
   <Card title="Local Development" icon="laptop-code" href="/platform/cli/local-development">
     Go deeper: database migrations, metadata, and deploying to Nhost
   </Card>
-  <Card title="MCP Server" icon="robot" href="/platform/cli/mcp/development-setup">
+  <Card title="MCP Server" icon="robot" href="/platform/cli/mcp/local-development-setup">
     Connect an AI assistant to your local project
+  </Card>
+  <Card title="Agentic Workflows" icon="robot" href="/getting-started/agentic-workflows">
+    Compare every way to connect an assistant to Nhost
   </Card>
 </CardGroup>
