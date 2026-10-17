@@ -7,7 +7,6 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 import {
   areStrArraysEqualOrdered,
   isEmptyValue,
@@ -68,18 +67,13 @@ export default function buildLocalRelationshipViewModel({
         localColumns = getForeignKeyConstraintColumns(foreignKeyConstraintOn);
 
         const matchingRelation = foreignKeyRelations.find((relation) =>
-          areStrArraysEqualOrdered(
-            formatForeignKeyColumns(relation.columnName),
-            localColumns,
-          ),
+          areStrArraysEqualOrdered(relation.columns, localColumns),
         );
 
         if (matchingRelation) {
           remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
           remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
+          remoteColumns = matchingRelation.referencedColumns;
         }
       }
     } else if (type === 'Array') {

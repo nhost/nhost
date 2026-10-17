@@ -9,10 +9,10 @@ test('should not return any query if either the original foreign key relation or
     originalForeignKeyRelation: null,
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -26,10 +26,10 @@ test('should not return any query if either the original foreign key relation or
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -46,19 +46,19 @@ test('should not return any query if the foreign key relation has not changed', 
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -74,19 +74,19 @@ test('should prepare a query to drop the original foreign key constraint and a q
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table_new',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'SET NULL',
     },
@@ -98,5 +98,39 @@ test('should prepare a query to drop the original foreign key constraint and a q
   );
   expect(transaction[1].args.sql).toBe(
     'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_test_id_fkey FOREIGN KEY (test_id) REFERENCES public.test_table_new (id) ON UPDATE RESTRICT ON DELETE SET NULL;',
+  );
+});
+
+test('should prepare queries when a composite foreign key changes', async () => {
+  const transaction = prepareUpdateForeignKeyConstraintQuery({
+    dataSource: 'test_datasource',
+    schema: 'test_schema',
+    table: 'test_table',
+    originalForeignKeyRelation: {
+      name: 'test_table_tenant_id_account_id_fkey',
+      columns: ['tenant_id', 'account_id'],
+      referencedSchema: 'public',
+      referencedTable: 'accounts',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+    foreignKeyRelation: {
+      name: 'test_table_tenant_id_account_id_fkey',
+      columns: ['tenant_id', 'account_id'],
+      referencedSchema: 'public',
+      referencedTable: 'accounts',
+      referencedColumns: ['tenant_id', 'uuid'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+  });
+
+  expect(transaction).toHaveLength(2);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE test_schema.test_table DROP CONSTRAINT IF EXISTS test_table_tenant_id_account_id_fkey;',
+  );
+  expect(transaction[1].args.sql).toBe(
+    'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_tenant_id_account_id_fkey FOREIGN KEY (tenant_id,account_id) REFERENCES public.accounts (tenant_id,uuid) ON UPDATE RESTRICT ON DELETE CASCADE;',
   );
 });

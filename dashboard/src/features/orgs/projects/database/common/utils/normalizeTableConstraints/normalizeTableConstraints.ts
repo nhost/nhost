@@ -1,12 +1,16 @@
 import type {
+  CandidateKey,
   ForeignKeyRelation,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 
 interface NormalizedTableConstraints {
   columns: NormalizedQueryDataRow[];
   foreignKeyRelations: ForeignKeyRelation[];
+  candidateKeys: CandidateKey[];
 }
 
 /**
@@ -25,6 +29,7 @@ export default function normalizeTableConstraints(
   const foreignKeyRelationMap = new Map<string, ForeignKeyRelation>();
   const uniqueKeyConstraintMap = new Map<string, string[]>();
   const primaryKeyConstraintMap = new Map<string, string[]>();
+  const candidateKeyMap = new Map<string, CandidateKey>();
 
   rawConstraints.forEach((rawConstraint) => {
     const constraint = JSON.parse(rawConstraint);
@@ -32,25 +37,42 @@ export default function normalizeTableConstraints(
       column_name: columnName,
       constraint_type: constraintType,
       constraint_name: constraintName,
+      constraint_definition: constraintDefinition,
+      referenced_key_name: referencedKeyName,
     } = constraint;
 
-    if (constraintType === 'f') {
-      const { constraint_definition: constraintDefinition } = constraint;
+    if (constraintType === 'f' && !foreignKeyRelationMap.has(constraintName)) {
       const foreignKeyRelation = extractForeignKeyRelation(
         constraintName,
         constraintDefinition,
       );
 
-      // Composite keys have a combined extracted column name that does not
-      // match either single-column constraint row and are not supported here.
-      if (
-        foreignKeyRelation &&
-        foreignKeyRelation.columnName === columnName &&
-        !foreignKeyRelationMap.has(columnName)
-      ) {
-        foreignKeyRelationMap.set(columnName, {
+      if (foreignKeyRelation) {
+        foreignKeyRelationMap.set(constraintName, {
           ...foreignKeyRelation,
           referencedSchema: foreignKeyRelation.referencedSchema || schema,
+          referencedKeyName: referencedKeyName ?? undefined,
+        });
+      }
+    }
+
+    if (
+      (constraintType === 'p' || constraintType === 'u') &&
+      !candidateKeyMap.has(constraintName)
+    ) {
+      // Row order from UNNEST(CONKEY) is not reliable, so the column order is
+      // taken from the constraint definition (`PRIMARY KEY (a, b)`).
+      const definitionColumns = /\(([^)]*)\)/.exec(
+        constraintDefinition ?? '',
+      )?.[1];
+
+      if (definitionColumns) {
+        candidateKeyMap.set(constraintName, {
+          name: constraintName,
+          isPrimary: constraintType === 'p',
+          columns: formatForeignKeyColumns(
+            definitionColumns.replaceAll('"', ''),
+          ),
         });
       }
     }
@@ -78,10 +100,15 @@ export default function normalizeTableConstraints(
     }
   });
 
+  const allForeignKeyRelations = Array.from(foreignKeyRelationMap.values());
+
   const columns = rawColumns
     .map((rawColumn) => {
       const column = JSON.parse(rawColumn);
-      const foreignKeyRelation = foreignKeyRelationMap.get(column.column_name);
+      const foreignKeyRelation = allForeignKeyRelations.find(
+        ({ columns: relationColumns }) =>
+          relationColumns.includes(column.column_name),
+      );
 
       return {
         ...column,
@@ -94,24 +121,47 @@ export default function normalizeTableConstraints(
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
-  const foreignKeyRelations = Array.from(foreignKeyRelationMap.values()).reduce(
+  const candidateKeys = Array.from(candidateKeyMap.values());
+  const candidateKeyColumnSets = [
+    ...candidateKeys.map(({ columns: keyColumns }) => keyColumns),
+    // A unique index without a backing constraint is invisible to the
+    // constraint query, so a uniquely indexed column that belongs to no
+    // constraint is a key of its own.
+    ...columns
+      .filter(
+        ({ is_unique, unique_constraints, primary_constraints }) =>
+          is_unique &&
+          !unique_constraints.length &&
+          !primary_constraints.length,
+      )
+      .map(({ column_name }) => [column_name]),
+  ];
+
+  const foreignKeyRelations = allForeignKeyRelations.reduce(
     (accumulator, foreignKeyRelation) => {
-      const column = columns.find(
-        ({ column_name }) => column_name === foreignKeyRelation.columnName,
+      const relationColumns = columns.filter(({ column_name }) =>
+        foreignKeyRelation.columns.includes(column_name),
       );
 
-      if (!column) {
+      if (relationColumns.length !== foreignKeyRelation.columns.length) {
         return accumulator;
       }
 
       const foreignKeyWithOneToOne: ForeignKeyRelation = {
         ...foreignKeyRelation,
-        oneToOne: column.is_unique || column.is_primary,
+        oneToOne: computeForeignKeyOneToOne(
+          foreignKeyRelation.columns,
+          candidateKeyColumnSets,
+        ),
       };
       return [...accumulator, foreignKeyWithOneToOne];
     },
     [] as ForeignKeyRelation[],
   );
 
-  return { columns, foreignKeyRelations };
+  return {
+    columns,
+    foreignKeyRelations,
+    candidateKeys,
+  };
 }
