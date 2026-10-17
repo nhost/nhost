@@ -74,8 +74,16 @@ pass the **approved head SHA**, never a moving PR ref.
 - Preserve artifact names: `<name>-artifact<suffix>-<os>-<arch>-<version>` and
   `<name>-docker-image<suffix>-<os>-<arch>-<version>`.
 
-Version metadata is finalized before evaluating build/check graphs. Fixed PR
-versions do not update creation timestamps. Independent `result-bin`,
+When checks are enabled, their derivation and development shell are pinned as
+`CHECK_DRV` and `CHECK_SHELL_DRV` before artifact version stamping. The probe and
+`make check` build `CHECK_DRV^*`; integration startup uses `CHECK_SHELL_DRV`.
+This preserves the checkout's check cache and version-sensitive expectations
+while artifacts use the requested version. Keeping `make check` also preserves
+project `_check-pre` hooks, including PostgreSQL's container checks, and the
+pinning targets respect project-specific `NIX_CHECK_EXTRA_ARGS` evaluation flags.
+
+Artifact version metadata is finalized before recording artifact graphs. Fixed
+PR versions do not update creation timestamps. Independent `result-bin`,
 `result-image`, `result-dev-env`, and `result-check` links prevent integration
 setup from overwriting release artifacts. Image imports are skipped outside
 integration checks; integration setup reuses an already loaded image only when
@@ -96,6 +104,8 @@ make --no-print-directory cache-build-roots >> "$NIX_CACHE_ROOTS"
 make --no-print-directory cache-image-roots >> "$NIX_CACHE_ROOTS"
 ```
 
+The workflow resolves `make check-derivation` and `make check-shell-derivation`
+separately before stamping metadata, then records versioned artifact graphs.
 For custom builds, append `nix path-info --derivation` results using exactly the
 same environment and impurity flags as the build. Docker Make targets also record
 graphs for auxiliary images built during integration setup.

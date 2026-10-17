@@ -35,8 +35,14 @@ with open(os.environ["TEST_LOG"], "a") as log:
     log.write(json.dumps([name, args, version]) + "\n")
 tags_file = Path(os.environ["TEST_TAGS"])
 tags = json.loads(tags_file.read_text())
+derivations_file = Path(os.environ["TEST_DERIVATIONS"])
+derivations = json.loads(derivations_file.read_text())
 
 def output(installable):
+    if not installable.startswith(".#"):
+        path, kind, platform, package, target_version = derivations[
+            installable.removesuffix("^*")]
+        return Path(path), kind, platform, package, target_version
     category, platform, package = installable.removeprefix(".#").split(".", 2)
     kind = "image" if package.endswith("-docker-image") else category
     package = package.removesuffix("-docker-image")
@@ -44,7 +50,7 @@ def output(installable):
     stamp = "-" + created.replace(":", "_") if kind == "image" else ""
     basename = "-".join((platform, package, version, kind)) + stamp
     path = Path(os.environ["TEST_STORE"]) / basename
-    return path, kind, platform, package
+    return path, kind, platform, package, version
 
 if name == "nix":
     if args[0] == "eval":
@@ -59,23 +65,33 @@ if name == "nix":
         if "--derivation" in args:
             for installable in args:
                 if installable.startswith(".#"):
-                    print(str(output(installable)[0]) + ".drv")
+                    result = output(installable)
+                    drv = str(result[0]) + ".drv"
+                    derivations[drv] = [str(result[0]), *result[1:]]
+                    print(drv)
+            derivations_file.write_text(json.dumps(derivations))
         else:
             print(Path(args[-1]).resolve(strict=True))
     elif args[0] == "develop":
+        if args[1].endswith(".drv"):
+            _, kind, _, _, target_version = output(args[1])
+            assert kind == "devShells" and target_version == "0.0.0-dev"
         command = args[args.index("-c") + 1:]
         os.execvpe(command[0], command, os.environ)
     elif args[0] == "build":
-        target = next(arg for arg in args if arg.startswith(".#"))
-        path, kind, platform, package = output(target)
+        target = next(arg for arg in args if arg.startswith(".#") or arg.endswith(".drv^*"))
+        path, kind, platform, package, target_version = output(target)
         if "--dry-run" in args:
             if state.get("dry_run_failure"):
+                print("deliberate probe failure", file=sys.stderr)
                 sys.exit(1)
-            if not state.get("checks_cached"):
+            if not (state.get("checks_cached") and target_version == "0.0.0-dev"):
                 print("this derivation will be built", file=sys.stderr)
             print(json.dumps([{"outputs": {"out": str(path)}}]))
         else:
             if kind == "checks":
+                # Expected manifests use the development version even on releases.
+                assert target_version == "0.0.0-dev", target_version
                 expected = "sha256:aarch64-linux:example:" + version
                 assert tags.get("example:" + version) == expected, tags
                 if state.get("check_failure"):
@@ -84,12 +100,12 @@ if name == "nix":
             path.mkdir(parents=True, exist_ok=True)
             if kind == "image":
                 (path / "manifest.json").write_text(json.dumps({
-                    "id": "sha256:" + platform + ":" + package + ":" + version,
-                    "version": version,
+                    "id": "sha256:" + platform + ":" + package + ":" + target_version,
+                    "version": target_version,
                 }))
             elif kind == "packages":
                 (path / "bin").mkdir(exist_ok=True)
-                (path / "bin" / package).write_text("binary-" + version)
+                (path / "bin" / package).write_text("binary-" + target_version)
             else:
                 (path / "passed").touch()
             link = project / (args[args.index("--out-link") + 1] if "--out-link" in args else "result")
@@ -158,6 +174,8 @@ class WorkflowTests(unittest.TestCase):
         self.state_file = self.directory / "state.json"
         self.tags_file = self.directory / "tags.json"
         self.tags_file.write_text("{}")
+        self.derivations_file = self.directory / "derivations.json"
+        self.derivations_file.write_text("{}")
         self.log = self.directory / "events.jsonl"
         self.github_env = self.directory / "github-env"
         self.github_env.touch()
@@ -168,6 +186,7 @@ class WorkflowTests(unittest.TestCase):
             "PATH": str(tools) + os.pathsep + os.environ["PATH"],
             "TEST_STATE": str(self.state_file),
             "TEST_TAGS": str(self.tags_file),
+            "TEST_DERIVATIONS": str(self.derivations_file),
             "TEST_STORE": str(self.directory / "store"),
             "TEST_LOG": str(self.log),
             "GITHUB_ENV": str(self.github_env),
@@ -183,6 +202,8 @@ class WorkflowTests(unittest.TestCase):
             "NIX_CACHE_ROOTS",
             "PREBUILT_DOCKER_IMAGE_PATH",
             "PREBUILT_DOCKER_IMAGE_ID",
+            "CHECK_DRV",
+            "CHECK_SHELL_DRV",
         ]:
             self.env.pop(key, None)
         self.requested_version = "release-sha"
@@ -247,8 +268,8 @@ class WorkflowTests(unittest.TestCase):
     def run_builds(self):
         for name in [
             "Initialize Nix cache roots",
-            "Compute artifact version",
             "Verify if checks need to run",
+            "Compute artifact version",
             "Record artifact cache roots",
             "Build artifact",
             "Build Docker image",
@@ -263,8 +284,8 @@ class WorkflowTests(unittest.TestCase):
     def test_ordering_and_publication_gates(self):
         names = [step["name"] for step in self.steps]
         expected = [
-            "Compute artifact version",
             "Verify if checks need to run",
+            "Compute artifact version",
             "Record artifact cache roots",
             "Grant Nix builds access to the Docker socket",
             "Build artifact",
@@ -337,18 +358,95 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue((self.project / "result-check/passed").exists())
         self.assertFalse((self.project / "result").exists())
         self.assertEqual(sum(name == "skopeo" for name, _, _ in self.events()), 1)
-        self.assertTrue(
-            all(
-                value == version
-                for name, args, value in self.events()
-                if not (name == "nix" and args[0] in ["eval", "flake"])
-            )
-        )
         tags = json.loads(self.tags_file.read_text())
         self.assertIn("example:" + version, tags)
         roots = Path(self.env["NIX_CACHE_ROOTS"]).read_text()
-        self.assertNotIn("0.0.0-dev", roots)
-        self.assertIn(version + "-checks.drv", roots)
+        self.assertIn("0.0.0-dev-checks.drv", roots)
+        self.assertIn("0.0.0-dev-devShells.drv", roots)
+        self.assertNotIn(version + "-checks.drv", roots)
+        self.assertIn(version + "-packages.drv", roots)
+
+    def test_release_checks_build_the_derivations_pinned_before_stamping(self):
+        self.run_builds()
+        check_drv = self.env["CHECK_DRV"]
+        shell_drv = self.env["CHECK_SHELL_DRV"]
+        self.assertIn(
+            'version = "release-sha";', (self.project / "project.nix").read_text()
+        )
+        derivations = json.loads(self.derivations_file.read_text())
+        for drv in [check_drv, shell_drv]:
+            self.assertEqual(derivations[drv][-1], "0.0.0-dev")
+
+        self.run_step("Start containers for integration tests")
+        self.run_step("Run checks")
+        pinned_builds = [
+            (args, version)
+            for name, args, version in self.events()
+            if name == "nix" and args[0] == "build" and check_drv + "^*" in args
+        ]
+        self.assertEqual(len(pinned_builds), 2)
+        self.assertIn("--dry-run", pinned_builds[0][0])
+        self.assertEqual(pinned_builds[0][1], "0.0.0-dev")
+        self.assertNotIn("--dry-run", pinned_builds[1][0])
+        self.assertEqual(pinned_builds[1][1], "release-sha")
+        self.assertTrue(
+            any(
+                name == "nix" and args[:2] == ["develop", shell_drv]
+                for name, args, _ in self.events()
+            )
+        )
+        check_output = (self.project / "result-check").resolve()
+        self.assertEqual(check_output, Path(derivations[check_drv][0]))
+        self.assertNotIn(
+            "release-sha-checks.drv", Path(self.env["NIX_CACHE_ROOTS"]).read_text()
+        )
+
+    def test_pinned_checks_preserve_project_pre_check_hooks(self):
+        self.run_builds()
+        self.run_step("Start containers for integration tests")
+        with (self.project / "Makefile").open("a") as makefile:
+            makefile.write("\n_check-pre:\n\t@touch pre-check-ran\n")
+        self.run_step("Run checks")
+        self.assertTrue((self.project / "pre-check-ran").exists())
+        self.assertTrue((self.project / "result-check/passed").exists())
+
+    def test_failed_project_pre_check_stops_the_pinned_build(self):
+        self.run_builds()
+        self.run_step("Start containers for integration tests")
+        with (self.project / "Makefile").open("a") as makefile:
+            makefile.write("\n_check-pre:\n\t@touch pre-check-ran\n\t@false\n")
+        self.run_step("Run checks", success=False)
+        self.assertTrue((self.project / "pre-check-ran").exists())
+        self.assertFalse((self.project / "result-check").exists())
+        builds = [
+            args
+            for name, args, _ in self.events()
+            if name == "nix" and self.env["CHECK_DRV"] + "^*" in args
+        ]
+        self.assertEqual(len(builds), 1)
+        self.assertIn("--dry-run", builds[0])
+
+    def test_pinning_preserves_project_specific_evaluation_flags(self):
+        with (self.project / "Makefile").open("a") as makefile:
+            makefile.write("\nNIX_CHECK_EXTRA_ARGS=--impure\n")
+        self.run_step("Initialize Nix cache roots")
+        self.run_step("Verify if checks need to run")
+        self.run_step("Start containers for integration tests")
+        self.run_step("Run checks")
+        evaluations = [
+            args
+            for name, args, _ in self.events()
+            if name == "nix"
+            and args[:2] == ["path-info", "--derivation"]
+            and any(
+                arg.startswith((".#checks.", ".#devShells."))
+                and arg.endswith(".example")
+                for arg in args
+            )
+        ]
+        self.assertEqual(len(evaluations), 2)
+        for args in evaluations:
+            self.assertIn("--impure", args)
 
     def test_dev_image_derivation_is_stable_and_reused_for_checks(self):
         self.requested_version = "0.0.0-dev"
