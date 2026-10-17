@@ -10,8 +10,16 @@ This document covers commands, project layout, and dashboard-specific workflows 
 
 ### Core Commands
 
+Run install and the SDK build from the repository root. The dashboard imports `@nhost/nhost-js` from its `dist/` output, and the root workspace has no `build` script.
+
 ```bash
 pnpm install          # Install dependencies (use pnpm, not npm/yarn)
+pnpm build:nhost-js   # Build @nhost/nhost-js before starting the dashboard
+```
+
+The remaining commands run from `dashboard/`. `pnpm dev:dashboard` from the repository root starts the same dev server as `pnpm dev`.
+
+```bash
 pnpm dev              # Start development server (port 3000)
 pnpm build            # Production build (skips lint)
 pnpm start            # Start production server
