@@ -1,4 +1,5 @@
 import { plural, singular } from 'pluralize';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
@@ -51,6 +52,15 @@ function findNonUniqueNameIndexes(
   return duplicateIndexes.sort((a, b) => a - b);
 }
 
+function getRelationshipColumnName(
+  operation: CreateRelationshipOperation,
+): string | undefined {
+  const constraint = operation.args.using.foreign_key_constraint_on;
+  const columns = constraint ? getForeignKeyConstraintColumns(constraint) : [];
+
+  return columns.length === 1 ? columns[0] : undefined;
+}
+
 function updateDuplicateRelationshipNames(
   operations: CreateRelationshipOperation[],
 ): CreateRelationshipOperation[] {
@@ -65,10 +75,7 @@ function updateDuplicateRelationshipNames(
       return op;
     }
 
-    const columnName =
-      typeof op.args.using.foreign_key_constraint_on === 'string'
-        ? op.args.using.foreign_key_constraint_on
-        : op.args.using.foreign_key_constraint_on?.column;
+    const columnName = getRelationshipColumnName(op);
 
     if (!columnName) {
       return op;
@@ -162,12 +169,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
       deduplicatedRelationshipsOperations.map((relationshipOperation) => {
         const relationshipKey = `${relationshipOperation.args.table.schema}.${relationshipOperation.args.table.name}.${relationshipOperation.args.name}`;
         if (existingRelationshipMaps.has(relationshipKey)) {
-          const columnName =
-            typeof relationshipOperation.args.using
-              .foreign_key_constraint_on === 'string'
-              ? relationshipOperation.args.using.foreign_key_constraint_on
-              : relationshipOperation.args.using.foreign_key_constraint_on
-                  ?.column;
+          const columnName = getRelationshipColumnName(relationshipOperation);
           return {
             ...relationshipOperation,
             args: {

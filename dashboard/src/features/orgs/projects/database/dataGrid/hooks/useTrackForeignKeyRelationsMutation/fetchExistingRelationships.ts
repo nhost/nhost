@@ -1,9 +1,13 @@
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isFKConstraintOnSameTable } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
+import { areStrArraysEqualOrdered } from '@/lib/utils';
 
 export interface FetchExistingRelationshipsOptions {
   dataSource: string;
@@ -15,27 +19,35 @@ export interface FetchExistingRelationshipsOptions {
 }
 
 /**
- * Find matching foreign key for relationships in the current table.
- * These relationships have foreign_key_constraint_on as a string (column name).
+ * Find the foreign key behind a relationship whose constraint sits on the
+ * current table, i.e. the declaring table owns the referencing column(s).
  */
 function findMatchingForeignKeyForCurrentTable(
   relationship: HasuraMetadataRelationship,
   foreignKeys: ForeignKeyRelation[],
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const constraint = relationship.using.foreign_key_constraint_on;
 
-  if (typeof using.foreign_key_constraint_on !== 'string') {
+  if (!isFKConstraintOnSameTable(constraint)) {
     return null;
   }
 
-  const columnName = using.foreign_key_constraint_on;
+  const constraintColumns = getForeignKeyConstraintColumns(constraint);
 
-  return foreignKeys.find((fk) => fk.columnName === columnName) || null;
+  return (
+    foreignKeys.find((fk) =>
+      areStrArraysEqualOrdered(
+        formatForeignKeyColumns(fk.columnName),
+        constraintColumns,
+      ),
+    ) || null
+  );
 }
 
 /**
- * Find matching foreign key for relationships in referenced tables.
- * These relationships have foreign_key_constraint_on as an object with column and table.
+ * Find the foreign key behind a relationship declared on the referenced table,
+ * whose constraint points back at the current table. Covers array
+ * relationships and the one-to-one object relationships that mirror them.
  */
 function findMatchingForeignKeyForReferencedTable(
   relationship: HasuraMetadataRelationship,
@@ -43,24 +55,21 @@ function findMatchingForeignKeyForReferencedTable(
   currentSchema: string,
   currentTable: string,
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const constraint = relationship.using.foreign_key_constraint_on;
 
-  if (typeof using.foreign_key_constraint_on === 'string') {
-    return null;
-  }
-
-  const constraint = using.foreign_key_constraint_on;
-
-  if (!constraint) {
+  if (!constraint || isFKConstraintOnSameTable(constraint)) {
     return null;
   }
 
   const matchesTable =
-    constraint.table.name === currentTable &&
-    constraint.table.schema === currentSchema &&
-    constraint.column === foreignKey.columnName;
+    constraint.table?.name === currentTable &&
+    constraint.table?.schema === currentSchema;
+  const matchesColumns = areStrArraysEqualOrdered(
+    formatForeignKeyColumns(foreignKey.columnName),
+    getForeignKeyConstraintColumns(constraint),
+  );
 
-  return matchesTable ? foreignKey : null;
+  return matchesTable && matchesColumns ? foreignKey : null;
 }
 
 /**

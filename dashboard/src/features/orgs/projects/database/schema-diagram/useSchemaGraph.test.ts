@@ -591,6 +591,82 @@ describe('useSchemaGraph', () => {
       });
     });
 
+    it('matches every edge in composite object and array constraints', () => {
+      const compositeForeignKeys = [
+        buildForeignKey({ constraintName: 'posts_author_fkey' }),
+        buildForeignKey({
+          fromColumn: 'tenant_id',
+          toColumn: 'tenant_id',
+          constraintName: 'posts_author_fkey',
+        }),
+      ];
+      const compositeColumns = [
+        ...fkColumns,
+        buildColumn({
+          schema: 'public',
+          table: 'posts',
+          columnName: 'tenant_id',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'tenant_id',
+          ordinalPosition: 2,
+          isPrimary: true,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: {
+                foreign_key_constraint_on: ['author_id', 'tenant_id'],
+              },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  columns: ['author_id', 'tenant_id'],
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns: compositeColumns,
+          foreignKeys: compositeForeignKeys,
+          role: 'admin',
+          functionReturnTypes: [],
+          functionsMetadata: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'postgres',
+        }),
+      );
+
+      expect(result.current.edges).toHaveLength(2);
+      for (const edge of result.current.edges) {
+        expect(edge.data).toMatchObject({
+          hasObjectRel: true,
+          hasArrayRel: true,
+        });
+      }
+    });
+
     it('detects only the object relationship when the array side is missing', () => {
       const data = getEdgeData([
         buildMetadataTable('public', 'posts', {
