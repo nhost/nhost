@@ -17,6 +17,7 @@ type TemplateName string
 const (
 	TemplateNameEmailVerify        TemplateName = "email-verify"
 	TemplateNameEmailConfirmChange TemplateName = "email-confirm-change"
+	TemplateNameElevateOTP         TemplateName = "elevate-otp"
 	TemplateNameSigninPasswordless TemplateName = "signin-passwordless"
 	TemplateNameSigninOTP          TemplateName = "signin-otp"
 	TemplateNamePasswordReset      TemplateName = "password-reset"
