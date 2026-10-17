@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/nhostclient_checks.yaml"
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
 
       # common build
       - "flake.nix"
@@ -37,6 +39,8 @@ jobs:
       patterns: |
         .github/workflows/nhostclient_checks.yaml
         .github/workflows/wf_check.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         flake.nix
         flake.lock
         nixops/**
@@ -52,7 +56,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -65,7 +69,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: nhostclient
-      PATH: internal/lib/nhostclient
+      PROJECT: internal/lib/nhostclient
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:

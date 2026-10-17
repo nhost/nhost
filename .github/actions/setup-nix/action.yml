@@ -33,6 +33,7 @@ runs:
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
           keep-outputs = true
+          accept-flake-config = true
           # Build from source when a substitute fails (e.g. a corrupt narinfo
           # upstream) instead of aborting the job. See nixops/project.nix where
           # geos is cached: this lets the first build past a bad cache.nixos.org
@@ -40,16 +41,10 @@ runs:
           # substituter serves it.
           fallback = true
 
-    - name: "Configure Nix daemon cache access and build collector"
-      # The Nix daemon runs as root and doesn't inherit AWS_* env vars
-      # from the shell, so the S3 substituter fails with "Access Denied"
-      # and every job rebuilds paths that are already cached. Drop the R2
-      # credentials into root's ~/.aws/credentials so the AWS SDK picks
-      # them up via its standard provider chain. Also install a cheap
-      # post-build hook that records only paths actually built by this job;
-      # the cache upload action uses that list instead of scanning the
-      # entire local store and probing R2 for every unsigned path. The hook
-      # must not upload itself because Nix runs it synchronously.
+    - name: "Forward R2 credentials to the Nix daemon"
+      # NixOS runners already have Nix, so the installer skips extra_nix_config.
+      # Configure both the hosted runner's default profile and the named profile
+      # used by NixOS and flake.nix, then reset daemon credential state.
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.NIX_CACHE_ACCESS_KEY_ID }}
@@ -66,25 +61,12 @@ runs:
         aws_access_key_id = $AWS_ACCESS_KEY_ID
         aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
         region = auto
+        [nhost-nix-cache]
+        aws_access_key_id = $AWS_ACCESS_KEY_ID
+        aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+        region = auto
         EOF
         sudo chmod 600 "$root_home/.aws/credentials"
-
-        sudo rm -f /tmp/nix-built-paths
-        sudo touch /tmp/nix-built-paths
-        sudo chmod 666 /tmp/nix-built-paths
-        sudo tee /etc/nix/post-build-hook > /dev/null <<'EOF'
-        #!/usr/bin/env bash
-        set -efu
-        [ -n "${OUT_PATHS:-}" ] || exit 0
-        # Store paths cannot contain spaces, and OUT_PATHS is space-separated.
-        for path in $OUT_PATHS; do
-          printf '%s\n' "$path"
-        done >> /tmp/nix-built-paths
-        EOF
-        sudo chmod +x /etc/nix/post-build-hook
-        sudo sed -i.bak '/^[[:space:]]*post-build-hook[[:space:]]*=/d' /etc/nix/nix.conf
-        sudo rm -f /etc/nix/nix.conf.bak
-        echo 'post-build-hook = /etc/nix/post-build-hook' | sudo tee -a /etc/nix/nix.conf > /dev/null
 
         if [ "$RUNNER_OS" = "macOS" ]; then
           sudo launchctl kickstart -k system/org.nixos.nix-daemon
@@ -92,15 +74,30 @@ runs:
           sudo systemctl restart nix-daemon
         fi
 
+    - name: Initialize Nix cache roots
+      shell: bash
+      run: |
+        roots="$RUNNER_TEMP/nix-cache-roots"
+        # Include locked inputs, not the per-commit source of this repository.
+        nix flake archive --json --dry-run |
+          jq -r '.inputs | .. | .path? // empty' > "$roots"
+        echo "NIX_CACHE_ROOTS=$roots" >> "$GITHUB_ENV"
+
     - name: "Verify nixops is cached"
       if: ${{ inputs.NAME != 'nixops' }}
       shell: bash
       run: |
         ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
         SYSTEM=$([ "$RUNNER_OS" = "macOS" ] && echo "$ARCH-darwin" || echo "$ARCH-linux")
-        output=$(nix build --dry-run .\#packages.$SYSTEM.nixops 2>&1)
-        if echo "$output" | grep -q "will be built"; then
-          echo "$output"
+        log=$(mktemp)
+        trap 'rm -f "$log"' EXIT
+        if ! nix build --dry-run ".#packages.$SYSTEM.nixops" > "$log" 2>&1; then
+          cat "$log" >&2
+          echo "::error::failed to evaluate nixops"
+          exit 1
+        fi
+        if grep -q "will be built" "$log"; then
+          cat "$log"
           echo "::error::nixops needs to be rebuilt — build and cache nixops first"
           exit 1
         fi

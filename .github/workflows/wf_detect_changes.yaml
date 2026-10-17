@@ -19,7 +19,7 @@ on:
 
 jobs:
   detect:
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     outputs:
       should_run: ${{ github.event_name != 'merge_group' && 'true' || steps.check-patterns.outputs.should_run }}
     steps:

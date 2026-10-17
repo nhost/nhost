@@ -5,7 +5,8 @@ on:
     paths:
       - ".github/workflows/functions_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/wf_build_artifacts.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
 
       # common build
       - "flake.nix"
@@ -37,7 +38,8 @@ jobs:
       patterns: |
         .github/workflows/functions_checks.yaml
         .github/workflows/wf_check.yaml
-        .github/workflows/wf_build_artifacts.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         flake.nix
         flake.lock
         nixops/**
@@ -54,48 +56,33 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
-  build_artifacts:
+  tests:
     strategy:
       matrix:
         node: ["22", "24", "26"]
       fail-fast: true
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+    uses: ./.github/workflows/wf_check.yaml
     needs:
       - detect-changes
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      BUILD: true
+      RUNNER_SIZE: "2c2g"
+      CHECK_RUNNER_SIZE: "4c8g"
+      CHECKS: ${{ matrix.node == '22' }}
       NAME: functions
-      PATH: services/functions
+      PROJECT: services/functions
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
       ENV: "NODE_VERSION=${{ matrix.node }}"
       ARTIFACT_SUFFIX: "-node${{ matrix.node }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
-  tests:
-    uses: ./.github/workflows/wf_check.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-      - build_artifacts
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: functions
-      PATH: services/functions
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

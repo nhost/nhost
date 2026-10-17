@@ -5,7 +5,8 @@ on:
     paths:
       - ".github/workflows/postgres_checks.yaml"
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/wf_build_artifacts.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
 
       # common build
       - "flake.nix"
@@ -31,7 +32,8 @@ jobs:
       patterns: |
         .github/workflows/postgres_checks.yaml
         .github/workflows/wf_check.yaml
-        .github/workflows/wf_build_artifacts.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         flake.nix
         flake.lock
         nixops/**
@@ -41,42 +43,10 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
-
-  build_artifacts:
-    strategy:
-      matrix:
-        postgresql: ["17", "18"]
-      fail-fast: true
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: postgres
-      PATH: services/postgres
-      OS_MATRIX: >-
-        ["blacksmith-32vcpu-ubuntu-2404-arm",
-        "blacksmith-8vcpu-ubuntu-2404"]
-      GIT_REF: >-
-        ${{ github.event_name == 'pull_request_target'
-        && github.event.pull_request.head.sha || github.sha }}
-      # Use a fixed version here to avoid unnecessary rebuilds.
-      VERSION: 0.0.0-dev
-      DOCKER: true
-      ENV: |
-        POSTGRES_VERSION=${{ matrix.postgresql }}
-      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   tests:
     strategy:
@@ -87,16 +57,21 @@ jobs:
     needs:
       - detect-changes
       - check-permissions
-      - build_artifacts
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      BUILD: true
       NAME: postgres
-      PATH: services/postgres
+      PROJECT: services/postgres
+      RUNNER_SIZE: "4c8g"
       GIT_REF: >-
         ${{ github.event_name == 'pull_request_target'
         && github.event.pull_request.head.sha || github.sha }}
+      # Use a fixed version here to avoid unnecessary rebuilds.
+      VERSION: 0.0.0-dev
+      DOCKER: true
       ENV: |
         POSTGRES_VERSION=${{ matrix.postgresql }}
+      ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

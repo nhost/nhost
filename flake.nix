@@ -246,6 +246,7 @@
           ai = aif.check;
           auth = authf.check;
           betterleaks = betterleaksf.check;
+          ci = import ./nixops/ci.nix { inherit pkgs; };
           cli = clif.check;
           codegen = codegenf.check;
           configdocs = configdocsf.check;

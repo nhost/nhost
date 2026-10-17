@@ -33,6 +33,7 @@ let
   buildInputs =
     (with pkgs; [
       nhost.biome
+      actionlint
       bash
       nhost.betterleaks
       bun
@@ -47,6 +48,7 @@ let
       geos
       gh
       git-cliff
+      gnumake
       gnused
       nhost.go
       go-migrate
@@ -77,12 +79,14 @@ let
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
+      (python3.withPackages (p: [ p.pyyaml ]))
       shellcheck
       skopeo
       nhost.sqlc
       vacuum-go
       vale
       nhost.wal-g
+      zip
     ])
     ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
@@ -145,6 +149,7 @@ in
     name = "check-nixops";
     paths = [
       (nixops-lib.nix.check { inherit src; })
+      (import ./ci.nix { inherit pkgs; })
       (nixops-lib.nix.checkPinnedToolchains {
         # Repo-wide: toolchain regressions tend to land in the individual
         # projects' project.nix, not under nixops/.

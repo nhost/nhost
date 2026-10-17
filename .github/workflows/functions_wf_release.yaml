@@ -39,10 +39,13 @@ jobs:
       matrix:
         node: ["22", "24", "26"]
       fail-fast: true
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+    uses: ./.github/workflows/wf_check.yaml
     with:
+      BUILD: true
+      RUNNER_SIZE: "2c2g"
+      CHECKS: false
       NAME: functions
-      PATH: services/functions
+      PROJECT: services/functions
       GIT_REF: ${{ inputs.GIT_REF }}
       VERSION: ${{ inputs.VERSION }}
       DOCKER: true

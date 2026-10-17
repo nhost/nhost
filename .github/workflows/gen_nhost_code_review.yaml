@@ -39,7 +39,7 @@ jobs:
     concurrency:
       group: nhost-code-review-${{ github.event.issue.number }}
       cancel-in-progress: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    runs-on: nhost-aarch64-2c4g
     timeout-minutes: 180
     permissions:
       contents: read

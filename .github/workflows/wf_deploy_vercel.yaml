@@ -16,6 +16,10 @@ on:
         required: false
         type: string
         default: ""
+      RUNNER_SIZE:
+        description: "Size for the local frontend build, not just deployment"
+        type: string
+        default: "2c4g"
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -46,7 +50,7 @@ on:
 jobs:
   deploy-vercel:
     name: Build and deploy Vercel output
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ${{ format('nhost-x86_64-{0}', inputs.RUNNER_SIZE) }}
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
     permissions:
@@ -94,8 +98,10 @@ jobs:
           VERCEL_CACHE_BUSTER: ${{ vars.VERCEL_CACHE_BUSTER }}
 
       - name: Store Nix cache
+        if: ${{ always() && env.NIX_CACHE_ROOTS != '' }}
         uses: ./.github/actions/cache-nix
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

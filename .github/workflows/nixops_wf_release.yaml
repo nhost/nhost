@@ -10,11 +10,14 @@ on:
 
 jobs:
   build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+    uses: ./.github/workflows/wf_check.yaml
     with:
+      BUILD: true
+      RUNNER_SIZE: "2c2g"
+      CHECKS: false
       NAME: nixops
-      PATH: nixops
-      GIT_REF: ${{ inputs.GIT_REF }}
+      PROJECT: nixops
+      GIT_REF: ${{ github.sha }}
       VERSION: latest
       DOCKER: true
     secrets:

@@ -87,7 +87,7 @@ env:
 
 jobs:
   tests:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ${{ format('nhost-x86_64-{0}', matrix.runner-size) }}
     timeout-minutes: 30
     concurrency:
       group: dashboard-e2e-staging-${{ matrix.suite }}
@@ -99,10 +99,14 @@ jobs:
         include:
           - suite: main
             nix-attr: dashboard-e2e-staging-main
+            runner-size: "2c4g"
           - suite: onboarding
             nix-attr: dashboard-e2e-staging-onboarding
+            runner-size: "2c4g"
           - suite: local
             nix-attr: dashboard-e2e-staging-local
+            # Runs the local Nhost container stack alongside the browser.
+            runner-size: "4c8g"
             needs-cli: true
 
     defaults:
@@ -141,6 +145,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          nix path-info --derivation --impure ".#${{ matrix.nix-attr }}" \
+            >> "$NIX_CACHE_ROOTS"
           stderr_log="$(mktemp)"
           if ! nix build --dry-run ".#${{ matrix.nix-attr }}" 2>"$stderr_log"; then
             cat "$stderr_log" >&2
@@ -240,6 +246,7 @@ jobs:
         uses: ./.github/actions/cache-nix
         if: ${{ always() && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

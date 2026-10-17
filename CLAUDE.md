@@ -80,7 +80,9 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 ## CI/CD
 
 - GitHub Actions workflows in `.github/workflows/`.
-- Separate check and release workflows per project (e.g., `auth_checks.yaml`, `auth_wf_release.yaml`).
+- Per-project check/release callers share `.github/workflows/wf_check.yaml` for checks and optional builds; releases disable checks. See `.github/README.md` for the shared interface, artifact contracts, and Nix cache roots.
+- Linux CI uses ephemeral `nhost-<arch>-<cpus>c<memory>g` runners; native macOS cache warming and npm trusted publishing remain GitHub-hosted.
+- `checks.<system>.ci` validates workflows, cache behavior, and shared Makefile contracts offline; it is also part of the `nixops` check.
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.

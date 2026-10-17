@@ -4,6 +4,8 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
       - ".github/workflows/configdocs_checks.yaml"
 
       # common build
@@ -36,6 +38,8 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         .github/workflows/configdocs_checks.yaml
         flake.nix
         flake.lock
@@ -51,7 +55,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -63,28 +67,9 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      BUILD: true
       NAME: configdocs
-      PATH: tools/configdocs
-      GIT_REF: >-
-        ${{ github.event_name == 'pull_request_target' &&
-        github.event.pull_request.head.sha || github.sha }}
-
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: configdocs
-      PATH: tools/configdocs
+      PROJECT: tools/configdocs
       GIT_REF: >-
         ${{ github.event_name == 'pull_request_target' &&
         github.event.pull_request.head.sha || github.sha }}

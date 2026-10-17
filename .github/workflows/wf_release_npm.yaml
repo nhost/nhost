@@ -27,6 +27,7 @@ on:
 
 jobs:
   release:
+    # npm trusted publishing rejects self-hosted runner provenance.
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -57,6 +58,13 @@ jobs:
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Record package and publishing shell cache roots
+        run: |
+          make --no-print-directory cache-build-roots >> "$NIX_CACHE_ROOTS"
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#devShells.$system.pnpm" \
+            >> "$NIX_CACHE_ROOTS"
+
       - name: "Build package"
         run: make build
 
@@ -79,6 +87,15 @@ jobs:
       - name: "Publish to npm"
         run: |
           nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
+
+      - name: Store Nix cache
+        if: ${{ always() && env.NIX_CACHE_ROOTS != '' }}
+        uses: ./.github/actions/cache-nix
+        with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
       - name: Send Discord notification
         if: always()

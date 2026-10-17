@@ -4,6 +4,8 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
       - ".github/workflows/examples_tutorials_checks.yaml"
 
       # common build
@@ -46,6 +48,8 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         .github/workflows/examples_tutorials_checks.yaml
         flake.nix
         flake.lock
@@ -68,7 +72,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -80,30 +84,14 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      BUILD: true
+      RUNNER_SIZE: "4c8g"
       NAME: tutorials
-      PATH: examples/tutorials
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: tutorials
-      PATH: examples/tutorials
+      PROJECT: examples/tutorials
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: false
-      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
+      ARCHS: '["x86_64"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}

@@ -3,8 +3,8 @@ name: "dashboard: check and build"
 on:
   pull_request_target:
     paths:
-      - ".github/workflows/wf_build_artifacts.yaml"
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/setup-nix/**"
       - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/dashboard_wf_e2e_staging.yaml"
       - ".github/workflows/dashboard_checks.yaml"
@@ -41,8 +41,8 @@ jobs:
     uses: ./.github/workflows/wf_detect_changes.yaml
     with:
       patterns: |
-        .github/workflows/wf_build_artifacts.yaml
         .github/workflows/wf_check.yaml
+        .github/actions/setup-nix/**
         .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/dashboard_wf_e2e_staging.yaml
         .github/workflows/dashboard_checks.yaml
@@ -64,7 +64,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -76,6 +76,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNNER_SIZE: "4c8g"
       NAME: dashboard
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
@@ -90,37 +91,21 @@ jobs:
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
-  build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - detect-changes
-      - check-permissions
-    if: needs.detect-changes.outputs.should_run == 'true'
-    with:
-      NAME: dashboard
-      PATH: dashboard
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
-      DOCKER: true
-      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
       - detect-changes
       - check-permissions
-      - build_artifacts
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      BUILD: true
+      RUNNER_SIZE: "4c8g"
       NAME: dashboard
-      PATH: dashboard
+      PROJECT: dashboard
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: true
+      ARCHS: '["x86_64"]'
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -134,7 +119,7 @@ jobs:
       - detect-changes
       - check-permissions
       - deploy-vercel
-      - build_artifacts
+      - tests
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: dashboard

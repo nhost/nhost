@@ -9,7 +9,7 @@ on:
 jobs:
   create-release:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'release(')
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: nhost-aarch64-1c1g
     timeout-minutes: 30
 
     permissions:
