@@ -114,7 +114,7 @@ func getSMS( //nolint:ireturn
 	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
-	if !cmd.Bool(flagSMSPasswordlessEnabled) {
+	if !cmd.Bool(flagOTPSmsEnabled) {
 		return nil, nil //nolint:nilnil // SMS disabled, return nil client
 	}
 
