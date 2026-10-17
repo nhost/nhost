@@ -432,7 +432,8 @@ export interface ForeignKeyRelation {
 }
 
 /**
- * A primary key or unique constraint a foreign key can reference.
+ * A primary key, unique constraint or standalone unique index a foreign key
+ * can reference.
  */
 export interface CandidateKey {
   name: string;
