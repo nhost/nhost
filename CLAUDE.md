@@ -70,11 +70,11 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ## Code Standards
 
-Authoritative design rules live in `.claude/docs/`. Load the one that matches the file you are touching before writing or reviewing code:
+Authoritative rules live under `.claude/`: design rules in `.claude/docs/`, the writing standard in `.claude/writing/`. Load the one that matches the file you are touching before writing or reviewing code:
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
-- **Docs and blog prose** — three layers: shared rules in `.claude/docs/writing-rules.md` (`WR-*` IDs, grounding, one running example, anti-patterns, placeholders, the scope/voice resolution table), one scope per destination in `.claude/docs/writing-scopes/` (`DOCS-*` and `BLOG-*` IDs), and one voice profile per voice in `.claude/docs/writing-voices/` (no IDs). For `docs/src/content/docs/**` load the rules, `writing-scopes/docs.md` and `writing-voices/nhost-docs.md`.
+- **Docs and blog prose** — three layers: shared rules in `.claude/writing/rules.md` (`WR-*` IDs, grounding, one running example, anti-patterns, placeholders, the scope/voice resolution table), one scope per destination in `.claude/writing/scopes/` (`DOCS-*` and `BLOG-*` IDs), and one voice profile per voice in `.claude/writing/voices/` (no IDs). For `docs/src/content/docs/**` load the rules, `scopes/docs.md` and `voices/nhost-docs.md`.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 
@@ -89,4 +89,4 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 
 ## Review Guidelines
 
-PR review should apply the rules docs in `.claude/docs/`. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.
+PR review should apply the rules docs in `.claude/docs/` and, for prose, the writing standard in `.claude/writing/`. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.

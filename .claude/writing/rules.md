@@ -12,11 +12,11 @@ A session that writes or reviews content loads three files, each with one job:
 - **Shared rules** (this file, IDs `WR-<AREA>-<NN>`) say what must be true of
   any text we write: grounding, one running example, no filler, placeholders,
   the LLM anti-pattern list and mechanical style.
-- **A scope** (`.claude/docs/writing-scopes/<scope>.md`, IDs
+- **A scope** (`.claude/writing/scopes/<scope>.md`, IDs
   `DOCS-<NN>` or `BLOG-<NN>`) says what the destination requires:
   page or post types, frontmatter, components, links, images, the brief it
   needs.
-- **A voice** (`.claude/docs/writing-voices/<slug>.md`, no IDs) says how the text
+- **A voice** (`.claude/writing/voices/<slug>.md`, no IDs) says how the text
   reads, as measured stats and attributed excerpts rather than rules.
 
 Rule IDs are the join key between these files, the Vale messages, the judge

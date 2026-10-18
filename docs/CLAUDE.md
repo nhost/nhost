@@ -10,10 +10,10 @@ names the source of each generated set, and `pnpm generate` rebuilds them.
 Before writing or reviewing anything under `src/content/docs/`, load, in this
 order:
 
-1. `.claude/docs/writing-rules.md` (shared rules, `WR-*` IDs)
-2. `.claude/docs/writing-scopes/docs.md` (what a docs page requires,
+1. `.claude/writing/rules.md` (shared rules, `WR-*` IDs)
+2. `.claude/writing/scopes/docs.md` (what a docs page requires,
    `DOCS-*` IDs)
-3. `.claude/docs/writing-voices/nhost-docs.md` (how the docs read)
+3. `.claude/writing/voices/nhost-docs.md` (how the docs read)
 
 Findings and handoff notes cite rule IDs and quote the text they apply to.
 

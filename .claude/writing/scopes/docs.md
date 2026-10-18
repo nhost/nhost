@@ -1,13 +1,13 @@
 # Scope: docs
 
 What a page under `docs/src/content/docs/**` requires, on top of the shared
-rules in `.claude/docs/writing-rules.md`. The docs are four sections:
+rules in `.claude/writing/rules.md`. The docs are four sections:
 `getting-started/` (quickstart, local-development, tutorials), `products/`
 (one per product), `platform/` (cli, cloud, self-hosting) and `reference/`
 (hand-written only under `reference/graphql/**`, the rest generated). A blog
 post is not a docs page; it resolves to the `blog` scope. The site is Astro
 with Starlight; pages are MDX. The voice is `nhost-docs`
-(`.claude/docs/writing-voices/nhost-docs.md`). The page exemplar is
+(`.claude/writing/voices/nhost-docs.md`). The page exemplar is
 `products/auth/sign-in-magic-link.mdx`: short, one feature, code before
 prose, callouts in Markdown syntax, a UI path in bold. Its UI path line
 predates DOCS-06 and DOCS-07: the path is now **Auth → Settings → Sign-In

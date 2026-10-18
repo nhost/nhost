@@ -5,7 +5,7 @@ used to check voice profiles. The judge in `tools/writing` scores drafts
 against the writing rules, a scope and a voice; this set is what tells us
 whether those scores track what a human reviewer actually changes.
 
-The set lives here rather than under `.claude/docs/` so that sessions loading
+The set lives here rather than under `.claude/writing/` so that sessions loading
 the writing rules never ingest a draft full of anti-patterns. Writer agents
 must not read this directory.
 
@@ -45,8 +45,8 @@ The other files:
 - `deltas.md` is a table with one row per change the human made: what the
   draft did, what the final does, the proposed rule ID, and one line stating
   what that rule must say. Each row cites exactly one ID, from the `WR-*`
-  family in `.claude/docs/writing-rules.md` or the `DOCS-*`, `BLOG-*` family in
-  `.claude/docs/writing-scopes/`. Every ID a pair cites is defined in the same
+  family in `.claude/writing/rules.md` or the `DOCS-*`, `BLOG-*` family in
+  `.claude/writing/scopes/`. Every ID a pair cites is defined in the same
   PR that adds the pair; the rule-ID drift test in `tools/writing` enforces it.
   Two rows share an ID only when they are the same rule.
 - `meta.json` holds `scope`, `pageType`, `draftSha`, `finalSha`, `pr`,

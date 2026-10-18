@@ -3,7 +3,7 @@
 House rules for the docs under `src/content/docs/`, run by `docs/.vale.ini`
 together with Vale's built-in `Vale.*` checks. Everything here is committed
 and runs offline; no `Packages` are downloaded. Generated pages are excluded
-in `.vale.ini`, matching the exclusion list in `.claude/docs/writing-rules.md`.
+in `.vale.ini`, matching the exclusion list in `.claude/writing/rules.md`.
 
 ## Severity tiers
 
@@ -67,7 +67,7 @@ in its row.
 
 The rules from `Aside` to `EmDash` in the table are written for Nhost. Each
 message starts with the rule ID it enforces, defined in
-`.claude/docs/writing-rules.md` or `.claude/docs/writing-scopes/docs.md`, and
+`.claude/writing/rules.md` or `.claude/writing/scopes/docs.md`, and
 the definition line names the rule back. `Aside`, `ScreenshotPlaceholder`,
 `VerifyMarker`, `RawDashboardURL`, `DeepLinkRel`, `UIPathArrow` and
 `NavPaths` use `scope: raw`, which bypasses the `TokenIgnores`, so they see
