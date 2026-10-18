@@ -124,7 +124,7 @@ headings land in the Title Case column.
 The `Nhost.*` rules from `Exclamation` to `WordList` in the table above are
 vendored from the errata-ai Google package
 (<https://github.com/errata-ai/Google>), tag `v0.7.1`, commit `56b01fed25`,
-under the MIT licence in `LICENSE`. Each file keeps its upstream name and
+under the MIT licence in `LICENSE.errata-ai-Google`. Each file keeps its upstream name and
 body; the changes are a header naming the source, the `WR-STYLE-*` ID
 appended to the message, the `level:` set to the tier above, and one
 lookahead in `Ordinal.yml`, commented in place. Vendored: `Exclamation`,

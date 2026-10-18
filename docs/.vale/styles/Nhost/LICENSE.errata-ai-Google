@@ -1,3 +1,7 @@
+Applies to the twelve rules vendored from errata-ai/Google v0.7.1 (56b01fed25)
+and listed under "Vendored rules" in README.md. The other rules in this folder
+are Nhost's, under the repository's LICENSE.
+
 MIT License
 
 Copyright (c) 2018 - 2019 Joseph Kato
