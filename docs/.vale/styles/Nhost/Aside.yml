@@ -1,6 +1,6 @@
 # Nhost rule. Raw scope, because the TokenIgnores in .vale.ini drop JSX tags.
 extends: existence
-message: "TGT-DOCS-04: use a ':::note', ':::tip' or ':::caution' callout,
+message: "DOCS-04: use a ':::note', ':::tip' or ':::caution' callout,
   never the '%s' component."
 level: error
 scope: raw

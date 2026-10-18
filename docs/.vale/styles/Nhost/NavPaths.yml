@@ -2,7 +2,7 @@
 # seen too. One row per dashboard location that has moved, each checked
 # against the dashboard source named beside it.
 extends: substitution
-message: "TGT-DOCS-06: the dashboard path is now '%s', not '%s'."
+message: "DOCS-06: the dashboard path is now '%s', not '%s'."
 level: error
 scope: raw
 # Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.

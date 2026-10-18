@@ -74,7 +74,7 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
-- **Docs and blog prose** — three layers: shared rules in `.claude/docs/writing-rules.md` (`WR-*` IDs, grounding, one running example, anti-patterns, placeholders, the target/voice resolution table), one target per destination in `.claude/docs/writing-targets/` (`TGT-*` IDs), and one voice profile per voice in `.claude/docs/writing-voices/` (no IDs). For `docs/src/content/docs/**` load the rules, `writing-targets/docs.md` and `writing-voices/nhost-docs.md`.
+- **Docs and blog prose** — three layers: shared rules in `.claude/docs/writing-rules.md` (`WR-*` IDs, grounding, one running example, anti-patterns, placeholders, the scope/voice resolution table), one scope per destination in `.claude/docs/writing-scopes/` (`DOCS-*` and `BLOG-*` IDs), and one voice profile per voice in `.claude/docs/writing-voices/` (no IDs). For `docs/src/content/docs/**` load the rules, `writing-scopes/docs.md` and `writing-voices/nhost-docs.md`.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 

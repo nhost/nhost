@@ -11,14 +11,14 @@ Before writing or reviewing anything under `src/content/docs/`, load, in this
 order:
 
 1. `.claude/docs/writing-rules.md` (shared rules, `WR-*` IDs)
-2. `.claude/docs/writing-targets/docs.md` (what a docs page requires,
-   `TGT-DOCS-*` IDs)
+2. `.claude/docs/writing-scopes/docs.md` (what a docs page requires,
+   `DOCS-*` IDs)
 3. `.claude/docs/writing-voices/nhost-docs.md` (how the docs read)
 
 Findings and handoff notes cite rule IDs and quote the text they apply to.
 
 Generated pages are out of scope for all three: the exclusion list is the
-fenced block under "Scope and generated pages" in the rules doc. Edit their
+fenced block under "Coverage and generated pages" in the rules doc. Edit their
 sources and regenerate instead.
 
 Calibration pairs (an unedited LLM draft beside the approved page, with the
@@ -35,7 +35,7 @@ do not start with the page. The user is asked twice: to confirm the brief
    its route under `dashboard/src/pages/`, `cli/` and `services/`, or the
    files a given branch or diff changes. Settle from it what you can without
    asking: the dashboard paths and UI labels, the page's section and type
-   (`TGT-DOCS-01`), its sidebar group in `astro.config.mjs`, related pages,
+   (`DOCS-01`), its sidebar group in `astro.config.mjs`, related pages,
    and caveats the dashboard does not show. For caveats, check when the
    feature does not work and how it differs in the local dashboard:
    `useIsPlatform` and `PlatformOnly` gate Cloud-only UI, and
@@ -46,8 +46,8 @@ do not start with the page. The user is asked twice: to confirm the brief
    `services/console-next/nhost/metadata/`. Trace each side effect to the
    code that performs it. If a page already covers the feature, ask whether
    to extend it instead.
-2. **Brief.** Fill in the brief template at the end of the docs target
-   (`TGT-DOCS-02`). The audience is always developers and LLMs; do not ask
+2. **Brief.** Fill in the brief template at the end of the docs scope
+   (`DOCS-02`). The audience is always developers and LLMs; do not ask
    for it. Ask for everything else the source cannot settle, usually the
    outcomes, the running example and the screenshots wanted, in one form
    the user submits once (a structured question tool if the session has
@@ -110,7 +110,7 @@ When asked to review docs pages, or as step 4 of drafting:
 3. **Vale** on those pages at warning level, as in drafting step 3.
 4. **Check each page.** Read it whole; report on the lines the branch
    changed, and on older lines only when the problem is blocking. Check the
-   skeleton for its page type (`TGT-DOCS-01`). Check every product claim
+   skeleton for its page type (`DOCS-01`). Check every product claim
    against the source, tracing side effects to the code that performs them,
    and sort each into one of three outcomes. **Contradicted**: blocking,
    citing the source's `path:line`. **Not found**, because it belongs to
@@ -124,7 +124,7 @@ When asked to review docs pages, or as step 4 of drafting:
    branch name replaced by `-`: a count line, then per page one finding per
    problem, titled `### [<severity>] <rule ID>: <issue> (line <n>)`, with a
    quote of the page's text, what the source shows, and the fix. Severity is
-   `blocking` for Vale errors and contradicted claims (`TGT-DOCS-09`),
+   `blocking` for Vale errors and contradicted claims (`DOCS-09`),
    `warning` for claims not found and other rule breaks, and `suggestion`
    for style. A Vale rule with no ID, such as `Vale.Terms`, is cited by its
    Vale name.

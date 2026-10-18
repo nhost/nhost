@@ -2,7 +2,7 @@
 
 Pairs of LLM drafts and human-approved finals, plus the held-out documents
 used to check voice profiles. The judge in `tools/writing` scores drafts
-against the writing rules, a target and a voice; this set is what tells us
+against the writing rules, a scope and a voice; this set is what tells us
 whether those scores track what a human reviewer actually changes.
 
 The set lives here rather than under `.claude/docs/` so that sessions loading
@@ -16,7 +16,7 @@ calibration/
     final.mdx         frozen copy of the human-approved page
     brief.md          what a writer would have been handed
     deltas.md         what the human changed, each change tied to a rule ID
-    meta.json         target, page type, SHAs, PR, issue, grounding paths
+    meta.json         scope, page type, SHAs, PR, issue, grounding paths
   voices/
     expect.yaml       held-out document per voice, with vetoed picks
 ```
@@ -45,11 +45,11 @@ The other files:
 - `deltas.md` is a table with one row per change the human made: what the
   draft did, what the final does, the proposed rule ID, and one line stating
   what that rule must say. Each row cites exactly one ID, from the `WR-*`
-  family in `.claude/docs/writing-rules.md` or the `TGT-*` family in
-  `.claude/docs/writing-targets/`. Every ID a pair cites is defined in the same
+  family in `.claude/docs/writing-rules.md` or the `DOCS-*`, `BLOG-*` family in
+  `.claude/docs/writing-scopes/`. Every ID a pair cites is defined in the same
   PR that adds the pair; the rule-ID drift test in `tools/writing` enforces it.
   Two rows share an ID only when they are the same rule.
-- `meta.json` holds `target`, `pageType`, `draftSha`, `finalSha`, `pr`,
+- `meta.json` holds `scope`, `pageType`, `draftSha`, `finalSha`, `pr`,
   `issue` and `grounding`. `grounding` lists the source a judge or reviewer
   checks the page's claims against. Entries are literal repo-relative paths,
   not globs: Next.js route segments such as `[orgSlug]` are part of the path.
@@ -73,7 +73,7 @@ The other files:
    rewording go in a list below the table, without IDs.
 5. Write `meta.json`, locating every grounding path in the tree.
 6. In the same PR, define every ID `deltas.md` cites that the rules doc or the
-   target file does not define yet.
+   scope file does not define yet.
 7. Check that both copies still match their commits:
 
    ```sh
@@ -100,7 +100,7 @@ to the ascending path. The excluded paths are:
   `reference/deprecated/**`, `reference/configuration/**`,
   `products/database/extensions.mdx`
 - quoted by the rules: `products/database/native-queries.mdx` (this pair) and
-  `products/auth/sign-in-magic-link.mdx` (the docs target's page exemplar)
+  `products/auth/sign-in-magic-link.mdx` (the docs scope's page exemplar)
 
 From the repository root:
 

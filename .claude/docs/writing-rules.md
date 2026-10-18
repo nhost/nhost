@@ -12,8 +12,8 @@ A session that writes or reviews content loads three files, each with one job:
 - **Shared rules** (this file, IDs `WR-<AREA>-<NN>`) say what must be true of
   any text we write: grounding, one running example, no filler, placeholders,
   the LLM anti-pattern list and mechanical style.
-- **A target** (`.claude/docs/writing-targets/<target>.md`, IDs
-  `TGT-DOCS-<NN>` or `TGT-BLOG-<NN>`) says what the destination requires:
+- **A scope** (`.claude/docs/writing-scopes/<scope>.md`, IDs
+  `DOCS-<NN>` or `BLOG-<NN>`) says what the destination requires:
   page or post types, frontmatter, components, links, images, the brief it
   needs.
 - **A voice** (`.claude/docs/writing-voices/<slug>.md`, no IDs) says how the text
@@ -23,10 +23,10 @@ Rule IDs are the join key between these files, the Vale messages, the judge
 rubric, the recorded draft-to-final deltas and review findings. A definition is one line
 of the form `- **<ID>** <rule>` and mentions no other ID; voice files contain
 no IDs at all. A finding, a delta or a rubric entry cites an ID and quotes the
-text it applies to verbatim. The docs target and the docs voice exist today;
-the blog target and the author voices arrive with the blog work.
+text it applies to verbatim. The docs scope and the docs voice exist today;
+the blog scope and the author voices arrive with the blog work.
 
-## Scope and generated pages
+## Coverage and generated pages
 
 Generated pages are never written, reviewed or scored by hand. The list below
 is the one copy of the generated-page exclusion list and the contract that
@@ -45,10 +45,10 @@ products/database/extensions.mdx
 already turns every style off for it. The generator table in
 `docs/README.md` names the source of each generated set.
 
-## Resolving the target and the voice
+## Resolving the scope and the voice
 
-Target and voice are resolved by one function,
-`Resolve(path, target, frontmatter, voiceFlag)`. The rows below are tried in
+Scope and voice are resolved by one function,
+`Resolve(path, scope, frontmatter, voiceFlag)`. The rows below are tried in
 order and the first match wins. A brief's `author: <slug>` line is passed as
 the voice flag. The tool `tools/writing resolve` is authoritative wherever it
 is present and may be run. An agent without it, or in CI where PR-head code
@@ -57,18 +57,18 @@ both paths apply the same rules; it is the contract the tool will embed, and
 a test will hold the tool's copy to it.
 
 ```markdown
-| Input | Target | Voice |
+| Input | Scope | Voice |
 | --- | --- | --- |
-| `--target <docs|blog>` given | the flag | continue with the voice rows below; a path is optional |
-| no `--target`, path under `docs/src/content/docs/**` | `docs` | continue |
-| no `--target`, path under `landing/src/pages/blog/**` | `blog` | continue |
-| no `--target`, any other path or no path | error | error |
+| `--scope <docs|blog>` given | the flag | continue with the voice rows below; a path is optional |
+| no `--scope`, path under `docs/src/content/docs/**` | `docs` | continue |
+| no `--scope`, path under `landing/src/pages/blog/**` | `blog` | continue |
+| no `--scope`, any other path or no path | error | error |
 | path matches the generated-page exclusion list | `docs`, `excluded: true` | callers skip the document |
 | `--voice <slug>` given and a profile with that `slug:` exists | as above | the flag; `--voice nhost-blog` is how an announcement or any post gets the neutral house voice over a byline match |
-| target `blog`, frontmatter lists exactly one author whose byline matches a profile's `byline:` | `blog` | that profile |
-| target `blog`, frontmatter lists exactly one author with no matching profile | `blog` | `nhost-blog`, `reason: unprofiled author` |
-| target `blog`, zero or several authors | `blog` | error: `--voice` required |
-| target `docs` | `docs` | `nhost-docs` |
+| scope `blog`, frontmatter lists exactly one author whose byline matches a profile's `byline:` | `blog` | that profile |
+| scope `blog`, frontmatter lists exactly one author with no matching profile | `blog` | `nhost-blog`, `reason: unprofiled author` |
+| scope `blog`, zero or several authors | `blog` | error: `--voice` required |
+| scope `docs` | `docs` | `nhost-docs` |
 ```
 
 Nothing is ever guessed to be a named person. A co-authored post needs an
@@ -179,7 +179,7 @@ paraphrases around it.
   deep link instead.
 - **WR-ANTI-08** Mixed component systems on one page: `<Aside>` beside `:::`
   callouts, raw HTML beside Markdown for the same construct, or a component
-  the target does not list. One page uses the target's conventions
+  the scope does not list. One page uses the scope's conventions
   throughout.
 - **WR-ANTI-09** Tutorial voice: "In this guide, we will", "Let's", "Now that
   we have", and any sentence that narrates the writer's plan instead of

@@ -1,7 +1,7 @@
 # Nhost rule. Raw scope, because the TokenIgnores in .vale.ini drop JSX and
 # HTML tags. Matches one '<a ...>' opening tag, attributes in any order.
 extends: existence
-message: "TGT-DOCS-07: a dashboard link that opens a new tab needs
+message: "DOCS-07: a dashboard link that opens a new tab needs
   'rel=\"noopener noreferrer\"'."
 level: error
 scope: raw

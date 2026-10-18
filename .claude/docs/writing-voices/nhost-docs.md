@@ -7,7 +7,7 @@ held-out: docs/src/content/docs/platform/cloud/environment-variables.mdx
 # Voice: nhost-docs
 
 How the Nhost docs read. This file describes, it does not rule: what a page
-must contain is in the writing rules and the docs target. The voice has no
+must contain is in the writing rules and the docs scope. The voice has no
 byline, so it never matches a frontmatter author; every docs page resolves
 to it. "Hand-written" means not produced by `docs/gen.sh`; the corpus
 includes pages that were LLM-assisted and then edited by a maintainer, and

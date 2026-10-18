@@ -1,5 +1,5 @@
 {
-  "target": "docs",
+  "scope": "docs",
   "pageType": "how-to",
   "draftSha": "d145a659387d54a8bba327a963509287f0fa37dd",
   "finalSha": "87e663c83ac01fefe1a05bed3e0b39c2cce61041",

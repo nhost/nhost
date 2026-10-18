@@ -45,13 +45,13 @@ set by name there and need turning off by name as well.
 | `Nhost.Latin` | suggestion | 57 in 41 pages (`e56d1473c2`) | `e.g.` 52, `i.e.` 5; the corpus uses them freely |
 | `Nhost.Quotes` | suggestion | 20 in 6 pages (`e56d1473c2`) | Mostly quoted third-party UI labels in setup steps (`select "App Registrations".`), where the period belongs outside |
 | `Nhost.WordList` | suggestion | 40 in 16 pages (`e56d1473c2`) | 37 are `Cloud` in Nhost Cloud, which Google's list maps to Google Cloud Platform; the other 3 are `url` |
-| `Nhost.Aside` | error | 0 (`e5bbdf0771`) | `TGT-DOCS-04`; raw scope, so it sees the JSX the ignores drop |
-| `Nhost.ScreenshotPlaceholder` | error | 0 (`e5bbdf0771`) | `TGT-DOCS-08`; raw scope, so it sees the `{/* SCREENSHOT: */}` comment |
+| `Nhost.Aside` | error | 0 (`e5bbdf0771`) | `DOCS-04`; raw scope, so it sees the JSX the ignores drop |
+| `Nhost.ScreenshotPlaceholder` | error | 0 (`e5bbdf0771`) | `DOCS-08`; raw scope, so it sees the `{/* SCREENSHOT: */}` comment |
 | `Nhost.VerifyMarker` | error | 0 (`e5bbdf0771`) | `WR-CONTENT-05`; raw scope, so it sees the `{/* VERIFY: */}` comment |
-| `Nhost.RawDashboardURL` | error | 0 (`e5bbdf0771`) | `TGT-DOCS-07`; a URL template (`/orgs/{org}/projects/`) or an `app.nhost.io/orgs/` link that names an organisation instead of `_`; raw scope, code fences included |
-| `Nhost.DeepLinkRel` | error | 0 (`e5bbdf0771`) | `TGT-DOCS-07`; an `app.nhost.io` anchor with `target="_blank"` and no `rel="noopener noreferrer"`, by lookahead; raw scope |
-| `Nhost.UIPathArrow` | error | 0 (`e5bbdf0771` plus the sweep) | `TGT-DOCS-06`; 17 hits on 15 lines in 9 pages before the sweep, each `->` in a bold UI path changed to `→` and nothing else; raw scope |
-| `Nhost.NavPaths` | error | 0 (`e5bbdf0771` plus the fixes) | `TGT-DOCS-06`; stale dashboard paths, one row per move checked against the dashboard source named in the rule. 3 hits in 3 pages before the fixes, all `Settings → Sign-In Methods` without the leading `Auth →`, which the fixes added; raw scope |
+| `Nhost.RawDashboardURL` | error | 0 (`e5bbdf0771`) | `DOCS-07`; a URL template (`/orgs/{org}/projects/`) or an `app.nhost.io/orgs/` link that names an organisation instead of `_`; raw scope, code fences included |
+| `Nhost.DeepLinkRel` | error | 0 (`e5bbdf0771`) | `DOCS-07`; an `app.nhost.io` anchor with `target="_blank"` and no `rel="noopener noreferrer"`, by lookahead; raw scope |
+| `Nhost.UIPathArrow` | error | 0 (`e5bbdf0771` plus the sweep) | `DOCS-06`; 17 hits on 15 lines in 9 pages before the sweep, each `->` in a bold UI path changed to `→` and nothing else; raw scope |
+| `Nhost.NavPaths` | error | 0 (`e5bbdf0771` plus the fixes) | `DOCS-06`; stale dashboard paths, one row per move checked against the dashboard source named in the rule. 3 hits in 3 pages before the fixes, all `Settings → Sign-In Methods` without the leading `Auth →`, which the fixes added; raw scope |
 | `Nhost.FillerHeadings` | warning | 11 in 11 pages (`e5bbdf0771`) | `WR-ANTI-04`; headings that are exactly Overview, Introduction, Benefits, Summary or Conclusion. Promote once the pages are fixed |
 | `Nhost.LLMPhrases` | warning | 46 in 26 pages (`e5bbdf0771`) | `WR-ANTI-05`; `leverage` and its forms 21, `seamless(ly)` 11, `robust` 7, `powerful` 6, `unlocks` 1 |
 | `Nhost.LLMPhrasesStrict` | error | 0 (`e5bbdf0771`) | `WR-ANTI-05`; the words from the same list with no hits (`effortless`, `delve`, `let's dive`, `it's worth noting`), split out so they can fail now. A word is never in both files |
@@ -67,7 +67,7 @@ a one-line reason in its row.
 
 The rules from `Aside` to `EmDash` in the table are written for Nhost. Each
 message starts with the rule ID it enforces, defined in
-`.claude/docs/writing-rules.md` or `.claude/docs/writing-targets/docs.md`, and
+`.claude/docs/writing-rules.md` or `.claude/docs/writing-scopes/docs.md`, and
 the definition line names the rule back. `Aside`, `ScreenshotPlaceholder`,
 `VerifyMarker`, `RawDashboardURL`, `DeepLinkRel`, `UIPathArrow` and
 `NavPaths` use `scope: raw`, which bypasses the `TokenIgnores`, so they see

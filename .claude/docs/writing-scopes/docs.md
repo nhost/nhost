@@ -1,17 +1,17 @@
-# Target: docs
+# Scope: docs
 
 What a page under `docs/src/content/docs/**` requires, on top of the shared
 rules in `.claude/docs/writing-rules.md`. The docs are four sections:
 `getting-started/` (quickstart, local-development, tutorials), `products/`
 (one per product), `platform/` (cli, cloud, self-hosting) and `reference/`
 (hand-written only under `reference/graphql/**`, the rest generated). A blog
-post is not a docs page; it resolves to the `blog` target. The site is Astro
+post is not a docs page; it resolves to the `blog` scope. The site is Astro
 with Starlight; pages are MDX. The voice is `nhost-docs`
 (`.claude/docs/writing-voices/nhost-docs.md`). The page exemplar is
 `products/auth/sign-in-magic-link.mdx`: short, one feature, code before
 prose, callouts in Markdown syntax, a UI path in bold.
 
-- **TGT-DOCS-01** Every page is one of four types and follows its skeleton.
+- **DOCS-01** Every page is one of four types and follows its skeleton.
   The section sets the type; where it allows two, the page's job decides.
   - *quickstart* (`getting-started/quickstart/**` and `tutorials/**`):
     opening (who, what they build), prerequisites, numbered steps that each
@@ -29,7 +29,7 @@ prose, callouts in Markdown syntax, a UI path in bold.
   - *reference* (`reference/graphql/**` only): one entity per `##` section
     (option, field, endpoint, command), each with type, default and a
     one-sentence description; a table when entries share a shape.
-- **TGT-DOCS-02** A page starts from a brief that carries, in this order:
+- **DOCS-02** A page starts from a brief that carries, in this order:
   audience; page type; source paths the claims are checked against; the one
   running example, with the names used in code; dashboard paths; caveats
   the dashboard does not surface; screenshots wanted. A writer never guesses
@@ -38,7 +38,7 @@ prose, callouts in Markdown syntax, a UI path in bold.
   repository, page and type included, for the user to confirm. The audience
   is always developers and LLMs. A diff is an input to the brief, never the
   brief.
-- **TGT-DOCS-03** Frontmatter is the schema below, taken from
+- **DOCS-03** Frontmatter is the schema below, taken from
   `getting-started/quickstart/reactnative.mdx`. `title` is the H1; `head`
   sets the browser title; `sidebar.label` is the short sidebar name when the
   title is long; `keywords` is a list.
@@ -56,7 +56,7 @@ prose, callouts in Markdown syntax, a UI path in bold.
   ---
   ```
 
-- **TGT-DOCS-04** Callouts use the Markdown syntax `:::note`, `:::tip` or
+- **DOCS-04** Callouts use the Markdown syntax `:::note`, `:::tip` or
   `:::caution`, never the `<Aside>` component. A callout that states a
   requirement or an availability caveat carries a `[Title]` on the opening
   line; any other callout may be untitled. A comparison of cases (Cloud and
@@ -72,16 +72,16 @@ prose, callouts in Markdown syntax, a UI path in bold.
   :::
   ```
 
-- **TGT-DOCS-05** An availability caveat (a feature a plan, a service or a
+- **DOCS-05** An availability caveat (a feature a plan, a service or a
   version does not support) gets its own titled `:::note` that says why and
   links to the page section where it is explained, and is not repeated in a
   later list. A requirements callout holds only what the reader must have
   before starting.
-- **TGT-DOCS-06** A path through the dashboard is written in bold with
+- **DOCS-06** A path through the dashboard is written in bold with
   `→` (U+2192) between segments, `**Auth → Settings → Sign-In Methods →
   Magic Link**`, matching the labels in the sidebar and tabs. Never `->` or
   `>`. Vale-enforced: `Nhost.UIPathArrow`, `Nhost.NavPaths`.
-- **TGT-DOCS-07** Every dashboard UI path is followed by the deep-link
+- **DOCS-07** Every dashboard UI path is followed by the deep-link
   snippet below, verbatim, pointing at
   `https://app.nhost.io/orgs/_/projects/_/<route>`; `_` lets the dashboard
   substitute the reader's organisation and project. The page imports `Icon`
@@ -93,13 +93,13 @@ prose, callouts in Markdown syntax, a UI path in bold.
   open **Database → Native Queries** <a href="https://app.nhost.io/orgs/_/projects/_/database/native-queries/default" target="_blank" rel="noopener noreferrer"><span class="not-content" style="display:inline-block;vertical-align:-0.1em"><Icon name="external" size="0.85em" /></span></a>.
   ```
 
-- **TGT-DOCS-08** Images live at `/images/<section>/<page>/<name>.png` under
+- **DOCS-08** Images live at `/images/<section>/<page>/<name>.png` under
   `docs/public/`, with alt text naming what is shown. A screenshot of a
   numbered step sits inside that `<Steps>` item; any other image sits
   directly beside the paragraph or code block it illustrates, never grouped
   at the end. Every `SCREENSHOT:` placeholder is replaced before merge.
   Vale-enforced: `Nhost.ScreenshotPlaceholder`.
-- **TGT-DOCS-09** Grounding is blocking for docs. A page with an unsourced
+- **DOCS-09** Grounding is blocking for docs. A page with an unsourced
   product-behaviour claim or a `VERIFY:` marker does not merge, and a judge
   scores it as failing regardless of its other dimensions. Sources are the
   dashboard routes and features, the CLI, service code and `nhost.toml`
@@ -128,7 +128,7 @@ paths and replaces each placeholder with `![alt](/images/...)`.
 ```markdown
 # Brief: <page title>
 
-- Target: docs
+- Scope: docs
 - Page type: quickstart | how-to | concept | reference
 - Page: docs/src/content/docs/<section>/<page>.mdx
 

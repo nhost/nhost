@@ -4,9 +4,9 @@ Written from issue #4575, the title and description of PR #5173 and the
 dashboard source under `dashboard/src/features/orgs/projects/database/native-queries/`.
 It is what a writer would have been handed before any draft existed.
 
-## Target and page type
+## Scope and page type
 
-- Target: `docs`
+- Scope: `docs`
 - Page type: how-to
 - Page: `docs/src/content/docs/products/database/native-queries.mdx`, in the
   Database sidebar group

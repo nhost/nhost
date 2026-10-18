@@ -1,1 +1,1 @@
-docs/.vale/tests/UIPathArrow/fail.mdx:5:6:Nhost.UIPathArrow:TGT-DOCS-06: separate the segments of a bold UI path with '→', not '->'.
+docs/.vale/tests/UIPathArrow/fail.mdx:5:6:Nhost.UIPathArrow:DOCS-06: separate the segments of a bold UI path with '→', not '->'.
