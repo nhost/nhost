@@ -185,7 +185,7 @@ function PipelineRunDetails({
   }, [taskGroups]);
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
           <h1 className="font-medium text-2xl">Deployment Details</h1>
@@ -264,7 +264,7 @@ function PipelineRunDetails({
       </div>
 
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {logsLoading && taskGroups.length === 0 && (
             <span className="font-mono">Loading logs...</span>
           )}
@@ -342,7 +342,7 @@ function LegacyDeploymentDetailsView({
     : '';
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
           <h1 className="font-medium text-2xl">Deployment Details</h1>
@@ -403,7 +403,7 @@ function LegacyDeploymentDetailsView({
         </div>
       </div>
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {deployment.deploymentLogs.length === 0 && (
             <span className="font-mono">No message.</span>
           )}
@@ -430,7 +430,7 @@ function DeploymentDetails() {
 
   if (loading || legacyLoading) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
           <span className="text-muted-foreground text-xs">
             Loading deployment...
@@ -453,7 +453,7 @@ function DeploymentDetails() {
   }
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <h1 className="font-semibold text-4xl">Not found</h1>
       <p className="text-disabled text-sm">This deployment does not exist.</p>
     </Container>

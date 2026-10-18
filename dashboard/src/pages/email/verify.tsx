@@ -35,7 +35,6 @@ export default function VerifyEmailPage() {
         </div>
         {email ? (
           <ButtonWithLoading
-            className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
             size="lg"
             disabled={resendVerificationEmailLoading}
             loading={resendVerificationEmailLoading}

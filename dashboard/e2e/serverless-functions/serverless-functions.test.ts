@@ -5,7 +5,7 @@ import {
 } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 
-const functionsRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/functions`;
+const functionsRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/functions/browser`;
 const functionDetailRoute = `${functionsRoute}/${TEST_PROJECT_REMOTE_SCHEMA_NAME}`;
 
 test.describe('execute serverless function', () => {

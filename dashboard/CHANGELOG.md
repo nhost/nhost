@@ -1,3 +1,33 @@
+## [@nhost/dashboard@3.7.1] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Added CA flag (#5175)
+
+## [@nhost/dashboard@3.7.0] - 2026-10-14
+
+### 🚀 Features
+
+- *(dashboard)* New dashboard design (#5137)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Add recovery for stale metadata conflicts (#5078)
+- *(dashboard)* Route relationship creation through the shared error toast (#5082)
+- *(dashboard)* Preserve user-entered values when cloning rows (#5081)
+- *(dashboard)* Fix PAT token contrast in dark mode and unstyled toasts (#5124)
+- *(dashboard)* Toggle MultiSelect values from the controlled prop (#4983)
+- *(dashboard)* Align field-array row controls with their inputs (#5115)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+
 ## [@nhost/dashboard@3.6.0] - 2026-09-30
 
 ### 🚀 Features

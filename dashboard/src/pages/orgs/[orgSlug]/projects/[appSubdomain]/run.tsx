@@ -4,15 +4,17 @@ import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v3/button';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RunArea } from '@/features/orgs/projects/run/layout';
 import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
@@ -92,7 +94,7 @@ export default function RunPage() {
   if (isPlatform && isPlanFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -106,7 +108,7 @@ export default function RunPage() {
 
   if (loading && loadingProject) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="medium" />
       </Container>
     );
@@ -114,7 +116,7 @@ export default function RunPage() {
 
   if (services.length === 0 && !loading) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
+      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
         <div className="flex flex-row place-content-end">
           <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
             <PlusIcon className="mr-2 h-4 w-4" />
@@ -178,5 +180,11 @@ export default function RunPage() {
 }
 
 RunPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <RunArea>{page}</RunArea>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

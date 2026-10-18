@@ -32,7 +32,7 @@ function DataGridFilterValuePopup({
             variant="ghost"
             size="icon"
             title="Expand filter value"
-            className="h-6 w-6 hover:bg-[#eaedf0] dark:hover:bg-[#2f363d]"
+            className="h-6 w-6 hover:bg-accent"
           >
             <ExpandIcon strokeWidth={1} className="h-4 w-4" />
           </Button>

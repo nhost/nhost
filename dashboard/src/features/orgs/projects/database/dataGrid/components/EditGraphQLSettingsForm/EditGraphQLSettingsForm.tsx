@@ -120,7 +120,7 @@ export default function EditGraphQLSettingsForm({
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
-        <Button variant="outline" color="secondary" onClick={onCancel}>
+        <Button variant="outline-emboss" color="secondary" onClick={onCancel}>
           Back
         </Button>
       </div>

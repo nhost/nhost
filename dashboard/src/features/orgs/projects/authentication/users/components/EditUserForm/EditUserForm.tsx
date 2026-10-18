@@ -508,7 +508,7 @@ export default function EditUserForm({
 
         <div className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
-            variant="outline"
+            variant="outline-emboss"
             tabIndex={isDirty ? -1 : 0}
             onClick={onCancel}
           >

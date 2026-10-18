@@ -84,7 +84,7 @@ export default function BaseRoleForm({
             {submitButtonText}
           </ButtonWithLoading>
 
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
         </div>

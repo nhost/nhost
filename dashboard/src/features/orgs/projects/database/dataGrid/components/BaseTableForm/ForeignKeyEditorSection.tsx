@@ -88,11 +88,10 @@ export default function ForeignKeyEditorSection() {
 
       <Button
         type="button"
-        variant="ghost"
+        variant="outline-emboss"
         size="sm"
         className={twMerge(
-          'mt-1 gap-2 rounded-sm+ py-2 text-primary hover:text-primary',
-          fields.length === 0 && 'border border-input',
+          'mt-1 gap-2',
           fields.length > 0 && 'justify-self-start',
         )}
         disabled={columnsWithNameAndType?.length === 0}

@@ -104,7 +104,7 @@ export function createOneOffEventsDataTableColumns({
             }}
             aria-label="Copy webhook"
           >
-            <Copy width={16} height={16} />
+            <Copy className="size-4" />
           </Button>
         </div>
       ),
@@ -134,7 +134,7 @@ export function createOneOffEventsDataTableColumns({
             }}
             aria-label="Copy ID"
           >
-            <Copy width={16} height={16} />
+            <Copy className="size-4" />
           </Button>
         </div>
       ),

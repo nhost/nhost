@@ -148,7 +148,7 @@ export default function EditUserPasswordForm({
             Save
           </ButtonWithLoading>
 
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
         </div>

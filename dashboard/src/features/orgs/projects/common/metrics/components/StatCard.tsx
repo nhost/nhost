@@ -18,7 +18,7 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        'flex flex-col justify-between gap-2 rounded-lg border bg-card p-6 shadow-sm',
+        'flex flex-col justify-between gap-2 rounded-lg border p-6 shadow-sm',
         className,
       )}
     >

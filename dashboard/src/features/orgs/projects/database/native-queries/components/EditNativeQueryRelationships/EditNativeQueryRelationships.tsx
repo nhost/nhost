@@ -63,7 +63,7 @@ export default function EditNativeQueryRelationships({
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 px-6 py-3">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline-emboss" onClick={onCancel}>
           Back
         </Button>
       </div>

@@ -62,7 +62,11 @@ export default function CreateNativeQueryForm({
     return (
       <div className="space-y-4 p-6 text-foreground" role="alert">
         <p>Logical models and native queries could not be loaded.</p>
-        <Button type="button" variant="outline" onClick={() => onCancel?.()}>
+        <Button
+          type="button"
+          variant="outline-emboss"
+          onClick={() => onCancel?.()}
+        >
           Close
         </Button>
       </div>

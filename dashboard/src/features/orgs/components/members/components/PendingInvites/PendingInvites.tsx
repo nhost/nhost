@@ -144,7 +144,7 @@ export default function PendingInvites() {
   }
 
   return (
-    <div className="flex w-full flex-col rounded-md border bg-background">
+    <div className="flex w-full flex-col overflow-hidden rounded-md border bg-background">
       <div className="flex w-full flex-row items-center justify-between border-b p-4">
         <h4 className="font-medium">
           Pending Invites{' '}
@@ -238,27 +238,35 @@ export default function PendingInvites() {
       </div>
 
       {/* Todo add an empty state here */}
-      <div className="flex w-full flex-col items-center gap-4 p-4">
-        {loading && (
+      {loading && (
+        <div className="flex w-full items-center justify-center p-6">
           <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
             <span className="text-muted-foreground text-xs">
               Loading pending invites...
             </span>
           </Spinner>
-        )}
+        </div>
+      )}
 
-        {!loading &&
-          organizationMemberInvites.map((invite) => (
-            <OrgInvite key={invite.id} invite={invite} isAdmin={isAdmin} />
+      {!loading && organizationMemberInvites.length > 0 && (
+        <div className="flex w-full flex-col divide-y">
+          {organizationMemberInvites.map((invite) => (
+            <div
+              key={invite.id}
+              className="px-4 py-3 transition-colors hover:bg-muted/60"
+            >
+              <OrgInvite invite={invite} isAdmin={isAdmin} />
+            </div>
           ))}
+        </div>
+      )}
 
-        {!loading && organizationMemberInvites.length === 0 && (
-          <div className="flex w-full flex-col items-center justify-center text-muted-foreground">
-            <Inbox />
-            <p className="text-sm">No pending invites</p>
-          </div>
-        )}
-      </div>
+      {!loading && organizationMemberInvites.length === 0 && (
+        <div className="flex w-full flex-col items-center justify-center gap-2 p-6 text-muted-foreground">
+          <Inbox />
+          <p className="text-sm">No pending invites</p>
+        </div>
+      )}
     </div>
   );
 }
