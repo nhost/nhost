@@ -70,11 +70,6 @@ _check-pre:  ## Pre-checks before running nix flake check
 
 
 NIX_CHECK_EXTRA_ARGS?=
-# CI can retain a check from before release metadata was stamped.
-CHECK_INSTALLABLE=.\#checks.$(ARCH)-$(OS).$(NAME)
-ifdef CHECK_DRV
-CHECK_INSTALLABLE=$(CHECK_DRV)^*
-endif
 
 .PHONY: check
 check: _check-pre ## Run nix flake check
@@ -82,7 +77,7 @@ check: _check-pre ## Run nix flake check
 		--out-link "$(OUT_LINK)" \
 		--print-build-logs \
 		$(NIX_CHECK_EXTRA_ARGS) \
-		"$(CHECK_INSTALLABLE)"
+		.\#checks.$(ARCH)-$(OS).$(NAME)
 
 
 .PHONY: check-dry-run
@@ -93,17 +88,7 @@ check-dry-run:  ## Returns the derivation of the check
 		--dry-run \
 		--json \
 		$(NIX_CHECK_EXTRA_ARGS) \
-		"$(CHECK_INSTALLABLE)" | jq -r '.[].outputs.out'
-
-
-.PHONY: check-derivation
-check-derivation:  ## Resolve the check with project-specific evaluation flags
-	@nix path-info --derivation $(NIX_CHECK_EXTRA_ARGS) .\#checks.$(ARCH)-$(OS).$(NAME)
-
-
-.PHONY: check-shell-derivation
-check-shell-derivation:  ## Resolve the development shell before version stamping
-	@nix path-info --derivation $(NIX_CHECK_EXTRA_ARGS) .\#devShells.$(ARCH)-$(OS).$(NAME)
+		.\#checks.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
 
 .PHONY: cache-check-roots
@@ -122,11 +107,6 @@ cache-build-roots:  ## Record package derivation before building
 cache-image-roots:  ## Record image and image-loader derivations
 	@nix path-info --derivation .\#packages.$(ARCH)-linux.$(NIX_DOCKER_ATTR) \
 		$(if $(filter true,$(LOAD_DOCKER_IMAGE)),.\#devShells.$(ARCH)-$(OS).skopeo)
-
-
-.PHONY: get-docker-image-tag
-get-docker-image-tag:
-	@echo "$(DOCKER_IMAGE_NAME):$(VERSION)"
 
 
 .PHONY: build
@@ -165,14 +145,7 @@ build-docker-image:  ## Build docker container for native architecture
 		--out-link "$(OUT_LINK)" \
 		.\#packages.$(ARCH)-linux.$(NIX_DOCKER_ATTR) \
 		--print-build-logs
-	@if [ "$(LOAD_DOCKER_IMAGE)" != true ]; then \
-		echo "Image import not needed"; \
-	elif [ -n "$${PREBUILT_DOCKER_IMAGE_PATH:-}" ] && \
-		[ "$$(nix path-info "$(abspath $(OUT_LINK))")" = "$$PREBUILT_DOCKER_IMAGE_PATH" ] && \
-		[ -n "$${PREBUILT_DOCKER_IMAGE_ID:-}" ] && \
-		[ "$$(docker image inspect --format '{{.Id}}' "$(DOCKER_IMAGE_NAME):$(VERSION)" 2>/dev/null || true)" = "$$PREBUILT_DOCKER_IMAGE_ID" ]; then \
-		echo "Reusing prebuilt Docker image $(DOCKER_IMAGE_NAME):$(VERSION)"; \
-	else \
+	@if [ "$(LOAD_DOCKER_IMAGE)" = true ]; then \
 		nix develop \#skopeo -c \
 			skopeo copy --insecure-policy "dir:$(OUT_LINK)" "docker-daemon:$(DOCKER_IMAGE_NAME):$(VERSION)"; \
 	fi

@@ -126,13 +126,8 @@ jobs:
         id: verify-checks
         if: env.RUN_CHECKS == 'true'
         run: |
-          # Preserve check cache hits even when artifact versioning changes self.
-          check_drv=$(make --no-print-directory check-derivation)
-          shell_drv=$(make --no-print-directory check-shell-derivation)
-          printf '%s\n' "$check_drv" "$shell_drv" >> "$NIX_CACHE_ROOTS"
-          echo "CHECK_DRV=$check_drv" >> "$GITHUB_ENV"
-          echo "CHECK_SHELL_DRV=$shell_drv" >> "$GITHUB_ENV"
-          export CHECK_DRV="$check_drv"
+          # Retain the development graph, including dependencies of failed checks.
+          make --no-print-directory cache-check-roots >> "$NIX_CACHE_ROOTS"
           log=$(mktemp)
           trap 'rm -f "$log"' EXIT
           if ! make check-dry-run > /dev/null 2>"$log"; then
@@ -145,13 +140,29 @@ jobs:
             echo "BUILD_NEEDED=no" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Grant Nix builds access to the Docker socket
+        # nixbld users lose supplementary groups on these ephemeral runners.
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
+        run: |
+          if [ -S /var/run/docker.sock ]; then
+            sudo chmod 666 /var/run/docker.sock
+          fi
+
+      - name: Start containers for integration tests
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
+        run: nix develop ".#$NAME" -c make dev-env-up OUT_LINK=result-dev-env
+
+      - name: Run checks
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
+        run: make check OUT_LINK=result-check
+
       - name: Compute artifact version
         id: vars
         if: inputs.BUILD
         env:
           REQUESTED_VERSION: ${{ inputs.VERSION }}
         run: |
-          # Finalize artifact metadata after pinning any enabled checks.
+          # Checks and integration setup are finished before changing metadata.
           if [ "$REQUESTED_VERSION" = 0.0.0-dev ]; then
             version=0.0.0-dev
           else
@@ -166,20 +177,11 @@ jobs:
         if: inputs.BUILD
         env:
           DOCKER: ${{ inputs.DOCKER }}
-          LOAD_DOCKER_IMAGE: >-
-            ${{ steps.verify-checks.outputs.BUILD_NEEDED == 'yes' }}
+          LOAD_DOCKER_IMAGE: "false"
         run: |
           make --no-print-directory cache-build-roots >> "$NIX_CACHE_ROOTS"
           if [ "$DOCKER" = true ] && [ "$RUNNER_OS" != macOS ]; then
             make --no-print-directory cache-image-roots >> "$NIX_CACHE_ROOTS"
-          fi
-
-      - name: Grant Nix builds access to the Docker socket
-        # nixbld users lose supplementary groups on these ephemeral runners.
-        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
-        run: |
-          if [ -S /var/run/docker.sock ]; then
-            sudo chmod 666 /var/run/docker.sock
           fi
 
       - name: Build artifact
@@ -193,34 +195,10 @@ jobs:
           (cd "$artifact_dir" && zip -r "$archive" result)
 
       - name: Build Docker image
-        id: build-image
         if: inputs.BUILD && inputs.DOCKER && runner.os != 'macOS'
         env:
-          LOAD_DOCKER_IMAGE: >-
-            ${{ steps.verify-checks.outputs.BUILD_NEEDED == 'yes' }}
-        run: |
-          make build-docker-image OUT_LINK=result-image
-          if [ "$LOAD_DOCKER_IMAGE" = true ]; then
-            store_path=$(nix path-info "$PWD/result-image")
-            image=$(make --no-print-directory get-docker-image-tag)
-            image_id=$(docker image inspect --format '{{.Id}}' "$image")
-            echo "STORE_PATH=$store_path" >> "$GITHUB_OUTPUT"
-            echo "IMAGE_ID=$image_id" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Start containers for integration tests
-        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
-        env:
-          PREBUILT_DOCKER_IMAGE_PATH: >-
-            ${{ steps.build-image.outputs.STORE_PATH }}
-          PREBUILT_DOCKER_IMAGE_ID: ${{ steps.build-image.outputs.IMAGE_ID }}
-        run: |
-          nix develop "$CHECK_SHELL_DRV" \
-            -c make dev-env-up OUT_LINK=result-dev-env
-
-      - name: Run checks
-        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
-        run: make check OUT_LINK=result-check
+          LOAD_DOCKER_IMAGE: "false"
+        run: make build-docker-image OUT_LINK=result-image
 
       - name: Push artifact to artifact repository
         if: inputs.BUILD

@@ -74,21 +74,25 @@ pass the **approved head SHA**, never a moving PR ref.
 - Preserve artifact names: `<name>-artifact<suffix>-<os>-<arch>-<version>` and
   `<name>-docker-image<suffix>-<os>-<arch>-<version>`.
 
-When checks are enabled, their derivation and development shell are pinned as
-`CHECK_DRV` and `CHECK_SHELL_DRV` before artifact version stamping. The probe and
-`make check` build `CHECK_DRV^*`; integration startup uses `CHECK_SHELL_DRV`.
-This preserves the checkout's check cache and version-sensitive expectations
-while artifacts use the requested version. Keeping `make check` also preserves
-project `_check-pre` hooks, including PostgreSQL's container checks, and the
-pinning targets respect project-specific `NIX_CHECK_EXTRA_ARGS` evaluation flags.
+Checks finish before artifact version stamping or packaging. The workflow
+records the development check/shell graphs and probes the check; cached checks
+skip integration startup. Otherwise, `make dev-env-up` prepares development
+images and `make check` runs against the unchanged checkout and fixed development
+tags. Project `_check-pre` hooks, including PostgreSQL's container checks, and
+`NIX_CHECK_EXTRA_ARGS` evaluation flags are preserved. A failed probe, environment
+setup, or check stops the job before it stamps a version or builds artifacts.
 
-Artifact version metadata is finalized before recording artifact graphs. Fixed
-PR versions do not update creation timestamps. Independent `result-bin`,
-`result-image`, `result-dev-env`, and `result-check` links prevent integration
-setup from overwriting release artifacts. Image imports are skipped outside
-integration checks; integration setup reuses an already loaded image only when
-both its store path and Docker image ID match. Uploads disable redundant artifact
-compression, and image publishers download only their matching image artifacts.
+After checks pass or hit cache, the workflow finalizes artifact version metadata,
+records the artifact graphs, then builds and uploads the requested artifacts.
+Build-only release callers skip the entire check phase. Fixed `0.0.0-dev` builds
+do not update creation timestamps, so an image/binary already built for the
+integration environment is reused from the Nix store. Artifact image builds set
+`LOAD_DOCKER_IMAGE=false`: only integration setup imports images into Docker.
+No pinned derivations or prebuilt-image handoff are needed between phases.
+
+Independent `result-bin`, `result-image`, `result-dev-env`, and `result-check`
+links retain each phase's output. Artifact names and retention are unchanged;
+image publishers download only their matching image artifacts.
 
 ## Nix cache
 
@@ -104,8 +108,8 @@ make --no-print-directory cache-build-roots >> "$NIX_CACHE_ROOTS"
 make --no-print-directory cache-image-roots >> "$NIX_CACHE_ROOTS"
 ```
 
-The workflow resolves `make check-derivation` and `make check-shell-derivation`
-separately before stamping metadata, then records versioned artifact graphs.
+The workflow records `make cache-check-roots` before probing development checks.
+Only after checks finish does it stamp metadata and record artifact graphs.
 For custom builds, append `nix path-info --derivation` results using exactly the
 same environment and impurity flags as the build. Docker Make targets also record
 graphs for auxiliary images built during integration setup.
@@ -128,7 +132,8 @@ nix build ".#checks.$system.ci" --print-build-logs
 Use `path:.#checks.<system>.ci` while new files are untracked. This check is
 also included in `checks.<system>.nixops`; workflow/action changes trigger that
 project. Tests cover cache selection and failures, reusable-call contracts, PR
-approval/SHA gates, runner exceptions, variant matrices, artifact preservation,
-image reuse, and parallel Make startup ordering. They run offline with mocked
+approval/SHA gates, runner exceptions, variant matrices, development image tags,
+checks-before-stamping order, skipped artifact image imports, cached output reuse,
+project hooks, and parallel Make startup ordering. They run offline with mocked
 Nix/AWS/Docker interfaces; a real CI run remains necessary to validate runner
 availability, OIDC, registry access, and platform integration tests.
