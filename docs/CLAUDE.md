@@ -66,19 +66,24 @@ do not start with the page. The user is asked twice: to confirm the brief
    finding against the source it cites, since a reviewer can be wrong, fix
    the ones that hold, and run Vale again. A fix is a new claim: check it
    like any other. Copy the result to `.nhost-code/drafts/<page>.reviewed.mdx`.
-5. **Hand off and stop.** Give the preview URL (below), the page's absolute
-   path, and a terse report: one table of the issues still open, by
-   severity, placeholders included, then a separate list of what the
-   self-review fixed. No status marks in the open-issues table.
-6. **After the user's pass.** Review only what changed: diff the page
+5. **Hand off.** Give the preview URL (below), the page's absolute path,
+   and a terse report: one table of the issues still open, by severity,
+   placeholders included, then a separate list of what the self-review
+   fixed. No status marks in the open-issues table. Then ask the user, as
+   one question, to verify the page or comment on it (a structured
+   question tool if the session has one).
+6. **After the user's answer.** If they verify it, stop the docs dev
+   server if this session started it, and finish. If they comment or edit
+   the page, address it, then review only what changed: diff the page
    against `<page>.reviewed.mdx`, and skip the review if they match. Fix,
-   run Vale, refresh the copy, and report as in step 5.
+   run Vale, refresh the copy, and return to step 5.
 
 **Preview.** Look for a running docs dev server started from this
 worktree's `docs/` (`lsof -nP -iTCP -sTCP:LISTEN`, then the process's
 working directory). If there is none, start one from the repo root with
 `nix develop .#docs --command pnpm --dir docs dev --port <free port>`; it
-keeps running in the background until `astro dev stop`. The page is at
+keeps running in the background until `astro dev stop`; note that this
+session started it, so step 6 stops it. The page is at
 `http://localhost:<port>/<path under src/content/docs, without .mdx>`, with
 no trailing slash. While the docs dev shell symlinks `node_modules` into
 the Nix store, `astro dev` returns 500 on every page; the fix is to copy
