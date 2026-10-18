@@ -31,6 +31,7 @@ export default function normalizeQueryError(responseData: any): string {
     ) {
       return (
         queryError.internal.error.description ||
+        queryError.internal.error.message ||
         'A table with this name already exists.'
       );
     }
