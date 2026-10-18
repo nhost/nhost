@@ -34,9 +34,10 @@ prose, callouts in Markdown syntax, a UI path in bold.
   running example, with the names used in code; dashboard paths; caveats
   the dashboard does not surface; screenshots wanted. A writer never guesses
   a missing field: it asks for what the repository cannot settle, usually
-  audience, outcomes and the running example, and drafts the rest from the
-  repository, page and type included, for the user to confirm. A diff is an
-  input to the brief, never the brief.
+  the outcomes and the running example, and drafts the rest from the
+  repository, page and type included, for the user to confirm. The audience
+  is always developers and LLMs. A diff is an input to the brief, never the
+  brief.
 - **TGT-DOCS-03** Frontmatter is the schema below, taken from
   `getting-started/quickstart/reactnative.mdx`. `title` is the H1; `head`
   sets the browser title; `sidebar.label` is the short sidebar name when the
@@ -132,7 +133,7 @@ paths and replaces each placeholder with `![alt](/images/...)`.
 - Page: docs/src/content/docs/<section>/<page>.mdx
 
 ## Audience
-Who the reader is and what they already know.
+Developers and LLMs; note only what they must already know.
 
 ## What the reader must be able to do
 One bullet per outcome; order is the writer's call unless stated.
