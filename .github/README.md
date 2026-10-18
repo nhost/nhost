@@ -63,6 +63,11 @@ pass the **approved head SHA**, never a moving PR ref.
 
 - `BUILD` defaults to false; check-only callers need just the core project inputs.
 - `CHECKS` defaults to true. Release callers set `BUILD: true, CHECKS: false`.
+- `CACHE_TARGET` defaults to `.#packages.{system}.nixops`; `{system}` expands to
+  the native Nix system. Other repositories can select a target such as
+  `.#devShells.{system}.cache` without changing the shared workflow or action.
+- `LOGIN_ECR` defaults to false; enable it when integration dependencies need
+  authenticated Docker access to ECR.
 - `ARCHS` defaults to `["aarch64", "x86_64"]`. Each architecture uses its native
   runner; checks run alongside the first architecture only. Single-platform
   projects set `ARCHS` explicitly.
@@ -93,12 +98,19 @@ No pinned derivations or prebuilt-image handoff are needed between phases.
 Independent `result-bin`, `result-image`, `result-dev-env`, and `result-check`
 links retain each phase's output. Artifact names and retention are unchanged;
 image publishers download only their matching image artifacts.
+The shared ECR publisher accepts `ARCHS` as a JSON list, defaulting to
+`["x86_64", "aarch64"]`, and optional `GIT_REF` and `AWS_REGION` inputs. This
+also supports repositories that publish only one architecture. Publisher runners
+must provide `jq` alongside the existing Docker and Skopeo tools.
 
 ## Nix cache
 
 `actions/setup-nix` configures both default and `nhost-nix-cache` AWS profiles for
 the daemon, including preinstalled Nix on NixOS runners. It initializes
 `NIX_CACHE_ROOTS` with locked flake inputs, excluding this repo's per-commit source.
+Its ready-cache gate uses `CACHE_TARGET` (default `.#packages.{system}.nixops`).
+Cache bootstrap and dependency-refresh jobs can set `SKIP_CACHE_CHECK: "true"`;
+the existing `NAME: nixops` bootstrap exemption is retained.
 
 Record derivations **before** executing them, appending to that file:
 

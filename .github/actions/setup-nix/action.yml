@@ -16,6 +16,12 @@ inputs:
   NIX_CACHE_SECRET_ACCESS_KEY:
     description: "R2 secret access key for reading the Nix cache"
     required: true
+  CACHE_TARGET:
+    description: "Cached flake installable; {system} expands to the native system"
+    default: ".#packages.{system}.nixops"
+  SKIP_CACHE_CHECK:
+    description: "Skip the ready-cache gate when bootstrapping or refreshing it"
+    default: "false"
 
 runs:
   using: "composite"
@@ -83,21 +89,24 @@ runs:
           jq -r '.inputs | .. | .path? // empty' > "$roots"
         echo "NIX_CACHE_ROOTS=$roots" >> "$GITHUB_ENV"
 
-    - name: "Verify nixops is cached"
-      if: ${{ inputs.NAME != 'nixops' }}
+    - name: "Verify shared tools are cached"
+      if: ${{ inputs.NAME != 'nixops' && inputs.SKIP_CACHE_CHECK != 'true' }}
       shell: bash
+      env:
+        CACHE_TARGET: ${{ inputs.CACHE_TARGET }}
       run: |
         ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
         SYSTEM=$([ "$RUNNER_OS" = "macOS" ] && echo "$ARCH-darwin" || echo "$ARCH-linux")
+        target=${CACHE_TARGET//\{system\}/$SYSTEM}
         log=$(mktemp)
         trap 'rm -f "$log"' EXIT
-        if ! nix build --dry-run ".#packages.$SYSTEM.nixops" > "$log" 2>&1; then
+        if ! nix build --dry-run "$target" > "$log" 2>&1; then
           cat "$log" >&2
-          echo "::error::failed to evaluate nixops"
+          echo "::error::failed to evaluate cache target $target"
           exit 1
         fi
         if grep -q "will be built" "$log"; then
           cat "$log"
-          echo "::error::nixops needs to be rebuilt — build and cache nixops first"
+          echo "::error::cache target $target needs to be built and cached first"
           exit 1
         fi

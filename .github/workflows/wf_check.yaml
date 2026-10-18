@@ -17,6 +17,14 @@ on:
       CHECKS:
         type: boolean
         default: true
+      CACHE_TARGET:
+        description: "Cached flake installable; {system} is the native system"
+        type: string
+        default: ".#packages.{system}.nixops"
+      LOGIN_ECR:
+        description: "Authenticate Docker for integration dependencies in ECR"
+        type: boolean
+        default: false
       VERSION:
         type: string
         default: "0.0.0-dev"
@@ -112,10 +120,17 @@ jobs:
               secrets.AWS_ACCOUNT_ID, github.event.repository.name) }}
           aws-region: eu-central-1
 
+      - name: Login to Amazon ECR
+        if: inputs.LOGIN_ECR && env.RUN_CHECKS == 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'true'
+
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
         with:
           NAME: ${{ inputs.NAME }}
+          CACHE_TARGET: ${{ inputs.CACHE_TARGET }}
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: >-

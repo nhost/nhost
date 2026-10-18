@@ -284,11 +284,16 @@ class CacheTests(unittest.TestCase):
         Path(self.env["TEST_STATE"]).write_text(json.dumps(self.state))
         self.roots.write_text("")
         env = {**self.env, "NIX_CACHE_ROOTS": str(self.roots)}
+        project = self.directory / "project"
+        project.mkdir()
+        (project / "Makefile").write_text(
+            f"include {Path.cwd()}/build/makefiles/general.makefile\n"
+        )
         result = subprocess.run(
             [
                 "make",
                 "-C",
-                "services/mcp",
+                str(project),
                 "build-docker-image",
                 "ARCH=aarch64",
                 "NAME=example",
