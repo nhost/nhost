@@ -10,6 +10,7 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatColumnList } from '@/features/orgs/projects/database/dataGrid/utils/formatColumnList';
 import { areStrArraysEqualOrdered } from '@/lib/utils';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
@@ -47,7 +48,7 @@ export default function ForeignKeyEditorSection() {
 
     if (isRelationDuplicate) {
       throw new Error(
-        `This foreign key relation already exists: ${values.columns.join(', ')} → ${values.referencedSchema}.${values.referencedTable}.${values.referencedColumns.join(', ')}`,
+        `This foreign key relation already exists: ${formatColumnList(values.columns)} → ${values.referencedSchema}.${values.referencedTable}.${formatColumnList(values.referencedColumns)}`,
       );
     }
   }

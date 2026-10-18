@@ -132,58 +132,61 @@ export default function BaseForeignKeyForm({
           <ReferencedTableSelect options={tables} />
           <ReferencedKeySelect />
         </section>
-        <hr className="border-t-1" />
-        <section className="grid grid-flow-row gap-2 px-6 py-2">
-          {referencedColumns.length > 0 && (
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <span className="font-medium text-foreground text-sm">
-                Column
-              </span>
-              <span className="w-4" aria-hidden="true" />
-              <span className="font-medium text-foreground text-sm">
-                References
-              </span>
-            </div>
-          )}
 
-          {referencedColumns.map((referencedColumn, index) => (
-            <div
-              key={referencedColumn}
-              className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
-            >
-              <FormSelect
-                control={control}
-                name={`columns.${index}`}
-                label={`Local column for ${referencedColumn}`}
-                className="border-border"
-                containerClassName="space-y-0 [&>label]:sr-only"
-                placeholder="Select a column"
-                contentClassName="z-[1400]"
-              >
-                {availableColumns
-                  ?.filter(({ name }) => Boolean(name))
-                  .map(({ name }) => (
-                    <SelectItem
-                      value={name}
-                      key={name}
-                      disabled={selectedColumns.some(
-                        (selected, selectedIndex) =>
-                          selected === name && selectedIndex !== index,
-                      )}
-                    >
-                      {name}
-                    </SelectItem>
-                  ))}
-              </FormSelect>
-
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-
-              <div className="flex h-10 items-center rounded-md border border-border bg-muted px-3 text-sm">
-                {referencedColumn}
+        {referencedColumns.length > 0 && (
+          <>
+            <hr className="border-t-1" />
+            <section className="grid grid-flow-row gap-2 px-6 py-2">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <span className="font-medium text-foreground text-sm">
+                  Column
+                </span>
+                <span className="w-4" aria-hidden="true" />
+                <span className="font-medium text-foreground text-sm">
+                  References
+                </span>
               </div>
-            </div>
-          ))}
-        </section>
+
+              {referencedColumns.map((referencedColumn, index) => (
+                <div
+                  key={referencedColumn}
+                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+                >
+                  <FormSelect
+                    control={control}
+                    name={`columns.${index}`}
+                    label={`Local column for ${referencedColumn}`}
+                    className="border-border"
+                    containerClassName="space-y-0 [&>label]:sr-only"
+                    placeholder="Select a column"
+                    contentClassName="z-[1400]"
+                  >
+                    {availableColumns
+                      ?.filter(({ name }) => Boolean(name))
+                      .map(({ name }) => (
+                        <SelectItem
+                          value={name}
+                          key={name}
+                          disabled={selectedColumns.some(
+                            (selected, selectedIndex) =>
+                              selected === name && selectedIndex !== index,
+                          )}
+                        >
+                          {name}
+                        </SelectItem>
+                      ))}
+                  </FormSelect>
+
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+
+                  <div className="flex h-10 items-center rounded-md border border-border bg-muted px-3 text-sm">
+                    {referencedColumn}
+                  </div>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
 
         <hr className="border-t-1" />
 

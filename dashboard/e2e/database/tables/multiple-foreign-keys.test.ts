@@ -412,10 +412,10 @@ test('should create table with a composite foreign key', async ({
   ).not.toBeVisible();
 
   await expect(
-    page.getByText('region_code, dept_code', { exact: true }),
+    page.getByText('(region_code, dept_code)', { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(`public.${departmentTableName}.region_code, dept_code`, {
+    page.getByText(`public.${departmentTableName}.(region_code, dept_code)`, {
       exact: true,
     }),
   ).toBeVisible();

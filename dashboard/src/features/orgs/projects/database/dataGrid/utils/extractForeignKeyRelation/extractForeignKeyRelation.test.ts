@@ -1,8 +1,7 @@
-import { expect, test } from 'vitest';
 import extractForeignKeyRelation from './extractForeignKeyRelation';
 
 describe('extractForeignKeyRelation', () => {
-  test('should return null if there is no match', () => {
+  it('should return null if there is no match', () => {
     expect(
       extractForeignKeyRelation(
         'table_id_fkey',
@@ -11,7 +10,7 @@ describe('extractForeignKeyRelation', () => {
     ).toBe(null);
   });
 
-  test('should extract every column of a composite foreign key', () => {
+  it('should extract every column of a composite foreign key', () => {
     expect(
       extractForeignKeyRelation(
         'table_composite_fkey',
@@ -28,7 +27,7 @@ describe('extractForeignKeyRelation', () => {
     });
   });
 
-  test('should extract data from a raw foreign key constraint', () => {
+  it('should extract data from a raw foreign key constraint', () => {
     expect(
       extractForeignKeyRelation(
         'table_id_fkey',
@@ -74,7 +73,7 @@ describe('extractForeignKeyRelation', () => {
       deleteAction: 'SET NULL',
     });
   });
-  test("should return column's name with a capital letter without quotes", () => {
+  it("should return column's name with a capital letter without quotes", () => {
     expect(
       extractForeignKeyRelation(
         'table_id_fkey',
@@ -90,7 +89,7 @@ describe('extractForeignKeyRelation', () => {
       deleteAction: 'RESTRICT',
     });
   });
-  test('should return null as referenced schema if it is not present', () => {
+  it('should return null as referenced schema if it is not present', () => {
     expect(
       extractForeignKeyRelation(
         'table_id_fkey',
@@ -107,7 +106,7 @@ describe('extractForeignKeyRelation', () => {
     });
   });
 
-  test('should return NO ACTION for update and delete actions if they are not present', () => {
+  it('should return NO ACTION for update and delete actions if they are not present', () => {
     expect(
       extractForeignKeyRelation(
         'table_id_fkey',

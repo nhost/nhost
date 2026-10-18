@@ -103,6 +103,27 @@ describe('useColumnGroups', () => {
     });
   });
 
+  it('falls back to the current table when no foreign key matches the constraint', () => {
+    const relationships = getRelationships(
+      makeMetadata('object_relationships', {
+        name: 'customer',
+        using: { foreign_key_constraint_on: 'customer_id' },
+      }),
+    );
+
+    expect(relationships).toHaveLength(1);
+    expect(relationships[0]).toMatchObject({
+      value: 'customer',
+      metadata: {
+        target: {
+          schema: 'public',
+          table: 'order_items',
+          column: 'customer_id',
+        },
+      },
+    });
+  });
+
   it('keeps single-column array relationship resolution unchanged', () => {
     const relationships = getRelationships(
       makeMetadata('array_relationships', {

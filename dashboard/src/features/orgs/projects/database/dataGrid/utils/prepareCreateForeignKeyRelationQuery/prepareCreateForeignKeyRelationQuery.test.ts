@@ -1,7 +1,6 @@
-import { expect, test } from 'vitest';
 import prepareCreateForeignKeyRelationQuery from './prepareCreateForeignKeyRelationQuery';
 
-test('should prepare an alter table query and add foreign key constraint', async () => {
+it('should prepare an alter table query and add foreign key constraint', async () => {
   const transaction = prepareCreateForeignKeyRelationQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',
@@ -23,7 +22,7 @@ test('should prepare an alter table query and add foreign key constraint', async
   );
 });
 
-test('should prepare a query for a composite foreign key', async () => {
+it('should prepare a query for a composite foreign key', async () => {
   const transaction = prepareCreateForeignKeyRelationQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',

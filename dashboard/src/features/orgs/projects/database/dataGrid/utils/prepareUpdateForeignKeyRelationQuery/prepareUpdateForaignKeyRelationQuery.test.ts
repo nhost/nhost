@@ -1,7 +1,6 @@
-import { expect, test } from 'vitest';
 import prepareUpdateForeignKeyConstraintQuery from './prepareUpdateForeignKeyRelationQuery';
 
-test('should not return any query if either the original foreign key relation or the new foreign key relation is undefined', () => {
+it('should not return any query if either the original foreign key relation or the new foreign key relation is undefined', () => {
   const firstTransaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',
@@ -39,7 +38,7 @@ test('should not return any query if either the original foreign key relation or
   expect(secondTransaction).toHaveLength(0);
 });
 
-test('should not return any query if the foreign key relation has not changed', async () => {
+it('should not return any query if the foreign key relation has not changed', async () => {
   const transaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',
@@ -67,7 +66,7 @@ test('should not return any query if the foreign key relation has not changed', 
   expect(transaction).toHaveLength(0);
 });
 
-test('should prepare a query to drop the original foreign key constraint and a query to alter the table and add the updated foreign key constraint', async () => {
+it('should prepare a query to drop the original foreign key constraint and a query to alter the table and add the updated foreign key constraint', async () => {
   const transaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',
@@ -101,7 +100,7 @@ test('should prepare a query to drop the original foreign key constraint and a q
   );
 });
 
-test('should prepare queries when a composite foreign key changes', async () => {
+it('should prepare queries when a composite foreign key changes', async () => {
   const transaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',
     schema: 'test_schema',

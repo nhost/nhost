@@ -22,7 +22,7 @@ const originalColumns: DatabaseColumn[] = [
 ];
 
 describe('prepareUpdateTableQuery', () => {
-  test('should prepare a query for renaming the table', () => {
+  it('should prepare a query for renaming the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -57,7 +57,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a column', () => {
+  it('should prepare a query for adding a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -93,7 +93,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a column', () => {
+  it('should prepare a query for removing a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -123,7 +123,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a column', () => {
+  it('should prepare a query for updating a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -164,7 +164,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a foreign key', () => {
+  it('should prepare a query for adding a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -208,7 +208,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a foreign key', () => {
+  it('should prepare a query for removing a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -253,7 +253,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a foreign key', () => {
+  it('should prepare a query for updating a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -311,7 +311,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should not modify primary keys when they are the same', () => {
+  it('should not modify primary keys when they are the same', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -363,7 +363,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(primaryKeyQueries).toHaveLength(0);
   });
 
-  test('should handle primary key changes from single to composite', () => {
+  it('should handle primary key changes from single to composite', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -423,7 +423,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should handle removing primary key entirely', () => {
+  it('should handle removing primary key entirely', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -477,7 +477,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(dropConstraintQuery).toBeDefined();
     expect(addPrimaryKeyQuery).toBeUndefined();
   });
-  test('should prepare a query for adding comment to with the old table name', () => {
+  it('should prepare a query for adding comment to with the old table name', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -513,7 +513,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding comment to the table', () => {
+  it('should prepare a query for adding comment to the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],

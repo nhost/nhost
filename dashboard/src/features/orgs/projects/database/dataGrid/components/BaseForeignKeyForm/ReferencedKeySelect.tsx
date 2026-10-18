@@ -43,11 +43,7 @@ export default function ReferencedKeySelect() {
       containerClassName="min-w-0"
       className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
       onChange={(value) => {
-        const candidate = candidateKeys.find(({ name }) => name === value);
-
-        if (!candidate) {
-          return;
-        }
+        const candidate = candidateKeys.find(({ name }) => name === value)!;
 
         setValue('referencedColumns', candidate.columns);
         setValue(

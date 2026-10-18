@@ -41,6 +41,7 @@ const countyQuery = http.post(
           result: [
             ['row_to_json'],
             '{"table_schema":"public","table_name":"county","table_type":"ORDINARY TABLE","updatability":true}',
+            '{"table_schema":"public","table_name":"state","table_type":"ORDINARY TABLE","updatability":true}',
           ],
         },
         { result_type: 'TuplesOk', result: [['row_to_json']] },
@@ -201,6 +202,25 @@ describe('BaseForeignKeyForm', () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('combobox', { name: 'Local column for id' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('clears the selected key and its columns when the table changes', async () => {
+    render(<TestWrapper />);
+
+    const user = new TestUserEvent();
+    await selectOption(
+      user,
+      'Referenced key',
+      'UNIQUE county_region_code_key (region, code)',
+    );
+    await selectOption(user, 'Table', 'state');
+
+    expect(
+      screen.getByRole('combobox', { name: 'Referenced key' }),
+    ).toHaveTextContent('Select a primary or unique key');
+    expect(
+      screen.queryByRole('combobox', { name: 'Local column for region' }),
     ).not.toBeInTheDocument();
   });
 

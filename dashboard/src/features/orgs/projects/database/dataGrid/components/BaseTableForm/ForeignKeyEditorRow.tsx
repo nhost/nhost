@@ -2,6 +2,7 @@ import { ArrowRight, Link as LinkIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatColumnList } from '@/features/orgs/projects/database/dataGrid/utils/formatColumnList';
 
 export interface ForeignKeyEditorRowProps {
   /**
@@ -34,13 +35,13 @@ export default function ForeignKeyEditorRow({
 
         <p className="m-0 grid grid-flow-col items-center gap-1.5 truncate font-medium">
           <span className="truncate">
-            {foreignKeyRelation.columns.join(', ')}
+            {formatColumnList(foreignKeyRelation.columns)}
           </span>{' '}
           <ArrowRight className="h-4 w-4" />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.
-            {foreignKeyRelation.referencedColumns.join(', ')}
+            {formatColumnList(foreignKeyRelation.referencedColumns)}
           </span>
         </p>
       </div>
