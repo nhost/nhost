@@ -28,22 +28,30 @@ interface UniqueKeyDialogValues {
 
 interface UniqueKeyDialogProps {
   columnNames: string[];
-  defaultValues: UniqueKeyDialogValues;
-  submitButtonText: string;
+  uniqueKeys: UniqueKey[];
+  /**
+   * Index of the unique key being edited. Omit it to add a new one.
+   */
+  index?: number;
   onSubmit?: (values: UniqueKeyDialogValues) => void;
   onCancel?: VoidFunction;
 }
 
 function UniqueKeyDialog({
   columnNames,
-  defaultValues,
-  submitButtonText,
+  uniqueKeys,
+  index,
   onSubmit,
   onCancel,
 }: UniqueKeyDialogProps) {
-  const [name, setName] = useState(defaultValues.name);
+  const uniqueKey = index === undefined ? undefined : uniqueKeys[index];
+  const [name, setName] = useState((uniqueKey && displayName(uniqueKey)) ?? '');
   const [columnIndices, setColumnIndices] = useState(
-    defaultValues.columnIndices,
+    uniqueKey?.columnIndices ?? [],
+  );
+  const isNameTaken = uniqueKeys.some(
+    (otherKey, otherIndex) =>
+      otherIndex !== index && displayName(otherKey) === name.trim(),
   );
 
   return (
@@ -52,12 +60,18 @@ function UniqueKeyDialog({
         <span className="font-medium text-sm">Name (optional)</span>
         <Input
           aria-label="Name"
+          aria-invalid={isNameTaken}
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="Leave empty to let Postgres name it"
           maxLength={POSTGRESQL_MAX_IDENTIFIER_LENGTH}
           autoComplete="off"
         />
+        {isNameTaken && (
+          <p className="font-medium text-destructive text-sm">
+            A unique constraint with this name already exists.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-2">
@@ -69,9 +83,9 @@ function UniqueKeyDialog({
           <MultiSelectContent contentClassName="z-[1400]">
             <MultiSelectGroup>
               {columnNames.map(
-                (columnName, index) =>
+                (columnName, columnIndex) =>
                   columnName && (
-                    <MultiSelectItem key={columnName} value={`${index}`}>
+                    <MultiSelectItem key={columnName} value={`${columnIndex}`}>
                       {columnName}
                     </MultiSelectItem>
                   ),
@@ -83,10 +97,10 @@ function UniqueKeyDialog({
 
       <Button
         type="button"
-        disabled={columnIndices.length < 2}
+        disabled={columnIndices.length < 2 || isNameTaken}
         onClick={() => onSubmit?.({ name, columnIndices })}
       >
-        {submitButtonText}
+        {uniqueKey ? 'Save' : 'Add'}
       </Button>
       <Button type="button" variant="outline" onClick={onCancel}>
         Cancel
@@ -106,12 +120,12 @@ export default function UniqueKeysSection() {
   const columnNames = columns.map(({ name }) => name);
 
   function openUniqueKeyDialog(index?: number) {
-    const uniqueKey = index === undefined ? undefined : fields[index];
-
     openDialog({
       title: (
         <span className="grid grid-flow-row">
-          <span>{uniqueKey ? 'Edit' : 'Add a'} Unique Constraint</span>
+          <span>
+            {index === undefined ? 'Add a' : 'Edit'} Unique Constraint
+          </span>
           <span className="text-muted-foreground text-sm">
             Pick two or more columns. For a single column, use its Unique
             checkbox.
@@ -122,11 +136,8 @@ export default function UniqueKeysSection() {
       component: (
         <UniqueKeyDialog
           columnNames={columnNames}
-          defaultValues={{
-            name: (uniqueKey && displayName(uniqueKey)) ?? '',
-            columnIndices: uniqueKey?.columnIndices ?? [],
-          }}
-          submitButtonText={uniqueKey ? 'Save' : 'Add'}
+          uniqueKeys={fields}
+          index={index}
           onSubmit={({ name, columnIndices }) => {
             const newName = name.trim() || undefined;
 
