@@ -8,6 +8,7 @@ import type {
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isFKConstraintOnSameTable } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
@@ -135,6 +136,10 @@ function edgeKey(
   return `${fromId}.${fromCol}->${toId}.${toCol}`;
 }
 
+function constraintIdFor(fk: SchemaDiagramForeignKey): string {
+  return `${nodeIdFor(fk.fromSchema, fk.fromTable)}.${fk.constraintName}`;
+}
+
 interface EdgeSpec {
   id: string;
   fromId: string;
@@ -185,6 +190,7 @@ function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
 
 function buildPostgresEdges(
   foreignKeys: SchemaDiagramForeignKey[],
+  columnsByConstraint: Map<string, string[]>,
   metadataByTableId: Map<string, HasuraMetadataTable>,
   visibleNodeIds: Set<string>,
 ): Edge[] {
@@ -199,6 +205,9 @@ function buildPostgresEdges(
       const toId = nodeIdFor(fk.toSchema, fk.toTable);
       const sourceMeta = metadataByTableId.get(fromId);
       const targetMeta = metadataByTableId.get(toId);
+      const constraintColumns = columnsByConstraint.get(
+        constraintIdFor(fk),
+      ) ?? [fk.fromColumn];
       return specToEdge({
         id: `${fk.constraintName}-${fk.fromSchema}.${fk.fromTable}.${fk.fromColumn}`,
         fromId,
@@ -206,10 +215,10 @@ function buildPostgresEdges(
         toId,
         toCol: fk.toColumn,
         hasObjectRel: !!sourceMeta?.object_relationships?.some((r) =>
-          relMatchesFk(r, fk, 'object'),
+          relMatchesFk(r, fk, 'object', constraintColumns),
         ),
         hasArrayRel: !!targetMeta?.array_relationships?.some((r) =>
-          relMatchesFk(r, fk, 'array'),
+          relMatchesFk(r, fk, 'array', constraintColumns),
         ),
         fromTracked: !!sourceMeta,
         toTracked: !!targetMeta,
@@ -219,6 +228,7 @@ function buildPostgresEdges(
 
 function buildGraphqlEdges(
   foreignKeys: SchemaDiagramForeignKey[],
+  columnsByConstraint: Map<string, string[]>,
   metadataTables: HasuraMetadataTable[],
   metadataByTableId: Map<string, HasuraMetadataTable>,
   visibleNodeIds: Set<string>,
@@ -233,16 +243,25 @@ function buildGraphqlEdges(
     }
     const sourceMeta = metadataByTableId.get(fromId);
     const targetMeta = metadataByTableId.get(toId);
+    const constraintColumns = columnsByConstraint.get(constraintIdFor(fk)) ?? [
+      fk.fromColumn,
+    ];
     const hasObjectRel = !!sourceMeta?.object_relationships?.some((r) =>
-      relMatchesFk(r, fk, 'object'),
+      relMatchesFk(r, fk, 'object', constraintColumns),
     );
     const hasArrayRel = !!targetMeta?.array_relationships?.some((r) =>
-      relMatchesFk(r, fk, 'array'),
+      relMatchesFk(r, fk, 'array', constraintColumns),
     );
     if (!hasObjectRel && !hasArrayRel) {
       continue;
     }
     const key = edgeKey(fromId, fk.fromColumn, toId, fk.toColumn);
+    const existing = specByKey.get(key);
+    if (existing) {
+      existing.hasObjectRel ||= hasObjectRel;
+      existing.hasArrayRel ||= hasArrayRel;
+      continue;
+    }
     specByKey.set(key, {
       id: `${fk.constraintName}-${fk.fromSchema}.${fk.fromTable}.${fk.fromColumn}`,
       fromId,
@@ -343,22 +362,24 @@ function relMatchesFk(
   rel: HasuraMetadataRelationship,
   fk: SchemaDiagramForeignKey,
   side: 'object' | 'array',
+  constraintColumns: string[],
 ): boolean {
   const using = rel.using;
   if (using.foreign_key_constraint_on !== undefined) {
     const fkc = using.foreign_key_constraint_on;
-    // Edges are per column, so a composite constraint matches each of its
-    // member columns.
-    const matchesColumn = getForeignKeyConstraintColumns(fkc).includes(
-      fk.fromColumn,
+    // Edges are per column, but a relationship is backed by a whole
+    // constraint. Foreign key rows arrive unordered, so compare column sets.
+    const matchesConstraint = areStrArraysEqual(
+      getForeignKeyConstraintColumns(fkc),
+      constraintColumns,
     );
     if (isFKConstraintOnSameTable(fkc)) {
-      return side === 'object' && matchesColumn;
+      return side === 'object' && matchesConstraint;
     }
 
     return (
       side === 'array' &&
-      matchesColumn &&
+      matchesConstraint &&
       fkc.table?.schema === fk.fromSchema &&
       fkc.table?.name === fk.fromTable
     );
@@ -459,6 +480,15 @@ export default function useSchemaGraph({
       const set = foreignKeyColumnsByTable.get(id) ?? new Set<string>();
       set.add(fk.fromColumn);
       foreignKeyColumnsByTable.set(id, set);
+    }
+
+    const columnsByConstraint = new Map<string, string[]>();
+    for (const fk of foreignKeys) {
+      const id = constraintIdFor(fk);
+      columnsByConstraint.set(id, [
+        ...(columnsByConstraint.get(id) ?? []),
+        fk.fromColumn,
+      ]);
     }
 
     const metadataByTableId = new Map<string, HasuraMetadataTable>();
@@ -583,6 +613,7 @@ export default function useSchemaGraph({
     // hidden — so node heights, and therefore positions, match in both modes).
     const layoutEdges = buildPostgresEdges(
       foreignKeys,
+      columnsByConstraint,
       metadataByTableId,
       visibleNodeIds,
     );
@@ -591,6 +622,7 @@ export default function useSchemaGraph({
       namingMode === 'graphql'
         ? buildGraphqlEdges(
             foreignKeys,
+            columnsByConstraint,
             metadataTables,
             metadataByTableId,
             visibleNodeIds,
