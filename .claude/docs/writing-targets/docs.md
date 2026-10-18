@@ -32,8 +32,11 @@ prose, callouts in Markdown syntax, a UI path in bold.
 - **TGT-DOCS-02** A page starts from a brief that carries, in this order:
   audience; page type; source paths the claims are checked against; the one
   running example, with the names used in code; dashboard paths; caveats
-  the dashboard does not surface; screenshots wanted. A diff is an input to
-  the brief, never the brief: a writer handed only a diff asks for the brief.
+  the dashboard does not surface; screenshots wanted. A writer never guesses
+  a missing field: it asks for what the repository cannot settle, usually
+  audience, outcomes and the running example, and drafts the rest from the
+  repository, page and type included, for the user to confirm. A diff is an
+  input to the brief, never the brief.
 - **TGT-DOCS-03** Frontmatter is the schema below, taken from
   `getting-started/quickstart/reactnative.mdx`. `title` is the H1; `head`
   sets the browser title; `sidebar.label` is the short sidebar name when the

@@ -25,6 +25,46 @@ Calibration pairs (an unedited LLM draft beside the approved page, with the
 brief and the deltas) live under `tools/writing/calibration/`. Writers do not
 read that directory; reviewers and the judge do.
 
+## Drafting a new page
+
+When asked to write or document something ("document the command palette"),
+do not start with the page. Work in this order:
+
+1. **Research.** Find the feature in the source: `dashboard/src/features/`,
+   its route under `dashboard/src/pages/`, `cli/` and `services/`, or the
+   files a given branch or diff changes. Settle from it what you can without
+   asking: the dashboard paths and UI labels, the page's section and type
+   (`TGT-DOCS-01`), its sidebar group in `astro.config.mjs`, related pages,
+   and caveats the dashboard does not show. For caveats, check when the
+   feature does not work and how it differs in the local dashboard:
+   `useIsPlatform` and `PlatformOnly` gate Cloud-only UI, and
+   `cli/dockercompose/compose.go` sets the local dashboard's environment.
+   Trace each side effect to the code that performs it. If a page already
+   covers the feature, ask whether to extend it instead.
+2. **Ask once.** Fill in the brief template at the end of the docs target
+   (`TGT-DOCS-02`). In one message of numbered questions, ask only what the
+   source cannot settle: usually audience, outcomes and the running example
+   with its names, plus screenshots wanted and anything step 1 left
+   ambiguous. Suggest an answer for each, so the user can reply `ok`.
+3. **Confirm.** Save the brief to `.nhost-code/drafts/<page>.brief.md` at the
+   repo root, show it, and wait for the go-ahead.
+4. **Write** the page and add it to the sidebar in `astro.config.mjs`. Check
+   each claim in the code the brief lists, not against names or memory. A
+   claim you cannot check gets a `VERIFY:` marker and each image a
+   `SCREENSHOT:` marker, as under "Placeholders" in the rules doc. Do not
+   commit.
+5. **Lint.** In the docs shell, run Vale on the page
+   (`cd docs && vale --minAlertLevel=warning src/content/docs/<page>.mdx`)
+   and fix every alert except `Nhost.ScreenshotPlaceholder` and
+   `Nhost.VerifyMarker`; two passes at most.
+6. **Report and stop.** List the page, the sidebar change, each placeholder
+   left to resolve, and the brief. Offer a review of the page against the
+   same standard, in a new session on a different model; do not start it.
+
+The Nix docs check builds from git, so a page git does not track yet fails
+there with `The slug ... specified in the Starlight sidebar config does not
+exist`.
+
 ## Prose lint (Vale)
 
 `vale` is not on a stock PATH; it comes from the docs dev shell. Run these
