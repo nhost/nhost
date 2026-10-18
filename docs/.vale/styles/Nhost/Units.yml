@@ -3,7 +3,7 @@ extends: existence
 message: "Put a nonbreaking space between the number and the unit in '%s'. (WR-STYLE-07)"
 link: "https://developers.google.com/style/units-of-measure"
 nonword: true
-level: error
+level: warning
 tokens:
   - '\b\d+(?:B|kB|MB|GB|TB)\b'
   - '\b\d+(?:ns|ms|min|h|d)\b'

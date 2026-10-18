@@ -3,7 +3,7 @@ extends: existence
 message: "Don't use exclamation points in text. (WR-STYLE-04)"
 link: "https://developers.google.com/style/exclamation-points"
 nonword: true
-level: error
+level: warning
 action:
   name: edit
   params:

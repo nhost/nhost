@@ -36,7 +36,7 @@ Before transferring, be aware that Starter organizations have lower resource lim
 
 ### Billing cycle
 
-Regardless of when you created an organization the billing cycle will always start on the first of the month and end on the last day of the month. If you create the organization in the middle of the month you will be charged for the remaining days of the month.
+Regardless of when you created an organization the billing cycle will always start on the 1st of the month and end on the last day of the month. If you create the organization in the middle of the month you will be charged for the remaining days of the month.
 
 ### Usage
 
@@ -54,9 +54,9 @@ Dedicated compute counts towards the same aggregate as shared compute, this mean
 
 #### Volume capacity
 
-By default projects are provisioned with 1 GB of volume capacity for postgres. However, most plans have a free allowance of at least 10 GB. If you have multiple projects you can share this allowance between them or you can choose to increase some of your projects. If you exceed the free allowance you will be charged for the additional volume capacity.
+By default projects are provisioned with 1GB of volume capacity for postgres. However, most plans have a free allowance of at least 10GB. If you have multiple projects you can share this allowance between them or you can choose to increase some of your projects. If you exceed the free allowance you will be charged for the additional volume capacity.
 
-Volume capacity is charged based on the amount of concurrent capacity you have allocated. This means if you have two projects running at the same time with 10 GB each we will count 20 GB in total. If you have two projects running at different times with 10 GB each we will count 10 GB in total.
+Volume capacity is charged based on the amount of concurrent capacity you have allocated. This means if you have two projects running at the same time with 10GB each we will count 20GB in total. If you have two projects running at different times with 10GB each we will count 10GB in total.
 
 #### Custom Domains
 
@@ -100,7 +100,7 @@ Total price: 55$
 
 ##### Example 4
 
-In this example we have a Pro organization with a production project running all the time and 1 CPUs and 2 GB of dedicated compute:
+In this example we have a Pro organization with a production project running all the time and 1 CPUs and 2GB of dedicated compute:
 
 Total price: 66$
 - Pro Organization 25$
@@ -135,9 +135,9 @@ You can configure spending notifications to receive an email when you reach 75%,
 
 If for some reason you fail to pay an invoice, this usually what happens:
 
-1. On the first of the month Stripe will attempt to charge the payment method you have configured. If it fails it will send a notification to the billing contact.
+1. On the 1st of the month Stripe will attempt to charge the payment method you have configured. If it fails it will send a notification to the billing contact.
 2. A few days later stripe will attempt to charge the payment method again. If it fails it will send a notification to the billing contact. In addition, our systems will set your organization in a `LOCKED` state.
-3. Stripe will attempt two more times, by the twentieth of the month, before flagging the invoice as unpaid. When this happens we will set your organization in a `DISABLED` state.
+3. Stripe will attempt two more times before the 20th before flagging the invoice as unpaid. When this happens we will set your organization in a `DISABLED` state.
 4. If the invoices are not paid by the end of the month the subscription will be cancelled and the organization will be set in a `CANCELLED` state.
 
 Each failed attempt to pay an invoice will send an email to the billing contact with instructions on how to pay the invoice. In addition, any organization's state change will send another email to all members of the organization.

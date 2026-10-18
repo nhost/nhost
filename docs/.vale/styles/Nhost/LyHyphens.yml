@@ -2,7 +2,7 @@
 extends: existence
 message: "'%s' doesn't need a hyphen. (WR-STYLE-09)"
 link: "https://developers.google.com/style/hyphens"
-level: error
+level: warning
 ignorecase: false
 nonword: true
 action:

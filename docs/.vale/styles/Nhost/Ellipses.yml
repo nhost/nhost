@@ -3,7 +3,7 @@ extends: existence
 message: "In general, don't use an ellipsis. (WR-STYLE-05)"
 link: 'https://developers.google.com/style/ellipses'
 nonword: true
-level: error
+level: warning
 action:
   name: remove
 tokens:

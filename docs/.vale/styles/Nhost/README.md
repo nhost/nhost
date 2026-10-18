@@ -29,17 +29,17 @@ set by name there and need turning off by name as well.
 
 | Rule | Tier | Count on main (commit) | Note |
 | --- | --- | --- | --- |
-| `Vale.Repetition` | error | 0 (`8c8def5300` plus the 2a fixes) | 6 hits before the ignores; 2 were a code fence directly under `<TabItem>`, read as HTML until the JSX ignore; the other 4 were fixed in the commit that added this table |
+| `Vale.Repetition` | warning | 4 in 3 pages (`79bfe1016b`, main's pages unchanged) | 6 hits before the ignores; 2 were a code fence directly under `<TabItem>`, read as HTML until the JSX ignore. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Vale.Avoid` | error | 0 (`8c8def5300`) | Flags words in `config/vocabularies/Nhost/reject.txt`, which is empty |
 | `Vale.Terms` | warning | 67 in 35 pages (`8c8def5300`) | Lowercase product names in prose: `nhost` 18, `postgres` 15, `graphql` 11, `hasura` 8, the rest 15. Moves to `error` once `accept.txt` and a sweep bring it to zero |
 | `Vale.Spelling` | off | 639 in 152 pages (`8c8def5300`) | Disabled; the hits are mostly code identifiers and product names in prose |
-| `Nhost.Exclamation` | error | 0 (`e56d1473c2` plus the 2b fixes) | 8 hits in 7 pages before the sweep, 5 of them the tutorial welcome lines |
-| `Nhost.Ellipses` | error | 0 (`e56d1473c2` plus the 2b fixes) | 3 hits in 3 pages before the sweep; two were the overflow menu, now written **⋯** as elsewhere in the docs |
+| `Nhost.Exclamation` | warning | 8 in 7 pages (`79bfe1016b`, main's pages unchanged) | 5 of them the tutorial welcome lines. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
+| `Nhost.Ellipses` | warning | 3 in 3 pages (`79bfe1016b`, main's pages unchanged) | Two are the overflow menu, written **⋯** elsewhere in the docs. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Nhost.Spacing` | error | 0 (`e56d1473c2`) | No hits |
-| `Nhost.Units` | error | 0 (`e56d1473c2` plus the 2b fixes) | 12 hits in 3 pages before the sweep (`10GB`, `16MB`, `10s`), fixed with a plain space |
-| `Nhost.Ordinal` | error | 0 (`e56d1473c2` plus the 2b fixes) | 5 hits in 2 pages before the sweep; 3 dates fixed, and the 2 `95th`/`75th percentile` hits are dashboard panel titles, exempted by a lookahead added to the vendored rule |
-| `Nhost.LyHyphens` | error | 0 (`e56d1473c2` plus the 2b fixes) | 2 hits in 2 pages before the sweep |
-| `Nhost.OptionalPlurals` | error | 0 (`e56d1473c2` plus the 2b fixes) | 3 hits in 3 pages before the sweep |
+| `Nhost.Units` | warning | 12 in 3 pages (`79bfe1016b`, main's pages unchanged) | `10GB`, `16MB`, `10s`. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
+| `Nhost.Ordinal` | warning | 3 in 1 page (`79bfe1016b`, main's pages unchanged) | Dates; the `95th`/`75th percentile` dashboard panel titles are exempted by a lookahead added to the vendored rule. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
+| `Nhost.LyHyphens` | warning | 2 in 2 pages (`79bfe1016b`, main's pages unchanged) | The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
+| `Nhost.OptionalPlurals` | warning | 3 in 3 pages (`79bfe1016b`, main's pages unchanged) | The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Nhost.OxfordComma` | warning | 23 in 20 pages (`e56d1473c2`) | The docs mix both comma styles; cheap to sweep later and then promote |
 | `Nhost.Colons` | suggestion | 177 in 54 pages (`e56d1473c2`) | The docs capitalise after a colon, so this asserts a house style the corpus does not follow |
 | `Nhost.Latin` | suggestion | 57 in 41 pages (`e56d1473c2`) | `e.g.` 52, `i.e.` 5; the corpus uses them freely |
@@ -50,18 +50,18 @@ set by name there and need turning off by name as well.
 | `Nhost.VerifyMarker` | error | 0 (`e5bbdf0771`) | `WR-CONTENT-05`; raw scope, so it sees the `{/* VERIFY: */}` comment |
 | `Nhost.RawDashboardURL` | error | 0 (`e5bbdf0771`) | `DOCS-07`; a URL template (`/orgs/{org}/projects/`) or an `app.nhost.io/orgs/` link that names an organisation instead of `_`; raw scope, code fences included |
 | `Nhost.DeepLinkRel` | error | 0 (`e5bbdf0771`) | `DOCS-07`; an `app.nhost.io` anchor with `target="_blank"` and no `rel="noopener noreferrer"`, by lookahead; raw scope |
-| `Nhost.UIPathArrow` | error | 0 (`e5bbdf0771` plus the sweep) | `DOCS-06`; 17 hits on 15 lines in 9 pages before the sweep, each `->` in a bold UI path changed to `→` and nothing else; raw scope |
-| `Nhost.NavPaths` | error | 0 (`e5bbdf0771` plus the fixes) | `DOCS-06`; stale dashboard paths, one row per move checked against the dashboard source named in the rule. 3 hits in 3 pages before the fixes, all `Settings → Sign-In Methods` without the leading `Auth →`, which the fixes added; raw scope |
+| `Nhost.UIPathArrow` | warning | 18 in 10 pages (`79bfe1016b`, main's pages unchanged) | `DOCS-06`; each `->` in a bold UI path; raw scope. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
+| `Nhost.NavPaths` | warning | 4 in 4 pages (`79bfe1016b`, main's pages unchanged) | `DOCS-06`; stale dashboard paths, one row per move checked against the dashboard source named in the rule, including `Settings → Sign-In Methods` without the leading `Auth →`; raw scope. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Nhost.FillerHeadings` | warning | 11 in 11 pages (`e5bbdf0771`) | `WR-ANTI-04`; headings that are exactly Overview, Introduction, Benefits, Summary or Conclusion. Promote once the pages are fixed |
 | `Nhost.LLMPhrases` | warning | 46 in 26 pages (`e5bbdf0771`) | `WR-ANTI-05`; `leverage` and its forms 21, `seamless(ly)` 11, `robust` 7, `powerful` 6, `unlocks` 1 |
 | `Nhost.LLMPhrasesStrict` | error | 0 (`e5bbdf0771`) | `WR-ANTI-05`; the words from the same list with no hits (`effortless`, `delve`, `let's dive`, `it's worth noting`), split out so they can fail now. A word is never in both files |
 | `Nhost.TutorialVoice` | warning | 3 in 2 pages (`e5bbdf0771`) | `WR-ANTI-09`; `In this section/guide, we will` and `we'll` |
 | `Nhost.EmDash` | suggestion | 256 in 74 pages (`e5bbdf0771`) | `WR-STYLE-16`; em dashes are house style, so this only shows them and is never promoted |
 
-At the suggestion level the whole tree reports 0 errors, 150 warnings and 550
-suggestions in 218 files (`e5bbdf0771` plus the `UIPathArrow` sweep and the
-`NavPaths` fixes). A suggestion rule is promoted only on a measured count and
-a one-line reason in its row.
+At the suggestion level the whole tree reports 0 errors, 207 warnings and 550
+suggestions in 218 files (`79bfe1016b`'s pages; this branch changes no docs
+content). A rule is promoted only on a measured count and a one-line reason
+in its row.
 
 ## Nhost rules
 

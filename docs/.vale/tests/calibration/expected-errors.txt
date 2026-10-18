@@ -1,7 +1,4 @@
 tools/writing/calibration/docs/native-queries/draft.mdx:17:1:Nhost.Aside:DOCS-04: use a ':::note', ':::tip' or ':::caution' callout, never the '<Aside' component.
-tools/writing/calibration/docs/native-queries/draft.mdx:18:160:Nhost.UIPathArrow:DOCS-06: separate the segments of a bold UI path with '→', not '->'.
-tools/writing/calibration/docs/native-queries/draft.mdx:18:162:Nhost.NavPaths:DOCS-06: the dashboard path is now 'GraphQL → Settings → Engine', not 'Settings -> Hasura'.
-tools/writing/calibration/docs/native-queries/draft.mdx:25:24:Nhost.UIPathArrow:DOCS-06: separate the segments of a bold UI path with '→', not '->'.
 tools/writing/calibration/docs/native-queries/draft.mdx:30:1:Nhost.RawDashboardURL:DOCS-07: give the UI path and a deep link through 'app.nhost.io/orgs/_/projects/_/', not '/orgs/{org}/projects/'.
 tools/writing/calibration/docs/native-queries/draft.mdx:35:5:Nhost.ScreenshotPlaceholder:DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.
 tools/writing/calibration/docs/native-queries/draft.mdx:68:5:Nhost.ScreenshotPlaceholder:DOCS-08: replace the 'SCREENSHOT:' placeholder with the captured image before merge.

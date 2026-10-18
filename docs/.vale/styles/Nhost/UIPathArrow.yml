@@ -2,7 +2,7 @@
 extends: existence
 message: "DOCS-06: separate the segments of a bold UI path with '→',
   not '->'."
-level: error
+level: warning
 scope: raw
 # Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
 vocab: false

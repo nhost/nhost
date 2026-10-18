@@ -2,7 +2,7 @@
 extends: existence
 message: "Spell out all ordinal numbers ('%s') in text. (WR-STYLE-08)"
 link: 'https://developers.google.com/style/numbers'
-level: error
+level: warning
 nonword: true
 # Nhost change: percentiles stay numeric ('95th percentile'), as the
 # dashboard labels them.

@@ -9,7 +9,9 @@ post is not a docs page; it resolves to the `blog` scope. The site is Astro
 with Starlight; pages are MDX. The voice is `nhost-docs`
 (`.claude/docs/writing-voices/nhost-docs.md`). The page exemplar is
 `products/auth/sign-in-magic-link.mdx`: short, one feature, code before
-prose, callouts in Markdown syntax, a UI path in bold.
+prose, callouts in Markdown syntax, a UI path in bold. Its UI path line
+predates DOCS-06 and DOCS-07: the path is now **Auth → Settings → Sign-In
+Methods → Magic Link**, written with `→` and followed by the deep link.
 
 - **DOCS-01** Every page is one of four types and follows its skeleton.
   The section sets the type; where it allows two, the page's job decides.

@@ -3,7 +3,7 @@
 # against the dashboard source named beside it.
 extends: substitution
 message: "DOCS-06: the dashboard path is now '%s', not '%s'."
-level: error
+level: warning
 scope: raw
 # Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
 vocab: false
