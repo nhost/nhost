@@ -40,8 +40,12 @@ do not start with the page. The user is asked twice: to confirm the brief
    feature does not work and how it differs in the local dashboard:
    `useIsPlatform` and `PlatformOnly` gate Cloud-only UI, and
    `cli/dockercompose/compose.go` sets the local dashboard's environment.
-   Trace each side effect to the code that performs it. If a page already
-   covers the feature, ask whether to extend it instead.
+   Nhost Cloud behaviour the dashboard only calls, such as organizations,
+   members and billing, is in the nhost-be repository when it is checked
+   out: permissions and event triggers under
+   `services/console-next/nhost/metadata/`. Trace each side effect to the
+   code that performs it. If a page already covers the feature, ask whether
+   to extend it instead.
 2. **Brief.** Fill in the brief template at the end of the docs target
    (`TGT-DOCS-02`). The audience is always developers and LLMs; do not ask
    for it. Ask for everything else the source cannot settle, usually the
@@ -106,7 +110,9 @@ When asked to review docs pages, or as step 4 of drafting:
    and sort each into one of three outcomes. **Contradicted**: blocking,
    citing the source's `path:line`. **Not found**, because it belongs to
    software outside this repo or could not be located: a warning under
-   `WR-CONTENT-05` naming what to verify. **Confirmed**: no finding, not
+   `WR-CONTENT-05` naming what to verify. Before calling a Cloud claim not
+   found, check nhost-be's `services/console-next/nhost/metadata/` if that
+   repository is checked out. **Confirmed**: no finding, not
    listed. Then check the rest of the standard, and fold each Vale alert
    into the finding for its line. Do not read `tools/writing/calibration/`.
 5. **Write** `.nhost-code/review/DOCS_REVIEW_<branch>.md`, with `/` in the
