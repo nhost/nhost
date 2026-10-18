@@ -4,27 +4,39 @@
 # is written, then kept out of that profile's excerpts and out of voicestats,
 # so the voice discrimination check scores text the profile never saw.
 # calibration/README.md explains how each pick is made and how a veto works.
+# tools/writing/internal/expect loads this file strictly: a key not listed
+# here is an error.
 #
-# Phase 5 of the writing quality plan adds to this file:
-#   - voices.nuno-pato and voices.david-barroso, each with a held_out block;
-#   - voices.max-serdiukov with `skip: true` and a reason (one post, no
-#     held-out);
-#   - voices.nhost-blog with a held_out block, `record-only: true` and a reason
-#     (the house corpus averages the profiled authors' posts);
-#   - a top-level `model:` pin for the judge, equal to the docs pair's.
+# Top level:
+#   model      the judge model the voice check is pinned to
+#   voices     one entry per voice slug
+#
+# Per voice, exactly one of held_out and skip:
+#   held_out     the held-out document, below
+#   skip         true when the voice has no held-out document and the voice
+#                check passes over it
+#   record-only  true when the voice check scores and records the held-out
+#                document but asserts nothing about it
+#   reason       why the voice is skipped or record-only; required with
+#                either, refused without
+#   vetoed       every earlier pick that was rejected, in order, each with a
+#                path and a reason; the next document in the same ordering
+#                is then taken
 #
 # Per held_out block:
 #   path       repo-relative path of the document
-#   blob       `git rev-parse <chosen_at>:<path>`; a docs page is live, so the
-#              voice check compares this against the current blob before
-#              scoring and refuses a page that has changed
+#   blob       `git rev-parse <chosen_at>:<path>`, 40 hex characters; a
+#              document is live, so the voice check compares this against
+#              the current blob before scoring and refuses one that has
+#              changed
 #   note       optional; why blob differs from the chosen_at blob, when a
 #              deliberate edit re-recorded it
 #   chosen_at  commit the rule was run at
 #   rule       the selection rule, one line
 #   reason     why this document is the pick
-# vetoed lists every earlier pick that was rejected, in order, each with a
-# path and a reason; the next document in the same ordering is then taken.
+
+# model: not pinned yet. Phase 4b (the judge) pins this file and
+# calibration/docs/native-queries/expect.yaml to the same value.
 
 voices:
   nhost-docs:
@@ -49,3 +61,56 @@ voices:
         commit the pick was made at, whose blob was
         593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0.
     vetoed: []
+  nuno-pato:
+    held_out:
+      path: landing/src/pages/blog/introducing-new-javascript-sdk.mdx
+      blob: d9e638fb7164d4eb6a461dc5a1002b630c0e4ae0
+      chosen_at: bdc2708b52
+      rule: >-
+        Most recent single-author post by the date in export const article
+        among landing/src/pages/blog posts whose one byline is Nuno Pato.
+      reason: >-
+        Dated 2025-09-24, the latest of Nuno Pato's 24 single-author posts;
+        the next is nhost-vs-supabase-practical-guide-for-growing-teams.mdx
+        (2025-07-09).
+    vetoed: []
+  david-barroso:
+    held_out:
+      path: landing/src/pages/blog/mcp-service.mdx
+      blob: 023b280355dae4ab2a8769c73e16ebe6e8d91a4b
+      chosen_at: bdc2708b52
+      rule: >-
+        Most recent single-author post by the date in export const article
+        among landing/src/pages/blog posts whose one byline is David Barroso.
+      reason: >-
+        Dated 2026-03-31, the latest of David Barroso's 10 single-author
+        posts; the next is newsletter-2026q1.mdx (2026-03-09).
+    vetoed: []
+  nhost-blog:
+    record-only: true
+    reason: >-
+      The house corpus is the profiled authors' single-author posts since
+      2024-01-01, so its profile is their average, and the first voice matrix
+      may not separate it from Nuno Pato's or David Barroso's. Scored and
+      recorded, not asserted, until a recorded matrix shows it separating.
+    held_out:
+      path: landing/src/pages/blog/newsletter-2026q1.mdx
+      blob: 56313fbc578162201a0d634c8a29926a70f50dd6
+      chosen_at: 22c484285d
+      rule: >-
+        Most recent single-author post dated on or after the since: of
+        voices/nhost-blog.md (2024-01-01) that resolves to a profiled voice,
+        is not that voice's own held-out, and whose voice is not skip: true.
+      reason: >-
+        Dated 2026-03-09, by David Barroso. It passes over
+        semantic-search-with-pgvector.mdx (2026-08-12), Max Serdiukov's only
+        post, because max-serdiukov is skip: true and that post is his whole
+        corpus, and mcp-service.mdx (2026-03-31), David Barroso's own
+        held-out.
+    vetoed: []
+  max-serdiukov:
+    skip: true
+    reason: >-
+      One single-author post, semantic-search-with-pgvector.mdx (2026-08-12),
+      which the profile is written from, so there is no document to hold
+      out. The profile is spot-checked on generated output instead.

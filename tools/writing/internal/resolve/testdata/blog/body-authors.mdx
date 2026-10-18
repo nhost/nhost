@@ -1,0 +1,18 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Stub post whose export lists no authors',
+  description: 'Fixture for an authors list that only appears in the body.',
+  date: '2026-01-05',
+  tags: ['Engineering'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+The byline list is configured in code like this:
+
+```js
+const post = {
+  authors: [{ name: 'David Barroso' }],
+}
+```

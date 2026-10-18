@@ -63,6 +63,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `tools/configdocs` - Go generator for the `nhost.toml` configuration reference, checked and built through its own Nix project
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
+- `tools/writing` - Go tool behind the docs and blog writing standard: scope and voice resolution, the rubric and its drift test, and voice stats; the judge is deferred
 
 ## Development Environment
 

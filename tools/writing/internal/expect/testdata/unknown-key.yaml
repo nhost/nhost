@@ -1,0 +1,9 @@
+voices:
+  nuno-pato:
+    held_out:
+      path: landing/src/pages/blog/nuno-latest.mdx
+      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      chosen_at: bdc2708b52
+      rule: Most recent single-author post.
+      reason: Dated 2026-01-02.
+      picked_by: someone

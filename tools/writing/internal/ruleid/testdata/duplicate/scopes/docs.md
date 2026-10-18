@@ -1,0 +1,1 @@
+- **WR-CONTENT-01** Defined again in a scope.

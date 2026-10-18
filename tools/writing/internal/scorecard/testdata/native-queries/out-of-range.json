@@ -1,0 +1,35 @@
+{
+  "document": "tools/writing/calibration/docs/native-queries/final.mdx",
+  "scope": "docs",
+  "voice": "nhost-docs",
+  "brief": false,
+  "dimensions": {
+    "audience_and_task": 5,
+    "brief_fidelity": "n/a",
+    "running_example": 4,
+    "factual_grounding": 4,
+    "structure": 3,
+    "scope_conventions": 4,
+    "voice_match": 3,
+    "antipatterns": 4
+  },
+  "evidence": [
+    {
+      "quote": "Native queries are useful when the generated GraphQL API from your tables cannot express what you need",
+      "rule_id": "WR-CONTENT-01",
+      "note": "The opening names who the page is for and what they can do."
+    },
+    {
+      "quote": "In our example, we have a `post_summary` logical model with fields `id`, `title`, `body`, `views`, and `popularity`.",
+      "rule_id": "WR-CONTENT-03",
+      "note": "The running example is introduced by name and carried into later steps."
+    },
+    {
+      "quote": "Check and change the version under   **GraphQL → Settings → Engine**",
+      "rule_id": "DOCS-06",
+      "note": "The UI path is bold with arrows; extra spaces in the quote are normalised away."
+    }
+  ],
+  "total": 93.75,
+  "blocking": 0
+}

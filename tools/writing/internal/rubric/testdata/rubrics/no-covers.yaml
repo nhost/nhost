@@ -1,0 +1,25 @@
+# valid.yaml, changed to test: no covers.
+dimensions:
+  - name: brief_fidelity
+    covers: []
+    anchors:
+      0: Ignores the brief.
+      2: Follows part of the brief.
+      4: Follows all of the brief.
+  - name: running_example
+    covers: [WR-CONTENT-01, WR-CONTENT-03]
+    anchors:
+      0: Disconnected examples.
+      2: Mostly one example.
+      4: One example throughout.
+scopes:
+  docs:
+    weights:
+      brief_fidelity: 1
+      running_example: 2
+    blocking: [running_example]
+  blog:
+    weights:
+      brief_fidelity: 2
+      running_example: 0.5
+    blocking: []

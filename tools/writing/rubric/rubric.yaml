@@ -1,0 +1,204 @@
+# The one judge rubric for docs pages and blog posts.
+#
+# Each dimension lists the rule IDs it scores (`covers`) and anchors a judge
+# applies: what a 0, a 2 and a 4 look like; 1 and 3 fall between them. Every
+# ID must be defined in .claude/writing/rules.md or a file under
+# .claude/writing/scopes/; `writing validate` and the drift test in
+# tools/writing reject the rubric otherwise. Docs and blog scope IDs sit side
+# by side; each scope's weights below decide what counts for which.
+#
+# `scopes` gives each scope's weights and blocking dimensions. Weights are
+# relative: 1 is the default and 2 counts a dimension twice. The total is the
+# weighted mean of the scored dimensions, scaled from 0..4 to 0..100. A
+# blocking dimension scored 0 makes the document blocking, whatever its total.
+#
+# brief_fidelity is `n/a` when no brief was supplied: it is then dropped from
+# the total, never blocking and never `insufficient-evidence`.
+
+dimensions:
+  - name: audience_and_task
+    covers:
+      - WR-CONTENT-01
+    anchors:
+      0: >-
+        The opening never says who the reader is or what they can do at the
+        end; the reader has to read on to find out whether the page is for
+        them.
+      2: >-
+        The opening names the reader or the outcome, but not both, or names
+        them only after a paragraph of background.
+      4: >-
+        The first paragraph names the reader, what they already have, and
+        what they can do once they finish.
+
+  - name: brief_fidelity
+    covers:
+      - DOCS-02
+      - BLOG-02
+    anchors:
+      0: >-
+        The document ignores the brief: it covers a different task or thesis,
+        uses a different running example, or drops most of what the brief
+        asks for.
+      2: >-
+        The document follows the brief's task or thesis but drops or
+        contradicts some of its points, caveats or sources.
+      4: >-
+        Every outcome, key point, caveat and screenshot the brief asks for is
+        present, in the brief's running example, and nothing contradicts it.
+
+  - name: running_example
+    covers:
+      - WR-CONTENT-03
+      - WR-ANTI-01
+    anchors:
+      0: >-
+        Examples are disconnected: code blocks use unrelated tables, fields
+        or names, or use an entity that no earlier block defines.
+      2: >-
+        One example dominates, but some blocks fall back to generic names, or
+        a second entity appears without being introduced.
+      4: >-
+        One example is introduced once and carried through every code block
+        and screenshot, with sentences that tie each step back to it by name.
+
+  - name: factual_grounding
+    covers:
+      - WR-CONTENT-05
+      - WR-ANTI-02
+      - WR-ANTI-03
+      - DOCS-09
+      - BLOG-10
+    anchors:
+      0: >-
+        A UI location, default, limit or side effect is wrong against the
+        source, or a VERIFY marker is left in the document.
+      2: >-
+        No claim is shown wrong, but some product-behaviour claims cannot be
+        traced to a source the document or the brief names.
+      4: >-
+        Every product-behaviour claim matches the source it can be checked
+        against, and nothing is inferred from an API's name or from other
+        products.
+
+  - name: structure
+    covers:
+      - WR-CONTENT-02
+      - WR-CONTENT-04
+      - DOCS-01
+      - BLOG-01
+      - BLOG-03
+      - BLOG-08
+    anchors:
+      0: >-
+        Sections follow the writer's narrative instead of the reader's task
+        or the post's thesis, headings are narrative phrases, and sections
+        preview or recap the page.
+      2: >-
+        The order mostly follows the task or thesis and the page type's
+        skeleton, but some headings do not name what their section covers or
+        a section does no work.
+      4: >-
+        The document follows its type's skeleton, each section advances the
+        task or states a fact the reader needs, and each heading names the
+        task or thing it covers.
+
+  - name: scope_conventions
+    covers:
+      - DOCS-03
+      - DOCS-04
+      - DOCS-05
+      - DOCS-06
+      - DOCS-07
+      - DOCS-08
+      - BLOG-04
+      - BLOG-05
+      - BLOG-06
+      - BLOG-07
+      - WR-ANTI-07
+      - WR-ANTI-08
+      - WR-STYLE-02
+      - WR-STYLE-03
+    anchors:
+      0: >-
+        The document uses components or patterns the scope does not list,
+        such as an Aside, raw dashboard URL templates, or SCREENSHOT
+        placeholders, or mixes component systems.
+      2: >-
+        The scope's components are used, but some conventions are missed:
+        an untitled requirements callout, a UI path without its deep link, an
+        image away from what it illustrates, or code not in backticks.
+      4: >-
+        Frontmatter, callouts, UI paths, links, images and code formatting
+        all follow the scope, with nothing outside it.
+
+  - name: voice_match
+    covers:
+      - WR-STYLE-01
+    anchors:
+      0: >-
+        The document reads like a different voice than the resolved profile:
+        sentence length, person, openings and formatting habits are far from
+        its stats and excerpts.
+      2: >-
+        The register matches the profile, but some habits drift from it, for
+        example longer sentences, a different person, or headings and lists
+        at a different density.
+      4: >-
+        The document could sit beside the profile's excerpts: its sentence
+        length, person, openings and formatting habits match the measured
+        stats.
+
+  - name: antipatterns
+    covers:
+      - WR-ANTI-04
+      - WR-ANTI-05
+      - WR-ANTI-06
+      - WR-ANTI-09
+      - BLOG-09
+      - WR-STYLE-04
+      - WR-STYLE-05
+      - WR-STYLE-06
+      - WR-STYLE-07
+      - WR-STYLE-08
+      - WR-STYLE-09
+      - WR-STYLE-10
+      - WR-STYLE-11
+    anchors:
+      0: >-
+        Generated-text tells throughout: filler sections, hedge or marketing
+        words, headings restated as first sentences, tutorial narration.
+      2: >-
+        One or two tells remain, such as a marketing adjective or a section
+        that restates its heading, in otherwise direct prose.
+      4: >-
+        No filler, hedge or marketing words, restated headings or tutorial
+        voice, and the mechanical style rules hold.
+
+scopes:
+  docs:
+    weights:
+      audience_and_task: 1
+      brief_fidelity: 1
+      running_example: 2
+      factual_grounding: 1
+      structure: 1
+      scope_conventions: 1
+      voice_match: 1
+      antipatterns: 1
+    blocking:
+      - factual_grounding
+
+  blog:
+    weights:
+      audience_and_task: 1
+      brief_fidelity: 2
+      running_example: 1
+      factual_grounding: 1
+      structure: 1
+      scope_conventions: 1
+      voice_match: 2
+      antipatterns: 1
+    blocking:
+      - brief_fidelity
+      - factual_grounding

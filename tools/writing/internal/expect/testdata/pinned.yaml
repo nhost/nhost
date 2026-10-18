@@ -1,0 +1,5 @@
+model: stub-judge-model
+voices:
+  max-serdiukov:
+    skip: true
+    reason: One post, so no held-out.

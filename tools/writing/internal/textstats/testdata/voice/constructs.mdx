@@ -1,0 +1,49 @@
+---
+title: Stub page
+description: Frontmatter is not prose. It has sentences.
+---
+
+import { Steps } from '@astrojs/starlight/components'
+
+export const article = {
+  title: 'Not prose. Not counted.',
+  authors: [{ name: 'Nuno Pato' }],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We ship a new feature today. You can try it now!
+
+{/* A comment. With sentences.
+Over two lines. */}
+
+## Getting started
+
+Run the installer first. Is it working?
+
+<Steps>
+
+1. Open the **dashboard** and click **Settings**.
+2. Let's check the [logs](https://example.com/logs).
+
+</Steps>
+
+```bash
+echo "Code. Is not prose."
+```
+
+<Image
+  src="/images/stub.png"
+  alt="An alt text. Not prose."
+/>
+
+| Table | Row. |
+| --- | --- |
+
+:::note
+The US region is fast.
+:::
+
+### Next steps
+
+- See the docs

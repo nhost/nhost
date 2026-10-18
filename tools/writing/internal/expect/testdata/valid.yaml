@@ -1,0 +1,35 @@
+# Stub voice expectations in the shape of calibration/voices/expect.yaml.
+# model: not pinned yet
+
+voices:
+  nhost-docs:
+    held_out:
+      path: docs/src/content/docs/stub/held-out.mdx
+      blob: de433d4c53239adaad28568a51e991aad7e393b5
+      chosen_at: bdc2708b52
+      rule: Latest last-commit date.
+      reason: First in the ordering.
+      note: Re-recorded after a sweep.
+    vetoed:
+      - path: docs/src/content/docs/stub/vetoed.mdx
+        reason: LLM-assisted.
+  nuno-pato:
+    held_out:
+      path: landing/src/pages/blog/./nuno-latest.mdx
+      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      chosen_at: bdc2708b52
+      rule: Most recent single-author post.
+      reason: Dated 2026-01-02.
+    vetoed: []
+  nhost-blog:
+    record-only: true
+    reason: Averages the profiled authors.
+    held_out:
+      path: landing/src/pages/blog/house-latest.mdx
+      blob: 0a1b2c3d4e5f60718293a4b5c6d7e8f901234567
+      chosen_at: bdc2708b52
+      rule: Most recent profiled-author post not held out for its own voice.
+      reason: Dated 2026-01-01.
+  max-serdiukov:
+    skip: true
+    reason: One post, so no held-out.

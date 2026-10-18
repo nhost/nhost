@@ -1,0 +1,26 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Stub post with {braces} in strings',
+  seoTitle: 'A Writer\'s "Guide" to `templates` and } braces',
+  description: `A template literal with a } brace and a ${'nested'} expression`,
+  // A comment with a stray } brace and an apostrophe: it's ignored.
+  /* A block comment with { another } brace. */
+  image: {
+    src: '/images/blog/nested-article/og-[stub].png',
+    size: { width: 1200, height: 630 },
+  },
+  date: '2026-01-06',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      links: { twitter: 'https://example.com/{nuno}' },
+    },
+  ],
+  tags: ['Product'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+A later list in the body is never read: authors: [{ name: 'David Barroso' }].

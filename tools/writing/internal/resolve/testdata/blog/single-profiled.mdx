@@ -1,0 +1,21 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Stub post by a profiled author',
+  description: 'Fixture for a byline that matches a voice profile.',
+  image: '/images/blog/single-profiled/og-[stub].png',
+  date: '2026-01-01',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://example.com/[david]',
+    },
+  ],
+  tags: ['Product'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+The body never names another author: name: 'Nuno Pato'.

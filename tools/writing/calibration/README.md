@@ -130,9 +130,42 @@ what changed.
 
 ### Blog
 
-Held-out posts for the blog voices are chosen by the same kind of rule, most
-recent single-author post per voice, and added to `expect.yaml` when the blog
-voice profiles are written.
+Held-out posts are chosen by the `date` inside `export const article` of
+each post under `landing/src/pages/blog/`, counting only single-author posts
+(one entry in `authors`); co-authored posts belong to no voice.
+
+- `nuno-pato` and `david-barroso`: the most recent post whose one author is
+  the profile's `byline:`.
+- `nhost-blog`: the most recent post dated on or after the `since:` in
+  `.claude/writing/voices/nhost-blog.md` whose author has a profile, skipping
+  a post that is its own voice's held-out and the posts of a voice that is
+  `skip: true`. Unprofiled bylines are in no corpus, so they are never
+  picked.
+- `max-serdiukov`: none. The profile is written from his one post, so the
+  voice is `skip: true` in `expect.yaml` and is spot-checked on generated
+  output instead.
+
+`nhost-blog` is `record-only: true`: its corpus is the profiled authors'
+posts in its window, so it is their average, and the voice check scores and
+records it without asserting that it separates.
+
+To list the candidates, from the repository root:
+
+```sh
+for f in landing/src/pages/blog/*.mdx; do
+  awk '/^export const article/{a=1} a&&/^[[:space:]]*date:/{d=$2} a&&/^[[:space:]]*name:/{n++; s=$0} a&&/^}/{exit}
+       END{if(n==1){sub(/.*name: */,"",s); gsub(/[\x27",]/,"",d); gsub(/[\x27",]/,"",s); print d, s}}' "$f" \
+    | sed "s|\$| $f|"
+done | sort -r | head -n 20
+```
+
+Each line is the date, the author and the path; read down to the first post
+by the voice. A blog post is as live as a docs page, so its blob is recorded
+the same way, with `git rev-parse <chosen_at>:<path>`.
+
+`voicestats` sets every path in `expect.yaml` aside from every voice's
+corpus, not only its own, because the voice check scores each held-out
+document against every profile.
 
 ## Results
 

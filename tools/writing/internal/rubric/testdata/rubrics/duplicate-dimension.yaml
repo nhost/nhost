@@ -1,0 +1,19 @@
+# A rubric to test: duplicate dimension.
+dimensions:
+  - name: brief_fidelity
+    covers: [DOCS-02]
+    anchors:
+      0: Ignores the brief.
+      2: Follows part of the brief.
+      4: Follows all of the brief.
+  - name: brief_fidelity
+    covers: [WR-CONTENT-01]
+    anchors:
+      0: Ignores the brief.
+      2: Follows part of the brief.
+      4: Follows all of the brief.
+scopes:
+  docs:
+    weights:
+      brief_fidelity: 1
+    blocking: []

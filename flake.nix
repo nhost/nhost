@@ -240,6 +240,14 @@
             ;
         };
 
+        writingf = import ./tools/writing/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
       in
       {
         checks = {
@@ -267,6 +275,7 @@
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
+          writing = writingf.check;
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -418,6 +427,7 @@
           postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
+          writing = writingf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -479,6 +489,7 @@
           storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
+          writing = writingf.package;
         };
       }
     );

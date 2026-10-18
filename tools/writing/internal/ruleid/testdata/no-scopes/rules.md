@@ -1,0 +1,1 @@
+- **WR-STYLE-01** Sentences are short.

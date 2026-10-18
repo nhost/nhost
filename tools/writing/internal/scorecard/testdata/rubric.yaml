@@ -1,0 +1,33 @@
+# Three dimensions; docs weights grounding high, blog weights the brief high.
+dimensions:
+  - name: audience_and_task
+    covers: [WR-CONTENT-01]
+    anchors:
+      0: No reader.
+      2: Reader or outcome.
+      4: Reader and outcome.
+  - name: brief_fidelity
+    covers: [DOCS-02]
+    anchors:
+      0: Ignores the brief.
+      2: Follows part of the brief.
+      4: Follows all of the brief.
+  - name: factual_grounding
+    covers: [WR-CONTENT-05]
+    anchors:
+      0: A claim is wrong.
+      2: Some claims are unsourced.
+      4: Every claim is sourced.
+scopes:
+  docs:
+    weights:
+      audience_and_task: 1
+      brief_fidelity: 1
+      factual_grounding: 2
+    blocking: [factual_grounding]
+  blog:
+    weights:
+      audience_and_task: 1
+      brief_fidelity: 3
+      factual_grounding: 1
+    blocking: [brief_fidelity]

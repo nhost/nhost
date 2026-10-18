@@ -1,0 +1,41 @@
+voices:
+  skipped-with-held-out:
+    skip: true
+    reason: One post.
+    held_out:
+      path: landing/src/pages/blog/a.mdx
+      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      chosen_at: bdc2708b52
+      rule: r
+      reason: r
+  missing-held-out:
+    vetoed: []
+  skip-without-reason:
+    skip: true
+  reason-without-flag:
+    reason: Nothing to explain.
+    held_out:
+      path: landing/src/pages/blog/b.mdx
+      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      chosen_at: bdc2708b52
+      rule: r
+      reason: r
+  incomplete-held-out:
+    held_out:
+      path: /landing/src/pages/blog/c.mdx
+  bad-veto:
+    held_out:
+      path: landing/src/pages/blog/d.mdx
+      blob: 593a2ef202fbc62229a141d6f4c2fa0b8c43dcb0
+      chosen_at: bdc2708b52
+      rule: r
+      reason: r
+    vetoed:
+      - path: landing/src/pages/blog/e.mdx
+  numeric-sha:
+    held_out:
+      path: landing/src/pages/blog/f.mdx
+      blob: 0000000000000000000000000000000000000001
+      chosen_at: 0123456
+      rule: r
+      reason: r

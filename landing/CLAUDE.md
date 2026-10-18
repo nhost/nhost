@@ -13,8 +13,12 @@ order:
    `BLOG-*` IDs)
 3. the voice the post resolves to, in `.claude/writing/voices/`
 
-The voice comes from the resolution table in the rules doc, applied by
-hand. For a new post, the brief's `author:` line is the voice. The voices are `nhost-blog` (the house
+The voice comes from the resolution table in the rules doc. Run it from the
+repo root in `nix develop .#writing`: `go run ./tools/writing resolve
+landing/src/pages/blog/<slug>.mdx` for an existing post, or
+`go run ./tools/writing resolve --scope blog --voice <slug>` for a post not
+written yet. Or apply the table by hand. For a new post, the
+brief's `author:` line is the voice. The voices are `nhost-blog` (the house
 voice, and the default for announcements and for anyone without a profile),
 `nuno-pato`, `david-barroso` and `max-serdiukov`. A byline without a profile
 resolves to `nhost-blog`; a post with several authors needs a voice named.

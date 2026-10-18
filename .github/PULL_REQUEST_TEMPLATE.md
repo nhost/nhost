@@ -44,6 +44,7 @@ Where `PKG` is:
 - `storage`: For changes to the Nhost Storage service
 - `observability`: For changes to the Nhost Observability managed service
 - `stripe-graphql-js`: For changes to the Stripe GraphQL JS SDK
+- `writing`: For changes to the docs and blog writing tool and standard
 
 Where `SUMMARY` is a short description of what the PR does.
 

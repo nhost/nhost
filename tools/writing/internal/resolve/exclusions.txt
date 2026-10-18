@@ -1,0 +1,5 @@
+reference/javascript/**
+reference/cli/**
+reference/deprecated/**
+reference/configuration/**
+products/database/extensions.mdx

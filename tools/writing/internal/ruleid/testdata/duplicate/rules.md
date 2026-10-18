@@ -1,0 +1,1 @@
+- **WR-CONTENT-01** The opening names the reader.
