@@ -7,7 +7,7 @@ rules in `.claude/docs/writing-rules.md`. The docs are four sections:
 (hand-written only under `reference/graphql/**`, the rest generated). A blog
 post is not a docs page; it resolves to the `blog` target. The site is Astro
 with Starlight; pages are MDX. The voice is `nhost-docs`
-(`.claude/docs/voices/nhost-docs.md`). The page exemplar is
+(`.claude/docs/writing-voices/nhost-docs.md`). The page exemplar is
 `products/auth/sign-in-magic-link.mdx`: short, one feature, code before
 prose, callouts in Markdown syntax, a UI path in bold.
 

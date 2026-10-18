@@ -16,7 +16,7 @@ A session that writes or reviews content loads three files, each with one job:
   `TGT-DOCS-<NN>` or `TGT-BLOG-<NN>`) says what the destination requires:
   page or post types, frontmatter, components, links, images, the brief it
   needs.
-- **A voice** (`.claude/docs/voices/<slug>.md`, no IDs) says how the text
+- **A voice** (`.claude/docs/writing-voices/<slug>.md`, no IDs) says how the text
   reads, as measured stats and attributed excerpts rather than rules.
 
 Rule IDs are the join key between these files, the Vale messages, the judge

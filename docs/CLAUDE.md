@@ -13,7 +13,7 @@ order:
 1. `.claude/docs/writing-rules.md` (shared rules, `WR-*` IDs)
 2. `.claude/docs/writing-targets/docs.md` (what a docs page requires,
    `TGT-DOCS-*` IDs)
-3. `.claude/docs/voices/nhost-docs.md` (how the docs read)
+3. `.claude/docs/writing-voices/nhost-docs.md` (how the docs read)
 
 Findings and handoff notes cite rule IDs and quote the text they apply to.
 
