@@ -23,8 +23,8 @@ Rule IDs are the join key between these files, the Vale messages, the judge
 rubric, the recorded draft-to-final deltas and review findings. A definition is one line
 of the form `- **<ID>** <rule>` and mentions no other ID; voice files contain
 no IDs at all. A finding, a delta or a rubric entry cites an ID and quotes the
-text it applies to verbatim. The docs scope and the docs voice exist today;
-the blog scope and the author voices arrive with the blog work.
+text it applies to verbatim. The docs and blog scopes exist,
+with the docs voice, the house blog voice and three author voices.
 
 ## Coverage and generated pages
 

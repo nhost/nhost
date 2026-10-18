@@ -95,6 +95,17 @@ Attributed by page path; Markdown link markup is dropped, nothing else is.
 
 ## Stats
 
-Pending. Filled by `tools/writing voicestats` once the tool exists: sentence
-length, we/you ratio, imperative-opening rate, headings per 1k words, bold,
-list and code-block density, question rate, and the corpus size.
+Measured over every `.mdx` under `docs/src/content/docs/` at `79bfe1016b`,
+generated pages and the held-out page skipped: 207 documents, 65524 words, 5684 sentences.
+
+| Stat | Value |
+| --- | --- |
+| Mean sentence length (words) | 11.5 |
+| Median sentence length (words) | 11.0 |
+| First person plural per second person | 0.19 (272 / 1433) |
+| Imperative openings | 16.3% |
+| Questions | 0.2% |
+| Headings per 1k words | 18.4 |
+| Bold spans per 1k words | 23.0 |
+| List items per 1k words | 27.9 |
+| Code blocks per 1k words | 10.6 |
