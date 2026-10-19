@@ -29,9 +29,8 @@ export default async function ChangePassword() {
         <CardHeader>
           <CardTitle>Password</CardTitle>
           <CardDescription>
-            Sets a new password. The current one is not asked for: being signed
-            in is what authorises the change. An account created by magic link
-            or a provider can set one here and sign in with it afterwards.
+            Being signed in authorises the change, so the current password is
+            not asked for.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">

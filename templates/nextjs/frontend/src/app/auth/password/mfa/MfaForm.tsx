@@ -117,13 +117,15 @@ export default function MfaForm({ active }: { active: boolean }) {
 
   if (!setup) {
     return (
-      <div className="flex flex-col gap-4">
+      // Centred, unlike the two states below: there is no form here, just
+      // where the account stands and the one thing to do about it, under a
+      // heading and above a link that are both centred themselves.
+      <div className="flex flex-col items-center gap-4 text-center">
         <p className="text-sm">Two-factor is off.</p>
         {alert}
         <Button
           type="button"
           disabled={isPending}
-          className="self-start"
           onClick={() => void handleStart()}
         >
           {isPending ? 'Starting…' : 'Turn on two-factor'}

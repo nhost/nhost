@@ -34,19 +34,7 @@ describe('change password page', () => {
     const html = renderToStaticMarkup(await ChangePassword());
 
     expect(html).toContain(
-      'The current one is not asked for: being signed in is what authorises the change.',
-    );
-  });
-
-  // An account created by magic link or a provider has no password yet, and
-  // this is where it gets one.
-  it('says an account without a password can set one here', async () => {
-    getVerifiedUser.mockResolvedValueOnce({ id: 'a' });
-
-    const html = renderToStaticMarkup(await ChangePassword());
-
-    expect(html).toContain(
-      'An account created by magic link or a provider can set one here',
+      'Being signed in authorises the change, so the current password is not asked for.',
     );
   });
 
