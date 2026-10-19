@@ -79,7 +79,7 @@ describe('password sign-in with two-factor on', () => {
     root = createRoot(container);
     await act(async () =>
       root.render(
-        <PasswordForm next="/protected" intent="sign-in" mailboxURL={null} />,
+        <PasswordForm next="/account" intent="sign-in" mailboxURL={null} />,
       ),
     );
   });
@@ -105,7 +105,7 @@ describe('password sign-in with two-factor on', () => {
     await submit();
 
     expect(actions.verifyMfa).toHaveBeenCalledWith('mfaTotp:abc', '123456');
-    expect(router.push).toHaveBeenCalledWith('/protected');
+    expect(router.push).toHaveBeenCalledWith('/account');
   });
 
   it('stays on the code step when the code is wrong', async () => {

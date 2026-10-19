@@ -35,7 +35,7 @@ describe('magic link form', () => {
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () =>
-      root.render(<MagicLinkForm next="/protected" mailboxURL={null} />),
+      root.render(<MagicLinkForm next="/account" mailboxURL={null} />),
     );
   });
 

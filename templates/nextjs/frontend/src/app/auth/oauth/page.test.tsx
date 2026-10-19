@@ -32,8 +32,8 @@ describe('OAuth page', () => {
   });
 
   it('sends the provider back to the requested path', async () => {
-    for (const target of await redirectTargets('/protected')) {
-      expect(target).toBe(`${appOrigin()}/protected`);
+    for (const target of await redirectTargets('/account')) {
+      expect(target).toBe(`${appOrigin()}/account`);
     }
   });
 

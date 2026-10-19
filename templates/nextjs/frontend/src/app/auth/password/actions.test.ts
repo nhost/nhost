@@ -18,9 +18,9 @@ describe('signUp', () => {
   });
 
   it('sends the verification link back to the requested path', async () => {
-    await signUp('user@example.com', 'password', '/protected');
+    await signUp('user@example.com', 'password', '/account');
 
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
+    expect(sentRedirectTo()).toBe(`${appOrigin()}/account`);
   });
 
   // The action is callable without the page, so `next` here is whatever the
