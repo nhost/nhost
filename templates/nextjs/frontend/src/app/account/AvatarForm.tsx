@@ -9,17 +9,16 @@ import {
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
+/**
+ * The upload control for the avatar, with no image of its own.
+ *
+ * ProfileSummary renders the current avatar and embeds this beneath it, so
+ * the two sit in one card and the image is on the page once.
+ */
+export default function AvatarForm() {
   const router = useRouter();
   const fileId = useId();
   const form = useRef<HTMLFormElement>(null);
@@ -47,7 +46,7 @@ export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
       }
 
       form.current?.reset();
-      // The summary above reads the URL from the auth service, so the page is
+      // The image above reads its URL from the auth service, so the page is
       // re-rendered rather than patched here.
       router.refresh();
     } catch (err) {
@@ -59,57 +58,37 @@ export default function AvatarForm({ avatarUrl }: { avatarUrl: string }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Avatar</CardTitle>
-        <CardDescription>
-          An image for this account. It is stored privately and served to you
-          through this app.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {avatarUrl ? (
-          // next/image's optimizer would fetch this route itself and keep the
-          // result in a cache shared across visitors. The gravatar a fresh
-          // account starts with would need a remotePatterns entry.
-          // biome-ignore lint/performance/noImgElement: the avatar route needs the visitor's session cookie, which next/image's optimizer does not send
-          <img
-            src={avatarUrl}
-            alt=""
-            width={64}
-            height={64}
-            className="size-16 rounded-full"
-          />
-        ) : null}
+    <form
+      ref={form}
+      className="flex flex-col gap-2"
+      onSubmit={(event) => void handleSubmit(event)}
+    >
+      {/* A file input labels itself with the file name, so the label is here
+          for a screen reader rather than for the eye, and the control keeps
+          to one line beside the button. */}
+      <Label htmlFor={fileId} className="sr-only">
+        New avatar image
+      </Label>
+      <div className="flex items-center gap-2">
+        <Input
+          id={fileId}
+          name="avatar"
+          type="file"
+          accept={AVATAR_TYPES.join(',')}
+          required
+          disabled={isPending}
+          className="min-w-0 flex-1"
+        />
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Uploading…' : 'Upload'}
+        </Button>
+      </div>
 
-        <form
-          ref={form}
-          className="flex flex-col gap-4"
-          onSubmit={(event) => void handleSubmit(event)}
-        >
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={fileId}>New image</Label>
-            <Input
-              id={fileId}
-              name="avatar"
-              type="file"
-              accept={AVATAR_TYPES.join(',')}
-              required
-              disabled={isPending}
-            />
-          </div>
-
-          {error ? (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          ) : null}
-
-          <Button type="submit" disabled={isPending} className="self-start">
-            {isPending ? 'Uploading…' : 'Upload'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
+    </form>
   );
 }
