@@ -258,6 +258,8 @@ func assertRevalidationTransform(
 	t.Helper()
 
 	assert(t, recorder.Header().Get("Last-Modified"), api.Time(metadata.UpdatedAt).String())
+	assert(t, recorder.Header().Get("Content-Type"), "image/png")
+	assert(t, recorder.Header().Get("Content-Disposition"), `inline; filename="nhost.jpg.png"`)
 
 	length, err := strconv.ParseInt(recorder.Header().Get("Content-Length"), 10, 64)
 	if err != nil {
@@ -273,7 +275,6 @@ func assertRevalidationTransform(
 		return
 	}
 
-	assert(t, recorder.Header().Get("Content-Type"), "image/png")
 	assert(t, int64(recorder.Body.Len()), length)
 
 	config, err := png.DecodeConfig(bytes.NewReader(recorder.Body.Bytes()))
