@@ -45,7 +45,9 @@ export default function DeleteAccountCard() {
   return (
     <AccountSection
       title="Delete account"
-      description="Removes this account, its sign-in methods and the files it uploaded. This cannot be undone."
+      description="Removes the account, its sign-in methods and its files, for good."
+      // Beside the description, like the sign-out above it, so the two
+      // sections at the foot of the card read the same way.
       action={
         asking ? null : (
           <Button

@@ -44,6 +44,6 @@ describe('home page', () => {
 
     const html = await render();
 
-    expect(hrefOf(html, 'Open your account')).toBe('/account');
+    expect(hrefOf(html, 'Go to your account')).toBe('/account');
   });
 });
