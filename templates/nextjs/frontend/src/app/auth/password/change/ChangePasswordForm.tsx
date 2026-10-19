@@ -90,7 +90,7 @@ export default function ChangePasswordForm() {
         </p>
       ) : null}
 
-      <Button type="submit" disabled={isPending} className="self-start">
+      <Button type="submit" disabled={isPending} className="self-center">
         {isPending ? 'Changing…' : 'Change password'}
       </Button>
     </form>
