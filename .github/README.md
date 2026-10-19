@@ -71,8 +71,9 @@ pass the **approved head SHA**, never a moving PR ref.
 - `LOGIN_ECR` defaults to false; enable it when integration dependencies need
   authenticated Docker access to ECR.
 - `ARCHS` defaults to `["aarch64", "x86_64"]`. Each architecture uses its native
-  runner; checks run alongside the first architecture only. Single-platform
-  projects set `ARCHS` explicitly.
+  runner; checks run alongside the first architecture only. Check-only calls
+  also run on the first `ARCHS` entry. Single-platform projects set `ARCHS`
+  explicitly.
 - `RUNNER_SIZE` defaults to `2c4g`. Optional `CHECK_RUNNER_SIZE` applies only to
   the leg that runs checks; `RUNNER` overrides the label for native macOS.
 - `ENV` is a newline-separated list of environment assignments. `ARTIFACT_SUFFIX`

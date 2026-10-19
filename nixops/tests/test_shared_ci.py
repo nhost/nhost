@@ -85,6 +85,22 @@ class SharedInterfacesTests(unittest.TestCase):
         )
         self.assertIn("inputs.SKIP_CACHE_CHECK", action["runs"]["steps"][-1]["if"])
 
+    def test_check_only_runner_uses_first_requested_architecture(self):
+        workflow = load(".github/workflows/wf_check.yaml")
+        self.assertEqual(
+            json.loads(workflow_inputs(workflow)["ARCHS"]["default"])[0], "aarch64"
+        )
+        job = workflow["jobs"]["tests"]
+        self.assertEqual(
+            job["strategy"]["matrix"]["platform"],
+            '${{ fromJSON(inputs.BUILD && inputs.ARCHS || \'["native"]\') }}',
+        )
+        self.assertIn(
+            "matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] || "
+            "matrix.platform",
+            " ".join(job["runs-on"].split()),
+        )
+
     def test_cache_probe_uses_native_target_and_preserves_failures(self):
         action = load(".github/actions/setup-nix/action.yml")
         script = action["runs"]["steps"][-1]["run"]

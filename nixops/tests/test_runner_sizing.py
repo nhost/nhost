@@ -60,7 +60,8 @@ class RunnerSizingTests(unittest.TestCase):
         self.assertEqual(defaults["CHECK_RUNNER_SIZE"]["default"], "")
         actual = job("wf_check.yaml", "tests")["runs-on"]
         expected = """${{ inputs.RUNNER || format('nhost-{0}-{1}',
-          matrix.platform == 'native' && 'aarch64' || matrix.platform,
+          matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
+          matrix.platform,
           (inputs.CHECKS &&
             (!inputs.BUILD || matrix.platform == fromJSON(inputs.ARCHS)[0]) &&
             inputs.CHECK_RUNNER_SIZE) || inputs.RUNNER_SIZE) }}"""
