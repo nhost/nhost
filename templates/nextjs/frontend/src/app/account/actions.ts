@@ -10,6 +10,7 @@ import {
   isAvatarType,
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
+import { signOut } from '@/lib/nhost/actions';
 import { appOrigin } from '@/lib/nhost/env';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
@@ -226,12 +227,14 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 }
 
-// The account stops pointing at the file first, then the file goes. That way
+// The account stops pointing at an avatar first, then the file goes. That way
 // round a failure leaves the account showing an avatar that still exists,
-// where deleting first would leave it pointing at nothing. Only a file this
-// app wrote is removed: `avatar_url` is the user's to set, so anything else
-// there, such as the gravatar a fresh account starts with, is not ours to
-// delete.
+// where deleting first would leave it pointing at nothing.
+//
+// Clearing `avatar_url` works whatever it held, so the gravatar a fresh
+// account starts with can be taken down too. Deleting the file behind it only
+// happens for one this app wrote: `avatar_url` is the user's to set, so
+// anything else there names nothing of ours.
 export async function removeAvatar(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
@@ -240,10 +243,8 @@ export async function removeAvatar(): Promise<ActionResult> {
       return { error: SIGNED_OUT };
     }
 
-    const fileId = avatarFileIdFrom(user.avatarUrl);
-
-    if (!fileId) {
-      return { error: 'There is no uploaded avatar to remove.' };
+    if (!user.avatarUrl) {
+      return { error: 'There is no avatar to remove.' };
     }
 
     const nhost = await createNhostClient();
@@ -253,15 +254,70 @@ export async function removeAvatar(): Promise<ActionResult> {
       return { error: failure };
     }
 
-    // The account already shows no avatar; a leftover file is worth a log
-    // line, not a failure the visitor has to act on.
-    await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
-      console.error('Could not delete the removed avatar:', err);
-    });
+    const fileId = avatarFileIdFrom(user.avatarUrl);
+    if (fileId) {
+      // The account already shows no avatar; a leftover file is worth a log
+      // line, not a failure the visitor has to act on.
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the removed avatar:', err);
+      });
+    }
 
     return { success: true };
   } catch (err) {
     return { error: `Could not remove the avatar: ${errorMessage(err)}` };
+  }
+}
+
+// Closing the account for good. The avatar goes first, because deleting the
+// row cascades through the auth schema but leaves a storage file behind, and
+// once the row is gone there is no session left to delete the file with.
+//
+// The sign-out at the end is only there to clear this browser's cookies. The
+// refresh tokens went with the row, so the session they describe is already
+// dead; a cookie pointing at a deleted account would otherwise sit here until
+// the next navigation noticed.
+export async function deleteAccount(): Promise<ActionResult> {
+  try {
+    const user = await getVerifiedUser();
+
+    if (!user) {
+      return { error: SIGNED_OUT };
+    }
+
+    const nhost = await createNhostClient();
+    const fileId = avatarFileIdFrom(user.avatarUrl);
+
+    if (fileId) {
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the avatar of a closing account:', err);
+      });
+    }
+
+    const { body } = await nhost.graphql.request<{
+      deleteUser: { id: string } | null;
+    }>({
+      query: `mutation DeleteAccount($id: uuid!) {
+        deleteUser(id: $id) {
+          id
+        }
+      }`,
+      variables: { id: user.id },
+    });
+
+    if (body.errors?.length) {
+      return { error: graphqlErrorMessage(body.errors) };
+    }
+
+    if (!body.data?.deleteUser) {
+      return { error: 'The backend did not delete this account.' };
+    }
+
+    await signOut();
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not delete the account: ${errorMessage(err)}` };
   }
 }
 

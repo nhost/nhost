@@ -1,8 +1,14 @@
 # The auth service tracks this table and names its fields itself; what it
 # never adds is a permission. The auth API has no write endpoint for a profile
-# field, so editing one goes through GraphQL and needs these. Both are scoped
-# to the user's own row, and update is limited to the two profile columns: an
-# unrestricted update here would let a user rewrite their own roles and email.
+# field or for closing an account, so those go through GraphQL and need these.
+# All three are scoped to the user's own row, and update is limited to the two
+# profile columns: an unrestricted update here would let a user rewrite their
+# own roles and email.
+#
+# Delete takes the account with it. The rest of the auth schema is wired to
+# this row with ON DELETE CASCADE, so the refresh tokens, security keys and
+# provider links go at the same time; a storage file does not, which is why
+# the action deletes the avatar through the storage API before it gets here.
 table:
   name: users
   schema: auth
@@ -112,5 +118,11 @@ update_permissions:
         id:
           _eq: X-Hasura-User-Id
       check:
+        id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
         id:
           _eq: X-Hasura-User-Id

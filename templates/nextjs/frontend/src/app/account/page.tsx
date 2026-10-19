@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import DeleteAccountCard from '@/app/account/DeleteAccountCard';
 import ProfileSummary from '@/app/account/ProfileSummary';
 import SignInMethodLinks from '@/app/account/SignInMethodLinks';
 import SignOutCard from '@/app/account/SignOutCard';
@@ -30,6 +31,7 @@ export default async function Account() {
         <ProfileSummary user={user} mailboxURL={localMailboxURL()} />
         <SignInMethodLinks />
         <SignOutCard />
+        <DeleteAccountCard />
       </Card>
     </div>
   );
