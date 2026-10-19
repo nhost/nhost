@@ -1,3 +1,4 @@
+import ProviderIcon from '@/app/auth/oauth/ProviderIcon';
 import { Button } from '@/components/ui/button';
 
 export type OAuthLink = {
@@ -16,7 +17,12 @@ export default function OAuthButtons({ links }: { links: OAuthLink[] }) {
     <div className="flex flex-col gap-2">
       {links.map((link) => (
         <Button key={link.id} asChild variant="outline" className="w-full">
-          <a href={link.href}>{link.label}</a>
+          {/* The button sizes and spaces the mark itself: its own rules give
+              any svg inside it size-4 and a gap from the text. */}
+          <a href={link.href}>
+            <ProviderIcon id={link.id} />
+            {link.label}
+          </a>
         </Button>
       ))}
     </div>
