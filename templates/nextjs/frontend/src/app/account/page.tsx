@@ -1,7 +1,4 @@
 import { redirect } from 'next/navigation';
-import ChangeEmailForm from '@/app/account/ChangeEmailForm';
-import ChangePasswordForm from '@/app/account/ChangePasswordForm';
-import DisplayNameForm from '@/app/account/DisplayNameForm';
 import ProfileSummary from '@/app/account/ProfileSummary';
 import SignInMethodLinks from '@/app/account/SignInMethodLinks';
 import SignOutCard from '@/app/account/SignOutCard';
@@ -30,14 +27,7 @@ export default async function Account() {
           its own, divide-y draws the rule between them, and overflow-hidden
           keeps the first and last section square inside the rounded edge. */}
       <Card className="gap-0 divide-y overflow-hidden py-0">
-        <ProfileSummary user={user} />
-        <DisplayNameForm displayName={user.displayName} />
-        <ChangeEmailForm
-          email={user.email}
-          verified={user.emailVerified}
-          mailboxURL={localMailboxURL()}
-        />
-        <ChangePasswordForm />
+        <ProfileSummary user={user} mailboxURL={localMailboxURL()} />
         <SignInMethodLinks />
         <SignOutCard />
       </Card>

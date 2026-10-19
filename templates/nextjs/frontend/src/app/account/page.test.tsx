@@ -53,7 +53,7 @@ describe('account page', () => {
     expect(html).toContain('(verified)');
     expect(html).toContain('Ada');
     expect(html).toContain('user, me');
-    expect(html).toContain('2026-10-13');
+    expect(html).toContain('2026-10-13 16:00 UTC');
     expect(html).toContain(user.id);
     expect(html).toContain('src="https://avatars.example/ada"');
   });
@@ -65,11 +65,21 @@ describe('account page', () => {
 
     const html = renderToStaticMarkup(await Account());
 
-    for (const method of methods) {
-      if (method.account) {
-        expect(html).toContain(`href="${method.account.href}"`);
-        expect(html).toContain(method.account.title);
-      }
+    for (const entry of methods.flatMap((method) => method.account ?? [])) {
+      expect(html).toContain(`href="${entry.href}"`);
+      expect(html).toContain(entry.title);
+    }
+  });
+
+  // The point of the section: a method with nothing to configure is still
+  // named, so the page answers how else this account can sign in.
+  it('names the methods that have nothing to configure', async () => {
+    getVerifiedUser.mockResolvedValueOnce(user);
+
+    const html = renderToStaticMarkup(await Account());
+
+    for (const method of methods.filter((candidate) => !candidate.account)) {
+      expect(html).toContain(method.title);
     }
   });
 

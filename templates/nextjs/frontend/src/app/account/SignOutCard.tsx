@@ -37,7 +37,7 @@ export default function SignOutCard() {
   return (
     <AccountSection
       title="Sessions"
-      description="Sign out here, or on every device this account is signed in on."
+      description="Sign out of this browser, or of everywhere this account is signed in."
     >
       <div className="flex flex-col gap-4">
         {error ? (
@@ -53,7 +53,7 @@ export default function SignOutCard() {
             disabled={Boolean(pending)}
             onClick={() => void handleSignOut(false)}
           >
-            {pending === 'here' ? 'Signing out…' : 'Sign out'}
+            {pending === 'here' ? 'Signing out…' : 'Sign out of this browser'}
           </Button>
           <Button
             type="button"
@@ -61,7 +61,9 @@ export default function SignOutCard() {
             disabled={Boolean(pending)}
             onClick={() => void handleSignOut(true)}
           >
-            {pending === 'everywhere' ? 'Signing out…' : 'Sign out everywhere'}
+            {pending === 'everywhere'
+              ? 'Signing out…'
+              : 'Sign out of all devices'}
           </Button>
         </div>
       </div>
