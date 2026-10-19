@@ -107,7 +107,7 @@ export default function MfaForm({ active }: { active: boolean }) {
           type="submit"
           variant="destructive"
           disabled={isPending}
-          className="self-start"
+          className="self-center"
         >
           {isPending ? 'Turning off…' : 'Turn off two-factor'}
         </Button>
@@ -153,7 +153,7 @@ export default function MfaForm({ active }: { active: boolean }) {
       </p>
       {codeField}
       {alert}
-      <Button type="submit" disabled={isPending} className="self-start">
+      <Button type="submit" disabled={isPending} className="self-center">
         {isPending ? 'Turning on…' : 'Turn on two-factor'}
       </Button>
     </form>

@@ -40,7 +40,7 @@ export const methods: SignInMethod[] = [
       {
         href: '/auth/password/mfa',
         title: 'Two-factor authentication',
-        description: 'Ask for a code when signing in with a password.',
+        description: 'A code from an authenticator app when you sign in.',
       },
     ],
   },
@@ -67,8 +67,7 @@ export const methods: SignInMethod[] = [
       {
         href: '/auth/passkey/manage',
         title: 'Passkeys',
-        description:
-          'Add or remove the passkeys that can sign in to this account.',
+        description: 'The passkeys that can sign in to this account.',
       },
     ],
   },

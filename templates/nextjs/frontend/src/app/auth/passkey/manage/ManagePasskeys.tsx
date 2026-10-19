@@ -148,7 +148,7 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
         <Button
           type="submit"
           disabled={Boolean(pending)}
-          className="self-start"
+          className="self-center"
         >
           {pending === 'add' ? 'Waiting for your device…' : 'Add a passkey'}
         </Button>
