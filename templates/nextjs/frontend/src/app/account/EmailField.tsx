@@ -95,78 +95,89 @@ export default function EmailField({
     );
   }
 
-  if (!editing) {
-    return (
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2">
-        <span className="truncate text-muted-foreground text-sm">
-          {email ?? 'No address on this account.'}
-          {email ? <> {verified ? '(verified)' : '(not verified)'}</> : null}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setEditing(true)}
-        >
-          Edit
-        </Button>
-        {email && !verified ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={isPending}
-            onClick={() => void handleResend()}
-          >
-            Resend verification
-          </Button>
-        ) : null}
-        {error ? (
-          <p role="alert" className="w-full text-destructive text-sm">
-            {error}
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
-    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
-      {/* The current address sits here when the form is closed, so the label
-          is for a screen reader rather than for the eye. */}
-      <Label htmlFor={emailId} className="sr-only">
-        New email
-      </Label>
-      <div className="flex items-center gap-2">
-        <Input
-          id={emailId}
-          type="email"
-          autoComplete="email"
-          required
-          value={newEmail}
-          onChange={(event) => setNewEmail(event.target.value)}
-          disabled={isPending}
-          className="min-w-0 flex-1"
-        />
-        <Button type="submit" size="sm" disabled={isPending}>
-          {isPending ? 'Sending…' : 'Send link'}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isPending}
-          onClick={stopEditing}
-        >
-          Cancel
-        </Button>
+    <div className="flex min-w-0 flex-col gap-2">
+      {/* The address stays on the page while the form is open: it is what a
+          new one would replace, and the field below holds the new one, so
+          hiding it left the row saying nothing about the account.
+
+          Verified is the ordinary case and saying so earned nothing, so only
+          the unverified state speaks, and it brings the button that fixes
+          it. Edit is quiet until the row is hovered or tabbed to. */}
+      <div className="group flex min-w-0 flex-wrap items-center gap-x-2">
+        <span className="truncate text-sm">
+          {email ?? 'No address on this account.'}
+        </span>
+        {email && !verified ? (
+          <span className="text-destructive text-sm">Not verified</span>
+        ) : null}
+        {editing ? null : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+              onClick={() => setEditing(true)}
+            >
+              Edit
+            </Button>
+            {email && !verified ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                disabled={isPending}
+                onClick={() => void handleResend()}
+              >
+                Resend verification
+              </Button>
+            ) : null}
+          </>
+        )}
       </div>
+
+      {editing ? (
+        <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+          {/* The current address is right above this, so the label is for a
+              screen reader rather than for the eye. */}
+          <Label htmlFor={emailId} className="sr-only">
+            New email
+          </Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id={emailId}
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="New address"
+              value={newEmail}
+              onChange={(event) => setNewEmail(event.target.value)}
+              disabled={isPending}
+              className="min-w-0 flex-1"
+            />
+            <Button type="submit" size="sm" disabled={isPending}>
+              {isPending ? 'Sending…' : 'Send link'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isPending}
+              onClick={stopEditing}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       ) : null}
-    </form>
+    </div>
   );
 }

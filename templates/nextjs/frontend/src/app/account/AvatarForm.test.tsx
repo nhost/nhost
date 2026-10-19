@@ -21,9 +21,23 @@ vi.mock('@/app/account/actions', () => actions);
 let container: HTMLElement;
 let root: Root;
 
+// A stand-in for the image, which the server renders and passes in. A real
+// <img> here only trips the lint rule that the one in ProfileSummary has a
+// documented exception for.
 async function render(canRemove: boolean): Promise<void> {
-  await act(async () => root.render(<AvatarForm canRemove={canRemove} />));
+  await act(async () =>
+    root.render(
+      <AvatarForm canRemove={canRemove}>
+        <div data-testid="the-image" />
+      </AvatarForm>,
+    ),
+  );
 }
+
+const byText = (label: string): HTMLButtonElement | undefined =>
+  [...container.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent === label,
+  );
 
 const fileInput = (): HTMLInputElement | null =>
   container.querySelector<HTMLInputElement>('input[type="file"]');
@@ -68,9 +82,10 @@ describe('avatar control', () => {
     container.remove();
   });
 
-  // The image belongs to ProfileSummary, which renders it once above this.
-  // A second one here is what made the account page look doubled.
-  it('leaves the image to the summary that embeds it', () => {
+  // The image is the server's to render, so it arrives as children and this
+  // only wraps it. One image on the page, whatever the controls do.
+  it('wraps the image it is given rather than rendering its own', () => {
+    expect(container.querySelector('[data-testid="the-image"]')).not.toBeNull();
     expect(container.querySelector('img')).toBeNull();
   });
 
@@ -127,18 +142,18 @@ describe('avatar control', () => {
   it('removes the avatar and re-reads the page', async () => {
     actions.removeAvatar.mockResolvedValueOnce({ success: true });
 
-    await act(async () => byLabel('Remove the avatar')?.click());
+    await act(async () => byText('Remove')?.click());
 
     expect(actions.removeAvatar).toHaveBeenCalledOnce();
     expect(router.refresh).toHaveBeenCalled();
   });
 
-  // Only a file this app uploaded is ours to delete, and the page says so by
-  // leaving the button out.
-  it('offers no remove button when there is nothing of ours to remove', async () => {
+  // There is nothing to take down when the account has no avatar, and the
+  // page says so by leaving the link out. The + stays either way.
+  it('offers no remove link when there is no avatar', async () => {
     await render(false);
 
-    expect(byLabel('Remove the avatar')).toBeUndefined();
+    expect(byText('Remove')).toBeUndefined();
     expect(byLabel('Upload a new avatar')).toBeDefined();
   });
 });

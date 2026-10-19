@@ -77,11 +77,17 @@ describe('email field', () => {
     container.remove();
   });
 
-  it('shows the current address and whether it is verified', async () => {
-    await render(false);
+  // Verified is the ordinary case and saying so earned nothing, so only the
+  // unverified state speaks.
+  it('shows the address, and says so only when it is unverified', async () => {
+    await render(true);
 
     expect(container.textContent).toContain('user@example.com');
-    expect(container.textContent).toContain('(not verified)');
+    expect(container.textContent).not.toContain('erified');
+
+    await render(false);
+
+    expect(container.textContent).toContain('Not verified');
     expect(container.querySelector('form')).toBeNull();
   });
 

@@ -59,12 +59,16 @@ export default function DisplayNameField({
 
   if (!editing) {
     return (
-      <div className="flex min-w-0 items-center gap-2">
+      // The button is quiet until it is wanted: hovering the row brings it
+      // in, and so does tabbing to it, which is the part a bare hover rule
+      // would leave unreachable.
+      <div className="group flex min-w-0 items-center gap-2">
         <span className="truncate font-medium text-lg">{displayName}</span>
         <Button
           type="button"
           variant="ghost"
           size="sm"
+          className="h-6 px-2 text-xs opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
           onClick={() => setEditing(true)}
         >
           Edit

@@ -11,6 +11,11 @@ import EmailField from '@/app/account/EmailField';
 const whenOf = (iso: string): string =>
   `${iso.slice(0, 16).replace('T', ' ')} UTC`;
 
+// Falls back to a dot rather than an empty disc: a display name can be an
+// empty string, and an account made by magic link often starts that way.
+const initialOf = (displayName: string): string =>
+  displayName.trim().slice(0, 1).toUpperCase() || '·';
+
 export default function ProfileSummary({
   user,
   mailboxURL,
@@ -27,7 +32,8 @@ export default function ProfileSummary({
           they are read, so there is no second copy of either further down the
           page. Stacked on a phone, side by side once there is room. */}
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
-        <div className="flex flex-col items-center gap-2">
+        {/* Nothing to take down when the account has no avatar at all. */}
+        <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
             // next/image's optimizer would fetch this route itself and keep the
             // result in a cache shared across visitors. Gravatar or any other
@@ -38,21 +44,29 @@ export default function ProfileSummary({
               alt=""
               width={96}
               height={96}
-              className="size-24 shrink-0 rounded-full object-cover"
+              className="block size-24 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="size-24 shrink-0 rounded-full bg-muted" />
+            // The initial rather than an empty disc, so an account with no
+            // image still has something of its own there.
+            <div
+              aria-hidden="true"
+              className="flex size-24 shrink-0 items-center justify-center rounded-full bg-muted font-medium text-3xl text-muted-foreground"
+            >
+              {initialOf(user.displayName)}
+            </div>
           )}
-          {/* Nothing to take down when the account has no avatar at all. */}
-          <AvatarForm canRemove={Boolean(user.avatarUrl)} />
-        </div>
+        </AvatarForm>
 
+        {/* No gap under either label. The fields keep their controls down to
+            the height of their own text, so the label sits right on the
+            value without being pulled into it. */}
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 flex-col">
             <FieldLabel>Display name</FieldLabel>
             <DisplayNameField displayName={user.displayName} />
           </div>
-          <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex min-w-0 flex-col">
             <FieldLabel>Email</FieldLabel>
             <EmailField
               email={user.email}
@@ -70,14 +84,11 @@ export default function ProfileSummary({
       <div className="flex flex-col gap-2 rounded-lg border p-4">
         <FieldLabel>Account details</FieldLabel>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[max-content_1fr_max-content_1fr]">
-          <dt className="text-muted-foreground">Roles</dt>
-          <dd>
-            {user.roles.join(', ')}
-            <span className="text-muted-foreground">
-              {' '}
-              (default {user.defaultRole})
-            </span>
-          </dd>
+          {/* The default role on its own. The full list is `user.roles`, but
+              it always carries `me` alongside the real one, and printing
+              "user, me (default user)" asked a question it then answered. */}
+          <dt className="text-muted-foreground">Role</dt>
+          <dd>{user.defaultRole}</dd>
           <dt className="text-muted-foreground">Locale</dt>
           <dd>{user.locale}</dd>
           <dt className="text-muted-foreground">Two-factor</dt>

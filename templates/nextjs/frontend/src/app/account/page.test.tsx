@@ -50,9 +50,7 @@ describe('account page', () => {
     const html = renderToStaticMarkup(await Account());
 
     expect(html).toContain('user@example.com');
-    expect(html).toContain('(verified)');
     expect(html).toContain('Ada');
-    expect(html).toContain('user, me');
     expect(html).toContain('2026-10-13 16:00 UTC');
     expect(html).toContain(user.id);
     expect(html).toContain('src="https://avatars.example/ada"');
