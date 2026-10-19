@@ -113,6 +113,22 @@ describe('avatar route', () => {
     expect(await response.text()).toBe('png-bytes');
   });
 
+  // Without an explicit freshness a shared cache may keep a response on the
+  // strength of Last-Modified alone, cookie or not.
+  it('marks the response private when storage sent no cache-control', async () => {
+    fetchMock.mockResolvedValueOnce(
+      upstream(200, {
+        'content-type': 'image/png',
+        etag: '"abc"',
+        'last-modified': 'Wed, 21 Oct 2015 07:28:00 GMT',
+      }),
+    );
+
+    const response = await get(FILE_ID);
+
+    expect(response.headers.get('cache-control')).toBe('private, no-cache');
+  });
+
   it('serves a raster type that carries parameters', async () => {
     fetchMock.mockResolvedValueOnce(
       upstream(200, { 'content-type': 'image/png; charset=binary' }),
