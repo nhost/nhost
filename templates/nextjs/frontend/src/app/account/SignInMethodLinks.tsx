@@ -36,7 +36,7 @@ export default function SignInMethodLinks({
 }) {
   const emailEntry: AccountEntry = {
     href: '/account/email',
-    title: 'Email',
+    title: 'Change email',
     description: email
       ? `${email}${verified ? '' : ' — not verified'}`
       : 'No address on this account.',
