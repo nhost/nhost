@@ -77,7 +77,7 @@ export default function ChangeEmailForm({
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-2 text-sm" role="status">
+      <div className="flex flex-col gap-2 text-center text-sm" role="status">
         <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           {sent.kind === 'change'
