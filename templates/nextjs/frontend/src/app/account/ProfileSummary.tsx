@@ -27,8 +27,13 @@ export default function ProfileSummary({ user }: { user: User }) {
           the space beside the avatar empty to do it.
 
           Left, not centred: centred, the block sat in the middle with space
-          on both sides and moved whenever the name's length changed. */}
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-start sm:gap-6">
+          on both sides and moved whenever the name's length changed.
+
+          Inset from the section's own padding on both sides. A circle up
+          against the edge reads as closer to it than a straight edge does,
+          and the same inset on the right keeps the row even rather than
+          only moving the avatar. */}
+      <div className="flex flex-col items-center gap-5 px-2 sm:flex-row sm:items-start sm:justify-start sm:gap-6">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
