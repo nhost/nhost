@@ -1,8 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
-import AccountSection from '@/app/account/AccountSection';
+import AccountSection, { FieldLabel } from '@/app/account/AccountSection';
 import AvatarForm from '@/app/account/AvatarForm';
-import { avatarFileIdFrom } from '@/app/account/avatar';
-import BrowserCheck from '@/app/account/BrowserCheck';
 import DisplayNameField from '@/app/account/DisplayNameField';
 import EmailField from '@/app/account/EmailField';
 
@@ -38,54 +36,58 @@ export default function ProfileSummary({
             <img
               src={user.avatarUrl}
               alt=""
-              width={256}
-              height={256}
-              className="size-64 shrink-0 rounded-full object-cover"
+              width={96}
+              height={96}
+              className="size-24 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="size-64 shrink-0 rounded-full bg-muted" />
+            <div className="size-24 shrink-0 rounded-full bg-muted" />
           )}
-          {/* Only a file this app uploaded is ours to delete, so the gravatar
-              a fresh account starts with offers no remove button. */}
-          <AvatarForm canRemove={Boolean(avatarFileIdFrom(user.avatarUrl))} />
+          {/* Nothing to take down when the account has no avatar at all. */}
+          <AvatarForm canRemove={Boolean(user.avatarUrl)} />
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <DisplayNameField displayName={user.displayName} />
-          <EmailField
-            email={user.email}
-            verified={user.emailVerified}
-            mailboxURL={mailboxURL}
-          />
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
+            <FieldLabel>Display name</FieldLabel>
+            <DisplayNameField displayName={user.displayName} />
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
+            <FieldLabel>Email</FieldLabel>
+            <EmailField
+              email={user.email}
+              verified={user.emailVerified}
+              mailboxURL={mailboxURL}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Two pairs to a row on anything wider than a phone, so the facts
-          that are a word each do not each take a line. The id is the one
-          value too long to share a row. */}
-      <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[max-content_1fr_max-content_1fr]">
-        <dt className="text-muted-foreground">Roles</dt>
-        <dd>
-          {user.roles.join(', ')}
-          <span className="text-muted-foreground">
-            {' '}
-            (default {user.defaultRole})
-          </span>
-        </dd>
-        <dt className="text-muted-foreground">Locale</dt>
-        <dd>{user.locale}</dd>
-        <dt className="text-muted-foreground">Two-factor</dt>
-        <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
-        <dt className="text-muted-foreground">Created</dt>
-        <dd>{whenOf(user.createdAt)}</dd>
-        <dt className="text-muted-foreground">User id</dt>
-        <dd className="font-mono text-xs sm:col-span-3">{user.id}</dd>
-      </dl>
-
-      {/* Everything above was read by the server. This line is the same
-          session read by the browser, which is the other half of the setup
-          and the only place the client-side SDK is used. */}
-      <BrowserCheck />
+      {/* Boxed and labelled, because none of it is editable and without a
+          frame it read as more of the fields above. Two pairs to a row on
+          anything wider than a phone, so the facts that are a word each do
+          not each take a line; the id is the one too long to share. */}
+      <div className="flex flex-col gap-2 rounded-lg border p-4">
+        <FieldLabel>Account details</FieldLabel>
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[max-content_1fr_max-content_1fr]">
+          <dt className="text-muted-foreground">Roles</dt>
+          <dd>
+            {user.roles.join(', ')}
+            <span className="text-muted-foreground">
+              {' '}
+              (default {user.defaultRole})
+            </span>
+          </dd>
+          <dt className="text-muted-foreground">Locale</dt>
+          <dd>{user.locale}</dd>
+          <dt className="text-muted-foreground">Two-factor</dt>
+          <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
+          <dt className="text-muted-foreground">Created</dt>
+          <dd>{whenOf(user.createdAt)}</dd>
+          <dt className="text-muted-foreground">User id</dt>
+          <dd className="font-mono text-xs sm:col-span-3">{user.id}</dd>
+        </dl>
+      </div>
     </AccountSection>
   );
 }

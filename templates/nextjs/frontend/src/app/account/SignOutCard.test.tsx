@@ -42,7 +42,7 @@ describe('sign-out card', () => {
   it('signs out this session and goes home', async () => {
     signOut.mockResolvedValueOnce({});
 
-    await click('Sign out of this browser');
+    await click('This browser');
 
     expect(signOut).toHaveBeenCalledWith({ all: false });
     expect(router.push).toHaveBeenCalledWith('/');
@@ -51,7 +51,7 @@ describe('sign-out card', () => {
   it('signs out everywhere with the flag set', async () => {
     signOut.mockResolvedValueOnce({});
 
-    await click('Sign out of all devices');
+    await click('All devices');
 
     expect(signOut).toHaveBeenCalledWith({ all: true });
     expect(router.push).toHaveBeenCalledWith('/');
@@ -60,7 +60,7 @@ describe('sign-out card', () => {
   it('stays put and says why when the action fails', async () => {
     signOut.mockResolvedValueOnce({ error: 'still signed in' });
 
-    await click('Sign out of all devices');
+    await click('All devices');
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'still signed in',
