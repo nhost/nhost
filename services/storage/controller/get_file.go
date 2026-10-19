@@ -263,8 +263,6 @@ func (ctrl *Controller) processFileToDownload(
 		download.StatusCode = http.StatusOK
 	}
 
-	updateAt := fileMetadata.UpdatedAt.Format(time.RFC1123)
-
 	body := download.Body
 	contentLength := download.ContentLength
 
@@ -275,13 +273,12 @@ func (ctrl *Controller) processFileToDownload(
 		if apiErr != nil {
 			return nil, apiErr
 		}
-
-		updateAt = time.Now().Format(time.RFC3339)
 	}
 
+	// Transformations retain the source modification time advertised in Last-Modified.
 	statusCode, apiErr := checkConditionals(
 		fileMetadata.Etag,
-		updateAt,
+		fileMetadata.UpdatedAt.Format(time.RFC1123),
 		params,
 		download.StatusCode,
 	)
