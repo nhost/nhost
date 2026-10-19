@@ -4,21 +4,15 @@ import (
 	"bytes"
 	"image/png"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
-	"github.com/nhost/nhost/services/storage/controller/mock"
-	"github.com/nhost/nhost/services/storage/image"
-	gomock "go.uber.org/mock/gomock"
 )
 
 func TestImageRevalidationTransformation(t *testing.T) {
@@ -125,7 +119,7 @@ func TestImageRevalidationTransformation(t *testing.T) {
 					source = imgBytes
 				}
 
-				metadata := revalidationMetadata(source, updatedAt)
+				metadata := imageConditionalMetadata(source, updatedAt)
 				body := &revalidationBody{reader: bytes.NewReader(source)}
 				terminal := tt.wantStatus == http.StatusNotModified ||
 					tt.wantStatus == http.StatusPreconditionFailed
@@ -139,9 +133,9 @@ func TestImageRevalidationTransformation(t *testing.T) {
 					}
 				}
 
-				handler := newImageRevalidationHandler(t, metadata, endpoint, download, nil)
+				handler := newImageConditionalHandler(t, metadata, endpoint, download, nil)
 
-				request := imageRevalidationRequest(t, metadata.Id, endpoint, tt.query)
+				request := imageConditionalRequest(t, metadata.Id, endpoint, tt.query)
 				if tt.header != "" {
 					request.Header.Set(tt.header, tt.value)
 				}
@@ -205,7 +199,7 @@ func TestImageRevalidationDownloadStatus(t *testing.T) {
 
 				source := []byte("download content")
 
-				metadata := revalidationMetadata(source, time.Now().UTC())
+				metadata := imageConditionalMetadata(source, time.Now().UTC())
 				if tt.partial {
 					metadata.Size++
 				}
@@ -222,7 +216,7 @@ func TestImageRevalidationDownloadStatus(t *testing.T) {
 					}
 				}
 
-				handler := newImageRevalidationHandler(
+				handler := newImageConditionalHandler(
 					t,
 					metadata,
 					endpoint,
@@ -230,7 +224,7 @@ func TestImageRevalidationDownloadStatus(t *testing.T) {
 					tt.downloadErr,
 				)
 
-				request := imageRevalidationRequest(t, metadata.Id, endpoint, tt.query)
+				request := imageConditionalRequest(t, metadata.Id, endpoint, tt.query)
 				if tt.ifNoneMatch {
 					request.Header.Set("If-None-Match", metadata.Etag)
 				}
@@ -283,91 +277,6 @@ func assertRevalidationTransform(
 	}
 
 	assert(t, config.Width, 100)
-}
-
-func revalidationMetadata(source []byte, updatedAt time.Time) api.FileMetadata {
-	return api.FileMetadata{
-		Id: "55af1e60-0f28-454e-885e-ea6aab2bb288", Name: "nhost.jpg", Size: int64(len(source)),
-		BucketId: "default", Etag: `"image-etag"`, CreatedAt: updatedAt, UpdatedAt: updatedAt,
-		IsUploaded: true, MimeType: "image/jpeg",
-	}
-}
-
-func newImageRevalidationHandler(
-	t *testing.T,
-	metadata api.FileMetadata,
-	endpoint string,
-	download *controller.File,
-	downloadErr *controller.APIError,
-) http.Handler {
-	t.Helper()
-
-	c := gomock.NewController(t)
-	metadataStorage := mock.NewMockMetadataStorage(c)
-	contentStorage := mock.NewMockContentStorage(c)
-
-	metadataStorage.EXPECT().GetFileByID(
-		gomock.Any(), metadata.Id, gomock.Any(),
-	).Return(metadata, nil)
-	metadataStorage.EXPECT().GetBucketByID(
-		gomock.Any(), metadata.BucketId, gomock.Any(),
-	).Return(controller.BucketMetadata{ID: metadata.BucketId, CacheControl: "max-age=3600"}, nil)
-
-	if download != nil || downloadErr != nil {
-		if endpoint == "presigned" {
-			contentStorage.EXPECT().GetFileWithPresignedURL(
-				gomock.Any(), metadata.Id, gomock.Any(), gomock.Any(),
-			).Return(download, downloadErr)
-		} else {
-			contentStorage.EXPECT().
-				GetFile(gomock.Any(), metadata.Id, nil).
-				Return(download, downloadErr)
-		}
-	}
-
-	ctrl := controller.New(
-		"http://storage.local", "/v1", "admin-secret", metadataStorage, contentStorage,
-		image.NewTransformer(0, 0, 0), nil, slog.New(slog.DiscardHandler),
-	)
-	router := gin.New()
-	api.RegisterHandlersWithOptions(
-		router,
-		api.NewStrictHandler(ctrl, nil),
-		api.GinServerOptions{BaseURL: "/v1"},
-	)
-
-	return router
-}
-
-func imageRevalidationRequest(t *testing.T, fileID, endpoint, rawQuery string) *http.Request {
-	t.Helper()
-
-	query, err := url.ParseQuery(rawQuery)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	path := "/v1/files/" + fileID
-
-	method := http.MethodGet
-	if endpoint == "head" {
-		method = http.MethodHead
-	}
-
-	if endpoint == "presigned" {
-		path += "/presignedurl/contents"
-		params := validGetFileWithPresignedURLParams()
-		query.Set("X-Amz-Algorithm", params.XAmzAlgorithm)
-		query.Set("X-Amz-Credential", params.XAmzCredential)
-		query.Set("X-Amz-Date", params.XAmzDate)
-		query.Set("X-Amz-Expires", params.XAmzExpires)
-		query.Set("X-Amz-Signature", params.XAmzSignature)
-		query.Set("X-Amz-SignedHeaders", params.XAmzSignedHeaders)
-		query.Set("X-Amz-Checksum-Mode", params.XAmzChecksumMode)
-		query.Set("x-id", params.XId)
-	}
-
-	return httptest.NewRequest(method, path+"?"+query.Encode(), nil)
 }
 
 type revalidationBody struct {
