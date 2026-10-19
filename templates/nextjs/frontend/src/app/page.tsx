@@ -4,7 +4,7 @@ import { signInQuery } from '@/app/signin/query';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
+  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -23,6 +23,8 @@ export default async function Home() {
   return (
     <div className="mx-auto max-w-2xl">
       <Card>
+        {/* The buttons are a CardAction, which puts them on the heading's
+            row. Under it they left the whole right of the card empty. */}
         <CardHeader>
           <CardTitle>
             {user ? 'You are signed in' : 'You are not signed in'}
@@ -32,24 +34,24 @@ export default async function Home() {
               ? `Signed in as ${user.email ?? user.id}.`
               : 'Create an account, or sign in to one you already have.'}
           </CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2">
-          {user ? (
-            <Button asChild>
-              <Link href="/account">Go to your account</Link>
-            </Button>
-          ) : (
-            <>
-              {/* Sign up first: a fresh local backend has no accounts in it. */}
+          <CardAction className="flex gap-2 self-center">
+            {user ? (
               <Button asChild>
-                <Link href={signUpLink}>Sign up</Link>
+                <Link href="/account">Go to your account</Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link href={signInLink}>Sign in</Link>
-              </Button>
-            </>
-          )}
-        </CardContent>
+            ) : (
+              <>
+                {/* Sign up first: a fresh local backend has no accounts. */}
+                <Button asChild>
+                  <Link href={signUpLink}>Sign up</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={signInLink}>Sign in</Link>
+                </Button>
+              </>
+            )}
+          </CardAction>
+        </CardHeader>
       </Card>
     </div>
   );

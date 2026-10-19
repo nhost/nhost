@@ -15,6 +15,7 @@ import { signOut } from '@/lib/nhost/actions';
 export default function SignOutCard() {
   const router = useRouter();
 
+  const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState(false);
 
@@ -45,17 +46,52 @@ export default function SignOutCard() {
       // Beside the description rather than under it: it acts on the section
       // as a whole, and under the text it read as its next step.
       action={
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          disabled={pending}
-          onClick={() => void handleSignOut()}
-        >
-          {pending ? 'Signing out…' : 'Sign out of all devices'}
-        </Button>
+        asking ? null : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAsking(true)}
+          >
+            Sign out of all devices
+          </Button>
+        )
       }
     >
+      {/* Asked first, because this reaches past the browser it is clicked
+          in: every other device signed in to the account is signed out with
+          it, and nothing warns them. */}
+      {asking ? (
+        <div className="flex flex-col gap-3 rounded-lg border p-4">
+          <p className="text-sm">
+            Every device signed in to this account will be signed out, including
+            this one.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending}
+              onClick={() => void handleSignOut()}
+            >
+              {pending ? 'Signing out…' : 'Sign out everywhere'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={pending}
+              onClick={() => {
+                setAsking(false);
+                setError(undefined);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
         <p role="alert" className="text-destructive text-sm">
           {error}
