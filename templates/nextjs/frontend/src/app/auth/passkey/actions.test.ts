@@ -80,10 +80,10 @@ describe('sign-up keeps the verification link on this origin', () => {
   it('and carries a real path through', async () => {
     auth.verifySignUpWebauthn.mockResolvedValueOnce({ body: {} });
 
-    await finishSignUp(creation, '/protected');
+    await finishSignUp(creation, '/account');
 
     expect(redirectOf(auth.verifySignUpWebauthn)).toBe(
-      `${appOrigin()}/protected`,
+      `${appOrigin()}/account`,
     );
   });
 });

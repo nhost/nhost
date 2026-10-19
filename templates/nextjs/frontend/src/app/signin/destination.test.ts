@@ -8,8 +8,8 @@ import {
 describe('signInDestination', () => {
   it('keeps a path on this site', () => {
     expect(signInDestination('/profile')).toBe('/profile');
-    expect(signInDestination('/protected/settings?tab=1')).toBe(
-      '/protected/settings?tab=1',
+    expect(signInDestination('/account/settings?tab=1')).toBe(
+      '/account/settings?tab=1',
     );
   });
 
@@ -110,8 +110,8 @@ describe('signInDestination', () => {
   });
 
   it('keeps dot segments that normalize to a path on this site', () => {
-    expect(signInDestination('/profile/../protected')).toBe(
-      '/profile/../protected',
+    expect(signInDestination('/profile/../account')).toBe(
+      '/profile/../account',
     );
   });
 
@@ -134,7 +134,7 @@ describe('signInDestination', () => {
   });
 
   it('takes the first value when the parameter is repeated', () => {
-    expect(signInDestination(['/profile', '/protected'])).toBe('/profile');
+    expect(signInDestination(['/profile', '/account'])).toBe('/profile');
     expect(signInDestination(['//evil.example', '/profile'])).toBe(
       DEFAULT_DESTINATION,
     );
@@ -143,11 +143,11 @@ describe('signInDestination', () => {
 
 describe('signInHref', () => {
   it('encodes the destination into the query', () => {
-    expect(signInHref('/protected')).toBe('/signin?next=%2Fprotected');
+    expect(signInHref('/account')).toBe('/signin?next=%2Faccount');
   });
 
   it('round-trips through signInDestination', () => {
-    const destination = '/protected/settings?tab=api&q=a b';
+    const destination = '/account/settings?tab=api&q=a b';
     const next = new URL(
       signInHref(destination),
       'http://localhost',
