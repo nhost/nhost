@@ -105,11 +105,15 @@ export default function EmailField({
           the unverified state speaks, and it brings the button that fixes
           it. Edit is quiet until the row is hovered or tabbed to. */}
       <div className="group flex min-w-0 flex-wrap items-center gap-x-2">
-        <span className="truncate text-sm">
+        {/* cursor-default: it is a value, not something to select or type
+            into, and the I-beam suggested otherwise. */}
+        <span className="cursor-default truncate text-sm">
           {email ?? 'No address on this account.'}
         </span>
         {email && !verified ? (
-          <span className="text-destructive text-sm">Not verified</span>
+          <span className="cursor-default text-destructive text-sm">
+            Not verified
+          </span>
         ) : null}
         {editing ? null : (
           <>

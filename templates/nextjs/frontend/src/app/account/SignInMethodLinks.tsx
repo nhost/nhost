@@ -34,7 +34,14 @@ export default function SignInMethodLinks() {
   return (
     <AccountSection
       title="Sign-in settings"
-      description="The ways this account can sign in."
+      // The methods that configure nothing are the description. "The ways
+      // this account can sign in" said less than naming them does, and as a
+      // line under the links they were easy to read as a footnote.
+      description={
+        unmanaged.length > 0
+          ? `${sentenceList(unmanaged.map((method) => method.title))} also sign in to this account, with nothing to set up here.`
+          : 'The ways this account can sign in.'
+      }
     >
       {entries.length > 0 ? (
         // Two to a row: each entry is a title and a line, so a column of them
@@ -53,13 +60,6 @@ export default function SignInMethodLinks() {
             </Link>
           ))}
         </div>
-      ) : null}
-
-      {unmanaged.length > 0 ? (
-        <p className="text-muted-foreground text-sm">
-          {sentenceList(unmanaged.map((method) => method.title))} also sign in
-          to this account, with nothing to set up here.
-        </p>
       ) : null}
     </AccountSection>
   );

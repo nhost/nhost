@@ -63,7 +63,11 @@ export default function DisplayNameField({
       // in, and so does tabbing to it, which is the part a bare hover rule
       // would leave unreachable.
       <div className="group flex min-w-0 items-center gap-2">
-        <span className="truncate font-medium text-lg">{displayName}</span>
+        {/* cursor-default: it is a value, not something to select or type
+            into, and the I-beam suggested otherwise. */}
+        <span className="cursor-default truncate font-medium text-lg">
+          {displayName}
+        </span>
         <Button
           type="button"
           variant="ghost"
