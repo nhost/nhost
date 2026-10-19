@@ -39,21 +39,39 @@ describe('sign-out card', () => {
     container.remove();
   });
 
+  // This reaches past the browser it is clicked in, so the first press only
+  // asks.
+  it('does not sign out on the first press', async () => {
+    await click('Sign out of all devices');
+
+    expect(signOut).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('including this one');
+  });
+
   // Signing out of this browser alone is in the nav, on every page, so the
-  // only button here is the one that covers the account.
-  it('signs out everywhere and goes home', async () => {
+  // only thing here is the one that covers the account.
+  it('signs out everywhere on the second press and goes home', async () => {
     signOut.mockResolvedValueOnce({});
 
     await click('Sign out of all devices');
+    await click('Sign out everywhere');
 
     expect(signOut).toHaveBeenCalledWith({ all: true });
     expect(router.push).toHaveBeenCalledWith('/');
+  });
+
+  it('backs out without calling the action', async () => {
+    await click('Sign out of all devices');
+    await click('Cancel');
+
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it('stays put and says why when the action fails', async () => {
     signOut.mockResolvedValueOnce({ error: 'still signed in' });
 
     await click('Sign out of all devices');
+    await click('Sign out everywhere');
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'still signed in',

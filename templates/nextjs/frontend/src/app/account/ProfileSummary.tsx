@@ -30,8 +30,12 @@ export default function ProfileSummary({
     >
       {/* The avatar and the two things it belongs to. Both are editable where
           they are read, so there is no second copy of either further down the
-          page. Stacked on a phone, side by side once there is room. */}
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
+          page. Stacked on a phone, side by side once there is room.
+
+          Centred as a pair rather than stretched across the card: the two
+          fields are short, and filling the row left a column of empty space
+          to the right of them. */}
+      <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-8">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
@@ -61,7 +65,7 @@ export default function ProfileSummary({
         {/* No gap under either label. The fields keep their controls down to
             the height of their own text, so the label sits right on the
             value without being pulled into it. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <div className="flex min-w-0 flex-col">
             <FieldLabel>Display name</FieldLabel>
             <DisplayNameField displayName={user.displayName} />
