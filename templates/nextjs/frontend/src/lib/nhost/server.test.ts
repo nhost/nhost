@@ -11,6 +11,7 @@ import {
   getVerifiedUser,
   handleNhostProxy,
   LINK_TOKEN_PARAM,
+  updateSessionUser,
 } from '@/lib/nhost/server';
 
 const cookie = vi.hoisted(() => ({ value: undefined as string | undefined }));
@@ -436,5 +437,63 @@ describe('session cookies from server actions', () => {
 
     expect(result.error).toBeDefined();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+// The account actions patch the cookie's user after a profile write, so the
+// nav shows the change on the refresh that follows rather than after the
+// next token refresh.
+describe('updateSessionUser', () => {
+  beforeEach(() => {
+    cookie.value = undefined;
+    written.response = NextResponse.next();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    written.response = undefined;
+    vi.unstubAllGlobals();
+  });
+
+  const sessionCookie = (): Record<string, unknown> =>
+    JSON.parse(
+      decodeURIComponent(
+        setCookie(written.response as NextResponse, DEFAULT_SESSION_KEY)
+          .split(';')[0]
+          .slice(`${DEFAULT_SESSION_KEY}=`.length),
+      ),
+    );
+
+  it('rewrites the user in both cookies without rotating the tokens', async () => {
+    const accessToken = jwt(900);
+    cookie.value = JSON.stringify({
+      ...JSON.parse(storedSession(900)),
+      accessToken,
+      user: { id: 'user-id', displayName: 'Ada', avatarUrl: 'old' },
+    });
+
+    updateSessionUser(await createNhostClient(), { avatarUrl: 'new' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(sessionCookie()).toMatchObject({
+      accessToken,
+      refreshToken: 'old-refresh-token',
+      user: { id: 'user-id', displayName: 'Ada', avatarUrl: 'new' },
+    });
+    expect(
+      setCookie(written.response as NextResponse, DEFAULT_SESSION_KEY),
+    ).toMatch(/; HttpOnly/i);
+
+    const line = setCookie(written.response as NextResponse, ACCESS_TOKEN_KEY);
+    expect(readAccessTokenCookie(line.split(';')[0])?.accessToken).toBe(
+      accessToken,
+    );
+  });
+
+  it('writes nothing without a session', async () => {
+    updateSessionUser(await createNhostClient(), { avatarUrl: 'new' });
+
+    expect(written.response?.headers.getSetCookie()).toEqual([]);
   });
 });
