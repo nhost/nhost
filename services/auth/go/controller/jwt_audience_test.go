@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/internal/lib/oapi"
@@ -221,35 +222,14 @@ func TestVerifiedSessionLogAndBody(t *testing.T) {
 
 	jti := assertSessionClaims(t, token, sessionID, "project")
 
-	spec, err := api.GetSpec()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	router, validator, err := oapi.NewRouter(spec, "", getter.MiddlewareFunc, oapimw.CORSOptions{
-		AllowOriginFunc:                      nil,
-		AllowedOrigins:                       []string{},
-		AllowedMethods:                       []string{http.MethodPost},
-		AllowHeadersFunc:                     nil,
-		AllowedHeaders:                       nil,
-		ExposedHeaders:                       nil,
-		AllowCredentials:                     false,
-		MaxAge:                               "",
-		UnsafeAllowAllOriginsWithCredentials: false,
-	}, logger)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	var received string
 
-	handler := api.NewStrictHandler(
+	router := newLoggedAuthRouter(
+		t,
+		getter,
+		logger,
 		emailChangeCapture{StrictServerInterface: nil, received: &received},
-		[]api.StrictMiddlewareFunc{controller.VerifiedTokenMiddleware()},
 	)
-	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
-		BaseURL: "", Middlewares: []api.MiddlewareFunc{validator}, ErrorHandler: oapi.RecordError,
-	})
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -287,6 +267,45 @@ func TestVerifiedSessionLogAndBody(t *testing.T) {
 	if strings.Contains(logs.String(), signed) {
 		t.Error("raw token logged")
 	}
+}
+
+func newLoggedAuthRouter(
+	t *testing.T,
+	getter *controller.JWTGetter,
+	logger *slog.Logger,
+	handler api.StrictServerInterface,
+) *gin.Engine {
+	t.Helper()
+
+	spec, err := api.GetSpec()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	router, validator, err := oapi.NewRouter(spec, "", getter.MiddlewareFunc, oapimw.CORSOptions{
+		AllowOriginFunc:                      nil,
+		AllowedOrigins:                       []string{},
+		AllowedMethods:                       []string{http.MethodPost},
+		AllowHeadersFunc:                     nil,
+		AllowedHeaders:                       nil,
+		ExposedHeaders:                       nil,
+		AllowCredentials:                     false,
+		MaxAge:                               "",
+		UnsafeAllowAllOriginsWithCredentials: false,
+	}, logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	strictHandler := api.NewStrictHandler(
+		handler,
+		[]api.StrictMiddlewareFunc{controller.VerifiedTokenMiddleware()},
+	)
+	api.RegisterHandlersWithOptions(router, strictHandler, api.GinServerOptions{
+		BaseURL: "", Middlewares: []api.MiddlewareFunc{validator}, ErrorHandler: oapi.RecordError,
+	})
+
+	return router
 }
 
 func TestVerifyTokenRejectsOtherAudience(t *testing.T) {

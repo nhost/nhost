@@ -46,6 +46,8 @@ type ValidatedClaims struct {
 	Aud         []string
 	ClientID    string
 	HasClientID bool
+	sid         string
+	jti         string
 	Scope       string
 	Iat         time.Time
 	Exp         time.Time

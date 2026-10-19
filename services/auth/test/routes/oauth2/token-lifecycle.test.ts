@@ -149,6 +149,9 @@ describe('token-lifecycle', () => {
       iat: expect.any(Number),
       iss: issuer,
       token_type: 'access_token',
+      aud: ['https://local.nhost.run'],
+      sid: payload.sid,
+      jti: payload.jti,
     });
   });
 
@@ -168,6 +171,7 @@ describe('token-lifecycle', () => {
       client_id: clientId,
       scope: 'openid profile email',
       token_type: 'refresh_token',
+      sid: jose.decodeJwt(tokenResp.access_token).sid,
       exp: expect.any(Number),
       iat: expect.any(Number),
       iss: issuer,

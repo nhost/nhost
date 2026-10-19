@@ -84,10 +84,14 @@ func (p *Provider) introspectRefreshToken(
 	iat := int(rt.CreatedAt.Time.Unix())
 	tokenType := TokenTypeRefreshToken
 	iss := p.signer.Issuer()
+	sid := rt.ID.String()
 
 	return &api.OAuth2IntrospectResponse{
 		Active:    true,
+		Aud:       nil,
+		Jti:       nil,
 		ClientId:  &rt.ClientID,
+		Sid:       &sid,
 		Sub:       &sub,
 		Scope:     &scope,
 		Exp:       &exp,
@@ -133,8 +137,25 @@ func (p *Provider) introspectAccessToken(
 		scopePtr = &claims.Scope
 	}
 
+	var audPtr *[]string
+	if len(claims.Aud) > 0 {
+		audPtr = &claims.Aud
+	}
+
+	var sidPtr, jtiPtr *string
+	if claims.sid != "" {
+		sidPtr = &claims.sid
+	}
+
+	if claims.jti != "" {
+		jtiPtr = &claims.jti
+	}
+
 	return &api.OAuth2IntrospectResponse{
 		Active:    true,
+		Aud:       audPtr,
+		Jti:       jtiPtr,
+		Sid:       sidPtr,
 		ClientId:  &owner,
 		Sub:       &claims.Sub,
 		Scope:     scopePtr,
@@ -205,6 +226,9 @@ func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 		return nil, fmt.Errorf("error getting client_id: %w", err)
 	}
 
+	sid, _ := claims["sid"].(string)
+	jti, _ := claims["jti"].(string)
+
 	scope, ok := claims["scope"].(string)
 	if !ok && claims["scope"] != nil {
 		return nil, fmt.Errorf( //nolint:err113
@@ -217,6 +241,8 @@ func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 		Aud:         aud,
 		ClientID:    clientID,
 		HasClientID: hasClientID,
+		sid:         sid,
+		jti:         jti,
 		Scope:       scope,
 		Iat:         iat,
 		Exp:         exp,

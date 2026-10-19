@@ -3818,6 +3818,17 @@ components:
       properties:
         active:
           type: boolean
+        aud:
+          type: array
+          description: Audiences of an active access token, when present in the token.
+          items:
+            type: string
+        jti:
+          type: string
+          description: Unique identifier of an active access token, when present in the token.
+        sid:
+          type: string
+          description: Nhost extension identifying the session backing an active access or refresh token.
         scope:
           type: string
         client_id:
