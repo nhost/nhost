@@ -68,16 +68,11 @@ export default function DeleteAccountCard() {
             reversed. There is no confirmation email and nothing to restore it
             from.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              disabled={isPending}
-              onClick={() => void handleDelete()}
-            >
-              {isPending ? 'Deleting…' : 'Delete it permanently'}
-            </Button>
+          {/* Right, where the button that opened this panel was, so the
+              answer lands under the question rather than across from it.
+              Keeping the account leads, which puts the irreversible one on
+              the outside and the way out first for a keyboard. */}
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -89,6 +84,15 @@ export default function DeleteAccountCard() {
               }}
             >
               Keep my account
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isPending}
+              onClick={() => void handleDelete()}
+            >
+              {isPending ? 'Deleting…' : 'Delete it permanently'}
             </Button>
           </div>
         </div>
