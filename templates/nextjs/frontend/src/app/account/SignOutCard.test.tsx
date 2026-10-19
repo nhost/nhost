@@ -39,19 +39,12 @@ describe('sign-out card', () => {
     container.remove();
   });
 
-  it('signs out this session and goes home', async () => {
+  // Signing out of this browser alone is in the nav, on every page, so the
+  // only button here is the one that covers the account.
+  it('signs out everywhere and goes home', async () => {
     signOut.mockResolvedValueOnce({});
 
-    await click('This browser');
-
-    expect(signOut).toHaveBeenCalledWith({ all: false });
-    expect(router.push).toHaveBeenCalledWith('/');
-  });
-
-  it('signs out everywhere with the flag set', async () => {
-    signOut.mockResolvedValueOnce({});
-
-    await click('All devices');
+    await click('Sign out of all devices');
 
     expect(signOut).toHaveBeenCalledWith({ all: true });
     expect(router.push).toHaveBeenCalledWith('/');
@@ -60,7 +53,7 @@ describe('sign-out card', () => {
   it('stays put and says why when the action fails', async () => {
     signOut.mockResolvedValueOnce({ error: 'still signed in' });
 
-    await click('All devices');
+    await click('Sign out of all devices');
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'still signed in',

@@ -34,7 +34,7 @@ export const methods: SignInMethod[] = [
     account: [
       {
         href: '/auth/password/change',
-        title: 'Password',
+        title: 'Change password',
         description: 'Set a new password for this account.',
       },
       {
