@@ -1,51 +1,62 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useId, useRef, useState } from 'react';
-import { uploadAvatar } from '@/app/account/actions';
+import { type ChangeEvent, useRef, useState } from 'react';
+import { removeAvatar, uploadAvatar } from '@/app/account/actions';
 import {
   AVATAR_TOO_LARGE,
   AVATAR_TYPES,
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 /**
- * The upload control for the avatar, with no image of its own.
+ * The two buttons under the avatar: one to put a new image up, one to take
+ * the current one down.
  *
- * ProfileSummary renders the current avatar and embeds this beneath it, so
- * the two sit in one card and the image is on the page once.
+ * No file name and no separate upload step. The file input is the only way
+ * to open a file picker, so it stays in the DOM for a screen reader and the
+ * visible button clicks it; choosing a file is the whole gesture, so the
+ * upload starts there rather than waiting for a second press.
+ *
+ * ProfileSummary renders the image this sits beneath.
  */
-export default function AvatarForm() {
+export default function AvatarForm({ canRemove }: { canRemove: boolean }) {
   const router = useRouter();
-  const fileId = useId();
-  const form = useRef<HTMLFormElement>(null);
-
+  const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
     setError(undefined);
 
-    const formData = new FormData(event.currentTarget);
-    const file = formData.get('avatar');
-    if (file instanceof File && file.size > MAX_AVATAR_BYTES) {
+    // Checked here so an oversized file is refused without being sent, and
+    // again in the action for a caller that does not come through this.
+    if (file.size > MAX_AVATAR_BYTES) {
       setError(AVATAR_TOO_LARGE);
+      event.target.value = '';
       return;
     }
 
     setIsPending(true);
     try {
-      const result = await uploadAvatar(formData);
+      const body = new FormData();
+      body.append('avatar', file);
+      const result = await uploadAvatar(body);
+
       if (result.error) {
         setError(result.error);
         return;
       }
 
-      form.current?.reset();
       // The image above reads its URL from the auth service, so the page is
       // re-rendered rather than patched here.
       router.refresh();
@@ -53,35 +64,69 @@ export default function AvatarForm() {
       console.error('Error uploading the avatar:', err);
       setError('The request did not reach the server. Try again.');
     } finally {
+      // Cleared either way, so choosing the same file again still fires.
+      event.target.value = '';
+      setIsPending(false);
+    }
+  };
+
+  const handleRemove = async (): Promise<void> => {
+    setError(undefined);
+    setIsPending(true);
+    try {
+      const result = await removeAvatar();
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.refresh();
+    } catch (err) {
+      console.error('Error removing the avatar:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
       setIsPending(false);
     }
   };
 
   return (
-    <form
-      ref={form}
-      className="flex flex-col gap-2"
-      onSubmit={(event) => void handleSubmit(event)}
-    >
-      {/* A file input labels itself with the file name, so the label is here
-          for a screen reader rather than for the eye, and the control keeps
-          to one line beside the button. */}
-      <Label htmlFor={fileId} className="sr-only">
-        New avatar image
-      </Label>
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <Input
-          id={fileId}
-          name="avatar"
+        <input
+          ref={input}
           type="file"
+          name="avatar"
           accept={AVATAR_TYPES.join(',')}
-          required
+          className="sr-only"
           disabled={isPending}
-          className="min-w-0 flex-1"
+          aria-label="New avatar image"
+          onChange={(event) => void handleChange(event)}
         />
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Uploading…' : 'Upload'}
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={isPending}
+          aria-label="Upload a new avatar"
+          title="Upload a new avatar"
+          onClick={() => input.current?.click()}
+        >
+          <span aria-hidden="true">+</span>
         </Button>
+        {canRemove ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={isPending}
+            aria-label="Remove the avatar"
+            title="Remove the avatar"
+            onClick={() => void handleRemove()}
+          >
+            <span aria-hidden="true">×</span>
+          </Button>
+        ) : null}
       </div>
 
       {error ? (
@@ -89,6 +134,6 @@ export default function AvatarForm() {
           {error}
         </p>
       ) : null}
-    </form>
+    </div>
   );
 }
