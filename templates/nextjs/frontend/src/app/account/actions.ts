@@ -126,12 +126,13 @@ export async function updateDisplayName(
   }
 }
 
-// Returns why the account could not be pointed at the file, or undefined once
-// it is.
+// Returns why the account's avatar could not be set to `avatarUrl`, or
+// undefined once it is. An empty string is how the account is left with no
+// avatar at all.
 async function setAvatarUrl(
   nhost: NhostClient,
   userId: string,
-  fileId: string,
+  avatarUrl: string,
 ): Promise<string | undefined> {
   try {
     const { body } = await nhost.graphql.request<{
@@ -142,7 +143,7 @@ async function setAvatarUrl(
           id
         }
       }`,
-      variables: { id: userId, avatarUrl: avatarUrlFor(fileId) },
+      variables: { id: userId, avatarUrl },
     });
 
     if (body.errors?.length) {
@@ -155,7 +156,7 @@ async function setAvatarUrl(
 
     return undefined;
   } catch (err) {
-    return `Could not upload the avatar: ${errorMessage(err)}`;
+    return `Could not update the avatar: ${errorMessage(err)}`;
   }
 }
 
@@ -199,7 +200,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
       return { error: 'The storage service did not keep the file.' };
     }
 
-    const failure = await setAvatarUrl(nhost, user.id, fileId);
+    const failure = await setAvatarUrl(nhost, user.id, avatarUrlFor(fileId));
 
     if (failure) {
       // Nothing should refer to the new file, and only this request knows
@@ -222,6 +223,45 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
     return { success: true };
   } catch (err) {
     return { error: `Could not upload the avatar: ${errorMessage(err)}` };
+  }
+}
+
+// The account stops pointing at the file first, then the file goes. That way
+// round a failure leaves the account showing an avatar that still exists,
+// where deleting first would leave it pointing at nothing. Only a file this
+// app wrote is removed: `avatar_url` is the user's to set, so anything else
+// there, such as the gravatar a fresh account starts with, is not ours to
+// delete.
+export async function removeAvatar(): Promise<ActionResult> {
+  try {
+    const user = await getVerifiedUser();
+
+    if (!user) {
+      return { error: SIGNED_OUT };
+    }
+
+    const fileId = avatarFileIdFrom(user.avatarUrl);
+
+    if (!fileId) {
+      return { error: 'There is no uploaded avatar to remove.' };
+    }
+
+    const nhost = await createNhostClient();
+    const failure = await setAvatarUrl(nhost, user.id, '');
+
+    if (failure) {
+      return { error: failure };
+    }
+
+    // The account already shows no avatar; a leftover file is worth a log
+    // line, not a failure the visitor has to act on.
+    await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+      console.error('Could not delete the removed avatar:', err);
+    });
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not remove the avatar: ${errorMessage(err)}` };
   }
 }
 

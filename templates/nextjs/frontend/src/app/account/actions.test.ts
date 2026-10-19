@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   changeEmail,
   changePassword,
+  removeAvatar,
   resendVerification,
   updateDisplayName,
   uploadAvatar,
@@ -334,7 +335,7 @@ describe('uploadAvatar', () => {
       client.graphql.request.mockRejectedValueOnce(new Error('network down'));
 
       expect(await uploadAvatar(image())).toEqual({
-        error: 'Could not upload the avatar: network down',
+        error: 'Could not update the avatar: network down',
       });
       expect(client.storage.deleteFile.mock.calls).toEqual([[NEW]]);
     });
@@ -373,5 +374,75 @@ describe('resendVerification', () => {
       error: 'You are signed out. Sign in and try again.',
     });
     expect(client.auth.sendVerificationEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('removeAvatar', () => {
+  const MINE = '6f1c2b3a-4d5e-4f60-8a7b-9c0d1e2f3a4b';
+
+  beforeEach(() => {
+    client.verifiedUser = { id: 'user-1', avatarUrl: `/api/avatar/${MINE}` };
+  });
+
+  it('clears the account first, then deletes the file', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+    client.storage.deleteFile.mockResolvedValueOnce({ body: undefined });
+
+    expect(await removeAvatar()).toEqual({ success: true });
+    expect(client.graphql.request.mock.calls[0]?.[0]).toMatchObject({
+      variables: { id: 'user-1', avatarUrl: '' },
+    });
+    expect(client.storage.deleteFile).toHaveBeenCalledWith(MINE);
+  });
+
+  // `avatar_url` is the user's to set, so a URL this app did not write names
+  // no file of ours and nothing is deleted.
+  it('refuses an avatar this app did not upload', async () => {
+    client.verifiedUser = {
+      id: 'user-1',
+      avatarUrl: 'https://gravatar.example/x',
+    };
+
+    expect(await removeAvatar()).toEqual({
+      error: 'There is no uploaded avatar to remove.',
+    });
+    expect(client.graphql.request).not.toHaveBeenCalled();
+    expect(client.storage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  // The other order would leave the account pointing at a file that is gone.
+  it('keeps the file when the account could not be cleared', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: null } },
+    });
+
+    expect(await removeAvatar()).toEqual({
+      error: 'The backend did not update this account.',
+    });
+    expect(client.storage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  // The avatar is already gone from the account, so a file left behind is a
+  // log line rather than something the visitor has to act on.
+  it('still succeeds when the file delete fails', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+    client.storage.deleteFile.mockRejectedValueOnce(new Error('gone'));
+
+    expect(await removeAvatar()).toEqual({ success: true });
+    expect(logged).toHaveBeenCalled();
+  });
+
+  it('refuses when the auth service does not vouch for anyone', async () => {
+    client.verifiedUser = null;
+
+    expect(await removeAvatar()).toEqual({
+      error: 'You are signed out. Sign in and try again.',
+    });
+    expect(client.graphql.request).not.toHaveBeenCalled();
   });
 });
