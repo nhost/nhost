@@ -23,7 +23,7 @@ export default async function ResetPassword() {
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-md">
         <Card>
           <CardHeader>
             <CardTitle>This link no longer works</CardTitle>
@@ -43,7 +43,7 @@ export default async function ResetPassword() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
           <CardTitle>Choose a new password</CardTitle>

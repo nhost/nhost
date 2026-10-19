@@ -28,7 +28,7 @@ export default async function Password({
   const query = signInQuery(destination, chosen);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
           <CardTitle>Email and password</CardTitle>

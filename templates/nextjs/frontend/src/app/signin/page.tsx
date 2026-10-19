@@ -70,7 +70,7 @@ export default async function SignIn({
   const { switchTo } = copy[chosen];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-md">
       <Card>
         {/* Centred, unlike the method links below: the heading and the way
             out at the foot address the visitor, the links in between are a
@@ -84,15 +84,17 @@ export default async function SignIn({
             <Link
               key={method.href}
               href={`${method.href}${query}`}
-              className="rounded-md border p-4 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-md border px-4 py-3 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <div className="font-medium">{method.title}</div>
+              <div className="font-medium text-sm">{method.title}</div>
               <div className="text-muted-foreground text-sm">
                 {method.description}
               </div>
             </Link>
           ))}
-          <p className="pt-2 text-center text-muted-foreground text-sm">
+          {/* A clear gap, not a nudge: this is the way out of the list, not
+              another item in it. */}
+          <p className="pt-6 text-center text-muted-foreground text-sm">
             {switchTo.prompt}{' '}
             <Link
               href={`/signin${signInQuery(destination, switchTo.intent)}`}
