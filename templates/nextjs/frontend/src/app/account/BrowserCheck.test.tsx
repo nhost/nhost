@@ -34,13 +34,16 @@ describe('browser check', () => {
     container.remove();
   });
 
-  it('shows the email the auth service returned to the browser', async () => {
+  // The address is already on the page a few lines up, so this reports that
+  // the browser's own call worked rather than repeating who it returned.
+  it('reports the call worked without repeating the address', async () => {
     getUser.mockResolvedValueOnce({ body: { email: 'ada@example.com' } });
 
     await render();
 
     expect(getUser).toHaveBeenCalledOnce();
-    expect(text('status')).toBe('The browser is signed in as ada@example.com.');
+    expect(text('status')).toBe('This browser holds the session too.');
+    expect(container.textContent).not.toContain('ada@example.com');
   });
 
   it('says so when the call fails', async () => {
