@@ -7,12 +7,17 @@ Two halves, laid out the way an Nhost project is:
   plus `nhost/metadata/`: the Hasura permissions the account page needs. The
   auth service tracks its own tables but grants nothing, so without these a
   signed-in user could register a passkey and never see it listed. `nhost up`
-  applies them, then restarts the auth and storage services so they re-add
-  what they manage themselves. `nhost/emails/` holds only the `en` email
-  templates `nhost init` writes, because the config allows only `en` and auth
-  swaps any other locale for the default at sign-up. Adding a locale to
-  `allowed` means adding its templates too; `nhost init` also writes `bg`,
-  `cs`, `es` and `fr`.
+  applies them, restarts the auth and storage services so they re-add what
+  they manage themselves, then exports Hasura's full metadata back into
+  `nhost/metadata/`. The first run therefore adds a file for every table the
+  two services track and rewrites the three committed ones without their
+  comments. That is expected; commit the exported form, as the example
+  backends under `examples/` do. The reasons behind the permissions are in
+  [Permissions](#permissions) below, which the export does not touch.
+  `nhost/emails/` holds only the `en` email templates `nhost init` writes,
+  because the config allows only `en` and auth swaps any other locale for the
+  default at sign-up. Adding a locale to `allowed` means adding its templates
+  too; `nhost init` also writes `bg`, `cs`, `es` and `fr`.
 - `frontend/` is the Next.js app. See its README for the commands.
 
 ## Running it
@@ -55,6 +60,36 @@ three steps:
 
 Until then the button is there but the auth service refuses the redirect, and
 the home page shows its reason.
+
+## Permissions
+
+The three files in `nhost/metadata/databases/default/tables/` grant the `user`
+role what the account page needs and nothing more. The headers in those files
+say the same, but the first `nhost up` rewrites the files without them, so
+this is the record that lasts.
+
+`auth.users`: the auth API has no endpoint for writing a profile field or for
+closing an account, so both go through GraphQL. Select, update and delete are
+all scoped to the user's own row, and update is limited to `display_name` and
+`avatar_url`. Widening it is the thing to be careful with: an unrestricted
+update would let a user rewrite their own roles and email. Delete takes the
+account with it, and the rest of the auth schema is wired to the row with
+`ON DELETE CASCADE`, so refresh tokens, security keys and provider links go
+at the same time. A storage file does not cascade, which is why the
+account-deletion action in `frontend/src/app/account/actions.ts` deletes the
+avatar through the storage API before it deletes the user.
+
+`auth.user_security_keys`: select and delete, scoped to the user's own rows.
+The auth service writes the row itself when a passkey is registered, so
+without these a signed-in user could add one but never list or remove it.
+
+`storage.files`: the storage service inserts the row for an upload through
+Hasura as the uploading user, so the insert permission decides who may upload
+and where, pinned to the `default` bucket. The service finishes the row as
+admin, which is why there is no update permission. Select and delete are the
+user's own files. The service also reads a file back as the user before
+serving it and asks for every column in its `FileMetadataFragment`, so the
+select columns must stay exactly that set: dropping one breaks downloads.
 
 ## The avatar
 
