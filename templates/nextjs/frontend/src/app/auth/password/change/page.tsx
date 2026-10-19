@@ -24,7 +24,7 @@ export default async function ChangePassword() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
           <CardTitle>Password</CardTitle>
