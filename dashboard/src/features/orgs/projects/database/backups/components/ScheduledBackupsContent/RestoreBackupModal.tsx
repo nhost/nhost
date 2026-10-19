@@ -130,7 +130,7 @@ export default function RestoreBackupModal({
         {operationCopy.submitButtonText}
       </ButtonWithLoading>
 
-      <Button variant="outline-emboss" onClick={close}>
+      <Button variant="outline" onClick={close}>
         Cancel
       </Button>
     </div>

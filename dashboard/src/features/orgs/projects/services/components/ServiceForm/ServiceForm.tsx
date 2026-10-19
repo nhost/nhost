@@ -378,7 +378,7 @@ export default function ServiceForm({
             </Button>
             <Button
               type="button"
-              variant="outline-emboss"
+              variant="outline"
               disabled={isSubmitting}
               onClick={copyConfig}
             >
@@ -387,7 +387,7 @@ export default function ServiceForm({
             </Button>
           </div>
 
-          <Button type="button" variant="outline-emboss" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

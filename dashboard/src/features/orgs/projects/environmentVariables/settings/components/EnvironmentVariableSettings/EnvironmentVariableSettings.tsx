@@ -234,7 +234,7 @@ export default function EnvironmentVariableSettings() {
 
           <Button
             type="button"
-            variant="outline-emboss"
+            variant="outline"
             className="mx-4 justify-self-start"
             onClick={handleOpenCreator}
           >

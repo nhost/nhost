@@ -155,7 +155,7 @@ export default function CreateUserForm({
             Create
           </Button>
 
-          <Button variant="outline-emboss" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>
