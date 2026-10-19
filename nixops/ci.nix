@@ -1,5 +1,6 @@
 { pkgs }:
 let
+  sharedCI = import ./shared-ci.nix { inherit pkgs; };
   src = pkgs.lib.fileset.toSource {
     root = ../.;
     fileset = pkgs.lib.fileset.unions [
@@ -8,12 +9,15 @@ let
       ../services/mcp/Makefile
       ../services/functions/Makefile
       ../services/postgres/Makefile
+      ./sync_ci.py
       (pkgs.lib.fileset.fileFilter (f: f.hasExt "py") ./tests)
     ];
   };
 in
 pkgs.runCommand "check-ci"
   {
+    CI_FILES = sharedCI.files;
+    SYNC_CI = "${sharedCI.sync}/bin/sync-ci";
     nativeBuildInputs = with pkgs; [
       actionlint
       bash

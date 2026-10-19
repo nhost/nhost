@@ -134,6 +134,66 @@ and `.drv` files. Upstream-signed outputs are not mirrored. Missing paths are
 probed in parallel before signing/uploading; authentication and upload failures
 fail the action. Previously signed but unpublished paths are retried.
 
+## Synchronizing shared CI files
+
+`packages.<system>.ci-files` contains a verbatim bundle of the shared check/ECR
+workflows, setup/cache actions, general/release Makefiles, and portable tests.
+`bundle.json` records the source repository, Git revision, and SHA-256 hashes;
+payloads live under `files/` at their original source paths.
+`apps.<system>.sync-ci` (also a package) installs selected files into another
+checkout without running Git commands, staging, committing, or pushing:
+
+```sh
+# Replace <commit> with a published commit containing sync-ci.
+nix run github:nhost/nhost/<commit>#sync-ci -- --target /path/to/checkout --dry-run
+nix run github:nhost/nhost/<commit>#sync-ci -- --target /path/to/checkout
+nix run github:nhost/nhost/<commit>#sync-ci -- --target /path/to/checkout --check
+```
+
+A registry alias can shorten this to `nix run nhost#sync-ci`, but use an explicit
+commit for reproducible updates. `--target` defaults to the current directory.
+The receiving checkout owns `build/shared-ci.json`, including destination paths:
+
+```json
+{
+  "repository": "nhost/nhost",
+  "files": [
+    {
+      "source": ".github/workflows/wf_check.yaml",
+      "path": ".github/workflows/wf_check.yaml"
+    },
+    {
+      "source": "nixops/tests/test_workflows.py",
+      "path": "nix/tests/test_workflows.py"
+    }
+  ]
+}
+```
+
+Add mappings for the other desired exports; new upstream exports are never
+installed implicitly. Absent destinations can be bootstrapped without recorded
+hashes. Existing files must match their recorded hashes/executable flags or
+already match the desired bundle exactly. Hash-only manifests from manual
+copying are supported; synchronization adds executable flags. Locally customized
+files, unexported sources, duplicate/overlapping paths, symlinks, path traversal,
+and destinations inside `.git` are rejected before any writes. Backend-specific
+wrappers and callers remain untouched unless explicitly mapped.
+
+The app updates the manifest's revision, hashes, and executable flags, preserving
+other receiver metadata. Replacements are atomic per file, with the manifest
+written last; rerun an interrupted copy to finish it safely. Do not concurrently
+edit managed files. Review the resulting diff and run the receiving repo's checks
+before committing: synchronization does not adapt callers to interface changes.
+`--check` returns 0 when current, 1 when synchronization is needed, and 2 on
+invalid/unsafe inputs. `--dry-run` never writes.
+
+Applying or checking requires a clean Git-backed source with an exact revision.
+Dirty and `path:` flakes have no reliable Git pin, so they permit previews only:
+
+```sh
+nix run path:.#sync-ci -- --target /path/to/checkout --dry-run
+```
+
 ## Validation
 
 ```sh
@@ -146,6 +206,7 @@ also included in `checks.<system>.nixops`; workflow/action changes trigger that
 project. Tests cover cache selection and failures, reusable-call contracts, PR
 approval/SHA gates, runner exceptions, variant matrices, development image tags,
 checks-before-stamping order, skipped artifact image imports, cached output reuse,
-project hooks, and parallel Make startup ordering. They run offline with mocked
+project hooks, parallel Make startup ordering, bundle fidelity, safe manifest-driven
+synchronization, and interrupted-copy recovery. They run offline with mocked
 Nix/AWS/Docker interfaces; a real CI run remains necessary to validate runner
 availability, OIDC, registry access, and platform integration tests.
