@@ -36,6 +36,7 @@ export default function ProfileSummary({ user }: { user: User }) {
           <UserAvatar
             avatarUrl={user.avatarUrl}
             displayName={user.displayName}
+            width={192}
             className="size-24 text-3xl"
           />
         </AvatarForm>
