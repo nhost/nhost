@@ -1,7 +1,7 @@
 /**
  * Where signing in lands when nothing asked for somewhere else.
  *
- * Home, not the protected view: signing in is not by itself a request to go
+ * Home, not the account page: signing in is not by itself a request to go
  * anywhere. Somewhere specific only happens when the link that started it said
  * so, which is what `signInHref` is for.
  */

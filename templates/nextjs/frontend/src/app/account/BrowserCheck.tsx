@@ -5,9 +5,9 @@ import { nhost } from '@/lib/nhost/client';
 
 type Result = { email: string } | { error: string };
 
-// The page above asked the auth service from the server. This asks again from
-// the browser, with nothing but the access token the proxy wrote into the
-// readable cookie, which is the one thing that cookie is for.
+// The facts above came from the auth service, asked by the server. This asks
+// again from the browser, with nothing but the access token the proxy wrote
+// into the readable cookie, which is the one thing that cookie is for.
 export default function BrowserCheck() {
   const [result, setResult] = useState<Result | null>(null);
 
