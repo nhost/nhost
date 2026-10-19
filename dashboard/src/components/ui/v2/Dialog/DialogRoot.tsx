@@ -77,8 +77,12 @@ export interface CommonDialogProps
   primaryButtonColor?: ButtonProps['color'];
 }
 
-const StyledDialogPaper = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
+const StyledDialogPaper = styled(Paper)(() => ({
+  // Use the current design-system card token instead of the legacy MUI
+  // theme's `background.paper` (which is a different, slightly blue-tinted
+  // color in dark mode). Matches the `bg-background` used by the current
+  // Tailwind-based v3 Dialog, so dialogs match the rest of the app.
+  backgroundColor: 'hsl(var(--background))',
   backgroundImage: 'none',
   borderRadius: 8,
   boxShadow:

@@ -49,14 +49,11 @@ function GithubAuthButton({
 
   return (
     <Button
-      className={cn(
-        '!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50',
-        className,
-      )}
+      className={cn('gap-2 text-sm+', className)}
       onClick={signInWithGithub}
       aria-describedby={ariaDescribedBy}
     >
-      <SiGithub size={14} /> {buttonText}
+      <SiGithub /> {buttonText}
     </Button>
   );
 }

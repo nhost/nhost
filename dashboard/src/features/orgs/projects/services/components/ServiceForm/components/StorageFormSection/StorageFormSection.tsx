@@ -109,7 +109,9 @@ export default function StorageFormSection() {
                   <Label htmlFor={`${field.id}-capacity`}>Capacity</Label>
                 )}
                 <InputGroup
-                  className={cn({ 'border-destructive': capacityError })}
+                  className={cn('h-10', {
+                    'border-destructive': capacityError,
+                  })}
                 >
                   <InputGroupInput
                     {...register(`storage.${index}.capacity`, {
@@ -145,15 +147,27 @@ export default function StorageFormSection() {
                 )}
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive"
-                aria-label="Remove storage"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </Button>
+              <div className="space-y-1">
+                {index === 0 && (
+                  <Label
+                    aria-hidden="true"
+                    className="invisible xs+:inline hidden"
+                  >
+                    {'\u00A0'}
+                  </Label>
+                )}
+                <div className="flex">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive"
+                    aria-label="Remove storage"
+                    onClick={() => remove(index)}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           );
         })}

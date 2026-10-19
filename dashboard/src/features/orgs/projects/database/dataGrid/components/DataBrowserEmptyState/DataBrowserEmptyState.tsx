@@ -26,7 +26,7 @@ export default function DataBrowserEmptyState({
   return (
     <div
       className={cn(
-        'grid w-full place-content-center gap-2 px-4 py-16 text-center',
+        'grid h-full w-full place-content-center gap-2 px-4 py-16 text-center',
         className,
       )}
       {...props}
@@ -40,9 +40,7 @@ export default function DataBrowserEmptyState({
           priority
         />
       </div>
-      <h1 className="!leading-6 font-inter-var font-medium text-[1.125rem]">
-        {title}
-      </h1>
+      <h1 className="!leading-6 font-medium text-[1.125rem]">{title}</h1>
       <p>{description}</p>
     </div>
   );

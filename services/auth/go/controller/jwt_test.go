@@ -709,41 +709,6 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "BearerAuthElevated: elevated recommended, webauthn disabled, stale security keys",
-			elevation: controller.ElevationConfig{
-				Mode: "recommended", TOTPEnabled: false, WebauthnEnabled: false,
-			},
-			db:         mock.NewMockDBClient,
-			token:      nonElevatedToken,
-			scheme:     "BearerAuthElevated",
-			requestURL: nil,
-			expectErr:  nil,
-		},
-
-		{
-			name: "BearerAuthElevated: elevated recommended, webauthn disabled, totp active",
-			elevation: controller.ElevationConfig{
-				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: false,
-			},
-			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
-					sql.GetElevationMethodsRow{HasTotp: pgtype.Bool{Bool: true, Valid: true}}, nil,
-				)
-
-				return mock
-			},
-			token:      nonElevatedToken,
-			scheme:     "BearerAuthElevated",
-			requestURL: nil,
-			expectErr: &oapi.AuthenticatorError{
-				Scheme:  "BearerAuthElevated",
-				Code:    "unauthorized",
-				Message: "elevated claim required",
-			},
-		},
-
-		{
 			name: "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has a verified email, claim not present",
 			elevation: controller.ElevationConfig{
 				Mode: "recommended", WebauthnEnabled: true, OTPEmailEnabled: true,
@@ -908,6 +873,41 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			scheme:     "BearerAuthElevated",
 			requestURL: nil,
 			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, webauthn disabled, stale security keys",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: false, WebauthnEnabled: false,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, webauthn disabled, totp active",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: false,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{HasTotp: pgtype.Bool{Bool: true, Valid: true}}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
 		},
 	}
 

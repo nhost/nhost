@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -16,7 +17,7 @@ type jsonSchemaValidator struct {
 }
 
 // newJSONSchemaValidator creates a new validator using JSON Schema 2020-12
-func newJSONSchemaValidator(schema *Schema) (*jsonSchemaValidator, error) {
+func newJSONSchemaValidator(schema *Schema, settings *schemaValidationSettings) (*jsonSchemaValidator, error) {
 	// Convert OpenAPI Schema to JSON Schema format
 	schemaBytes, err := json.Marshal(schema)
 	if err != nil {
@@ -35,6 +36,9 @@ func newJSONSchemaValidator(schema *Schema) (*jsonSchemaValidator, error) {
 	compiler := jsonschema.NewCompiler()
 	compiler.DefaultDraft(jsonschema.Draft2020)
 
+	// Keep enforcing the formats the built-in validator enforces
+	registerFormatValidators(compiler, schemaMap, settings)
+
 	// Add the schema
 	schemaURL := "https://example.com/schema.json"
 	if err := compiler.AddResource(schemaURL, schemaMap); err != nil {
@@ -51,6 +55,88 @@ func newJSONSchemaValidator(schema *Schema) (*jsonSchemaValidator, error) {
 		compiler: compiler,
 		schema:   compiledSchema,
 	}, nil
+}
+
+func registerFormatValidators(compiler *jsonschema.Compiler, schemaMap map[string]any, settings *schemaValidationSettings) {
+	formats := make(map[string]struct{})
+	collectFormats(schemaMap, formats)
+	if len(formats) == 0 {
+		return
+	}
+
+	for format := range formats {
+		compiler.RegisterFormat(&jsonschema.Format{
+			Name:     format,
+			Validate: formatValidator(format, settings),
+		})
+	}
+	compiler.AssertFormat() // has to be explicitly asserted
+}
+
+func collectFormats(node any, formats map[string]struct{}) {
+	switch node := node.(type) {
+	case map[string]any:
+		if format, ok := node["format"].(string); ok && format != "" {
+			formats[format] = struct{}{}
+		}
+		for _, value := range node {
+			collectFormats(value, formats)
+		}
+	case []any:
+		for _, value := range node {
+			collectFormats(value, formats)
+		}
+	}
+}
+
+func formatValidator(format string, settings *schemaValidationSettings) func(any) error {
+	return func(value any) error {
+		switch value := value.(type) {
+		case string:
+			f, ok := settings.stringFormats[format]
+			if !ok {
+				if f, ok = SchemaStringFormats[format]; !ok {
+					return nil
+				}
+			}
+			return f.Validate(value)
+		case json.Number:
+			if number, err := value.Float64(); err == nil {
+				return validateNumberFormat(format, settings, number)
+			}
+		case float64:
+			return validateNumberFormat(format, settings, value)
+		case float32:
+			return validateNumberFormat(format, settings, float64(value))
+		case int:
+			return validateNumberFormat(format, settings, float64(value))
+		case int32:
+			return validateNumberFormat(format, settings, float64(value))
+		case int64:
+			return validateNumberFormat(format, settings, float64(value))
+		}
+		return nil
+	}
+}
+
+func validateNumberFormat(format string, settings *schemaValidationSettings, value float64) error {
+	if value == math.Trunc(value) && !math.IsInf(value, 0) {
+		f, ok := settings.integerFormats[format]
+		if !ok {
+			f, ok = SchemaIntegerFormats[format]
+		}
+		if ok {
+			return f.Validate(int64(value))
+		}
+	}
+
+	f, ok := settings.numberFormats[format]
+	if !ok {
+		if f, ok = SchemaNumberFormats[format]; !ok {
+			return nil
+		}
+	}
+	return f.Validate(value)
 }
 
 // transformOpenAPIToJSONSchema converts OpenAPI 3.0/3.1 specific keywords to JSON Schema format
@@ -202,7 +288,7 @@ func formatValidationError(verr *jsonschema.ValidationError, parentPath string) 
 
 // useJSONSchema2020 validates using the JSON Schema 2020-12 validator
 func (schema *Schema) useJSONSchema2020(settings *schemaValidationSettings, value any) error {
-	validator, err := newJSONSchemaValidator(schema)
+	validator, err := newJSONSchemaValidator(schema, settings)
 	if err != nil {
 		// Fall back to built-in validator if compilation fails
 		return schema.visitJSON(settings, value)

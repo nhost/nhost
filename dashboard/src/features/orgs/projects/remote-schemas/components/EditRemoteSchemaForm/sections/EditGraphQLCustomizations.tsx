@@ -211,7 +211,7 @@ export default function EditGraphQLCustomizations({
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="mt-2 gap-1 border-blue-600 px-2 text-blue-600 hover:bg-blue-50 hover:text-blue-800"
+          className="mt-2 gap-2"
         >
           <PencilIcon className="h-4 w-4" />
           Edit GraphQL Customization

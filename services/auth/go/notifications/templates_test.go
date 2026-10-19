@@ -4,7 +4,10 @@ import (
 	"errors"
 	"io/fs"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -259,6 +262,392 @@ func TestRenderEmailVerify(t *testing.T) {
 
 			if diff := cmp.Diff(tc.expectedSubject, subject); diff != "" {
 				t.Errorf("unexpected subject (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func writeTemplateFiles(t *testing.T, files map[string]string) string {
+	t.Helper()
+
+	root := t.TempDir()
+	for name, contents := range files {
+		path := filepath.Join(root, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return root
+}
+
+func TestRenderEmailFallback(t *testing.T) {
+	t.Parallel()
+
+	embeddedBody, err := os.ReadFile("../../email-templates/en/elevate-otp/body.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		name            string
+		defaultLocale   string
+		files           map[string]string
+		expectedBody    string
+		expectedSubject string
+	}{
+		{
+			name:          "requested locale overrides default locale",
+			defaultLocale: "en",
+			files: map[string]string{
+				"fr/elevate-otp/body.html":   "French ${ticket} ${locale}",
+				"fr/elevate-otp/subject.txt": "French ${locale}",
+				"en/elevate-otp/body.html":   "English ${ticket}",
+				"en/elevate-otp/subject.txt": "English",
+			},
+			expectedBody:    "French 123456 fr",
+			expectedSubject: "French fr",
+		},
+		{
+			name:          "same template in default locale overrides embedded translation",
+			defaultLocale: "en",
+			files: map[string]string{
+				"en/elevate-otp/body.html":    "English ${ticket} ${locale}",
+				"en/elevate-otp/subject.txt":  "English ${locale}",
+				"en/email-verify/body.html":   "Wrong template",
+				"en/email-verify/subject.txt": "Wrong template",
+			},
+			expectedBody:    "English 123456 en",
+			expectedSubject: "English en",
+		},
+		{
+			name:          "missing subject falls back with body",
+			defaultLocale: "en",
+			files: map[string]string{
+				"fr/elevate-otp/body.html":   "Incomplete French body",
+				"en/elevate-otp/body.html":   "English ${ticket}",
+				"en/elevate-otp/subject.txt": "English",
+			},
+			expectedBody:    "English 123456",
+			expectedSubject: "English",
+		},
+		{
+			name:          "missing body falls back with subject",
+			defaultLocale: "en",
+			files: map[string]string{
+				"fr/elevate-otp/subject.txt": "Incomplete French subject",
+				"en/elevate-otp/body.html":   "English ${ticket}",
+				"en/elevate-otp/subject.txt": "English",
+			},
+			expectedBody:    "English 123456",
+			expectedSubject: "English",
+		},
+		{
+			name:            "empty folder uses embedded English",
+			defaultLocale:   "cs",
+			files:           nil,
+			expectedBody:    strings.ReplaceAll(string(embeddedBody), "${ticket}", "123456"),
+			expectedSubject: "Session elevation code\n",
+		},
+		{
+			name:          "existing custom folder without elevation template uses embedded English",
+			defaultLocale: "fr",
+			files: map[string]string{
+				"fr/email-verify/body.html":   "Wrong template",
+				"fr/email-verify/subject.txt": "Wrong template",
+			},
+			expectedBody:    strings.ReplaceAll(string(embeddedBody), "${ticket}", "123456"),
+			expectedSubject: "Session elevation code\n",
+		},
+		{
+			name:          "incomplete default locale uses embedded English",
+			defaultLocale: "cs",
+			files: map[string]string{
+				"cs/elevate-otp/body.html":   "Incomplete default body",
+				"en/elevate-otp/body.html":   "Unconfigured custom locale",
+				"en/elevate-otp/subject.txt": "Unconfigured custom locale",
+			},
+			expectedBody:    strings.ReplaceAll(string(embeddedBody), "${ticket}", "123456"),
+			expectedSubject: "Session elevation code\n",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			templates, err := notifications.NewTemplatesFromFilesystem(
+				writeTemplateFiles(t, tc.files), tc.defaultLocale, slog.Default(),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			body, subject, err := templates.Render(
+				t.Context(), "fr", notifications.TemplateNameElevateOTP,
+				notifications.TemplateData{Ticket: "123456", Locale: "user-locale"},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(tc.expectedBody, body); diff != "" {
+				t.Errorf("unexpected body (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tc.expectedSubject, subject); diff != "" {
+				t.Errorf("unexpected subject (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestRenderEmbeddedEmailTemplates(t *testing.T) {
+	t.Parallel()
+
+	templates, err := notifications.NewTemplatesFromFilesystem("", "cs", slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range []notifications.TemplateName{
+		notifications.TemplateNameEmailVerify,
+		notifications.TemplateNameEmailConfirmChange,
+		notifications.TemplateNameElevateOTP,
+		notifications.TemplateNameSigninPasswordless,
+		notifications.TemplateNameSigninOTP,
+		notifications.TemplateNamePasswordReset,
+	} {
+		t.Run(string(name), func(t *testing.T) {
+			t.Parallel()
+
+			body, subject, err := templates.Render(
+				t.Context(),
+				"fr",
+				name,
+				notifications.TemplateData{
+					Link:       "https://example.com",
+					Ticket:     "123456",
+					RedirectTo: "app",
+				},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			replacer := strings.NewReplacer(
+				"${link}", "https://example.com", "${ticket}", "123456", "${redirectTo}", "app",
+			)
+			for filename, actual := range map[string]string{"body.html": body, "subject.txt": subject} {
+				expected, err := os.ReadFile(
+					filepath.Join("../../email-templates/en", string(name), filename),
+				)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if diff := cmp.Diff(replacer.Replace(string(expected)), actual); diff != "" {
+					t.Errorf("unexpected %s (-want +got):\n%s", filename, diff)
+				}
+			}
+		})
+	}
+
+	if _, _, err := templates.Render(
+		t.Context(),
+		"fr",
+		"unknown",
+		notifications.TemplateData{},
+	); !errors.Is(
+		err,
+		notifications.ErrTemplateNotFound,
+	) {
+		t.Errorf("expected ErrTemplateNotFound, got %v", err)
+	}
+}
+
+func TestRenderSMSFallback(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name          string
+		defaultLocale string
+		files         map[string]string
+		embeddedOnly  bool
+		expectedBody  string
+	}{
+		{
+			name:          "requested locale overrides default locale",
+			defaultLocale: "en",
+			files: map[string]string{
+				"fr/signin-passwordless-sms/body.txt": "French ${code}",
+				"en/signin-passwordless-sms/body.txt": "English ${code}",
+			},
+			embeddedOnly: false,
+			expectedBody: "French 123456",
+		},
+		{
+			name:          "default locale overrides embedded translation",
+			defaultLocale: "en",
+			files: map[string]string{
+				"en/signin-passwordless-sms/body.txt": "English ${code}",
+			},
+			embeddedOnly: false,
+			expectedBody: "English 123456",
+		},
+		{
+			name:          "empty folder uses embedded English",
+			defaultLocale: "cs",
+			files:         nil,
+			embeddedOnly:  false,
+			expectedBody:  "Your code is 123456.",
+		},
+		{
+			name:          "no folder uses embedded English",
+			defaultLocale: "cs",
+			files:         nil,
+			embeddedOnly:  true,
+			expectedBody:  "Your code is 123456.",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var path string
+			if !tc.embeddedOnly {
+				path = writeTemplateFiles(t, tc.files)
+			}
+
+			templates, err := notifications.NewTemplatesFromFilesystem(
+				path,
+				tc.defaultLocale,
+				slog.Default(),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			body, err := templates.RenderSMS(
+				t.Context(),
+				"fr",
+				notifications.TemplateSMSData{Code: "123456"},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(tc.expectedBody, body); diff != "" {
+				t.Errorf("unexpected body (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestRenderFallbackWarning(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name          string
+		defaultLocale string
+		files         map[string]string
+		embeddedOnly  bool
+		expectedLog   string
+	}{
+		{
+			name:          "requested locale does not warn",
+			defaultLocale: "en",
+			files: map[string]string{
+				"fr/elevate-otp/body.html":   "French ${ticket}",
+				"fr/elevate-otp/subject.txt": "French",
+			},
+			embeddedOnly: false,
+			expectedLog:  "",
+		},
+		{
+			name:          "default locale warns once",
+			defaultLocale: "en",
+			files: map[string]string{
+				"en/elevate-otp/body.html":   "English ${ticket}",
+				"en/elevate-otp/subject.txt": "English",
+			},
+			embeddedOnly: false,
+			expectedLog: `level=WARN msg="template not found, falling back" template=elevate-otp ` +
+				"locale=fr fallbackSource=custom fallbackLocale=en\n",
+		},
+		{
+			name:          "custom folder without template warns once",
+			defaultLocale: "fr",
+			files: map[string]string{
+				"fr/email-verify/body.html":   "French",
+				"fr/email-verify/subject.txt": "French",
+			},
+			embeddedOnly: false,
+			expectedLog: `level=WARN msg="template not found, falling back" template=elevate-otp ` +
+				"locale=fr fallbackSource=embedded fallbackLocale=en\n",
+		},
+		{
+			name:          "empty folder does not warn",
+			defaultLocale: "cs",
+			files:         nil,
+			embeddedOnly:  false,
+			expectedLog:   "",
+		},
+		{
+			name:          "no folder does not warn",
+			defaultLocale: "cs",
+			files:         nil,
+			embeddedOnly:  true,
+			expectedLog:   "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var path string
+			if !tc.embeddedOnly {
+				path = writeTemplateFiles(t, tc.files)
+			}
+
+			var logs strings.Builder
+
+			logger := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{
+				AddSource: false,
+				Level:     nil,
+				ReplaceAttr: func(_ []string, attr slog.Attr) slog.Attr {
+					if attr.Key == slog.TimeKey {
+						return slog.Attr{}
+					}
+
+					return attr
+				},
+			}))
+
+			templates, err := notifications.NewTemplatesFromFilesystem(
+				path,
+				tc.defaultLocale,
+				logger,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if _, _, err := templates.Render(
+				t.Context(), "fr", notifications.TemplateNameElevateOTP,
+				notifications.TemplateData{Ticket: "123456"},
+			); err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(tc.expectedLog, logs.String()); diff != "" {
+				t.Errorf("unexpected logs (-want +got):\n%s", diff)
 			}
 		})
 	}
