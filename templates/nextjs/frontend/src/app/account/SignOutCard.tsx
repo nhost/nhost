@@ -38,35 +38,36 @@ export default function SignOutCard() {
     <AccountSection
       title="Sessions"
       description="Sign out of this browser, or of everywhere this account is signed in."
-    >
-      <div className="flex flex-col gap-4">
-        {error ? (
-          <p role="alert" className="text-destructive text-sm">
-            {error}
-          </p>
-        ) : null}
-
+      // Beside the description rather than under it: these act on the
+      // section as a whole, and under the text they read as its next step.
+      action={
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="outline"
+            size="sm"
             disabled={Boolean(pending)}
             onClick={() => void handleSignOut(false)}
           >
-            {pending === 'here' ? 'Signing out…' : 'Sign out of this browser'}
+            {pending === 'here' ? 'Signing out…' : 'This browser'}
           </Button>
           <Button
             type="button"
             variant="destructive"
+            size="sm"
             disabled={Boolean(pending)}
             onClick={() => void handleSignOut(true)}
           >
-            {pending === 'everywhere'
-              ? 'Signing out…'
-              : 'Sign out of all devices'}
+            {pending === 'everywhere' ? 'Signing out…' : 'All devices'}
           </Button>
         </div>
-      </div>
+      }
+    >
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
     </AccountSection>
   );
 }
