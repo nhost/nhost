@@ -1,15 +1,9 @@
 'use client';
 
 import { type FormEvent, useId, useState } from 'react';
+import AccountSection from '@/app/account/AccountSection';
 import { changePassword } from '@/app/account/actions';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -53,16 +47,15 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription>
-          Sets a new password. The current one is not asked for: being signed in
-          is what authorises the change.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <AccountSection
+      title="Password"
+      description="Sets a new password. The current one is not asked for: being signed in is what authorises the change."
+    >
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        {/* Both keep a visible label, unlike the single-field sections: the
+            two are only told apart by it. Side by side because the pair is
+            one step, and they drop to a column on a phone. */}
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor={passwordId}>New password</Label>
             <Input
@@ -88,24 +81,24 @@ export default function ChangePasswordForm() {
               disabled={isPending}
             />
           </div>
+        </div>
 
-          {error ? (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          ) : null}
+        {error ? (
+          <p role="alert" className="text-destructive text-sm">
+            {error}
+          </p>
+        ) : null}
 
-          {done ? (
-            <p role="status" className="text-muted-foreground text-sm">
-              Password changed.
-            </p>
-          ) : null}
+        {done ? (
+          <p role="status" className="text-muted-foreground text-sm">
+            Password changed.
+          </p>
+        ) : null}
 
-          <Button type="submit" disabled={isPending} className="self-start">
-            {isPending ? 'Changing…' : 'Change password'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button type="submit" disabled={isPending} className="self-start">
+          {isPending ? 'Changing…' : 'Change password'}
+        </Button>
+      </form>
+    </AccountSection>
   );
 }
