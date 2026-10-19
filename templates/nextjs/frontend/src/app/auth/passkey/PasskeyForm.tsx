@@ -126,7 +126,7 @@ export default function PasskeyForm({
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-col gap-2 text-center text-sm">
         <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           Your passkey is registered. We sent a verification link to {email}.
