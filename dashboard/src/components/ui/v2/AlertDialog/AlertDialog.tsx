@@ -78,7 +78,7 @@ function AlertDialog({
 
           {!hideSecondaryAction && (
             <Button
-              variant="outline-emboss"
+              variant="outline"
               onClick={onSecondaryAction}
               autoFocus={hidePrimaryAction}
             >
