@@ -13,7 +13,11 @@ import {
 import { signOut } from '@/lib/nhost/actions';
 import { appOrigin } from '@/lib/nhost/env';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
-import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
+import {
+  createNhostClient,
+  getVerifiedUser,
+  updateSessionUser,
+} from '@/lib/nhost/server';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
 // the client, and never `redirect()` (see the comment there for why).
@@ -121,6 +125,8 @@ export async function updateDisplayName(
       return { error: 'The backend did not update this account.' };
     }
 
+    updateSessionUser(nhost, { displayName: trimmed });
+
     return { success: true };
   } catch (err) {
     return { error: `Could not save the display name: ${errorMessage(err)}` };
@@ -165,9 +171,10 @@ async function setAvatarUrl(
 // under the insert permission in nhost/metadata; the account's avatar_url is
 // pointed at the route handler that serves it; and the file the previous
 // avatar pointed at, if this app wrote it, is deleted so storage does not
-// collect one per change. The previous avatar comes from the auth service: the
-// session cookie's copy of the user only changes on refresh, so after an
-// upload it still names the avatar before that one.
+// collect one per change. The previous avatar comes from the auth service, not
+// the session cookie: the cookie is patched by this app's own actions and
+// otherwise rewritten on refresh, so a change made in another browser can be
+// missing from it for an access token's life, and anyone can write one anyway.
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const file = formData.get('avatar');
 
@@ -212,6 +219,8 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
       return { error: failure };
     }
 
+    updateSessionUser(nhost, { avatarUrl: avatarUrlFor(fileId) });
+
     const previous = avatarFileIdFrom(user.avatarUrl);
     if (previous && previous !== fileId) {
       // The new avatar is already in place; a leftover file is worth a log
@@ -253,6 +262,8 @@ export async function removeAvatar(): Promise<ActionResult> {
     if (failure) {
       return { error: failure };
     }
+
+    updateSessionUser(nhost, { avatarUrl: '' });
 
     const fileId = avatarFileIdFrom(user.avatarUrl);
     if (fileId) {

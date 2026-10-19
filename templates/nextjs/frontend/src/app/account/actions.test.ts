@@ -26,6 +26,8 @@ const client = vi.hoisted(() => ({
   storage: { uploadFiles: vi.fn(), deleteFile: vi.fn() },
 }));
 
+const updateSessionUser = vi.hoisted(() => vi.fn());
+
 vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({
     getUserSession: () => client.session,
@@ -34,6 +36,7 @@ vi.mock('@/lib/nhost/server', () => ({
     storage: client.storage,
   }),
   getVerifiedUser: async () => client.verifiedUser,
+  updateSessionUser,
 }));
 
 const signOut = vi.hoisted(() => vi.fn());
@@ -50,6 +53,7 @@ beforeEach(() => {
     fn.mockReset();
   }
   client.graphql.request.mockReset();
+  updateSessionUser.mockReset();
   signOut.mockReset();
   signOut.mockResolvedValue({});
 });
@@ -146,6 +150,20 @@ describe('updateDisplayName', () => {
     });
   });
 
+  // The nav shows the cookie's user, so the name there would otherwise lag
+  // until the next token refresh.
+  it('patches the session cookie with the new name', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { updateUser: { id: 'user-1' } } },
+    });
+
+    await updateDisplayName('  Ada  ');
+
+    expect(updateSessionUser).toHaveBeenCalledWith(expect.anything(), {
+      displayName: 'Ada',
+    });
+  });
+
   // The permission filters by the token's user, so a row that is not this
   // user's comes back null rather than erroring.
   it('reports when nothing was updated', async () => {
@@ -156,6 +174,7 @@ describe('updateDisplayName', () => {
     expect(await updateDisplayName('Ada')).toEqual({
       error: 'The backend did not update this account.',
     });
+    expect(updateSessionUser).not.toHaveBeenCalled();
   });
 
   it('names the metadata when the schema lacks the mutation', async () => {
@@ -222,6 +241,9 @@ describe('uploadAvatar', () => {
     });
     expect(client.storage.deleteFile).toHaveBeenCalledWith(OLD);
     expect(client.storage.deleteFile).not.toHaveBeenCalledWith(NEW);
+    expect(updateSessionUser).toHaveBeenCalledWith(expect.anything(), {
+      avatarUrl: `/api/avatar/${NEW}`,
+    });
   });
 
   // A fresh account's avatar is a gravatar URL, which is not a file of ours
@@ -258,8 +280,9 @@ describe('uploadAvatar', () => {
     expect(client.storage.deleteFile).not.toHaveBeenCalled();
   });
 
-  // The cookie's user is only rewritten on refresh, so a second upload within
-  // one access token's life still sees the avatar from before the first.
+  // The cookie is patched by this app's actions and otherwise rewritten on
+  // refresh, so an avatar set in another browser is missing from it for an
+  // access token's life, and anyone can write one.
   it('takes the previous avatar and the id from the auth service, not the cookie', async () => {
     client.session = {
       user: { id: 'cookie-user', avatarUrl: 'https://gravatar.example/x' },
@@ -321,6 +344,7 @@ describe('uploadAvatar', () => {
         error: 'The backend did not update this account.',
       });
       expect(client.storage.deleteFile.mock.calls).toEqual([[NEW]]);
+      expect(updateSessionUser).not.toHaveBeenCalled();
     });
 
     it('deletes the new file when the mutation returns errors', async () => {
@@ -402,6 +426,9 @@ describe('removeAvatar', () => {
       variables: { id: 'user-1', avatarUrl: '' },
     });
     expect(client.storage.deleteFile).toHaveBeenCalledWith(MINE);
+    expect(updateSessionUser).toHaveBeenCalledWith(expect.anything(), {
+      avatarUrl: '',
+    });
   });
 
   // `avatar_url` is the user's to set, so a URL this app did not write names
@@ -442,6 +469,7 @@ describe('removeAvatar', () => {
       error: 'The backend did not update this account.',
     });
     expect(client.storage.deleteFile).not.toHaveBeenCalled();
+    expect(updateSessionUser).not.toHaveBeenCalled();
   });
 
   // The avatar is already gone from the account, so a file left behind is a
