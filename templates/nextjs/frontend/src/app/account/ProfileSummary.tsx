@@ -82,12 +82,12 @@ export default function ProfileSummary({ user }: { user: User }) {
                 answered. */}
             <dt className="text-muted-foreground">Role</dt>
             <dd>{user.defaultRole}</dd>
-            <dt className="text-muted-foreground">Locale</dt>
-            <dd>{user.locale}</dd>
-            <dt className="text-muted-foreground">Two-factor</dt>
-            <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
             <dt className="text-muted-foreground">Created</dt>
             <dd>{whenOf(user.createdAt)}</dd>
+            <dt className="text-muted-foreground">Locale</dt>
+            <dd>{user.locale}</dd>
+            <dt className="text-muted-foreground">2FA</dt>
+            <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
             <dt className="text-muted-foreground">User id</dt>
             {/* min-w-0 so the truncate can bite: a grid item will not shrink
                 below its content without it. */}
