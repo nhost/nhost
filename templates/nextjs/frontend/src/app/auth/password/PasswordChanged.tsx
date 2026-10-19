@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { createContext } from 'react';
-import { passwordSignIn } from '@/app/auth/password/reset/passwordSignIn';
+import { passwordSignIn } from '@/app/auth/password/passwordSignIn';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,9 +12,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-/** What the reset form calls once the server has accepted the new password. */
+/** What a form calls once the server has accepted the new password. */
 export const PasswordChangedContext = createContext<() => void>(() => {
-  throw new Error('The reset form has to render inside the reset layout.');
+  throw new Error('The form has to render inside PasswordChangedLayout.');
 });
 
 export default function PasswordChanged() {

@@ -15,7 +15,9 @@ import { getVerifiedUser } from '@/lib/nhost/server';
 export const dynamic = 'force-dynamic';
 
 // Guards itself rather than being listed in the proxy's protected routes: that
-// list is shared code, and shared code never names a method.
+// list is shared code, and shared code never names a method. The same
+// redirect fires when the page is rendered again after a change, with the
+// session gone; the layout above this is what keeps it off the screen then.
 export default async function ChangePassword() {
   const user = await getVerifiedUser();
 
@@ -30,7 +32,8 @@ export default async function ChangePassword() {
           <CardTitle>Password</CardTitle>
           <CardDescription>
             Being signed in authorises the change, so the current password is
-            not asked for.
+            not asked for. Changing it signs every session out, this browser
+            included.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">

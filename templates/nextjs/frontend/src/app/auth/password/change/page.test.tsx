@@ -27,14 +27,15 @@ describe('change password page', () => {
   });
 
   // The form asks for a new password twice and nothing else, which looks
-  // like an omission until the page says why.
-  it('says why the current password is not asked for', async () => {
+  // like an omission until the page says why. And the change signs the
+  // visitor out, which is a surprise unless the page says so first.
+  it('says why the current password is not asked for, and what the change costs', async () => {
     getVerifiedUser.mockResolvedValueOnce({ id: 'a' });
 
     const html = renderToStaticMarkup(await ChangePassword());
 
     expect(html).toContain(
-      'Being signed in authorises the change, so the current password is not asked for.',
+      'Being signed in authorises the change, so the current password is not asked for. Changing it signs every session out, this browser included.',
     );
   });
 

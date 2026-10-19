@@ -3,8 +3,10 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
+import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
 
 const changePassword = vi.hoisted(() => vi.fn());
+const onChanged = vi.fn();
 
 vi.mock('@/app/account/actions', () => ({ changePassword }));
 
@@ -45,9 +47,16 @@ const text = (role: string): string | null =>
 describe('change password form', () => {
   beforeEach(async () => {
     changePassword.mockReset();
+    onChanged.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
-    await act(async () => root.render(<ChangePasswordForm />));
+    await act(async () =>
+      root.render(
+        <PasswordChangedContext value={onChanged}>
+          <ChangePasswordForm />
+        </PasswordChangedContext>,
+      ),
+    );
   });
 
   afterEach(() => {
@@ -63,9 +72,10 @@ describe('change password form', () => {
 
     expect(text('alert')).toBe('The two passwords do not match.');
     expect(changePassword).not.toHaveBeenCalled();
+    expect(onChanged).not.toHaveBeenCalled();
   });
 
-  it('sends the password and reports the change', async () => {
+  it('sends the password and reports the change to the layout', async () => {
     changePassword.mockResolvedValueOnce({ success: true });
     await type('New password', 'correct horse');
     await type('Confirm new password', 'correct horse');
@@ -73,7 +83,7 @@ describe('change password form', () => {
     await submit();
 
     expect(changePassword).toHaveBeenCalledWith('correct horse');
-    expect(text('status')).toBe('Password changed.');
+    expect(onChanged).toHaveBeenCalledTimes(1);
     expect(text('alert')).toBeNull();
   });
 
@@ -85,6 +95,6 @@ describe('change password form', () => {
     await submit();
 
     expect(text('alert')).toBe('too short');
-    expect(text('status')).toBeNull();
+    expect(onChanged).not.toHaveBeenCalled();
   });
 });
