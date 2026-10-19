@@ -22,7 +22,7 @@ const originalColumns: DatabaseColumn[] = [
 ];
 
 describe('prepareUpdateTableQuery', () => {
-  it('should drop removed and add new multi-column unique constraints', () => {
+  it('should drop removed and add new unique constraints', () => {
     const columns: DatabaseColumn[] = [
       { id: 'a', name: 'a', type: 'text', uniqueConstraints: ['t_a_b_key'] },
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_a_b_key'] },
@@ -43,6 +43,7 @@ describe('prepareUpdateTableQuery', () => {
           { name: 't_a_b_key', columns: ['a', 'b'] },
           { columns: ['b', 'c'] },
           { newName: 't_c_e_key', columns: ['c', 'e'] },
+          { columns: ['d'] },
         ],
       },
       originalColumns: columns,
@@ -50,13 +51,15 @@ describe('prepareUpdateTableQuery', () => {
     });
 
     expect(transaction.map(({ args }) => args.sql)).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS t_c_key;',
       'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS t_d_e_key;',
       'ALTER TABLE public.test_table ADD UNIQUE (b,c);',
       'ALTER TABLE public.test_table ADD CONSTRAINT t_c_e_key UNIQUE (c,e);',
+      'ALTER TABLE public.test_table ADD UNIQUE (d);',
     ]);
   });
 
-  it('unticking Unique only drops single-column unique constraints', () => {
+  it('should take unique constraints from uniqueKeys and ignore isUnique', () => {
     const columns: DatabaseColumn[] = [
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_b_c_key'] },
       {
@@ -75,15 +78,22 @@ describe('prepareUpdateTableQuery', () => {
       updatedTable: {
         name: originalTableName,
         primaryKey: [],
-        columns: [columns[0], { ...columns[1], isUnique: false }],
-        uniqueKeys: [{ name: 't_b_c_key', columns: ['b', 'c'] }],
+        columns: [
+          columns[0],
+          { ...columns[1], isUnique: false },
+          { name: 'd', type: 'text', isUnique: true },
+        ],
+        uniqueKeys: [
+          { name: 't_b_c_key', columns: ['b', 'c'] },
+          { name: 't_c_key', columns: ['c'] },
+        ],
       },
       originalColumns: columns,
       originalForeignKeyRelations: [],
     });
 
     expect(transaction.map(({ args }) => args.sql)).toEqual([
-      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS t_c_key;',
+      'ALTER TABLE public.test_table ADD d text NOT NULL;',
     ]);
   });
 

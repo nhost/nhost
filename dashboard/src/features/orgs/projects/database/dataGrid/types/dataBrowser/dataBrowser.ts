@@ -539,8 +539,8 @@ export interface DatabaseTable {
    */
   foreignKeyRelations?: ForeignKeyRelation[];
   /**
-   * Multi-column UNIQUE constraints. `name` is set for an existing constraint
-   * and absent for one that still has to be created, optionally as `newName`.
+   * UNIQUE constraints. `name` is set for an existing constraint and absent
+   * for one that still has to be created, optionally as `newName`.
    */
   uniqueKeys?: { name?: string; newName?: string; columns: string[] }[];
 }

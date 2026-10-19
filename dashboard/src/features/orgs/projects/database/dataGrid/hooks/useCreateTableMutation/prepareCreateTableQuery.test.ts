@@ -114,7 +114,7 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('should prepare a query with unique keys', () => {
+  it('should prepare a query with a single-column unique constraint', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -125,10 +125,10 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'name',
           type: 'text',
-          isUnique: true,
         },
       ],
       primaryKey: ['id'],
+      uniqueKeys: [{ columns: ['name'] }],
     };
 
     const transaction = prepareCreateTableQuery({
@@ -139,7 +139,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name text UNIQUE NOT NULL, PRIMARY KEY (id));',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, PRIMARY KEY (id), UNIQUE (name));',
     );
   });
 

@@ -79,24 +79,20 @@ export default function prepareUpdateTableQuery({
     );
   }
 
-  // A multi-column constraint is listed on each of its columns, so its name repeats.
-  const originalUniqueConstraintNames = originalColumns.flatMap(
-    ({ uniqueConstraints }) => uniqueConstraints ?? [],
-  );
-  const multiColumnUniqueKeyNames = new Set(
-    originalUniqueConstraintNames.filter(
-      (name, index) => originalUniqueConstraintNames.indexOf(name) !== index,
-    ),
+  const originalUniqueKeyNames = new Set(
+    originalColumns.flatMap(({ uniqueConstraints }) => uniqueConstraints ?? []),
   );
 
   args = args.concat(
     ...updatedTable.columns.reduce<HasuraOperation[]>((updatedArgs, column) => {
+      // UNIQUE constraints come from `uniqueKeys`, not from each column.
       const baseVariables = {
         dataSource,
         schema,
         table: originalTableName,
         column: {
           ...column,
+          isUnique: false,
           isIdentity: updatedTable.identityColumn === column.name,
         },
         enableForeignKeys: false,
@@ -112,12 +108,7 @@ export default function prepareUpdateTableQuery({
         ...updatedArgs,
         ...prepareUpdateColumnQuery({
           ...baseVariables,
-          originalColumn: {
-            ...originalColumn,
-            uniqueConstraints: originalColumn.uniqueConstraints?.filter(
-              (name) => !multiColumnUniqueKeyNames.has(name),
-            ),
-          },
+          originalColumn: { ...originalColumn, isUnique: false },
         }),
       ];
     }, []),
@@ -196,7 +187,7 @@ export default function prepareUpdateTableQuery({
   const keptUniqueKeyNames = new Set(
     updatedTable.uniqueKeys?.map(({ name }) => name),
   );
-  const droppedUniqueKeyNames = [...multiColumnUniqueKeyNames].filter(
+  const droppedUniqueKeyNames = [...originalUniqueKeyNames].filter(
     (name) => !keptUniqueKeyNames.has(name),
   );
 

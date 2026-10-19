@@ -46,9 +46,15 @@ export interface BaseTableFormValues
    */
   foreignKeyRelations?: ForeignKeyRelation[];
   /**
-   * Multi-column UNIQUE constraints, as indices of their columns.
+   * UNIQUE constraints, as indices of their columns. A column's Unique
+   * checkbox adds or removes the constraint on that column alone.
    */
   uniqueKeys?: { name?: string; newName?: string; columnIndices: string[] }[];
+  /**
+   * IDs of the columns a unique index keeps unique on their own, without a
+   * UNIQUE constraint the form manages.
+   */
+  uniqueIndexColumnIds?: string[];
 }
 
 export interface BaseTableFormProps extends DialogFormProps {
