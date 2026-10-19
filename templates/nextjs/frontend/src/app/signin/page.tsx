@@ -70,7 +70,7 @@ export default async function SignIn({
   const { switchTo } = copy[chosen];
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-sm">
       <Card>
         {/* Centred, unlike the method links below: the heading and the way
             out at the foot address the visitor, the links in between are a
