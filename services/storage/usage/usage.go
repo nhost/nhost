@@ -4,6 +4,7 @@ package usage
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
@@ -57,7 +58,10 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) { ch <- c.desc }
 
 // Collect reads the counter on each scrape; read failures invalidate the scrape.
 func (c *Collector) Collect(ch chan<- prometheus.Metric) {
-	total, err := c.querier.Total(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) //nolint:mnd
+	defer cancel()
+
+	total, err := c.querier.Total(ctx)
 	if err != nil {
 		ch <- prometheus.NewInvalidMetric(c.desc, fmt.Errorf("collect storage usage: %w", err))
 		return

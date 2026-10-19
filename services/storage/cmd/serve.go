@@ -3,8 +3,10 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 	"runtime"
@@ -16,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cshum/vipsgen/vips"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
@@ -28,6 +31,9 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware/securityheaders"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
+	"github.com/nhost/nhost/services/storage/usage"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v3"
 )
 
@@ -47,6 +53,9 @@ const (
 	flagS3Bucket                 = "s3-bucket"
 	flagS3RootFolder             = "s3-root-folder"
 	flagS3DisableHTTPS           = "s3-disable-https"
+	flagPostgresSource           = "postgres-source"
+	flagMetricsBind              = "metrics-bind"
+	flagMaxTotalStorageSize      = "max-total-storage-size"
 	flagPostgresMigrations       = "postgres-migrations"
 	flagPostgresMigrationsSource = "postgres-migrations-source"
 	flagFastlyService            = "fastly-service"
@@ -393,6 +402,24 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Required: true,
 				Sources:  cli.EnvVars("POSTGRES_MIGRATIONS_SOURCE"),
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagPostgresSource,
+				Usage:    "persistent Postgres source for usage reads",
+				Category: "postgres",
+				Sources:  cli.EnvVars("POSTGRES_SOURCE"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagMetricsBind,
+				Usage:    "private metrics listener address (disabled when empty)",
+				Category: "server",
+				Sources:  cli.EnvVars("METRICS_BIND"),
+			},
+			&cli.Int64Flag{ //nolint:exhaustruct
+				Name:     flagMaxTotalStorageSize,
+				Usage:    "maximum uploaded bytes; uploads rejected when total >= limit (0 disables)",
+				Category: "server",
+				Sources:  cli.EnvVars("MAX_TOTAL_STORAGE_SIZE"),
+			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:     flagCDNCacheControl,
 				Usage:    "Enable CDN-Cache-Control header middleware",
@@ -491,6 +518,147 @@ func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
 	}()
 }
 
+var (
+	errMissingUsageSource = errors.New(
+		"usage feature requires postgres-source or postgres-migrations-source",
+	)
+	errNegativeStorageLimit = errors.New("max-total-storage-size must not be negative")
+	errInvalidUsageSource   = errors.New("open usage Postgres pool: invalid source")
+	errUnreadableUsage      = errors.New("probe storage usage counter: unreadable or missing")
+)
+
+func validateUsageStartup(source, fallback, bind string, limit int64) (string, error) {
+	if limit < 0 {
+		return "", errNegativeStorageLimit
+	}
+
+	return resolvePostgresSource(source, fallback, bind != "" || limit > 0)
+}
+
+func resolvePostgresSource(source, fallback string, enabled bool) (string, error) {
+	if !enabled {
+		return "", nil
+	}
+
+	if source != "" {
+		return source, nil
+	}
+
+	if fallback != "" {
+		return fallback, nil
+	}
+
+	return "", errMissingUsageSource
+}
+
+type usageConnection interface {
+	usage.Querier
+	Close()
+}
+type pgUsageConnection struct {
+	*usage.Reader
+
+	pool *pgxpool.Pool
+}
+
+func (p *pgUsageConnection) Close() { p.pool.Close() }
+
+//nolint:ireturn // The injected connection boundary permits startup failure tests without Postgres.
+func openUsage(ctx context.Context, source string) (usageConnection, error) {
+	pool, err := pgxpool.New(ctx, source)
+	if err != nil {
+		// pgxpool.New may echo the DSN on parse failure; do not wrap that error.
+		return nil, errInvalidUsageSource
+	}
+
+	return &pgUsageConnection{Reader: usage.NewReader(pool), pool: pool}, nil
+}
+
+//nolint:ireturn // The connection is retained for ordered shutdown.
+func startUsage(
+	ctx context.Context,
+	source, bind string,
+) (usageConnection, *http.Server, net.Listener, error) {
+	return startUsageWith(ctx, source, bind, openUsage)
+}
+
+//nolint:ireturn // Test fakes exercise the same startup path.
+func startUsageWith(
+	ctx context.Context,
+	source, bind string,
+	open func(context.Context, string) (usageConnection, error),
+) (usageConnection, *http.Server, net.Listener, error) {
+	if source == "" {
+		return nil, nil, nil, nil
+	}
+
+	pool, err := open(ctx, source)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	probeCtx, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
+	defer cancel()
+
+	if _, err := pool.Total(probeCtx); err != nil {
+		pool.Close()
+		return nil, nil, nil, fmt.Errorf("%w: %w", errUnreadableUsage, err)
+	}
+
+	if bind == "" {
+		return pool, nil, nil, nil
+	}
+
+	server := newMetricsServer(bind, pool)
+
+	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", bind) //nolint:exhaustruct
+	if err != nil {
+		pool.Close()
+		return nil, nil, nil, fmt.Errorf("bind metrics listener: %w", err)
+	}
+
+	return pool, server, listener, nil
+}
+
+func newMetricsServer(bind string, reader usage.Querier) *http.Server {
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(usage.NewCollector(reader))
+
+	mux := http.NewServeMux()
+	mux.Handle(
+		"/metrics",
+		promhttp.HandlerFor(
+			registry,
+			promhttp.HandlerOpts{ //nolint:exhaustruct // Other handler options retain upstream defaults.
+				ErrorHandling: promhttp.HTTPErrorOnError,
+			},
+		),
+	)
+
+	return &http.Server{ //nolint:exhaustruct
+		Addr:              bind,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	}
+}
+
+func shutdownUsage(ctx context.Context, metrics, main *http.Server, pool usageConnection) error {
+	var errs []error
+	for _, server := range []*http.Server{metrics, main} {
+		if server != nil {
+			if err := server.Shutdown(ctx); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if pool != nil {
+		pool.Close()
+	}
+
+	return errors.Join(errs...)
+}
+
 func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
@@ -528,6 +696,16 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		logger,
 	)
 
+	source, err := validateUsageStartup(
+		cmd.String(flagPostgresSource),
+		cmd.String(flagPostgresMigrationsSource),
+		cmd.String(flagMetricsBind),
+		cmd.Int64(flagMaxTotalStorageSize),
+	)
+	if err != nil {
+		return err
+	}
+
 	if err := applyMigrations(
 		ctx,
 		cmd.Bool(flagPostgresMigrations),
@@ -539,6 +717,19 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		logger,
 	); err != nil {
 		return err
+	}
+
+	pool, metricsServer, metricsListener, err := startUsage(
+		ctx,
+		source,
+		cmd.String(flagMetricsBind),
+	)
+	if err != nil {
+		return err
+	}
+
+	if metricsListener != nil {
+		defer metricsListener.Close()
 	}
 
 	metadataStorage := getMetadataStorage(
@@ -553,7 +744,27 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		logger,
 	)
 	if err != nil {
+		if pool != nil {
+			pool.Close()
+		}
+
 		return err
+	}
+
+	if metricsServer != nil {
+		go func() {
+			if err := metricsServer.Serve(
+				metricsListener,
+			); err != nil &&
+				!errors.Is(err, http.ErrServerClosed) {
+				logger.ErrorContext(
+					servCtx,
+					"metrics server failed",
+					slog.String("error", err.Error()),
+				)
+				cancel()
+			}
+		}()
 	}
 
 	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
@@ -572,8 +783,8 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 
 	logger.InfoContext(ctx, "shutting down server")
 
-	if err := server.Shutdown(ctx); err != nil {
-		logger.ErrorContext(ctx, "problem shutting down server", slog.String("error", err.Error()))
+	if err := shutdownUsage(ctx, metricsServer, server, pool); err != nil {
+		logger.ErrorContext(ctx, "problem shutting down servers", slog.String("error", err.Error()))
 	}
 
 	return nil
