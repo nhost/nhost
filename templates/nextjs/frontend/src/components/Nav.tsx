@@ -3,6 +3,7 @@ import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
 import NhostLogo from '@/components/NhostLogo';
 import SignOutButton from '@/components/SignOutButton';
+import UserAvatar from '@/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
 
@@ -25,9 +26,21 @@ export default async function Nav() {
 
         {user ? (
           <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/account">{user.email ?? 'Account'}</Link>
-            </Button>
+            {/* The picture rather than the address: the address is already
+                on the account page this leads to, and at nav width a long
+                one crowded the sign-out beside it. The link needs a name of
+                its own, since the avatar is decorative. */}
+            <Link
+              href="/account"
+              className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <UserAvatar
+                avatarUrl={user.avatarUrl}
+                displayName={user.displayName}
+                className="size-8 text-xs"
+              />
+              <span className="sr-only">Your account</span>
+            </Link>
             <SignOutButton />
           </div>
         ) : (
