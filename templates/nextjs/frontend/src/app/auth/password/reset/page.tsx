@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { passwordSignIn } from '@/app/auth/password/reset/passwordSignIn';
+import { passwordSignIn } from '@/app/auth/password/passwordSignIn';
 import ResetPasswordForm from '@/app/auth/password/reset/ResetPasswordForm';
 import { Button } from '@/components/ui/button';
 import {

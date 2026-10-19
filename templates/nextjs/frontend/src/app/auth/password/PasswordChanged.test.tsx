@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import ResetPasswordLayout from '@/app/auth/password/reset/layout';
-import PasswordChanged from '@/app/auth/password/reset/PasswordChanged';
+import PasswordChanged from '@/app/auth/password/PasswordChanged';
+import PasswordChangedLayout from '@/app/auth/password/PasswordChangedLayout';
 
 describe('password changed card', () => {
   it('sends them to sign in with the new password', () => {
@@ -14,11 +14,11 @@ describe('password changed card', () => {
 
   it('is not shown before a change', () => {
     const html = renderToStaticMarkup(
-      <ResetPasswordLayout>
-        <p>The reset page</p>
-      </ResetPasswordLayout>,
+      <PasswordChangedLayout>
+        <p>The page</p>
+      </PasswordChangedLayout>,
     );
 
-    expect(html).toBe('<p>The reset page</p>');
+    expect(html).toBe('<p>The page</p>');
   });
 });
