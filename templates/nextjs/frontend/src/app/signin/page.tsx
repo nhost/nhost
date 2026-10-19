@@ -72,7 +72,10 @@ export default async function SignIn({
   return (
     <div className="mx-auto max-w-md">
       <Card>
-        <CardHeader>
+        {/* Centred, unlike the method links below: the heading and the way
+            out at the foot address the visitor, the links in between are a
+            list to read down. */}
+        <CardHeader className="text-center">
           <CardTitle>{copy[chosen].title}</CardTitle>
           <CardDescription>{copy[chosen].description}</CardDescription>
         </CardHeader>
@@ -89,7 +92,7 @@ export default async function SignIn({
               </div>
             </Link>
           ))}
-          <p className="pt-2 text-muted-foreground text-sm">
+          <p className="pt-2 text-center text-muted-foreground text-sm">
             {switchTo.prompt}{' '}
             <Link
               href={`/signin${signInQuery(destination, switchTo.intent)}`}
