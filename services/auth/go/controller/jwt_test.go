@@ -36,6 +36,7 @@ var (
 	)
 )
 
+//nolint:maintidx // Broad pre-existing golden matrix also checks the two new session identifiers.
 func TestGetJWTFunc(t *testing.T) {
 	t.Parallel()
 
@@ -80,6 +81,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("hasura-auth"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -116,6 +118,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("some-issuer"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -152,6 +155,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("hasura-auth"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -195,6 +199,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": 1.708100135e+09,
 					"iss": "hasura-auth",
 					"sub": "585e21fc-3664-4d03-8539-69945342a4f4",
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -245,6 +250,7 @@ func TestGetJWTFunc(t *testing.T) {
 				"",
 				nil,
 				"hasura-auth",
+				"",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
@@ -253,6 +259,7 @@ func TestGetJWTFunc(t *testing.T) {
 			accessToken, _, err := jwtGetter.GetToken(
 				t.Context(),
 				tc.userID,
+				uuid.MustParse("ced6ca27-20ba-4149-af39-44a2c242e009"),
 				false,
 				tc.allowedRoles,
 				tc.defaultRole,
@@ -263,12 +270,27 @@ func TestGetJWTFunc(t *testing.T) {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
 
-			t.Logf("token = %v", accessToken)
-
 			decodedToken, err := jwtGetter.Validate(accessToken, tokenpurpose.Session)
 			if err != nil {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
+
+			claims, ok := decodedToken.Claims.(jwt.MapClaims)
+			if !ok {
+				t.Fatal("session claims are not MapClaims")
+			}
+
+			jti, ok := claims["jti"].(string)
+			if !ok {
+				t.Fatal("jti is not a string")
+			}
+
+			id, err := uuid.Parse(jti)
+			if err != nil || id.Version() != 4 {
+				t.Errorf("jti is not a UUID v4: %v", err)
+			}
+
+			delete(claims, "jti")
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"),
@@ -317,7 +339,15 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
-	signingGetter, err := controller.NewJWTGetter(jwtSecret, time.Hour, nil, "", nil, "hasura-auth")
+	signingGetter, err := controller.NewJWTGetter(
+		jwtSecret,
+		time.Hour,
+		nil,
+		"",
+		nil,
+		"hasura-auth",
+		"",
+	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
 	}
@@ -681,7 +711,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			ctrl := gomock.NewController(t)
 
 			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret, time.Hour, nil, tc.elevatedMode, tc.db(ctrl), "hasura-auth",
+				jwtSecret, time.Hour, nil, tc.elevatedMode, tc.db(ctrl), "hasura-auth", "",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)

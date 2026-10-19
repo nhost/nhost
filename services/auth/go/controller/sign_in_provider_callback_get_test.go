@@ -106,6 +106,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		"",
 		nil,
 		"hasura-auth",
+		"",
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)
@@ -1185,6 +1186,29 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			getControllerOpts: nil,
 		},
 
+		{
+			name:   "connect - rejects session with wrong audience",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, new(signTestToken(
+						t, jwtGetter, userIDConnect, tokenpurpose.Session,
+						map[string]any{"aud": "another-project"},
+					)), api.SignUpOptions{RedirectTo: new("http://localhost:3000/connect-success")}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+			getControllerOpts: []getControllerOptsFunc{withAudience("project")},
+		},
 		{
 			name:   "connect - user not found",
 			config: getConfig,

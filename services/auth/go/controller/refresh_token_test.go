@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"log/slog"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/mock/gomock"
 )
@@ -46,6 +48,47 @@ func getAnonymousUser(userID uuid.UUID) sql.AuthUser {
 		TicketExpiresAt:          pgtype.Timestamptz{},
 		Metadata:                 []byte("{}"),
 		WebauthnCurrentChallenge: pgtype.Text{},
+	}
+}
+
+func assertRefreshRotation(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	session api.Session,
+	userID, sessionID uuid.UUID,
+) {
+	t.Helper()
+
+	previous, _, err := jwtGetter.GetToken(
+		t.Context(), userID, sessionID, false, []string{"user", "me"}, "user", nil, slog.Default(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	previousToken, err := jwtGetter.Validate(previous, tokenpurpose.Session)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	refreshedToken, err := jwtGetter.Validate(session.AccessToken, tokenpurpose.Session)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	previousClaims, ok := previousToken.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("previous token claims are not MapClaims")
+	}
+
+	refreshedClaims, ok := refreshedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("refreshed token claims are not MapClaims")
+	}
+
+	if previousClaims["sid"] != refreshedClaims["sid"] ||
+		previousClaims["jti"] == refreshedClaims["jti"] {
+		t.Error("refresh must keep sid and rotate jti")
 	}
 }
 
@@ -320,6 +363,10 @@ func TestRefreshToken(t *testing.T) { //nolint:maintidx
 			if ok {
 				session := api.Session(resp200)
 				assertSession(t, jwtGetter, &session, tc.expectedJWT)
+
+				if tc.name == "user with valid refresh token" {
+					assertRefreshRotation(t, jwtGetter, session, userID, newTokenID)
+				}
 			}
 		})
 	}
