@@ -37,7 +37,6 @@ export default function prepareCreateTableQuery({
         return `${columnBase} ${format('GENERATED ALWAYS AS IDENTITY')}`;
       }
 
-      const uniqueClause = column.isUnique ? format('UNIQUE') : '';
       const notNullClause = !column.isNullable ? format('NOT NULL') : '';
 
       let defaultClause = '';
@@ -46,7 +45,7 @@ export default function prepareCreateTableQuery({
         defaultClause = format('DEFAULT %s', column.defaultValue);
       }
 
-      return [columnBase, defaultClause, uniqueClause, notNullClause]
+      return [columnBase, defaultClause, notNullClause]
         .filter(Boolean)
         .join(' ');
     })

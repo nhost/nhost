@@ -61,18 +61,9 @@ export default function EditTableForm({
   const foreignKeyRelations = data?.foreignKeyRelations;
   const candidateKeys = data?.candidateKeys;
 
-  // Not unique on its own if every key it belongs to spans several columns.
-  const dataGridColumns = (columns || []).map((column) => {
-    const normalizedColumn = normalizeDatabaseColumn(column);
-    const keys = (candidateKeys ?? []).filter(({ columns: keyColumns }) =>
-      keyColumns.includes(normalizedColumn.name),
-    );
-
-    return keys.length > 0 &&
-      keys.every(({ columns: keyColumns }) => keyColumns.length > 1)
-      ? { ...normalizedColumn, isUnique: false }
-      : normalizedColumn;
-  });
+  const dataGridColumns = (columns || []).map((column) =>
+    normalizeDatabaseColumn(column),
+  );
 
   const {
     mutateAsync: trackForeignKeyRelations,
@@ -138,10 +129,7 @@ export default function EditTableForm({
         ),
       );
       const uniqueKeys = (candidateKeys ?? [])
-        .filter(
-          ({ name, columns: keyColumns }) =>
-            keyColumns.length > 1 && uniqueConstraintNames.has(name),
-        )
+        .filter(({ name }) => uniqueConstraintNames.has(name))
         .map(({ name, columns: keyColumns }) => ({
           name,
           columnIndices: keyColumns.map(
@@ -149,6 +137,14 @@ export default function EditTableForm({
               `${dataGridColumns.findIndex(({ id }) => id === column)}`,
           ),
         }));
+      const uniqueIndexColumnIds = (candidateKeys ?? [])
+        .filter(
+          ({ name, isPrimary, columns: keyColumns }) =>
+            !isPrimary &&
+            keyColumns.length === 1 &&
+            !uniqueConstraintNames.has(name),
+        )
+        .map(({ columns: [column] }) => column);
 
       form.reset({
         name: originalTableName,
@@ -158,7 +154,6 @@ export default function EditTableForm({
           type: column.type,
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
-          isUnique: column.isUnique,
           uniqueConstraints: column.uniqueConstraints,
           comment: column.comment || '',
           isGenerated: column.isGenerated,
@@ -166,6 +161,7 @@ export default function EditTableForm({
         })),
         primaryKeyIndices,
         uniqueKeys,
+        uniqueIndexColumnIds,
         identityColumnIndex:
           identityColumnIndex > -1 ? identityColumnIndex : null,
         foreignKeyRelations,

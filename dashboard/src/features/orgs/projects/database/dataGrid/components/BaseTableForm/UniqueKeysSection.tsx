@@ -14,12 +14,14 @@ import {
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
-import { areStrArraysEqualOrdered } from '@/lib/utils';
+import { areStrArraysEqual, areStrArraysEqualOrdered } from '@/lib/utils';
 import type { BaseTableFormValues } from './BaseTableForm';
 
 type UniqueKey = NonNullable<BaseTableFormValues['uniqueKeys']>[number];
 
-const displayName = ({ name, newName }: UniqueKey) => name ?? newName;
+function displayName({ name, newName }: UniqueKey) {
+  return name ?? newName;
+}
 
 interface UniqueKeyDialogValues {
   name: string;
@@ -52,6 +54,11 @@ function UniqueKeyDialog({
   const isNameTaken = uniqueKeys.some(
     (otherKey, otherIndex) =>
       otherIndex !== index && displayName(otherKey) === name.trim(),
+  );
+  const isColumnSetTaken = uniqueKeys.some(
+    (otherKey, otherIndex) =>
+      otherIndex !== index &&
+      areStrArraysEqual(otherKey.columnIndices, columnIndices),
   );
 
   return (
@@ -93,11 +100,16 @@ function UniqueKeyDialog({
             </MultiSelectGroup>
           </MultiSelectContent>
         </MultiSelect>
+        {isColumnSetTaken && (
+          <p className="font-medium text-destructive text-sm">
+            A unique constraint on these columns already exists.
+          </p>
+        )}
       </div>
 
       <Button
         type="button"
-        disabled={columnIndices.length < 2 || isNameTaken}
+        disabled={columnIndices.length === 0 || isNameTaken || isColumnSetTaken}
         onClick={() => onSubmit?.({ name, columnIndices })}
       >
         {uniqueKey ? 'Save' : 'Add'}
@@ -121,17 +133,7 @@ export default function UniqueKeysSection() {
 
   function openUniqueKeyDialog(index?: number) {
     openDialog({
-      title: (
-        <span className="grid grid-flow-row">
-          <span>
-            {index === undefined ? 'Add a' : 'Edit'} Unique Constraint
-          </span>
-          <span className="text-muted-foreground text-sm">
-            Pick two or more columns. For a single column, use its Unique
-            checkbox.
-          </span>
-        </span>
-      ),
+      title: `${index === undefined ? 'Add a' : 'Edit'} Unique Constraint`,
       props: { PaperProps: { className: 'max-w-xl' } },
       component: (
         <UniqueKeyDialog
@@ -217,7 +219,7 @@ export default function UniqueKeysSection() {
           fields.length === 0 && 'border border-input',
           fields.length > 0 && 'justify-self-start',
         )}
-        disabled={columnNames.filter(Boolean).length < 2}
+        disabled={!columnNames.some(Boolean)}
         onClick={() => openUniqueKeyDialog()}
       >
         <Plus className="h-4 w-4" />
