@@ -35,9 +35,7 @@ describe('avatar form', () => {
     uploadAvatar.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
-    await act(async () =>
-      root.render(<AvatarForm avatarUrl="/api/avatar/current" />),
-    );
+    await act(async () => root.render(<AvatarForm />));
   });
 
   afterEach(() => {
@@ -45,10 +43,10 @@ describe('avatar form', () => {
     container.remove();
   });
 
-  it('shows the current avatar', () => {
-    expect(container.querySelector('img')?.getAttribute('src')).toBe(
-      '/api/avatar/current',
-    );
+  // The image belongs to ProfileSummary, which renders it once above this
+  // form. A second one here is what made the account page look doubled.
+  it('leaves the image to the summary that embeds it', () => {
+    expect(container.querySelector('img')).toBeNull();
   });
 
   it('only accepts raster images and names the field the action reads', () => {
