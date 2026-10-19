@@ -6,7 +6,8 @@ on:
 
 jobs:
   run:
-    runs-on: nhost-aarch64-2c4g
+    runs-on: nhost-aarch64-8c16g
+    timeout-minutes: 240
 
     permissions:
       contents: write

@@ -119,12 +119,15 @@ class RunnerSizingTests(unittest.TestCase):
         for workflow, name, runner in [
             ("ci_betterleaks.yaml", "scan", "nhost-aarch64-2c2g"),
             ("gen_nhost_code_review.yaml", "nhost-code-review", "nhost-aarch64-2c4g"),
-            ("gen_schedule_update_deps.yaml", "run", "nhost-aarch64-2c4g"),
+            ("gen_schedule_update_deps.yaml", "run", "nhost-aarch64-8c16g"),
             ("gen_security_updates.yaml", "run", "nhost-aarch64-2c4g"),
             ("gen_codeql-analysis.yml", "analyze", "nhost-x86_64-4c8g"),
         ]:
             with self.subTest(workflow=workflow):
                 self.assertEqual(job(workflow, name)["runs-on"], runner)
+        self.assertEqual(
+            job("gen_schedule_update_deps.yaml", "run")["timeout-minutes"], 240
+        )
         self.assertEqual(
             job("nixops_checks.yaml", "tests")["with"]["RUNNER_SIZE"], "8c16g"
         )

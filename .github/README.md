@@ -17,13 +17,13 @@ that tier by inspection.
 | --- | --- | --- |
 | `1c1g` | Approval/label/path checks, final-status polling, release metadata, changelogs, version-ref bumps, registry publishing | Git/API operations and streaming existing artifacts; no compilation or service containers |
 | `2c2g` | Secret scanning, small Stripe SDK checks/builds, Functions image assembly, nixops release image assembly | Bounded scanning or small JS/image packaging; no integration stack |
-| `2c4g` | Ordinary Go/SDK builds and checks, CLI cross-compilation, dependency/security updates, remote AI review | Compiler/type-analysis or package-manager headroom without running a service stack; AI inference is remote |
+| `2c4g` | Ordinary Go/SDK builds and checks, CLI cross-compilation, security updates, remote AI review | Compiler/type-analysis or package-manager headroom without running a service stack; AI inference is remote |
 | `2c4g` | Docs/landing Vercel builds; remote dashboard browser suites | Actual frontend/browser work, but no local Nhost stack |
 | `4c8g` | AI/auth/storage/constellation integration checks and CLI new-project tests | Databases, GraphQL, auth/storage and other containers coexist with compilation/lint/tests |
 | `4c8g` | Functions integration checks | Six runtime/package-manager containers, not just image packaging |
 | `4c8g` | Dashboard Next.js builds, multi-app example builds, local dashboard browser suite | Frontend build workers or the local Nhost stack need more memory |
 | `4c8g` | PostgreSQL builds/checks; CodeQL | Native/Rust extension builds and DB tests, or whole-repo extraction/query analysis |
-| `8c16g` | Linux nixops cache warming | Can compile missing custom toolchains and dependencies, unlike release image assembly |
+| `8c16g` | Linux nixops cache warming; scheduled flake/dependency refresh | Can compile missing custom toolchains and dependencies after a lockfile update, unlike release image assembly |
 
 In `wf_check.yaml`, the base `RUNNER_SIZE` is `2c4g`.
 `CHECK_RUNNER_SIZE` only overrides the matrix leg that actually runs checks;
@@ -201,12 +201,15 @@ system=$(nix eval --impure --raw --expr builtins.currentSystem)
 nix build ".#checks.$system.ci" --print-build-logs
 ```
 
-Use `path:.#checks.<system>.ci` while new files are untracked. This check is
-also included in `checks.<system>.nixops`; workflow/action changes trigger that
-project. Tests cover cache selection and failures, reusable-call contracts, PR
-approval/SHA gates, runner exceptions, variant matrices, development image tags,
-checks-before-stamping order, skipped artifact image imports, cached output reuse,
-project hooks, parallel Make startup ordering, bundle fidelity, safe manifest-driven
-synchronization, and interrupted-copy recovery. They run offline with mocked
-Nix/AWS/Docker interfaces; a real CI run remains necessary to validate runner
-availability, OIDC, registry access, and platform integration tests.
+Use `path:.#checks.<system>.ci` while new files are untracked. The Nix check
+provides PyYAML and the `CI_FILES`/`SYNC_CI` fixtures needed by the Python suite;
+a bare host `python3 -m unittest discover -s nixops/tests` may lack them. This
+check is also included in `checks.<system>.nixops`; workflow/action changes
+trigger that project. Tests cover cache selection and failures, reusable-call
+contracts, PR approval/SHA gates, runner exceptions, variant matrices,
+development image tags, checks-before-stamping order, skipped artifact image
+imports, cached output reuse, project hooks, parallel Make startup ordering,
+bundle fidelity, safe manifest-driven synchronization, and interrupted-copy
+recovery. They run offline with mocked Nix/AWS/Docker interfaces; a real CI run
+remains necessary to validate runner availability, OIDC, registry access, and
+platform integration tests.
