@@ -1,13 +1,14 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { MembersList } from '@/features/orgs/components/members/components/MembersList';
 import { PendingInvites } from '@/features/orgs/components/members/components/PendingInvites';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function OrgMembers() {
   const { org: { plan: { isFree } = {} } = {} } = useCurrentOrg();
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
+    <div className="flex min-h-full flex-col gap-4 bg-background p-4">
       <MembersList />
       {!isFree && <PendingInvites />}
     </div>
@@ -15,5 +16,9 @@ export default function OrgMembers() {
 }
 
 OrgMembers.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout isOrgPage>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };

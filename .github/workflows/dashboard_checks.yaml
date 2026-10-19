@@ -164,17 +164,3 @@ jobs:
       PLAYWRIGHT_REPORT_ENCRYPTION_KEY: ${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}
       NHOST_TEST_STAGING_SUBDOMAIN: ${{ secrets.NHOST_TEST_STAGING_SUBDOMAIN }}
       NHOST_TEST_STAGING_REGION: ${{ secrets.NHOST_TEST_STAGING_REGION }}
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs:
-      - detect-changes
-      - check-permissions
-    if: |
-      needs.detect-changes.outputs.should_run == 'true' &&
-      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test

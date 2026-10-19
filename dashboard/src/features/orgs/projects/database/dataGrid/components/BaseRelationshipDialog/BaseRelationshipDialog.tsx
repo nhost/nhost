@@ -111,10 +111,7 @@ export default function BaseRelationshipDialog({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(async (values) => {
-              await onSubmit(values);
-              setOpen(false);
-            })}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-6 text-foreground"
           >
             <FormInput

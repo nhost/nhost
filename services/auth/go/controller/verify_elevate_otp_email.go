@@ -23,6 +23,11 @@ func (ctrl *Controller) VerifyElevateOTPEmail( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
+	if !hasVerifiedEmail(user) {
+		logger.WarnContext(ctx, "user has no usable email elevation factor")
+		return ctrl.sendError(ErrUnverifiedUser), nil
+	}
+
 	freshUser, apiErr := ctrl.wf.VerifyEmailOTP(
 		ctx, user.Email.String, request.Body.Otp, logger,
 	)

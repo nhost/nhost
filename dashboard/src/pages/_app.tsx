@@ -1,5 +1,4 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
@@ -76,9 +75,7 @@ function MyApp({
                           color="#0052cd"
                           options={{ showSpinner: false }}
                         />
-                        <TreeNavStateProvider>
-                          {getLayout(<Component {...pageProps} />)}
-                        </TreeNavStateProvider>
+                        {getLayout(<Component {...pageProps} />)}
                       </ElevationProvider>
                     </DialogProvider>
                   </TooltipProvider>

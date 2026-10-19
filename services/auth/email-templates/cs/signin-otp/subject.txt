@@ -1,1 +1,1 @@
-Váš ověřovací kód
+Jednorázové heslo pro ${redirectTo}

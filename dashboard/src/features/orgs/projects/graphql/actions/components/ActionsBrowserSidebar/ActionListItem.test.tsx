@@ -7,13 +7,7 @@ import {
   createExportActionsMetadataHandler,
   sampleMutationAction,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
-import {
-  mockPointerEvent,
-  queryClient,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { queryClient, render, screen, TestUserEvent } from '@/tests/testUtils';
 import ActionListItem from './ActionListItem';
 
 const mocks = vi.hoisted(() => ({
@@ -88,7 +82,6 @@ describe('ActionListItem', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     queryClient.clear();
     mockRouter();
   });

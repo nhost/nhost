@@ -58,17 +58,3 @@ jobs:
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
       NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs:
-      - detect-changes
-      - check-permissions
-    if: |
-      needs.detect-changes.outputs.should_run == 'true' &&
-      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test

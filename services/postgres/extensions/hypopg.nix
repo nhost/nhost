@@ -2,13 +2,13 @@
 
 buildPGXSExtension rec {
   pname = "hypopg";
-  version = "1.4.2";
+  version = "1.4.3";
 
   src = pkgs.fetchFromGitHub {
     owner = "HypoPG";
     repo = "hypopg";
     rev = version;
-    hash = "sha256-J1ltvNHB2v2I9IbYjM8w2mhXvBX31NkMasCL0O7bV8w=";
+    hash = "sha256-d8j1mvn/9R8LEQCqstBxddRqQYZ9k4hcOrlQp7cPtYI=";
   };
 
   passthru = {

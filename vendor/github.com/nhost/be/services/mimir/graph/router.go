@@ -46,6 +46,7 @@ func SetupRouter(
 			},
 		),
 	)
+	srv.SetErrorPresenter(nhgraphql.ErrorPresenterWithoutLocations)
 	srv.AddTransport(transport.POST{}) //nolint:exhaustruct
 	srv.Use(extension.Introspection{})
 

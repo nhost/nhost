@@ -42,8 +42,8 @@ func (t *Cloud) Register(server *server.MCPServer) {
 			URI:  CloudResourceURI,
 			Name: "nhost-cloud",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{"agent"},
-				Priority: 9.0, //nolint:mnd
+				Audience: []mcp.Role{mcp.RoleAssistant},
+				Priority: 1.0,
 			},
 			Description: CloudDescription,
 			MIMEType:    "text/plain",

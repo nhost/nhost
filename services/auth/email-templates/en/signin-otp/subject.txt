@@ -1,1 +1,1 @@
-Your verification code
+One-time password for ${redirectTo}

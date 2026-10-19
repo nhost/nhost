@@ -1,3 +1,4 @@
+import { filterValidationSchema } from '@/features/orgs/projects/common/utils/permissions/validationSchemas/basePermissionValidationSchema';
 import type {
   ConditionNode,
   ExistsNode,
@@ -5,8 +6,6 @@ import type {
   InvalidNode,
   RelationshipNode,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils/types';
-
-import { filterValidationSchema } from './basePermissionValidationSchema';
 
 function condition(overrides?: Partial<ConditionNode>): ConditionNode {
   return {
@@ -338,6 +337,110 @@ describe('filterValidationSchema', () => {
       const filter = group('_implicit', [group('_and', [], 'g2')]);
       await expect(filterValidationSchema.validate(filter)).rejects.toThrow(
         /at least one rule/,
+      );
+    });
+
+    it('rejects an empty AND group beside a valid condition', async () => {
+      const filter = group('_or', [group('_and', [], 'g2'), condition()]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('rejects an empty OR group beside a valid condition', async () => {
+      const filter = group('_or', [group('_or', [], 'g2'), condition()]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('rejects an empty NOT group beside a valid condition', async () => {
+      const filter = group('_or', [group('_not', [], 'g2'), condition()]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('rejects an empty implicit group beside a valid condition', async () => {
+      const filter = group('_or', [group('_implicit', [], 'g2'), condition()]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('reports the path of a deeply nested empty group', async () => {
+      const filter = group('_or', [
+        condition(),
+        group('_and', [group('_not', [group('_or', [], 'g4')], 'g3')], 'g2'),
+      ]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[1].children[0].children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('rejects an empty nested group beside a valid condition inside exists', async () => {
+      const exists: ExistsNode = {
+        type: 'exists',
+        id: 'e1',
+        schema: 'public',
+        table: 'users',
+        where: group('_or', [group('_and', [], 'g3'), condition()], 'g2'),
+      };
+      const filter = group('_implicit', [exists]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].where.children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('rejects an empty nested group beside a valid condition inside a relationship', async () => {
+      const relationship: RelationshipNode = {
+        type: 'relationship',
+        id: 'r1',
+        relationship: 'author',
+        child: group('_or', [group('_and', [], 'g3'), condition()], 'g2'),
+      };
+      const filter = group('_implicit', [relationship]);
+
+      await expect(
+        filterValidationSchema.validate(filter),
+      ).rejects.toMatchObject({
+        path: 'children[0].child.children[0].children',
+        message: 'Add a condition or remove this empty group.',
+      });
+    });
+
+    it('accepts completed nested boolean groups', async () => {
+      const filter = group('_or', [
+        group('_and', [condition()], 'g2'),
+        group('_not', [condition({ id: 'c2', column: 'name' })], 'g3'),
+      ]);
+
+      await expect(filterValidationSchema.validate(filter)).resolves.toEqual(
+        filter,
       );
     });
 

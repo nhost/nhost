@@ -12,6 +12,86 @@ const hasuraMetadataQuery = http.post(
           {
             name: 'default',
             kind: 'postgres',
+            native_queries: [
+              {
+                root_field_name: 'search_authors',
+                type: 'query',
+                arguments: {
+                  search: {
+                    type: 'text',
+                    nullable: false,
+                    description: '  Search text  ',
+                  },
+                  blank_description: {
+                    type: 'uuid',
+                    nullable: true,
+                    description: '   ',
+                  },
+                },
+                code: 'SELECT * FROM authors WHERE name ILIKE {{search}}',
+                returns: 'author_result',
+                description: 'Searches authors',
+                object_relationships: [
+                  {
+                    name: 'featured_author',
+                    using: {
+                      column_mapping: { id: 'id' },
+                      insertion_order: null,
+                      remote_native_query: 'featured_author',
+                    },
+                  },
+                ],
+                array_relationships: [
+                  {
+                    name: 'related_authors',
+                    using: {
+                      column_mapping: { id: 'id' },
+                      insertion_order: 'after_parent',
+                      remote_native_query: 'search_authors',
+                    },
+                  },
+                ],
+              },
+            ],
+            logical_models: [
+              {
+                name: 'author_result',
+                description: '  Author records returned by search  ',
+                fields: [
+                  {
+                    name: 'id',
+                    type: { scalar: 'uuid', nullable: false },
+                    description: '  Primary identifier  ',
+                  },
+                  {
+                    name: 'display_name',
+                    type: { scalar: 'text', nullable: true },
+                    description: '   ',
+                  },
+                ],
+                select_permissions: [
+                  {
+                    role: 'user',
+                    permission: { columns: '*', filter: {} },
+                  },
+                ],
+              },
+              {
+                name: 'author_collection',
+                fields: [
+                  {
+                    name: 'authors',
+                    type: {
+                      array: {
+                        logical_model: 'author_result',
+                        nullable: false,
+                      },
+                      nullable: false,
+                    },
+                  },
+                ],
+              },
+            ],
             tables: [
               {
                 table: { name: 'authors', schema: 'public' },

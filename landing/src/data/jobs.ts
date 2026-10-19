@@ -120,6 +120,7 @@ export const jobs: Job[] = [
     slug: 'infrastructure-engineer',
     title: 'Infrastructure Engineer',
     shortTitle: 'Infrastructure',
+    hidden: true,
     department: 'Engineering',
     location: 'Remote',
     type: 'Full-time',

@@ -7,6 +7,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -19,7 +21,17 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	jwtTokenFn := func() *jwt.Token {
+	newJWTToken := func(elevatedClaim string) *jwt.Token {
+		customClaims := map[string]any{
+			"x-hasura-allowed-roles":     []any{"user", "me"},
+			"x-hasura-default-role":      "user",
+			"x-hasura-user-id":           userID.String(),
+			"x-hasura-user-is-anonymous": "false",
+		}
+		if elevatedClaim != "" {
+			customClaims["x-hasura-auth-elevated"] = elevatedClaim
+		}
+
 		return &jwt.Token{
 			Raw:    "",
 			Method: jwt.SigningMethodHS256,
@@ -28,53 +40,91 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				"typ": "JWT",
 			},
 			Claims: jwt.MapClaims{
-				"exp": float64(time.Now().Add(900 * time.Second).Unix()),
-				"https://hasura.io/jwt/claims": map[string]any{
-					"x-hasura-allowed-roles":     []any{"user", "me"},
-					"x-hasura-default-role":      "user",
-					"x-hasura-user-id":           userID.String(),
-					"x-hasura-user-is-anonymous": "false",
-				},
-				"iat": float64(time.Now().Unix()),
-				"iss": "hasura-auth",
-				"sub": userID.String(),
+				"exp":                          float64(time.Now().Add(900 * time.Second).Unix()),
+				"https://hasura.io/jwt/claims": customClaims,
+				"iat":                          float64(time.Now().Unix()),
+				"iss":                          "hasura-auth",
+				"sub":                          userID.String(),
 			},
 			Signature: []byte{},
 			Valid:     true,
 		}
 	}
+	jwtTokenFn := func() *jwt.Token { return newJWTToken("") }
+	jwtTokenWithElevatedClaimFn := func(claim string) func() *jwt.Token {
+		return func() *jwt.Token {
+			return newJWTToken(claim)
+		}
+	}
 
-	totpUser := sql.AuthUser{
-		ID:            userID,
-		ActiveMfaType: sql.Text("totp"),
-		TotpSecret:    sql.Text("encrypted-secret"),
-	}
-	plainUser := sql.AuthUser{ID: userID}
-	emailUser := sql.AuthUser{ID: userID, Email: sql.Text("jane@acme.com")}
-	smsUser := sql.AuthUser{
-		ID:                  userID,
-		PhoneNumber:         sql.Text("+1234567890"),
-		PhoneNumberVerified: true,
-	}
+	yes := pgtype.Bool{Bool: true, Valid: true}
+	totpUser := sql.GetElevationMethodsRow{HasTotp: yes}
+	keyUser := sql.GetElevationMethodsRow{HasSecurityKey: true}
+	keyAndTOTPUser := sql.GetElevationMethodsRow{HasSecurityKey: true, HasTotp: yes}
+	plainUser := sql.GetElevationMethodsRow{}
+	emailUser := sql.GetElevationMethodsRow{HasVerifiedEmail: yes}
+	smsUser := sql.GetElevationMethodsRow{HasVerifiedPhoneNumber: yes}
 
 	cases := []testRequest[
 		api.GetElevationMethodsRequestObject,
 		api.GetElevationMethodsResponseObject,
 	]{
 		{
-			name:   "both factors available",
+			name:   "already elevated session",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
+				SessionElevated:   true,
+			},
+			jwtTokenFn: jwtTokenWithElevatedClaimFn(userID.String()),
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+		{
+			name:   "elevated claim belongs to another user",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
+				SessionElevated:   false,
+			},
+			jwtTokenFn: jwtTokenWithElevatedClaimFn("d0902ee3-d160-4853-af6a-8d4b6248117e"),
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+		{
+			name:   "both factors available",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(keyAndTOTPUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods: []api.ElevationMethod{
 					api.ElevationMethodWebauthn,
 					api.ElevationMethodTotp,
@@ -93,14 +143,14 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(keyUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -116,14 +166,14 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -139,14 +189,14 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(plainUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: false,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -165,16 +215,16 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// Security keys are not even counted when WebAuthn is off.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(keyAndTOTPUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -195,17 +245,16 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// The user row is not read when no user-row-backed factor
-				// (TOTP, email OTP, SMS OTP) is on.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(keyAndTOTPUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -221,8 +270,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(emailUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(emailUser, nil)
 
 				return mock
 			},
@@ -230,6 +278,32 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
 				Methods:           []api.ElevationMethod{api.ElevationMethodOtpEmail},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name:   "unverified email is not a factor",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: false, Valid: true},
+					}, nil,
+				)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,
@@ -251,8 +325,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				// not a factor the user can elevate with.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(emailUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(emailUser, nil)
 
 				return mock
 			},
@@ -274,8 +347,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(smsUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(smsUser, nil)
 
 				return mock
 			},
@@ -283,34 +355,6 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
 				Methods:           []api.ElevationMethod{api.ElevationMethodOtpSms},
-			},
-			jwtTokenFn:  jwtTokenFn,
-			expectedJWT: nil,
-			getControllerOpts: []getControllerOptsFunc{
-				withElevationMode("recommended"),
-			},
-		},
-
-		{
-			name:   "unverified phone number is not a factor",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// A number nobody has proved control of cannot prove identity,
-				// so it must not be advertised as a way to elevate.
-				mock := mock.NewMockDBClient(ctrl)
-
-				user := smsUser
-				user.PhoneNumberVerified = false
-
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
-
-				return mock
-			},
-			request: api.GetElevationMethodsRequestObject{},
-			expectedResponse: api.GetElevationMethods200JSONResponse{
-				ElevationRequired: false,
-				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,
@@ -328,13 +372,11 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// SMS passwordless sign-in stays on in getConfig; only the OTP
-				// SMS capability is off, so the phone number is not a factor
-				// the user can elevate with.
+				// The same flag controls SMS passwordless sign-in and elevation.
+				// With it disabled, a verified phone is not an available elevation method.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(smsUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(smsUser, nil)
 
 				return mock
 			},
@@ -358,14 +400,14 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				// genuinely available even though nothing demands it.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: false,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -381,14 +423,14 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(plainUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -399,25 +441,43 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "totp active but no secret is not a usable factor",
+			name:   "unset mode fails closed, like the middleware",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// ElevateTotp refuses this user with no-totp-secret, so
-				// advertising TOTP would demand an impossible elevation.
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
-					ID:            userID,
-					ActiveMfaType: sql.Text("totp"),
-				}, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(plainUser, nil)
 
 				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				ElevationRequired: false,
+				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:        jwtTokenFn,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "user not found",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{}, pgx.ErrNoRows,
+				)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,
@@ -427,34 +487,13 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "unset mode fails closed, like the middleware",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
-
-				return mock
-			},
-			request: api.GetElevationMethodsRequestObject{},
-			expectedResponse: api.GetElevationMethods200JSONResponse{
-				ElevationRequired: true,
-				Methods:           []api.ElevationMethod{},
-			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
-		},
-
-		{
 			name:   "database error",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(
-					int64(0), errors.New("database error"), //nolint:err113
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{}, errors.New("database error"), //nolint:err113
 				)
 
 				return mock

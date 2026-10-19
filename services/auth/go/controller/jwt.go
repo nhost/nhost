@@ -482,7 +482,7 @@ func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.
 func (j *JWTGetter) verifyElevatedClaim(
 	ctx context.Context,
 	token *jwt.Token,
-	requestPath string,
+	routePath string,
 ) (bool, error) {
 	if j.elevatedClaimMode == elevatedClaimDisabled {
 		return true, nil
@@ -498,11 +498,11 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error parsing user id: %w", err)
 	}
 
-	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
+	if j.hasElevatedClaim(token) {
 		return true, nil
 	}
 
-	if !j.isElevatedClaimOptional(requestPath) {
+	if !j.isElevatedClaimOptional(routePath) {
 		return false, nil
 	}
 
@@ -514,48 +514,48 @@ func (j *JWTGetter) verifyElevatedClaim(
 	return len(methods) == 0, nil
 }
 
+func (j *JWTGetter) hasElevatedClaim(token *jwt.Token) bool {
+	subject, err := token.Claims.GetSubject()
+
+	return err == nil && subject != "" &&
+		j.GetCustomClaim(token, "x-hasura-auth-elevated") == subject
+}
+
 func (j *JWTGetter) availableElevationMethods(
 	ctx context.Context,
 	userID uuid.UUID,
 ) ([]api.ElevationMethod, error) {
+	if !j.webauthnEnabled && !j.totpEnabled && !j.otpEmailEnabled && !j.otpSmsEnabled {
+		return nil, nil
+	}
+
+	row, err := j.db.GetElevationMethods(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting elevation methods: %w", err)
+	}
+
 	var methods []api.ElevationMethod
 
-	if j.webauthnEnabled {
-		n, err := j.db.CountSecurityKeysUser(ctx, userID)
-		if err != nil {
-			return nil, fmt.Errorf("error checking if user has security keys: %w", err)
-		}
-
-		if n > 0 {
-			methods = append(methods, api.ElevationMethodWebauthn)
-		}
+	if j.webauthnEnabled && row.HasSecurityKey {
+		methods = append(methods, api.ElevationMethodWebauthn)
 	}
 
-	if !j.totpEnabled && !j.otpEmailEnabled && !j.otpSmsEnabled {
-		return methods, nil
-	}
-
-	user, err := j.db.GetUser(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting user: %w", err)
-	}
-
-	if j.totpEnabled && hasActiveTOTP(user) {
+	if j.totpEnabled && row.HasTotp.Bool {
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && hasEmail(user) {
+	if j.otpEmailEnabled && row.HasVerifiedEmail.Bool {
 		methods = append(methods, api.ElevationMethodOtpEmail)
 	}
 
-	if j.otpSmsEnabled && hasVerifiedPhoneNumber(user) {
+	if j.otpSmsEnabled && row.HasVerifiedPhoneNumber.Bool {
 		methods = append(methods, api.ElevationMethodOtpSms)
 	}
 
 	return methods, nil
 }
 
-func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
+func (j *JWTGetter) isElevatedClaimOptional(routePath string) bool {
 	return j.elevatedClaimMode == elevatedClaimRecommended ||
 		slices.Contains(
 			[]string{
@@ -563,7 +563,7 @@ func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
 				"/user/webauthn/verify",
 				"/mfa/totp/generate",
 			},
-			requestPath,
+			routePath,
 		)
 }
 
@@ -616,12 +616,12 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {
-		var requestPath string
-		if input.RequestValidationInput.Request.URL != nil {
-			requestPath = input.RequestValidationInput.Request.URL.Path
+		var routePath string
+		if input.RequestValidationInput.Route != nil {
+			routePath = input.RequestValidationInput.Route.Path
 		}
 
-		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
+		found, err := j.verifyElevatedClaim(ctx, jwtToken, routePath)
 		if err != nil {
 			slog.WarnContext(
 				ctx, "error verifying elevated claim", slog.String("error", err.Error()),

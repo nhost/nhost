@@ -28,6 +28,9 @@ nhost
 ├── config.yaml
 ├── emails
 │   ├── en
+│   │   ├── elevate-otp
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
 │   │   ├── email-confirm-change
 │   │   │   ├── body.html
 │   │   │   └── subject.txt
@@ -46,6 +49,9 @@ nhost
 │   │   └── signin-passwordless-sms
 │   │       └── body.txt
 │   └── fr
+│       ├── elevate-otp
+│       │   ├── body.html
+│       │   └── subject.txt
 │       ├── email-confirm-change
 │       │   ├── body.html
 │       │   └── subject.txt
@@ -83,8 +89,16 @@ A user's language is stored in the `auth.users` table in the `locale` column. Th
 The default value of the `locale` column is `en`
 :::
 
+For folder-based email and SMS templates, Auth checks the following in order:
+
+1. The requested template in the user's locale.
+2. The same template in the configured default locale (`AUTH_LOCALE_DEFAULT`).
+3. The same template from Auth's built-in English defaults.
+
+Custom templates take priority over the built-in defaults. If either `body.html` or `subject.txt` is missing, the entire email falls back to the next step. Auth can also use its built-in defaults without a templates folder.
+
 :::caution
-You can use two or three character locales, or even mix them across users, but the service will not attempt to map between formats. For example, if a user has `locale` set to `eng`, the service will look for templates in the `eng` folder and will not fall back to `en`. Ensure that a template folder exists for each locale format you use.
+Locales are matched exactly: `eng` and `en` refer to different template folders. If a requested template is unavailable, the fallback order above applies.
 :::
 
 ### Template Variables
@@ -146,10 +160,11 @@ For instance:
 - se.email-verify
 - se.password-reset
 
-Additionally, if you want to use passwordless sign-in or email OTP for sign-in and session elevation, you need to create the following templates as well:
+Additionally, if you want to use passwordless sign-in, email OTP sign-in, or session elevation via email OTP, create the corresponding templates as well:
 
 - $locale.signin-passwordless
 - $locale.signin-otp
+- $locale.elevate-otp
 
 After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
 

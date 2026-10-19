@@ -271,7 +271,7 @@ test('disabling resources surfaces the destructive confirm dialog', async () => 
   ).toBeInTheDocument();
   expect(
     within(dialog).getByRole('button', { name: /^confirm$/i }),
-  ).toHaveClass('bg-destructive');
+  ).toHaveClass('btn-emboss-danger');
 });
 
 function pickPresetButton(label: string) {

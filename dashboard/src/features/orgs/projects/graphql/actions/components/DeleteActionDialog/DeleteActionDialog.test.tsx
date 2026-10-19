@@ -9,7 +9,6 @@ import {
   sampleMutationAction,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -62,7 +61,6 @@ describe('DeleteActionDialog', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     migrationBody = null;
     mocks.push.mockClear();
     queryClient.clear();

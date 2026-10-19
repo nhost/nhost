@@ -66,11 +66,7 @@ function SignUpWithSecurityKeyForm() {
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          variant="outline"
-          className="!bg-transparent w-full"
-        >
+        <Button type="submit" className="w-full">
           Sign Up
         </Button>
       </form>

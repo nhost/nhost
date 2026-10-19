@@ -39,10 +39,39 @@ check-dry-run:  ## Returns the derivation of the check
 	@nix build --dry-run --json .\#checks.$(ARCH)-$(OS).postgres | jq -r '.[].outputs.out'
 
 
+.PHONY: _check-pre
+_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades
+
+
 .PHONY: check-docker
-check-docker:  ## Run check in the development environment
+check-docker:  ## Run checks in the development environment
+	# The pg_durable HTTP worker must be able to verify HTTPS certificates.
+	docker exec -it postgres-tests sh -c 'test -s "$${SSL_CERT_FILE:?}"'
 	docker exec -it postgres-tests psql -U postgres \
 		-f /tests/plugins.sql --no-psqlrc -1 -d local -v "ON_ERROR_STOP=1"
+	# Do not add -1: the readiness procedure commits between worker-state polls.
+	docker exec -it postgres-tests psql -U postgres \
+		-f /tests/pg_durable_http.sql --no-psqlrc -d local -v "ON_ERROR_STOP=1"
+
+
+.PHONY: check-pitr-container
+check-pitr-container:  ## Verify PITR preflight uses the image's writable temp directory
+	./tests/pitr-restore-container.sh
+
+
+.PHONY: check-pitr-restart
+check-pitr-restart:  ## Verify a promoted PITR target survives normal restart
+	./tests/pitr-restart-container.sh
+
+
+.PHONY: check-graceful-shutdown
+check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
+	./tests/test-graceful-shutdown.sh
+
+
+.PHONY: check-extension-upgrades
+check-extension-upgrades:  ## Verify extensions upgrade from the previous image
+	./tests/test-extension-upgrades.sh
 
 
 .PHONY: _dev-env-build
@@ -51,17 +80,18 @@ _dev-env-build: build-docker-image
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	docker rm -f postgres-tests || true
+	docker rm -fv postgres-tests || true
 	docker run -d --name postgres-tests \
-		-v $(shell pwd)/tests:/tests:ro --rm -p 5432:5432 \
+		-v $(shell pwd)/tests:/tests:ro -p 5432:5432 \
 		-e POSTGRES_DEV_INSECURE=1 \
+		-e SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm \
 		--health-cmd="pg_isready -U postgres -d postgres -q" \
 		nhost/postgres:$(VERSION)
 
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	docker rm -f postgres-tests || true
+	docker rm -fv postgres-tests || true
 
 
 .PHONY: dev-env-connect

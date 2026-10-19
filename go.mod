@@ -21,7 +21,7 @@ require (
 	github.com/cshum/vipsgen v1.2.1
 	github.com/docker/docker v28.3.3+incompatible
 	github.com/gabriel-vasile/mimetype v1.4.9
-	github.com/getkin/kin-openapi v0.144.0
+	github.com/getkin/kin-openapi v0.149.0
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-git/go-git/v5 v5.19.2
@@ -39,7 +39,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/mark3labs/mcp-go v0.41.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069
+	github.com/nhost/be v0.0.0-20260930081136-7060c0560195
 	github.com/oapi-codegen/runtime v1.4.1
 	github.com/openai/openai-go v1.12.0
 	github.com/pb33f/libopenapi v0.21.12
@@ -55,7 +55,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.34
 	github.com/wI2L/jsondiff v0.7.0
 	go.uber.org/automaxprocs v1.6.0
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.57.0
 	golang.org/x/mod v0.41.0
@@ -201,7 +201,7 @@ require (
 	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.2 // indirect
 	github.com/sosodev/duration v1.4.0 // indirect
@@ -229,7 +229,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.14.0 // indirect

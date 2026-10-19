@@ -356,7 +356,7 @@ export default function CustomGraphQLRootFieldsSection({
                   Reset to default
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   type="button"
                   onClick={handleMakeCamelCaseClick}
                   disabled={isTableCustomizationError || isSubmitting}

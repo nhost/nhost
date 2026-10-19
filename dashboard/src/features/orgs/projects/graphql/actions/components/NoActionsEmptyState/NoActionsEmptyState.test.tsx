@@ -4,13 +4,7 @@ import { vi } from 'vitest';
 import { mockRouter as baseRouter, mockMatchMediaValue } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { createExportActionsMetadataHandler } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
-import {
-  mockPointerEvent,
-  queryClient,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { queryClient, render, screen, TestUserEvent } from '@/tests/testUtils';
 import NoActionsEmptyState from './NoActionsEmptyState';
 
 const mocks = vi.hoisted(() => ({
@@ -67,7 +61,6 @@ describe('NoActionsEmptyState', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     queryClient.clear();
     mockRouter();
   });

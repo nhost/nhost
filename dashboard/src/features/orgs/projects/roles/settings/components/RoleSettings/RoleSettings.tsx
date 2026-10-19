@@ -251,7 +251,7 @@ export default function RoleSettings() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <p className="inline-grid h-6 grid-flow-col items-center gap-1 font-medium">
+                    <div className="inline-grid h-6 grid-flow-col items-center gap-1 font-medium">
                       {role.name}
 
                       {role.isSystemRole && <LockIcon className="h-4 w-4" />}
@@ -259,7 +259,7 @@ export default function RoleSettings() {
                       {defaultRole === role.name && (
                         <Badge variant="secondary">Default</Badge>
                       )}
-                    </p>
+                    </div>
                   </div>
 
                   <div

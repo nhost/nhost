@@ -1,5 +1,5 @@
 import { SquarePen } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseRelationshipDialog } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog';
@@ -11,6 +11,7 @@ import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/dat
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { RemoteRelationshipDefinition } from '@/utils/hasura-api/generated/schemas';
+import { triggerToast } from '@/utils/toast';
 
 export interface EditRemoteRelationshipButtonProps {
   source: string;
@@ -33,21 +34,24 @@ export default function EditRemoteRelationshipButton({
   const { mutateAsync: createRemoteRelationship } =
     useCreateRemoteRelationshipMutation();
 
-  const initialValues = parseRemoteRelationshipFormDefaultValues({
-    definition: relationshipDefinition,
-    relationshipName,
-    schema,
-    tableName,
-    source,
-  });
+  const initialValues = useMemo(
+    () =>
+      parseRemoteRelationshipFormDefaultValues({
+        definition: relationshipDefinition,
+        relationshipName,
+        schema,
+        tableName,
+        source,
+      }),
+    [relationshipDefinition, relationshipName, schema, tableName, source],
+  );
 
   const handleUpdateRemoteRelationship = async (
     values: BaseRelationshipFormValues,
   ) => {
     if (!resourceVersion) {
-      throw new Error(
-        'Metadata is not ready yet. Please try again in a moment.',
-      );
+      triggerToast('Metadata is not ready yet. Please try again in a moment.');
+      return;
     }
 
     const args = isTableRelationshipFormValues(values)
@@ -60,6 +64,7 @@ export default function EditRemoteRelationshipButton({
           resourceVersion,
           args,
         });
+        setOpen(false);
       },
       {
         loadingMessage: 'Saving relationship...',

@@ -39,6 +39,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 - No comments unless explaining complex logic — code should be self-explanatory.
 - No inline JSX comments like `{/* Section Name */}` to label sections.
+- In `.mdx` files, HTML `<!-- ... -->` comments are a parse error in MDX v3 (`@mdx-js/mdx` 3, used by `@astrojs/mdx` 7). When comments are necessary, use `{/* ... */}` instead, as with the generated-block markers in `docs/src/content/docs/products/database/extensions.mdx`.
 
 ---
 
@@ -48,9 +49,10 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Imports
 
-- **Absolute imports only**, via the `@/` alias (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
-- **No relative imports** (`../`, `./`) — Biome enforces this.
-- Group imports: React → external libraries → absolute imports → absolute type imports.
+- Use **absolute imports via `@/`** for imports outside the current directory (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
+- **Sibling imports may use `./...`**. Example: `import ConditionRow from './ConditionRow';`. Preserve existing sibling imports when making unrelated changes.
+- **No parent-directory imports** (`../...`) — Biome enforces this.
+- Group imports: React → external libraries → absolute imports → absolute type imports → sibling imports.
 - Type-only imports use `import type { Foo } from '@/types'`.
 - Imports from `@testing-library/react*` are restricted — use `@/tests/testUtils`.
 
@@ -103,17 +105,24 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Navigation
 
+A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
+
+- Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the query cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
+- Project settings pages: `<AppLayout><ProjectScope><ProjectStateGate><SettingsGuard><SettingsArea>{page}</SettingsArea></SettingsGuard></ProjectStateGate></ProjectScope></AppLayout>`.
+- Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
+
 When adding a new feature page, check whether it needs to be registered in each of these:
 
-- The `overlayPages` list in `ProjectStateGuard.tsx`.
-- `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
-- `MainNav/nav-config.tsx` for sidebar navigation.
-- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
+- The `runningProjectPages` list in `features/orgs/guards/ProjectStateGate/projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which `ProjectStateGate` reads via `requiresRunningProject()` / `hasSidebarSkeleton()` to show the project-state screen. They only take effect on pages that compose `ProjectStateGate`.
+- `components/layout/DashboardNavigation/ProjectNavigation.tsx` or `components/layout/DashboardNavigation/OrganizationNavigation.tsx` for visible sidebar entries.
+- `features/command-palette/catalog.tsx` (page names, routes, palette gates via `isHiddenFromPalette`, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it. A page's palette `gate` only hides it in the command palette; it does not control sidebar entries or direct page access.
 
 ### Testing
 
 - **Runner:** Vitest. Globals (`describe`, `it`, `expect`, `beforeEach`, etc.) are provided — do not import them.
 - **Component testing:** React Testing Library. Use `render()` and `screen` from `@/tests/testUtils`.
+- **Interactions:** use `TestUserEvent` from `@/tests/testUtils` (user-event). Use `fireEvent` only when user events can't express the test.
 - **API mocking:** MSW (Mock Service Worker). Mock responses, not components. Mocking hooks like `useRouter` is acceptable.
 - **Async assertions:** `waitFor()`.
 - **Next.js router:** mock with `vi.mock('next/router', ...)`.

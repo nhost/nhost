@@ -2,7 +2,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import { hasuraRelationShipsMetadataQuery } from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -13,7 +13,7 @@ import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 function getRouter() {
   return {
@@ -80,18 +80,17 @@ describe('ColumnAutocomplete', () => {
   });
 
   test('show nested relationships', async () => {
+    const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
     await waitFor(() => {
       render(<ColumnAutocomplete schema="public" table="town" />);
     });
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Select a column'));
+    await user.click(screen.getByText('Select a column'));
     const relationShipOption = screen.getByRole('option', { name: 'county' });
     expect(relationShipOption).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'county' }),
-    );
+    await user.click(screen.getByRole('option', { name: 'county' }));
     expect(relationShipOption).not.toBeInTheDocument();
 
     expect(screen.getByText('town.county')).toBeInTheDocument();

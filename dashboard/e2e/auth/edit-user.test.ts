@@ -22,9 +22,11 @@ test('should be able to edit user roles from the details page', async ({
     .click();
 
   await page.getByRole('combobox', { name: /default role/i }).click();
-  await page.getByRole('option', { name: /anonymous/i }).click();
+  const anonymousOption = page.getByRole('option', { name: /anonymous/i });
+  await anonymousOption.click();
+  await expect(anonymousOption).not.toBeAttached();
 
-  await page.getByLabel('anonymous').click();
+  await page.getByRole('checkbox', { name: 'anonymous', exact: true }).click();
 
   await page.getByRole('button', { name: /save/i }).click();
 

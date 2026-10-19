@@ -3,15 +3,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
@@ -34,7 +36,7 @@ function MetricsPageContent() {
 
   if (loadingOrg || loadingProject) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="medium" wrapperClassName="gap-2">
           Loading project...
         </Spinner>
@@ -45,7 +47,7 @@ function MetricsPageContent() {
   if (org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -66,8 +68,8 @@ function MetricsPageContent() {
   }
 
   return (
-    <Container>
-      <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
+    <Container className="pt-8 pb-8">
+      <div className="mx-auto w-full max-w-md px-6 text-left">
         <div className="grid grid-flow-row gap-1">
           <div className="mx-auto">
             <Image
@@ -149,5 +151,11 @@ function MetricsPageContent() {
 }
 
 MetricsPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <MetricsArea>{page}</MetricsArea>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

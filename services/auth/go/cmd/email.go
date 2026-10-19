@@ -74,14 +74,17 @@ func getTemplates(cmd *cli.Command, logger *slog.Logger) (*notifications.Templat
 		}
 	}
 
+	logger = logger.With(slog.String("component", "mailer"))
 	if templatesPath == "" {
-		return nil, errors.New("templates path not found") //nolint:err113
+		logger.Info("no templates folder found, using embedded templates")
+	} else {
+		logger.Info("loading templates", slog.String("path", templatesPath))
 	}
 
 	templates, err := notifications.NewTemplatesFromFilesystem(
 		templatesPath,
 		cmd.String(flagDefaultLocale),
-		logger.With(slog.String("component", "mailer")),
+		logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating templates: %w", err)
