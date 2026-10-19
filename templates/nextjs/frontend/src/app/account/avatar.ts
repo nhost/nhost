@@ -48,3 +48,34 @@ export const isAvatarType = (contentType: string | null): boolean =>
   AVATAR_TYPES.includes(
     (contentType ?? '').split(';')[0]?.trim().toLowerCase() ?? '',
   );
+
+/**
+ * The widths the route will ask storage to resize to, and no others.
+ *
+ * Storage resizes on the way out, so a 5 MB photo does not have to cross the
+ * wire to fill a 96px circle. It takes any `w` it is given, which is exactly
+ * why this list is closed: an open one would let anyone make storage render
+ * every size of every avatar they can see, and fill a cache with the
+ * results, on their own say-so.
+ *
+ * Two entries because the template draws an avatar at two sizes, each at
+ * twice its CSS pixels so it stays sharp on a dense screen: 32px in the nav,
+ * 96px on the profile. A new size on a page means a new entry here.
+ */
+export const AVATAR_WIDTHS = [64, 192] as const;
+
+export type AvatarWidth = (typeof AVATAR_WIDTHS)[number];
+
+export const isAvatarWidth = (width: number): width is AvatarWidth =>
+  (AVATAR_WIDTHS as readonly number[]).includes(width);
+
+/**
+ * The URL to render `avatarUrl` at, asking for `width` where that is ours to
+ * ask.
+ *
+ * Only a URL this app wrote takes the parameter. `avatar_url` is the user's
+ * to set and starts as a gravatar URL, which has its own sizing scheme and
+ * would not understand this one.
+ */
+export const avatarSrc = (url: string, width: AvatarWidth): string =>
+  avatarFileIdFrom(url) ? `${url}?w=${width}` : url;

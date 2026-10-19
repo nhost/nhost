@@ -37,6 +37,7 @@ export default async function Nav() {
               <UserAvatar
                 avatarUrl={user.avatarUrl}
                 displayName={user.displayName}
+                width={64}
                 className="size-8 text-xs"
               />
               <span className="sr-only">Your account</span>
