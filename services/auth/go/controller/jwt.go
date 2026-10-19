@@ -419,7 +419,11 @@ func (j *JWTGetter) SignTokenWithClaims(
 
 	claims["iss"] = j.issuer
 	claims["iat"] = iat
+
 	claims["exp"] = exp.Unix()
+	if purpose == tokenpurpose.ProviderState && j.providerStateAudience != "" {
+		claims["aud"] = j.providerStateAudience
+	}
 
 	token := j.newToken(&claims, purpose)
 
@@ -474,11 +478,16 @@ func (j *JWTGetter) Validate(
 }
 
 func (j *JWTGetter) expectedAudience(purpose tokenpurpose.Purpose) string {
-	if purpose == tokenpurpose.Session || purpose == tokenpurpose.OAuth2AccessToken {
+	switch purpose {
+	case tokenpurpose.Session, tokenpurpose.OAuth2AccessToken:
 		return j.audience
+	case tokenpurpose.ProviderState:
+		return j.providerStateAudience
+	case tokenpurpose.OIDCIDToken:
+		return ""
+	default:
+		return ""
 	}
-
-	return ""
 }
 
 func (j *JWTGetter) verifyAudience(token *jwt.Token, purpose tokenpurpose.Purpose) error {

@@ -334,6 +334,131 @@ func signTestToken(
 	return token
 }
 
+func assertProviderStateRedirectAudience(
+	t *testing.T, location string, getter *controller.JWTGetter, expected string,
+) {
+	t.Helper()
+
+	redirect, err := url.Parse(location)
+	if err != nil {
+		t.Fatalf("parsing provider redirect: %v", err)
+	}
+
+	state := redirect.Query().Get("state")
+	if state == "" {
+		t.Fatal("provider redirect has no state")
+	}
+
+	token, err := getter.Validate(state, tokenpurpose.ProviderState)
+	if err != nil {
+		t.Fatalf("validating provider state: %v", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("provider state claims are not MapClaims")
+	}
+
+	got, present := claims["aud"]
+	if present != (expected != "") || present && got != expected {
+		t.Errorf("state aud = %v, present = %t; want %q", got, present, expected)
+	}
+}
+
+func TestProviderStateAudienceValidation(t *testing.T) {
+	t.Parallel()
+
+	const callbackAudience = "https://local.nhost.run/auth/provider-callback"
+
+	cases := []struct {
+		name      string
+		audience  string
+		claim     any
+		include   bool
+		wantValid bool
+		clientID  string
+	}{
+		{"correct", "https://local.nhost.run/", callbackAudience, true, true, ""},
+		{
+			"array containing callback",
+			"https://local.nhost.run",
+			[]string{"other", callbackAudience},
+			true,
+			true,
+			"",
+		},
+		{"missing during transition", "https://local.nhost.run", nil, false, true, ""},
+		{
+			"wrong callback",
+			"https://local.nhost.run",
+			"https://other.example/auth/provider-callback",
+			true,
+			false,
+			"",
+		},
+		{
+			"project audience is not callback audience",
+			"https://local.nhost.run",
+			"https://local.nhost.run",
+			true,
+			false,
+			"",
+		},
+		{
+			"own client ID is not exempt",
+			"https://local.nhost.run",
+			"some-client",
+			true,
+			false,
+			"some-client",
+		},
+		{"null", "https://local.nhost.run", nil, true, false, ""},
+		{"number", "https://local.nhost.run", 42, true, false, ""},
+		{
+			"non-string array",
+			"https://local.nhost.run",
+			[]any{callbackAudience, 42},
+			true,
+			false,
+			"",
+		},
+		{"unset skips audience check", "", "https://other.example", true, true, ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// The legacy signer does not add an audience; a configured validator
+			// must still distinguish missing from malformed claims.
+			signer := newAudienceGetter(t, "")
+
+			claims := jwt.MapClaims{"flow": "signin"}
+			if tc.include {
+				claims["aud"] = tc.claim
+			}
+
+			if tc.clientID != "" {
+				claims["client_id"] = tc.clientID
+			}
+
+			signed, err := signer.SignTokenWithClaims(
+				claims, time.Now().Add(time.Minute), tokenpurpose.ProviderState,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			validator := newAudienceGetter(t, tc.audience)
+
+			_, err = validator.Validate(signed, tokenpurpose.ProviderState)
+			if (err == nil) != tc.wantValid {
+				t.Errorf("Validate() error = %v; want valid = %t", err, tc.wantValid)
+			}
+		})
+	}
+}
+
 func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
