@@ -72,7 +72,10 @@ export default function ProfileSummary({ user }: { user: User }) {
               form needs between its fields only pushed the id off the
               avatar's line. Two pairs to a row once there is width for
               them; the id is the one value too long to share. */}
-          <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5 text-sm md:grid-cols-[max-content_1fr_max-content_1fr]">
+          {/* items-baseline so the id lines up with its label: it is the one
+              value in a smaller, monospaced face, and on the grid's default
+              stretch its taller line box sat it off the label's line. */}
+          <dl className="grid grid-cols-[max-content_1fr] items-baseline gap-x-3 gap-y-0.5 text-sm md:grid-cols-[max-content_1fr_max-content_1fr]">
             {/* The default role on its own. The full list is `user.roles`,
                 but it always carries `me` alongside the real one, and
                 printing "user, me (default user)" asked a question it then
