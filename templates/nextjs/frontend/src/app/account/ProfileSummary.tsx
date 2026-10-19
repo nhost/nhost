@@ -2,6 +2,7 @@ import type { User } from '@nhost/nhost-js/auth';
 import AccountSection, { FieldLabel } from '@/app/account/AccountSection';
 import AvatarForm from '@/app/account/AvatarForm';
 import DisplayNameField from '@/app/account/DisplayNameField';
+import UserAvatar from '@/components/UserAvatar';
 
 // Cut from the ISO string rather than formatted: a locale-formatted date
 // would differ between the server render and the browser and trip hydration.
@@ -9,11 +10,6 @@ import DisplayNameField from '@/app/account/DisplayNameField';
 // showing at all.
 const whenOf = (iso: string): string =>
   `${iso.slice(0, 16).replace('T', ' ')} UTC`;
-
-// Falls back to a dot rather than an empty disc: a display name can be an
-// empty string, and an account made by magic link often starts that way.
-const initialOf = (displayName: string): string =>
-  displayName.trim().slice(0, 1).toUpperCase() || '·';
 
 export default function ProfileSummary({ user }: { user: User }) {
   return (
@@ -37,28 +33,11 @@ export default function ProfileSummary({ user }: { user: User }) {
       <div className="flex flex-col items-center gap-5 px-4 pt-2 sm:flex-row sm:items-start sm:justify-start sm:gap-8">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
-          {user.avatarUrl ? (
-            // next/image's optimizer would fetch this route itself and keep the
-            // result in a cache shared across visitors. Gravatar or any other
-            // origin the backend holds would need a remotePatterns entry.
-            // biome-ignore lint/performance/noImgElement: the avatar route needs the visitor's session cookie, which next/image's optimizer does not send
-            <img
-              src={user.avatarUrl}
-              alt=""
-              width={96}
-              height={96}
-              className="block size-24 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            // The initial rather than an empty disc, so an account with no
-            // image still has something of its own there.
-            <div
-              aria-hidden="true"
-              className="flex size-24 shrink-0 items-center justify-center rounded-full bg-muted font-medium text-3xl text-muted-foreground"
-            >
-              {initialOf(user.displayName)}
-            </div>
-          )}
+          <UserAvatar
+            avatarUrl={user.avatarUrl}
+            displayName={user.displayName}
+            className="size-24 text-3xl"
+          />
         </AvatarForm>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">

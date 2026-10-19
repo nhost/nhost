@@ -5,7 +5,9 @@ import { signInQuery } from '@/app/signin/query';
 import Nav from '@/components/Nav';
 
 const session = vi.hoisted(() => ({
-  current: null as { user: { email?: string } } | null,
+  current: null as {
+    user: { email?: string; displayName?: string; avatarUrl?: string };
+  } | null,
 }));
 
 vi.mock('@/lib/nhost/server', () => ({
@@ -35,12 +37,53 @@ describe('Nav', () => {
     );
   });
 
-  it('links a signed-in visitor to their account by email', async () => {
-    session.current = { user: { email: 'user@example.com' } };
+  it('links a signed-in visitor to their account by their picture', async () => {
+    session.current = {
+      user: {
+        email: 'user@example.com',
+        displayName: 'Ada',
+        avatarUrl: '/api/avatar/current',
+      },
+    };
 
     const html = renderToStaticMarkup(await Nav());
 
-    expect(hrefOf(html, 'user@example.com')).toBe('/account');
+    expect(html).toContain('href="/account"');
+    expect(html).toContain('src="/api/avatar/current"');
     expect(html).not.toContain('>Sign in<');
+  });
+
+  // The address is on the page this leads to; repeating it here crowded the
+  // sign-out beside it.
+  it('does not put the address in the nav', async () => {
+    session.current = {
+      user: {
+        email: 'user@example.com',
+        displayName: 'Ada',
+        avatarUrl: '/api/avatar/current',
+      },
+    };
+
+    expect(renderToStaticMarkup(await Nav())).not.toContain('user@example.com');
+  });
+
+  // The avatar is decorative, so the link has to say where it goes itself.
+  it('names the account link for a screen reader', async () => {
+    session.current = {
+      user: { displayName: 'Ada', avatarUrl: '/api/avatar/current' },
+    };
+
+    expect(renderToStaticMarkup(await Nav())).toContain('Your account');
+  });
+
+  // An account with no picture still needs something to click.
+  it('falls back to the initial when there is no picture', async () => {
+    session.current = { user: { displayName: 'Ada' } };
+
+    const html = renderToStaticMarkup(await Nav());
+
+    expect(html).toContain('href="/account"');
+    expect(html).toContain('>A<');
+    expect(html).not.toContain('<img');
   });
 });
