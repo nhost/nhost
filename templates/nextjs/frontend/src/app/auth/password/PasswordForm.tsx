@@ -157,7 +157,7 @@ export default function PasswordForm({
 
   if (sent === 'verification') {
     return (
-      <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-col gap-2 text-center text-sm">
         <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           We sent a verification link to {email}. Opening it confirms the
@@ -169,7 +169,7 @@ export default function PasswordForm({
 
   if (sent === 'reset') {
     return (
-      <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-col gap-2 text-center text-sm">
         <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           If that address has an account, a reset link is on its way.
