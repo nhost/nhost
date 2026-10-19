@@ -9,6 +9,7 @@ import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGr
 import type {
   ComputedFieldItem,
   ExportMetadataResponseMetadataSourcesItemFunctionsItem,
+  ForeignKeyConstraintOn,
 } from '@/utils/hasura-api/generated/schemas';
 
 /**
@@ -50,15 +51,7 @@ export interface HasuraMetadataRelationship {
         schema: string;
       };
     };
-    foreign_key_constraint_on?:
-      | string
-      | {
-          column: string;
-          table: {
-            name: string;
-            schema: string;
-          };
-        };
+    foreign_key_constraint_on?: ForeignKeyConstraintOn;
   };
 }
 
@@ -418,18 +411,33 @@ export type PostgresReferentialAction =
   | 'SET DEFAULT';
 
 /**
- * Represents a foreign key in a table.
+ * Represents a foreign key in a table. `columns` and `referencedColumns` are
+ * positionally paired: `columns[i]` references `referencedColumns[i]`.
  */
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  columnName: string;
+  columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  referencedColumn: string;
+  referencedColumns: string[];
+  /**
+   * Name of the referenced table's primary key, unique constraint or unique
+   * index that the foreign key depends on.
+   */
+  referencedKeyName?: string;
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;
+}
+
+/**
+ * A primary key or unique constraint a foreign key can reference.
+ */
+export interface CandidateKey {
+  name: string;
+  isPrimary: boolean;
+  columns: string[];
 }
 
 /**

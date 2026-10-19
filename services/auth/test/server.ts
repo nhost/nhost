@@ -20,7 +20,7 @@ const resetEnvironment = async () => {
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       AUTH_EMAIL_TEMPLATE_FETCH_URL: '',
       AUTH_JWT_CUSTOM_CLAIMS: '',
-      AUTH_MFA_ENABLED: false,
+      AUTH_TOTP_ENABLED: false,
       AUTH_PASSWORD_HIBP_ENABLED: false,
       AUTH_SERVER_URL: 'http://127.0.0.2:4000',
       AUTH_SMS_PASSWORDLESS_ENABLED: false,
