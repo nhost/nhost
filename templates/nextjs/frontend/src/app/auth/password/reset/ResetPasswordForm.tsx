@@ -2,6 +2,7 @@
 
 import { type FormEvent, use, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
+import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import { PasswordChangedContext } from '@/app/auth/password/reset/PasswordChanged';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ export default function ResetPasswordForm() {
   const onChanged = use(PasswordChangedContext);
   const passwordId = useId();
   const confirmId = useId();
+  const rulesId = useId();
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -55,6 +57,7 @@ export default function ResetPasswordForm() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           disabled={isSaving}
+          aria-describedby={rulesId}
         />
       </div>
 
@@ -68,8 +71,15 @@ export default function ResetPasswordForm() {
           value={confirm}
           onChange={(event) => setConfirm(event.target.value)}
           disabled={isSaving}
+          aria-describedby={rulesId}
         />
       </div>
+
+      <PasswordRequirements
+        id={rulesId}
+        password={password}
+        confirm={confirm}
+      />
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">

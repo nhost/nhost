@@ -8,6 +8,7 @@ import {
   signUp,
   verifyMfa,
 } from '@/app/auth/password/actions';
+import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
 import CheckYourInbox from '@/components/CheckYourInbox';
@@ -35,6 +36,7 @@ export default function PasswordForm({
   const emailId = useId();
   const passwordId = useId();
   const codeId = useId();
+  const rulesId = useId();
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
   // unless it said otherwise: a fresh local backend has no accounts in it, so
@@ -244,7 +246,13 @@ export default function PasswordForm({
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           disabled={isPending}
+          aria-describedby={mode === 'sign-up' ? rulesId : undefined}
         />
+        {/* Only while signing up. Signing in, the password already exists,
+            and whether it would pass today's rules is not the question. */}
+        {mode === 'sign-up' ? (
+          <PasswordRequirements id={rulesId} password={password} />
+        ) : null}
       </div>
 
       {error ? (
