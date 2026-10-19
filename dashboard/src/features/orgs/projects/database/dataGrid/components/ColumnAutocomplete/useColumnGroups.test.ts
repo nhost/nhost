@@ -13,10 +13,16 @@ const tableData = {
   ] as FetchTableSchemaReturnType['columns'],
   foreignKeyRelations: [
     {
-      columnName: 'tenant_id',
+      columns: ['tenant_id'],
       referencedSchema: 'public',
       referencedTable: 'orders',
-      referencedColumn: 'tenant_id',
+      referencedColumns: ['tenant_id'],
+    },
+    {
+      columns: ['tenant_id', 'order_id'],
+      referencedSchema: 'public',
+      referencedTable: 'orders',
+      referencedColumns: ['tenant_id', 'id'],
     },
   ],
 } as FetchTableSchemaReturnType;
@@ -74,12 +80,12 @@ describe('useColumnGroups', () => {
     });
   });
 
-  it('does not resolve a composite object constraint against a singular foreign key relation', () => {
+  it('resolves a composite object constraint against its foreign key relation in any column order', () => {
     const relationships = getRelationships(
       makeMetadata('object_relationships', {
         name: 'order',
         using: {
-          foreign_key_constraint_on: ['tenant_id', 'order_id'],
+          foreign_key_constraint_on: ['order_id', 'tenant_id'],
         },
       }),
     );
@@ -90,8 +96,29 @@ describe('useColumnGroups', () => {
       metadata: {
         target: {
           schema: 'public',
+          table: 'orders',
+          column: 'order_id',
+        },
+      },
+    });
+  });
+
+  it('falls back to the current table when no foreign key matches the constraint', () => {
+    const relationships = getRelationships(
+      makeMetadata('object_relationships', {
+        name: 'customer',
+        using: { foreign_key_constraint_on: 'customer_id' },
+      }),
+    );
+
+    expect(relationships).toHaveLength(1);
+    expect(relationships[0]).toMatchObject({
+      value: 'customer',
+      metadata: {
+        target: {
+          schema: 'public',
           table: 'order_items',
-          column: 'tenant_id',
+          column: 'customer_id',
         },
       },
     });
