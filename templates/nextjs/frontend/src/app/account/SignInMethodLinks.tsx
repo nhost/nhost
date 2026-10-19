@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import AccountSection from '@/app/account/AccountSection';
-import { methods } from '@/app/signin/methods';
+import { type AccountEntry, methods } from '@/app/signin/methods';
 
 /**
  * Every sign-in method, as the account page shows it.
@@ -13,6 +13,10 @@ import { methods } from '@/app/signin/methods';
  *
  * A method with nothing to configure still gets named, so the page answers
  * "how else can I sign in?" rather than only listing what has a page.
+ *
+ * The address leads, and is not in the registry: no single method owns it.
+ * Magic link, the email code and the password all sign in with it, which is
+ * why it belongs to the account rather than to any one of them.
  */
 
 // "a", "a and b", "a, b and c".
@@ -23,13 +27,26 @@ function sentenceList(items: string[]): string {
   return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
 }
 
-export default function SignInMethodLinks() {
-  const entries = methods.flatMap((method) => method.account ?? []);
-  const unmanaged = methods.filter((method) => !method.account);
+export default function SignInMethodLinks({
+  email,
+  verified,
+}: {
+  email: string | undefined;
+  verified: boolean;
+}) {
+  const emailEntry: AccountEntry = {
+    href: '/account/email',
+    title: 'Email',
+    description: email
+      ? `${email}${verified ? '' : ' — not verified'}`
+      : 'No address on this account.',
+  };
 
-  if (entries.length === 0 && unmanaged.length === 0) {
-    return null;
-  }
+  const entries = [
+    emailEntry,
+    ...methods.flatMap((method) => method.account ?? []),
+  ];
+  const unmanaged = methods.filter((method) => !method.account);
 
   return (
     <AccountSection
@@ -54,7 +71,13 @@ export default function SignInMethodLinks() {
               className="rounded-md border p-4 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="font-medium">{entry.title}</div>
-              <div className="text-muted-foreground text-sm">
+              <div
+                className={
+                  entry === emailEntry && email && !verified
+                    ? 'truncate text-destructive text-sm'
+                    : 'truncate text-muted-foreground text-sm'
+                }
+              >
                 {entry.description}
               </div>
             </Link>

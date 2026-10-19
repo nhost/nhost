@@ -2,7 +2,6 @@ import type { User } from '@nhost/nhost-js/auth';
 import AccountSection, { FieldLabel } from '@/app/account/AccountSection';
 import AvatarForm from '@/app/account/AvatarForm';
 import DisplayNameField from '@/app/account/DisplayNameField';
-import EmailField from '@/app/account/EmailField';
 
 // Cut from the ISO string rather than formatted: a locale-formatted date
 // would differ between the server render and the browser and trip hydration.
@@ -16,26 +15,17 @@ const whenOf = (iso: string): string =>
 const initialOf = (displayName: string): string =>
   displayName.trim().slice(0, 1).toUpperCase() || '·';
 
-export default function ProfileSummary({
-  user,
-  mailboxURL,
-}: {
-  user: User;
-  mailboxURL: string | null;
-}) {
+export default function ProfileSummary({ user }: { user: User }) {
   return (
     <AccountSection
       title="Profile"
       description="What the auth service holds for this account."
     >
-      {/* The avatar and the two things it belongs to. Both are editable where
-          they are read, so there is no second copy of either further down the
-          page. Stacked on a phone, side by side once there is room.
+      {/* The avatar and the name, which is editable where it is read.
 
-          Centred as a pair rather than stretched across the card: the two
-          fields are short, and filling the row left a column of empty space
-          to the right of them. */}
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-8">
+          Left, not centred: centred, the pair sat in the middle with space
+          on both sides and moved whenever the name's length changed. */}
+      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-start sm:gap-6">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
@@ -65,19 +55,12 @@ export default function ProfileSummary({
         {/* No gap under either label. The fields keep their controls down to
             the height of their own text, so the label sits right on the
             value without being pulled into it. */}
-        <div className="flex min-w-0 flex-col gap-4">
-          <div className="flex min-w-0 flex-col">
-            <FieldLabel>Display name</FieldLabel>
-            <DisplayNameField displayName={user.displayName} />
-          </div>
-          <div className="flex min-w-0 flex-col">
-            <FieldLabel>Email</FieldLabel>
-            <EmailField
-              email={user.email}
-              verified={user.emailVerified}
-              mailboxURL={mailboxURL}
-            />
-          </div>
+        {/* The email used to sit under this. It lives in Sign-in settings
+            now: changing it is a round trip through the inbox, which is a
+            page's worth of explaining rather than a field's. */}
+        <div className="flex min-w-0 flex-col">
+          <FieldLabel>Display name</FieldLabel>
+          <DisplayNameField displayName={user.displayName} />
         </div>
       </div>
 

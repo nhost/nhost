@@ -5,7 +5,6 @@ import SignInMethodLinks from '@/app/account/SignInMethodLinks';
 import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
 import { Card } from '@/components/ui/card';
-import { localMailboxURL } from '@/lib/nhost/env';
 import { getVerifiedUser } from '@/lib/nhost/server';
 
 export const dynamic = 'force-dynamic';
@@ -28,8 +27,8 @@ export default async function Account() {
           its own, divide-y draws the rule between them, and overflow-hidden
           keeps the first and last section square inside the rounded edge. */}
       <Card className="gap-0 divide-y overflow-hidden py-0">
-        <ProfileSummary user={user} mailboxURL={localMailboxURL()} />
-        <SignInMethodLinks />
+        <ProfileSummary user={user} />
+        <SignInMethodLinks email={user.email} verified={user.emailVerified} />
         <SignOutCard />
         <DeleteAccountCard />
       </Card>
