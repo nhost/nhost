@@ -154,7 +154,8 @@ nix run github:nhost/nhost/<commit>#sync-ci -- --target /path/to/checkout --chec
 
 A registry alias can shorten this to `nix run nhost#sync-ci`, but use an explicit
 commit for reproducible updates. `--target` defaults to the current directory.
-The receiving checkout owns `build/shared-ci.json`, including destination paths:
+The receiving checkout owns `build/shared-ci.json`. Install the following
+exports together to use the shared check workflow (and its ECR publisher):
 
 ```json
 {
@@ -165,21 +166,70 @@ The receiving checkout owns `build/shared-ci.json`, including destination paths:
       "path": ".github/workflows/wf_check.yaml"
     },
     {
+      "source": ".github/workflows/wf_docker_push_image_ecr.yaml",
+      "path": ".github/workflows/wf_docker_push_image_ecr.yaml"
+    },
+    {
+      "source": ".github/actions/setup-nix/action.yml",
+      "path": ".github/actions/setup-nix/action.yml"
+    },
+    {
+      "source": ".github/actions/cache-nix/action.yml",
+      "path": ".github/actions/cache-nix/action.yml"
+    },
+    {
+      "source": ".github/actions/cache-nix/cache.sh",
+      "path": ".github/actions/cache-nix/cache.sh"
+    },
+    {
+      "source": ".github/actions/cache-nix/test_cache.py",
+      "path": ".github/actions/cache-nix/test_cache.py"
+    },
+    {
+      "source": "build/makefiles/general.makefile",
+      "path": "build/makefiles/general.makefile"
+    },
+    {
+      "source": "build/makefiles/release.makefile",
+      "path": "build/makefiles/release.makefile"
+    },
+    {
       "source": "nixops/tests/test_workflows.py",
       "path": "nix/tests/test_workflows.py"
+    },
+    {
+      "source": "nixops/tests/test_shared_ci.py",
+      "path": "nix/tests/test_shared_ci.py"
     }
   ]
 }
 ```
 
-Add mappings for the other desired exports; new upstream exports are never
-installed implicitly. Absent destinations can be bootstrapped without recorded
-hashes. Existing files must match their recorded hashes/executable flags or
-already match the desired bundle exactly. Hash-only manifests from manual
-copying are supported; synchronization adds executable flags. Locally customized
-files, unexported sources, duplicate/overlapping paths, symlinks, path traversal,
-and destinations inside `.git` are rejected before any writes. Backend-specific
-wrappers and callers remain untouched unless explicitly mapped.
+Keep workflows, actions (including `cache.sh` and its sibling test), and both
+Makefiles at their source paths: the workflow calls the actions by fixed paths,
+the cache action runs its sibling script, and `general.makefile` includes
+`release.makefile`. The two `nixops/tests` exports may move together to another
+location exactly two directories below the receiver root (as `nix/tests` above);
+they read workflows, actions, and Makefiles relative to that root. Run the
+portable tests from the receiver root, including `test_cache.py`, whose Makefile
+test uses the current directory:
+
+```sh
+python3 .github/actions/cache-nix/test_cache.py
+python3 -m unittest discover -s nix/tests -p 'test_*.py'
+```
+
+These tests require Python with PyYAML, bash, GNU make/sed/grep/coreutils, jq,
+and zip (as provided by `checks.<system>.ci`). `sync-ci` copies only manifest
+entries: it does not enforce these co-installation or path constraints. New
+upstream exports are never installed implicitly. Absent destinations can be
+bootstrapped without recorded hashes. Existing files must match their recorded
+hashes/executable flags or already match the desired bundle exactly. Hash-only
+manifests from manual copying are supported; synchronization adds executable
+flags. Locally customized files, unexported sources, duplicate/overlapping
+paths, symlinks, path traversal, and destinations inside `.git` are rejected
+before any writes. Backend-specific wrappers and callers remain untouched
+unless explicitly mapped.
 
 The app updates the manifest's revision, hashes, and executable flags, preserving
 other receiver metadata. Replacements are atomic per file, with the manifest
@@ -205,7 +255,9 @@ nix build ".#checks.$system.ci" --print-build-logs
 
 Use `path:.#checks.<system>.ci` while new files are untracked. The Nix check
 provides PyYAML and the `CI_FILES`/`SYNC_CI` fixtures needed by the Python suite;
-a bare host `python3 -m unittest discover -s nixops/tests` may lack them. This
+a bare host `python3 -m unittest discover -s nixops/tests` may lack them. The
+receiver-only fixture uses a synthetic revision so `sync-ci` can exercise apply
+and check; the published app still requires a real, clean Git revision. This
 check is also included in `checks.<system>.nixops`; workflow/action changes
 trigger that project. Tests cover cache selection and failures, reusable-call
 contracts, PR approval/SHA gates, runner exceptions, variant matrices,

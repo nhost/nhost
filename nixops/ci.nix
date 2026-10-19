@@ -1,6 +1,11 @@
 { pkgs }:
 let
-  sharedCI = import ./shared-ci.nix { inherit pkgs; };
+  # The path-flake check has no self.rev. Give only its test fixture a valid
+  # revision so sync-ci exercises the published bundle's apply/check modes.
+  sharedCI = import ./shared-ci.nix {
+    inherit pkgs;
+    revision = "0000000000000000000000000000000000000000";
+  };
   src = pkgs.lib.fileset.toSource {
     root = ../.;
     fileset = pkgs.lib.fileset.unions [

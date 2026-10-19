@@ -422,6 +422,76 @@ class PackageTests(unittest.TestCase):
                     bool(original.stat().st_mode & 0o111),
                 )
 
+    def test_documented_install_works_with_only_packaged_exports(self):
+        bundle = Path(os.environ["CI_FILES"])
+        catalog = json.loads((bundle / "bundle.json").read_text())
+        documentation = (REPO / ".github/README.md").read_text()
+        example = documentation.split("## Synchronizing shared CI files\n", 1)[1]
+        manifest = json.loads(example.split("```json\n", 1)[1].split("\n```", 1)[0])
+        entries = manifest["files"]
+        self.assertEqual({entry["source"] for entry in entries}, set(catalog["files"]))
+        self.assertEqual(len(entries), len(catalog["files"]))
+        for entry in entries:
+            source = entry["source"]
+            if source.startswith("nixops/tests/"):
+                self.assertEqual(entry["path"], "nix/tests/" + Path(source).name)
+            else:
+                self.assertEqual(entry["path"], source)
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            write_json(target / sync_ci.MANIFEST, manifest)
+            # Only the receiver's manifest exists before sync; no nhost source
+            # tree or service Makefiles can satisfy the exported tests here.
+            result = subprocess.run(
+                [os.environ["SYNC_CI"], "--target", str(target)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            installed = {
+                str(path.relative_to(target))
+                for path in target.rglob("*")
+                if path.is_file()
+            }
+            self.assertEqual(
+                installed, {sync_ci.MANIFEST, *(entry["path"] for entry in entries)}
+            )
+            result = subprocess.run(
+                [os.environ["SYNC_CI"], "--target", str(target), "--check"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+            for args in [
+                [sys.executable, ".github/actions/cache-nix/test_cache.py"],
+                [
+                    sys.executable,
+                    "-m",
+                    "unittest",
+                    "discover",
+                    "-s",
+                    "nix/tests",
+                    "-p",
+                    "test_*.py",
+                ],
+            ]:
+                with self.subTest(args=args):
+                    result = subprocess.run(
+                        args,
+                        cwd=target,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                    self.assertEqual(
+                        result.returncode, 0, result.stdout + result.stderr
+                    )
+
     def test_packaged_command_previews_real_bundle_without_writes(self):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory)
