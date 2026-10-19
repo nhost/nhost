@@ -27,7 +27,7 @@ export default async function Manage() {
   const { keys, error } = await listPasskeys();
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-sm">
       <Card>
         <CardHeader>
           <CardTitle>Passkeys</CardTitle>
@@ -47,7 +47,7 @@ export default async function Manage() {
             asChild
             variant="link"
             size="sm"
-            className="h-auto self-start p-0"
+            className="h-auto self-center p-0"
           >
             <Link href="/account">Back to your account</Link>
           </Button>
