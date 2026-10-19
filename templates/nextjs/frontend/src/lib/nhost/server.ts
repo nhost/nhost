@@ -144,6 +144,31 @@ export async function getVerifiedUser(): Promise<User | null> {
   }
 }
 
+/**
+ * Rewrites the stored session's user after a profile write has succeeded.
+ *
+ * The nav and the home page render the user from the session cookie, and the
+ * cookie's copy is otherwise replaced only when the proxy refreshes the token,
+ * which with a 900 s token can be a quarter of an hour after the change. This
+ * patches it in place, keeping the tokens as they are: a refresh here would
+ * make the action a second rotator next to the proxy, see `handleNhostProxy`.
+ */
+export function updateSessionUser(
+  nhost: NhostClient,
+  patch: Partial<User>,
+): void {
+  const session = nhost.getUserSession();
+
+  if (!session?.user) {
+    return;
+  }
+
+  nhost.sessionStorage.set({
+    ...session,
+    user: { ...session.user, ...patch },
+  });
+}
+
 // Auth emails and the OAuth callback send the user to the auth service, which
 // signs them in and redirects back with a refresh token in the query string.
 // Nothing else in the app picks that up, so without the proxy redeeming it the
