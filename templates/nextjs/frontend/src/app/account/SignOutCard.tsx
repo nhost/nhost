@@ -67,15 +67,11 @@ export default function SignOutCard() {
             Every device signed in to this account will be signed out, including
             this one.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={pending}
-              onClick={() => void handleSignOut()}
-            >
-              {pending ? 'Signing out…' : 'Sign out everywhere'}
-            </Button>
+          {/* Right, where the button that opened this panel was, so the
+              answer lands under the question rather than across from it.
+              Cancel leads, which puts the one that acts on the outside and
+              the one that backs out first for a keyboard. */}
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -87,6 +83,14 @@ export default function SignOutCard() {
               }}
             >
               Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending}
+              onClick={() => void handleSignOut()}
+            >
+              {pending ? 'Signing out…' : 'Sign out everywhere'}
             </Button>
           </div>
         </div>
