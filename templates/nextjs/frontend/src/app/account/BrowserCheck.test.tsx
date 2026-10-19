@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import BrowserCheck from '@/app/protected/BrowserCheck';
+import BrowserCheck from '@/app/account/BrowserCheck';
 
 const getUser = vi.hoisted(() => vi.fn());
 

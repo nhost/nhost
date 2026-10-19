@@ -6,13 +6,13 @@ import {
   LINK_TYPE_PARAM,
 } from '@/lib/nhost/server';
 
-const protectedRoutes = ['/protected', '/account'];
+const protectedRoutes = ['/account'];
 
 // What the auth service appends to `redirectTo` when a flow fails.
 const authErrorParams = ['error', 'errorDescription'];
 
-// A failed flow sends a signed-out visitor back to the protected page they
-// started from, so the reason arrives here. Left inside `next` it would show
+// A failed flow sends a signed-out visitor back to the page they started from,
+// so the reason arrives here. Left inside `next` it would show
 // nowhere, and come back after they signed in; on the sign-in URL it is shown
 // right where they choose again.
 function signInRedirect(request: NextRequest): URL {
