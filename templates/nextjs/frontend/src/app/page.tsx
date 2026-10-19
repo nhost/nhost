@@ -36,7 +36,7 @@ export default async function Home() {
         <CardContent className="flex gap-2">
           {user ? (
             <Button asChild>
-              <Link href="/account">Open your account</Link>
+              <Link href="/account">Go to your account</Link>
             </Button>
           ) : (
             <>
