@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import EmailField from '@/app/account/EmailField';
+import ChangeEmailForm from '@/app/account/email/ChangeEmailForm';
 
 const actions = vi.hoisted(() => ({
   changeEmail: vi.fn(),
@@ -21,7 +21,7 @@ let root: Root;
 async function render(verified: boolean): Promise<void> {
   await act(async () =>
     root.render(
-      <EmailField
+      <ChangeEmailForm
         email="user@example.com"
         verified={verified}
         mailboxURL={null}
@@ -64,7 +64,7 @@ async function click(label: string): Promise<void> {
 const text = (role: string): string | null =>
   container.querySelector(`[role="${role}"]`)?.textContent ?? null;
 
-describe('email field', () => {
+describe('change email form', () => {
   beforeEach(() => {
     actions.changeEmail.mockReset();
     actions.resendVerification.mockReset();
@@ -77,32 +77,20 @@ describe('email field', () => {
     container.remove();
   });
 
-  // Verified is the ordinary case and saying so earned nothing, so only the
-  // unverified state speaks.
-  it('shows the address, and says so only when it is unverified', async () => {
-    await render(true);
-
-    expect(container.textContent).toContain('user@example.com');
-    expect(container.textContent).not.toContain('erified');
-
-    await render(false);
-
-    expect(container.textContent).toContain('Not verified');
-    expect(container.querySelector('form')).toBeNull();
-  });
-
+  // On a page of its own the form is simply open; the only thing that
+  // appears and disappears is the unverified notice.
   it('offers a resend only while the address is unverified', async () => {
     await render(true);
-    expect(container.textContent).not.toContain('Resend verification');
+    expect(container.textContent).not.toContain('not been verified');
 
     await render(false);
+    expect(container.textContent).toContain('not been verified');
     expect(container.textContent).toContain('Resend verification');
   });
 
   it('starts the change and says where the link went', async () => {
     actions.changeEmail.mockResolvedValueOnce({ success: true });
     await render(true);
-    await click('Edit');
     await type('New email', 'new@example.com');
 
     await submit();
@@ -122,10 +110,9 @@ describe('email field', () => {
     expect(text('status')).toContain('on its way to user@example.com');
   });
 
-  it('shows the action error and stays open', async () => {
+  it('shows the action error and keeps the form', async () => {
     actions.changeEmail.mockResolvedValueOnce({ error: 'already in use' });
     await render(true);
-    await click('Edit');
     await type('New email', 'taken@example.com');
 
     await submit();
@@ -133,18 +120,5 @@ describe('email field', () => {
     expect(text('alert')).toBe('already in use');
     expect(text('status')).toBeNull();
     expect(container.querySelector('form')).not.toBeNull();
-  });
-
-  // Otherwise the next edit would open on the abandoned address.
-  it('forgets an abandoned edit', async () => {
-    await render(true);
-    await click('Edit');
-    await type('New email', 'typo@example.com');
-    await click('Cancel');
-
-    expect(container.querySelector('form')).toBeNull();
-    await click('Edit');
-
-    expect(container.querySelector('input')?.value).toBe('');
   });
 });
