@@ -96,7 +96,9 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   return (
     <div className="flex flex-col gap-6">
       {keys.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No passkeys yet.</p>
+        <p className="text-center text-muted-foreground text-sm">
+          No passkeys yet.
+        </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {keys.map((key) => (
