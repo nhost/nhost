@@ -86,4 +86,23 @@ describe('Nav', () => {
     expect(html).toContain('>A<');
     expect(html).not.toContain('<img');
   });
+
+  // The backend sets a `d=blank` gravatar URL on every new account, which
+  // for an unknown address is a transparent image. The initial has to be
+  // under it or the link is an empty space.
+  it('keeps the initial under a picture that may draw nothing', async () => {
+    session.current = {
+      user: {
+        displayName: 'Ada',
+        avatarUrl: 'https://www.gravatar.com/avatar/0?d=blank&r=g',
+      },
+    };
+
+    const html = renderToStaticMarkup(await Nav());
+
+    expect(html).toContain('>A<');
+    expect(html).toContain(
+      'src="https://www.gravatar.com/avatar/0?d=blank&amp;r=g"',
+    );
+  });
 });
