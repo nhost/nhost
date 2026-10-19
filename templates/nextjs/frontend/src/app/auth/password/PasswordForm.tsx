@@ -271,7 +271,11 @@ export default function PasswordForm({
             : 'Sign up'}
       </Button>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      {/* Centred, not spread: signing up there is only one link here, and
+          justify-between left it hard against the left edge of a card whose
+          heading and button are both centred. Signing in, the two sit
+          together in the middle instead of at opposite ends. */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
         <Button
           type="button"
           variant="link"

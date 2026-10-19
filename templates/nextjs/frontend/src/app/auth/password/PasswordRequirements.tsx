@@ -19,7 +19,9 @@ export default function PasswordRequirements({
   confirm?: string;
 }) {
   return (
-    <ul id={id} className="flex flex-col gap-1 text-sm">
+    // items-center so each rule centres as a unit, tick and all, under a
+    // card whose heading and button are centred too.
+    <ul id={id} className="flex flex-col items-center gap-1 text-sm">
       {passwordRequirements(password, confirm).map((rule) => (
         <li key={rule.label} className="flex items-center gap-2">
           <span
