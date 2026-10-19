@@ -1,5 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import AvatarForm from '@/app/account/AvatarForm';
+import BrowserCheck from '@/app/account/BrowserCheck';
 import {
   Card,
   CardContent,
@@ -73,6 +74,11 @@ export default function ProfileSummary({ user }: { user: User }) {
           <dt className="text-muted-foreground">User id</dt>
           <dd className="font-mono text-xs sm:col-span-3">{user.id}</dd>
         </dl>
+
+        {/* Everything above was read by the server. This one line is the same
+            session read by the browser, which is the other half of the setup
+            and the only place the client-side SDK is used. */}
+        <BrowserCheck />
       </CardContent>
     </Card>
   );

@@ -56,9 +56,9 @@ describe('proxy, signed out on a protected route', () => {
   // started from, which bounces them to sign-in again.
   it('shows a failed flow on sign-in rather than inside next', async () => {
     expect(
-      await location('/protected?error=disabled-endpoint&errorDescription=x'),
+      await location('/account?error=disabled-endpoint&errorDescription=x'),
     ).toBe(
-      'http://localhost/signin?next=%2Fprotected&error=disabled-endpoint&errorDescription=x',
+      'http://localhost/signin?next=%2Faccount&error=disabled-endpoint&errorDescription=x',
     );
   });
 
@@ -72,9 +72,9 @@ describe('proxy, signed out on a protected route', () => {
   });
 
   it('carries the query untouched when nothing failed', async () => {
-    const url = new URL((await location('/protected?a=b%20c&d')) ?? '');
+    const url = new URL((await location('/account?a=b%20c&d')) ?? '');
 
-    expect(url.searchParams.get('next')).toBe('/protected?a=b%20c&d');
+    expect(url.searchParams.get('next')).toBe('/account?a=b%20c&d');
     expect(url.searchParams.has('error')).toBe(false);
   });
 });
