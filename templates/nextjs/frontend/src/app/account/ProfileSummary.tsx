@@ -21,11 +21,14 @@ export default function ProfileSummary({ user }: { user: User }) {
       title="Profile"
       description="What the auth service holds for this account."
     >
-      {/* The avatar and the name, which is editable where it is read.
+      {/* Everything the account is, in one block beside the avatar: the
+          name, then the facts under it. Boxed and set apart they were a
+          second panel in a section that only has one subject, and they left
+          the space beside the avatar empty to do it.
 
-          Left, not centred: centred, the pair sat in the middle with space
+          Left, not centred: centred, the block sat in the middle with space
           on both sides and moved whenever the name's length changed. */}
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-start sm:gap-6">
+      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-start sm:gap-6">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
@@ -52,39 +55,44 @@ export default function ProfileSummary({ user }: { user: User }) {
           )}
         </AvatarForm>
 
-        {/* No gap under either label. The fields keep their controls down to
-            the height of their own text, so the label sits right on the
-            value without being pulled into it. */}
-        {/* The email used to sit under this. It lives in Sign-in settings
-            now: changing it is a round trip through the inbox, which is a
-            page's worth of explaining rather than a field's. */}
-        <div className="flex min-w-0 flex-col">
-          <FieldLabel>Display name</FieldLabel>
-          <DisplayNameField displayName={user.displayName} />
-        </div>
-      </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {/* No gap under the label. The field keeps its Edit button down to
+              the height of its own text, so the label sits right on the
+              value without being pulled into it.
 
-      {/* Boxed and labelled, because none of it is editable and without a
-          frame it read as more of the fields above. Two pairs to a row on
-          anything wider than a phone, so the facts that are a word each do
-          not each take a line; the id is the one too long to share. */}
-      <div className="flex flex-col gap-2 rounded-lg border p-4">
-        <FieldLabel>Account details</FieldLabel>
-        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[max-content_1fr_max-content_1fr]">
-          {/* The default role on its own. The full list is `user.roles`, but
-              it always carries `me` alongside the real one, and printing
-              "user, me (default user)" asked a question it then answered. */}
-          <dt className="text-muted-foreground">Role</dt>
-          <dd>{user.defaultRole}</dd>
-          <dt className="text-muted-foreground">Locale</dt>
-          <dd>{user.locale}</dd>
-          <dt className="text-muted-foreground">Two-factor</dt>
-          <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
-          <dt className="text-muted-foreground">Created</dt>
-          <dd>{whenOf(user.createdAt)}</dd>
-          <dt className="text-muted-foreground">User id</dt>
-          <dd className="font-mono text-xs sm:col-span-3">{user.id}</dd>
-        </dl>
+              The email used to sit under this. It lives in Sign-in settings
+              now: changing it is a round trip through the inbox, which is a
+              page's worth of explaining rather than a field's. */}
+          <div className="flex min-w-0 flex-col">
+            <FieldLabel>Display name</FieldLabel>
+            <DisplayNameField displayName={user.displayName} />
+          </div>
+
+          {/* Tight rows: none of this is editable or long, and the space a
+              form needs between its fields only pushed the id off the
+              avatar's line. Two pairs to a row once there is width for
+              them; the id is the one value too long to share. */}
+          <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5 text-sm md:grid-cols-[max-content_1fr_max-content_1fr]">
+            {/* The default role on its own. The full list is `user.roles`,
+                but it always carries `me` alongside the real one, and
+                printing "user, me (default user)" asked a question it then
+                answered. */}
+            <dt className="text-muted-foreground">Role</dt>
+            <dd>{user.defaultRole}</dd>
+            <dt className="text-muted-foreground">Locale</dt>
+            <dd>{user.locale}</dd>
+            <dt className="text-muted-foreground">Two-factor</dt>
+            <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
+            <dt className="text-muted-foreground">Created</dt>
+            <dd>{whenOf(user.createdAt)}</dd>
+            <dt className="text-muted-foreground">User id</dt>
+            {/* min-w-0 so the truncate can bite: a grid item will not shrink
+                below its content without it. */}
+            <dd className="min-w-0 truncate font-mono text-xs md:col-span-3">
+              {user.id}
+            </dd>
+          </dl>
+        </div>
       </div>
     </AccountSection>
   );
