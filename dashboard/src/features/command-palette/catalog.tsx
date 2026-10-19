@@ -4,10 +4,10 @@ import {
 } from '@icons-pack/react-simple-icons';
 import {
   Sparkles as AIIcon,
+  ChartLineIcon,
   Code,
   DatabaseIcon,
   FileTextIcon,
-  GaugeIcon,
   HomeIcon,
   RocketIcon,
   HardDrive as StorageIcon,
@@ -101,7 +101,7 @@ export const projectPages = definePages([
   },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <ChartLineIcon className="h-4 w-4" />,
     route: 'metrics',
     slug: 'metrics',
     gate: 'platform',
