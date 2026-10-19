@@ -2,8 +2,12 @@ package project
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -156,7 +160,7 @@ func TestFilterInitMigrationPsqlRestrictions(t *testing.T) {
 
 			writeMigrationTestFiles(t, migrationsDir, tt.files, mode)
 
-			if err := filterInitMigrationPsqlRestrictions(migrationsDir); err != nil {
+			if err := filterInitMigrationPsqlRestrictions(migrationsDir, t.Errorf); err != nil {
 				t.Fatalf("filter initial migrations: %v", err)
 			}
 
@@ -169,6 +173,96 @@ func TestFilterInitMigrationPsqlRestrictions(t *testing.T) {
 				if string(got) != want {
 					t.Errorf("migration %q = %q, want %q", name, got, want)
 				}
+			}
+		})
+	}
+}
+
+func TestFilterInitMigrationPsqlRestrictionsPermissions(t *testing.T) {
+	t.Parallel()
+
+	if os.Geteuid() == 0 {
+		t.Skip("root can read and write files regardless of permission bits")
+	}
+
+	const (
+		migration  = "202610141234_init/up.sql"
+		wrappedSQL = "\\restrict hasura\nSELECT 1;\n\\unrestrict hasura\n"
+	)
+
+	tests := []struct {
+		name         string
+		mode         os.FileMode
+		wantErr      error
+		wantWarnings int
+	}{
+		{
+			name:         "warns and continues when migration is not writable",
+			mode:         0o400,
+			wantWarnings: 1,
+		},
+		{
+			name:    "read permission errors remain fatal",
+			mode:    0o000,
+			wantErr: fs.ErrPermission,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			migrationsDir := t.TempDir()
+			writeMigrationTestFiles(
+				t,
+				migrationsDir,
+				map[string]string{migration: wrappedSQL},
+				0o600,
+			)
+
+			migrationPath := filepath.Join(migrationsDir, migration)
+			if err := os.Chmod(migrationPath, tt.mode); err != nil {
+				t.Fatalf("set migration permissions: %v", err)
+			}
+
+			var warnings []string
+
+			err := filterInitMigrationPsqlRestrictions(
+				migrationsDir,
+				func(msg string, args ...any) {
+					warnings = append(warnings, fmt.Sprintf(msg, args...))
+				},
+			)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("filter initial migrations error = %v, want %v", err, tt.wantErr)
+			}
+
+			if len(warnings) != tt.wantWarnings {
+				t.Fatalf("warnings = %q, want %d warnings", warnings, tt.wantWarnings)
+			}
+
+			if tt.wantWarnings > 0 {
+				const instruction = `Remove the \restrict and \unrestrict lines manually before applying it.`
+				if !strings.Contains(warnings[0], migrationPath) ||
+					!strings.HasSuffix(warnings[0], instruction) {
+					t.Errorf(
+						"warning %q must identify the migration and explain the manual fix",
+						warnings[0],
+					)
+				}
+			}
+
+			if err := os.Chmod(migrationPath, 0o600); err != nil {
+				t.Fatalf("restore migration permissions: %v", err)
+			}
+
+			contents, err := os.ReadFile(migrationPath)
+			if err != nil {
+				t.Fatalf("read migration: %v", err)
+			}
+
+			if string(contents) != wrappedSQL {
+				t.Errorf("migration = %q, want unchanged contents %q", contents, wrappedSQL)
 			}
 		})
 	}

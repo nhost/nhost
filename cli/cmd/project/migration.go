@@ -10,7 +10,10 @@ import (
 	"strings"
 )
 
-func filterInitMigrationPsqlRestrictions(migrationsDir string) (returnErr error) {
+func filterInitMigrationPsqlRestrictions(
+	migrationsDir string,
+	warn func(string, ...any),
+) (returnErr error) {
 	root, err := os.OpenRoot(migrationsDir)
 	if err != nil {
 		return fmt.Errorf("open initial migrations directory: %w", err)
@@ -52,6 +55,16 @@ func filterInitMigrationPsqlRestrictions(migrationsDir string) (returnErr error)
 
 		const fileMode = 0o600
 		if err := root.WriteFile(migrationPath, filtered, fileMode); err != nil {
+			if errors.Is(err, fs.ErrPermission) {
+				warn(
+					"Cannot rewrite initial migration %q: %v. "+
+						"Remove the \\restrict and \\unrestrict lines manually before applying it.",
+					filepath.Join(migrationsDir, migrationPath), err,
+				)
+
+				continue
+			}
+
 			return fmt.Errorf("write filtered initial migration %q: %w", migrationPath, err)
 		}
 	}

@@ -223,6 +223,7 @@ func deploy(
 
 	if err := filterInitMigrationPsqlRestrictions(
 		filepath.Join(ce.Path.NhostFolder(), "migrations", "default"),
+		ce.Warnln,
 	); err != nil {
 		return fmt.Errorf("failed to filter psql commands from initial migration: %w", err)
 	}
