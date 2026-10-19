@@ -34,7 +34,7 @@ export default function ProfileSummary({ user }: { user: User }) {
           closer to it than a straight edge does, and keeping the inset even
           moves the facts with the avatar rather than leaving them further
           out than it. */}
-      <div className="flex flex-col items-center gap-5 px-4 pt-2 sm:flex-row sm:items-start sm:justify-start sm:gap-6">
+      <div className="flex flex-col items-center gap-5 px-4 pt-2 sm:flex-row sm:items-start sm:justify-start sm:gap-8">
         {/* Nothing to take down when the account has no avatar at all. */}
         <AvatarForm canRemove={Boolean(user.avatarUrl)}>
           {user.avatarUrl ? (
