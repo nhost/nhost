@@ -7,10 +7,11 @@ import {
   useId,
 } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import { LastUsedBadge } from '@/features/auth/SignIn/components/LastUsedBadge';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
@@ -90,7 +91,7 @@ export default function SigninPage() {
         <SignInOption isLastUsed={isEmailLastUsed} badgeId={lastUsedBadgeId}>
           <Button
             asChild
-            variant="outline-emboss"
+            variant="outline"
             className={cn(
               'w-full gap-2 text-sm+',
               isEmailLastUsed && lastUsedOutline,
@@ -137,11 +138,8 @@ export default function SigninPage() {
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
-      title="Sign In"
-      rightColumnContent={<SignInRightColumn />}
-    >
-      {page}
-    </UnauthenticatedLayout>
+    <AuthFlowLayout title="Sign In" rightColumnContent={<SignInRightColumn />}>
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };

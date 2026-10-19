@@ -223,7 +223,7 @@ export default function PendingInvites() {
                 </div>
                 <DialogFooter>
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     type="button"
                     onClick={handleDismissDialog}
                   >

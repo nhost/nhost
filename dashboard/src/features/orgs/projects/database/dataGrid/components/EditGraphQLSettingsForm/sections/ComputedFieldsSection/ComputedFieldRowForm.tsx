@@ -130,7 +130,7 @@ export default function ComputedFieldRowForm({
         <div className="flex items-center justify-between gap-3">
           <Button
             type="button"
-            variant="outline-emboss"
+            variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
           >

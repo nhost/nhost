@@ -49,8 +49,6 @@ tailwind.json
 
 .idea
 
-# Do not ignore Logs page
-!src/**/logs*
 /test-results/
 /playwright-report/
 /playwright/.cache/

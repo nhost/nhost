@@ -88,7 +88,7 @@ export default function ForeignKeyEditorSection() {
 
       <Button
         type="button"
-        variant="outline-emboss"
+        variant="outline"
         size="sm"
         className={twMerge(
           'mt-1 gap-2',
