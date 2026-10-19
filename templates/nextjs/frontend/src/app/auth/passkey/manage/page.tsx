@@ -27,7 +27,7 @@ export default async function Manage() {
   const { keys, error } = await listPasskeys();
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>Passkeys</CardTitle>
