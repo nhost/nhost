@@ -10,8 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // The app is dark only, so the class is fixed rather than toggled.
+  // globals.css explains what still reads it.
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body className="min-h-screen antialiased">
         <Nav />
         <main className="mx-auto max-w-4xl px-6 py-10">
