@@ -49,37 +49,36 @@ export default function ChangePasswordForm() {
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      {/* Both keep a visible label, unlike the single-field sections: the
-            two are only told apart by it. Side by side because the pair is
-            one step, and they drop to a column on a phone. */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={passwordId}>New password</Label>
-          <Input
-            id={passwordId}
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            disabled={isPending}
-            aria-describedby={rulesId}
-          />
-        </div>
+      {/* Stacked, not paired. They sat side by side when this was a section
+          on the account page, which was wide; on a card of its own there is
+          not the width for two, and the reset form a visitor may have met
+          first asks for the same two in a column. */}
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={passwordId}>New password</Label>
+        <Input
+          id={passwordId}
+          type="password"
+          autoComplete="new-password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          disabled={isPending}
+          aria-describedby={rulesId}
+        />
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={confirmId}>Confirm new password</Label>
-          <Input
-            id={confirmId}
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirm}
-            onChange={(event) => setConfirm(event.target.value)}
-            disabled={isPending}
-            aria-describedby={rulesId}
-          />
-        </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={confirmId}>Confirm new password</Label>
+        <Input
+          id={confirmId}
+          type="password"
+          autoComplete="new-password"
+          required
+          value={confirm}
+          onChange={(event) => setConfirm(event.target.value)}
+          disabled={isPending}
+          aria-describedby={rulesId}
+        />
       </div>
 
       <PasswordRequirements
