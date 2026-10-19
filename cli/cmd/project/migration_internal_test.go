@@ -60,36 +60,131 @@ func TestStripPsqlRestrictionCommands(t *testing.T) {
 func TestFilterInitMigrationPsqlRestrictions(t *testing.T) {
 	t.Parallel()
 
-	migrationsDir := t.TempDir()
+	const wrappedSQL = "\\restrict hasura\nSELECT 1;\n\\unrestrict hasura\n"
 
-	upPath := filepath.Join(migrationsDir, "202610141234_init", "up.sql")
-	if err := os.MkdirAll(filepath.Dir(upPath), 0o755); err != nil {
-		t.Fatalf("create migration directory: %v", err)
+	tests := []struct {
+		name     string
+		files    map[string]string
+		want     map[string]string
+		readOnly bool
+	}{
+		{
+			name: "filters initial up migration",
+			files: map[string]string{
+				"202610141234_init/up.sql": wrappedSQL,
+			},
+			want: map[string]string{
+				"202610141234_init/up.sql": "SELECT 1;\n",
+			},
+		},
+		{
+			name: "empty migrations directory",
+		},
+		{
+			name: "initial migration without up.sql",
+			files: map[string]string{
+				"202610141234_init/README.md": "No up migration.\n",
+			},
+			want: map[string]string{
+				"202610141234_init/README.md": "No up migration.\n",
+			},
+		},
+		{
+			name: "preserves non-init migration",
+			files: map[string]string{
+				"1700000000000_add_users/up.sql": wrappedSQL,
+			},
+			want: map[string]string{
+				"1700000000000_add_users/up.sql": wrappedSQL,
+			},
+		},
+		{
+			name: "requires init suffix",
+			files: map[string]string{
+				"202610141234_init_extra/up.sql": wrappedSQL,
+			},
+			want: map[string]string{
+				"202610141234_init_extra/up.sql": wrappedSQL,
+			},
+		},
+		{
+			name: "preserves initial down migration",
+			files: map[string]string{
+				"202610141234_init/up.sql":   wrappedSQL,
+				"202610141234_init/down.sql": wrappedSQL,
+			},
+			want: map[string]string{
+				"202610141234_init/up.sql":   "SELECT 1;\n",
+				"202610141234_init/down.sql": wrappedSQL,
+			},
+		},
+		{
+			name: "skips regular file with init suffix",
+			files: map[string]string{
+				"202610141234_init": wrappedSQL,
+			},
+			want: map[string]string{
+				"202610141234_init": wrappedSQL,
+			},
+		},
+		{
+			name: "does not rewrite unchanged read-only migration",
+			files: map[string]string{
+				"202610141234_init/up.sql": "SELECT 1;\n",
+			},
+			want: map[string]string{
+				"202610141234_init/up.sql": "SELECT 1;\n",
+			},
+			readOnly: true,
+		},
 	}
 
-	input := []byte("\\restrict hasura\nSELECT 1;\n\\unrestrict hasura\n")
-	if err := os.WriteFile(upPath, input, 0o600); err != nil {
-		t.Fatalf("write migration: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if err := filterInitMigrationPsqlRestrictions(migrationsDir); err != nil {
-		t.Fatalf("filter initial migration: %v", err)
-	}
+			if tt.readOnly && os.Geteuid() == 0 {
+				t.Skip("root can write read-only files")
+			}
 
-	got, err := os.ReadFile(upPath)
-	if err != nil {
-		t.Fatalf("read filtered migration: %v", err)
-	}
+			migrationsDir := t.TempDir()
 
-	if want := []byte("SELECT 1;\n"); !bytes.Equal(got, want) {
-		t.Errorf("filtered migration = %q, want %q", got, want)
+			mode := os.FileMode(0o600)
+			if tt.readOnly {
+				mode = 0o400
+			}
+
+			writeMigrationTestFiles(t, migrationsDir, tt.files, mode)
+
+			if err := filterInitMigrationPsqlRestrictions(migrationsDir); err != nil {
+				t.Fatalf("filter initial migrations: %v", err)
+			}
+
+			for name, want := range tt.want {
+				got, err := os.ReadFile(filepath.Join(migrationsDir, name))
+				if err != nil {
+					t.Fatalf("read migration %q: %v", name, err)
+				}
+
+				if string(got) != want {
+					t.Errorf("migration %q = %q, want %q", name, got, want)
+				}
+			}
+		})
 	}
 }
 
-func TestFilterInitMigrationPsqlRestrictionsWithoutMigration(t *testing.T) {
-	t.Parallel()
+func writeMigrationTestFiles(t *testing.T, dir string, files map[string]string, mode os.FileMode) {
+	t.Helper()
 
-	if err := filterInitMigrationPsqlRestrictions(t.TempDir()); err != nil {
-		t.Fatalf("filter missing initial migration: %v", err)
+	for name, contents := range files {
+		path := filepath.Join(dir, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatalf("create migration directory: %v", err)
+		}
+
+		if err := os.WriteFile(path, []byte(contents), mode); err != nil {
+			t.Fatalf("write migration %q: %v", name, err)
+		}
 	}
 }
