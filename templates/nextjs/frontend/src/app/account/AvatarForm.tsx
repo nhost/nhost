@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useRef, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useRef, useState } from 'react';
 import { removeAvatar, uploadAvatar } from '@/app/account/actions';
 import {
   AVATAR_TOO_LARGE,
@@ -11,17 +11,24 @@ import {
 import { Button } from '@/components/ui/button';
 
 /**
- * The two buttons under the avatar: one to put a new image up, one to take
- * the current one down.
+ * The controls for the avatar, wrapped around the image itself.
+ *
+ * The image is passed in rather than rendered here: it comes from the auth
+ * service on the server, and this is a client component. What this adds is
+ * the round + in its bottom corner, and a remove link underneath.
  *
  * No file name and no separate upload step. The file input is the only way
  * to open a file picker, so it stays in the DOM for a screen reader and the
- * visible button clicks it; choosing a file is the whole gesture, so the
+ * round button clicks it; choosing a file is the whole gesture, so the
  * upload starts there rather than waiting for a second press.
- *
- * ProfileSummary renders the image this sits beneath.
  */
-export default function AvatarForm({ canRemove }: { canRemove: boolean }) {
+export default function AvatarForm({
+  canRemove,
+  children,
+}: {
+  canRemove: boolean;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | undefined>();
@@ -91,8 +98,9 @@ export default function AvatarForm({ canRemove }: { canRemove: boolean }) {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col items-center gap-1">
+      <div className="relative">
+        {children}
         <input
           ref={input}
           type="file"
@@ -103,31 +111,36 @@ export default function AvatarForm({ canRemove }: { canRemove: boolean }) {
           aria-label="New avatar image"
           onChange={(event) => void handleChange(event)}
         />
+        {/* Sat on the image's bottom corner rather than under it, where a
+            row of buttons competed with the name beside it. The ring is the
+            card colour, so the button reads as cut out of the image. */}
         <Button
           type="button"
-          variant="outline"
           size="icon"
           disabled={isPending}
           aria-label="Upload a new avatar"
           title="Upload a new avatar"
+          className="absolute right-0 bottom-0 size-6 rounded-full ring-2 ring-card"
           onClick={() => input.current?.click()}
         >
-          <span aria-hidden="true">+</span>
+          <span aria-hidden="true" className="text-sm leading-none">
+            +
+          </span>
         </Button>
-        {canRemove ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={isPending}
-            aria-label="Remove the avatar"
-            title="Remove the avatar"
-            onClick={() => void handleRemove()}
-          >
-            <span aria-hidden="true">×</span>
-          </Button>
-        ) : null}
       </div>
+
+      {canRemove ? (
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          disabled={isPending}
+          className="h-auto p-0 text-muted-foreground text-xs"
+          onClick={() => void handleRemove()}
+        >
+          Remove
+        </Button>
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">

@@ -26,14 +26,17 @@ export default function AccountSection({
 }) {
   return (
     <section className="flex flex-col gap-4 px-6 py-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* Deliberately not wrapping: the description is a sentence, and with
+          wrap on it took the whole row and pushed the action under it, which
+          is the one place the action must not be. The text shrinks instead. */}
+      <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1.5">
           <h2 className="font-semibold leading-none">{title}</h2>
           {description ? (
             <div className="text-muted-foreground text-sm">{description}</div>
           ) : null}
         </div>
-        {action}
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children}
     </section>
@@ -56,7 +59,7 @@ export function FieldLabel({
   return (
     <span
       className={cn(
-        'font-medium text-muted-foreground text-xs uppercase tracking-wider',
+        'font-medium text-[0.625rem] text-muted-foreground uppercase tracking-wider',
         className,
       )}
     >
