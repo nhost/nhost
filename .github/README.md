@@ -155,7 +155,11 @@ nix run github:nhost/nhost/<commit>#sync-ci -- --target /path/to/checkout --chec
 
 A registry alias can shorten this to `nix run nhost#sync-ci`, but use an explicit
 commit for reproducible updates. `--target` defaults to the current directory.
-The receiving checkout owns `build/shared-ci.json`. Install the following
+The receiving checkout owns `build/shared-ci.json`. Receivers running
+`actionlint` on synced workflows must declare their `nhost-<arch>-<size>` runner
+labels (including the ECR publisher's `nhost-aarch64-1c1g`) under
+`self-hosted-runner.labels` in their own `.github/actionlint.yaml`; this
+repository's `.github/actionlint.yaml` is an example. Install the following
 exports together to use the shared check workflow (and its ECR publisher):
 
 ```json

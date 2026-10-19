@@ -44,9 +44,11 @@ pkgs.runCommand "check-ci"
     mkdir .git
 
     # Other workflows still use newer action inputs than actionlint knows.
-    # Validate the shared workflow and all its project-check callers in full.
+    # Validate both exported workflows and all project-check callers in full.
     actionlint -config-file .github/actionlint.yaml \
-      .github/workflows/wf_check.yaml .github/workflows/*checks.yaml
+      .github/workflows/wf_check.yaml \
+      .github/workflows/wf_docker_push_image_ecr.yaml \
+      .github/workflows/*checks.yaml
     shellcheck .github/actions/cache-nix/cache.sh
     python3 .github/actions/cache-nix/test_cache.py
     python3 -m unittest discover -s nixops/tests -p 'test_*.py'

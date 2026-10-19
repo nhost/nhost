@@ -77,8 +77,11 @@ jobs:
 
       - name: "Compute common env vars"
         id: vars
+        env:
+          REQUESTED_VERSION: ${{ inputs.VERSION }}
         run: |
-          echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+          version=$(make get-version VER="$REQUESTED_VERSION")
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
