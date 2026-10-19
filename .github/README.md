@@ -133,9 +133,11 @@ graphs for auxiliary images built during integration setup.
 realized outputs from the recorded derivation graphs, including successful
 build-time intermediates after a failed check, plus runtime references and locked
 inputs. It does not scan the whole store or upload incidental evaluation sources
-and `.drv` files. Upstream-signed outputs are not mirrored. Missing paths are
-probed in parallel before signing/uploading; authentication and upload failures
-fail the action. Previously signed but unpublished paths are retried.
+and `.drv` files. Only unsigned paths or paths signed exclusively by the Nhost
+cache key are probed; paths with an upstream signature are neither probed nor
+mirrored, even if they also carry our signature. Missing paths are probed in
+parallel before signing/uploading; authentication and upload failures fail the
+action. Paths signed only by us but not yet published are retried.
 
 ## Synchronizing shared CI files
 

@@ -62,8 +62,7 @@ key_name=${NIX_CACHE_PRIV_KEY%%:*}
 jq -r --arg prefix "$key_name:" '
   to_entries[]
   | select(.key | endswith(".drv") | not)
-  | select((.value.signatures | length == 0) or
-      any(.value.signatures[]; startswith($prefix)))
+  | select(.value.signatures | all(startswith($prefix)))
   | .key
 ' "$work/info.json" > "$work/candidates"
 count=$(wc -l < "$work/candidates" | tr -d '[:space:]')

@@ -173,8 +173,19 @@ class CacheTests(unittest.TestCase):
             if name == "aws" and args[:3] == ["s3", "cp", "-"]
         }
 
+    def probed(self, events):
+        return {
+            args[args.index("--key") + 1]
+            for name, args, _ in events
+            if name == "aws" and args[:2] == ["s3api", "head-object"]
+        }
+
     def test_only_workflow_outputs_and_runtime_references_are_uploaded(self):
         events = self.run_cache()
+        self.assertEqual(
+            self.probed(events),
+            {"check.narinfo", "dependency.narinfo", "runtime.narinfo"},
+        )
         self.assertEqual(
             self.uploaded(events),
             {"check.narinfo", "dependency.narinfo", "runtime.narinfo"},
@@ -249,12 +260,38 @@ class CacheTests(unittest.TestCase):
         self.state["metadata"] = {DEP: metadata()}
         self.assertEqual(self.uploaded(self.run_cache()), {"dependency.narinfo"})
 
-    def test_our_signatures_are_retried_but_upstream_signatures_are_not(self):
+    def test_our_only_signatures_are_probed_and_retried_if_missing(self):
         self.state["metadata"][DEP]["signatures"] = ["test-key:old-signature"]
-        self.assertEqual(
-            self.uploaded(self.run_cache()),
-            {"check.narinfo", "dependency.narinfo", "runtime.narinfo"},
-        )
+        for cached in [False, True]:
+            with self.subTest(cached=cached):
+                self.state["cached"] = ["dependency.narinfo"] if cached else []
+                Path(self.env["TEST_LOG"]).unlink(missing_ok=True)
+                events = self.run_cache()
+                self.assertEqual(
+                    self.probed(events),
+                    {"check.narinfo", "dependency.narinfo", "runtime.narinfo"},
+                )
+                expected = {"check.narinfo", "runtime.narinfo"}
+                if not cached:
+                    expected.add("dependency.narinfo")
+                self.assertEqual(self.uploaded(events), expected)
+
+    def test_mixed_signatures_are_never_probed_or_mirrored(self):
+        self.state["metadata"][DEP]["signatures"] = [
+            "cache.nixos.org-1:upstream",
+            "test-key:old-signature",
+        ]
+        for cached in [False, True]:
+            with self.subTest(cached=cached):
+                self.state["cached"] = ["dependency.narinfo"] if cached else []
+                Path(self.env["TEST_LOG"]).unlink(missing_ok=True)
+                events = self.run_cache()
+                self.assertEqual(
+                    self.probed(events), {"check.narinfo", "runtime.narinfo"}
+                )
+                self.assertEqual(
+                    self.uploaded(events), {"check.narinfo", "runtime.narinfo"}
+                )
 
     def test_cached_paths_are_not_signed_or_uploaded(self):
         self.state["cached"] = [
