@@ -46,7 +46,7 @@ export default async function OAuth({
   }));
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>GitHub or Google</CardTitle>
