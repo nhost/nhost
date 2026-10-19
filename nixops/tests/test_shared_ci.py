@@ -67,11 +67,17 @@ class SharedInterfacesTests(unittest.TestCase):
         self.assertEqual(
             defaults["CACHE_TARGET"]["default"], inputs["CACHE_TARGET"]["default"]
         )
+        self.assertEqual(defaults["SKIP_CACHE_CHECK"]["type"], "boolean")
+        self.assertIs(defaults["SKIP_CACHE_CHECK"]["default"], False)
         self.assertFalse(defaults["LOGIN_ECR"]["default"])
         steps = {step["name"]: step for step in workflow["jobs"]["tests"]["steps"]}
         self.assertEqual(
             steps["Setup Nix with Cache"]["with"]["CACHE_TARGET"],
             "${{ inputs.CACHE_TARGET }}",
+        )
+        self.assertEqual(
+            steps["Setup Nix with Cache"]["with"]["SKIP_CACHE_CHECK"],
+            "${{ inputs.SKIP_CACHE_CHECK }}",
         )
         self.assertEqual(
             steps["Login to Amazon ECR"]["if"],

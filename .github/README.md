@@ -66,6 +66,8 @@ pass the **approved head SHA**, never a moving PR ref.
 - `CACHE_TARGET` defaults to `.#packages.{system}.nixops`; `{system}` expands to
   the native Nix system. Other repositories can select a target such as
   `.#devShells.{system}.cache` without changing the shared workflow or action.
+  Set `SKIP_CACHE_CHECK: true` on the caller that builds and uploads a custom
+  cache target during bootstrap or refresh; other callers retain the gate.
 - `LOGIN_ECR` defaults to false; enable it when integration dependencies need
   authenticated Docker access to ECR.
 - `ARCHS` defaults to `["aarch64", "x86_64"]`. Each architecture uses its native

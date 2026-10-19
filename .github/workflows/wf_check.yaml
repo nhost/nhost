@@ -21,6 +21,10 @@ on:
         description: "Cached flake installable; {system} is the native system"
         type: string
         default: ".#packages.{system}.nixops"
+      SKIP_CACHE_CHECK:
+        description: "Bypass ready-cache gate for bootstrap and refresh"
+        type: boolean
+        default: false
       LOGIN_ECR:
         description: "Authenticate Docker for integration dependencies in ECR"
         type: boolean
@@ -131,6 +135,7 @@ jobs:
         with:
           NAME: ${{ inputs.NAME }}
           CACHE_TARGET: ${{ inputs.CACHE_TARGET }}
+          SKIP_CACHE_CHECK: ${{ inputs.SKIP_CACHE_CHECK }}
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: >-
