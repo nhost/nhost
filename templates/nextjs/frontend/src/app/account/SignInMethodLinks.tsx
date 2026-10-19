@@ -61,8 +61,10 @@ export default function SignInMethodLinks({
       }
     >
       {entries.length > 0 ? (
-        // Two to a row: each entry is a title and a line, so a column of them
-        // left the section mostly empty space.
+        // Two to a row: each entry is a title and a line or two, so a column
+        // of them left the section mostly empty space. The grid gives both
+        // cards in a row the same height, so a description that wraps does
+        // not leave its neighbour short.
         <div className="grid gap-2 sm:grid-cols-2">
           {entries.map((entry) => (
             <Link
@@ -71,11 +73,15 @@ export default function SignInMethodLinks({
               className="rounded-md border p-4 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="font-medium">{entry.title}</div>
+              {/* Wraps rather than truncates. Cut off, these said something
+                  different from the page they lead to, which is worse than
+                  the row they cost. break-words is for the address, the one
+                  of these with no spaces to break at. */}
               <div
                 className={
                   entry === emailEntry && email && !verified
-                    ? 'truncate text-destructive text-sm'
-                    : 'truncate text-muted-foreground text-sm'
+                    ? 'break-words text-destructive text-sm'
+                    : 'break-words text-muted-foreground text-sm'
                 }
               >
                 {entry.description}
