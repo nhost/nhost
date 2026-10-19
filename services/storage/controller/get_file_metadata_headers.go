@@ -179,7 +179,9 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		return nil, apiErr
 	}
 
-	if !opts.IsEmpty() {
+	// Validate explicit options even for bodyless conditional responses, but only
+	// download and transform the image when its content length will be returned.
+	if !opts.IsEmpty() && statusCode == http.StatusOK {
 		download, apiErr := ctrl.contentStorage.GetFile(ctx, fileMetadata.Id, nil)
 		if apiErr != nil {
 			return nil, apiErr
