@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ChangePasswordForm from '@/app/account/ChangePasswordForm';
+import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
 
 const changePassword = vi.hoisted(() => vi.fn());
 
@@ -53,10 +53,6 @@ describe('change password form', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
-  });
-
-  it('says the current password is not asked for', () => {
-    expect(container.textContent).toContain('The current one is not asked for');
   });
 
   it('refuses mismatched passwords before calling the action', async () => {

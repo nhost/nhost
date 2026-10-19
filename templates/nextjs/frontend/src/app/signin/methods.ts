@@ -10,13 +10,20 @@
  *
  * `account` is how a method puts something on the account page. The page
  * links to it as data rather than importing it, so deleting the method takes
- * the link with it and nothing else.
+ * the link with it and nothing else. A method with nothing to configure
+ * leaves it out and the account page lists it as needing no setup.
  */
+export type AccountEntry = {
+  href: string;
+  title: string;
+  description: string;
+};
+
 export type SignInMethod = {
   href: string;
   title: string;
   description: string;
-  account?: { href: string; title: string; description: string };
+  account?: AccountEntry[];
 };
 
 export const methods: SignInMethod[] = [
@@ -24,11 +31,18 @@ export const methods: SignInMethod[] = [
     href: '/auth/password',
     title: 'Email and password',
     description: 'Sign up or sign in with a password.',
-    account: {
-      href: '/auth/password/mfa',
-      title: 'Two-factor authentication',
-      description: 'Ask for a code when signing in with a password.',
-    },
+    account: [
+      {
+        href: '/auth/password/change',
+        title: 'Password',
+        description: 'Set a new password for this account.',
+      },
+      {
+        href: '/auth/password/mfa',
+        title: 'Two-factor authentication',
+        description: 'Ask for a code when signing in with a password.',
+      },
+    ],
   },
   {
     href: '/auth/magic-link',
@@ -49,11 +63,13 @@ export const methods: SignInMethod[] = [
     href: '/auth/passkey',
     title: 'Passkey',
     description: 'Use Touch ID, Windows Hello or a security key.',
-    account: {
-      href: '/auth/passkey/manage',
-      title: 'Passkeys',
-      description:
-        'Add or remove the passkeys that can sign in to this account.',
-    },
+    account: [
+      {
+        href: '/auth/passkey/manage',
+        title: 'Passkeys',
+        description:
+          'Add or remove the passkeys that can sign in to this account.',
+      },
+    ],
   },
 ];
