@@ -1,13 +1,15 @@
 'use client';
 
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, use, useId, useState } from 'react';
 import { changePassword } from '@/app/account/actions';
+import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ChangePasswordForm() {
+  const onChanged = use(PasswordChangedContext);
   const passwordId = useId();
   const confirmId = useId();
   const rulesId = useId();
@@ -15,13 +17,11 @@ export default function ChangePasswordForm() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | undefined>();
-  const [done, setDone] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError(undefined);
-    setDone(false);
 
     if (password !== confirm) {
       setError('The two passwords do not match.');
@@ -36,9 +36,7 @@ export default function ChangePasswordForm() {
         return;
       }
 
-      setPassword('');
-      setConfirm('');
-      setDone(true);
+      onChanged();
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');
@@ -90,12 +88,6 @@ export default function ChangePasswordForm() {
       {error ? (
         <p role="alert" className="text-destructive text-sm">
           {error}
-        </p>
-      ) : null}
-
-      {done ? (
-        <p role="status" className="text-muted-foreground text-sm">
-          Password changed.
         </p>
       ) : null}
 

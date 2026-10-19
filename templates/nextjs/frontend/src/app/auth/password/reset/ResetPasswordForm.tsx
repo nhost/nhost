@@ -2,8 +2,8 @@
 
 import { type FormEvent, use, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
+import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
-import { PasswordChangedContext } from '@/app/auth/password/reset/PasswordChanged';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
