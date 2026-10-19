@@ -63,9 +63,14 @@ export default function DisplayNameField({
       // in, and so does tabbing to it, which is the part a bare hover rule
       // would leave unreachable.
       <div className="group flex min-w-0 items-center gap-2">
-        {/* cursor-default: it is a value, not something to select or type
+        {/* leading-tight pulls the name up under the label: at this size the
+            line box carries several pixels of leading above the glyphs, and
+            the open form has a border instead, so without this the gap under
+            the label changed depending on which mode you were in.
+
+            cursor-default: it is a value, not something to select or type
             into, and the I-beam suggested otherwise. */}
-        <span className="cursor-default truncate font-medium text-lg">
+        <span className="cursor-default truncate font-medium text-lg leading-tight">
           {displayName}
         </span>
         <Button
@@ -82,7 +87,10 @@ export default function DisplayNameField({
   }
 
   return (
-    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+    // mt-1.5 to clear the label, which the input's border would otherwise sit
+    // hard against. The closed state gets there by tightening its leading
+    // instead, so the gap reads the same either way.
+    <form className="mt-1.5 flex flex-col gap-2" onSubmit={handleSubmit}>
       {/* The name is right above this when the form is closed, so the label
           is here for a screen reader rather than for the eye. */}
       <Label htmlFor={nameId} className="sr-only">
@@ -97,7 +105,9 @@ export default function DisplayNameField({
           value={name}
           onChange={(event) => setName(event.target.value)}
           disabled={isPending}
-          className="min-w-0 flex-1"
+          // h-8 rather than the control's own h-9: that height is for a form
+          // of its own, and here it sits inline with two small buttons.
+          className="h-8 min-w-0 flex-1"
         />
         <Button type="submit" size="sm" disabled={isPending}>
           {isPending ? 'Saving…' : 'Save'}
