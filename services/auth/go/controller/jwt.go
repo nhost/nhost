@@ -474,7 +474,7 @@ func (j *JWTGetter) Validate(
 }
 
 func (j *JWTGetter) expectedAudience(purpose tokenpurpose.Purpose) string {
-	if purpose == tokenpurpose.Session {
+	if purpose == tokenpurpose.Session || purpose == tokenpurpose.OAuth2AccessToken {
 		return j.audience
 	}
 
@@ -490,6 +490,20 @@ func (j *JWTGetter) verifyAudience(token *jwt.Token, purpose tokenpurpose.Purpos
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return fmt.Errorf("%w: invalid claims", errTokenAudienceMismatch)
+	}
+
+	clientID, hasClientID := "", false
+	if purpose == tokenpurpose.OAuth2AccessToken {
+		if rawClientID, present := claims["client_id"]; present {
+			var valid bool
+
+			clientID, valid = rawClientID.(string)
+			if !valid {
+				return fmt.Errorf("%w: malformed client_id", errTokenAudienceMismatch)
+			}
+
+			hasClientID = true
+		}
 	}
 
 	raw, present := claims["aud"]
@@ -510,6 +524,11 @@ func (j *JWTGetter) verifyAudience(token *jwt.Token, purpose tokenpurpose.Purpos
 	}
 
 	if !slices.Contains(audiences, expected) {
+		if purpose == tokenpurpose.OAuth2AccessToken &&
+			(!hasClientID || len(audiences) == 1 && audiences[0] == clientID) {
+			return nil
+		}
+
 		return fmt.Errorf("%w: expected %q", errTokenAudienceMismatch, expected)
 	}
 

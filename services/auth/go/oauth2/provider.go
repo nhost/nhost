@@ -34,6 +34,7 @@ type Config struct {
 	LoginURL                   string
 	ClientURL                  string
 	ServerURL                  string
+	Audience                   string
 	AccessTokenTTL             int
 	RefreshTokenTTL            int
 	CIMDEnabled                bool
@@ -41,12 +42,14 @@ type Config struct {
 }
 
 type ValidatedClaims struct {
-	Sub   string
-	Aud   []string
-	Scope string
-	Iat   time.Time
-	Exp   time.Time
-	Iss   string
+	Sub         string
+	Aud         []string
+	ClientID    string
+	HasClientID bool
+	Scope       string
+	Iat         time.Time
+	Exp         time.Time
+	Iss         string
 }
 
 //go:generate mockgen -package mock -destination mock/signer.go . Signer

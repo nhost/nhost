@@ -638,7 +638,13 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 		},
 		{
 			name: "error - access token sign failure",
-			db:   mock.NewMockDBClient,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
+					Return(sql.AuthOauth2RefreshToken{}, nil)
+
+				return m
+			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
 				m.EXPECT().
@@ -745,14 +751,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 
 				return m
 			},
-			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
-				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().
-					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
-					Return("access-token", nil)
-
-				return m
-			},
+			signer: mock.NewMockSigner,
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
@@ -785,14 +784,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 
 				return m
 			},
-			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
-				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().
-					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
-					Return("access-token", nil)
-
-				return m
-			},
+			signer: mock.NewMockSigner,
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,

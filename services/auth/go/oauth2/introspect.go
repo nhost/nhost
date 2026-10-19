@@ -111,18 +111,22 @@ func (p *Provider) introspectAccessToken(
 		return nil
 	}
 
-	if !slices.Contains(claims.Aud, clientID) {
+	owner := claims.ClientID
+	if !claims.HasClientID {
+		if !slices.Contains(claims.Aud, clientID) {
+			return nil
+		}
+
+		owner = clientID
+	}
+
+	if owner != clientID {
 		return nil
 	}
 
 	exp := int(claims.Exp.Unix())
 	iat := int(claims.Iat.Unix())
 	tokenType := "access_token"
-
-	var clientIDPtr *string
-	if len(claims.Aud) > 0 {
-		clientIDPtr = &claims.Aud[0]
-	}
 
 	var scopePtr *string
 	if claims.Scope != "" {
@@ -131,7 +135,7 @@ func (p *Provider) introspectAccessToken(
 
 	return &api.OAuth2IntrospectResponse{
 		Active:    true,
-		ClientId:  clientIDPtr,
+		ClientId:  &owner,
 		Sub:       &claims.Sub,
 		Scope:     scopePtr,
 		Exp:       &exp,
@@ -139,6 +143,20 @@ func (p *Provider) introspectAccessToken(
 		Iss:       &claims.Iss,
 		TokenType: &tokenType,
 	}
+}
+
+func extractClientID(claims jwt.MapClaims) (string, bool, error) {
+	raw, present := claims["client_id"]
+	if !present {
+		return "", false, nil
+	}
+
+	clientID, ok := raw.(string)
+	if !ok {
+		return "", false, fmt.Errorf("unexpected client_id type %T", raw) //nolint:err113
+	}
+
+	return clientID, true, nil
 }
 
 func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
@@ -182,6 +200,11 @@ func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 		iat = iatTime.Time
 	}
 
+	clientID, hasClientID, err := extractClientID(claims)
+	if err != nil {
+		return nil, fmt.Errorf("error getting client_id: %w", err)
+	}
+
 	scope, ok := claims["scope"].(string)
 	if !ok && claims["scope"] != nil {
 		return nil, fmt.Errorf( //nolint:err113
@@ -190,11 +213,13 @@ func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 	}
 
 	return &ValidatedClaims{
-		Sub:   sub,
-		Aud:   aud,
-		Scope: scope,
-		Iat:   iat,
-		Exp:   exp,
-		Iss:   iss,
+		Sub:         sub,
+		Aud:         aud,
+		ClientID:    clientID,
+		HasClientID: hasClientID,
+		Scope:       scope,
+		Iat:         iat,
+		Exp:         exp,
+		Iss:         iss,
 	}, nil
 }

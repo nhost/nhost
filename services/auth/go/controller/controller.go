@@ -242,6 +242,7 @@ func (ctrl *Controller) newOAuth2Provider() *oauth2provider.Provider {
 			LoginURL:                   ctrl.config.OAuth2ProviderLoginURL,
 			ClientURL:                  ctrl.config.ClientURL.String(),
 			ServerURL:                  ctrl.config.ServerURL.String(),
+			Audience:                   ctrl.jwtGetter.Audience(),
 			AccessTokenTTL:             ctrl.config.OAuth2ProviderAccessTokenTTL,
 			RefreshTokenTTL:            ctrl.config.OAuth2ProviderRefreshTokenTTL,
 			CIMDEnabled:                ctrl.config.OAuth2ProviderCIMDEnabled,

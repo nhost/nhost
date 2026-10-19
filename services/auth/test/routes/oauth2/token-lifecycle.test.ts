@@ -126,6 +126,12 @@ describe('token-lifecycle', () => {
 
   it('should introspect an active access token', async () => {
     const { tokenResp, clientId, clientSecret } = await getTokens(jwt);
+    const payload = jose.decodeJwt(tokenResp.access_token);
+    expect(payload.aud).toBe('https://local.nhost.run');
+    expect(payload.client_id).toBe(clientId);
+    expect(payload.sid).toEqual(expect.any(String));
+    expect(payload.jti).toEqual(expect.any(String));
+    expect(jose.decodeProtectedHeader(tokenResp.access_token).typ).toBe('at+jwt');
 
     const { body: introspection } = await nhost.auth.oauth2Introspect({
       token: tokenResp.access_token,
@@ -188,6 +194,13 @@ describe('token-lifecycle', () => {
       refresh_token: expect.any(String),
       scope: 'openid profile email',
     });
+
+    const initialClaims = jose.decodeJwt(tokenResp.access_token);
+    const rotatedClaims = jose.decodeJwt(refreshResp.access_token);
+    expect(rotatedClaims.sid).toBe(initialClaims.sid);
+    expect(rotatedClaims.jti).not.toBe(initialClaims.jti);
+    expect(rotatedClaims.aud).toBe('https://local.nhost.run');
+    expect(rotatedClaims.client_id).toBe(clientId);
 
     // Old refresh token should now be inactive
     const { body: oldIntrospection } = await nhost.auth.oauth2Introspect({
