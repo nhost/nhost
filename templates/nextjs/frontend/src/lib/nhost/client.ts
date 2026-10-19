@@ -8,6 +8,12 @@ import type { SessionStorageBackend } from '@nhost/nhost-js/session';
 import { readAccessTokenCookie } from './access-token';
 import { nhostRegion, nhostSubdomain } from './env';
 
+// The browser-side client, for client components that call the backend
+// themselves. Nothing in the template imports it: every page here reads the
+// session on the server, which is what the proxy and `server.ts` are built
+// around. It is kept so the first client component that needs the SDK does
+// not have to work the storage and middleware below out from scratch.
+//
 // Reads the access token the proxy and server actions write next to the
 // httpOnly session cookie, through `sessionCookies` in `server.ts`.
 // Writes do nothing: the browser cannot touch the session cookie, and the only
