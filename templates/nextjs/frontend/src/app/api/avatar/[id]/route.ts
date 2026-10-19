@@ -116,9 +116,14 @@ export async function GET(
 
   // This response is gated by the session cookie, so a shared cache between
   // the browser and this app must not hand it to another visitor. The
-  // browser's own cache still keeps it for the max-age storage set.
+  // browser's own cache still keeps it for the max-age storage set. Should
+  // storage send no max-age at all, the response still says `private`, or a
+  // shared cache could keep it on the strength of Last-Modified alone; the
+  // browser then revalidates by ETag on every use.
   const cacheControl = response.get('cache-control');
-  if (cacheControl && !/\bprivate\b/.test(cacheControl)) {
+  if (!cacheControl) {
+    response.set('cache-control', 'private, no-cache');
+  } else if (!/\bprivate\b/.test(cacheControl)) {
     response.set('cache-control', `private, ${cacheControl}`);
   }
 
