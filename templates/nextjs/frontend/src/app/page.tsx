@@ -21,7 +21,7 @@ export default async function Home() {
   const user = nhost.getUserSession()?.user;
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>

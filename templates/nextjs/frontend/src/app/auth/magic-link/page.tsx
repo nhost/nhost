@@ -32,7 +32,7 @@ export default async function MagicLink({
   const query = signInQuery(destination, signInIntent(intent));
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>Magic link</CardTitle>

@@ -20,7 +20,7 @@ export default function AuthErrorFromUrl() {
   }
 
   return (
-    <div className="mx-auto mb-4 max-w-md">
+    <div className="mx-auto mb-4 max-w-2xl">
       <AuthErrorNotice error={error} />
     </div>
   );
