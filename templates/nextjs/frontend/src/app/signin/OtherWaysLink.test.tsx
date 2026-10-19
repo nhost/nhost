@@ -18,8 +18,8 @@ describe('OtherWaysLink', () => {
   });
 
   it('goes back to sign-in carrying the query', () => {
-    expect(render('?next=%2Fprotected&intent=sign-in')).toContain(
-      'href="/signin?next=%2Fprotected&amp;intent=sign-in"',
+    expect(render('?next=%2Faccount&intent=sign-in')).toContain(
+      'href="/signin?next=%2Faccount&amp;intent=sign-in"',
     );
   });
 

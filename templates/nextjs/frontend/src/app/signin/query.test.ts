@@ -17,9 +17,7 @@ describe('signInQuery', () => {
   });
 
   it('leaves off a default intent', () => {
-    expect(signInQuery('/protected', DEFAULT_INTENT)).toBe(
-      '?next=%2Fprotected',
-    );
+    expect(signInQuery('/account', DEFAULT_INTENT)).toBe('?next=%2Faccount');
   });
 
   it('leaves off a default next', () => {
@@ -27,15 +25,15 @@ describe('signInQuery', () => {
   });
 
   it('carries next and intent together, next encoded', () => {
-    const query = signInQuery('/protected/settings?tab=1&q=a b', 'sign-in');
+    const query = signInQuery('/account/settings?tab=1&q=a b', 'sign-in');
 
     expect(query).toBe(
-      '?next=%2Fprotected%2Fsettings%3Ftab%3D1%26q%3Da+b&intent=sign-in',
+      '?next=%2Faccount%2Fsettings%3Ftab%3D1%26q%3Da+b&intent=sign-in',
     );
 
     const params = new URLSearchParams(query);
 
-    expect(params.get('next')).toBe('/protected/settings?tab=1&q=a b');
+    expect(params.get('next')).toBe('/account/settings?tab=1&q=a b');
     expect(params.get('intent')).toBe('sign-in');
   });
 
@@ -44,8 +42,8 @@ describe('signInQuery', () => {
     Reflect.deleteProperty(URLSearchParams.prototype, 'size');
 
     expect('size' in URLSearchParams.prototype).toBe(false);
-    expect(signInQuery('/protected', 'sign-in')).toBe(
-      '?next=%2Fprotected&intent=sign-in',
+    expect(signInQuery('/account', 'sign-in')).toBe(
+      '?next=%2Faccount&intent=sign-in',
     );
     expect(signInQuery(DEFAULT_DESTINATION, DEFAULT_INTENT)).toBe('');
   });

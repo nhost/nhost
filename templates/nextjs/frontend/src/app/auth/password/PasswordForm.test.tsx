@@ -54,21 +54,21 @@ describe('password form, switching modes', () => {
   it('writes the mode it switched to into the URL, keeping next', async () => {
     await act(async () =>
       root.render(
-        <PasswordForm next="/protected" intent="sign-up" mailboxURL={null} />,
+        <PasswordForm next="/account" intent="sign-up" mailboxURL={null} />,
       ),
     );
 
     await toggle('I already have an account');
 
     expect(router.replace).toHaveBeenLastCalledWith(
-      '/auth/password?next=%2Fprotected&intent=sign-in',
+      '/auth/password?next=%2Faccount&intent=sign-in',
       { scroll: false },
     );
 
     await toggle('Create an account');
 
     expect(router.replace).toHaveBeenLastCalledWith(
-      '/auth/password?next=%2Fprotected',
+      '/auth/password?next=%2Faccount',
       { scroll: false },
     );
   });

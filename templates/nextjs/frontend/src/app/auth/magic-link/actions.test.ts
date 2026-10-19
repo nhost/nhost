@@ -17,9 +17,9 @@ describe('sendMagicLink', () => {
   });
 
   it('sends the link back to the requested path', async () => {
-    await sendMagicLink('user@example.com', '/protected');
+    await sendMagicLink('user@example.com', '/account');
 
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
+    expect(sentRedirectTo()).toBe(`${appOrigin()}/account`);
   });
 
   // The action is callable without the page, so `next` here is whatever the

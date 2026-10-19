@@ -46,7 +46,7 @@ let root: Root;
 async function render(intent: 'sign-in' | 'sign-up'): Promise<void> {
   await act(async () =>
     root.render(
-      <PasskeyForm next="/protected" intent={intent} mailboxURL={null} />,
+      <PasskeyForm next="/account" intent={intent} mailboxURL={null} />,
     ),
   );
 }
@@ -89,7 +89,7 @@ describe('passkey form', () => {
     await click('I already have an account');
 
     expect(router.replace).toHaveBeenLastCalledWith(
-      '/auth/passkey?next=%2Fprotected&intent=sign-in',
+      '/auth/passkey?next=%2Faccount&intent=sign-in',
       { scroll: false },
     );
   });
@@ -110,7 +110,7 @@ describe('passkey form', () => {
       optionsJSON: options,
     });
     expect(actions.finishSignIn).toHaveBeenCalledWith(credential);
-    expect(router.push).toHaveBeenCalledWith('/protected');
+    expect(router.push).toHaveBeenCalledWith('/account');
   });
 
   it('says so when the prompt was cancelled, and does not verify', async () => {

@@ -59,7 +59,7 @@ describe('AuthErrorFromUrl', () => {
 
   it('shows no notice on an ordinary visit', () => {
     expect(render('')).toBe('');
-    expect(render('next=%2Fprotected')).toBe('');
+    expect(render('next=%2Faccount')).toBe('');
   });
 
   it('needs the code, not only a description', () => {
