@@ -6,6 +6,7 @@ import ProfileSummary from '@/app/account/ProfileSummary';
 import SignInMethodLinks from '@/app/account/SignInMethodLinks';
 import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
+import { Card } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
 import { getVerifiedUser } from '@/lib/nhost/server';
 
@@ -22,17 +23,24 @@ export default async function Account() {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <ProfileSummary user={user} />
-      <DisplayNameForm displayName={user.displayName} />
-      <ChangeEmailForm
-        email={user.email}
-        verified={user.emailVerified}
-        mailboxURL={localMailboxURL()}
-      />
-      <ChangePasswordForm />
-      <SignInMethodLinks />
-      <SignOutCard />
+    <div className="mx-auto max-w-2xl">
+      {/* One card, not one per section: these are all settings for the same
+          account, and separate cards left a row of rounded corners down the
+          page. The card's own padding and gap come off so each section sets
+          its own, divide-y draws the rule between them, and overflow-hidden
+          keeps the first and last section square inside the rounded edge. */}
+      <Card className="gap-0 divide-y overflow-hidden py-0">
+        <ProfileSummary user={user} />
+        <DisplayNameForm displayName={user.displayName} />
+        <ChangeEmailForm
+          email={user.email}
+          verified={user.emailVerified}
+          mailboxURL={localMailboxURL()}
+        />
+        <ChangePasswordForm />
+        <SignInMethodLinks />
+        <SignOutCard />
+      </Card>
     </div>
   );
 }

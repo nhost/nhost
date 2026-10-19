@@ -64,7 +64,7 @@ describe('display name form', () => {
 
   it('saves the new name and re-reads the page', async () => {
     updateDisplayName.mockResolvedValueOnce({ success: true });
-    await type('Name', 'Ada Lovelace');
+    await type('Display name', 'Ada Lovelace');
 
     await submit();
 

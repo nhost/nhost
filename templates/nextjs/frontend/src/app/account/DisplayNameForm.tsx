@@ -2,15 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
+import AccountSection from '@/app/account/AccountSection';
 import { updateDisplayName } from '@/app/account/actions';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -52,43 +46,45 @@ export default function DisplayNameForm({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Display name</CardTitle>
-        <CardDescription>How this account is shown to others.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={nameId}>Name</Label>
-            <Input
-              id={nameId}
-              type="text"
-              autoComplete="name"
-              required
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              disabled={isPending}
-            />
-          </div>
-
-          {error ? (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          ) : null}
-
-          {saved ? (
-            <p role="status" className="text-muted-foreground text-sm">
-              Saved.
-            </p>
-          ) : null}
-
-          <Button type="submit" disabled={isPending} className="self-start">
+    <AccountSection
+      title="Display name"
+      description="How this account is shown to others."
+    >
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        {/* The section heading already names the field, so the label is here
+            for a screen reader and the input keeps the button company on one
+            line rather than leaving the row half empty. */}
+        <Label htmlFor={nameId} className="sr-only">
+          Display name
+        </Label>
+        <div className="flex items-center gap-2">
+          <Input
+            id={nameId}
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            disabled={isPending}
+            className="min-w-0 flex-1"
+          />
+          <Button type="submit" disabled={isPending}>
             {isPending ? 'Saving…' : 'Save'}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+
+        {error ? (
+          <p role="alert" className="text-destructive text-sm">
+            {error}
+          </p>
+        ) : null}
+
+        {saved ? (
+          <p role="status" className="text-muted-foreground text-sm">
+            Saved.
+          </p>
+        ) : null}
+      </form>
+    </AccountSection>
   );
 }

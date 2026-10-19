@@ -1,13 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
+import AccountSection from '@/app/account/AccountSection';
 import AvatarForm from '@/app/account/AvatarForm';
 import BrowserCheck from '@/app/account/BrowserCheck';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 
 // The date is cut rather than formatted: a locale-formatted string would
 // differ between the server render and the browser and trip hydration.
@@ -15,17 +9,14 @@ const dateOf = (iso: string): string => iso.slice(0, 10);
 
 export default function ProfileSummary({ user }: { user: User }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>
-          What the auth service holds for this account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+    <AccountSection
+      title="Profile"
+      description="What the auth service holds for this account."
+    >
+      <div className="flex flex-col gap-5">
         {/* The avatar is shown once, here, next to the name and email it
-            belongs to. The upload control sits under it in the same card so
-            the image and the form that replaces it are not two sections. */}
+            belongs to. The upload control sits under it in the same section
+            so the image and the form that replaces it are not two of them. */}
         <div className="flex items-center gap-4">
           {user.avatarUrl ? (
             // next/image's optimizer would fetch this route itself and keep the
@@ -79,7 +70,7 @@ export default function ProfileSummary({ user }: { user: User }) {
             session read by the browser, which is the other half of the setup
             and the only place the client-side SDK is used. */}
         <BrowserCheck />
-      </CardContent>
-    </Card>
+      </div>
+    </AccountSection>
   );
 }

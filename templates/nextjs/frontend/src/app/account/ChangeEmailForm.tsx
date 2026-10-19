@@ -1,20 +1,15 @@
 'use client';
 
 import { type FormEvent, useId, useState } from 'react';
+import AccountSection from '@/app/account/AccountSection';
 import { changeEmail, resendVerification } from '@/app/account/actions';
 import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// What the card shows once a link has gone out: the next step is in the inbox.
+// What the section shows once a link has gone out: the next step is in the
+// inbox.
 type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
 
 export default function ChangeEmailForm({
@@ -73,17 +68,18 @@ export default function ChangeEmailForm({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email</CardTitle>
-        <CardDescription>
+    <AccountSection
+      title="Email"
+      description={
+        <>
           {email ?? 'No address on this account.'}
           {email ? (
             <span> {verified ? '(verified)' : '(not verified)'}</span>
           ) : null}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
         {sent ? (
           <div className="flex flex-col gap-2 text-sm" role="status">
             <CheckYourInbox url={mailboxURL} />
@@ -109,8 +105,13 @@ export default function ChangeEmailForm({
             ) : null}
 
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor={emailId}>New email</Label>
+              {/* Label for a screen reader only: the heading above says
+                  Email, and the field is long enough that the button belongs
+                  beside it rather than under it. */}
+              <Label htmlFor={emailId} className="sr-only">
+                New email
+              </Label>
+              <div className="flex items-center gap-2">
                 <Input
                   id={emailId}
                   type="email"
@@ -119,7 +120,11 @@ export default function ChangeEmailForm({
                   value={newEmail}
                   onChange={(event) => setNewEmail(event.target.value)}
                   disabled={isPending}
+                  className="min-w-0 flex-1"
                 />
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Sending…' : 'Change email'}
+                </Button>
               </div>
 
               {error ? (
@@ -127,14 +132,10 @@ export default function ChangeEmailForm({
                   {error}
                 </p>
               ) : null}
-
-              <Button type="submit" disabled={isPending} className="self-start">
-                {isPending ? 'Sending…' : 'Change email'}
-              </Button>
             </form>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </AccountSection>
   );
 }
