@@ -22,7 +22,10 @@ Place a `.js` or `.ts` file inside the `./functions` directory of your project:
 
 ```js title="./functions/hello.js"
 export default (req, res) => {
-  res.status(200).send(`Hello ${req.query.name}!`)
+  res
+    .status(200)
+    .set('Content-Type', 'text/plain')
+    .send(`Hello ${req.query.name}!`)
 }
 ```
 
@@ -33,7 +36,10 @@ export default (req, res) => {
 import type { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
-  res.status(200).send(`Hello ${req.query.name}!`)
+  res
+    .status(200)
+    .set('Content-Type', 'text/plain')
+    .send(`Hello ${req.query.name}!`)
 }
 ```
 

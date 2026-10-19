@@ -105,12 +105,18 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Navigation
 
+A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
+
+- Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the query cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
+- Project settings pages: `<AppLayout><ProjectScope><ProjectStateGate><SettingsGuard><SettingsArea>{page}</SettingsArea></SettingsGuard></ProjectStateGate></ProjectScope></AppLayout>`.
+- Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
+
 When adding a new feature page, check whether it needs to be registered in each of these:
 
-- The `overlayPages` list in `ProjectStateGuard.tsx`.
-- `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
-- `MainNav/nav-config.tsx` for sidebar navigation.
-- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
+- The `runningProjectPages` list in `features/orgs/guards/ProjectStateGate/projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which `ProjectStateGate` reads via `requiresRunningProject()` / `hasSidebarSkeleton()` to show the project-state screen. They only take effect on pages that compose `ProjectStateGate`.
+- `components/layout/DashboardNavigation/ProjectNavigation.tsx` or `components/layout/DashboardNavigation/OrganizationNavigation.tsx` for visible sidebar entries.
+- `features/command-palette/catalog.tsx` (page names, routes, palette gates via `isHiddenFromPalette`, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it. A page's palette `gate` only hides it in the command palette; it does not control sidebar entries or direct page access.
 
 ### Testing
 

@@ -214,6 +214,71 @@ describe('fetchExistingRelationships', () => {
     expect(result.size).toBe(0);
   });
 
+  it('does not match composite metadata constraints against singular foreign keys', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'books', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: ['tenant_id', 'author_id'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: { name: 'authors', schema: TEST_SCHEMA },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['tenant_id', 'author_id'],
+                        table: { name: 'books', schema: TEST_SCHEMA },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'books',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [
+        {
+          name: 'books_author_id_fkey',
+          columnName: 'author_id',
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'authors',
+          referencedColumn: 'id',
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(result.size).toBe(0);
+  });
+
   it('should fetch existing array relationship from referenced table', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
