@@ -2,14 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import AccountSection from '@/app/account/AccountSection';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { signOut } from '@/lib/nhost/actions';
 
 type Pending = 'here' | 'everywhere';
@@ -41,14 +35,11 @@ export default function SignOutCard() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Sessions</CardTitle>
-        <CardDescription>
-          Sign out here, or on every device this account is signed in on.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+    <AccountSection
+      title="Sessions"
+      description="Sign out here, or on every device this account is signed in on."
+    >
+      <div className="flex flex-col gap-4">
         {error ? (
           <p role="alert" className="text-destructive text-sm">
             {error}
@@ -73,7 +64,7 @@ export default function SignOutCard() {
             {pending === 'everywhere' ? 'Signing out…' : 'Sign out everywhere'}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </AccountSection>
   );
 }
