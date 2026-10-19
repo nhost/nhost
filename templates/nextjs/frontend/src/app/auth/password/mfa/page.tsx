@@ -24,7 +24,7 @@ export default async function Mfa() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-sm">
       <Card>
         <CardHeader>
           <CardTitle>Two-factor authentication</CardTitle>
@@ -40,7 +40,7 @@ export default async function Mfa() {
             asChild
             variant="link"
             size="sm"
-            className="h-auto self-start p-0"
+            className="h-auto self-center p-0"
           >
             <Link href="/account">Back to your account</Link>
           </Button>

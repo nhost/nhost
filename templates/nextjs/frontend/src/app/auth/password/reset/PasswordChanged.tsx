@@ -19,7 +19,7 @@ export const PasswordChangedContext = createContext<() => void>(() => {
 
 export default function PasswordChanged() {
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-sm">
       <Card>
         <CardHeader>
           <CardTitle>Password changed</CardTitle>
