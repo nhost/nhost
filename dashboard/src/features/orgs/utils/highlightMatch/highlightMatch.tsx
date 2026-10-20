@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
-
-function escapeRegExp(input: string) {
-  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+import { escapeRegExp } from '@/utils/escapeRegExp';
 
 export default function highlightMatch(text: string, query: string): ReactNode {
   if (!query) {

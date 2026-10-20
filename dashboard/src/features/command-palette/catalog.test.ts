@@ -137,6 +137,7 @@ describe('command palette catalog', () => {
   it('keeps GraphQL sub-pages in route-tab order', () => {
     expect(projectGraphQLPages.map((page) => page.slug)).toEqual([
       'playground',
+      'schema',
       'remote-schemas',
       'actions',
       'metadata',
