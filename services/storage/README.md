@@ -73,6 +73,16 @@ sequenceDiagram
 
 This feature can be enabled with the flag `--clamav-server string`, where `string` is the tcp address for the clamd service.
 
+## Storage usage and total-size limit
+
+Migration `000006_add-usage-counter` installs triggers on `storage.files` and seeds the `storage.usage` counter from uploaded file sizes. The triggers run even when metrics and the limit are disabled; size-neutral changes do not update the counter. Apply this migration before enabling either feature. If the migration times out while waiting for its `storage.files` lock (`lock_timeout = '10s'`), retry it after the blocking transaction has finished.
+
+- `--postgres-source` / `POSTGRES_SOURCE`: persistent Postgres connection for usage reads. If unset, it falls back to `--postgres-migrations-source` / `POSTGRES_MIGRATIONS_SOURCE`. The runtime connection role needs `SELECT` on `storage.usage`.
+- `--metrics-bind` / `METRICS_BIND`: enables `GET /metrics` on a separate listener when set; unset disables it. Bind to a private address. A private bind is not access control: do not route this listener through public ingress. The gauge `nhost_storage_total_bytes` reports uploaded bytes without labels. Every replica reports the same database total; aggregate replicas with `max`, never `sum`.
+- `--max-total-storage-size` / `MAX_TOTAL_STORAGE_SIZE`: optional byte limit; `0` or unset disables enforcement. At a current total **greater than or equal to** the limit, uploads (including multi-file requests) and replaces are rejected as a whole with HTTP 413, `error.message` `"storage limit exceeded"` (also sent in the `X-Error` header), and `error.data.currentSize` / `error.data.maxSize`. The check does not reserve space for an in-flight request: an upload can cross the limit, and concurrent requests can overshoot it. A replace temporarily removes the old file's size from the counter; a request admitted during that brief dip can also overshoot the limit. If a usage read fails during a limit check, the service logs a warning and allows the request.
+
+When either feature is enabled, startup probes the counter and refuses to start if the Postgres source is unavailable or the counter row is missing or unreadable (including when Postgres migrations are disabled). A negative limit also prevents startup. A failed metrics scrape returns HTTP 500 rather than a stale value.
+
 ## Documentation
 
 - [Official Documentation](https://docs.nhost.io/products/storage/overview).
