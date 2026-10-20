@@ -106,19 +106,19 @@ By default, Supabase doesn't turn on row-level security for new tables, and I le
 
 ## Appwrite: the slowest, with the database closed
 
-The run took 4 minutes 43 seconds and cost a dollar.
+Building on Appwrite took the longest, 4 minutes 43 seconds. That's because Claude Code did two extra things: it wrote a server function and deployed the app to a public URL without being asked.
 
-The votes table has no permissions at all: the Security tab is empty, and row-level security is on. No client can read or write it directly, signed in or not. Every read and write goes through a single server function that checks who's asking.
+The agent left the votes table with no permissions at all, so the Security tab is empty and row-level security is on. No user can read or write the table directly, signed in or not.
 
 ![Appwrite: no table permissions on votes, row security on](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/appwrite-votes-permissions.png)
 
-That's stricter than the other two, where a signed-in client talks to the database and a rule limits what comes back. Here, the client never touches the data.
+On Nhost and Supabase, a signed-in user's browser reads the votes table directly, and a permission rule filters what comes back. On Appwrite, the browser only talks to a server function that checks who's asking, which makes this the strictest setup of the three.
 
-The agent explained why afterward. In Appwrite, client-side permissions can't stop someone from writing a row with another person's ID in it, because the platform doesn't check that the ID belongs to whoever created the row. The only way to prevent fake votes was to move every write to the server, and that explains most of the extra time and cost.
+When I asked why it went this way, Claude Code explained that in Appwrite, client-side permissions can't stop someone from writing a vote with another person's ID. The platform doesn't check that the ID belongs to the user who created the row, so it moved every write to the server to block fake votes.
 
-Three mistakes. It typed `appwrite projects` where the command is `project`. Its first check of the SDK version failed. And after deploying, it took the first URL the tool printed, which turned out to be a private preview link that sends visitors to an Appwrite sign-in page. It had to create a public domain separately. In its own words, a real user would have hit a login wall.
+Along the way, it made three mistakes. The first two were small: it typed `appwrite projects` instead of `project`, and its first check of the SDK version failed. The third came after deploying. It grabbed the first URL the tool printed, but that turned out to be a private preview link that sends visitors to an Appwrite sign-in page. After that, it created a public domain and admitted that a real user would have run into that login page.
 
-One side effect: Appwrite usually requires you to register a web platform for a hostname before a browser can talk to it. Deploying to Appwrite's hosting skipped that step on the polling app.
+Normally, Appwrite won't let a browser talk to a project until you register the site's domain as a web platform. Hosting the polling app on Appwrite let Claude Code skip that step.
 
 ## Three answers to the same question
 
