@@ -61,7 +61,7 @@ pnpm format                 # Format code with Biome
 
 ```
 src/
-  components/       # UI components (ui/v2, ui/v3, presentational)
+  components/       # UI components (ui/v3, presentational)
   features/         # Feature-based modules with components/hooks/utils
   hooks/            # Shared React hooks
   pages/            # Next.js pages (file-system routing)
