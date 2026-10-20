@@ -22,11 +22,11 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-AI agents now write a lot of backend code, and the platform you pick decides how much they get right on their own. I wanted to see that in practice: what happens when Claude Code builds the same app on Supabase, Appwrite and Nhost through each platform's CLI, with nobody telling it where the access rules should go.
+Agents now write code more often than people do. Tools used to be optimized for UX or DX, but now they're optimized for how well an agent understands how to work with the tool itself. So I decided to test how Claude Code would handle building apps on three popular backend platforms: Supabase, Appwrite and Nhost.
 
-I used two apps. The first is a polling app with a secret ballot, the same one I used to test [five vibe coding tools](/blog/best-vibe-coding-tools). It's small, but it has one requirement that's easy to get wrong: nobody can see how anyone else voted. The second is a team incident logger with file uploads, team membership and a server function, so it tests much more of each backend.
+I picked two apps to build. The first is a small polling app with one tricky condition: nobody should be able to see how other users voted.
 
-Each app ran once per platform, from the same clean start. Both prompts are below, so you can run them yourself.
+The second is a more complex app, an incident logger with file uploads, team membership and a server function.
 
 ## Setup
 
@@ -36,7 +36,7 @@ Every run used the same setup:
 - A new session, an empty folder and an empty cloud project for every run
 - Everything ran against the cloud, with no local stack and no Docker
 - Email confirmation switched off on all three, so test accounts could sign in right away
-- No plugins, skills or notes from earlier work, so everything the agent knew about a platform came from its training
+- No plugins, skills or notes from earlier work
 
 Neither prompt mentions permissions, roles or backends. The main thing I watched was where each platform leads the agent to put the access rules when nobody tells it to. I also tracked how smoothly it worked with each platform, how often I had to step in, and how long each run took.
 
@@ -56,7 +56,7 @@ The first line of each prompt named the platform and the project. The rest was t
 >
 > Keep it minimal, styling does not matter.
 
-I expected "nobody can find out how another specific user voted" to be the hardest part. If people can read the votes to count them, they can also see who cast each one. So the votes have to be locked down, and the totals have to come from somewhere else.
+I thought the hardest part would be keeping each vote secret. If people can read the votes to count them, they can also see who voted for what. So the votes need to be hidden, and the totals need to come from somewhere else.
 
 ## Poll app results
 
@@ -72,8 +72,6 @@ I expected "nobody can find out how another specific user voted" to be the harde
 | Docs pages opened | 0 | 0 | 0 |
 | Where the rules ended up | row rules in the database | row-level policies in the database | database closed, everything through a server function |
 | What it handed back | a local page | a local page | a deployed site on a public URL |
-
-Appwrite took the longest because it did two extra things: it wrote a server function and put the finished app on a public URL. I never asked for either, and neither Nhost nor Supabase did that. My guess is that since Appwrite hosts sites itself, deploying looked like the obvious next step.
 
 ## Nhost: fastest, but with an extra setup step
 
