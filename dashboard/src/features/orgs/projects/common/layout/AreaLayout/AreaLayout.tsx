@@ -21,7 +21,7 @@ export default function AreaLayout({ tabs, children }: AreaLayoutProps) {
     <div className="flex h-full flex-col">
       <div className="shrink-0 border-b p-4 md:py-3">{tabs}</div>
 
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable]">
         <ProjectStateGate>{children}</ProjectStateGate>
       </div>
     </div>

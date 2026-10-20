@@ -92,6 +92,7 @@ afterAll(() => {
 describe('GraphQLArea', () => {
   it.each([
     ['', '', 'Playground'],
+    ['/schema', '/schema', 'Schema'],
     ['/console', '/console', 'Console'],
     ['/metadata', '/metadata', 'Metadata'],
     ['/actions', '/actions', 'Actions'],
@@ -135,6 +136,7 @@ describe('GraphQLArea', () => {
 
   it.each([
     ['', '', 'Playground'],
+    ['/schema', '/schema', 'Schema'],
     ['/console', '/console', 'Console'],
     ['/metadata', '/metadata', 'Metadata'],
     ['/actions/[actionSlug]', '/actions/example', 'Actions'],
