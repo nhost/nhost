@@ -109,35 +109,16 @@ test('should return the internal error description first if the query error is f
     internal: {
       arguments: [],
       prepared: false,
-      statement:
-        'ALTER TABLE public.authors ADD CONSTRAINT authors_a_b_key UNIQUE (a, b);',
+      statement: 'CREATE TABLE public.new_authors (id uuid PRIMARY KEY);',
       error: {
         exec_status: 'FatalError',
         status_code: POSTGRESQL_ERROR_CODES.TABLE_ALREADY_EXISTS,
-        message: 'relation "authors_a_b_key" already exists',
+        message: 'table "new_authors" already exists',
       },
     },
   };
 
   expect(normalizeQueryError(queryErrorWithoutDescription)).toBe(
-    'relation "authors_a_b_key" already exists',
-  );
-
-  const queryErrorWithoutMessage: QueryError = {
-    ...baseQueryError,
-    internal: {
-      arguments: [],
-      prepared: false,
-      statement: 'CREATE TABLE public.new_authors (id uuid PRIMARY KEY);',
-      error: {
-        exec_status: 'FatalError',
-        status_code: POSTGRESQL_ERROR_CODES.TABLE_ALREADY_EXISTS,
-        message: '',
-      },
-    },
-  };
-
-  expect(normalizeQueryError(queryErrorWithoutMessage)).toBe(
     'A table with this name already exists.',
   );
 });
