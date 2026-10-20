@@ -89,20 +89,20 @@ There was one extra step before I started the clock. The CLI couldn't read the a
 
 ## Supabase: no questions, two wrong turns
 
-Supabase took 3 minutes 11 seconds and didn't ask me anything. It applied the schema, tested with two throwaway users and deleted them afterward.
+Claude Code needed 3 minutes 11 seconds on Supabase and didn't ask me a single question. It applied the schema, tested it with two throwaway users, then deleted them.
 
-Row-level security is on for all three tables, with policies written only for the `authenticated` role: `cast own vote` on insert and `read own votes` on select for the votes table, `read polls` and `creator deletes poll` for polls, `read options` for options. Nothing for anonymous visitors.
+Row-level security is on for all three tables, and every policy applies only to signed-in users (the `authenticated` role). The votes table has `cast own vote` for inserts and `read own votes` for reads. Polls have `read polls` and `creator deletes poll`, and options have `read options`. Anonymous visitors get no access.
 
 ![Supabase: the policies on the polling app](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/supabase-poll-policies.png)
 
-It made two mistakes, both involving the CLI:
+Both of Claude Code's mistakes came from the CLI:
 
-1. It combined two CLI flags that can't be used together. The error message said how to fix it, and the next try worked.
-2. The admin key it saved was cut off. The CLI hides most of a secret key unless you pass a reveal flag, and doesn't warn you that you only got part of it. So its test users were never created. The first error it got was `permission denied for function create_poll`, and it spent two debugging steps chasing a permissions bug that was really a failed login.
+1. It used two flags together that the CLI doesn't allow. The error message explained the fix, and the next attempt worked.
+2. The admin key it saved was incomplete. The Supabase CLI shows only part of a secret key unless you add a reveal flag, and it doesn't tell you the key is cut off. With a broken key, the test users were never created. The first error Claude Code saw was `permission denied for function create_poll`, so it spent two debugging steps looking for a permissions bug when the real problem was the key.
 
-It also avoided a trap: loading data inside the login-change handler can freeze the Supabase client, so it delayed that call on purpose. It only mentioned this when I asked.
+Claude Code also knew about a Supabase quirk: loading data inside the handler that runs when a user logs in or out can freeze the client. It delayed that call on purpose, though it only told me about it when I asked.
 
-The project kept Supabase's default security settings, so new tables didn't get row-level security automatically. The agent turned it on by itself.
+By default, Supabase doesn't turn on row-level security for new tables, and I left that setting alone. Claude Code turned it on by itself.
 
 ## Appwrite: the slowest, with the database closed
 
