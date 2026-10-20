@@ -104,7 +104,7 @@ function DatabaseObjectActions({
         asChild
       >
         <Button
-          id={`${idPrefix}-management-menu-${objectName}`}
+          data-testid={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
           className={cn(

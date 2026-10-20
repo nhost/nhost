@@ -475,16 +475,14 @@ describe('DataBrowserSidebar', () => {
 
 async function openGraphQLSettingsDrawer(
   user: TestUserEvent,
-  triggerId: string,
+  triggerTestId: string,
   objectName: string,
 ) {
   await waitFor(() => {
     expect(screen.getByText(objectName)).toBeInTheDocument();
   });
 
-  const trigger = document.getElementById(triggerId);
-  expect(trigger).not.toBeNull();
-  await user.click(trigger as HTMLElement);
+  await user.click(screen.getByTestId(triggerTestId));
 
   await user.click(
     await screen.findByRole('menuitem', { name: /Edit GraphQL/ }),
