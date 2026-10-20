@@ -108,6 +108,7 @@ func TestGetFileWithPresignedURLRejectsOversizedImageParams(t *testing.T) {
 				image.NewTransformer(0, 0, 0),
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			params := validGetFileWithPresignedURLParams()

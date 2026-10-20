@@ -78,6 +78,7 @@ func TestDeleteOrphans(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.DeleteOrphanedFiles(

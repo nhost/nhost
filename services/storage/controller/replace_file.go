@@ -95,6 +95,10 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	}
 	defer form.RemoveAll() //nolint:errcheck
 
+	if apiErr := ctrl.checkStorageLimit(ctx); apiErr != nil {
+		return apiErr, nil
+	}
+
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {

@@ -166,6 +166,23 @@ func FailedToInitializeMetadataError(err error) *APIError {
 	}
 }
 
+var errStorageLimitExceeded = errors.New("storage limit exceeded")
+
+// StorageLimitExceededError reports the current total and configured cap.
+func StorageLimitExceededError(current, maxSize int64) *APIError {
+	return &APIError{
+		statusCode:    http.StatusRequestEntityTooLarge,
+		publicMessage: "storage limit exceeded",
+		err: fmt.Errorf(
+			"storage limit exceeded (%d >= %d): %w",
+			current,
+			maxSize,
+			errStorageLimitExceeded,
+		),
+		data: map[string]any{"currentSize": current, "maxSize": maxSize},
+	}
+}
+
 func FileTooBigError(filename string, size, maxSize int) *APIError {
 	return &APIError{
 		statusCode:    http.StatusBadRequest,

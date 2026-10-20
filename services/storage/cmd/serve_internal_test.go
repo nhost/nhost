@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/image"
 	"github.com/nhost/nhost/services/storage/metadata"
 	"github.com/nhost/nhost/services/storage/storage"
@@ -319,6 +320,7 @@ func TestMetricsNotOnPublicRouter(t *testing.T) {
 		&storage.S3{},
 		transformer,
 		logger,
+		controller.StorageLimit{},
 	)
 	if err != nil {
 		t.Fatal(err)

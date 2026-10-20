@@ -107,6 +107,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.DeleteBrokenMetadata(

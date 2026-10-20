@@ -1,4 +1,4 @@
-//go:generate mockgen -destination mock/controller.go -package mock -source=controller.go MetadataStorage
+//go:generate mockgen -destination mock/controller.go -package mock -source=controller.go MetadataStorage,UsageLimiter
 package controller
 
 import (
@@ -83,6 +83,11 @@ type Antivirus interface {
 	ScanReader(ctx context.Context, r io.ReaderAt) *APIError
 }
 
+// UsageLimiter reads the current uploaded-byte total.
+type UsageLimiter interface {
+	Total(ctx context.Context) (int64, error)
+}
+
 type Controller struct {
 	publicURL         string
 	apiRootPrefix     string
@@ -92,6 +97,8 @@ type Controller struct {
 	imageTransformer  *image.Transformer
 	av                Antivirus
 	logger            *slog.Logger
+	usageLimiter      UsageLimiter
+	storageLimit      int64
 }
 
 func New(
@@ -103,15 +110,47 @@ func New(
 	imageTransformer *image.Transformer,
 	av Antivirus,
 	logger *slog.Logger,
+	limit StorageLimit,
 ) *Controller {
-	return &Controller{
-		publicURL,
-		apiRootPrefix,
-		hasuraAdminSecret,
-		metadataStorage,
-		contentStorage,
-		imageTransformer,
-		av,
-		logger,
+	ctrl := &Controller{
+		publicURL: publicURL, apiRootPrefix: apiRootPrefix, hasuraAdminSecret: hasuraAdminSecret,
+		metadataStorage: metadataStorage, contentStorage: contentStorage,
+		imageTransformer: imageTransformer, av: av, logger: logger,
+		usageLimiter: nil, storageLimit: 0,
 	}
+	if limit.Max > 0 {
+		ctrl.usageLimiter = limit.Limiter
+		ctrl.storageLimit = limit.Max
+	}
+
+	return ctrl
+}
+
+// StorageLimit configures optional request-time usage enforcement.
+type StorageLimit struct {
+	Limiter UsageLimiter
+	Max     int64
+}
+
+func (ctrl *Controller) checkStorageLimit(ctx context.Context) *APIError {
+	if ctrl.usageLimiter == nil {
+		return nil
+	}
+
+	total, err := ctrl.usageLimiter.Total(ctx)
+	if err != nil {
+		ctrl.logger.WarnContext(
+			ctx,
+			"storage usage read failed; allowing request",
+			slog.String("error", err.Error()),
+		)
+
+		return nil
+	}
+
+	if total >= ctrl.storageLimit {
+		return StorageLimitExceededError(total, ctrl.storageLimit)
+	}
+
+	return nil
 }

@@ -136,6 +136,7 @@ func getServer(
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
+	limit controller.StorageLimit,
 ) (*http.Server, error) {
 	av, err := getAv(cmd.String(flagClamavServer))
 	if err != nil {
@@ -151,6 +152,7 @@ func getServer(
 		imageTransformer,
 		av,
 		logger,
+		limit,
 	)
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
@@ -659,7 +661,11 @@ func shutdownUsage(ctx context.Context, metrics, main *http.Server, pool usageCo
 	return errors.Join(errs...)
 }
 
-func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
+//nolint:funlen // Startup coordinates optional services and shutdown.
+func serve(
+	ctx context.Context,
+	cmd *cli.Command,
+) error {
 	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
@@ -736,12 +742,21 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		cmd.String(flagHasuraEndpoint) + "/graphql",
 	)
 
+	var storageLimit controller.StorageLimit
+	if cmd.Int64(flagMaxTotalStorageSize) > 0 {
+		storageLimit = controller.StorageLimit{
+			Limiter: pool,
+			Max:     cmd.Int64(flagMaxTotalStorageSize),
+		}
+	}
+
 	server, err := getServer( //nolint: contextcheck
 		cmd,
 		metadataStorage,
 		contentStorage,
 		imageTransformer,
 		logger,
+		storageLimit,
 	)
 	if err != nil {
 		if pool != nil {
