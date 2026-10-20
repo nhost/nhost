@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import type { LegendPayload } from 'recharts';
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,17 @@ interface InteractiveChartLegendProps {
     opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void;
   onItemHover?: (key: string | null) => void;
-  payload: readonly LegendPayload[];
+  // Filled in by Recharts when it clones the legend passed as `content`.
+  payload?: readonly LegendPayload[];
+}
+
+// The keys Recharts uses to move and toggle the chart's keyboard tooltip.
+const CHART_TOOLTIP_KEYS = new Set(['Enter', 'ArrowLeft', 'ArrowRight']);
+
+function stopChartTooltipKey(e: KeyboardEvent) {
+  if (CHART_TOOLTIP_KEYS.has(e.key)) {
+    e.stopPropagation();
+  }
 }
 
 export default function InteractiveChartLegend({
@@ -20,6 +31,10 @@ export default function InteractiveChartLegend({
   onItemHover,
   payload,
 }: InteractiveChartLegendProps) {
+  if (!payload?.length) {
+    return null;
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
       {payload
@@ -32,14 +47,21 @@ export default function InteractiveChartLegend({
             <button
               key={key}
               type="button"
-              onClick={(e) =>
+              // Recharts renders the legend inside the chart, so the click
+              // must not also reach the chart's pin and zoom-out handlers.
+              onClick={(e) => {
+                e.stopPropagation();
                 onItemClick(key, {
                   metaKey: e.metaKey,
                   ctrlKey: e.ctrlKey,
                   shiftKey: e.shiftKey,
-                })
-              }
+                });
+              }}
               onDoubleClick={(e) => e.stopPropagation()}
+              // Focus and the tooltip keys would open the chart's keyboard
+              // tooltip. Escape still bubbles so it can close the pinned one.
+              onFocus={(e) => e.stopPropagation()}
+              onKeyDown={stopChartTooltipKey}
               onMouseEnter={() => onItemHover?.(key)}
               onMouseLeave={() => onItemHover?.(null)}
               className={cn(
