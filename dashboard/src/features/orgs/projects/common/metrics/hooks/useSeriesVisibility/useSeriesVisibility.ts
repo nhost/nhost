@@ -39,7 +39,8 @@ export default function useSeriesVisibility({
         const next = hiddenSet.has(key)
           ? hidden.filter((k) => k !== key)
           : [...hidden, key];
-        const hidesEverySeries = keys.every((k) => next.includes(k));
+        const nextHiddenSet = new Set(next);
+        const hidesEverySeries = keys.every((k) => nextHiddenSet.has(k));
         setHidden(hidesEverySeries ? [] : next);
         return;
       }
