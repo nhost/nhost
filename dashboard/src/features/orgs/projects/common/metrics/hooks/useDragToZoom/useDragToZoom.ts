@@ -30,6 +30,9 @@ export default function useDragToZoom({
     }
     anchorRef.current = timestamp;
     draggedRef.current = false;
+    // A drag released outside the chart never fires mouse-up, so drop its
+    // selection here; otherwise this click's mouse-up would zoom to it.
+    setSelection(null);
   };
 
   const handleMouseMove = (event: ChartMouseEvent) => {
