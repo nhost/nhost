@@ -16,6 +16,7 @@ function renderThemeSwitcher(themePreference: ThemePreference = 'system') {
         setThemePreference,
         resolvedTheme: themePreference === 'dark' ? 'dark' : 'light',
         storageKey: 'test-theme',
+        isLoaded: true,
       }}
     >
       <ThemeSwitcher />
