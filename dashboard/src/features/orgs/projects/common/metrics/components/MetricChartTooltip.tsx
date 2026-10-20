@@ -1,23 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ChartConfig } from '@/components/ui/v3/chart';
+import type {
+  PinnedPayloadEntry,
+  PinnedState,
+} from '@/features/orgs/projects/common/metrics/types';
 import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { cn } from '@/lib/utils';
-
-export interface PinnedPayloadEntry {
-  dataKey?: string | number;
-  name?: string | number;
-  value?: number | string;
-  color?: string | undefined;
-  payload?: { fill?: string };
-  type?: string;
-}
-
-export interface PinnedState {
-  x: number;
-  y: number;
-  label: number;
-  payload: PinnedPayloadEntry[];
-}
 
 interface TooltipEntry {
   key: string;
@@ -179,38 +167,4 @@ export function PinnedTooltip({
       ariaLabel="Pinned data point"
     />
   );
-}
-
-// Mirror the hover tooltip's placement (including recharts' edge-flipping) by
-// reading the live transform recharts set on its tooltip wrapper. Falls back
-// to activeCoordinate + default offset if the wrapper hasn't been positioned
-// yet (e.g., click without a prior hover).
-export function resolveTooltipPosition(
-  wrapperEl: HTMLDivElement | null,
-  cursor: {
-    activeCoordinate?: { x?: number; y?: number };
-    chartX?: number;
-    chartY?: number;
-  },
-): { x: number | null; y: number | null } {
-  const tooltipEl = wrapperEl?.querySelector(
-    '.recharts-tooltip-wrapper',
-  ) as HTMLElement | null;
-  if (tooltipEl && tooltipEl.style.visibility !== 'hidden') {
-    const match = tooltipEl.style.transform.match(
-      /translate\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px\s*\)/,
-    );
-    if (match) {
-      return {
-        x: Number.parseFloat(match[1]),
-        y: Number.parseFloat(match[2]),
-      };
-    }
-  }
-  const fallbackX = cursor.activeCoordinate?.x ?? cursor.chartX;
-  const fallbackY = cursor.activeCoordinate?.y ?? cursor.chartY;
-  return {
-    x: fallbackX != null ? fallbackX + 10 : null,
-    y: fallbackY != null ? fallbackY + 10 : null,
-  };
 }
