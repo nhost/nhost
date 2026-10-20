@@ -3,7 +3,7 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: "Nhost Authentication API"
-  description: "Comprehensive authentication service for managing user identities, sessions, and authentication methods"
+  description: "Comprehensive authentication service for managing user identities, sessions, and authentication methods Comprehensive"
   license:
     name: "MIT License"
     url: "https://opensource.org/licenses/MIT"
