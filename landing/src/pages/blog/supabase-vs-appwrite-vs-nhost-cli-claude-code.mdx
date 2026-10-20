@@ -75,17 +75,17 @@ I thought the hardest part would be keeping each vote secret. If people can read
 
 ## Nhost: fastest, but with an extra setup step
 
-Nhost finished in 2 minutes 46 seconds. It created three tables and a view, set the permissions, wrote the page, then ran a two-user test against the live project and reported each rule as passing.
+On Nhost, Claude Code finished in 2 minutes 46 seconds. It created three tables and a view, set the permissions, wrote the page, then ran a two-user test against the live project and reported each rule as passing.
 
-Votes are readable only by the person who cast them. The rule in the dashboard reads `user_id _eq X-Hasura-User-Id` on the `user` role, and the `public` and `anonymous` roles have no access to the table at all. Update and delete are closed too, so a vote can't be changed once it's cast.
+Only the person who voted can see their own vote. In the dashboard, the rule for the `user` role is `user_id _eq X-Hasura-User-Id`, and the `public` and `anonymous` roles can't access the table at all. Update and delete are closed too, so nobody can change their vote.
 
 ![Nhost: the select rule on the votes table](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/nhost-votes-permissions.png)
 
-The totals come from a separate view, `poll_option_totals`, which counts rows without exposing them. It came up with that on its own.
+The totals come from a separate view, `poll_option_totals`, which counts the votes without showing who cast them. Claude Code came up with this view by itself.
 
-Its only mistake was in its test script, not the app: it used single quotes in a GraphQL query, which GraphQL doesn't accept. It noticed, fixed it, and the check passed. The schema and permissions worked on the first try.
+The only mistake was in the test script: Claude Code used single quotes in a GraphQL query, which GraphQL doesn't accept. It caught the error, fixed it, and the test passed. The schema and permissions worked on the first try.
 
-There was one extra step before I started the clock. You can't view an Nhost admin secret anywhere, in the dashboard or the CLI, so I replaced it with my own and gave it to the agent in the prompt. On Supabase and Appwrite, the agent used a CLI login I'd already done.
+There was one extra step before I started the clock. The CLI couldn't read the admin secret, so I had to get it from the dashboard and give it to the agent in the prompt.
 
 ## Supabase: no questions, two wrong turns
 
