@@ -29,3 +29,17 @@ export const codeMirrorAppBackground = Prec.highest(
     },
   }),
 );
+
+/**
+ * In dark mode, puts the code a step darker than the page, on the console
+ * background, so it reads as its own surface under a card header. List it
+ * before `codeMirrorAppBackground` so it wins over it: at the same precedence,
+ * earlier wins, because EditorView mounts theme styles in reverse order.
+ */
+export const codeMirrorConsoleBackground = Prec.highest(
+  EditorView.theme({
+    '&, .cm-scroller, .cm-gutters': {
+      backgroundColor: 'hsl(var(--console-background))',
+    },
+  }),
+);
