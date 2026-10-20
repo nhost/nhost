@@ -54,12 +54,14 @@ export default function ResetMetadataDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="p-12"
         hideCloseButton
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">Reset Metadata</DialogTitle>
+          <DialogTitle className="text-foreground text-xl">
+            Reset Metadata
+          </DialogTitle>
           <DialogDescription>
             Permanently reset GraphQL engine's metadata and configure it from
             scratch (tracking relevant tables and relationships). This process
@@ -79,21 +81,18 @@ export default function ResetMetadataDialog() {
             I'm sure I want to reset the metadata
           </Label>
         </div>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           <ButtonWithLoading
             variant="destructive"
-            className="!text-sm+ text-white"
             loading={isPending}
             disabled={!confirmed}
             onClick={handleResetMetadata}
           >
             Reset Metadata
           </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

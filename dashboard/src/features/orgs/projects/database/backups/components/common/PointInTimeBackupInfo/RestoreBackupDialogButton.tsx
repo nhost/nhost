@@ -171,11 +171,11 @@ function RestoreBackupDialogButton({
         <Button disabled={disabled}>{operationCopy.triggerButtonText}</Button>
       </DialogTrigger>
       <DialogContent
-        className="text-foreground sm:max-w-xl"
+        className="p-12 text-foreground sm:max-w-xl"
         disableOutsideClick
       >
         <DialogHeader>
-          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogTitle className="text-xl">{dialogTitle}</DialogTitle>
           <DialogDescription />
         </DialogHeader>
         {isRestoreScheduled && (
@@ -216,7 +216,7 @@ function RestoreBackupDialogButton({
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-8">
               <Button
                 type="button"
                 disabled={startRestoreButtonDisabled}

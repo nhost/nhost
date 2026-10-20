@@ -68,7 +68,7 @@ function TransferProjectDialogContent({
   return (
     <>
       <DialogHeader className="flex gap-2">
-        <DialogTitle>
+        <DialogTitle className="text-xl">
           Move the current project to a different organization.
         </DialogTitle>
       </DialogHeader>

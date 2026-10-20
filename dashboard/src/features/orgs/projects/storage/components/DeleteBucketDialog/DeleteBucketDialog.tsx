@@ -50,9 +50,9 @@ export default function DeleteBucketDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="flex w-[32rem] max-w-[32rem] flex-col gap-6 p-6 text-left text-foreground">
+      <AlertDialogContent className="flex w-[32rem] max-w-[32rem] flex-col gap-6 p-12 text-left text-foreground">
         <AlertDialogHeader>
-          <AlertDialogTitle className="truncate">
+          <AlertDialogTitle className="truncate text-xl">
             Delete Bucket
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -91,7 +91,7 @@ export default function DeleteBucketDialog({
           <Separator />
         </div>
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="mt-6">
           <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction asChild>
             <ButtonWithLoading

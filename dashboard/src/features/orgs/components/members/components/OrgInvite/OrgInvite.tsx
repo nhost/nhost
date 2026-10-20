@@ -185,14 +185,16 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
         open={confirmDeleteInviteDialogOpen}
         onOpenChange={setConfirmDeleteInviteDialogOpen}
       >
-        <AlertDialogContent className="text-foreground">
+        <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Are you sure?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This action will delete the invite.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInvite}
@@ -216,11 +218,11 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
           setUpdateRoleDialogOpen(value);
         }}
       >
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent className="p-12 text-foreground sm:max-w-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
-                <DialogTitle>Update invite</DialogTitle>
+                <DialogTitle className="text-xl">Update invite</DialogTitle>
                 <DialogDescription>
                   This will affect their permissions and access within the
                   organization.
@@ -276,7 +278,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                   )}
                 />
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-8">
                 <Button
                   variant="outline"
                   type="button"

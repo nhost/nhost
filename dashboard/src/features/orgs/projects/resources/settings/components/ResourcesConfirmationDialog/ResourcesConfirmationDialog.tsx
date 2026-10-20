@@ -96,13 +96,13 @@ export default function ResourcesConfirmationDialog({
   }
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       {totalBillableVCPU > 0 ? (
-        <p className="text-center text-sm">
+        <p className="text-sm">
           Please allow some time for the selected resources to take effect.
         </p>
       ) : (
-        <p className="text-center text-sm">
+        <p className="text-sm">
           By confirming this you will go back to the original shared resources
           included in the {proPlan?.name} plan.
         </p>
@@ -190,7 +190,11 @@ export default function ResourcesConfirmationDialog({
         )}
       </div>
 
-      <div className="grid grid-flow-row gap-2">
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+
         <Button
           type="button"
           variant={totalBillableVCPU > 0 ? 'default' : 'destructive'}
@@ -198,9 +202,6 @@ export default function ResourcesConfirmationDialog({
           autoFocus
         >
           Confirm
-        </Button>
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
         </Button>
       </div>
     </div>

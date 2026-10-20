@@ -32,9 +32,11 @@ function EnableMfaButton() {
           Enable multi-factor authentication
         </Button>
       </DialogTrigger>
-      <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+      <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Enable multi-factor authentication</DialogTitle>
+          <DialogTitle className="text-xl">
+            Enable multi-factor authentication
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
           Enable multi-factor authentication

@@ -32,13 +32,13 @@ export default function InvocationLogDetailsDialogContent({
   isLoading,
 }: InvocationLogDetailsDialogContentProps) {
   return (
-    <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
+    <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto p-12 text-foreground">
       {isLoading ? (
         <InvocationLogDetailsDialogSkeleton />
       ) : (
         <>
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl">
               Invocation Log Details
             </DialogTitle>
           </DialogHeader>

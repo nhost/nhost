@@ -45,19 +45,19 @@ export default function DeleteInconsistentObjectsDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="p-12"
         hideCloseButton
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">
+          <DialogTitle className="text-foreground text-xl">
             Remove Inconsistent Objects
           </DialogTitle>
           <DialogDescription className="space-y-2">
-            <p className="text-pretty text-sm+">
+            <p className="text-pretty">
               Permanently remove all inconsistent objects from your metadata.
             </p>
-            <p className="text-pretty text-sm+">
+            <p className="text-pretty">
               Affected databases, remote schemas, actions, and related features
               such as permissions, relationships, and event triggers tied to
               those objects will also be removed.
@@ -65,20 +65,17 @@ export default function DeleteInconsistentObjectsDialog() {
             <p className="font-medium">This action is irreversible.</p>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+        <DialogFooter className="mt-8">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           <ButtonWithLoading
             variant="destructive"
-            className="!text-sm+ text-white"
             loading={isPending}
             onClick={handleDeleteInconsistentObjects}
           >
             Remove
           </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

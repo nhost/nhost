@@ -73,7 +73,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   }
 
   return (
-    <div className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
+    <div className={twMerge('w-full rounded-lg px-12 pb-12 text-left')}>
       <div className="grid grid-flow-row gap-6">
         <p>
           The upgrade process will require an{' '}
@@ -83,7 +83,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
           . To continue with the upgrade process, click on &quot;Proceed&quot;.
         </p>
 
-        <div className="grid grid-flow-col gap-4">
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             variant="outline"
             onClick={() => {

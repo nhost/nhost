@@ -200,9 +200,11 @@ export default function PATSettings() {
               Create Personal Access Token
             </Button>
           </DialogTrigger>
-          <DialogContent className="z-[9999] max-w-md text-foreground">
+          <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
             <DialogHeader>
-              <DialogTitle>Create Personal Access Token</DialogTitle>
+              <DialogTitle className="text-xl">
+                Create Personal Access Token
+              </DialogTitle>
               <DialogDescription>
                 Create a token to authenticate with Nhost services.
               </DialogDescription>
@@ -220,16 +222,18 @@ export default function PATSettings() {
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="p-12">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Personal Access Token</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Delete Personal Access Token
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this personal access token? Any
               applications or scripts using this token will no longer be able to
               access the API. You cannot undo this action.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel disabled={isDeletingToken}>
               Cancel
             </AlertDialogCancel>

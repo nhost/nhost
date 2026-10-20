@@ -47,7 +47,7 @@ export default function ServiceConfirmationDialog({
   };
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <div className="grid grid-flow-row gap-4">
         <div className="grid grid-flow-row gap-1.5">
           <div className="grid grid-flow-col items-center justify-between gap-2">
@@ -88,7 +88,11 @@ export default function ServiceConfirmationDialog({
         </div>
       </div>
 
-      <div className="grid grid-flow-row gap-2">
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+
         <ButtonWithLoading
           loading={isSubmitting}
           onClick={handleSubmit}
@@ -96,10 +100,6 @@ export default function ServiceConfirmationDialog({
         >
           Confirm
         </ButtonWithLoading>
-
-        <Button variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
       </div>
     </div>
   );

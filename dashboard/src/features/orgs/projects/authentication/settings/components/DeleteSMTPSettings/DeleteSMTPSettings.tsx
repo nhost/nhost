@@ -29,21 +29,21 @@ function ConfirmDeleteSMTPSettingsModal({
   };
 
   return (
-    <div className="w-full rounded-lg p-6 text-left">
+    <div className="w-full rounded-lg p-12 text-left">
       <div className="grid grid-flow-row gap-4">
-        <h2 className="font-semibold text-lg">Delete SMTP Settings?</h2>
+        <h2 className="font-semibold text-xl">Delete SMTP Settings?</h2>
 
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           This will reset all your SMTP and Postmark settings.
         </p>
 
-        <div className="grid grid-flow-row gap-2">
-          <Button variant="destructive" onClick={onClickDelete}>
-            Delete
-          </Button>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={close}>
             Cancel
+          </Button>
+
+          <Button variant="destructive" onClick={onClickDelete}>
+            Delete
           </Button>
         </div>
       </div>

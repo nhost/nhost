@@ -69,7 +69,7 @@ export default function RestoreBackupModal({
 
   if (isRestoreScheduled) {
     return (
-      <div className="grid grid-flow-row gap-4 px-6 pb-6">
+      <div className="grid grid-flow-row gap-4 px-12 pb-12">
         <BackupScheduledInfo
           onClose={close}
           orgSlug={org?.slug}
@@ -81,7 +81,7 @@ export default function RestoreBackupModal({
   }
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+    <div className="grid grid-flow-row gap-2 px-12 pb-12">
       {sourceAppId === project?.id ? (
         <p>
           Your current database will be deleted, and the backup created at{' '}

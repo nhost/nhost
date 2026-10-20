@@ -351,19 +351,13 @@ function RelationshipForm({
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-            <ButtonWithLoading
-              type="submit"
-              loading={isSubmitting}
-              className="!text-sm+"
-            >
+          <DialogFooter className="mt-8">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <ButtonWithLoading type="submit" loading={isSubmitting}>
               {relationship ? 'Save Changes' : 'Create Relationship'}
             </ButtonWithLoading>
-            <DialogClose asChild>
-              <Button variant="outline" className="!text-sm+ text-foreground">
-                Cancel
-              </Button>
-            </DialogClose>
           </DialogFooter>
         </form>
       </Form>
@@ -401,12 +395,12 @@ export default function RelationshipFormDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-h-[90vh] overflow-y-auto text-foreground sm:max-w-[720px]"
+        className="max-h-[90vh] overflow-y-auto p-12 text-foreground sm:max-w-[720px]"
         hideCloseButton
         onEscapeKeyDown={(event) => event.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-xl">
             {relationship ? 'Edit Relationship' : 'Create Relationship'}
           </DialogTitle>
           <DialogDescription>

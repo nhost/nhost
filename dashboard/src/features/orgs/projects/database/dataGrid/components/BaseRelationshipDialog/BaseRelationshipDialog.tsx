@@ -99,13 +99,15 @@ export default function BaseRelationshipDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-h-near-screen overflow-y-auto sm:max-w-[720px]"
+        className="max-h-near-screen overflow-y-auto p-12 sm:max-w-[720px]"
         hideCloseButton
         disableOutsideClick={isSubmitting}
         onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">{dialogTitle}</DialogTitle>
+          <DialogTitle className="text-foreground text-xl">
+            {dialogTitle}
+          </DialogTitle>
           <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
@@ -144,20 +146,17 @@ export default function BaseRelationshipDialog({
               )}
             </div>
 
-            <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+            <DialogFooter className="mt-6">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
               <ButtonWithLoading
                 type="submit"
                 loading={isSubmitting}
                 disabled={isSubmitting}
-                className="!text-sm+"
               >
                 {submitButtonText}
               </ButtonWithLoading>
-              <DialogClose asChild>
-                <Button variant="outline" className="!text-sm+ text-foreground">
-                  Cancel
-                </Button>
-              </DialogClose>
             </DialogFooter>
           </form>
         </Form>

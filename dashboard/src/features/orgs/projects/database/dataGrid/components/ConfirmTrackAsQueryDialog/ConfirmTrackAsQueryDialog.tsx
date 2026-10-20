@@ -25,9 +25,11 @@ export default function ConfirmTrackAsQueryDialog({
 }: ConfirmTrackAsQueryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-foreground">
+      <DialogContent className="p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Track as Query</DialogTitle>
+          <DialogTitle className="text-foreground text-xl">
+            Track as Query
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to track this VOLATILE function as a query?
           </DialogDescription>
@@ -42,7 +44,7 @@ export default function ConfirmTrackAsQueryDialog({
           </AlertDescription>
         </Alert>
 
-        <DialogFooter>
+        <DialogFooter className="mt-8">
           <Button
             variant="outline"
             className="text-foreground"

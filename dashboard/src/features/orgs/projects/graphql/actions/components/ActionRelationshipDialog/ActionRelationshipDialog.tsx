@@ -56,12 +56,12 @@ export default function ActionRelationshipDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-h-near-screen overflow-y-auto sm:max-w-[720px]"
+        className="max-h-near-screen overflow-y-auto p-12 sm:max-w-[720px]"
         hideCloseButton
         onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">
+          <DialogTitle className="text-foreground text-xl">
             {isEditing ? 'Edit Relationship' : 'Create Relationship'}
           </DialogTitle>
           <DialogDescription>

@@ -32,7 +32,7 @@ export default function InvocationLogDetailsDialogSkeleton() {
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-foreground">
+        <DialogTitle className="text-foreground text-xl">
           Invocation Log Details
         </DialogTitle>
       </DialogHeader>

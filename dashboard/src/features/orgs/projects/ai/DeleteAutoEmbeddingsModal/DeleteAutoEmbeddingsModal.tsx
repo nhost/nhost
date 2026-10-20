@@ -87,9 +87,9 @@ export default function DeleteAutoEmbeddingsModal({
   }
 
   return (
-    <div className="w-full rounded-lg p-6 text-left">
+    <div className="w-full rounded-lg p-12 text-left">
       <div className="grid grid-flow-row gap-1">
-        <h2 className="font-semibold text-lg">
+        <h2 className="font-semibold text-xl">
           Delete Auto-Embeddings Configuration{' '}
           {autoEmbeddingsConfiguration.name}
         </h2>
@@ -119,7 +119,11 @@ export default function DeleteAutoEmbeddingsModal({
           </div>
         </div>
 
-        <div className="grid grid-flow-row gap-2">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={close}>
+            Cancel
+          </Button>
+
           <ButtonWithLoading
             variant="destructive"
             onClick={handleClick}
@@ -128,10 +132,6 @@ export default function DeleteAutoEmbeddingsModal({
           >
             Delete Auto-Embeddings Configuration
           </ButtonWithLoading>
-
-          <Button variant="outline" onClick={close}>
-            Cancel
-          </Button>
         </div>
       </div>
     </div>

@@ -309,17 +309,19 @@ export default function NativeQueryRelationships({
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent
-          className="text-foreground"
+          className="p-12 text-foreground"
           onEscapeKeyDown={(event) => event.stopPropagation()}
         >
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete relationship?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Delete relationship?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This removes <strong>{selected?.relationship.name}</strong> from
               the native query.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               disabled={isPending || !selected}

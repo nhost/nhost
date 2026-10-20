@@ -122,13 +122,9 @@ export default function ImportMetadataDialog() {
           setAllowInconsistentMetadata(false);
         }}
       >
-        <DialogContent
-          className="sm:max-w-[425px]"
-          hideCloseButton
-          disableOutsideClick
-        >
+        <DialogContent className="p-12" hideCloseButton disableOutsideClick>
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl">
               Import Metadata
             </DialogTitle>
             <DialogDescription>
@@ -150,19 +146,16 @@ export default function ImportMetadataDialog() {
               Allow inconsistent metadata
             </Label>
           </div>
-          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
             <ButtonWithLoading
-              className="!text-sm+"
               loading={isReplacing}
               onClick={handleImportConfirm}
             >
               Import
             </ButtonWithLoading>
-            <DialogClose asChild>
-              <Button variant="outline" className="!text-sm+ text-foreground">
-                Cancel
-              </Button>
-            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

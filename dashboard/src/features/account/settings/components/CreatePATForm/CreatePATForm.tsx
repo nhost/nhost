@@ -166,17 +166,17 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
             </SelectItem>
           </FormSelect>
 
-          <div className="grid grid-flow-row gap-2">
+          <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+
             <ButtonWithLoading
               type="submit"
               loading={form.formState.isSubmitting}
             >
               Create
             </ButtonWithLoading>
-
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
           </div>
         </form>
       </Form>
