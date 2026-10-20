@@ -1,5 +1,5 @@
 import { Activity, Clock, HardDrive } from 'lucide-react';
-import StatCard from '@/features/orgs/projects/common/metrics/components/StatCard';
+import { StatCard } from '@/features/orgs/projects/common/metrics/components/StatCard';
 import {
   formatBytesSI,
   formatDurationSeconds,

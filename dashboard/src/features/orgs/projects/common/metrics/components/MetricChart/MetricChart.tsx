@@ -14,12 +14,12 @@ import {
   ChartLegend,
   ChartTooltip,
 } from '@/components/ui/v3/chart';
-import InteractiveChartLegend from '@/features/orgs/projects/common/metrics/components/InteractiveChartLegend';
+import { InteractiveChartLegend } from '@/features/orgs/projects/common/metrics/components/InteractiveChartLegend';
 import {
   HoverTooltipContent,
   PinnedTooltip,
 } from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
-import ScaleCapture from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
+import { ScaleCapture } from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
 import { useDragToZoom } from '@/features/orgs/projects/common/metrics/hooks/useDragToZoom';
 import { usePinnedTooltip } from '@/features/orgs/projects/common/metrics/hooks/usePinnedTooltip';
 import { useSeriesVisibility } from '@/features/orgs/projects/common/metrics/hooks/useSeriesVisibility';

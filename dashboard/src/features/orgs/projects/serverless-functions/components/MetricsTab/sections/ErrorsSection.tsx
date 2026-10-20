@@ -1,4 +1,4 @@
-import MetricTable from '@/features/orgs/projects/common/metrics/components/MetricTable';
+import { MetricTable } from '@/features/orgs/projects/common/metrics/components/MetricTable';
 import {
   formatInteger,
   formatTimestampFull,
