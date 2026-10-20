@@ -205,8 +205,6 @@ jobs:
               throw new Error('Timed out waiting for the final status check to stop');
             }
 
-            await stopFinal();
-
             const { gated } = await waitFor(
               (r) => r.gated.every((run) => run.status === 'completed'),
               'in-progress checks to finish',
@@ -230,7 +228,6 @@ jobs:
               }
             }
 
-            // Again, in case it was approved for a fork while we waited.
             const final = await stopFinal();
             if (final && final.conclusion !== 'action_required') {
               try {
