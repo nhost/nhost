@@ -129,6 +129,7 @@ export default function EditTableForm({
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
           isUnique: column.isUnique,
+          uniqueConstraints: column.uniqueConstraints,
           comment: column.comment || '',
           isGenerated: column.isGenerated,
           generationExpression: column.generationExpression,

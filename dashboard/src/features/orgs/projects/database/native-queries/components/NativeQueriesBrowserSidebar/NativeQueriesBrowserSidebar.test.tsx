@@ -354,7 +354,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       await user.type(description, `Draft for ${surface}`);
       await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-      const confirmation = await screen.findByRole('dialog', {
+      const confirmation = await screen.findByRole('alertdialog', {
         name: 'Unsaved changes',
       });
       await user.click(
@@ -362,7 +362,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       );
       await waitFor(() =>
         expect(
-          screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+          screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
         ).not.toBeInTheDocument(),
       );
       expect(description).toHaveValue(`Draft for ${surface}`);
@@ -370,7 +370,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       await user.click(screen.getByRole('button', { name: 'Cancel' }));
       await user.click(
         within(
-          await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+          await screen.findByRole('alertdialog', { name: 'Unsaved changes' }),
         ).getByRole('button', { name: 'Discard' }),
       );
       await waitFor(() => expect(description).not.toBeInTheDocument());
@@ -398,7 +398,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       expect(description).toHaveValue('Retry this draft');
       expect(save).toBeEnabled();
       await user.click(screen.getByRole('button', { name: 'Cancel' }));
-      const confirmation = await screen.findByRole('dialog', {
+      const confirmation = await screen.findByRole('alertdialog', {
         name: 'Unsaved changes',
       });
       await user.click(
@@ -526,7 +526,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       expect(screen.queryByLabelText('Name')).not.toBeInTheDocument(),
     );
     expect(
-      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
   });
 
@@ -557,7 +557,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     });
     await waitFor(() => expect(description).not.toBeInTheDocument());
     expect(
-      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
   });
 
@@ -626,7 +626,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       ).not.toBeInTheDocument(),
     );
     expect(
-      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
   });
 
@@ -757,7 +757,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     ]);
     await waitFor(() => expect(description).not.toBeInTheDocument());
     expect(
-      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
 
     mutationBodies = [];

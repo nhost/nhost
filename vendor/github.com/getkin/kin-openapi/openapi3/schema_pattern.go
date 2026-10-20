@@ -27,6 +27,8 @@ func (schema *Schema) compilePattern(c RegexCompilerFunc) (cp RegexMatcher, err 
 			Origin:      err,
 			Reason:      fmt.Sprintf("cannot compile pattern %q: %v", pattern, err),
 		}
+		// A failed compile can yield a typed nil, which no call site's nil check catches.
+		cp = nil
 		err = newSchemaPatternRegexError(pattern, schemaErr, schema.Origin)
 		return
 	}

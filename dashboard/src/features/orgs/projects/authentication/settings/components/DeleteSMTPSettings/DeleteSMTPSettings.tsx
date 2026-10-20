@@ -42,7 +42,7 @@ function ConfirmDeleteSMTPSettingsModal({
             Delete
           </Button>
 
-          <Button variant="outline-emboss" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

@@ -1,6 +1,6 @@
+import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import type { SearchRange } from '@/features/orgs/projects/logs/components/LogsBody/highlightLog';
 import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
-import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 
 export interface SearchMatch {
   rowIndex: number;
@@ -35,13 +35,17 @@ export function useLogSearch(data: LogEntry[]): UseLogSearchResult {
   const deferredQuery = useDeferredValue(searchQuery);
 
   const tableData = useMemo(() => {
-    if (!filterMode || !deferredQuery) return data;
+    if (!filterMode || !deferredQuery) {
+      return data;
+    }
     const lowerQuery = deferredQuery.toLowerCase();
     return data.filter((entry) => entry.log.toLowerCase().includes(lowerQuery));
   }, [data, filterMode, deferredQuery]);
 
   const matches = useMemo<SearchMatch[]>(() => {
-    if (!deferredQuery) return [];
+    if (!deferredQuery) {
+      return [];
+    }
     const lowerQuery = deferredQuery.toLowerCase();
     const results: SearchMatch[] = [];
     for (let r = 0; r < tableData.length; r += 1) {
@@ -49,7 +53,9 @@ export function useLogSearch(data: LogEntry[]): UseLogSearchResult {
       let from = 0;
       while (from <= lowerLog.length - lowerQuery.length) {
         const found = lowerLog.indexOf(lowerQuery, from);
-        if (found === -1) break;
+        if (found === -1) {
+          break;
+        }
         results.push({
           rowIndex: r,
           start: found,

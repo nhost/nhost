@@ -47,6 +47,10 @@ interface FormSelectProps<
   disabled?: boolean;
   autoFocus?: boolean;
   transform?: Transformer;
+  /**
+   * Fired after the field is updated with the newly selected value.
+   */
+  onChange?: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -69,6 +73,7 @@ function FormSelectImpl<
     autoFocus,
     children,
     transform,
+    onChange: onChangeProp,
     'data-testid': dataTestId,
   }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>,
   ref?: ForwardedRef<HTMLButtonElement>,
@@ -112,7 +117,10 @@ function FormSelectImpl<
             >
               <Select
                 disabled={disabled}
-                onValueChange={onChange}
+                onValueChange={(next) => {
+                  onChange(next);
+                  onChangeProp?.(next);
+                }}
                 {...fieldProps}
               >
                 <FormControl>

@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
+import { getForeignKeyConstraintTable } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintTable';
 import type {
   FetchMetadataReturnType,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { AutocompleteOption } from './types';
 
 export interface UseAsyncValueOptions {
@@ -200,19 +203,21 @@ export default function useAsyncValue({
       return;
     }
 
-    // In some cases the metadata already contains the schema and table name
-    if (metadataConstraint && typeof metadataConstraint !== 'string') {
+    const metadataConstraintTable =
+      getForeignKeyConstraintTable(metadataConstraint);
+
+    if (metadataConstraintTable) {
       setAsyncTablePath(
-        `${metadataConstraint.table.schema || 'public'}.${
-          metadataConstraint.table.name
+        `${metadataConstraintTable.schema || 'public'}.${
+          metadataConstraintTable.name
         }`,
       );
 
       setSelectedRelationships((currentRelationships) => [
         ...currentRelationships,
         {
-          schema: metadataConstraint.table.schema || 'public',
-          table: metadataConstraint.table.name,
+          schema: metadataConstraintTable.schema || 'public',
+          table: metadataConstraintTable.name,
           name: nextPath,
         },
       ]);
@@ -223,8 +228,10 @@ export default function useAsyncValue({
     }
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
-      ({ columnName }) => {
-        const normalizedColumnName = columnName.replace(/"/g, '');
+      ({ columns }) => {
+        const normalizedColumnNames = columns.map((column) =>
+          column.replace(/"/g, ''),
+        );
         const { foreign_key_constraint_on, manual_configuration } =
           currentRelationship.using || {};
 
@@ -233,16 +240,19 @@ export default function useAsyncValue({
         }
 
         if (manual_configuration) {
-          return Object.keys(manual_configuration.column_mapping).includes(
-            normalizedColumnName,
+          return Object.keys(manual_configuration.column_mapping).some(
+            (column) => normalizedColumnNames.includes(column),
           );
         }
 
-        if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === normalizedColumnName;
+        if (!foreign_key_constraint_on) {
+          return false;
         }
 
-        return foreign_key_constraint_on?.column === normalizedColumnName;
+        return areStrArraysEqual(
+          normalizedColumnNames,
+          getForeignKeyConstraintColumns(foreign_key_constraint_on),
+        );
       },
     );
 

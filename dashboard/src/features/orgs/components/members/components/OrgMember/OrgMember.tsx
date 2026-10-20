@@ -316,7 +316,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               </div>
               <DialogFooter>
                 <Button
-                  variant="outline-emboss"
+                  variant="outline"
                   type="button"
                   onClick={handleDismissDialog}
                 >

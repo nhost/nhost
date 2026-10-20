@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import type { ArrayRelationshipItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ArrayRelationshipItem,
+  ObjectRelationshipItem,
+} from '@/utils/hasura-api/generated/schemas';
 import buildLocalRelationshipViewModel from './buildLocalRelationshipViewModel';
 
 describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
@@ -39,6 +41,142 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
 
     expect(result.fromLabel).toBe('public.users / id');
     expect(result.toLabel).toBe('public.posts2 / user_id');
+  });
+
+  it('matches composite object relationship columns in order', () => {
+    const relationship: ObjectRelationshipItem = {
+      name: 'order',
+      using: {
+        foreign_key_constraint_on: ['tenant_id', 'order_id'],
+      },
+    };
+
+    const result = buildLocalRelationshipViewModel({
+      relationship,
+      type: 'Object',
+      tableSchema: 'public',
+      tableName: 'order_items',
+      dataSource: 'default',
+      foreignKeyRelations: [
+        {
+          columns: ['tenant_id', 'order_id'],
+          referencedSchema: 'public',
+          referencedTable: 'orders',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'NO ACTION',
+          deleteAction: 'NO ACTION',
+        },
+      ],
+    });
+
+    expect(result.fromLabel).toBe('public.order_items / tenant_id, order_id');
+    expect(result.toLabel).toBe('public.orders / tenant_id, id');
+  });
+
+  it('matches composite object relationship columns in a different order', () => {
+    const relationship: ObjectRelationshipItem = {
+      name: 'order',
+      using: {
+        foreign_key_constraint_on: ['tenant_id', 'order_id'],
+      },
+    };
+
+    const result = buildLocalRelationshipViewModel({
+      relationship,
+      type: 'Object',
+      tableSchema: 'public',
+      tableName: 'order_items',
+      dataSource: 'default',
+      foreignKeyRelations: [
+        {
+          columns: ['order_id', 'tenant_id'],
+          referencedSchema: 'public',
+          referencedTable: 'orders',
+          referencedColumns: ['id', 'tenant_id'],
+          updateAction: 'NO ACTION',
+          deleteAction: 'NO ACTION',
+        },
+      ],
+    });
+
+    expect(result.fromLabel).toBe('public.order_items / order_id, tenant_id');
+    expect(result.toLabel).toBe('public.orders / id, tenant_id');
+  });
+
+  it('matches composite array suggestions in a different order', () => {
+    const relationship: ArrayRelationshipItem = {
+      name: 'items',
+      using: {
+        foreign_key_constraint_on: {
+          columns: ['order_id', 'tenant_id'],
+          table: { schema: 'public', name: 'order_items' },
+        },
+      },
+    };
+
+    const result = buildLocalRelationshipViewModel({
+      relationship,
+      type: 'Array',
+      tableSchema: 'public',
+      tableName: 'orders',
+      dataSource: 'default',
+      foreignKeyRelations: [],
+      suggestedRelationships: [
+        {
+          type: 'array',
+          from: {
+            table: { schema: 'public', name: 'orders' },
+            columns: ['tenant_id', 'id'],
+          },
+          to: {
+            table: { schema: 'public', name: 'order_items' },
+            columns: ['tenant_id', 'order_id'],
+            constraint_name: 'order_items_order_fkey',
+          },
+        },
+      ],
+    });
+
+    expect(result.fromLabel).toBe('public.orders / tenant_id, id');
+    expect(result.toLabel).toBe('public.order_items / tenant_id, order_id');
+  });
+
+  it('reads an object relationship whose constraint is on the referenced table', () => {
+    const relationship: ObjectRelationshipItem = {
+      name: 'profile',
+      using: {
+        foreign_key_constraint_on: {
+          columns: ['user_id'],
+          table: { schema: 'public', name: 'profiles' },
+        },
+      },
+    };
+
+    const result = buildLocalRelationshipViewModel({
+      relationship,
+      type: 'Object',
+      tableSchema: 'public',
+      tableName: 'users',
+      dataSource: 'default',
+      foreignKeyRelations: [],
+      suggestedRelationships: [
+        {
+          type: 'object',
+          from: {
+            table: { schema: 'public', name: 'users' },
+            columns: ['id'],
+          },
+          to: {
+            table: { schema: 'public', name: 'profiles' },
+            columns: ['user_id'],
+            constraint_name: 'profiles_user_id_fkey',
+          },
+        },
+      ],
+    });
+
+    expect(result.fromLabel).toBe('public.users / id');
+    expect(result.toLabel).toBe('public.profiles / user_id');
   });
 
   it('falls back to Not specified when suggestions do not include a match', () => {

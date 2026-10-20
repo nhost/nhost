@@ -134,7 +134,7 @@ export default function CreateOneOffForm() {
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
                 <Button
-                  variant="outline-emboss"
+                  variant="outline"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel
