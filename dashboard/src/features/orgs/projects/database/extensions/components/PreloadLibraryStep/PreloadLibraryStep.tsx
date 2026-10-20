@@ -62,12 +62,13 @@ export default function PreloadLibraryStep({
     case 'error':
       return (
         <Alert variant="destructive">
-          <AlertDescription className="space-y-2">
+          <AlertDescription>
             <p>Could not load the project settings: {preload.error?.message}</p>
             <Button
               size="sm"
               variant="outline"
               onClick={() => preload.reloadSettings()}
+              className="mt-2"
             >
               Try again
             </Button>
@@ -126,7 +127,7 @@ export default function PreloadLibraryStep({
       return (
         <Alert variant="destructive">
           <AlertTitle>Postgres did not restart</AlertTitle>
-          <AlertDescription className="space-y-2">
+          <AlertDescription>
             <p>
               Deploying the new project settings failed, so Postgres has not
               loaded <InlineCode>{library}</InlineCode>. Review your project's
@@ -137,7 +138,7 @@ export default function PreloadLibraryStep({
               for more information.
             </p>
             {preload.restartError && (
-              <p className="whitespace-pre-wrap break-words font-mono text-xs">
+              <p className="mt-2 whitespace-pre-wrap break-words font-mono text-xs">
                 {preload.restartError}
               </p>
             )}

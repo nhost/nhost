@@ -4,13 +4,8 @@ import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/v3/tabs';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
@@ -189,53 +184,55 @@ export default function DatabaseExtensions() {
       <section aria-label="All extensions" className="space-y-3">
         <h2 className="font-semibold text-lg">All extensions</h2>
 
-        <Tabs
-          value={installFilter}
-          onValueChange={(value) => setInstallFilter(value as InstallFilter)}
-          className="space-y-3"
-        >
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full max-w-md">
-              <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                aria-label="Search extensions"
-                placeholder="Search extensions..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="h-10 pl-8 text-sm"
-              />
-            </div>
-            <TabsList aria-label="Filter extensions">
-              {INSTALL_FILTERS.map(({ value, label }) => (
-                <TabsTrigger key={value} value={value}>
-                  {label}
-                  <span className="ml-1.5 text-muted-foreground tabular-nums">
-                    {
-                      searchedExtensions.filter((extension) =>
-                        matchesInstallFilter(extension, value),
-                      ).length
-                    }
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full max-w-md">
+            <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="Search extensions"
+              placeholder="Search extensions..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="pl-8"
+            />
           </div>
+          <ToggleGroup
+            type="single"
+            aria-label="Filter extensions"
+            value={installFilter}
+            onValueChange={(value) => {
+              // Clicking the selected filter again would clear it.
+              if (value) {
+                setInstallFilter(value as InstallFilter);
+              }
+            }}
+          >
+            {INSTALL_FILTERS.map(({ value, label }) => (
+              <ToggleGroupItem key={value} value={value}>
+                {label}
+                <span className="text-muted-foreground tabular-nums">
+                  {
+                    searchedExtensions.filter((extension) =>
+                      matchesInstallFilter(extension, value),
+                    ).length
+                  }
+                </span>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
 
-          <TabsContent value={installFilter} className="mt-0">
-            {filteredExtensions.length > 0 ? (
-              <ExtensionsTable
-                extensions={filteredExtensions}
-                preloadedLibraries={preloadedLibraries}
-                onAction={openDialog}
-              />
-            ) : (
-              <DataBrowserEmptyState
-                title="No matching extensions"
-                description="Try a different search term or filter."
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        {filteredExtensions.length > 0 ? (
+          <ExtensionsTable
+            extensions={filteredExtensions}
+            preloadedLibraries={preloadedLibraries}
+            onAction={openDialog}
+          />
+        ) : (
+          <DataBrowserEmptyState
+            title="No matching extensions"
+            description="Try a different search term or filter."
+          />
+        )}
       </section>
 
       {dialog?.action === 'install' && (

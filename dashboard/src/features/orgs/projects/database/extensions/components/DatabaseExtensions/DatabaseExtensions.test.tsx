@@ -384,13 +384,27 @@ describe('DatabaseExtensions', () => {
       within(getRow(all, 'cube')).queryByText('Installed'),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: /^Installed/ }));
-
-    expect(
+    const installedFilter = screen.getByRole('radio', { name: /^Installed/ });
+    const getRowIds = () =>
       within(all)
         .getAllByTestId(/^extension-row-/)
-        .map((row) => row.getAttribute('data-testid')),
-    ).toEqual(['extension-row-citext', 'extension-row-postgis']);
+        .map((row) => row.getAttribute('data-testid'));
+
+    await user.click(installedFilter);
+
+    expect(getRowIds()).toEqual([
+      'extension-row-citext',
+      'extension-row-postgis',
+    ]);
+
+    // Selecting the active filter again keeps it.
+    await user.click(installedFilter);
+
+    expect(installedFilter).toBeChecked();
+    expect(getRowIds()).toEqual([
+      'extension-row-citext',
+      'extension-row-postgis',
+    ]);
   });
 
   it('locks built-in extensions instead of offering uninstall', async () => {

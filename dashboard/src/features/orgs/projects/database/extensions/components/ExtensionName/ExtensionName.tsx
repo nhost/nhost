@@ -33,7 +33,7 @@ export interface ExtensionNameProps {
 }
 
 // Keeps the 24px hit area from growing the line the icon sits on.
-const ICON_BUTTON_CLASS_NAME = '-my-0.5 h-6 w-6 shrink-0 rounded-sm p-0';
+const iconButtonClassName = '-my-0.5 shrink-0';
 
 function DocsLink({ name }: { name: string }) {
   return (
@@ -42,17 +42,15 @@ function DocsLink({ name }: { name: string }) {
         <Button
           asChild
           variant="ghost"
-          className={cn(
-            ICON_BUTTON_CLASS_NAME,
-            'text-muted-foreground hover:text-foreground',
-          )}
+          size="icon-xs"
+          className={iconButtonClassName}
         >
           <a
             href={getExtensionDocsUrl(name)}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <BookOpen className="size-4" aria-hidden />
+            <BookOpen className="size-4 text-muted-foreground" aria-hidden />
             <span className="sr-only">Documentation (opens in a new tab)</span>
           </a>
         </Button>
@@ -80,13 +78,11 @@ function PreloadHint({
       <TooltipTrigger asChild>
         <Button
           variant="ghost"
+          size="icon-xs"
           aria-label="Preload requirement"
-          className={cn(
-            ICON_BUTTON_CLASS_NAME,
-            'text-primary hover:text-primary',
-          )}
+          className={iconButtonClassName}
         >
-          <Info className="size-4" aria-hidden />
+          <Info className="size-4 text-primary" aria-hidden />
         </Button>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
@@ -121,29 +117,29 @@ function PreloadWarning({
         <Button
           ref={triggerRef}
           variant="ghost"
+          size="icon-xs"
           aria-label="Library not preloaded"
-          className={cn(
-            ICON_BUTTON_CLASS_NAME,
-            'text-amber-500 hover:text-amber-500',
-          )}
+          className={iconButtonClassName}
         >
-          <TriangleAlert className="size-4" aria-hidden />
+          <TriangleAlert className="size-4 text-warning" aria-hidden />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 space-y-3 text-sm">
-        <div className="space-y-1">
-          <p className="font-medium">Library not preloaded</p>
-          <p className="text-muted-foreground">
-            {displayName} is installed, but Postgres isn&apos;t preloading its
-            library, so it won&apos;t work.{' '}
-            <TextLink href={getExtensionDocsUrl(extension.name)} external>
-              Learn more
-            </TextLink>
-          </p>
+      <PopoverContent align="start" className="w-80">
+        <div className="space-y-3 text-sm">
+          <div className="space-y-1">
+            <p className="font-medium">Library not preloaded</p>
+            <p className="text-muted-foreground">
+              {displayName} is installed, but Postgres isn&apos;t preloading its
+              library, so it won&apos;t work.{' '}
+              <TextLink href={getExtensionDocsUrl(extension.name)} external>
+                Learn more
+              </TextLink>
+            </p>
+          </div>
+          <Button size="sm" onClick={handlePreload}>
+            Add to preloaded libraries…
+          </Button>
         </div>
-        <Button size="sm" onClick={handlePreload}>
-          Add to preloaded libraries…
-        </Button>
       </PopoverContent>
     </Popover>
   );

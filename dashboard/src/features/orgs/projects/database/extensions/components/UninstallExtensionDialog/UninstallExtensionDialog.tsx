@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
-import { ButtonWithLoading, buttonVariants } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -67,19 +67,19 @@ export default function UninstallExtensionDialog({
     >
       <AlertDialogContent
         onCloseAutoFocus={onCloseAutoFocus}
-        className="flex w-[32rem] max-w-[32rem] flex-col gap-6 p-6 text-left text-foreground"
+        className="flex w-[32rem] max-w-[32rem] flex-col text-left"
       >
         <AlertDialogHeader>
-          <AlertDialogTitle className="truncate">
-            Uninstall {displayName}
+          <AlertDialogTitle>
+            <span className="block truncate">Uninstall {displayName}</span>
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
+          <AlertDialogDescription>
             <span className="block">
               Are you sure you want to uninstall this extension? Review the SQL
               that will run. You can edit it before uninstalling.
             </span>
             {!cascadeWarning && (
-              <span className="block">
+              <span className="mt-2 block">
                 Without{' '}
                 <InlineCode className="px-1.5 text-sm">CASCADE</InlineCode>, it
                 fails if any tables, functions, or other extensions depend on
@@ -92,10 +92,10 @@ export default function UninstallExtensionDialog({
         {cascadeWarning && (
           <Alert variant="warning">
             <TriangleAlert className="size-5" aria-hidden />
-            <AlertDescription className="space-y-2 text-pretty">
-              <p>{cascadeWarning}</p>
+            <AlertDescription>
+              <p className="text-pretty">{cascadeWarning}</p>
               {isPlatform && (
-                <p>
+                <p className="mt-2 text-pretty">
                   Daily backups do not include this state; only point-in-time
                   recovery can restore it.{' '}
                   <TextLink
@@ -119,10 +119,10 @@ export default function UninstallExtensionDialog({
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Could not uninstall {displayName}</AlertTitle>
-            <AlertDescription className="space-y-2">
+            <AlertDescription>
               <p className="whitespace-pre-wrap break-words">{error.message}</p>
               {hasDependents && (
-                <p className="text-foreground">
+                <p className="mt-2 text-foreground">
                   Remove the dependent objects first, or add{' '}
                   <InlineCode className="px-1.5 text-sm">CASCADE</InlineCode> to
                   the SQL above, which also drops every object that depends on
@@ -145,7 +145,7 @@ export default function UninstallExtensionDialog({
                   { onSuccess: () => onOpenChange(false) },
                 );
               }}
-              className={buttonVariants({ variant: 'destructive' })}
+              variant="destructive"
               loading={isPending}
               disabled={!sql.trim()}
               data-testid="confirm-uninstall-extension"

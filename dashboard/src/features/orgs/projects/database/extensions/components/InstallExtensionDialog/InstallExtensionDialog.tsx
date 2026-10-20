@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -31,6 +31,7 @@ import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extension
 import { getMissingExtensionDependencies } from '@/features/orgs/projects/database/extensions/utils/getMissingExtensionDependencies';
 import { cn } from '@/lib/utils';
 import InstallStep from './InstallStep';
+import useInstallExtensionSteps from './useInstallExtensionSteps';
 
 export interface InstallExtensionDialogProps {
   extension: PostgresExtension;
@@ -77,31 +78,13 @@ function InstallExtensionDialogContent({
     extension,
     catalog,
   );
-  const canInstall = !preload || preload.status === 'preloaded';
-  // Shown in a tooltip on a wrapper around the disabled Install button, which
-  // gets no pointer events itself.
-  let installBlockedReason: string | null = null;
-
-  if (!canInstall) {
-    installBlockedReason = [
-      'restarting',
-      'pending-local-restart',
-      'restart-failed',
-    ].includes(preload?.status ?? '')
-      ? `Postgres has not loaded ${extension.name} yet.`
-      : `Add ${extension.name} to preloaded libraries first.`;
-  }
-
-  const installButtonRef = useRef<HTMLButtonElement>(null);
-  const couldInstall = useRef(canInstall);
-
-  useEffect(() => {
-    if (canInstall && !couldInstall.current) {
-      installButtonRef.current?.focus();
-    }
-
-    couldInstall.current = canInstall;
-  }, [canInstall]);
+  const {
+    canInstall,
+    installBlockedReason,
+    installButtonRef,
+    preloadStepState,
+    installStepState,
+  } = useInstallExtensionSteps(extension.name, preload);
 
   const installFields = (
     <>
@@ -154,7 +137,7 @@ function InstallExtensionDialogContent({
       <DialogContent
         disableOutsideClick
         onCloseAutoFocus={onCloseAutoFocus}
-        className="flex max-h-[90vh] max-w-2xl flex-col gap-5 overflow-y-auto text-foreground"
+        className="flex max-h-[90vh] max-w-2xl flex-col overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle>Install {displayName}</DialogTitle>
@@ -170,7 +153,7 @@ function InstallExtensionDialogContent({
             <InstallStep
               number={1}
               title="Add to preloaded libraries"
-              state={canInstall ? 'complete' : 'current'}
+              state={preloadStepState}
             >
               <div aria-live="polite" className="flex flex-col gap-3">
                 <PreloadLibraryStep
@@ -182,7 +165,7 @@ function InstallExtensionDialogContent({
             <InstallStep
               number={2}
               title="Install extension"
-              state={canInstall ? 'current' : 'upcoming'}
+              state={installStepState}
               isLast
             >
               <p className="text-muted-foreground text-sm">

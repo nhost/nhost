@@ -38,7 +38,7 @@ export default function PreloadExtensionDialog({
       <DialogContent
         disableOutsideClick
         onCloseAutoFocus={onCloseAutoFocus}
-        className="flex max-w-lg flex-col gap-5 text-foreground"
+        className="flex max-w-lg flex-col"
       >
         <DialogHeader>
           <DialogTitle>Preload {displayName}</DialogTitle>

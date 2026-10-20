@@ -50,11 +50,13 @@ function ExtensionRow({
           />
         </div>
       </TableCell>
-      <TableCell className="w-44 pr-8 text-right text-muted-foreground tabular-nums">
-        {getExtensionVersionLabel(extension) ?? '—'}
+      <TableCell className="w-44 text-right">
+        <span className="mr-4 text-muted-foreground tabular-nums">
+          {getExtensionVersionLabel(extension) ?? '—'}
+        </span>
       </TableCell>
-      <TableCell className="text-muted-foreground">
-        {extension.comment}
+      <TableCell>
+        <span className="text-muted-foreground">{extension.comment}</span>
       </TableCell>
       <TableCell className="w-56">
         <div className="flex items-center justify-end gap-2">
