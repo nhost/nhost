@@ -86,7 +86,12 @@ enabled.
 
 The frontend needs the same origin as `NEXT_PUBLIC_APP_ORIGIN`, next to the
 project's subdomain and region; `frontend/.env.example` has all three. They
-are read when `next build` runs, so set them before building.
+are read when `next build` runs, so set them before building. On Vercel the
+origin can be left out, because the build falls back to the project's
+production domain, the one `APP_ORIGIN` has to match. None of the three is a
+secret, as all of them end up in the browser bundle, so they can also be
+committed in a `frontend/.env.production` once `frontend/.gitignore` stops
+ignoring it. Nothing secret belongs in that file.
 
 ## Permissions
 
