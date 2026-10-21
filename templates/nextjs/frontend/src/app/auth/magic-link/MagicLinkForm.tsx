@@ -50,7 +50,7 @@ export default function MagicLinkForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2">
           <CheckYourInbox url={mailboxURL} />
           <p className="text-muted-foreground text-sm">
             A sign-in link is on its way to {email}. Open it in this browser to
