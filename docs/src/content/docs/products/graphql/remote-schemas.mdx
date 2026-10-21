@@ -76,7 +76,7 @@ For sensitive values like API keys, tokens, and credentials, use environment var
 
 ### Forward Client Headers
 
-Enable **Forward Client Headers** to pass headers from the original client request to the remote service. This is useful when the remote service needs to receive authentication tokens or other context from your users.
+Enable **Forward Client Headers** to pass headers from the original client request to the remote service. This is useful when the remote service needs to receive [authentication tokens](/products/auth/jwt) or other context from your users.
 
 When enabled, headers from the client (like `Authorization`) are forwarded to the remote GraphQL server along with any additional headers you've configured.
 
@@ -243,4 +243,4 @@ If schema introspection fails due to type conflicts:
 If users receive permission errors when querying Remote Schema fields:
 - Verify `enableRemoteSchemaPermissions` is set to `true` in your configuration
 - Check that the user's role has been granted access in the Permissions tab
-- Ensure you've deployed configuration changes by running `nhost up` locally or pushing to your cloud project
+- Ensure you've deployed configuration changes by running `nhost up` locally or [pushing to your cloud project](/platform/cloud/deployments)

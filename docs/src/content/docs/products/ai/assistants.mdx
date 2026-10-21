@@ -9,7 +9,7 @@ head:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 
-AI Assistants leverages ChatGPT and allows you to define different AI assistants with pre-defined tools and accesses to your data. This pre-defined access is expressed as GraphQL queries or mutations and/or webhooks and are unique to each AI assistant, meaning you can create different AI assistants with access to different type of data. In addition, AI assistants are fully integrated with Nhost permissions which means only data the user has access to will be made available to each AI assistant session.
+AI Assistants leverages ChatGPT and allows you to define different AI assistants with pre-defined tools and accesses to your data. This pre-defined access is expressed as GraphQL queries or mutations and/or webhooks and are unique to each AI assistant, meaning you can create different AI assistants with access to different type of data. In addition, AI assistants are fully integrated with [Nhost permissions](/products/graphql/permissions) which means only data the user has access to will be made available to each AI assistant session.
 
 ## Demo
 
@@ -120,7 +120,7 @@ In order to enhance our AI assistants we are leveraging tools. Tools can be eith
 - The GraphQL query `GetMoviesWithScoreHigherThan`, which will allow the AI Assistant to query movies based on their score.
 - The GraphQL query `SearchMovies`, which leverages [auto-embeddings](/products/ai/auto-embeddings) and will allow the AI Assistant to query movies using natural language.
 - The GraphQL mutation `InsertMovie`, which will let the AI Assistant to insert new movies directly into the database.
-- The webhook `answer_deep_questions`, which is a serverless function that can respond to deep questions about life and the universe.
+- The webhook `answer_deep_questions`, which is a [serverless function](/products/functions) that can respond to deep questions about life and the universe.
 
 With a good name and description, the AI Assistant will know that certain information can be made available or that certain actions are at its disposal via these tools. We will see more in detail how this works a bit later but for now suffices to say that:
 
