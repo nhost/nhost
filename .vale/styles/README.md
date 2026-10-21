@@ -77,12 +77,13 @@ run on the blog at the counts and tiers in the next section.
 | `Nhost.UIPathArrow` | warning | 18 in 10 pages (`79bfe1016b`, main's pages unchanged) | `DOCS-06`; each `->` in a bold UI path; raw scope. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Nhost.NavPaths` | warning | 4 in 4 pages (`79bfe1016b`, main's pages unchanged) | `DOCS-06`; stale dashboard paths, one row per move checked against the dashboard source named in the rule, including `Settings → Sign-In Methods` without the leading `Auth →`; raw scope. The fixes are on `docs-quality/03-content-fixes`; promote to error once they land and the count is zero |
 | `Nhost.FillerHeadings` | warning | 11 in 11 pages (`e5bbdf0771`) | `WR-ANTI-04`; headings that are exactly Overview, Introduction, Benefits, Summary or Conclusion. Promote once the pages are fixed |
-| `Nhost.LLMPhrases` | warning | 46 in 26 pages (`e5bbdf0771`) | `WR-ANTI-05`; `leverage` and its forms 21, `seamless(ly)` 11, `robust` 7, `powerful` 6, `unlocks` 1 |
-| `Nhost.LLMPhrasesStrict` | error | 0 (`e5bbdf0771`) | `WR-ANTI-05`; the words from the same list with no hits (`effortless`, `delve`, `let's dive`, `it's worth noting`), split out so they can fail now. A word is never in both files |
-| `Nhost.TutorialVoice` | warning | 3 in 2 pages (`e5bbdf0771`) | `WR-ANTI-09`; `In this section/guide, we will` and `we'll` |
+| `Nhost.LLMPhrases` | warning | 106 in 61 pages (`68f5050eb7`) | `WR-ANTI-05`; the praise and hedge words with hits on either tree. Was 46 over 5 words; the list now also carries `simply`, which `WR-ANTI-05` always named but no rule enforced, plus `comprehensive`, `crucial`, `utilize`, `when it comes to`, `whether you're` and the rest |
+| `Nhost.LLMPhrasesStrict` | error | 0 (`68f5050eb7`) | `WR-ANTI-05`; the same list's words with no hits on either tree, split out so they can fail now. A word is never in both files |
+| `Nhost.RhetoricalQuestion` | error | 0 (`68f5050eb7`) | `WR-ANTI-05`; the one-word question standing in for a transition (`The catch?`, `Why does this matter?`). Separate from `LLMPhrasesStrict` because a token ending in `?` needs `nonword` |
+| `Nhost.TutorialVoice` | warning | 18 in 12 pages (`68f5050eb7`) | `WR-ANTI-09`; was 3 over `In this section/guide, we will`. Now also the `Let's <verb>` and `Now that we/you have` constructions `WR-ANTI-09` names |
 | `Nhost.EmDash` | suggestion | 256 in 74 pages (`e5bbdf0771`) | `WR-STYLE-16`; em dashes are house style, so this only shows them and is never promoted |
 
-At the suggestion level the whole tree reports 0 errors, 207 warnings and 550
+At the suggestion level the whole tree reports 0 errors, 282 warnings and 550
 suggestions in 218 files (`68f5050eb7`'s pages; this branch changes no docs
 content). A rule is promoted only on a measured count and a one-line reason
 in its row.
@@ -108,11 +109,13 @@ at `68f5050eb7`; this branch changes no blog content, so they are main's.
 The shared `Nhost.*` rules run on the blog too, at the tier in their `level:`
 field unless `landing/.vale.ini` relaxes them. Their counts over the same 86
 posts: `Exclamation` 129 in 45, `Colons` 79 in 31, `Units` 76 in 6,
-`LLMPhrases` 63 in 34, `OxfordComma` 39 in 33, `EmDash` 28 in 7, `Latin` 22 in
+`OxfordComma` 39 in 33, `EmDash` 28 in 7, `Latin` 22 in
 15, `FillerHeadings` 18 in 18, `Quotes` 11 in 10, `WordList` 7 in 6,
 `LLMPhrasesStrict` 7 in 5, `Ellipses` 7 in 6, `Ordinal` 6 in 5,
-`TutorialVoice` 2 in 2, `LyHyphens` 2 in 2, `Spacing` 1 in 1, and
-`OptionalPlurals`, `ScreenshotPlaceholder` and `VerifyMarker` 0. For the
+`LyHyphens` 2 in 2, `Spacing` 1 in 1, and `OptionalPlurals`,
+`RhetoricalQuestion`, `ScreenshotPlaceholder` and `VerifyMarker` 0. Two run
+higher here than on the docs, the blog being the more marketing-facing of
+the two corpora: `LLMPhrases` 136 in 56 and `TutorialVoice` 41 in 18. For the
 built-ins, `Vale.Terms` is 73 in 30 and `Vale.Repetition` 1 in 1, both at
 warning; `Vale.Avoid` is 0 at error and `Vale.Spelling` is off, as in the docs.
 
@@ -128,7 +131,7 @@ has no callout, and `NhostBlog.Callout` says so with the right message),
 `BLOG-07` uses the same placeholder contract, though its message names
 `DOCS-08`.
 
-At the suggestion level the blog reports 0 errors, 487 warnings and 170
+At the suggestion level the blog reports 0 errors, 599 warnings and 170
 suggestions in 86 files, so `pnpm --dir landing test:prose` passes on main.
 
 ## Nhost rules
@@ -144,6 +147,24 @@ Vale adds every `accept.txt` entry as an exception to every rule, and
 `NavPaths` without it never reported `Settings -> Hasura`, because the
 match contains the accepted `Hasura`; the other raw rules set it too, so no
 accepted term can hide a structural match.
+
+Two traps caught `LLMPhrases`, `LLMPhrasesStrict` and `RhetoricalQuestion`
+when their token lists grew, and neither announces itself: a rule stays green
+while silently matching nothing.
+
+- The `accept.txt` exception is tested against the **matched text**, not the
+  surrounding sentence. A single-word token is safe, but a token with a
+  wildcard can span an accepted term, so `that's where .{1,40} comes in`
+  never reported `that's where Nhost comes in` — the likeliest way anyone
+  writes it. Any rule with a wildcard token needs `vocab: false`, raw scope
+  or not.
+- `existence` wraps each token in `\b` unless `nonword` is set, and `\b`
+  cannot follow a question mark, so a token ending in `?` silently never
+  matches. That is why the question fragments are their own rule rather than
+  entries in `LLMPhrasesStrict`.
+
+A new token is worth proving against a fixture for this reason alone: both
+failures look exactly like a clean corpus.
 
 ## NhostBlog rules
 

@@ -2,3 +2,24 @@
 .vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:5:32:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'delve'.
 .vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:7:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'It's worth noting'.
 .vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:7:39:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'effortless'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:9:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'Needless to say'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:9:22:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'state-of-the-art'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:9:40:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'best-in-class'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:9:62:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'boasts'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:10:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'plethora'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:10:13:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'holistic'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:10:37:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'myriad'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:10:47:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'vital'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:10:54:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'pivotal'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:11:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'supercharge'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:13:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'First and foremost'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:13:21:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'rest assured'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:13:35:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'in essence'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:13:47:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'at the end of the day'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:14:8:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'does the heavy lifting'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:16:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'Gone are the days'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:16:22:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'navigating the complexity'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:16:53:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'deep dive'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:18:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'Here's the thing'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:18:19:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'that's where the Nhost CLI comes in'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:18:60:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'the beauty of'.

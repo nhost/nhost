@@ -1,11 +1,45 @@
-# Nhost rule. The words with no hits on the docs tree, so it runs at error;
-# the rest are in LLMPhrases.yml.
+# Nhost rule. The words and phrases with no hits on either tree, so it runs at
+# error and a new one cannot land; the rest are in LLMPhrases.yml. A word is
+# never in both files. `let's dive` stays here rather than moving to
+# TutorialVoice, so that "let's dive into" is reported once.
 extends: existence
 message: "WR-ANTI-05: describe what the product does instead of '%s'."
 level: error
 ignorecase: true
+# Vale treats every accept.txt entry as an exception to every rule, matching
+# against the matched text. That is harmless for a single word, but a token
+# with a wildcard can span one: without this, "that's where Nhost comes in",
+# the likeliest way anyone writes it, is silently skipped because the match
+# contains the accepted 'Nhost'. No token here is itself an accepted term.
+vocab: false
 tokens:
+  # praise adjectives and verbs
   - effortless(?:ly)?
+  - supercharg(?:e|es|ed|ing)
+  - state[- ]of[- ]the[- ]art
+  - best[- ]in[- ]class
+  - boast(?:s|ed|ing)?
+  - holistic
+  - plethora
+  - myriad
+  - vital
+  - pivotal
+  # padding and throat-clearing
   - delv(?:e|es|ed|ing)
   - "let['’]s dive"
   - "it['’]s worth noting"
+  - needless to say
+  - rest assured
+  - in essence
+  - first and foremost
+  - at the end of the day
+  # rhetorical scaffolding
+  - "that['’]s where .{1,40} comes? in"
+  - "here['’]s the thing"
+  - gone are the days
+  - the beauty of
+  - deep[- ]dive
+  - does the heavy lifting
+  - navigat(?:e|es|ing) the (?:complexit(?:y|ies)|landscape)
+  # Tokens ending in punctuation live in RhetoricalQuestion.yml, which sets
+  # nonword; the \b this rule wraps tokens in cannot follow a '?'.

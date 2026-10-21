@@ -166,10 +166,16 @@ paraphrases around it.
   what the page is about to say or has just said. Vale-enforced:
   `Nhost.FillerHeadings`.
 - **WR-ANTI-05** Hedge and marketing words: "seamless", "leverage", "robust",
-  "powerful", "effortless", "unlock", "delve", "simply", "it's worth noting",
-  "let's dive in", and any adjective that praises the product instead of
-  describing it. Vale-enforced: `Nhost.LLMPhrases`,
-  `Nhost.LLMPhrasesStrict`.
+  "powerful", "effortless", "unlock", "delve", "simply", "comprehensive",
+  "crucial", "utilize", "it's worth noting", "let's dive in", the framing
+  openers ("in today's", "whether you're", "when it comes to", "gone are the
+  days", "that's where X comes in"), the question fragment that answers itself
+  ("The catch?", "Why does this matter?"), and any adjective that praises the
+  product instead of describing it. Words that read as praise but carry a
+  technical meaning here are not on the list: "elevated" is an Nhost auth
+  claim, and "out of the box", "first-class" and "test harness" are ordinary
+  technical usage. Vale-enforced: `Nhost.LLMPhrases`,
+  `Nhost.LLMPhrasesStrict`, `Nhost.RhetoricalQuestion`.
 - **WR-ANTI-06** Restating the heading as the first sentence of its section
   ("## Create a bucket" followed by "In this section you create a bucket").
   The first sentence does the work the heading announces.
@@ -181,9 +187,9 @@ paraphrases around it.
   callouts, raw HTML beside Markdown for the same construct, or a component
   the scope does not list. One page uses the scope's conventions
   throughout.
-- **WR-ANTI-09** Tutorial voice: "In this guide, we will", "Let's", "Now that
-  we have", and any sentence that narrates the writer's plan instead of
-  giving the reader an instruction or a fact. Vale-enforced:
+- **WR-ANTI-09** Tutorial voice: "In this guide, we will", "Let's take a
+  look", "Now that we have", and any sentence that narrates the writer's plan
+  instead of giving the reader an instruction or a fact. Vale-enforced:
   `Nhost.TutorialVoice`.
 
 ## Placeholders

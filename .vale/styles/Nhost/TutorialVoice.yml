@@ -1,8 +1,13 @@
-# Nhost rule.
+# Nhost rule. The three constructions WR-ANTI-09 names: the writer announcing
+# a plan, inviting the reader along, or recapping what was just built. `dive`
+# is absent from the verb list on purpose, because `let's dive` is in
+# LLMPhrasesStrict and the phrase should be reported once.
 extends: existence
 message: "WR-ANTI-09: give the reader the instruction or the fact instead of
   '%s'."
 level: warning
 ignorecase: true
 tokens:
-  - "in this (?:section|guide),? we(?: will|['’]ll)"
+  - "in this (?:section|guide|post|article|tutorial),? we(?: will|['’]ll)"
+  - "let['’]s +(?:explore|look|take a look|see|start|begin|get started|break it down|walk through|build|create|jump|recap|review|move on|wrap up)"
+  - "now that (?:we|you)(?: have|['’]ve| ?re)"
