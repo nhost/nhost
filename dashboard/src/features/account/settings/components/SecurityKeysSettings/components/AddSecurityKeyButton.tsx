@@ -17,12 +17,7 @@ function AddSecurityKeyButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-        >
+        <Button type="button" variant="outline" size="sm" className="gap-2">
           <Plus className="h-5 w-5" />
           Add New Security Key
         </Button>

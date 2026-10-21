@@ -63,7 +63,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 - `React.forwardRef` for components that need ref forwarding; set `displayName`.
 - Avoid `React.FC`; prefer explicit prop types.
 - Arrow functions are allowed for components.
-- Prefer Shadcn / `ui/v3` over `ui/v2`. Use `ui/v3` for all new features.
+- Use Shadcn / `ui/v3` components; MUI and `ui/v2` have been removed.
 
 ### Naming
 

@@ -416,7 +416,6 @@ export default function BaseCronTriggerForm({
               <SheetClose asChild>
                 <Button
                   variant="outline"
-                  className="text-foreground"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel
