@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { createContext } from 'react';
 import { passwordSignIn } from '@/app/auth/password/passwordSignIn';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,11 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
-/** What a form calls once the server has accepted the new password. */
-export const PasswordChangedContext = createContext<() => void>(() => {
-  throw new Error('The form has to render inside PasswordChangedLayout.');
-});
 
 export default function PasswordChanged() {
   return (

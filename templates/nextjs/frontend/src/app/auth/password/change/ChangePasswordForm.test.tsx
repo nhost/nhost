@@ -3,10 +3,9 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
-import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
+import ReplacePageLayout from '@/components/ReplacePageLayout';
 
 const changePassword = vi.hoisted(() => vi.fn());
-const onChanged = vi.fn();
 
 vi.mock('@/app/account/actions', () => ({ changePassword }));
 
@@ -47,14 +46,13 @@ const text = (role: string): string | null =>
 describe('change password form', () => {
   beforeEach(async () => {
     changePassword.mockReset();
-    onChanged.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () =>
       root.render(
-        <PasswordChangedContext value={onChanged}>
+        <ReplacePageLayout>
           <ChangePasswordForm />
-        </PasswordChangedContext>,
+        </ReplacePageLayout>,
       ),
     );
   });
@@ -72,10 +70,10 @@ describe('change password form', () => {
 
     expect(text('alert')).toBe('The two passwords do not match.');
     expect(changePassword).not.toHaveBeenCalled();
-    expect(onChanged).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain('Password changed');
   });
 
-  it('sends the password and reports the change to the layout', async () => {
+  it('sends the password and puts the changed card in place of the page', async () => {
     changePassword.mockResolvedValueOnce({ success: true });
     await type('New password', 'correct horse');
     await type('Confirm new password', 'correct horse');
@@ -83,8 +81,8 @@ describe('change password form', () => {
     await submit();
 
     expect(changePassword).toHaveBeenCalledWith('correct horse');
-    expect(onChanged).toHaveBeenCalledTimes(1);
-    expect(text('alert')).toBeNull();
+    expect(container.textContent).toContain('Password changed');
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('shows the action error', async () => {
@@ -95,6 +93,6 @@ describe('change password form', () => {
     await submit();
 
     expect(text('alert')).toBe('too short');
-    expect(onChanged).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain('Password changed');
   });
 });

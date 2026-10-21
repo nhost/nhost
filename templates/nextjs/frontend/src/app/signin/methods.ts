@@ -1,29 +1,32 @@
+import type { User } from '@nhost/nhost-js/auth';
+import type { ReactNode } from 'react';
+import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
+import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
+import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
+
 /**
- * The sign-in methods this app offers, one line each.
+ * The sign-in methods this app offers, one entry each.
  *
  * Every method is its own directory under `src/app/auth/`, and nothing
- * outside that directory imports from it. To drop a method: delete its
- * directory, then delete its line here. That is the whole procedure.
+ * outside that directory imports from it except this file. To drop a method:
+ * delete its directory, then delete its entry here and the imports it used.
+ * That is the whole procedure.
  *
- * This file has no imports on purpose: it is what lets the sign-in page list
- * the methods without depending on any of them.
- *
- * `account` is how a method puts something on the account page. The page
- * links to it as data rather than importing it, so deleting the method takes
- * the link with it and nothing else. A method with nothing to configure
+ * `account` is how a method puts something on the account page: the rows it
+ * renders there, by name, each in the method's own directory. This file is the one
+ * place shared code reaches them, so the account page renders whatever is
+ * listed and names no method itself. A method with nothing to configure
  * leaves it out and the account page lists it as needing no setup.
  */
-export type AccountEntry = {
-  href: string;
-  title: string;
-  description: string;
-};
+export type AccountSetting = (props: {
+  user: User;
+}) => ReactNode | Promise<ReactNode>;
 
 export type SignInMethod = {
   href: string;
   title: string;
   description: string;
-  account?: AccountEntry[];
+  account?: Record<string, AccountSetting>;
 };
 
 export const methods: SignInMethod[] = [
@@ -31,18 +34,7 @@ export const methods: SignInMethod[] = [
     href: '/auth/password',
     title: 'Email and password',
     description: 'Sign up or sign in with a password.',
-    account: [
-      {
-        href: '/auth/password/change',
-        title: 'Change password',
-        description: 'Set a new password for this account.',
-      },
-      {
-        href: '/auth/password/mfa',
-        title: 'Two-factor authentication',
-        description: 'A code from an authenticator app when you sign in.',
-      },
-    ],
+    account: { password: ChangePasswordSetting, mfa: MfaSetting },
   },
   {
     href: '/auth/magic-link',
@@ -63,12 +55,6 @@ export const methods: SignInMethod[] = [
     href: '/auth/passkey',
     title: 'Passkey',
     description: 'Use Touch ID, Windows Hello or a security key.',
-    account: [
-      {
-        href: '/auth/passkey/manage',
-        title: 'Passkeys',
-        description: 'The passkeys that can sign in to this account.',
-      },
-    ],
+    account: { passkeys: PasskeysSetting },
   },
 ];

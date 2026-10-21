@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ChangeEmailForm from '@/app/account/email/ChangeEmailForm';
+import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 
 const actions = vi.hoisted(() => ({
   changeEmail: vi.fn(),
