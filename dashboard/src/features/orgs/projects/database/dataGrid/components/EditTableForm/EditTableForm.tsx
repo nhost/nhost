@@ -129,6 +129,7 @@ export default function EditTableForm({
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
           isUnique: column.isUnique,
+          uniqueConstraints: column.uniqueConstraints,
           comment: column.comment || '',
           isGenerated: column.isGenerated,
           generationExpression: column.generationExpression,
@@ -256,12 +257,7 @@ export default function EditTableForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button
-              onClick={resetError}
-              size="sm"
-              variant="destructive"
-              className="bg-transparent text-destructive hover:bg-destructive/10"
-            >
+            <Button onClick={resetError} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

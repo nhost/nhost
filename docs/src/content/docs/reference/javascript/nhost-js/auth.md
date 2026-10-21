@@ -581,7 +581,7 @@ getElevationMethods(options?: RequestInit): Promise<FetchResponse<ElevationMetho
 ```
 
 Summary: Get available elevation methods
-Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+List the authenticated user's available elevation methods, whether elevation is required under the configured mode, and whether the current session is elevated.
 
 This method may return different T based on the response code:
 
@@ -2197,6 +2197,16 @@ methods: ElevationMethod[];
 (`ElevationMethod[]`) - Methods the user can use to elevate their session
 
 - Example - `["webauthn","totp"]`
+
+#### sessionElevated
+
+```ts
+sessionElevated: boolean;
+```
+
+(`boolean`) - Whether the bearer token has an elevated claim matching its subject
+
+- Example - `false`
 
 ---
 

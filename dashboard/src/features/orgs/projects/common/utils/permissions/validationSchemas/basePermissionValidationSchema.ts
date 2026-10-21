@@ -122,25 +122,27 @@ const groupNodeSchema: Yup.ObjectSchema<any> = Yup.object().shape({
   type: Yup.string(),
   id: Yup.string(),
   operator: Yup.string(),
-  children: Yup.array().of(
-    // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
-    Yup.lazy((value: any) => {
-      if (value?.type === 'condition') {
-        return conditionNodeSchema;
-      }
-      if (value?.type === 'exists') {
-        return existsNodeSchema;
-      }
-      if (value?.type === 'relationship') {
-        return relationshipNodeSchema;
-      }
-      if (value?.type === 'invalid') {
-        return invalidNodeSchema;
-      }
-      return groupNodeSchema;
+  children: Yup.array()
+    .min(1, 'Add a condition or remove this empty group.')
+    .of(
       // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
-    }) as any,
-  ),
+      Yup.lazy((value: any) => {
+        if (value?.type === 'condition') {
+          return conditionNodeSchema;
+        }
+        if (value?.type === 'exists') {
+          return existsNodeSchema;
+        }
+        if (value?.type === 'relationship') {
+          return relationshipNodeSchema;
+        }
+        if (value?.type === 'invalid') {
+          return invalidNodeSchema;
+        }
+        return groupNodeSchema;
+        // biome-ignore lint/suspicious/noExplicitAny: discriminated union requires any
+      }) as any,
+    ),
 });
 
 function groupHasLeaf(value: unknown): boolean {

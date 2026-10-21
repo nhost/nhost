@@ -1,8 +1,4 @@
-query getSystemLogs(
-  $appID: String!
-  $action: String!
-  $from: Timestamp
-) {
+query getSystemLogs($appID: String!, $action: String!, $from: Timestamp) {
   systemLogs(appID: $appID, action: $action, from: $from) {
     timestamp
     log

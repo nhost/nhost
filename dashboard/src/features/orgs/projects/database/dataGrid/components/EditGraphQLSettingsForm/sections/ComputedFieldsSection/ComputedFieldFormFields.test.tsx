@@ -3,7 +3,7 @@ import { afterEach, vi } from 'vitest';
 import type { PostgresFunction } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -21,7 +21,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 vi.mock('next/router', () => ({
   useRouter: () => ({

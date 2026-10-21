@@ -1,7 +1,21 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { MouseEventHandler, ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
-import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
 import type { DialogFormProps } from '@/types/common';
+
+export interface DialogProviderProps {
+  PaperProps?: { className?: string };
+  titleProps?: { className?: string; onClose?: MouseEventHandler };
+  primaryButtonText?: string;
+  secondaryButtonText?: string;
+  onPrimaryAction?: VoidFunction;
+  onSecondaryAction?: VoidFunction;
+  primaryButtonColor?: 'primary' | 'error';
+  hidePrimaryAction?: boolean;
+  hideSecondaryAction?: boolean;
+  hideTitle?: boolean;
+  maxWidth?: 'xs' | 'sm' | 'md';
+  TransitionProps?: { onExited?: VoidFunction };
+}
 
 export interface DialogConfig<TPayload = unknown> {
   /**
@@ -11,7 +25,7 @@ export interface DialogConfig<TPayload = unknown> {
   /**
    * Props to pass to the dialog component.
    */
-  props?: Partial<CommonDialogProps>;
+  props?: DialogProviderProps;
   /**
    * Payload of the dialog. (e.g: record to create, message to display, etc.)
    */
@@ -35,7 +49,7 @@ export interface OpenDialogOptions {
   /**
    * Props to pass to the root dialog component.
    */
-  props?: Partial<CommonDialogProps>;
+  props?: DialogProviderProps;
 }
 
 export interface DialogContextProps {

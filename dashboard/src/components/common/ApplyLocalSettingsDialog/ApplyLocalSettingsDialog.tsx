@@ -1,28 +1,20 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 
 export default function ApplyLocalSettingsDialog() {
   const { closeDialog } = useDialog();
 
   return (
     <div className="flex flex-col gap-4 px-6 pb-6">
-      <div className="flex flex-col gap-2">
-        <Text color="secondary">
-          Run{' '}
-          <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
-            $ nhost up
-          </code>{' '}
-          using the cli to apply your changes
-        </Text>
-      </div>
+      <p className="text-muted-foreground text-sm">
+        Run{' '}
+        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
+          $ nhost up
+        </code>{' '}
+        using the cli to apply your changes
+      </p>
 
-      <Button
-        className="w-full"
-        color="primary"
-        onClick={() => closeDialog()}
-        autoFocus
-      >
+      <Button className="w-full" onClick={() => closeDialog()}>
         OK
       </Button>
     </div>

@@ -1,7 +1,7 @@
 import UserAndRoleSelect from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect/UserAndRoleSelect';
 import {
   act,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -16,8 +16,8 @@ const mocks = vi.hoisted(() => ({
   userApplicationClient: {},
 }));
 
-vi.mock('@mui/material/utils', () => ({
-  debounce: (callback: (...args: unknown[]) => unknown) => callback,
+vi.mock('lodash.debounce', () => ({
+  default: (callback: (...args: unknown[]) => unknown) => callback,
 }));
 
 vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
@@ -33,7 +33,7 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
   };
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const usersResponse = {
   data: {

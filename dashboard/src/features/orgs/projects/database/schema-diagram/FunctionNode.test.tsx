@@ -1,20 +1,13 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { vi } from 'vitest';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import FunctionNode from './FunctionNode';
 import {
   type TableActionsContextValue,
   TableActionsProvider,
 } from './TableActionsContext';
 import type { FunctionNodeData } from './useSchemaGraph';
-
-mockPointerEvent();
 
 function makeActions(
   overrides: Partial<TableActionsContextValue['actions']> = {},
@@ -224,9 +217,7 @@ describe('FunctionNode', () => {
     renderNode(baseData);
 
     expect(
-      screen.queryByRole('button', {
-        name: /function-management-menu-find_users/i,
-      }),
+      screen.queryByTestId('function-management-menu-find_users'),
     ).toBeNull();
   });
 

@@ -19,10 +19,6 @@ export interface CreateForeignKeyFormProps
     'onCancel' | 'availableColumns' | 'location'
   > {
   /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
-  /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void> | void;
@@ -30,24 +26,23 @@ export interface CreateForeignKeyFormProps
 
 export default function CreateForeignKeyForm({
   onSubmit,
-  selectedColumn,
   ...props
 }: CreateForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
-      columnName: selectedColumn || '',
+      columns: [],
       referencedSchema: 'public',
       referencedTable: '',
-      referencedColumn: '',
+      referencedKeyName: '',
+      referencedColumns: [],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
-  const disableOriginColumn = Boolean(selectedColumn);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);
@@ -75,12 +70,7 @@ export default function CreateForeignKeyForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button
-              onClick={() => setError(null)}
-              size="sm"
-              variant="destructive"
-              className="bg-transparent text-destructive hover:bg-destructive/10"
-            >
+            <Button onClick={() => setError(null)} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>
@@ -90,7 +80,6 @@ export default function CreateForeignKeyForm({
       <BaseForeignKeyForm
         submitButtonText="Add"
         onSubmit={handleSubmit}
-        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

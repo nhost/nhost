@@ -19,6 +19,18 @@ import (
 	"cuelang.org/go/cue/token"
 )
 
+const (
+	usageExitCode      = 2
+	sectionLevel       = 2
+	sharedSectionLevel = 3
+	maxHeadingLevel    = 6
+)
+
+var (
+	errMissingConfig = errors.New("#Config definition not found")
+	errInvalidConfig = errors.New("#Config is not a struct literal")
+)
+
 func main() {
 	schemaPath := flag.String("schema", "", "path to the mimir schema.cue file")
 	outPath := flag.String("out", "", "path to the .mdx file to write")
@@ -27,7 +39,7 @@ func main() {
 
 	if *schemaPath == "" || *outPath == "" {
 		fmt.Fprintln(os.Stderr, "usage: configdocs -schema <schema.cue> -out <reference.mdx>")
-		os.Exit(2)
+		os.Exit(usageExitCode)
 	}
 
 	src, err := os.ReadFile(*schemaPath)
@@ -50,6 +62,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	//nolint:gosec // The generated documentation is public and must be world-readable.
 	if err := os.WriteFile(
 		*outPath,
 		[]byte(out),
@@ -77,40 +90,9 @@ type fieldInfo struct {
 }
 
 func generate(filename string, src []byte) (string, error) {
-	file, err := parser.ParseFile(filename, src, parser.ParseComments)
+	g, rootStruct, err := parseConfig(filename, src)
 	if err != nil {
-		return "", fmt.Errorf("parse cue: %w", err)
-	}
-
-	g := &generator{
-		defs:        map[string]*ast.Field{},
-		topLevel:    map[string]bool{},
-		sharedSeen:  map[string]bool{},
-		sharedQueue: nil,
-	}
-
-	for _, d := range file.Decls {
-		f, ok := d.(*ast.Field)
-		if !ok {
-			continue
-		}
-
-		name, isDef := defName(f.Label)
-		if !isDef {
-			continue
-		}
-
-		g.defs[name] = f
-	}
-
-	root, ok := g.defs["#Config"]
-	if !ok {
-		return "", errors.New("#Config definition not found")
-	}
-
-	rootStruct, ok := root.Value.(*ast.StructLit)
-	if !ok {
-		return "", errors.New("#Config is not a struct literal")
+		return "", err
 	}
 
 	topFields, _ := g.collectFields(rootStruct)
@@ -143,7 +125,7 @@ func generate(filename string, src []byte) (string, error) {
 			doc = docOf(g.defs[id.Name])
 		}
 
-		g.renderSection(&body, fi.name, id.Name, 2, fi.optional, doc)
+		g.renderSection(&body, fi.name, id.Name, sectionLevel, fi.optional, doc)
 	}
 
 	if len(g.sharedQueue) > 0 {
@@ -157,13 +139,53 @@ func generate(filename string, src []byte) (string, error) {
 		for i < len(g.sharedQueue) {
 			name := g.sharedQueue[i]
 			title := strings.TrimPrefix(name, "#")
-			g.renderSection(&body, title, name, 3, false, docOf(g.defs[name]))
+			g.renderSection(&body, title, name, sharedSectionLevel, false, docOf(g.defs[name]))
 
 			i++
 		}
 	}
 
 	return frontmatter + body.String(), nil
+}
+
+func parseConfig(filename string, src []byte) (*generator, *ast.StructLit, error) {
+	file, err := parser.ParseFile(filename, src, parser.ParseComments)
+	if err != nil {
+		return nil, nil, fmt.Errorf("parse cue: %w", err)
+	}
+
+	g := &generator{
+		defs:        map[string]*ast.Field{},
+		topLevel:    map[string]bool{},
+		sharedSeen:  map[string]bool{},
+		sharedQueue: nil,
+	}
+
+	for _, d := range file.Decls {
+		f, ok := d.(*ast.Field)
+		if !ok {
+			continue
+		}
+
+		name, isDef := defName(f.Label)
+		if !isDef {
+			continue
+		}
+
+		g.defs[name] = f
+	}
+
+	root, ok := g.defs["#Config"]
+	if !ok {
+		return nil, nil, errMissingConfig
+	}
+
+	rootStruct, ok := root.Value.(*ast.StructLit)
+	if !ok {
+		return nil, nil, errInvalidConfig
+	}
+
+	return g, rootStruct, nil
 }
 
 const frontmatter = `---
@@ -282,7 +304,7 @@ func (g *generator) renderStruct(b *strings.Builder, prefix string, st *ast.Stru
 		b.WriteString("\n")
 	}
 
-	childLevel := min(level+1, 6)
+	childLevel := min(level+1, maxHeadingLevel)
 
 	for _, fi := range fields {
 		child, ok := fi.value.(*ast.StructLit)
@@ -311,7 +333,9 @@ func (g *generator) renderStruct(b *strings.Builder, prefix string, st *ast.Stru
 // literal values (e.g. "GET" | *"POST"), the default is itself one of the
 // allowed values, so it is also listed in the type column; for a broader-typed
 // field (e.g. bool | *true) the default is shown only in the default column.
-func (g *generator) renderType(expr ast.Expr) (typeCell, def string) {
+func (g *generator) renderType(expr ast.Expr) (string, string) {
+	var def string
+
 	operands := splitDisjunction(expr)
 
 	enum := true
@@ -403,7 +427,12 @@ func (g *generator) linkToDef(name string) string {
 // declared inside conditional (`if ...`) comprehensions and recording embedded
 // definitions. Hidden fields (leading underscore, used for validation) are
 // skipped. Fields are de-duplicated by name, preserving first-seen order.
-func (g *generator) collectFields(st *ast.StructLit) (fields []fieldInfo, embeds []string) {
+func (g *generator) collectFields(st *ast.StructLit) ([]fieldInfo, []string) {
+	var (
+		fields []fieldInfo
+		embeds []string
+	)
+
 	seen := map[string]bool{}
 
 	var walk func(elts []ast.Decl, conditional bool)
@@ -470,6 +499,8 @@ func isLiteralValue(expr ast.Expr) bool {
 }
 
 // listElem returns the element type of a list written as `[...T]` or `[T]`.
+//
+//nolint:ireturn // CUE list elements are heterogeneous AST nodes; callers need the Expr interface.
 func listElem(l *ast.ListLit) ast.Expr {
 	for _, el := range l.Elts {
 		if e, ok := el.(*ast.Ellipsis); ok && e.Type != nil {
@@ -648,6 +679,8 @@ func humanizeEnvVar(s string) string {
 
 // defOverrides replaces a definition's section intro. Used where the schema
 // comment links to Hasura docs we no longer want to reference.
+//
+//nolint:gochecknoglobals // Curated descriptions are immutable reference data until the upstream schema includes them.
 var defOverrides = map[string]string{
 	"#JWTSecret": "Signing key and configuration used to verify JSON Web Tokens. " +
 		"See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.",
@@ -655,44 +688,59 @@ var defOverrides = map[string]string{
 
 // envOverrides maps bare environment-variable schema comments to brief,
 // human-readable descriptions.
+//
+//nolint:gosec,gochecknoglobals // Curated configuration field descriptions, not credentials.
 var envOverrides = map[string]string{
-	"HASURA_GRAPHQL_CORS_DOMAIN":                               "Comma-separated list of domains allowed to make cross-origin requests.",
-	"HASURA_GRAPHQL_DEV_MODE":                                  "Include detailed error messages in API responses (development only).",
-	"HASURA_GRAPHQL_ENABLE_ALLOWLIST":                          "Restrict execution to queries in the allowlist.",
-	"HASURA_GRAPHQL_ENABLE_CONSOLE":                            "Serve the web console for managing the GraphQL API.",
-	"HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS":          "Enforce role-based permissions on remote schemas.",
-	"HASURA_GRAPHQL_ENABLED_APIS":                              "Comma-separated list of APIs to expose (e.g. metadata, graphql).",
-	"HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS":                "Automatically infer permissions for custom SQL functions.",
+	"HASURA_GRAPHQL_CORS_DOMAIN": "Comma-separated list of domains " +
+		"allowed to make cross-origin requests.",
+	"HASURA_GRAPHQL_DEV_MODE": "Include detailed error messages in " +
+		"API responses (development only).",
+	"HASURA_GRAPHQL_ENABLE_ALLOWLIST":                 "Restrict execution to queries in the allowlist.",
+	"HASURA_GRAPHQL_ENABLE_CONSOLE":                   "Serve the web console for managing the GraphQL API.",
+	"HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS": "Enforce role-based permissions on remote schemas.",
+	"HASURA_GRAPHQL_ENABLED_APIS": "Comma-separated list of APIs to " +
+		"expose (e.g. metadata, graphql).",
+	"HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS": "Automatically infer permissions " +
+		"for custom SQL functions.",
 	"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL": "How often, in milliseconds, live queries are refetched.",
-	"HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES":                   "Return numeric and bigint values as strings to avoid precision loss.",
-	"HASURA_GRAPHQL_AUTH_HOOK":                                 "URL of the webhook used to authenticate requests.",
-	"HASURA_GRAPHQL_AUTH_HOOK_MODE":                            "HTTP method used to call the auth webhook (GET or POST).",
-	"HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY":               "Forward the request body to the auth webhook.",
-	"HASURA_GRAPHQL_LOG_LEVEL":                                 "Minimum severity of log messages to emit.",
-	"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE":                     "Maximum number of concurrent HTTP connections used to deliver events.",
-	"AUTH_CLIENT_URL":                                          "URL of your frontend application, used for post-authentication redirects.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS":                "Additional URLs permitted as post-authentication redirect targets.",
-	"AUTH_DISABLE_NEW_USERS":                                   "Block newly registered users from signing in until activated.",
-	"AUTH_DISABLE_SIGNUP":                                      "Disable user registration entirely.",
-	"AUTH_DISABLE_AUTO_SIGNUP":                                 "Require explicit account creation instead of signing users up on first login.",
-	"AUTH_USER_DEFAULT_ROLE":                                   "Default role assigned to new users.",
-	"AUTH_USER_DEFAULT_ALLOWED_ROLES":                          "Roles a user is allowed to assume.",
-	"AUTH_LOCALE_DEFAULT":                                      "Default locale used for emails and messages.",
-	"AUTH_LOCALE_ALLOWED_LOCALES":                              "Locales users are allowed to select.",
-	"AUTH_GRAVATAR_ENABLED":                                    "Use Gravatar to provide default user avatars.",
-	"AUTH_GRAVATAR_DEFAULT":                                    "Fallback Gravatar image used when a user has none.",
-	"AUTH_GRAVATAR_RATING":                                     "Maximum Gravatar content rating to allow.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS":                       "Email addresses permitted to sign up.",
-	"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS":                       "Email addresses blocked from signing up.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS":                "Email domains permitted to sign up.",
-	"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS":                "Email domains blocked from signing up.",
-	"AUTH_ACCESS_TOKEN_EXPIRES_IN":                             "Lifetime of an access token, in seconds.",
-	"AUTH_REFRESH_TOKEN_EXPIRES_IN":                            "Lifetime of a refresh token, in seconds.",
-	"AUTH_JWT_CUSTOM_CLAIMS":                                   "Custom claims added to the JWT, mapped from the session and database.",
+	"HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES": "Return numeric and bigint values as " +
+		"strings to avoid precision loss.",
+	"HASURA_GRAPHQL_AUTH_HOOK":                   "URL of the webhook used to authenticate requests.",
+	"HASURA_GRAPHQL_AUTH_HOOK_MODE":              "HTTP method used to call the auth webhook (GET or POST).",
+	"HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY": "Forward the request body to the auth webhook.",
+	"HASURA_GRAPHQL_LOG_LEVEL":                   "Minimum severity of log messages to emit.",
+	"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE": "Maximum number of concurrent HTTP " +
+		"connections used to deliver events.",
+	"AUTH_CLIENT_URL": "URL of your frontend application, used " +
+		"for post-authentication redirects.",
+	"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS": "Additional URLs permitted as " +
+		"post-authentication redirect targets.",
+	"AUTH_DISABLE_NEW_USERS": "Block newly registered users " +
+		"from signing in until activated.",
+	"AUTH_DISABLE_SIGNUP": "Disable user registration entirely.",
+	"AUTH_DISABLE_AUTO_SIGNUP": "Require explicit account creation instead " +
+		"of signing users up on first login.",
+	"AUTH_USER_DEFAULT_ROLE":                    "Default role assigned to new users.",
+	"AUTH_USER_DEFAULT_ALLOWED_ROLES":           "Roles a user is allowed to assume.",
+	"AUTH_LOCALE_DEFAULT":                       "Default locale used for emails and messages.",
+	"AUTH_LOCALE_ALLOWED_LOCALES":               "Locales users are allowed to select.",
+	"AUTH_GRAVATAR_ENABLED":                     "Use Gravatar to provide default user avatars.",
+	"AUTH_GRAVATAR_DEFAULT":                     "Fallback Gravatar image used when a user has none.",
+	"AUTH_GRAVATAR_RATING":                      "Maximum Gravatar content rating to allow.",
+	"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS":        "Email addresses permitted to sign up.",
+	"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS":        "Email addresses blocked from signing up.",
+	"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS": "Email domains permitted to sign up.",
+	"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS": "Email domains blocked from signing up.",
+	"AUTH_ACCESS_TOKEN_EXPIRES_IN":              "Lifetime of an access token, in seconds.",
+	"AUTH_REFRESH_TOKEN_EXPIRES_IN":             "Lifetime of a refresh token, in seconds.",
+	"AUTH_JWT_CUSTOM_CLAIMS": "Custom claims added to the JWT, " +
+		"mapped from the session and database.",
 }
 
 // pathOverrides describes fields by their full dotted path. Used only where the
 // same field name means different things in different sections.
+//
+//nolint:gochecknoglobals // Curated descriptions are immutable reference data until the upstream schema includes them.
 var pathOverrides = map[string]string{
 	"auth.user.email":         "Restrictions on which email addresses may sign up.",
 	"auth.method.otp.email":   "Enable one-time-password sign-in over email.",
@@ -705,6 +753,8 @@ var pathOverrides = map[string]string{
 // fieldOverrides describes fields by name, used when the schema has no comment.
 // One entry covers every occurrence of a name that means the same thing
 // everywhere (e.g. `enabled`, the OAuth provider structs, SMTP fields).
+//
+//nolint:gosec,gochecknoglobals // Curated configuration field descriptions, not credentials.
 var fieldOverrides = map[string]string{
 	"enabled":                       "Enable this feature.",
 	"version":                       "Version of the service image to deploy.",

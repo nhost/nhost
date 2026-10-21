@@ -1,11 +1,11 @@
 import type { ElevationMethod } from '@nhost/nhost-js/auth';
+import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 
 type OtpMethod = Exclude<ElevationMethod, 'webauthn'>;
 
@@ -17,11 +17,12 @@ interface Props {
 function OtpElevation({ method, onElevated }: Props) {
   const nhost = useNhostClient();
   const [isSendingCode, setIsSendingCode] = useState(method !== 'totp');
-  const [codeSent, setCodeSent] = useState(method === 'totp');
+  const [sendError, setSendError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
   async function sendCode() {
     setIsSendingCode(true);
+    setSendError(null);
 
     try {
       if (method === 'otp-email') {
@@ -29,13 +30,8 @@ function OtpElevation({ method, onElevated }: Props) {
       } else {
         await nhost.auth.elevateOTPSms();
       }
-
-      setCodeSent(true);
     } catch (error) {
-      toast.error(
-        error?.message || 'Could not send the code. Please try again.',
-        getToastStyleProps(),
-      );
+      setSendError(error?.message || 'Please try again in a few moments.');
     } finally {
       setIsSendingCode(false);
     }
@@ -68,17 +64,24 @@ function OtpElevation({ method, onElevated }: Props) {
 
   if (isSendingCode) {
     return (
-      <Spinner size="small" wrapperClassName="gap-2">
-        Sending the code...
+      <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
+        <span className="text-muted-foreground text-xs">
+          Sending the code...
+        </span>
       </Spinner>
     );
   }
 
-  if (!codeSent) {
+  if (sendError) {
     return (
-      <Button onClick={sendCode} className="w-full">
-        Try again
-      </Button>
+      <>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Couldn&apos;t send the code</AlertTitle>
+          <AlertDescription>{sendError}</AlertDescription>
+        </Alert>
+        <Button onClick={sendCode}>Resend code</Button>
+      </>
     );
   }
 

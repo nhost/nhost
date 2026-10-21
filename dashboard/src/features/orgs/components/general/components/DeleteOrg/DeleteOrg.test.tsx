@@ -3,7 +3,6 @@ import DeleteOrg from '@/features/orgs/components/general/components/DeleteOrg/D
 import { mockOrganization } from '@/tests/mocks';
 import {
   fireEvent,
-  mockPointerEvent,
   render,
   screen,
   TestUserEvent,
@@ -52,8 +51,6 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
   };
 });
 
-mockPointerEvent();
-
 async function openDeleteDialog(
   organizationName: string | null = 'Example Organization',
 ) {
@@ -86,6 +83,15 @@ function getConfirmationInput(dialog: HTMLElement) {
 
 function getDeleteAction(dialog: HTMLElement) {
   return within(dialog).getByTestId('deleteOrgButton');
+}
+
+async function typeOrganizationName(
+  dialog: HTMLElement,
+  user: TestUserEvent,
+  value: string,
+) {
+  await user.clear(getConfirmationInput(dialog));
+  await user.type(getConfirmationInput(dialog), value);
 }
 
 // Bypasses the button to prove the form itself refuses an invalid submit.
@@ -121,10 +127,7 @@ async function enableOrganizationDeletion(
   dialog: HTMLElement,
   user: TestUserEvent,
 ) {
-  await TestUserEvent.fireTypeEvent(
-    getConfirmationInput(dialog),
-    'Example Organization',
-  );
+  await typeOrganizationName(dialog, user, 'Example Organization');
   await acknowledgeDeletionAction(dialog, user);
   await acknowledgeIrreversibleAction(dialog, user);
 }
@@ -164,18 +167,12 @@ describe('DeleteOrg', () => {
 
     expect(getDeleteAction(dialog)).toBeDisabled();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(dialog),
-      'Example organization',
-    );
+    await typeOrganizationName(dialog, user, 'Example organization');
     await acknowledgeDeletionAction(dialog, user);
     await acknowledgeIrreversibleAction(dialog, user);
     expect(getDeleteAction(dialog)).toBeDisabled();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(dialog),
-      'Example Organization',
-    );
+    await typeOrganizationName(dialog, user, 'Example Organization');
     expect(getDeleteAction(dialog)).toBeEnabled();
 
     await acknowledgeDeletionAction(dialog, user);
@@ -216,10 +213,7 @@ describe('DeleteOrg', () => {
   it('deletes when the delete action is clicked, and ignores invalid submits', async () => {
     const { dialog, user } = await openDeleteDialog();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(dialog),
-      'wrong value',
-    );
+    await typeOrganizationName(dialog, user, 'wrong value');
     submitDeleteForm(dialog);
 
     await waitFor(() => {
@@ -235,7 +229,7 @@ describe('DeleteOrg', () => {
     expect((getDeleteAction(dialog) as HTMLButtonElement).form).toBe(
       getConfirmationInput(dialog).closest('form'),
     );
-    fireEvent.click(getDeleteAction(dialog));
+    await user.click(getDeleteAction(dialog));
 
     await waitFor(() => {
       expect(mocks.deleteOrgMutation).toHaveBeenCalledWith(
@@ -285,7 +279,7 @@ describe('DeleteOrg', () => {
 
     const { dialog, user } = await openDeleteDialog();
     await enableOrganizationDeletion(dialog, user);
-    fireEvent.click(getDeleteAction(dialog));
+    await user.click(getDeleteAction(dialog));
 
     await waitFor(() => {
       expect(mocks.deleteOrgMutation).toHaveBeenCalled();

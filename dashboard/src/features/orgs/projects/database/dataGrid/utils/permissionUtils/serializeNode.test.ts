@@ -77,6 +77,59 @@ describe('serializeNode round-trip', () => {
     expect(roundTrip(input)).toEqual(input);
   });
 
+  it('preserves multiple fields within one _or alternative', () => {
+    const input = {
+      _or: [
+        {
+          tenant_id: { _eq: 'tenant-a' },
+          owner_id: { _eq: 'X-Hasura-User-Id' },
+        },
+        { public: { _eq: true } },
+      ],
+    };
+
+    expect(roundTrip(input)).toEqual(input);
+  });
+
+  it('preserves multiple operators within one _or alternative', () => {
+    const input = {
+      _or: [{ age: { _gte: 18, _lt: 65 } }, { public: { _eq: true } }],
+    };
+
+    expect(roundTrip(input)).toEqual(input);
+  });
+
+  it('preserves compound _or alternatives nested inside _and', () => {
+    const input = {
+      _and: [
+        { active: { _eq: true } },
+        {
+          _or: [{ age: { _gte: 18, _lt: 65 } }, { public: { _eq: true } }],
+        },
+      ],
+    };
+
+    expect(roundTrip(input)).toEqual(input);
+  });
+
+  it('preserves compound _or alternatives nested inside _not', () => {
+    const input = {
+      _not: {
+        _or: [{ age: { _gte: 18, _lt: 65 } }, { public: { _eq: true } }],
+      },
+    };
+
+    expect(roundTrip(input)).toEqual(input);
+  });
+
+  it('preserves an empty object within an _or alternative', () => {
+    const input = {
+      _or: [{}, { public: { _eq: true } }],
+    };
+
+    expect(roundTrip(input)).toEqual(input);
+  });
+
   it('round-trips _or nested inside _and', () => {
     const input = {
       _and: [

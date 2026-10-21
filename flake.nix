@@ -35,9 +35,7 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            (import ./nixops/overlays/default.nix)
-          ];
+          overlays = [ self.overlays.default ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
@@ -68,6 +66,14 @@
         };
 
         codegenf = import ./tools/codegen/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        configdocsf = import ./tools/configdocs/project.nix {
           inherit
             self
             pkgs
@@ -185,6 +191,7 @@
 
         nixopsf = import ./nixops/project.nix {
           inherit
+            self
             pkgs
             nix2containerPkgs
             nixops-lib
@@ -241,6 +248,7 @@
           betterleaks = betterleaksf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          configdocs = configdocsf.check;
           constellation = constellationf.check;
           ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
@@ -391,6 +399,7 @@
           betterleaks = betterleaksf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          configdocs = configdocsf.devShell;
           constellation = constellationf.devShell;
           ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
@@ -422,6 +431,7 @@
           cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          configdocs = configdocsf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
           ghactivity = ghactivityf.package;
@@ -458,6 +468,9 @@
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           pi-agent = pkgs.nhost.pi-agent;
+          postgres-pg17 = postgresf.packages.pg17-package;
+          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
           postgres-pg18 = postgresf.packages.pg18-package;
           postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
           postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;

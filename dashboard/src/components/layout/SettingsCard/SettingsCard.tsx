@@ -18,7 +18,7 @@ const SettingsCard = React.forwardRef<HTMLElement, SettingsCardProps>(
       <Comp
         ref={ref}
         className={cn(
-          'grid grid-flow-row gap-4 overflow-hidden rounded-lg border py-4',
+          'grid grid-flow-row gap-4 overflow-hidden rounded-lg border py-6',
           className,
         )}
         {...props}

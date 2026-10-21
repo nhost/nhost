@@ -26,7 +26,7 @@ export default function FunctionListItem({
   const preservedTab = isFunctionTab(tab) ? tab : undefined;
   const href = {
     pathname:
-      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[...functionSlug]',
+      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/browser/[...functionSlug]',
     query: {
       orgSlug,
       appSubdomain,

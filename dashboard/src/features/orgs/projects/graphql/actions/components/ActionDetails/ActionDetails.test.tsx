@@ -9,7 +9,6 @@ import {
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
   expectFullTextRendered,
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -53,7 +52,6 @@ describe('ActionDetails', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     queryClient.clear();
   });
 

@@ -93,6 +93,84 @@ function build_graphql_schemas() {
 		public/graphql/cloud-with-mutations.graphql
 }
 
+function build_postgres_extensions() {
+	echo "⚒️⚒️⚒️ Building Postgres extensions documentation..."
+
+	local source="${1:-../services/postgres/plugins.md}"
+	local target="${2:-src/content/docs/products/database/extensions.mdx}"
+	local start_marker="{/*BEGIN GENERATED POSTGRES EXTENSIONS*/}"
+	local end_marker="{/*END GENERATED POSTGRES EXTENSIONS*/}"
+
+	if [ ! -s "$source" ]; then
+		echo "Error: '$source' is missing or empty"
+		return 1
+	fi
+
+	if [ "$(grep -Fxc "$start_marker" "$target" || true)" -ne 1 ] ||
+		[ "$(grep -Fxc "$end_marker" "$target" || true)" -ne 1 ]; then
+		echo "Error: expected exactly one generated Postgres extensions marker pair in '$target'"
+		return 1
+	fi
+
+	local start_marker_line
+	start_marker_line=$(grep -Fnx "$start_marker" "$target" | cut -d: -f1)
+	local end_marker_line
+	end_marker_line=$(grep -Fnx "$end_marker" "$target" | cut -d: -f1)
+	if ((end_marker_line <= start_marker_line)); then
+		echo "Error: generated Postgres extensions end marker must follow its start marker in '$target'"
+		return 1
+	fi
+
+	local temp_file
+	temp_file=$(mktemp)
+
+	awk -v source="$source" -v start_marker="$start_marker" -v end_marker="$end_marker" '
+		function escape_mdx(value) {
+			gsub(/&/, "\\&amp;", value)
+			gsub(/</, "\\&lt;", value)
+			gsub(/>/, "\\&gt;", value)
+			gsub(/[{]/, "\\&#123;", value)
+			gsub(/[}]/, "\\&#125;", value)
+			gsub(/[|]/, "\\&#124;", value)
+			return value
+		}
+
+		function escape_table_row(line, columns, column_count, description, i) {
+			column_count = split(line, columns, "[|]")
+			if (column_count < 5 || columns[1] != "" || columns[column_count] != "") {
+				return escape_mdx(line)
+			}
+
+			# The first two separators delimit name and version; later pipes belong to the description.
+			description = columns[4]
+			for (i = 5; i < column_count; i++) {
+				description = description "|" columns[i]
+			}
+
+			return "|" escape_mdx(columns[2]) "|" escape_mdx(columns[3]) "|" escape_mdx(description) "|"
+		}
+
+		$0 == start_marker {
+			print
+			print ""
+			while ((getline line < source) > 0) {
+				print escape_table_row(line)
+			}
+			close(source)
+			replacing = 1
+			next
+		}
+		$0 == end_marker {
+			print ""
+			replacing = 0
+		}
+		!replacing { print }
+	' "$target" >"$temp_file"
+
+	cat "$temp_file" >"$target"
+	rm -f "$temp_file"
+}
+
 function build_typedoc() {
 	echo "⚒️⚒️⚒️ Building TypeDoc documentation..."
 
@@ -125,8 +203,11 @@ function build_cli_docs() {
 	cli gen-docs >src/content/docs/reference/cli/commands.mdx
 }
 
-build_schemas
-build_graphql_schemas
-build_typedoc
-build_cli_docs
-build_config_reference
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	build_schemas
+	build_graphql_schemas
+	build_postgres_extensions
+	build_typedoc
+	build_cli_docs
+	build_config_reference
+fi

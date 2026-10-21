@@ -81,12 +81,7 @@ export default function CreateRecordForm({
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
-            <Button
-              onClick={reset}
-              size="sm"
-              variant="destructive"
-              className="bg-transparent text-[#c91737] hover:bg-[#f131541a]"
-            >
+            <Button onClick={reset} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

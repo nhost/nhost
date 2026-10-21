@@ -157,7 +157,7 @@ export default function EditActionPermissionsForm({
               <p>
                 Go to the{' '}
                 <NavLink
-                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={onCancel}
                 >
@@ -171,7 +171,7 @@ export default function EditActionPermissionsForm({
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

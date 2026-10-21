@@ -314,21 +314,12 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   const handleCloneClick = useCallback(
     (initialValues: Record<string, unknown>) => {
       const clonedValues = { ...initialValues };
-      memoizedMetadata.forEach((colMeta) => {
-        const originalCol = columns.find((c) => c.column_name === colMeta.id);
-        const hasNextValDefault = originalCol?.column_default
-          ?.toLowerCase()
-          .includes('nextval');
+      memoizedMetadata.forEach((column) => {
+        const isKey = column.isPrimary || column.isUnique;
+        const hasDefault = Boolean(column.defaultValue);
 
-        if (
-          colMeta.isPrimary ||
-          colMeta.isIdentity ||
-          colMeta.isGenerated ||
-          colMeta.isUnique ||
-          (colMeta.uniqueConstraints && colMeta.uniqueConstraints.length > 0) ||
-          hasNextValDefault
-        ) {
-          delete clonedValues[colMeta.id];
+        if (column.isIdentity || (isKey && hasDefault)) {
+          delete clonedValues[column.id];
         }
       });
 
@@ -344,7 +335,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         ),
       });
     },
-    [openDrawer, memoizedMetadata, columns, refetch, currentOffset],
+    [openDrawer, memoizedMetadata, refetch, currentOffset],
   );
 
   const handleEditClick = useCallback(

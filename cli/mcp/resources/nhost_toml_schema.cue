@@ -248,7 +248,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.14.0"
+	version: string | *"0.15.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -297,7 +297,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.20-20251217-1"
+	version: string | *"18.6-20260930-1"
 
 	// Resources for the service
 	resources: {
@@ -336,8 +336,12 @@ import (
 		maintenanceWorkMem: string | *"64MB"
 		// Target fraction of the checkpoint interval over which to spread writes.
 		checkpointCompletionTarget: number | *0.9
+		// Maximum time between automatic checkpoints (PostgreSQL accepts time units).
+		checkpointTimeout: string | *"5min"
 		// Memory used for write-ahead log buffers.
 		walBuffers: string | *"-1"
+		// Compress full-page images in the write-ahead log.
+		walCompression: string | *"off"
 		// Default sample size for table statistics.
 		defaultStatisticsTarget: int32 | *100
 		// Planner's estimated cost of a non-sequential disk page fetch.
@@ -366,10 +370,52 @@ import (
 		maxWalSenders: int32 | *10
 		// Maximum number of replication slots.
 		maxReplicationSlots: int32 | *10
+		// Maximum WAL retained by replication slots; -1 disables the limit.
+		maxSlotWalKeepSize: string | *"-1"
 		// Force a WAL segment switch after this many seconds.
 		archiveTimeout: int32 & >=300 & <=1073741823 | *300
 		// Collect timing statistics for disk I/O.
 		trackIoTiming: "on" | *"off"
+		// Minimum statement duration to log; -1 disables logging.
+		logMinDurationStatement: string | *"-1"
+		// Minimum autovacuum duration to log; -1 disables logging.
+		logAutovacuumMinDuration: string | *"10min"
+		// Minimum temporary file size to log; -1 disables logging.
+		logTempFiles: string | *"-1"
+		// Libraries to load, in order, when PostgreSQL starts.
+		sharedPreloadLibraries: [...#PostgresPreloadLibrary] | *["pg_stat_statements", "pg_cron", "timescaledb", "pg_squeeze", "pg_search"]
+		_validateSharedPreloadLibrariesUnique: list.UniqueItems(sharedPreloadLibraries) & true @cuegraph(skip)
+		// Settings for PostgreSQL extensions.
+		extensions: {
+			pgStatStatements: {
+				// Maximum distinct statements tracked.
+				max: int32 | *5000
+				// Which statements to track.
+				track: "top" | "all" | "none" | *"top"
+				// Track planning time.
+				trackPlanning: "on" | *"off"
+			}
+			cron: {
+				// Time zone used for job schedules.
+				timezone: string | *"GMT"
+				// Maximum concurrent jobs.
+				maxRunningJobs: int32 | *32
+				// Record job runs.
+				logRun: "off" | *"on"
+			}
+			pgDurable: {
+				// Maximum concurrent workflow SQL connections.
+				maxUserConnections: int32 | *10
+				// Days to retain completed workflow instances.
+				retentionDays: int32 | *30
+				// Log substituted workflow SQL, which may contain secrets.
+				logWorkflowSql: "on" | *"off"
+			}
+			timescaledb: {
+				// Maximum number of background workers.
+				maxBackgroundWorkers: int32 | *16
+			}
+		}
 
 		// if pitr is on we need walLevel to set to replica or logical
 		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
@@ -382,6 +428,8 @@ import (
 	}
 }
 
+#PostgresPreloadLibrary: "pg_stat_statements" | "pg_cron" | "timescaledb" | "pg_squeeze" | "pg_search" | "pg_durable" | "pg_ivm"
+
 // Configuration for auth service
 // You can find more information about the configuration here:
 // https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
@@ -392,7 +440,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.49.1"
+	version: string | *"0.52.0"
 
 	// Resources for the service
 	resources?: #Resources
@@ -890,7 +938,7 @@ import (
 #Constellation: {
 	// Version of constellation, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/constellation/tags
-	version: string | *"0.1.0"
+	version: string | *"0.7.1"
 
 	// Advanced configuration settings for the service.
 	settings?: {
@@ -914,7 +962,7 @@ import (
 
 #AI: {
 	// Version of the service image to deploy.
-	version: string | *"0.8.1"
+	version: string | *"0.9.0"
 	// Compute resources and scaling for the service.
 	resources: {
 		// CPU and memory allocation.

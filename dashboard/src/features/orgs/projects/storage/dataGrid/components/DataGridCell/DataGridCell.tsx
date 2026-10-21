@@ -355,7 +355,7 @@ function DataGridCellContent<
             className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
             aria-label="Copy value"
           >
-            <Copy width={16} height={16} />
+            <Copy className="size-4" />
           </Button>
         )}
     </div>

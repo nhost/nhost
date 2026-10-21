@@ -123,7 +123,7 @@ export default function MetricsTimeRangeFilter({
             {METRICS_RANGE_PRESETS.map((preset) => (
               <Button
                 key={preset}
-                variant={activePreset === preset ? 'secondary' : 'ghost'}
+                variant={activePreset === preset ? 'outline' : 'ghost'}
                 size="sm"
                 className="justify-start font-normal"
                 onClick={() => handlePresetClick(preset)}

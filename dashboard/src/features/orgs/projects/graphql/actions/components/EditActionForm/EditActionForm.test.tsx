@@ -10,8 +10,6 @@ import {
   sampleMutationAction,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -76,19 +74,10 @@ async function waitForForm() {
   await screen.findByPlaceholderText(/my-handler/i);
 }
 
-function submitActionForm() {
-  const form = document.getElementById('action-form');
-  if (!form) {
-    throw new Error('expected the action form to be in the document');
-  }
-  fireEvent.submit(form);
-}
-
 describe('EditActionForm', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     migrationBody = null;
     mocks.push.mockClear();
     queryClient.clear();
@@ -136,7 +125,7 @@ describe('EditActionForm', () => {
     await user.clear(comment);
     await user.type(comment, 'Updated comment');
 
-    submitActionForm();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 
@@ -180,7 +169,7 @@ describe('EditActionForm', () => {
       'type Mutation {\n  renamedAction(credentials: SampleInput!): SampleOutput\n}',
     );
 
-    submitActionForm();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(
       await screen.findByText(/Renaming an action is not supported/i),

@@ -7,7 +7,6 @@ import {
   HASURA_API_URL,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -41,7 +40,6 @@ describe('ActionsBrowserSidebar', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     queryClient.clear();
     mocks.useRouter.mockReturnValue({
       ...mockRouter,

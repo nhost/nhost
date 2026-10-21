@@ -29,7 +29,7 @@ export type Scalars = {
   Int: { input: number; output: number };
   Float: { input: number; output: number };
   bigint: { input: number; output: number };
-  bytea: { input: Buffer; output: Buffer };
+  bytea: { input: string; output: string };
   citext: { input: string; output: string };
   jsonb: { input: Record<string, any>; output: Record<string, any> };
   numeric: { input: any; output: any };
@@ -6908,6 +6908,27 @@ export function useGetNinjaTurtlesWithCommentsLazyQuery(
     GetNinjaTurtlesWithCommentsQueryVariables
   >(GetNinjaTurtlesWithCommentsDocument, options);
 }
+// @ts-ignore
+export function useGetNinjaTurtlesWithCommentsSuspenseQuery(
+  baseOptions?: Apollo.SuspenseQueryHookOptions<
+    GetNinjaTurtlesWithCommentsQuery,
+    GetNinjaTurtlesWithCommentsQueryVariables
+  >,
+): Apollo.UseSuspenseQueryResult<
+  GetNinjaTurtlesWithCommentsQuery,
+  GetNinjaTurtlesWithCommentsQueryVariables
+>;
+export function useGetNinjaTurtlesWithCommentsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetNinjaTurtlesWithCommentsQuery,
+        GetNinjaTurtlesWithCommentsQueryVariables
+      >,
+): Apollo.UseSuspenseQueryResult<
+  GetNinjaTurtlesWithCommentsQuery | undefined,
+  GetNinjaTurtlesWithCommentsQueryVariables
+>;
 export function useGetNinjaTurtlesWithCommentsSuspenseQuery(
   baseOptions?:
     | Apollo.SkipToken

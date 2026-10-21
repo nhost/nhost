@@ -75,7 +75,7 @@ export default function CreateTableForm({
   const { mutateAsync: trackForeignKeyRelation, error: foreignKeyError } =
     useTrackForeignKeyRelationsMutation();
 
-  const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const { refetch: refetchResourceVersion } = useGetMetadataResourceVersion();
 
   const error = createTableError || trackTableError || foreignKeyError;
 
@@ -133,9 +133,10 @@ export default function CreateTableForm({
       };
 
       await createTable({ table });
+      const { data: latestResourceVersion } = await refetchResourceVersion();
       await setTableTracking({
         tracked: true,
-        resourceVersion,
+        resourceVersion: latestResourceVersion,
         args: {
           source: dataSource,
           table: { name: table.name, schema: selectedSchema },
@@ -191,8 +192,7 @@ export default function CreateTableForm({
                 resetTrackError();
               }}
               size="sm"
-              variant="destructive"
-              className="bg-transparent text-destructive hover:bg-destructive/10"
+              variant="outline"
             >
               Clear
             </Button>

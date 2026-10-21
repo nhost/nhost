@@ -245,7 +245,7 @@ export default function StorageRolePermissionEditorForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button variant="ghost" size="sm" onClick={resetError}>
+            <Button variant="outline" size="sm" onClick={resetError}>
               Clear
             </Button>
           </Alert>
@@ -254,7 +254,7 @@ export default function StorageRolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 bg-[#fafafa] text-sm+ dark:bg-[#151a22]"
+        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 text-sm+"
       >
         <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
@@ -286,7 +286,7 @@ export default function StorageRolePermissionEditorForm({
 
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             type="button"
             onClick={handleCancelClick}

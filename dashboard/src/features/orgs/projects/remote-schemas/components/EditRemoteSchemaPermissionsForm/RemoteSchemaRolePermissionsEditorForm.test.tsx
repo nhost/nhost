@@ -11,13 +11,7 @@ import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import RemoteSchemaRolePermissionsEditorForm from './RemoteSchemaRolePermissionsEditorForm';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -197,7 +191,6 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
 
   beforeEach(() => {
     capturedMigrations = [];
-    mockPointerEvent();
     mocks.useGetRolesPermissionsQuery.mockReturnValue({});
     mocks.useRouter.mockReturnValue({
       basePath: '',

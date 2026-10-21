@@ -1,20 +1,13 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { vi } from 'vitest';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import {
   type TableActionsContextValue,
   TableActionsProvider,
 } from './TableActionsContext';
 import TableNode from './TableNode';
 import type { TableNodeData } from './useSchemaGraph';
-
-mockPointerEvent();
 
 function makeActions(
   overrides: Partial<TableActionsContextValue['actions']> = {},
@@ -255,11 +248,7 @@ describe('TableNode', () => {
   it('does not render the action menu when no TableActionsContext is provided', () => {
     renderNode(baseData, null);
 
-    expect(
-      screen.queryByRole('button', {
-        name: /table-management-menu-users/i,
-      }),
-    ).toBeNull();
+    expect(screen.queryByTestId('table-management-menu-users')).toBeNull();
   });
 
   it('opens the action menu and calls openEditTableDrawer for a tracked table', async () => {

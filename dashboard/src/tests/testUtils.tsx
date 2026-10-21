@@ -5,8 +5,6 @@ import {
   createHttpLink,
   InMemoryCache,
 } from '@apollo/client';
-import { CacheProvider } from '@emotion/react';
-import { ThemeProvider } from '@mui/material/styles';
 import { createServerClient } from '@nhost/nhost-js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
@@ -16,7 +14,6 @@ import type {
   waitForOptions,
 } from '@testing-library/react';
 import {
-  fireEvent,
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
   screen,
@@ -34,18 +31,13 @@ import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { createTheme } from '@/components/ui/v2/createTheme';
 import { AuthProvider } from '@/providers/Auth';
 import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
-import { createEmotionCache } from '@/utils/createEmotionCache';
 import { DummySessionStorage } from '@/utils/nhost';
 import nhostGraphQLLink from './msw/mocks/graphql/nhostGraphQLLink';
-
-// Client-side cache, shared for the whole session of the user in the browser.
-const emotionCache = createEmotionCache();
 
 /* Workaround to avoid error importing type declarations for typeOptions from @testing-library/user-event */
 export interface TypeOptions {
@@ -81,8 +73,6 @@ export const queryClient = new QueryClient({
 });
 
 function Providers({ children }: PropsWithChildren) {
-  const theme = createTheme('light');
-
   const mockClient = useMemo(
     () =>
       new ApolloClient({
@@ -117,22 +107,18 @@ function Providers({ children }: PropsWithChildren) {
     <RouterContext.Provider value={mockRouter}>
       <RetryableErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <CacheProvider value={emotionCache}>
-            <NhostProvider nhost={nhost}>
-              <ApolloProvider client={mockClient}>
-                <AuthProvider>
-                  <Toaster position="bottom-center" />
-                  <ThemeProvider theme={theme}>
-                    <ThemePreferenceProvider>
-                      <DialogProvider>
-                        <ElevationProvider>{children}</ElevationProvider>
-                      </DialogProvider>
-                    </ThemePreferenceProvider>
-                  </ThemeProvider>
-                </AuthProvider>
-              </ApolloProvider>
-            </NhostProvider>
-          </CacheProvider>
+          <NhostProvider nhost={nhost}>
+            <ApolloProvider client={mockClient}>
+              <AuthProvider>
+                <Toaster position="bottom-center" />
+                <ThemePreferenceProvider>
+                  <DialogProvider>
+                    <ElevationProvider>{children}</ElevationProvider>
+                  </DialogProvider>
+                </ThemePreferenceProvider>
+              </AuthProvider>
+            </ApolloProvider>
+          </NhostProvider>
         </QueryClientProvider>
       </RetryableErrorBoundary>
     </RouterContext.Provider>
@@ -189,25 +175,11 @@ export const createGraphqlMockResolver = (
   };
 };
 
-export const mockPointerEvent = () => {
-  // Note: Workaround based on https://github.com/radix-ui/primitives/issues/1382#issuecomment-1122069313
-  class MockPointerEvent extends Event {
-    button: number;
-
-    ctrlKey: boolean;
-
-    pointerType: string;
-
-    constructor(type: string, props: PointerEventInit) {
-      super(type, props);
-      this.button = props.button || 0;
-      this.ctrlKey = props.ctrlKey || false;
-      this.pointerType = props.pointerType || 'mouse';
-    }
-  }
-  window.PointerEvent = MockPointerEvent as any;
+export const mockScrollIntoViewAndPointerCapture = () => {
+  // jsdom workarounds based on:
+  // https://github.com/radix-ui/primitives/issues/1382#issuecomment-1122069313
+  // https://github.com/radix-ui/primitives/issues/1822#issuecomment-1359700182
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
-  window.HTMLElement.prototype.releasePointerCapture = vi.fn();
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 };
 
@@ -257,29 +229,6 @@ export class TestUserEvent {
       await this.user.paste(value);
     });
   }
-
-  static async fireClickEvent(element: Document | Element | Window | Node) {
-    await waitFor(() => {
-      fireEvent(
-        element,
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        }),
-      );
-    });
-  }
-
-  static async fireTypeEvent(element: Element, text: string) {
-    await waitFor(() => {
-      fireEvent.change(element, {
-        target: { value: text },
-      });
-      fireEvent.input(element, {
-        target: { value: text },
-      });
-    });
-  }
 }
 
 // Asserts that the given string is rendered as the visible textContent of
@@ -297,4 +246,4 @@ export function expectFullTextRendered(text: string) {
 }
 
 export * from '@testing-library/react';
-export { render, waitForElementToBeRemoved };
+export { Providers, render, waitForElementToBeRemoved };

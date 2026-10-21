@@ -9,8 +9,7 @@ import {
   HASURA_API_URL,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -136,7 +135,7 @@ describe('EditActionRelationshipsForm', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
+    mockScrollIntoViewAndPointerCapture();
     migrationBody = null;
     // The export-metadata query is cached by subdomain on a shared client; clear it so each test sees its own fixture.
     queryClient.clear();
@@ -208,10 +207,8 @@ describe('EditActionRelationshipsForm', () => {
       await screen.findByRole('button', { name: 'Relationship' }),
     );
     await user.type(screen.getByLabelText('Relationship Name'), 'base');
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
 
     expect(
@@ -333,7 +330,7 @@ describe('EditActionRelationshipsForm', () => {
     const submitButton = screen.getByRole('button', {
       name: 'Create Relationship',
     });
-    fireEvent.submit(submitButton.closest('form')!);
+    await user.click(submitButton);
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 

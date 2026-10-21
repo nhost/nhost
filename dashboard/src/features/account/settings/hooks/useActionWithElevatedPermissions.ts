@@ -1,5 +1,6 @@
 import { toast } from 'react-hot-toast';
 import { useElevation } from '@/providers/Elevation';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 type Action = (...args: any[]) => Promise<any>;
@@ -29,11 +30,14 @@ function useActionWithElevatedPermissions<F extends Action>({
     }
     try {
       const response = await actionFn(...args);
-      toast.success(successMessage || 'Success.');
+      toast.success(successMessage || 'Success.', getToastStyleProps());
       onSuccess?.(response as UnwrapPromise<ReturnType<F>>);
       isSuccess = true;
     } catch (error) {
-      toast.error(error?.message || 'Something went wrong.');
+      toast.error(
+        error?.message || 'Something went wrong.',
+        getToastStyleProps(),
+      );
       onError?.();
     }
 

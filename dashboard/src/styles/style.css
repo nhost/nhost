@@ -48,8 +48,8 @@
   --accent-9: #000;
 
   --font-sans:
-    -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", "Helvetica",
-    sans-serif;
+    "Figtree", -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue",
+    "Helvetica", sans-serif;
 }
 
 [data-theme="dark"] {
