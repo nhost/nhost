@@ -51,7 +51,7 @@ pkgs.runCommand "check-ci"
       .github/workflows/*checks.yaml
     shellcheck .github/actions/cache-nix/cache.sh
     python3 .github/actions/cache-nix/test_cache.py
-    python3 -m unittest discover -s nixops/tests -p 'test_*.py'
+    python3 -m unittest discover -s ci/tests -p 'test_*.py'
 
     mkdir "$out"
   ''

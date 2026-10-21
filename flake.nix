@@ -189,7 +189,7 @@
             ;
         };
 
-        sharedCI = import ./nixops/shared-ci.nix {
+        sharedCI = import ./ci/shared-ci.nix {
           inherit pkgs;
           revision = self.rev or null;
         };
@@ -251,7 +251,7 @@
           ai = aif.check;
           auth = authf.check;
           betterleaks = betterleaksf.check;
-          ci = import ./nixops/ci.nix { inherit pkgs; };
+          ci = import ./ci/ci.nix { inherit pkgs; };
           cli = clif.check;
           codegen = codegenf.check;
           configdocs = configdocsf.check;

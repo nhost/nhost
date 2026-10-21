@@ -1,5 +1,6 @@
 """Offline checks for callers, native runners, and repository-specific variants."""
 
+import fnmatch
 import json
 import subprocess
 import unittest
@@ -136,6 +137,40 @@ class ContractsTests(unittest.TestCase):
                             f".github/actions/{action}/**",
                             detect["with"]["patterns"].splitlines(),
                         )
+
+    def test_provisioning_changes_only_trigger_nixops_checks(self):
+        provisioning = [
+            "ci/ci.nix",
+            "ci/shared-ci.nix",
+            "ci/sync_ci.py",
+            *(str(path.relative_to(REPO)) for path in (REPO / "ci/tests").glob("*.py")),
+        ]
+        # Check the whole directory too, so new provisioning files retain the
+        # isolation that keeps project jobs off the nixops ready-cache gate.
+        provisioning += ["ci/new_check.nix", "ci/tests/new_test.py"]
+        for path in WORKFLOWS.glob("*checks.yaml"):
+            workflow = load(path)
+            pr_paths = triggers(workflow)["pull_request_target"]["paths"]
+            detect = workflow["jobs"].get("detect-changes")
+            # One legacy caller runs unconditionally on merge_group; it has
+            # no path filter to check on that event.
+            if path.name == "nixops_checks.yaml":
+                self.assertIsNotNone(detect)
+            pattern_sets = [pr_paths]
+            if detect:
+                pattern_sets.append(detect["with"]["patterns"].splitlines())
+            for patterns in pattern_sets:
+                matches = {
+                    candidate
+                    for candidate in provisioning
+                    if any(fnmatch.fnmatchcase(candidate, pattern) for pattern in patterns)
+                }
+                with self.subTest(workflow=path.name, patterns=patterns):
+                    if path.name == "nixops_checks.yaml":
+                        self.assertEqual(matches, set(provisioning))
+                        self.assertIn("ci/**", patterns)
+                    else:
+                        self.assertFalse(matches)
 
     def test_variant_makefiles_use_shared_out_links_and_cache_roots(self):
         for project, variable, expected in [

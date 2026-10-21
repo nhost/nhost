@@ -201,11 +201,11 @@ exports together to use the shared check workflow (and its ECR publisher):
       "path": "build/makefiles/release.makefile"
     },
     {
-      "source": "nixops/tests/test_workflows.py",
+      "source": "ci/tests/test_workflows.py",
       "path": "nix/tests/test_workflows.py"
     },
     {
-      "source": "nixops/tests/test_shared_ci.py",
+      "source": "ci/tests/test_shared_ci.py",
       "path": "nix/tests/test_shared_ci.py"
     }
   ]
@@ -215,7 +215,7 @@ exports together to use the shared check workflow (and its ECR publisher):
 Keep workflows, actions (including `cache.sh` and its sibling test), and both
 Makefiles at their source paths: the workflow calls the actions by fixed paths,
 the cache action runs its sibling script, and `general.makefile` includes
-`release.makefile`. The two `nixops/tests` exports may move together to another
+`release.makefile`. The two `ci/tests` exports may move together to another
 location exactly two directories below the receiver root (as `nix/tests` above);
 they read workflows, actions, and Makefiles relative to that root. Run the
 portable tests from the receiver root, including `test_cache.py`, whose Makefile
@@ -257,17 +257,23 @@ nix run path:.#sync-ci -- --target /path/to/checkout --dry-run
 
 ```sh
 system=$(nix eval --impure --raw --expr builtins.currentSystem)
-nix build ".#checks.$system.ci" --print-build-logs
+nix build "path:.#checks.$system.ci" --no-link --print-build-logs
+nix build "path:.#checks.$system.nixops" --no-link --print-build-logs
 ```
 
-Use `path:.#checks.<system>.ci` while new files are untracked. The Nix check
+The `path:` form includes new files before they are tracked. The Nix CI check
 provides PyYAML and the `CI_FILES`/`SYNC_CI` fixtures needed by the Python suite;
-a bare host `python3 -m unittest discover -s nixops/tests` may lack them. The
+a bare host `python3 -m unittest discover -s ci/tests` may lack them. The
 receiver-only fixture uses a synthetic revision so `sync-ci` can exercise apply
 and check; the published app still requires a real, clean Git revision. This
 check is also included in `checks.<system>.nixops`; workflow/action changes
-trigger that project. Tests cover cache selection and failures, reusable-call
-contracts, PR approval/SHA gates, runner exceptions, variant matrices,
+trigger that project as well as other project checks that use those shared files.
+Changes confined to the dedicated `ci/` provisioning directory trigger nixops
+checks without invalidating the shared `packages.<system>.nixops` toolchain cache
+gate or matching other project-check path filters. The legacy stripe-graphql-js
+check has no `merge_group` path filter and runs on every merge queue event
+regardless of which files changed. Tests cover cache selection and failures,
+reusable-call contracts, PR approval/SHA gates, runner exceptions, variant matrices,
 development image tags, checks-before-stamping order, skipped artifact image
 imports, cached output reuse, project hooks, parallel Make startup ordering,
 bundle fidelity, safe manifest-driven synchronization, and interrupted-copy

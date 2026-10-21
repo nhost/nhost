@@ -20,6 +20,17 @@ let
     ];
   };
 
+  # Format provisioning Nix sources without making them part of the shared
+  # toolchain package source (and its ready-cache gate).
+  nixfmtSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      ../flake.nix
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
+      (fs.fileFilter (f: f.hasExt "nix") ../ci)
+    ];
+  };
+
   checkDeps = [ ];
 
   # we use this to just build and cache the packages.
@@ -148,8 +159,8 @@ in
   check = pkgs.symlinkJoin {
     name = "check-nixops";
     paths = [
-      (nixops-lib.nix.check { inherit src; })
-      (import ./ci.nix { inherit pkgs; })
+      (nixops-lib.nix.check { src = nixfmtSrc; })
+      (import ../ci/ci.nix { inherit pkgs; })
       (nixops-lib.nix.checkPinnedToolchains {
         # Repo-wide: toolchain regressions tend to land in the individual
         # projects' project.nix, not under nixops/.

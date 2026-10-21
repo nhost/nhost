@@ -12,8 +12,8 @@ let
     ".github/actions/cache-nix/test_cache.py"
     "build/makefiles/general.makefile"
     "build/makefiles/release.makefile"
-    "nixops/tests/test_workflows.py"
-    "nixops/tests/test_shared_ci.py"
+    "ci/tests/test_workflows.py"
+    "ci/tests/test_shared_ci.py"
   ];
   source = pkgs.lib.fileset.toSource {
     root = ../.;

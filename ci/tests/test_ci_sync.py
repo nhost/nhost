@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[2]
-SCRIPT = REPO / "nixops/sync_ci.py"
+SCRIPT = REPO / "ci/sync_ci.py"
 SPEC = importlib.util.spec_from_file_location("sync_ci", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 sync_ci = importlib.util.module_from_spec(SPEC)
@@ -398,8 +398,8 @@ class PackageTests(unittest.TestCase):
             ".github/actions/cache-nix/test_cache.py",
             "build/makefiles/general.makefile",
             "build/makefiles/release.makefile",
-            "nixops/tests/test_workflows.py",
-            "nixops/tests/test_shared_ci.py",
+            "ci/tests/test_workflows.py",
+            "ci/tests/test_shared_ci.py",
         }
         self.assertEqual(catalog["repository"], "nhost/nhost")
         self.assertEqual(set(catalog["files"]), expected)
@@ -433,7 +433,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(len(entries), len(catalog["files"]))
         for entry in entries:
             source = entry["source"]
-            if source.startswith("nixops/tests/"):
+            if source.startswith("ci/tests/"):
                 self.assertEqual(entry["path"], "nix/tests/" + Path(source).name)
             else:
                 self.assertEqual(entry["path"], source)
