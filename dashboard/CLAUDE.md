@@ -115,7 +115,7 @@ When creating a new feature page, check whether it needs to be added to:
 
 ### Metrics charts
 
-Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines). Its interactions live in shared hooks, so reuse them in any new chart instead of copying the logic:
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines) or `StackedBarMetricChart` (stacked bars). Both wire the same interaction hooks, so reuse them in any new chart instead of copying the logic:
 
 - `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
 - `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.

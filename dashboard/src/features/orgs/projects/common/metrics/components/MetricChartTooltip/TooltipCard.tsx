@@ -1,12 +1,31 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { cn } from '@/lib/utils';
 import type { TooltipEntry } from './toEntries';
 
-interface TooltipCardProps {
+export interface TooltipCardOptions {
+  valueFormatter?: (v: number) => string;
+  labelFormatter?: (timestamp: number) => string;
+  // Lists only this many rows, the largest values in their usual order, and
+  // sums the rest into one "+N more" row. The footer still gets every entry.
+  maxEntries?: number;
+  renderFooter?: (
+    entries: TooltipEntry[],
+    label: number | string | undefined,
+  ) => ReactNode;
+}
+
+// Shared by the hover and the pinned tooltip.
+export interface TooltipOptions extends TooltipCardOptions {
+  // Recharts draws the first series at the bottom of a stacked bar but lists
+  // it first, so the tooltip reads upside down. This flips the list to match
+  // the bar.
+  matchStackOrder?: boolean;
+}
+
+interface TooltipCardProps extends TooltipCardOptions {
   label: number | string | undefined;
   entries: TooltipEntry[];
-  valueFormatter?: (v: number) => string;
   onClose?: VoidFunction;
   className?: string;
   style?: CSSProperties;
@@ -15,10 +34,51 @@ interface TooltipCardProps {
   ariaLabel?: string;
 }
 
+function toListedEntries(
+  entries: TooltipEntry[],
+  maxEntries = Number.POSITIVE_INFINITY,
+): TooltipEntry[] {
+  if (entries.length <= maxEntries) {
+    return entries;
+  }
+  const largestKeys = new Set(
+    [...entries]
+      .sort((a, b) => numericValue(b) - numericValue(a))
+      .slice(0, maxEntries)
+      .map((entry) => entry.key),
+  );
+  const rest = entries.filter((entry) => !largestKeys.has(entry.key));
+  return [
+    ...entries.filter((entry) => largestKeys.has(entry.key)),
+    {
+      key: 'more-entries',
+      label: `+${rest.length} more`,
+      value: rest.reduce((sum, entry) => sum + numericValue(entry), 0),
+      color: 'transparent',
+    },
+  ];
+}
+
+function numericValue(entry: TooltipEntry): number {
+  return typeof entry.value === 'number' ? entry.value : 0;
+}
+
+function formatLabel(
+  label: number | string | undefined,
+  labelFormatter?: (timestamp: number) => string,
+): string {
+  return labelFormatter && typeof label === 'number'
+    ? labelFormatter(label)
+    : formatTimestampFull(label);
+}
+
 export default function TooltipCard({
   label,
   entries,
   valueFormatter,
+  labelFormatter,
+  maxEntries,
+  renderFooter,
   onClose,
   className,
   style,
@@ -38,7 +98,7 @@ export default function TooltipCard({
       {...(onClose ? { role: 'dialog', 'aria-label': ariaLabel } : {})}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="font-medium">{formatTimestampFull(label)}</div>
+        <div className="font-medium">{formatLabel(label, labelFormatter)}</div>
         <button
           type="button"
           onClick={onClose}
@@ -54,7 +114,7 @@ export default function TooltipCard({
         </button>
       </div>
       <div className="grid gap-1.5">
-        {entries.map((entry) => {
+        {toListedEntries(entries, maxEntries).map((entry) => {
           const display =
             typeof entry.value === 'number'
               ? (valueFormatter?.(entry.value) ?? entry.value.toLocaleString())
@@ -75,6 +135,7 @@ export default function TooltipCard({
           );
         })}
       </div>
+      {renderFooter?.(entries, label)}
     </div>
   );
 }
