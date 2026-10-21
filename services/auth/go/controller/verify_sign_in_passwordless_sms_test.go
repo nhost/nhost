@@ -27,7 +27,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 	getConfig := func() *controller.Config {
 		config := getConfig()
-		config.SMSPasswordlessEnabled = true
+		config.OTPSmsEnabled = true
 
 		return config
 	}
@@ -140,10 +140,10 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "sms passwordless disabled",
+			name: "sms otp disabled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.SMSPasswordlessEnabled = false
+				config.OTPSmsEnabled = false
 
 				return config
 			},
@@ -750,7 +750,7 @@ func TestVerifySignInPasswordlessSmsDuplicatePhoneNumber(t *testing.T) {
 
 	config := func() *controller.Config {
 		config := getConfig()
-		config.SMSPasswordlessEnabled = true
+		config.OTPSmsEnabled = true
 
 		return config
 	}
