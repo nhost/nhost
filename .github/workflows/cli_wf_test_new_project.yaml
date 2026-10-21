@@ -63,12 +63,6 @@ jobs:
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Record image loader cache roots
-        run: |
-          system=$(nix eval --impure --raw --expr builtins.currentSystem)
-          nix path-info --derivation ".#devShells.$system.skopeo" \
-            >> "$NIX_CACHE_ROOTS"
-
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
         with:

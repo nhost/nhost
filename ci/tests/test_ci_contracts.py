@@ -98,6 +98,16 @@ class ContractsTests(unittest.TestCase):
                         self.assertTrue(job["with"]["BUILD"])
                         self.assertFalse(job["with"]["CHECKS"])
 
+    def test_cli_image_loader_does_not_record_an_unused_nix_shell(self):
+        workflow = load(WORKFLOWS / "cli_wf_test_new_project.yaml")
+        steps = workflow["jobs"]["tests"]["steps"]
+        loader = next(step for step in steps if step["name"] == "Load docker image")
+        self.assertIn("skopeo copy", loader["run"])
+        self.assertNotIn("nix develop", loader["run"])
+        self.assertFalse(
+            any("devShells.$system.skopeo" in step.get("run", "") for step in steps)
+        )
+
     def test_post_publication_nix_cache_is_best_effort(self):
         for workflow, job_name, publication in [
             ("wf_release_npm.yaml", "release", "Publish to npm"),
