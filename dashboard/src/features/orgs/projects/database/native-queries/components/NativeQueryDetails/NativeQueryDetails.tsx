@@ -1,10 +1,10 @@
 import { FileSearch } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/EditNativeQueryForm';
 import { NativeQueriesDetailsHeader } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsHeader';
-import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import NativeQueryDetailsSkeleton from './NativeQueryDetailsSkeleton';
 import NativeQueryOverview from './sections/NativeQueryOverview';
@@ -27,7 +27,8 @@ export default function NativeQueryDetails() {
 
   if (!query) {
     return (
-      <NativeQueriesEmptyState
+      <EmptyState
+        className="bg-background"
         title="Native query not found"
         description={
           <span>

@@ -1,3 +1,4 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import {
   ArrowDownToLine,
   ArrowRightLeft,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -16,7 +18,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
 import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -45,7 +46,9 @@ export default function ActionDetails() {
 
   if (!action) {
     return (
-      <ActionsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={GraphQLIcon}
         title="Action not found"
         description={
           <span>

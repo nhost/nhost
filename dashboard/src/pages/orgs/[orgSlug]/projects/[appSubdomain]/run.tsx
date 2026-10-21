@@ -1,13 +1,14 @@
+import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
 import { PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v3/button';
-import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -116,7 +117,10 @@ export default function RunPage() {
 
   if (services.length === 0 && !loading) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
+      <Container
+        className="mx-auto flex h-full max-w-9xl flex-col space-y-5 overflow-x-hidden pt-8 pb-8"
+        rootClassName="h-full"
+      >
         <div className="flex flex-row place-content-end">
           <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
             <PlusIcon className="mr-2 h-4 w-4" />
@@ -124,25 +128,21 @@ export default function RunPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <ServicesOutlinedIcon className="h-10 w-10" />
-          <div className="flex flex-col space-y-1">
-            <h3 className="text-center font-medium text-lg">
-              No custom services are available
-            </h3>
-            <p className="text-center text-muted-foreground text-sm">
-              All your project&apos;s custom services will be listed here.
-            </p>
-          </div>
-          {isPlatform ? (
-            <div className="flex flex-row place-content-between rounded-lg">
-              <Button className="w-full" onClick={openCreateServiceDialog}>
-                <PlusIcon className="mr-2 h-4 w-4" />
-                Add service
-              </Button>
-            </div>
-          ) : null}
-        </div>
+        <EmptyState
+          icon={ServicesIcon}
+          title="No custom services are available"
+          description="All your project's custom services will be listed here."
+          action={
+            isPlatform ? (
+              <div className="flex flex-row place-content-between rounded-lg">
+                <Button className="w-full" onClick={openCreateServiceDialog}>
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Add service
+                </Button>
+              </div>
+            ) : null
+          }
+        />
       </Container>
     );
   }

@@ -1,9 +1,10 @@
 import debounce from 'lodash.debounce';
-import { PlusIcon, SearchIcon } from 'lucide-react';
+import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
@@ -148,28 +149,32 @@ function OAuth2ClientsPageContent() {
     !isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2)
   ) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <div className="flex flex-col space-y-1">
-            <h3 className="text-center font-medium text-foreground text-lg">
-              Auth Version Too Old
-            </h3>
-            <p className="text-center text-muted-foreground text-sm">
+      <Container
+        className="mx-auto flex h-full max-w-9xl flex-col space-y-5 pt-8 pb-8"
+        rootClassName="h-full"
+      >
+        <EmptyState
+          icon={UserIcon}
+          title="Auth Version Too Old"
+          description={
+            <>
               OAuth2 Clients require Auth version {MIN_AUTH_VERSION_OAUTH2} or
               later. Please upgrade your Auth service in Settings →
               Authentication.
-            </p>
-          </div>
-          <Button
-            onClick={() =>
-              router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
-              )
-            }
-          >
-            Go to Authentication settings
-          </Button>
-        </div>
+            </>
+          }
+          action={
+            <Button
+              onClick={() =>
+                router.push(
+                  `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
+                )
+              }
+            >
+              Go to Authentication settings
+            </Button>
+          }
+        />
       </Container>
     );
   }
@@ -195,26 +200,26 @@ function OAuth2ClientsPageContent() {
 
   if (!oauth2Enabled) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <div className="flex flex-col space-y-1">
-            <h3 className="text-center font-medium text-foreground text-lg">
-              OAuth2 Provider is Disabled
-            </h3>
-            <p className="text-center text-muted-foreground text-sm">
-              Enable the OAuth2 provider in settings to manage OAuth2 clients.
-            </p>
-          </div>
-          <Button
-            onClick={() =>
-              router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=oauth2-provider`,
-              )
-            }
-          >
-            Go to OAuth2 Provider Settings
-          </Button>
-        </div>
+      <Container
+        className="mx-auto flex h-full max-w-9xl flex-col space-y-5 pt-8 pb-8"
+        rootClassName="h-full"
+      >
+        <EmptyState
+          icon={UserIcon}
+          title="OAuth2 Provider is Disabled"
+          description="Enable the OAuth2 provider in settings to manage OAuth2 clients."
+          action={
+            <Button
+              onClick={() =>
+                router.push(
+                  `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=oauth2-provider`,
+                )
+              }
+            >
+              Go to OAuth2 Provider Settings
+            </Button>
+          }
+        />
       </Container>
     );
   }
@@ -255,7 +260,14 @@ function OAuth2ClientsPageContent() {
   const clientsCount = totalNrOfElements;
 
   return (
-    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
+    <Container
+      className={
+        clientsCount === 0 && !searchString
+          ? 'mx-auto flex h-full max-w-9xl flex-col space-y-5 overflow-x-hidden pt-8 pb-8'
+          : 'mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8'
+      }
+      rootClassName={clientsCount === 0 && !searchString ? 'h-full' : undefined}
+    >
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm pl-9"
@@ -270,20 +282,17 @@ function OAuth2ClientsPageContent() {
         </Button>
       </div>
       {clientsCount === 0 && !searchString ? (
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <div className="flex flex-col space-y-1">
-            <h3 className="text-center font-medium text-foreground text-lg">
-              No OAuth2 Clients
-            </h3>
-            <p className="text-center text-muted-foreground text-sm">
-              Create your first OAuth2 client to get started.
-            </p>
-          </div>
-          <Button onClick={openCreateClientDrawer}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Client
-          </Button>
-        </div>
+        <EmptyState
+          icon={UserIcon}
+          title="No OAuth2 Clients"
+          description="Create your first OAuth2 client to get started."
+          action={
+            <Button onClick={openCreateClientDrawer}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Client
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
@@ -302,16 +311,12 @@ function OAuth2ClientsPageContent() {
               </p>
             </div>
             {clientsCount === 0 && searchString && (
-              <div className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
-                <div className="flex flex-col space-y-1">
-                  <h3 className="text-center font-medium text-foreground text-lg">
-                    No results for &quot;{searchString}&quot;
-                  </h3>
-                  <p className="text-center text-muted-foreground text-sm">
-                    Try a different search
-                  </p>
-                </div>
-              </div>
+              <EmptyState
+                className="border-x border-b"
+                icon={UserIcon}
+                title={<>No results for &quot;{searchString}&quot;</>}
+                description="Try a different search"
+              />
             )}
             {clients.length > 0 && (
               <div className="grid grid-flow-row gap-4">

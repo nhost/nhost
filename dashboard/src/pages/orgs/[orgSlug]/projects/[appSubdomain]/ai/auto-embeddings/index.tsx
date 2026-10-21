@@ -1,15 +1,15 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
-import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -147,27 +147,23 @@ export default function AutoEmbeddingsPage() {
 
   if (autoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
-      <div className="w-full px-6 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <EmbeddingsIcon className="h-10 w-10" />
-          <div className="flex flex-col space-y-1">
-            <h2 className="text-center font-medium text-lg">
-              No Auto-Embeddings are configured
-            </h2>
-            <p className="text-center text-muted-foreground text-sm">
-              All your configurations will be listed here.
-            </p>
-          </div>
-          <div className="flex flex-row place-content-between rounded-lg">
-            <Button
-              className="w-full"
-              onClick={openCreateAutoEmbeddingsConfiguration}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add a new Auto-Embeddings Configuration
-            </Button>
-          </div>
-        </div>
+      <div className="flex h-full w-full flex-col bg-background p-6">
+        <EmptyState
+          icon={SparklesIcon}
+          title="No Auto-Embeddings are configured"
+          description="All your configurations will be listed here."
+          action={
+            <div className="flex flex-row place-content-between rounded-lg">
+              <Button
+                className="w-full"
+                onClick={openCreateAutoEmbeddingsConfiguration}
+              >
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Add a new Auto-Embeddings Configuration
+              </Button>
+            </div>
+          }
+        />
       </div>
     );
   }

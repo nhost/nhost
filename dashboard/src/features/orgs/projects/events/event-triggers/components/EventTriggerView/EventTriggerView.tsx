@@ -1,12 +1,13 @@
+import { ZapIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { EventTriggerEventsDataTable } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerEventsDataTable';
@@ -68,7 +69,9 @@ export default function EventTriggerView() {
 
   if (error instanceof Error) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={ZapIcon}
         title="Event trigger not found"
         description={
           <span>
@@ -85,7 +88,9 @@ export default function EventTriggerView() {
 
   if (isEmptyValue(eventTrigger)) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={ZapIcon}
         title="Event trigger not found"
         description={
           <span>

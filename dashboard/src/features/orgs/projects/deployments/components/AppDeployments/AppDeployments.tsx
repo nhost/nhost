@@ -2,6 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
@@ -106,7 +107,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   return (
     <div className="mt-6">
       {nrOfItems === 0 ? (
-        <p className="font-medium text-sm">No deployments yet.</p>
+        <EmptyState icon={null} title="No deployments yet." />
       ) : (
         <div>
           <ul className="mt-3 border-border border-y">

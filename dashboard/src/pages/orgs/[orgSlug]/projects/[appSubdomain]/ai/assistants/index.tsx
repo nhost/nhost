@@ -1,7 +1,8 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
@@ -146,24 +147,20 @@ export default function AssistantsPage() {
 
   if (assistants.length === 0 && !assistantsLoading) {
     return (
-      <div className="w-full px-6 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <span className="text-6xl">🤖</span>
-          <div className="flex flex-col space-y-1">
-            <h2 className="text-center font-medium text-lg">
-              No Assistants are configured
-            </h2>
-            <p className="text-center text-muted-foreground text-sm">
-              All your assistants will be listed here.
-            </p>
-          </div>
-          <div className="flex flex-row place-content-between rounded-lg">
-            <Button className="w-full" onClick={openCreateAssistantForm}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create a new assistant
-            </Button>
-          </div>
-        </div>
+      <div className="flex h-full w-full flex-col bg-background p-6">
+        <EmptyState
+          icon={SparklesIcon}
+          title="No Assistants are configured"
+          description="All your assistants will be listed here."
+          action={
+            <div className="flex flex-row place-content-between rounded-lg">
+              <Button className="w-full" onClick={openCreateAssistantForm}>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Create a new assistant
+              </Button>
+            </div>
+          }
+        />
       </div>
     );
   }
