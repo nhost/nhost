@@ -145,6 +145,17 @@ export default function MetricChart({
     setFocusedKey(null);
   };
 
+  // A pinned tooltip is a snapshot of the series visible when it was pinned,
+  // so it is closed rather than left out of sync with the legend.
+  const { clearPinned } = pin;
+  const handleLegendItemClick = useCallback<typeof handleLegendClick>(
+    (key, modifiers) => {
+      clearPinned();
+      handleLegendClick(key, modifiers);
+    },
+    [clearPinned, handleLegendClick],
+  );
+
   const handleClick = (e: ChartMouseEvent) => {
     if (!zoom.consumeDragClick()) {
       pin.togglePinAt(e);
@@ -175,7 +186,7 @@ export default function MetricChart({
     <InteractiveChartLegend
       config={config}
       hiddenSet={hiddenSet}
-      onItemClick={handleLegendClick}
+      onItemClick={handleLegendItemClick}
       onItemHover={setLegendHover}
     />
   );
