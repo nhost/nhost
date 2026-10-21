@@ -19,7 +19,7 @@ that tier by inspection.
 | `2c2g` | Secret scanning, small Stripe SDK checks/builds, Functions image assembly, nixops release image assembly | Bounded scanning or small JS/image packaging; no integration stack |
 | `2c4g` | Ordinary Go/SDK builds and checks, CLI cross-compilation, security updates, remote AI review | Compiler/type-analysis or package-manager headroom without running a service stack; AI inference is remote |
 | `2c4g` | Docs/landing Vercel builds; remote dashboard browser suites | Actual frontend/browser work, but no local Nhost stack |
-| `4c8g` | AI/auth/storage/constellation integration checks and CLI new-project tests | Databases, GraphQL, auth/storage and other containers coexist with compilation/lint/tests |
+| `4c8g` | AI/auth/storage/constellation/nhost-js integration checks and CLI new-project tests | Databases, GraphQL, auth/storage and other containers coexist with compilation/lint/tests |
 | `4c8g` | Functions integration checks | Six runtime/package-manager containers, not just image packaging |
 | `4c8g` | Dashboard Next.js builds, multi-app example builds, local dashboard browser suite | Frontend build workers or the local Nhost stack need more memory |
 | `4c8g` | PostgreSQL builds/checks; CodeQL | Native/Rust extension builds and DB tests, or whole-repo extraction/query analysis |

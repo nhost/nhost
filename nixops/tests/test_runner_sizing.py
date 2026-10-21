@@ -66,7 +66,9 @@ class RunnerSizingTests(unittest.TestCase):
             (!inputs.BUILD || matrix.platform == fromJSON(inputs.ARCHS)[0]) &&
             inputs.CHECK_RUNNER_SIZE) || inputs.RUNNER_SIZE) }}"""
         self.assertEqual(re.sub(r"\s+", " ", actual), re.sub(r"\s+", " ", expected))
-        for project in ["ai", "auth", "cli", "constellation", "storage", "functions"]:
+        for project in [
+            "ai", "auth", "cli", "constellation", "storage", "functions", "nhost-js"
+        ]:
             with self.subTest(project=project):
                 settings = job(project + "_checks.yaml", "tests")["with"]
                 self.assertEqual(settings["CHECK_RUNNER_SIZE"], "4c8g")
