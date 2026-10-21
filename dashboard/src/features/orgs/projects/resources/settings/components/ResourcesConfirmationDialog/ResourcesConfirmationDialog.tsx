@@ -83,11 +83,13 @@ export default function ResourcesConfirmationDialog({
 
   if (!loading && !proPlan) {
     return (
-      <Alert variant="destructive">
-        <AlertDescription>
-          Couldn&apos;t load the plan for this project. Please try again.
-        </AlertDescription>
-      </Alert>
+      <div className="px-12 pb-12">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Couldn&apos;t load the plan for this project. Please try again.
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 

@@ -260,7 +260,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
-                <DialogTitle className="text-xl">
+                <DialogTitle className="text-xl leading-7 tracking-normal">
                   Update member role
                 </DialogTitle>
                 <DialogDescription>

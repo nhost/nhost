@@ -400,7 +400,7 @@ export default function RelationshipFormDialog({
         onEscapeKeyDown={(event) => event.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-xl">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
             {relationship ? 'Edit Relationship' : 'Create Relationship'}
           </DialogTitle>
           <DialogDescription>

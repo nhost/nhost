@@ -39,7 +39,9 @@ export default function DeleteMetadataObjectDialog({
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">{title}</DialogTitle>
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
+            {title}
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">

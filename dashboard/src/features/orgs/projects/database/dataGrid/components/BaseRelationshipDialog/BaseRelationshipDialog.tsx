@@ -105,7 +105,7 @@ export default function BaseRelationshipDialog({
         onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             {dialogTitle}
           </DialogTitle>
           <DialogDescription>{dialogDescription}</DialogDescription>

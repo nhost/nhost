@@ -24,7 +24,9 @@ function AddSecurityKeyButton() {
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">Add a Security Key</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Add a Security Key
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="sr-only">
           Add a Security Key

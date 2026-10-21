@@ -154,7 +154,7 @@ export default function RoleSettings() {
       component: <CreateRoleForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-xl' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -167,7 +167,7 @@ export default function RoleSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-xl' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }

@@ -58,7 +58,7 @@ export default function DeleteActionDialog({
         disableOutsideClick={isDeletingAction}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Delete Action
           </DialogTitle>
           <DialogDescription>

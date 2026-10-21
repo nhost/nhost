@@ -78,7 +78,9 @@ export default function DeleteComputedFieldAlertDialog({
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-xl">Delete Computed Field</DialogTitle>
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              Delete Computed Field
+            </DialogTitle>
             <DialogDescription>
               Are you sure you want to delete the{' '}
               <span className="rounded-md bg-muted px-1 py-0.5 font-mono">

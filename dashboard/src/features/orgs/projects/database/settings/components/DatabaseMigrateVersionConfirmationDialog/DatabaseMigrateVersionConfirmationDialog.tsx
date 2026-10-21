@@ -75,7 +75,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   return (
     <div className={twMerge('w-full rounded-lg px-12 pb-12 text-left')}>
       <div className="grid grid-flow-row gap-6">
-        <p>
+        <p className="text-muted-foreground text-sm">
           The upgrade process will require an{' '}
           <span className="font-semibold">
             estimated {downtime} of downtime

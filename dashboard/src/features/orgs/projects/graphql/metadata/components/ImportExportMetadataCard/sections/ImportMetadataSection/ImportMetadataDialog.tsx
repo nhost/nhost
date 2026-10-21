@@ -124,7 +124,7 @@ export default function ImportMetadataDialog() {
       >
         <DialogContent className="p-12" hideCloseButton disableOutsideClick>
           <DialogHeader>
-            <DialogTitle className="text-foreground text-xl">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Import Metadata
             </DialogTitle>
             <DialogDescription>
@@ -146,7 +146,7 @@ export default function ImportMetadataDialog() {
               Allow inconsistent metadata
             </Label>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-8">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>

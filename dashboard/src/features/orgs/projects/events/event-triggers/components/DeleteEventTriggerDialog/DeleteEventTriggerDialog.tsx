@@ -77,7 +77,7 @@ export default function DeleteEventTriggerDialog({
         disableOutsideClick={isDeletingEventTrigger}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Delete Event Trigger
           </DialogTitle>
           <DialogDescription>

@@ -172,7 +172,7 @@ export default function RenameRelationshipDialog({
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground text-xl">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Rename{' '}
               <TextWithTooltip
                 text={relationshipToRename}

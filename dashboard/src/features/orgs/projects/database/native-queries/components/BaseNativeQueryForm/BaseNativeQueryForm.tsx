@@ -309,7 +309,9 @@ export default function BaseNativeQueryForm({
           onEscapeKeyDown={(event) => event.stopPropagation()}
         >
           <DialogHeader className="shrink-0">
-            <DialogTitle className="text-xl">Create logical model</DialogTitle>
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              Create logical model
+            </DialogTitle>
             <DialogDescription>
               Create the return type for this native query.
             </DialogDescription>

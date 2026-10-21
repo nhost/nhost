@@ -61,7 +61,7 @@ export default function ActionRelationshipDialog({
         onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             {isEditing ? 'Edit Relationship' : 'Create Relationship'}
           </DialogTitle>
           <DialogDescription>

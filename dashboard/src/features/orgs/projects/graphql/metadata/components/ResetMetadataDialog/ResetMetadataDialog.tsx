@@ -59,7 +59,7 @@ export default function ResetMetadataDialog() {
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Reset Metadata
           </DialogTitle>
           <DialogDescription>
@@ -81,7 +81,7 @@ export default function ResetMetadataDialog() {
             I'm sure I want to reset the metadata
           </Label>
         </div>
-        <DialogFooter>
+        <DialogFooter className="mt-6">
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>

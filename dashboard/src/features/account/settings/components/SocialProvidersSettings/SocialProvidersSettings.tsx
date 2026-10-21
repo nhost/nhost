@@ -59,7 +59,9 @@ function ConfirmDisconnectGithubModal({
   return (
     <div className="text-foreground">
       <DialogHeader>
-        <DialogTitle className="text-xl">Disconnect GitHub</DialogTitle>
+        <DialogTitle className="text-xl leading-7 tracking-normal">
+          Disconnect GitHub
+        </DialogTitle>
       </DialogHeader>
       <DialogDescription className="mt-2 text-muted-foreground text-sm">
         You can connect a different GitHub account afterwards. If you use GitHub

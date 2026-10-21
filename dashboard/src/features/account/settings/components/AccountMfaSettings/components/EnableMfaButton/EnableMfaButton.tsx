@@ -34,7 +34,7 @@ function EnableMfaButton() {
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
             Enable multi-factor authentication
           </DialogTitle>
         </DialogHeader>

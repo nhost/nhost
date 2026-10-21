@@ -222,7 +222,9 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
-                <DialogTitle className="text-xl">Update invite</DialogTitle>
+                <DialogTitle className="text-xl leading-7 tracking-normal">
+                  Update invite
+                </DialogTitle>
                 <DialogDescription>
                   This will affect their permissions and access within the
                   organization.

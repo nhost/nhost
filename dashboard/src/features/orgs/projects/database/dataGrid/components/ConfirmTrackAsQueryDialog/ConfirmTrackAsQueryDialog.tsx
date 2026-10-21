@@ -27,7 +27,7 @@ export default function ConfirmTrackAsQueryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Track as Query
           </DialogTitle>
           <DialogDescription>

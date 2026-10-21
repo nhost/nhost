@@ -38,7 +38,7 @@ export default function InconsistentObjectDefinitionDialog({
       </Tooltip>
       <DialogContent className="max-h-[80vh] max-w-xl overflow-y-auto p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Inconsistent Object Definition
           </DialogTitle>
         </DialogHeader>

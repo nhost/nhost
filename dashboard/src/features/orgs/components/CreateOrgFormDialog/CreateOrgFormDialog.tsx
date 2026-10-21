@@ -412,7 +412,9 @@ export default function CreateOrgDialog({
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-xl">New Organization</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            New Organization
+          </DialogTitle>
           <DialogDescription />
         </DialogHeader>
 

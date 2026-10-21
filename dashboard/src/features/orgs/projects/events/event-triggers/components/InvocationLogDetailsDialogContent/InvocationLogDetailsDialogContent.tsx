@@ -38,7 +38,7 @@ export default function InvocationLogDetailsDialogContent({
       ) : (
         <>
           <DialogHeader>
-            <DialogTitle className="text-foreground text-xl">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Invocation Log Details
             </DialogTitle>
           </DialogHeader>

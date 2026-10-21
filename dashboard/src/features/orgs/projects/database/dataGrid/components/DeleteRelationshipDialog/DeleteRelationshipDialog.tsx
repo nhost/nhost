@@ -107,7 +107,7 @@ export default function DeleteRelationshipDialog({
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground text-xl">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Delete Relationship
             </DialogTitle>
             <DialogDescription>

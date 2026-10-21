@@ -175,7 +175,9 @@ function RestoreBackupDialogButton({
         disableOutsideClick
       >
         <DialogHeader>
-          <DialogTitle className="text-xl">{dialogTitle}</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            {dialogTitle}
+          </DialogTitle>
           <DialogDescription />
         </DialogHeader>
         {isRestoreScheduled && (

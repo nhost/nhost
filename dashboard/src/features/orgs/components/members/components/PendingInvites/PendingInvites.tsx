@@ -165,7 +165,7 @@ export default function PendingInvites() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <DialogHeader className="mb-4">
-                  <DialogTitle className="text-foreground text-xl">
+                  <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
                     Add a member
                   </DialogTitle>
                   <DialogDescription>

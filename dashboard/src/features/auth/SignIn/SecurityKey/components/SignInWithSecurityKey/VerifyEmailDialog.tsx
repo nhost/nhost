@@ -16,7 +16,7 @@ export function VerifyEmailDialog({ open, setOpen }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-xl">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
             Email verification required
           </DialogTitle>
           <DialogDescription>

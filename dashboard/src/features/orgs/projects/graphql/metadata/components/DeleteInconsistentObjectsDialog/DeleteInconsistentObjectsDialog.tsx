@@ -50,7 +50,7 @@ export default function DeleteInconsistentObjectsDialog() {
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Remove Inconsistent Objects
           </DialogTitle>
           <DialogDescription className="space-y-2">

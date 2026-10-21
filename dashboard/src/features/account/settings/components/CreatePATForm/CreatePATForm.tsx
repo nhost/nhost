@@ -103,14 +103,16 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
       <div className="grid grid-flow-row gap-4">
         <CreatedPATAlert personalAccessToken={personalAccessToken} />
 
-        <Button
-          type="button"
-          variant="outline"
-          aria-label="Close personal access token dialog"
-          onClick={onCancel}
-        >
-          Close
-        </Button>
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            aria-label="Close personal access token dialog"
+            onClick={onCancel}
+          >
+            Close
+          </Button>
+        </div>
       </div>
     );
   }
