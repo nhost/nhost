@@ -1,35 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react';
-import type { ChartConfig } from '@/components/ui/v3/chart';
-import type {
-  PinnedPayloadEntry,
-  PinnedState,
-} from '@/features/orgs/projects/common/metrics/types';
+import type { CSSProperties } from 'react';
 import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { cn } from '@/lib/utils';
-
-interface TooltipEntry {
-  key: string;
-  label: ReactNode;
-  value: number | string | undefined;
-  color: string;
-}
-
-function toEntries(
-  payload: PinnedPayloadEntry[],
-  config: ChartConfig,
-): TooltipEntry[] {
-  return payload
-    .filter((p) => p.type !== 'none' && p.value != null)
-    .map((p) => {
-      const key = String(p.dataKey ?? p.name ?? 'value');
-      return {
-        key,
-        label: config[key]?.label ?? p.name ?? key,
-        value: p.value,
-        color: p.color ?? p.payload?.fill ?? 'hsl(var(--muted-foreground))',
-      };
-    });
-}
+import type { TooltipEntry } from './toEntries';
 
 interface TooltipCardProps {
   label: number | string | undefined;
@@ -43,7 +15,7 @@ interface TooltipCardProps {
   ariaLabel?: string;
 }
 
-function TooltipCard({
+export default function TooltipCard({
   label,
   entries,
   valueFormatter,
@@ -104,67 +76,5 @@ function TooltipCard({
         })}
       </div>
     </div>
-  );
-}
-
-interface HoverTooltipContentProps {
-  config: ChartConfig;
-  valueFormatter?: (v: number) => string;
-  active?: boolean;
-  payload?: PinnedPayloadEntry[];
-  label?: number | string;
-}
-
-export function HoverTooltipContent({
-  config,
-  valueFormatter,
-  active,
-  payload,
-  label,
-}: HoverTooltipContentProps) {
-  if (!active || !payload || payload.length === 0) {
-    return null;
-  }
-  const entries = toEntries(payload, config);
-  if (entries.length === 0) {
-    return null;
-  }
-  return (
-    <TooltipCard
-      label={label}
-      entries={entries}
-      valueFormatter={valueFormatter}
-    />
-  );
-}
-
-interface PinnedTooltipProps {
-  pinned: PinnedState;
-  config: ChartConfig;
-  valueFormatter?: (v: number) => string;
-  onClose: VoidFunction;
-}
-
-export function PinnedTooltip({
-  pinned,
-  config,
-  valueFormatter,
-  onClose,
-}: PinnedTooltipProps) {
-  return (
-    <TooltipCard
-      label={pinned.label}
-      entries={toEntries(pinned.payload, config)}
-      valueFormatter={valueFormatter}
-      onClose={onClose}
-      interactive
-      className="absolute z-10"
-      style={{
-        left: pinned.x,
-        top: pinned.y,
-      }}
-      testId="pinned-tooltip"
-      ariaLabel="Pinned data point"
-    />
   );
 }
