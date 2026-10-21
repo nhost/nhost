@@ -90,7 +90,7 @@ export default function OtpForm({
   if (step === 'code') {
     return (
       <form onSubmit={handleVerify} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-2">
           <CheckYourInbox url={mailboxURL} />
           <p className="text-muted-foreground text-sm">
             We sent a code to {email}.
