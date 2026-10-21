@@ -90,6 +90,7 @@ jobs:
 
       - name: Store Nix cache
         if: ${{ always() && env.NIX_CACHE_ROOTS != '' }}
+        continue-on-error: true
         uses: ./.github/actions/cache-nix
         with:
           ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}

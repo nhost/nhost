@@ -274,3 +274,7 @@ bundle fidelity, safe manifest-driven synchronization, and interrupted-copy
 recovery. They run offline with mocked Nix/AWS/Docker interfaces; a real CI run
 remains necessary to validate runner availability, OIDC, registry access, and
 platform integration tests.
+
+For targeted runs, use a Nix Python interpreter built with PyYAML; adding
+`nixpkgs#python3Packages.pyyaml` alone to `nix shell` does not extend Python's
+import path.

@@ -97,6 +97,27 @@ class ContractsTests(unittest.TestCase):
                         self.assertTrue(job["with"]["BUILD"])
                         self.assertFalse(job["with"]["CHECKS"])
 
+    def test_post_publication_nix_cache_is_best_effort(self):
+        for workflow, job_name, publication in [
+            ("wf_release_npm.yaml", "release", "Publish to npm"),
+            ("cli_wf_release.yaml", "publish-npm", "Publish to npm"),
+            ("cli_wf_release.yaml", "build-multiplatform", "Upload assets"),
+        ]:
+            with self.subTest(workflow=workflow, job=job_name):
+                steps = load(WORKFLOWS / workflow)["jobs"][job_name]["steps"]
+                publication_index = next(
+                    index for index, step in enumerate(steps)
+                    if step["name"] == publication
+                )
+                cache_steps = [
+                    step for step in steps[publication_index + 1:]
+                    if step.get("uses") == "./.github/actions/cache-nix"
+                ]
+                self.assertTrue(cache_steps, "expected cache warming after publication")
+                for step in cache_steps:
+                    self.assertIs(step.get("continue-on-error"), True)
+                    self.assertIn("always()", step.get("if", ""))
+
     def test_shared_action_changes_trigger_pr_and_merge_queue_checks(self):
         for path in WORKFLOWS.glob("*checks.yaml"):
             workflow = load(path)
