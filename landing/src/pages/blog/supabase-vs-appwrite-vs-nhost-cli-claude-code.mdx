@@ -118,21 +118,19 @@ When I asked why it went this way, Claude Code explained that in Appwrite, clien
 
 Along the way, it made three mistakes. The first two were small: it typed `appwrite projects` instead of `project`, and its first check of the SDK version failed. The third came after deploying. It grabbed the first URL the tool printed, but that turned out to be a private preview link that sends visitors to an Appwrite sign-in page. After that, it created a public domain and admitted that a real user would have run into that login page.
 
-Normally, Appwrite won't let a browser talk to a project until you register the site's domain as a web platform. Hosting the polling app on Appwrite let Claude Code skip that step.
+Appwrite only lets an app connect to a project from domains added in the project settings. The polling app ran on Appwrite's own hosting, so Claude Code didn't need to add one.
 
-## Three answers to the same question
+## Polling app recap
 
-**Nhost** closed the votes table to everyone but the row's owner and added a view that returns counts without the rows behind them.
+On Nhost, Claude Code closed the votes table to everyone except the person who voted and added a view that returns only the counts.
 
-**Supabase** wrote a policy letting each user read their own votes, and a function running with extra privileges to return the totals.
+The Supabase version has a policy that lets each user read only their own votes, plus a function with extra privileges that returns the totals.
 
-**Appwrite** closed the table to every client and routed all reads and writes through one server function.
+Appwrite got the strictest setup: the table is closed to every user, and all reads and writes go through one server function.
 
-The idea is the same in all three: votes are locked to their owner, and something with more access serves the totals. Where that something lives depends on the platform, and each one steered the agent there without being asked.
+## Second app: a team incident logger
 
-## A harder second app
-
-The polling app is small, and a task that size can't really tell three mature platforms apart. So each one got a second, harder job on a fresh project.
+Each platform got a fresh project and this prompt:
 
 > Build a team incident logger.
 >
@@ -150,17 +148,14 @@ The polling app is small, and a task that size can't really tell three mature pl
 >
 > Keep it minimal, styling does not matter.
 
-The incident logger needs four things the polling app didn't:
+Compared to the polling app, the incident logger adds four things:
 
-**File storage**, which means permissions on files, not just rows. This is the classic leak: the record is locked down, but the file sits at a URL anyone can open.
+1. File storage. Files need their own permissions, separate from the incident records. A common leak is when the incident itself is locked down, but the attached file sits at a URL anyone can open.
+2. Access based on team membership. In the polling app, the rule was "is this vote mine". Here it's "am I on the team this incident belongs to", so the check has to go through a third table with the team members.
+3. A server function that the agent has to deploy to the platform.
+4. A trigger. The function should run on its own when a critical incident shows up in the database, without the app calling it. Each platform does this differently.
 
-**Access by membership** instead of by ownership. In the polling app the rule was "is this row mine". Here it's "am I on the team this incident belongs to", which means following a relationship to a third table.
-
-**A server function** the agent has to deploy, not just write into the page.
-
-**The platform reacting on its own.** The function has to run because the data changed, not because the app called it. Each platform has a different mechanism for that, and none of them came up in the polling app.
-
-The main question here: can someone outside a team open another team's attachment from a direct link?
+The thing I wanted to check most was whether someone outside a team could open another team's attachment from a direct link.
 
 ### Incident logger results
 
@@ -176,68 +171,58 @@ The main question here: can someone outside a team open another team's attachmen
 | Where the file rule ended up | a policy on the storage path | row permissions granted to a team | a relationship chain in the database |
 | What it handed back | a local page | a deployed site on a public URL | a local page |
 
-This time the order flipped. Supabase came first, Appwrite second, and Nhost, the fastest on the polling app, came last.
+On the incident logger, Supabase was the fastest, Appwrite came second, and Nhost, which was the fastest on the polling app, finished last.
 
-The row that explains the rest is tokens read: 1M, 3.3M, 5M. Time and cost follow it in the same order. The more an agent has to read and re-read to find its way around a platform, the longer the job takes and the more it costs.
+Time and cost line up with how many tokens Claude Code read on each platform: 1M on Supabase, 3.3M on Appwrite and 5M on Nhost. The more the agent had to read to figure out a platform, the longer and more expensive the build got.
 
-All three got the access rules right again, each in its own way. I checked the permissions in the projects themselves instead of trusting what the agents told me, so the code below is what's actually deployed.
+All three apps got the access rules right again. I checked the permissions in each project myself, so the code below is what's actually deployed.
 
 ## Supabase on the incident logger
 
-### It didn't need me
+Claude Code got project access through my existing CLI login, applied the migration, deployed the Edge Function from the CLI and was done before I'd read half of its output.
 
-The agent got project access from my existing CLI login, applied the migration, deployed the Edge Function straight from the CLI, and was done before I'd read half its output.
+To test the permission rules, it ran them inside a transaction that it rolled back at the end, so none of the test data was saved. Then, without being asked, it ran Supabase's security advisor and fixed two of the issues it found: a trigger function that could be called over RPC, and a function without a fixed `search_path`.
 
-To test its permission rules, it used a transaction it forced to roll back, so none of its test data was ever written. Then it ran Supabase's security advisor unprompted and fixed two of its findings: a trigger function that was callable over RPC, and a function without a fixed `search_path`.
+At the end, it told me to turn off email confirmation for testing. I had already done that, but Claude Code never checked the project's auth settings, and nothing in Supabase prompted it to.
 
-At the end, it told me to turn off email confirmation for testing, which I had already done. It never checked the project's auth settings, and nothing in the platform pushed it to.
+The app has eight row-level policies across five tables, and all of them apply only to signed-in users. Members can read everything that belongs to their team and add incidents, and only the reporter can edit or delete one. The `teams` and `team_invites` tables have no write policies at all, because creating a team and inviting someone go through functions with elevated privileges.
 
-### Eight policies and a folder name
-
-Eight row-level policies across five tables, all scoped to the `authenticated` role. Read-if-member on everything, insert for members, update and delete for the reporter only. `teams` and `team_invites` have no write policies at all, because creating a team and inviting someone go through functions running with elevated privileges instead.
-
-Files are the interesting part. Each attachment is stored in a folder named after the team, and the read policy checks the path:
+For files, Claude Code stored each attachment in a folder named after the team's ID, and the read policy checks that folder against the user's teams:
 
 ```sql
 bucket_id = 'incident-logs'
 AND is_team_member(try_uuid(storage.foldername(name)[1]))
 ```
 
-Upload and delete are restricted to the reporter. Critical incidents are handled by a database trigger calling the Edge Function through `pg_net`, with the shared secret held in Vault.
+Only the reporter can upload or delete a file. For critical incidents, a database trigger calls the Edge Function through `pg_net`, and the shared secret is stored in Vault.
 
-## Appwrite on the incident logger
+## Appwrite: built-in teams and another unrequested deploy
 
-### The only one that shipped it
+Like on the polling app, Claude Code put the app on Appwrite's hosting without being asked. This time it ran into a problem. Appwrite only lets an app connect to a project from domains added in the project settings, and Claude got an error while adding one.
 
-Just like on the polling app, the agent put the app on Appwrite's hosting without being asked. This time that led to a detour: a browser won't talk to an Appwrite project until the site's domain is registered as a web platform, and it hit an error setting that up.
+It also left a `setup.sh`, but the script is just a list of the commands it ran and won't work on a fresh project. The first run of those commands failed halfway, because optional columns in Appwrite need an explicit flag.
 
-Its `setup.sh` just lists the commands it ran and won't work from scratch: the first attempt failed partway because optional columns need an explicit flag.
+Claude checked that someone outside a team can't list its incidents, open one by ID, view or download a file, or add an incident to that team. It didn't click through the finished app itself, because that would have created a real account on a live public site.
 
-The agent checked that an outsider can't list incidents, open one by ID, view or download a file, or post into a team. It didn't click through the finished app, because that would have created a real account on a live public site.
+For teams, it used Appwrite's built-in Teams feature, which already handles invitations, membership and invite emails. On Nhost and Supabase, Claude had to build all of this by hand.
 
-### Teams it didn't have to build
+Each incident gives access to its own team, and at the table level, signed-in users can only create incidents. Appwrite combines table and row permissions with OR, so any read access on the table would let everyone see every incident, whatever the row says. Appwrite also won't let a user give access to a team they aren't in, so nobody can share an incident with someone else's team.
 
-The agent used Appwrite's built-in Teams feature, which already handles invitations, membership and email delivery. The other two built all of this by hand.
+One limitation is that only the team's creator can invite people, because that's Appwrite's default for team owners. Letting every member invite would have needed a server function, and Claude pointed this out itself as something I might want to change.
 
-Access is granted per row to a team, and the incidents table grants All users nothing but `create`. Appwrite combines table and row permissions with OR, so any read access at the table level would quietly override row-level privacy. It also won't let a user grant access to a team they aren't in, so nobody can share an incident with a team they're not part of.
+The alert function is connected to Appwrite's database events, so Appwrite runs it whenever an incident is created or updated, with no extra code in between.
 
-The downside: only the team's creator can invite people, because that's Appwrite's default for team owners. Letting every member invite would have needed a server function. The agent flagged this itself as something I might want to change.
+## Nhost: the slowest, with most of the time spent on deployment
 
-The alert function is attached to Appwrite's database events, so the platform invokes it on create and update with no extra code in between.
+By Claude's own count, about two-thirds of the run went into deployment and figuring out how Nhost works.
 
-## Nhost on the incident logger
+The Nhost CLI has no command that applies migrations and metadata to a cloud project. So Claude Code pushed the schema and metadata through Hasura's HTTP API instead. It also created the migration-tracking table by hand and added a row to it, so the later deploy wouldn't run the same migration a second time.
 
-### Two-thirds of it was plumbing
+It also found that `nhost init` leaves the metadata folder empty, but a deploy applies whatever is in that folder. To avoid wiping the built-in auth and storage tables, Claude wrote out metadata for every table, including those.
 
-By the agent's count, about two-thirds of the run went into deploying, figuring out the platform and rebuilding metadata.
+Functions on Nhost deploy only from a connected GitHub repo, so the alert function stayed untested until Claude did a full push and deploy near the end.
 
-There's no CLI command that applies migrations and metadata to a cloud project. So the agent pushed schema and metadata through Hasura's HTTP API, created the migration-tracking table by hand, and inserted a row so the later deploy wouldn't run the same migration twice. It also found that `nhost init` leaves the metadata folder empty while a deploy applies whatever is in it, so it wrote out metadata for every table including the built-in auth and storage ones, to avoid wiping them. Functions deploy only from a connected GitHub repo, so the alert function sat untested until a full push-and-deploy cycle near the end.
-
-### The tightest rules of the three
-
-Nhost ended up with five tables. I'm going by the deployed metadata here, not the agent's summary.
-
-Reading a file is allowed if you uploaded it, or if it's attached to an incident in a team you belong to, three relationships away:
+The app has five tables, and everything below comes from the deployed metadata. A user can read a file if they uploaded it, or if it's attached to an incident from one of their teams. To check the second part, the rule goes from the file to the incident, then to the team, then to the team's members:
 
 ```yaml
 _or:
@@ -245,23 +230,21 @@ _or:
 - incidents: {team: {members: {user_id: {_eq: X-Hasura-User-Id}}}}
 ```
 
-Uploads are restricted by bucket, by filename and by MIME type, so a binary renamed to `.txt` still gets refused because of its type. The uploader's ID is stamped from the token and can't be set by the client. Editing an incident is restricted to its reporter, and a separate check stops anyone from attaching a file they didn't upload themselves.
-
-Critical incidents fire a Hasura event trigger on insert, and on update only when the severity column changes, with three retries and a shared secret in the header.
-
 ![Nhost: the file read rule follows three relationships to the team](/images/blog/supabase-vs-appwrite-vs-nhost-cli-claude-code/nhost-file-permissions.png)
 
-## I checked the files myself
+Uploads are checked by bucket, file name and MIME type, so a binary file renamed to `.txt` still gets rejected. The uploader's ID comes from the user's token, so the app can't fake it. Only the reporter can edit an incident, and a separate check stops anyone from attaching a file someone else uploaded.
 
-This is the one thing I didn't want to take anyone's word for. On each platform I made an account, created a team, reported an incident with a `.txt` attached, and then tried to reach that file from three places: signed out, signed in as someone who isn't on the team, and signed in as a team member.
+For critical incidents, Claude set up a Hasura event trigger. It fires when an incident is created, and on updates only when the severity changes. It retries three times and sends a shared secret in the header.
 
-**All three held.** Only the team member got the file.
+## Testing file access myself
 
-What differed was how each one said no.
+File access was the main thing I wanted to test, so I checked it by hand on each platform. I made an account, created a team, reported an incident with a `.txt` attached, and then tried to open that file three ways: signed out, signed in as someone outside the team, and signed in as a team member.
 
-Appwrite is the only one where the attachment has a URL you could paste into a chat. The session travels in a cookie, so the same link behaves differently depending on who opens it: a file for a team member, a 404 for everyone else.
+On all three platforms, only the team member could open the file. The difference was in how each platform handled the link.
 
-Supabase and Nhost never hand you a link at all. The file comes down through the SDK with a token attached, which means there's nothing to copy and forward in the first place. Hitting the storage endpoint directly returns an error for everyone, because the browser doesn't send that token when you type a URL into the address bar.
+Appwrite is the only one where an attachment has a URL you could paste into a chat. The login session is stored in a browser cookie, so the same link works differently depending on who opens it: a team member gets the file, and everyone else gets a 404.
+
+Supabase and Nhost don't give you a link at all. The app downloads the file through the SDK and attaches the user's token to the request, so there's nothing to copy and send to someone. If you open the storage URL directly in the browser, you get an error even as a team member, because the browser doesn't send that token.
 
 Here's what each one returns to an anonymous request:
 
@@ -273,13 +256,11 @@ Here's what each one returns to an anonymous request:
 
 Two of them pretend the thing doesn't exist. Nhost tells you it exists and you can't have it. Appwrite's agent had flagged exactly this behavior as a debugging annoyance when I asked it about pitfalls, and here it is.
 
-## One docs visit in six builds
+## Claude almost never opened the docs
 
-Across six runs on three platforms, **five of them opened zero documentation pages.**
+In five of the six runs, Claude Code didn't open a single documentation page. It got what it needed from the CLI's `--help` output and the type definitions in the installed SDK. On Supabase, the help text is how it found the `--reveal` flag for the cut-off admin key, and later the `--use-api` flag that let it deploy a function without Deno installed. On Appwrite, it used `--help`, `npm view` to check SDK versions, and the error messages themselves.
 
-What they read instead was the CLI's `--help` output and the type definitions inside the installed SDK. On Supabase, the help text is how the agent found the `--reveal` flag it was missing, and later the `--use-api` flag that let it deploy a function without Deno installed. On Appwrite it was `--help`, `npm view` for SDK versions, and the error messages themselves.
-
-The single exception was Nhost on the incident logger, where the agent opened the docs on functions, event triggers and storage permissions before writing anything. My guess is it didn't know those parts well enough from training.
+The only exception was Nhost on the incident logger. Before writing anything, Claude read the Nhost docs on functions, event triggers and storage permissions. My guess is it didn't know those parts of Nhost well enough from training.
 
 ## The same trap, three times over
 
