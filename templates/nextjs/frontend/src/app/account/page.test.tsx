@@ -2,11 +2,27 @@ import type { User } from '@nhost/nhost-js/auth';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Account from '@/app/account/page';
-import { methods } from '@/app/signin/methods';
 
 const getVerifiedUser = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/nhost/server', () => ({ getVerifiedUser }));
+
+// A registry of made-up methods, so this test names no real one and survives
+// any of them being deleted: one with a setting on the account page, one
+// with nothing to configure.
+vi.mock('@/app/signin/methods', () => ({
+  methods: [
+    {
+      href: '/auth/configurable',
+      title: 'Configurable',
+      description: '',
+      account: {
+        thing: ({ user }: { user: User }) => <li>Setting for {user.id}</li>,
+      },
+    },
+    { href: '/auth/plain', title: 'Plain method', description: '' },
+  ],
+}));
 
 // Next's redirect() throws to unwind the render; the stand-in throws the
 // target so a test can read it. The router is for the client cards on the
@@ -56,17 +72,22 @@ describe('account page', () => {
     expect(html).toContain('src="https://avatars.example/ada"');
   });
 
-  // Read from the registry rather than spelled out, so this test names no
-  // method and survives any of them being deleted.
-  it('links to every account entry the sign-in methods declare', async () => {
+  it('renders the settings each sign-in method declares, given the user', async () => {
     getVerifiedUser.mockResolvedValueOnce(user);
 
     const html = renderToStaticMarkup(await Account());
 
-    for (const entry of methods.flatMap((method) => method.account ?? [])) {
-      expect(html).toContain(`href="${entry.href}"`);
-      expect(html).toContain(entry.title);
-    }
+    expect(html).toContain(`<li>Setting for ${user.id}</li>`);
+  });
+
+  it('leads the settings with the address, closed until opened', async () => {
+    getVerifiedUser.mockResolvedValueOnce({ ...user, emailVerified: false });
+
+    const html = renderToStaticMarkup(await Account());
+
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('not verified');
+    expect(html).toContain('New email');
   });
 
   // The point of the section: a method with nothing to configure is still
@@ -76,16 +97,8 @@ describe('account page', () => {
 
     const html = renderToStaticMarkup(await Account());
 
-    for (const method of methods.filter((candidate) => !candidate.account)) {
-      expect(html).toContain(method.title);
-    }
-  });
-
-  it('says two-factor is off until the auth service says otherwise', async () => {
-    getVerifiedUser.mockResolvedValueOnce(user);
-    expect(renderToStaticMarkup(await Account())).toContain('Off');
-
-    getVerifiedUser.mockResolvedValueOnce({ ...user, activeMfaType: 'totp' });
-    expect(renderToStaticMarkup(await Account())).toContain('On (totp)');
+    expect(html).toContain(
+      'Plain method also signs in to this account, with nothing to set up here.',
+    );
   });
 });

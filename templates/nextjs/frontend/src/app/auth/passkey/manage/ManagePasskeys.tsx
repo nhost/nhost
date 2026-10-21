@@ -94,12 +94,10 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {keys.length === 0 ? (
-        <p className="text-center text-muted-foreground text-sm">
-          No passkeys yet.
-        </p>
-      ) : (
+    // Narrow and centred, like the address form: a nickname is a few words.
+    // With none yet the list is left out; the row already says "None".
+    <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
+      {keys.length === 0 ? null : (
         <ul className="flex flex-col gap-2">
           {keys.map((key) => (
             <li
@@ -127,9 +125,11 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
         </ul>
       )}
 
-      <form className="flex flex-col gap-4" onSubmit={handleAdd}>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={nicknameId}>Name for the new passkey</Label>
+      {/* One row, like the address change beside it on the account page:
+          the name is the only field, and the button is what it is for. */}
+      <form className="flex flex-col gap-2" onSubmit={handleAdd}>
+        <Label htmlFor={nicknameId}>Name for the new passkey</Label>
+        <div className="flex items-center gap-2">
           <Input
             id={nicknameId}
             type="text"
@@ -138,7 +138,11 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
             value={nickname}
             onChange={(event) => setNickname(event.target.value)}
             disabled={Boolean(pending)}
+            className="min-w-0 flex-1"
           />
+          <Button type="submit" disabled={Boolean(pending)}>
+            {pending === 'add' ? 'Waiting for your device…' : 'Add a passkey'}
+          </Button>
         </div>
 
         {error ? (
@@ -146,14 +150,6 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
             {error}
           </p>
         ) : null}
-
-        <Button
-          type="submit"
-          disabled={Boolean(pending)}
-          className="self-center"
-        >
-          {pending === 'add' ? 'Waiting for your device…' : 'Add a passkey'}
-        </Button>
       </form>
     </div>
   );

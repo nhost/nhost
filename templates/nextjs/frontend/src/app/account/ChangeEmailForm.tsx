@@ -16,8 +16,9 @@ type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
  *
  * A change is not applied here: the auth service sends a confirmation link
  * to the new address, and the account only moves when that link is opened.
- * Which is the reason this is a page of its own rather than a field on the
- * profile, where an edit that visibly changes nothing reads as a failure.
+ * Which is the reason this is a row with its own form rather than a field
+ * on the profile, where an edit that visibly changes nothing reads as a
+ * failure.
  */
 export default function ChangeEmailForm({
   email,
@@ -77,7 +78,7 @@ export default function ChangeEmailForm({
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-2 text-center text-sm" role="status">
+      <div className="flex flex-col gap-2 text-sm" role="status">
         <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           {sent.kind === 'change'
@@ -88,8 +89,10 @@ export default function ChangeEmailForm({
     );
   }
 
+  // Narrow and centred: an address is not long, and stretched across the
+  // row the field read as asking for a paragraph.
   return (
-    <div className="flex flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-sm flex-col gap-4">
       {email && !verified ? (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
           <p className="text-destructive text-sm">

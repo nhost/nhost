@@ -1,1 +1,1 @@
-export { default } from '@/app/auth/password/PasswordChangedLayout';
+export { default } from '@/components/ReplacePageLayout';

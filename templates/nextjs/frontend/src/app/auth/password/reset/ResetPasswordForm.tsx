@@ -1,15 +1,16 @@
 'use client';
 
-import { type FormEvent, use, useId, useState } from 'react';
+import { type FormEvent, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
-import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
+import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
+import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ResetPasswordForm() {
-  const onChanged = use(PasswordChangedContext);
+  const replacePage = useReplacePage();
   const passwordId = useId();
   const confirmId = useId();
   const rulesId = useId();
@@ -36,7 +37,7 @@ export default function ResetPasswordForm() {
         return;
       }
 
-      onChanged();
+      replacePage(<PasswordChanged />);
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');

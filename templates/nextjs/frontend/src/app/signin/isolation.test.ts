@@ -5,12 +5,17 @@ import { describe, expect, it } from 'vitest';
 
 // The rule `methods.ts` describes, checked against the import graph: a
 // sign-in method lives in its own directory under `src/app/auth/` and nothing
-// outside imports from it, so deleting the directory and its line in
-// `methods.ts` can never leave a dangling import. The two assertions are the
-// two ways that could break: a method reaching into another, or shared code
-// reaching into a method.
+// outside imports from it but `methods.ts` itself, so deleting the directory
+// and its entry there can never leave a dangling import. The two assertions
+// are the two ways that could break: a method reaching into another, or
+// shared code reaching into a method.
 const SRC = fileURLToPath(new URL('../..', import.meta.url));
 const AUTH = join(SRC, 'app', 'auth');
+
+// The one shared file that names methods, and the one place deleting a method
+// is done by hand. Its own test would be shared code too, so it mocks this
+// file rather than reaching past it.
+const REGISTRY = join(SRC, 'app', 'signin', 'methods.ts');
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -150,7 +155,7 @@ describe('sign-in methods are self-contained', () => {
   it('shared code imports no method', () => {
     const reaches: string[] = [];
     for (const file of files) {
-      if (methodOf(file)) {
+      if (methodOf(file) || file === REGISTRY) {
         continue;
       }
       for (const target of localImports(file)) {
