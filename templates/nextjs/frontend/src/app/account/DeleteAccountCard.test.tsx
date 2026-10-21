@@ -49,7 +49,12 @@ describe('delete account card', () => {
     await click('Delete account');
 
     expect(deleteAccount).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('cannot be reversed');
+    expect(container.textContent).toContain('cannot be undone');
+    expect(
+      [...container.querySelectorAll('button')]
+        .find((candidate) => candidate.textContent === 'Delete it permanently')
+        ?.closest('[inert]'),
+    ).toBeNull();
   });
 
   it('deletes on the second press and leaves the page', async () => {
