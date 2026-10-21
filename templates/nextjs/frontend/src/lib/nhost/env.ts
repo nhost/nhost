@@ -33,10 +33,17 @@ const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
  * opens. Configuration cannot be spoofed, so this is configuration.
  *
  * Same build-time rule as the pair above: set `NEXT_PUBLIC_APP_ORIGIN` before
- * `next build`, not on the running host.
+ * `next build`, not on the running host. On Vercel it can be left unset: Vercel
+ * sets the project's production domain on every build, previews included, and
+ * that comes from the project's settings rather than from a request.
  */
 export const appOrigin = (): string =>
-  process.env.NEXT_PUBLIC_APP_ORIGIN || DEFAULT_APP_ORIGIN;
+  process.env.NEXT_PUBLIC_APP_ORIGIN || vercelOrigin() || DEFAULT_APP_ORIGIN;
+
+const vercelOrigin = (): string | undefined => {
+  const domain = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  return domain ? `https://${domain}` : undefined;
+};
 
 /**
  * URL of a service in the local stack, on the same hostname pattern `nhost up`
@@ -82,7 +89,7 @@ if (
 
 if (
   process.env.NODE_ENV === 'production' &&
-  !process.env.NEXT_PUBLIC_APP_ORIGIN
+  appOrigin() === DEFAULT_APP_ORIGIN
 ) {
   console.error(
     'Nhost: NEXT_PUBLIC_APP_ORIGIN was unset when this build ran, so auth emails point at http://localhost:3000. Set it before `next build`; setting it at runtime has no effect.',
