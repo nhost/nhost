@@ -41,7 +41,7 @@ export default function ProfileSummary({ user }: { user: User }) {
           />
         </AvatarForm>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
           {/* No gap under the label. The field keeps its Edit button down to
               the height of its own text, so the label sits right on the
               value without being pulled into it.
@@ -54,32 +54,38 @@ export default function ProfileSummary({ user }: { user: User }) {
             <DisplayNameField displayName={user.displayName} />
           </div>
 
-          {/* Tight rows: none of this is editable or long, and the space a
-              form needs between its fields only pushed the id off the
-              avatar's line. Two pairs to a row once there is width for
-              them; the id is the one value too long to share. */}
-          {/* items-baseline so the id lines up with its label: it is the one
-              value in a smaller, monospaced face, and on the grid's default
-              stretch its taller line box sat it off the label's line. */}
-          <dl className="grid grid-cols-[max-content_1fr] items-baseline gap-x-3 gap-y-0.5 text-sm md:grid-cols-[max-content_1fr_max-content_1fr]">
+          {/* Tight rows: none of this is editable. Two pairs to a row once
+              there is width for them. Two-factor is not here: it is in
+              Sign-in settings, with the way to change it. */}
+          {/* Every value in the id's smaller, monospaced face: these are
+              what the auth service stores, read back as stored, and one
+              face for all of them keeps the id from looking like the odd
+              one out. items-baseline so each lines up with its label, which
+              is in the larger sans face; on the grid's default stretch the
+              taller line box sat the value off the label's line. */}
+          {/* The first pair's value column is only as wide as its values,
+              which are short, so the second pair sits close beside it
+              rather than halfway across the row; pl-6 is what still tells
+              the pairs apart. The id is the long one, so it takes the last
+              column, the one that gives way. */}
+          <dl className="grid grid-cols-[max-content_1fr] items-baseline gap-x-3 gap-y-0.5 text-sm md:grid-cols-[max-content_max-content_max-content_1fr] [&_dd]:font-mono [&_dd]:text-xs">
             {/* The default role on its own. The full list is `user.roles`,
                 but it always carries `me` alongside the real one, and
                 printing "user, me (default user)" asked a question it then
                 answered. */}
             <dt className="text-muted-foreground">Role</dt>
             <dd>{user.defaultRole}</dd>
-            <dt className="text-muted-foreground">Created</dt>
-            <dd>{whenOf(user.createdAt)}</dd>
-            <dt className="text-muted-foreground">Locale</dt>
-            <dd>{user.locale}</dd>
-            <dt className="text-muted-foreground">2FA</dt>
-            <dd>{user.activeMfaType ? `On (${user.activeMfaType})` : 'Off'}</dd>
-            <dt className="text-muted-foreground">User id</dt>
+            <dt className="text-muted-foreground md:pl-6">User id</dt>
             {/* min-w-0 so the truncate can bite: a grid item will not shrink
-                below its content without it. */}
-            <dd className="min-w-0 truncate font-mono text-xs md:col-span-3">
+                below its content without it. The title has the whole id for
+                when it is cut short. */}
+            <dd className="min-w-0 truncate" title={user.id}>
               {user.id}
             </dd>
+            <dt className="text-muted-foreground">Locale</dt>
+            <dd>{user.locale}</dd>
+            <dt className="text-muted-foreground md:pl-6">Created</dt>
+            <dd>{whenOf(user.createdAt)}</dd>
           </dl>
         </div>
       </div>
