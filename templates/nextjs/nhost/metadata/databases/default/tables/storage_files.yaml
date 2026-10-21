@@ -1,10 +1,3 @@
-# The storage service tracks this table and names its fields itself, and it
-# inserts the row for an upload through Hasura as the uploading user, so the
-# insert permission is what decides who may upload and where. The row is
-# finished (size, etag, uploaded) by the service as admin, which is why there
-# is no update permission here. Select and delete are the user's own files.
-# The service also reads a file back as the user before serving it and asks
-# for every select column, so dropping one breaks downloads.
 table:
   name: files
   schema: storage
@@ -55,6 +48,10 @@ configuration:
     select_by_pk: file
     update: updateFiles
     update_by_pk: updateFile
+object_relationships:
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id
 insert_permissions:
   - role: user
     permission:
