@@ -333,6 +333,7 @@ class CacheTests(unittest.TestCase):
                 str(project),
                 "build-docker-image",
                 "ARCH=aarch64",
+                "OS=linux",
                 "NAME=example",
                 "VER=0.0.0-dev",
                 f"ROOT_DIR={Path.cwd()}",
