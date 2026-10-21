@@ -54,10 +54,12 @@ export default function useDragToZoom({
 
   const handleMouseUp = () => {
     anchorRef.current = null;
+    // Clear even when this render has no selection: Recharts runs mouse-move on
+    // the next animation frame, so a selection can be set but not rendered yet.
+    setSelection(null);
     if (!selection) {
       return;
     }
-    setSelection(null);
     const { from, to } = selection;
     if (from === to || to - from < minRange) {
       return;
