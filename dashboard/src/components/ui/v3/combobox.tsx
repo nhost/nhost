@@ -175,7 +175,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
             aria-describedby={ariaDescribedBy}
             aria-invalid={ariaInvalid}
             className={cn(
-              'w-full justify-between font-normal',
+              'h-11 w-full justify-between font-normal md:h-9',
               !displayLabel && 'text-muted-foreground',
               className,
             )}
