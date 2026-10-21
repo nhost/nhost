@@ -77,7 +77,7 @@ export default function GitConnectionSettings() {
               </p>
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => setIsDisconnectDialogOpen(true)}
             >
               Disconnect

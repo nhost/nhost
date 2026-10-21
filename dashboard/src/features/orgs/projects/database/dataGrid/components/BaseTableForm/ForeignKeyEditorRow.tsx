@@ -50,9 +50,9 @@ export default function ForeignKeyEditorRow({
         <Button
           type="button"
           onClick={onEdit}
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-primary hover:text-primary"
+          className="h-7 px-2"
         >
           Edit
         </Button>
@@ -60,9 +60,9 @@ export default function ForeignKeyEditorRow({
         <Button
           type="button"
           onClick={onDelete}
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-7 px-2 text-primary hover:text-primary"
+          className="h-7 px-2"
         >
           Delete
         </Button>

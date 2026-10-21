@@ -89,7 +89,7 @@ export default function ServiceConfirmationDialog({
       </div>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
 

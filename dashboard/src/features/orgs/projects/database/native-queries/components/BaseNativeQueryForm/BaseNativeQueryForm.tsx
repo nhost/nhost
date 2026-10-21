@@ -279,12 +279,7 @@ export default function BaseNativeQueryForm({
         </div>
 
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-foreground"
-            onClick={onCancel}
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <ButtonWithLoading

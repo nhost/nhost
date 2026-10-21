@@ -191,7 +191,7 @@ export default function ResourcesConfirmationDialog({
       </div>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
 

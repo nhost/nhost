@@ -257,12 +257,7 @@ export default function EditTableForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button
-              onClick={resetError}
-              size="sm"
-              variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
+            <Button onClick={resetError} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

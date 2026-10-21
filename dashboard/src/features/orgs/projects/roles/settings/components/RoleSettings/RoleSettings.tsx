@@ -277,8 +277,8 @@ export default function RoleSettings() {
 
           <Button
             type="button"
-            variant="ghost"
-            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+            variant="outline"
+            className="mx-4 justify-self-start"
             onClick={handleOpenCreator}
           >
             <PlusIcon className="mr-2 h-4 w-4" />
