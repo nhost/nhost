@@ -9,6 +9,12 @@ this file describes the blog as it is rather than importing docs habits.
 Where the corpus and the shared rules disagree, the rules win, whether or not
 the case is named below.
 
+The mechanical half of this scope is enforced by Vale through
+`landing/.vale.ini`, which runs the shared `Nhost` style and the blog-only
+`NhostBlog` style from `.vale/styles/`. The rule that enforces an ID is named
+on its line below; the tiers and their counts are in `.vale/styles/README.md`.
+The rest of this file is checked by reading.
+
 - **BLOG-01** Every post is one of five types and follows its shape.
   - *announcement* (`Product` is the most used tag, 47 posts): the first
     paragraph names what shipped and who can use it; then what it does, how
@@ -73,12 +79,15 @@ the case is named below.
 - **BLOG-05** The layout renders the title, so the body starts with a
   paragraph and uses `##` and `###` only; the 7 posts with a `#` heading in
   the body are the exception. There are no `:::` callouts on the blog (0 of
-  86); a caveat is a sentence beside what it qualifies.
+  86); a caveat is a sentence beside what it qualifies. Vale-enforced:
+  `NhostBlog.BodyHeading`, `NhostBlog.Callout`.
 - **BLOG-06** Links are plain Markdown, as 555 of the 570 links outside
   code blocks are. `<a target="_blank">` is used only when a new tab is
   wanted, and then always with `rel="noopener noreferrer"`, as all 15 such
   links have. Product pages link as `https://nhost.io/product/<name>`, docs
-  pages as `https://docs.nhost.io/<path>`.
+  pages as `https://docs.nhost.io/<path>`, under one of the four docs
+  sections. Vale-enforced: `NhostBlog.NewTabRel`, `NhostBlog.DocsLinkPath`,
+  `NhostBlog.LegacyHost`, `NhostBlog.InsecureLink`.
 - **BLOG-07** A post's images live in its own folder,
   `landing/public/images/blog/<slug>/`, referenced as
   `/images/blog/<slug>/<name>.<ext>` and shown with `next/image` (imported
@@ -86,19 +95,24 @@ the case is named below.
   usually `/images/blog/<slug>/banner.png` (48 posts); 18 older posts use a
   flat `/images/blog/og-<name>.png`, which new posts do not. A missing image
   is a `SCREENSHOT:` placeholder at its path, as under "Placeholders" in the
-  rules doc.
+  rules doc. Vale-enforced: `NhostBlog.ImageFolder`,
+  `Nhost.ScreenshotPlaceholder`.
 - **BLOG-08** A post ends on a closing paragraph with the brief's call
   to action: a link to the docs, to Discord or X, or to sign up. Most posts
   in the corpus (67 of 86) end without one; the call to action is the
   standard for new posts. A post never ends on a "Conclusion", "Wrap up" or
   "Summary" section, though 27 posts do: the shared rule against filler
-  sections wins.
+  sections wins. Vale-enforced: `NhostBlog.ClosingHeading`,
+  `Nhost.FillerHeadings`.
 - **BLOG-09** Blog-specific tells of generated text, described by
   pattern:
   - an anecdote, customer, quote or number the brief and the sources do not
     supply;
-  - a subhead that promises what a term "actually means" (1 post has one);
-  - the thesis set alone in bold as a paragraph of its own;
+  - a subhead that promises what a term "actually means" (1 post has one),
+    Vale-enforced by `NhostBlog.ActuallyMeans`;
+  - the thesis set alone in bold as a paragraph of its own, Vale-enforced by
+    `NhostBlog.BoldParagraph`, which cannot tell it from a bold pseudo-heading
+    and so only suggests;
   - a framing paragraph about the industry, the times or the reader's
     journey before the post reaches its thesis.
 - **BLOG-10** Product claims in a post (availability, plans, limits,
@@ -106,7 +120,8 @@ the case is named below.
   against the dashboard, the CLI, the services, or nhost-be's console
   metadata for Nhost Cloud behaviour, or marked `VERIFY:`. A post with an
   unsourced product claim does not merge. Brief fidelity is blocking: a post
-  that drops the thesis or a key point does not merge either.
+  that drops the thesis or a key point does not merge either. Vale-enforced,
+  for the marker only: `Nhost.VerifyMarker`.
 
 ## Brief template
 

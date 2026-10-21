@@ -61,14 +61,17 @@ or from inside `nix develop .#docs`. Outside the shell they fail with
 - `pnpm lint:prose:changed`: only pages changed against `origin/main` (or
   `main`) plus untracked pages
 - `vale --minAlertLevel=suggestion src/content/docs/`: the suggestion tier too
-- `pnpm test:prose-rules`: fixture tests for the Nhost rules and the
-  calibration golden (`../.vale/test.sh`; `--update` regenerates the expected
-  files); part of `pnpm test`
+- `pnpm test:prose-rules`: fixture tests for the `Nhost` and `NhostBlog` rules
+  and the calibration golden (`../.vale/test.sh`; `--update` regenerates the
+  expected files); part of `pnpm test`. It covers the blog style too, because
+  only this check ships the calibration set
 
 Config is `docs/.vale.ini`; the styles live at the repository root in
-`.vale/styles/`. Rules, severity tiers and their measured counts are in
+`.vale/styles/`, shared with the blog, which lints through `landing/.vale.ini`
+against the same tree. Rules, severity tiers and their measured counts are in
 `.vale/styles/README.md`. Raise a rule's tier only with a new count
-there. `.vale.ini` ignores imports, `export const` blocks, `{/* */}` comments
+there, and remember a change under `.vale/` moves the blog as well as the
+docs. `.vale.ini` ignores imports, `export const` blocks, `{/* */}` comments
 and JSX tags; a rule that must see a comment (`SCREENSHOT:`, `VERIFY:`) needs
 `scope: raw`, plus `vocab: false` so an `accept.txt` term (`Hasura`) inside
 the match cannot hide it. When Vale flags text inside a JSX-wrapped paragraph (a `<Card>`

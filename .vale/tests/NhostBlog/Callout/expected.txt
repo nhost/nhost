@@ -1,0 +1,2 @@
+.vale/tests/NhostBlog/Callout/fail.mdx:3:1:NhostBlog.Callout:BLOG-05: the blog has no ':::' callout; put the caveat in a sentence beside what it qualifies.
+.vale/tests/NhostBlog/Callout/fail.mdx:5:1:NhostBlog.Callout:BLOG-05: the blog has no ':::' callout; put the caveat in a sentence beside what it qualifies.

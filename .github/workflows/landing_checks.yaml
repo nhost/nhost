@@ -24,6 +24,9 @@ on:
 
       # landing
       - landing/**
+
+      # prose: the Vale styles, shared with the docs
+      - .vale/styles/**
   merge_group:
 
 concurrency:
@@ -51,6 +54,7 @@ jobs:
         pnpm-lock.yaml
         turbo.json
         landing/**
+        .vale/styles/**
 
   check-permissions:
     needs: [detect-changes]

@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/ClosingHeading/fail.mdx:3:4:NhostBlog.ClosingHeading:BLOG-08: end on a closing paragraph with the call to action, not a 'Wrapping up' section.

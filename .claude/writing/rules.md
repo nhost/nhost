@@ -197,8 +197,10 @@ comment where the image or the fact belongs:
 Neither ever merges. A screenshot placeholder is replaced by the image at the
 path it names; a verify marker is resolved by checking the claim against the
 source it names and then removing the marker, or by removing the claim.
-`Nhost.ScreenshotPlaceholder` and `Nhost.VerifyMarker` fail docs CI on either
-marker, so a page carrying one cannot pass the docs check.
+`Nhost.ScreenshotPlaceholder` and `Nhost.VerifyMarker` fail CI on either
+marker, so neither a page nor a post carrying one can pass its project's
+check. Both rules are in the shared `Nhost` style, so they run on the blog
+too, though the screenshot rule's message names `DOCS-08`.
 
 ## Evidence
 

@@ -1,0 +1,16 @@
+# NhostBlog rule. Raw scope and multiline, because a whole-line match is
+# about the line's shape rather than its words. A paragraph that is entirely
+# bold is doing one of two jobs badly: standing in for a heading, which
+# should be '###' so it reaches the table of contents, or setting the thesis
+# apart, which BLOG-09 lists as a generated-text tell. In the corpus it is
+# the first; in generated drafts it is usually the second.
+extends: existence
+message: "BLOG-09: a bold-only paragraph is either a heading, which should be
+  '###', or the thesis, which should read as prose."
+level: suggestion
+scope: raw
+# Accepted vocabulary terms (Nhost, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '(?m)^\*\*[^*\n]+\*\*[:.]?[ \t]*$'

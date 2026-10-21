@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/NewTabRel/fail.mdx:3:13:NhostBlog.NewTabRel:BLOG-06: a link that opens a new tab needs 'rel="noopener noreferrer"'.

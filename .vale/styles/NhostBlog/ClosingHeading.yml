@@ -1,0 +1,22 @@
+# NhostBlog rule. The closing-section names the blog uses that Nhost
+# FillerHeadings does not already cover; no word is in both files. A post ends
+# on a closing paragraph carrying the call to action, not on a section whose
+# heading only announces that the post is ending.
+#
+# Two headings are deliberately absent, because Vale has no "last section"
+# scope and this rule matches a heading wherever it sits:
+#   'What's next' (14 posts) names what the reader does next, which is the
+#   call to action BLOG-08 asks for.
+#   'TL;DR' is conventionally an opener, and BLOG-01 tells a comparison post
+#   to lead with a summary, so matching it would flag the very shape the scope
+#   requires.
+# 'Final thoughts' and 'Recap' have no corpus hits and are kept as guards.
+extends: existence
+message: "BLOG-08: end on a closing paragraph with the call to action, not a
+  '%s' section."
+level: warning
+scope: heading
+ignorecase: true
+nonword: true
+tokens:
+  - '^(?:Wrap(?:ping)?[ -]?up|Closing(?: thoughts| remarks)?|Final thoughts|Recap)[.!?]?$'

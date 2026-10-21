@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Fixture tests for the Nhost Vale rules.
+# Fixture tests for the Nhost and NhostBlog Vale rules.
 #
 #   .vale/tests/<Style>/<Rule>/fail.mdx   reports exactly expected.txt, every
 #                                         line from <Style>.<Rule>
@@ -15,8 +15,9 @@
 # every expected file from the current output, creating a missing one; review
 # the diff before committing it.
 #
-# Fixtures are grouped by style, so a second style gets its own tree without
-# moving these.
+# Both styles are checked here rather than split per project, because the
+# calibration half reads the docs calibration set and only the docs Nix check
+# ships it. The docs check runs this script; see .vale/styles/README.md.
 
 set -euo pipefail
 
@@ -26,7 +27,7 @@ cd "$script_dir/.."
 config=.vale/tests/.vale.ini
 tests_dir=.vale/tests
 styles_root=.vale/styles
-styles=(Nhost)
+styles=(Nhost NhostBlog)
 calibration_expected=$tests_dir/calibration/expected-errors.txt
 
 update=false

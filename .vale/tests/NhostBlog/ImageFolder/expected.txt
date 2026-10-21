@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/ImageFolder/fail.mdx:3:20:NhostBlog.ImageFolder:BLOG-07: put the image in the post's own folder, '/images/blog/<slug>/', not flat at '/images/blog/retry-panel.png'.

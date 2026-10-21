@@ -23,8 +23,38 @@ Findings and handoff notes cite rule IDs and quote the text they apply to.
 A diff alone is never a brief. Writers do not read
 `tools/writing/calibration/`.
 
-Vale lints docs pages only: `docs/.vale.ini` has no blog section yet. Until it
-does, drafting and review check the mechanical style rules by reading.
+## Prose lint (Vale)
+
+`vale` is not on a stock PATH; it comes from the landing dev shell. Run these
+from the repo root as `nix develop .#landing --command pnpm --dir landing
+<script>`, or from inside `nix develop .#landing`. Outside the shell they fail
+with `vale: command not found`, which looks like a broken script but is not.
+
+- `pnpm test:prose`: error-level alerts only; part of `pnpm test` and the
+  landing Nix check, so it must exit 0
+- `pnpm lint:prose`: every post, warnings included
+- `pnpm lint:prose:changed`: only posts changed against `origin/main` (or
+  `main`) plus untracked posts
+- `vale --minAlertLevel=suggestion src/pages/blog/`: the suggestion tier too
+
+Config is `landing/.vale.ini`; the styles live at the repository root in
+`.vale/styles/`, shared with the docs. Two styles run on a post: `Nhost`, the
+rules that apply wherever we write, and `NhostBlog`, the blog-only rules,
+which cite the `BLOG-*` IDs from `.claude/writing/scopes/blog.md`. Rules,
+severity tiers and their measured counts over the corpus are in
+`.vale/styles/README.md`. Raise a rule's tier only with a new count there, and
+remember a change under `.vale/styles/` moves the docs as well as the blog.
+
+`landing/.vale.ini` switches off the five docs-only rules and relaxes two that
+the blog has not reached zero on; it never makes a shared rule stricter than
+the docs run it. It ignores imports, the `export const article` block,
+`{/* */}` comments and JSX tags, so a rule that must see a link, an image path
+or a comment uses `scope: raw`, plus `vocab: false` so an `accept.txt` term
+(`Nhost`) inside the match cannot hide it.
+
+Vale checks mechanical style only. The parts of the standard it cannot see,
+the brief fidelity and grounding in `BLOG-02`, `BLOG-03` and `BLOG-10` above
+all, are still checked by reading.
 
 ## Drafting and reviewing
 

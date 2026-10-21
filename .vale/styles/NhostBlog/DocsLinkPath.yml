@@ -1,0 +1,14 @@
+# NhostBlog rule. Raw scope, so a link inside a code fence or a JSX href is
+# seen too. Every docs page sits under one of the four top-level sections in
+# docs/src/content/docs/; a path starting anywhere else is pre-restructure and
+# 404s. Update the alternation when a section is added or renamed there.
+extends: existence
+message: "BLOG-06: '%s' is not a docs section; docs pages live under
+  getting-started, platform, products or reference."
+level: warning
+scope: raw
+# Accepted vocabulary terms (Nhost) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'https?://docs\.nhost\.io/(?!getting-started|platform|products|reference)[a-z][a-z0-9-]*'
