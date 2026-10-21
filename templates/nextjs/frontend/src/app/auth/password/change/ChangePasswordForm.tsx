@@ -1,15 +1,16 @@
 'use client';
 
-import { type FormEvent, use, useId, useState } from 'react';
+import { type FormEvent, useId, useState } from 'react';
 import { changePassword } from '@/app/account/actions';
-import { PasswordChangedContext } from '@/app/auth/password/PasswordChanged';
+import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
+import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ChangePasswordForm() {
-  const onChanged = use(PasswordChangedContext);
+  const replacePage = useReplacePage();
   const passwordId = useId();
   const confirmId = useId();
   const rulesId = useId();
@@ -36,7 +37,7 @@ export default function ChangePasswordForm() {
         return;
       }
 
-      onChanged();
+      replacePage(<PasswordChanged />);
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');
@@ -46,54 +47,62 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      {/* Stacked, not paired. They sat side by side when this was a section
-          on the account page, which was wide; on a card of its own there is
-          not the width for two, and the reset form a visitor may have met
-          first asks for the same two in a column. */}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={passwordId}>New password</Label>
-        <Input
-          id={passwordId}
-          type="password"
-          autoComplete="new-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          disabled={isPending}
-          aria-describedby={rulesId}
-        />
-      </div>
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+      {/* The two fields and the button in one row: the account row is wide,
+          and there is nothing else to fill it with. They stack on a narrow
+          screen. items-end lines the button up with the inputs rather than
+          with their labels. What changing it costs is said where it is
+          done, since nothing on the row says it. */}
+      <div className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={passwordId}>New password</Label>
+          <Input
+            id={passwordId}
+            type="password"
+            autoComplete="new-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            disabled={isPending}
+            aria-describedby={rulesId}
+          />
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={confirmId}>Confirm new password</Label>
-        <Input
-          id={confirmId}
-          type="password"
-          autoComplete="new-password"
-          required
-          value={confirm}
-          onChange={(event) => setConfirm(event.target.value)}
-          disabled={isPending}
-          aria-describedby={rulesId}
-        />
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={confirmId}>Confirm new password</Label>
+          <Input
+            id={confirmId}
+            type="password"
+            autoComplete="new-password"
+            required
+            value={confirm}
+            onChange={(event) => setConfirm(event.target.value)}
+            disabled={isPending}
+            aria-describedby={rulesId}
+          />
+        </div>
+
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Changing…' : 'Change password'}
+        </Button>
       </div>
 
       <PasswordRequirements
         id={rulesId}
         password={password}
         confirm={confirm}
+        className="flex-row flex-wrap items-start gap-x-4"
       />
+
+      <p className="text-muted-foreground text-sm">
+        Changing it signs every session out, this browser included.
+      </p>
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       ) : null}
-
-      <Button type="submit" disabled={isPending} className="self-center">
-        {isPending ? 'Changing…' : 'Change password'}
-      </Button>
     </form>
   );
 }

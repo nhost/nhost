@@ -1,4 +1,5 @@
 import { passwordRequirements } from '@/app/auth/password/requirements';
+import { cn } from '@/lib/utils';
 
 /**
  * The rules a new password has to meet, ticked off as it is typed.
@@ -13,15 +14,21 @@ export default function PasswordRequirements({
   id,
   password,
   confirm,
+  className,
 }: {
   id: string;
   password: string;
   confirm?: string;
+  className?: string;
 }) {
   return (
     // items-center so each rule centres as a unit, tick and all, under a
-    // card whose heading and button are centred too.
-    <ul id={id} className="flex flex-col items-center gap-1 text-sm">
+    // card whose heading and button are centred too. A form laid out
+    // differently passes its own.
+    <ul
+      id={id}
+      className={cn('flex flex-col items-center gap-1 text-sm', className)}
+    >
       {passwordRequirements(password, confirm).map((rule) => (
         <li key={rule.label} className="flex items-center gap-2">
           <span

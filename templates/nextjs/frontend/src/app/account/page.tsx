@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import DeleteAccountCard from '@/app/account/DeleteAccountCard';
 import ProfileSummary from '@/app/account/ProfileSummary';
-import SignInMethodLinks from '@/app/account/SignInMethodLinks';
+import SignInSettings from '@/app/account/SignInSettings';
 import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
 import { Card } from '@/components/ui/card';
@@ -28,7 +28,7 @@ export default async function Account() {
           keeps the first and last section square inside the rounded edge. */}
       <Card className="gap-0 divide-y overflow-hidden py-0">
         <ProfileSummary user={user} />
-        <SignInMethodLinks email={user.email} verified={user.emailVerified} />
+        <SignInSettings user={user} />
         <SignOutCard />
         <DeleteAccountCard />
       </Card>
