@@ -162,19 +162,50 @@ from pathlib import Path
 with Path(os.environ['TEST_LOG']).open('a') as output:
     output.write(json.dumps([Path(sys.argv[0]).name, sys.argv[1:]]) + '\\n')
 """
-        self.tool("skopeo", recorder)
+        self.tool(
+            "skopeo",
+            """import sys
+from pathlib import Path
+source = next(arg[4:] for arg in sys.argv[1:] if arg.startswith('dir:'))
+if not (Path(source) / 'manifest.json').is_file():
+    sys.exit('missing image manifest: ' + source)
+"""
+            + recorder,
+        )
         self.tool("docker", recorder)
-        for architectures in [["aarch64"], ["x86_64", "aarch64"], [], ["unsupported"]]:
-            with self.subTest(architectures=architectures):
+        cases = [
+            (["aarch64"], "flattened", ""),
+            (["x86_64"], "flattened", ""),
+            (["aarch64"], "nested", ""),
+            (["x86_64", "aarch64"], "nested", ""),
+            (["aarch64"], "flattened", "-variant"),
+            (["x86_64", "aarch64"], "nested", "-variant"),
+            ([], "nested", ""),
+            (["unsupported"], "nested", ""),
+        ]
+        for index, (architectures, layout, suffix) in enumerate(cases):
+            with self.subTest(
+                architectures=architectures, layout=layout, suffix=suffix
+            ):
                 self.log.unlink(missing_ok=True)
+                directory = self.directory / str(index)
+                images = []
+                for arch in architectures:
+                    image = directory / "artifacts"
+                    if layout == "nested":
+                        image /= f"example-docker-image{suffix}-linux-{arch}-release-sha"
+                    image.mkdir(parents=True, exist_ok=True)
+                    (image / "manifest.json").write_text("{}\n")
+                    images.append(image)
                 result = self.execute(
                     script,
                     {
                         "NAME": "example",
                         "VERSION": "release-sha",
                         "CONTAINER_REGISTRY": "registry.example.test",
-                        "ARTIFACT_SUFFIX": "",
+                        "ARTIFACT_SUFFIX": suffix,
                         "ARCHS": json.dumps(architectures),
+                        "RUNNER_TEMP": str(directory),
                     },
                 )
                 if not architectures or "unsupported" in architectures:
@@ -187,17 +218,54 @@ with Path(os.environ['TEST_LOG']).open('a') as output:
                 ]
                 copies = [args for name, args in events if name == "skopeo"]
                 self.assertEqual(len(copies), len(architectures))
-                for arch, args in zip(architectures, copies):
-                    self.assertIn(
-                        f"dir:{self.directory}/artifacts/example-docker-image-linux-{arch}-release-sha",
-                        args,
-                    )
+                for image, args in zip(images, copies, strict=True):
+                    self.assertIn(f"dir:{image}", args)
                 manifest = next(
                     args
                     for name, args in events
                     if name == "docker" and args[:2] == ["manifest", "create"]
                 )
                 self.assertEqual(manifest.count("--amend"), len(architectures))
+
+    def test_publisher_rejects_missing_image_manifests(self):
+        workflow = load(".github/workflows/wf_docker_push_image_ecr.yaml")
+        script = next(
+            step["run"]
+            for step in workflow["jobs"]["push-to-registry"]["steps"]
+            if step["name"] == "Push docker image to ECR"
+        )
+        for tool in ["skopeo", "docker"]:
+            self.tool(tool, "raise AssertionError('must not publish missing images')\n")
+        cases = [
+            (["aarch64"], "missing"),
+            (["aarch64"], "empty-nested"),
+            (["x86_64", "aarch64"], "flattened"),
+        ]
+        for index, (architectures, layout) in enumerate(cases):
+            with self.subTest(architectures=architectures, layout=layout):
+                directory = self.directory / str(index)
+                artifacts = directory / "artifacts"
+                artifacts.mkdir(parents=True)
+                if layout != "missing":
+                    (artifacts / "manifest.json").write_text("{}\n")
+                if layout == "empty-nested":
+                    (
+                        artifacts / "example-docker-image-linux-aarch64-release-sha"
+                    ).mkdir()
+                result = self.execute(
+                    script,
+                    {
+                        "NAME": "example",
+                        "VERSION": "release-sha",
+                        "CONTAINER_REGISTRY": "registry.example.test",
+                        "ARTIFACT_SUFFIX": "",
+                        "ARCHS": json.dumps(architectures),
+                        "RUNNER_TEMP": str(directory),
+                    },
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("::error::Missing image manifest", result.stderr)
+                self.assertNotIn("must not publish missing images", result.stderr)
 
 
 if __name__ == "__main__":

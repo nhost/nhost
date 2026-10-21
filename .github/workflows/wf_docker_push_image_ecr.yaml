@@ -86,7 +86,8 @@ jobs:
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
         with:
-          pattern: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-*
+          pattern: >-
+            ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-*
           path: ${{ runner.temp }}/artifacts
 
       - name: "Inspect artifacts"
@@ -107,8 +108,18 @@ jobs:
             then .[] else error("invalid architecture list") end')
           amendments=()
           for ARCH in $architectures; do
+            artifact="$NAME-docker-image$ARTIFACT_SUFFIX-linux-$ARCH-$VERSION"
+            src="$RUNNER_TEMP/artifacts/$artifact"
+            # download-artifact flattens a single matched artifact.
+            if [ ! -d "$src" ] && [ "$architectures" = "$ARCH" ]; then
+              src="$RUNNER_TEMP/artifacts"
+            fi
+            if [ ! -f "$src/manifest.json" ]; then
+              echo "::error::Missing image manifest: $src/manifest.json" >&2
+              exit 1
+            fi
             skopeo copy --insecure-policy \
-              "dir:$RUNNER_TEMP/artifacts/$NAME-docker-image$ARTIFACT_SUFFIX-linux-$ARCH-$VERSION" \
+              "dir:$src" \
               "docker://$CONTAINER_NAME:$VERSION-$ARCH"
             amendments+=(--amend "$CONTAINER_NAME:$VERSION-$ARCH")
           done
