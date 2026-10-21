@@ -106,14 +106,46 @@ The shared ECR publisher accepts `ARCHS` as a JSON list, defaulting to
 also supports repositories that publish only one architecture. Publisher runners
 must provide `jq` alongside the existing Docker and Skopeo tools.
 
+## Runner host requirements
+
+On NixOS or any runner with preinstalled Nix, `cachix/install-nix-action` skips
+`extra_nix_config`: `actions/setup-nix` writes the daemon's default and
+`nhost-nix-cache` AWS profiles and restarts the daemon, but does **not** write
+`nix.conf`. Provision the host daemon with
+`experimental-features = nix-command flakes`, `fallback = true`, and
+`sandbox = relaxed`. Alternatively, to take
+`sandbox = relaxed` from this repo's flake, set `accept-flake-config = true` and
+include the runner user in `trusted-users` (flake sandbox and substituters are
+restricted settings). Configure the R2 `s3://nhost-nix-cache` substituter and
+its `NIX_CACHE_PUB_KEY` in the daemon's trusted public keys, either on the host
+or via that trusted flake configuration; keep `https://cache.nixos.org` and its
+public key available too.
+
+Provide a host GitHub `access-tokens` entry for every job's Nix client to read
+when fetching public flake inputs. The token must have no repository or
+organization permissions; it is used only to raise public fetch rate limits.
+On NixOS, supply it from a file outside the world-readable Nix store, for
+example using a `!include` of a file readable by the runner user, rather than
+placing the value in `nix.settings`. Never print the token, including during
+configuration checks.
+
+The host must also supply the tools called directly by the applicable jobs:
+`jq`, `aws` CLI, `zstd`, `zip`/`unzip`, `skopeo`, Docker with Compose, `gh`, GNU
+`make`, `git`, `openssl`, `awk`, and passwordless `sudo`. Jobs also assume the
+usual `bash`, coreutils, findutils, tar/gzip, sed, and GNU grep (including `-P`)
+userland. The action does not provision these tools. Check daemon settings on a
+freshly provisioned runner with
+`nix config show | grep -E '^(experimental-features|sandbox|substituters|trusted-public-keys|accept-flake-config|trusted-users|fallback) '`
+(without displaying access tokens), then validate one JS check and one approved
+`pull_request_target` integration check on that fleet.
+
 ## Nix cache
 
-`actions/setup-nix` configures both default and `nhost-nix-cache` AWS profiles for
-the daemon, including preinstalled Nix on NixOS runners. It initializes
-`NIX_CACHE_ROOTS` with locked flake inputs, excluding this repo's per-commit source.
-Its ready-cache gate uses `CACHE_TARGET` (default `.#packages.{system}.nixops`).
-Cache bootstrap and dependency-refresh jobs can set `SKIP_CACHE_CHECK: "true"`;
-the existing `NAME: nixops` bootstrap exemption is retained.
+`actions/setup-nix` initializes `NIX_CACHE_ROOTS` with locked flake inputs,
+excluding this repo's per-commit source. Its ready-cache gate uses `CACHE_TARGET`
+(default `.#packages.{system}.nixops`). Cache bootstrap and dependency-refresh
+jobs can set `SKIP_CACHE_CHECK: "true"`; the existing `NAME: nixops` bootstrap
+exemption is retained.
 
 Record derivations **before** executing them, appending to that file:
 
