@@ -6,7 +6,6 @@ import type {
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isFKConstraintOnSameTable } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 import { areStrArraysEqual } from '@/lib/utils';
 
 export interface FetchExistingRelationshipsOptions {
@@ -36,10 +35,7 @@ function findMatchingForeignKeyForCurrentTable(
 
   return (
     foreignKeys.find((fk) =>
-      areStrArraysEqual(
-        formatForeignKeyColumns(fk.columnName),
-        constraintColumns,
-      ),
+      areStrArraysEqual(fk.columns, constraintColumns),
     ) || null
   );
 }
@@ -65,7 +61,7 @@ function findMatchingForeignKeyForReferencedTable(
     constraint.table?.name === currentTable &&
     constraint.table?.schema === currentSchema;
   const matchesColumns = areStrArraysEqual(
-    formatForeignKeyColumns(foreignKey.columnName),
+    foreignKey.columns,
     getForeignKeyConstraintColumns(constraint),
   );
 

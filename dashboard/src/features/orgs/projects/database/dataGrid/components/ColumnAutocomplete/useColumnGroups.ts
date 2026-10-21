@@ -28,6 +28,10 @@ export interface UseColumnGroupsOptions {
   disableRelationships?: boolean;
 }
 
+function toColumnSetKey(columns: string[]) {
+  return JSON.stringify([...columns].sort());
+}
+
 export default function useColumnGroups({
   selectedTable,
   selectedSchema,
@@ -37,9 +41,9 @@ export default function useColumnGroups({
 }: UseColumnGroupsOptions) {
   const { columns, foreignKeyRelations } = tableData || {};
 
-  const columnTargetMap = foreignKeyRelations?.reduce(
+  const constraintTargetMap = foreignKeyRelations?.reduce(
     (map, currentRelation) =>
-      map.set(currentRelation.columnName, {
+      map.set(toColumnSetKey(currentRelation.columns), {
         schema: currentRelation.referencedSchema || 'public',
         table: currentRelation.referencedTable,
       }),
@@ -105,12 +109,9 @@ export default function useColumnGroups({
         // A composite FK still points at a single table, so its first
         // column is enough to build the one option for this relationship.
         const [column] = constraintColumns;
-        // columnTargetMap is only reliable when the column is the whole
-        // FK; a composite's first column may also belong to another FK.
-        const referencedTable =
-          constraintColumns.length === 1
-            ? columnTargetMap?.get(column)
-            : undefined;
+        const referencedTable = constraintTargetMap?.get(
+          toColumnSetKey(constraintColumns),
+        );
 
         return [
           ...relationships,

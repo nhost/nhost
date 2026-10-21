@@ -106,10 +106,9 @@ export default function DataGridBooleanCell<
         id={cellId}
         style={{ width: column.getSize() }}
         onKeyDown={handleMenuKeyDown}
-        className="!border-t-0 rounded-none border-2 border-[#0052cd] bg-data-cell-bg"
+        className="!border-t-0 rounded-none border-2 border-primary"
       >
         <DropdownMenuCheckboxItem
-          className="hover:!bg-data-cell-bg-hover"
           checked={optimisticValue === true}
           onKeyUp={(event) => handleTemporaryValueChange(event, true)}
           onClick={(event) => handleMenuClick(event, true)}
@@ -117,7 +116,6 @@ export default function DataGridBooleanCell<
           <ReadOnlyToggle checked />
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          className="hover:!bg-data-cell-bg-hover"
           checked={optimisticValue === false}
           onKeyUp={(event) => handleTemporaryValueChange(event, false)}
           onClick={(event) => handleMenuClick(event, false)}
@@ -126,7 +124,6 @@ export default function DataGridBooleanCell<
         </DropdownMenuCheckboxItem>
         {isNullable && (
           <DropdownMenuCheckboxItem
-            className="hover:!bg-data-cell-bg-hover"
             checked={optimisticValue === null}
             onKeyUp={(event) => handleTemporaryValueChange(event, null)}
             onClick={(event) => handleMenuClick(event, null)}
