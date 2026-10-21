@@ -77,11 +77,12 @@ export const updateSessionFromResponseMiddleware = (
         }
 
         // Check if this is an auth-related endpoint that might return session data.
-        // The `/elevate/` endpoints (`/elevate/totp` and `/elevate/webauthn/verify`)
-        // return a new session carrying the elevated claim; persisting it is what
-        // lets a following sensitive call (e.g. changing the password) be sent with
-        // the elevated token. `/elevate/webauthn` only returns a challenge, so the
-        // extractor below finds no session for it and nothing is stored.
+        // The `/elevate/` endpoints (`/elevate/totp`, `/elevate/webauthn/verify` and
+        // `/elevate/otp/email/verify`) return a new session carrying the elevated
+        // claim; persisting it is what lets a following sensitive call (e.g. changing
+        // the password) be sent with the elevated token. `/elevate/webauthn` only
+        // returns a challenge and `/elevate/otp/email` only an OK, so the extractor
+        // below finds no session for them and nothing is stored.
         if (
           url.endsWith('/token') ||
           url.includes('/token/exchange') ||
