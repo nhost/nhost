@@ -114,7 +114,7 @@ export function FancyMultiSelect({
     >
       <div
         className={cn(
-          'group flex min-h-10 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent',
+          'group flex min-h-11 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent md:min-h-9',
           disabled && 'pointer-events-none opacity-50',
           className,
         )}
