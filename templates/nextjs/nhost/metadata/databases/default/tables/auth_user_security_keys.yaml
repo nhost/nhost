@@ -1,7 +1,3 @@
-# The auth service tracks this table and names its fields itself when it
-# starts; nhost up re-applies that after this file. What it never adds is a
-# permission, and without one a signed-in user can register a passkey but not
-# list or remove it. Both are scoped to the user's own rows.
 table:
   name: user_security_keys
   schema: auth
@@ -31,6 +27,10 @@ configuration:
     select_by_pk: authUserSecurityKey
     update: updateAuthUserSecurityKeys
     update_by_pk: updateAuthUserSecurityKey
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 select_permissions:
   - role: user
     permission:
