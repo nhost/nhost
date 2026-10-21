@@ -100,11 +100,11 @@ export default function ResourcesConfirmationDialog({
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       {totalBillableVCPU > 0 ? (
-        <p className="text-sm">
+        <p className="text-muted-foreground text-sm">
           Please allow some time for the selected resources to take effect.
         </p>
       ) : (
-        <p className="text-sm">
+        <p className="text-muted-foreground text-sm">
           By confirming this you will go back to the original shared resources
           included in the {proPlan?.name} plan.
         </p>

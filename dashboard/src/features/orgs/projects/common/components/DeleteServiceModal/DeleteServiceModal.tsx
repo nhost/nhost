@@ -66,7 +66,7 @@ export default function DeleteServiceModal({
           This cannot be undone.
         </p>
 
-        <div className="my-4">
+        <div className="mt-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
               id="accept-1"
@@ -80,7 +80,7 @@ export default function DeleteServiceModal({
           </div>
         </div>
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="mt-11 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={close}>
             Cancel
           </Button>
