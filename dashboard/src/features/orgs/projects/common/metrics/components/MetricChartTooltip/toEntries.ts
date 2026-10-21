@@ -12,8 +12,9 @@ export interface TooltipEntry {
 export function toEntries(
   payload: PinnedPayloadEntry[],
   config: ChartConfig,
+  matchStackOrder = false,
 ): TooltipEntry[] {
-  return payload
+  const entries = payload
     .filter((p) => p.type !== 'none' && p.value != null)
     .map((p) => {
       const key = String(p.dataKey ?? p.name ?? 'value');
@@ -24,4 +25,5 @@ export function toEntries(
         color: p.color ?? p.payload?.fill ?? 'hsl(var(--muted-foreground))',
       };
     });
+  return matchStackOrder ? entries.reverse() : entries;
 }
