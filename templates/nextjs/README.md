@@ -30,7 +30,8 @@ cd frontend && pnpm install && pnpm dev
 
 `.secrets` holds the local development secrets, including the JWT keypair the
 auth service signs sessions with. The example file is the fixed set `nhost init`
-writes for every local project, so copying it is all a local stack needs. It is
+writes for every local project, plus the frontend's address (see
+[Deploying](#deploying)), so copying it is all a local stack needs. It is
 gitignored, and it must stay that way once it holds anything real.
 
 `nhost up` prints the local URLs. The frontend targets the local stack by
@@ -41,9 +42,9 @@ points at a real project.
 
 `frontend/src/app/signin/methods.ts` lists them. Four work as soon as the
 backend is up: email and password is always on, and `nhost/nhost.toml` turns
-on magic link, the email code and passkeys. Passkeys are bound to `localhost`,
-so open the app at `http://localhost:3000`, not `127.0.0.1`. The fifth, OAuth,
-needs you.
+on magic link, the email code and passkeys. Passkeys are bound to the
+`WEBAUTHN_RP_ID` secret, `localhost` locally, so open the app at
+`http://localhost:3000`, not `127.0.0.1`. The fifth, OAuth, needs you.
 
 ### OAuth
 
@@ -66,6 +67,26 @@ knows. Until a provider is listed it offers no button for it, and with none
 listed the sign-in page leaves the method out. The variable is only read on
 the server, at request time, so a host that deploys the frontend sets it like
 any other runtime variable rather than before the build.
+
+## Deploying
+
+The config takes the frontend's address from two secrets rather than from
+`nhost.toml`, so the same file deploys anywhere and no overlay is needed:
+`APP_ORIGIN` is where auth may redirect, and `WEBAUTHN_RP_ID` is the bare
+hostname passkeys are bound to. A cloud project sets both, for example:
+
+```sh
+nhost secrets create APP_ORIGIN https://myapp.example.com
+nhost secrets create WEBAUTHN_RP_ID myapp.example.com
+```
+
+The four OAuth secrets need to exist too, even while the providers are off,
+because the config references them. `fixme` is fine until a provider is
+enabled.
+
+The frontend needs the same origin as `NEXT_PUBLIC_APP_ORIGIN`, next to the
+project's subdomain and region; `frontend/.env.example` has all three. They
+are read when `next build` runs, so set them before building.
 
 ## Permissions
 
