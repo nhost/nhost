@@ -46,6 +46,11 @@ describe('sign-out card', () => {
 
     expect(signOut).not.toHaveBeenCalled();
     expect(container.textContent).toContain('including this one');
+    expect(
+      [...container.querySelectorAll('button')]
+        .find((candidate) => candidate.textContent === 'Sign out everywhere')
+        ?.closest('[inert]'),
+    ).toBeNull();
   });
 
   // Signing out of this browser alone is in the nav, on every page, so the
