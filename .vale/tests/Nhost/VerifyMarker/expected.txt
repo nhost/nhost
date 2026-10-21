@@ -1,0 +1,1 @@
+.vale/tests/Nhost/VerifyMarker/fail.mdx:6:5:Nhost.VerifyMarker:WR-CONTENT-05: check the claim against its source and remove the 'VERIFY:' marker, or remove the claim.

@@ -1,0 +1,2 @@
+.vale/tests/Nhost/NavPaths/fail.mdx:5:34:Nhost.NavPaths:DOCS-06: the dashboard path is now 'GraphQL → Settings → Engine', not 'Settings → Hasura'.
+.vale/tests/Nhost/NavPaths/fail.mdx:7:29:Nhost.NavPaths:DOCS-06: the dashboard path is now 'Auth → Settings → Sign-In Methods', not 'Settings → Sign-In Methods'.

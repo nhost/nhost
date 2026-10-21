@@ -18,7 +18,7 @@
     "test:check-links": "./check_broken_links.sh",
     "test:gen": "./gen_test.sh",
     "test:prose": "vale --minAlertLevel=error src/content/docs/",
-    "test:prose-rules": "./vale_test.sh"
+    "test:prose-rules": "../.vale/test.sh"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.2",

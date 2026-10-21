@@ -1,0 +1,2 @@
+.vale/tests/Nhost/FillerHeadings/fail.mdx:7:4:Nhost.FillerHeadings:WR-ANTI-04: name the task or the thing the section covers, not 'Overview'.
+.vale/tests/Nhost/FillerHeadings/fail.mdx:11:4:Nhost.FillerHeadings:WR-ANTI-04: name the task or the thing the section covers, not 'Summary'.

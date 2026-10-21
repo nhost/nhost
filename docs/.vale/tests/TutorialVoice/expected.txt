@@ -1,2 +1,0 @@
-docs/.vale/tests/TutorialVoice/fail.mdx:5:1:Nhost.TutorialVoice:WR-ANTI-09: give the reader the instruction or the fact instead of 'In this guide, we will'.
-docs/.vale/tests/TutorialVoice/fail.mdx:7:1:Nhost.TutorialVoice:WR-ANTI-09: give the reader the instruction or the fact instead of 'In this section we'll'.

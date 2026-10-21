@@ -27,6 +27,10 @@ on:
       - tools/configdocs/**
       - services/postgres/plugins.md
 
+      # prose: the Vale styles, fixtures and runner, shared with the blog
+      - .vale/**
+      - tools/writing/calibration/**
+
       # nhost-js
       - packages/nhost-js/**
 
@@ -68,6 +72,8 @@ jobs:
         docs/**
         tools/configdocs/**
         services/postgres/plugins.md
+        .vale/**
+        tools/writing/calibration/**
         packages/nhost-js/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml

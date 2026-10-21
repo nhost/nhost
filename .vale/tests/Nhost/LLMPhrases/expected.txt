@@ -1,0 +1,3 @@
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:16:Nhost.LLMPhrases:WR-ANTI-05: describe what the product does instead of 'powerful'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:32:Nhost.LLMPhrases:WR-ANTI-05: describe what the product does instead of 'leverage'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:54:Nhost.LLMPhrases:WR-ANTI-05: describe what the product does instead of 'seamlessly'.

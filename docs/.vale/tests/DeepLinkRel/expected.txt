@@ -1,2 +1,0 @@
-docs/.vale/tests/DeepLinkRel/fail.mdx:7:29:Nhost.DeepLinkRel:DOCS-07: a dashboard link that opens a new tab needs 'rel="noopener noreferrer"'.
-docs/.vale/tests/DeepLinkRel/fail.mdx:9:23:Nhost.DeepLinkRel:DOCS-07: a dashboard link that opens a new tab needs 'rel="noopener noreferrer"'.

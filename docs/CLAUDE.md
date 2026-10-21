@@ -62,11 +62,12 @@ or from inside `nix develop .#docs`. Outside the shell they fail with
   `main`) plus untracked pages
 - `vale --minAlertLevel=suggestion src/content/docs/`: the suggestion tier too
 - `pnpm test:prose-rules`: fixture tests for the Nhost rules and the
-  calibration golden (`vale_test.sh`; `--update` regenerates the expected
+  calibration golden (`../.vale/test.sh`; `--update` regenerates the expected
   files); part of `pnpm test`
 
-Config is `.vale.ini`; rules, severity tiers and their measured counts are
-in `.vale/styles/Nhost/README.md`. Raise a rule's tier only with a new count
+Config is `docs/.vale.ini`; the styles live at the repository root in
+`.vale/styles/`. Rules, severity tiers and their measured counts are in
+`.vale/styles/README.md`. Raise a rule's tier only with a new count
 there. `.vale.ini` ignores imports, `export const` blocks, `{/* */}` comments
 and JSX tags; a rule that must see a comment (`SCREENSHOT:`, `VERIFY:`) needs
 `scope: raw`, plus `vocab: false` so an `accept.txt` term (`Hasura`) inside

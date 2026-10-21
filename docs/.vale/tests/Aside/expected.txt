@@ -1,1 +1,0 @@
-docs/.vale/tests/Aside/fail.mdx:7:1:Nhost.Aside:DOCS-04: use a ':::note', ':::tip' or ':::caution' callout, never the '<Aside' component.

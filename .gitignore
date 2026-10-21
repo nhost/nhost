@@ -77,3 +77,6 @@ result
 letsencrypt/*
 
 /.nhost-code/
+
+# vale - downloaded package styles; the committed styles are vendored in place
+/.vale/styles/Google/

@@ -1,0 +1,4 @@
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:5:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'Let's dive'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:5:32:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'delve'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:7:1:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'It's worth noting'.
+.vale/tests/Nhost/LLMPhrasesStrict/fail.mdx:7:39:Nhost.LLMPhrasesStrict:WR-ANTI-05: describe what the product does instead of 'effortless'.

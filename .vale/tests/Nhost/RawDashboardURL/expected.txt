@@ -1,0 +1,2 @@
+.vale/tests/Nhost/RawDashboardURL/fail.mdx:8:1:Nhost.RawDashboardURL:DOCS-07: give the UI path and a deep link through 'app.nhost.io/orgs/_/projects/_/', not '/orgs/{org}/projects/'.
+.vale/tests/Nhost/RawDashboardURL/fail.mdx:11:33:Nhost.RawDashboardURL:DOCS-07: give the UI path and a deep link through 'app.nhost.io/orgs/_/projects/_/', not 'app.nhost.io/orgs/acme'.
