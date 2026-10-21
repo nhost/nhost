@@ -1,3 +1,32 @@
+## [@nhost/dashboard@3.8.0] - 2026-10-20
+
+### 🚀 Features
+
+- *(dashboard)* Add support for composite foreign keys (#4494)
+- *(dashboard)* Render DialogProvider with v3 dialog, sheet and alert-dialog (#5170)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Gate native queries when running old graphql engine version (#5121)
+- *(dashboard)* Allow editing AI assistants without GraphQL or webhook tools (#5197)
+- *(dashboard)* Keep query params when resolving placeholder links (#5107)
+- *(dashboard)* Fix switching projects from a database page (#5108)
+- *(dashboard)* Split UnauthenticatedLayout into AuthFlowLayout and GuestGuard (#4982)
+- *(dashboard)* New metrics icon (#5194)
+- *(dashboard)* Move dashboard version to help and support (#5185)
+- *(dashboard)* Merge outline-emboss and secondary buttons into outline (#5187)
+- *(dashboard)* Handle composite foreign key constraints when reading relationships (#5061)
+- *(dashboard)* Allow unique indexes as referenced foreign key keys (#5065)
+- *(dashboard)* Fix saving run services and NaN replicas (#5198)
+- *(dashboard)* Move remaining v2 and MUI consumers to v3 (#5178)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Lint logs files hidden by root gitignore (#5191)
+- *(dashboard)* Remove unused ui/v2 components, MUI and Emotion (#5179)
+
 ## [@nhost/dashboard@3.7.1] - 2026-10-14
 
 ### 🐛 Bug Fixes

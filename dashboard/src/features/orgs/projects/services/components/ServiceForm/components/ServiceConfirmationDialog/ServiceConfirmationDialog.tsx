@@ -97,7 +97,7 @@ export default function ServiceConfirmationDialog({
           Confirm
         </ButtonWithLoading>
 
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

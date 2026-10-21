@@ -199,7 +199,7 @@ export default function ResourcesConfirmationDialog({
         >
           Confirm
         </Button>
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

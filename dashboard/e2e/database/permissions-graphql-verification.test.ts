@@ -102,7 +102,7 @@ test.describe
 
       await page
         .locator(
-          `li:has-text("${tableName}") #table-management-menu-${tableName}`,
+          `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
         )
         .click();
 
