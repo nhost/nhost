@@ -26,29 +26,31 @@ A signed-in user can elevate their session with any of the following methods. A 
 |---|---|---|
 | `webauthn` | `auth.method.webauthn.enabled` | They have at least one [security key](/products/auth/webauthn) registered |
 | `totp` | `auth.totp.enabled` | They have activated [TOTP](/products/auth/mfa) on their account |
-| `otp-email` | `auth.method.otp.email.enabled` | They have an email address |
+| `otp-email` | `auth.method.otp.email.enabled` | They have a verified email address |
 | `otp-sms` | `auth.method.otp.sms.enabled` | They have a verified phone number |
 
 Every method ends with the same result: a new session whose access token carries the `x-hasura-auth-elevated` claim. The JavaScript SDK stores that session automatically, so subsequent requests made with the same client use the elevated token.
 
 :::note
-Enabling `auth.method.otp.email` or `auth.method.otp.sms` also enables the corresponding passwordless sign-in method. Email OTP elevation uses the same `signin-otp` [email template](/products/auth/email-templates) as email OTP sign-in.
+Enabling `auth.method.otp.email` or `auth.method.otp.sms` also enables the corresponding passwordless sign-in method. Email OTP elevation uses its own `elevate-otp` [email template](/products/auth/email-templates).
 :::
 
 ### Discovering available methods
 
-Use [`GET /elevate`](/reference/auth/get-elevate) to find out whether the current user needs to elevate their session and which methods they can use:
+Use [`GET /elevate`](/reference/auth/get-elevate) to find out whether the current user needs to elevate their session, which methods they can use, and whether their session is already elevated:
 
 ```js
 const { body } = await nhost.auth.getElevationMethods();
 // {
 //   elevationRequired: true,
-//   methods: ['webauthn', 'totp', 'otp-email']
+//   methods: ['webauthn', 'totp', 'otp-email'],
+//   sessionElevated: false
 // }
 ```
 
 - `elevationRequired` tells you whether the [protected auth endpoints](#protecting-auth-data) will require an elevated session for this user under the current mode.
 - `methods` lists the methods the user can use right now.
+- `sessionElevated` tells you whether the current access token already carries the elevated claim, so you can skip the elevation step.
 
 If `elevationRequired` is `true` and `methods` is empty, the user has to set up a second factor before they can perform any protected action.
 
@@ -146,7 +148,7 @@ In `disabled` mode the elevated claim isn't required for any of the endpoints ab
 In `recommended` mode, the elevated claim is only required if the user has at least one [elevation method](#elevation-methods) available. Users with no available method can perform the actions above without elevating. This mode lets users opt into the extra security by setting up a second factor.
 
 :::caution
-In `recommended` mode, email OTP and SMS OTP count as available methods too. If you enable `auth.method.otp.email`, every user with an email address will have to elevate before performing the actions above, which effectively behaves like `required` mode for them.
+In `recommended` mode, email OTP and SMS OTP count as available methods too. If you enable `auth.method.otp.email`, every user with a verified email address will have to elevate before performing the actions above, which effectively behaves like `required` mode for them.
 :::
 
 In `required` mode, all of the endpoints above require an access token with the elevated claim. The only exception is setting up a first factor: if the user has no elevation method available, they can register a security key (`/user/webauthn/add` and `/user/webauthn/verify`) or start TOTP setup (`/mfa/totp/generate`) without the elevated claim. Every other endpoint still requires it, so such a user can't perform any other protected action until they set up a factor and elevate their session. Once the user has any method available, setting up additional factors requires the elevated claim as well.
