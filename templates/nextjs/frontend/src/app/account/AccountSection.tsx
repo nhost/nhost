@@ -26,20 +26,24 @@ export default function AccountSection({
 }) {
   return (
     <section className="flex flex-col gap-4 px-6 py-5">
-      {/* Deliberately not wrapping: the description is a sentence, and with
-          wrap on it took the whole row and pushed the action under it, which
-          is the one place the action must not be. The text shrinks instead.
+      <div className="flex flex-col gap-1.5">
+        <h2 className="font-semibold leading-none">{title}</h2>
+        {/* Deliberately not wrapping: the description is a sentence, and
+            with wrap on it took the whole row and pushed the action under
+            it, which is the one place the action must not be. The text
+            shrinks instead.
 
-          Aligned at the foot so the action sits level with the description
-          rather than with the title, which puts some air above it. */}
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="font-semibold leading-none">{title}</h2>
-          {description ? (
-            <div className="text-muted-foreground text-sm">{description}</div>
-          ) : null}
-        </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+            The action sits level with the top of the description, under
+            the title: the title names the section, and the action belongs
+            with what the section does. */}
+        {description || action ? (
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 text-muted-foreground text-sm">
+              {description}
+            </div>
+            {action ? <div className="shrink-0">{action}</div> : null}
+          </div>
+        ) : null}
       </div>
       {children}
     </section>
