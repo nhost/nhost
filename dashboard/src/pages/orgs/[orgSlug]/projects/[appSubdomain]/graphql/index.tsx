@@ -165,7 +165,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 className="col-span-1 py-2 md:col-auto"
                 onClick={prettifyEditors}
               >
@@ -180,7 +180,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={() => {
                   copyQuery();
                   triggerToast('Query copied to clipboard');
@@ -199,7 +199,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
 
       <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={toggleDocumentationExplorer}
           className="col-span-1 md:col-auto"
         >

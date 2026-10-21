@@ -241,7 +241,7 @@ export default function LogicalModelPermissionForm({
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleCancel}
             tabIndex={isDirty ? -1 : 0}

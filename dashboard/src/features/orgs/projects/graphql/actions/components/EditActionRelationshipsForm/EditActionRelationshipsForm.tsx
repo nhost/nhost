@@ -252,7 +252,7 @@ export default function EditActionRelationshipsForm({
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

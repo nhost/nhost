@@ -70,12 +70,7 @@ export default function CreateForeignKeyForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button
-              onClick={() => setError(null)}
-              size="sm"
-              variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
+            <Button onClick={() => setError(null)} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

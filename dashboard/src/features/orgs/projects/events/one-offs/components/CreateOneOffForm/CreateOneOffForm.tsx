@@ -135,7 +135,6 @@ export default function CreateOneOffForm() {
               <SheetClose asChild>
                 <Button
                   variant="outline"
-                  className="text-foreground"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel

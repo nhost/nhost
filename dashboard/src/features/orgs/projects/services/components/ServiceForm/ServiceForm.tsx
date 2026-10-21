@@ -359,9 +359,8 @@ export default function ServiceForm({
 
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateServiceFormError(null);
               }}
