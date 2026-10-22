@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
 import CenteredLayout from '@/components/CenteredLayout';
+import SignOutLink from '@/components/SignOutLink';
 import StackTitle from '@/components/StackTitle';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -93,16 +94,26 @@ export default async function Home() {
             </Step>
 
             <Step n={2} title="Explore your account">
-              <p>
-                Edit your profile and how you sign in, then sign out and try{' '}
-                <Link
-                  href={signInLink}
-                  className="text-foreground underline underline-offset-4"
-                >
-                  another way in
-                </Link>
-                .
-              </p>
+              {/* The link is whichever half the visitor can do now: signed
+                  in, signing out; signed out, the sign-in page, which a
+                  session would only send on to the account. */}
+              {user ? (
+                <p>
+                  Edit your profile and how you sign in, then{' '}
+                  <SignOutLink>sign out</SignOutLink> and try another way in.
+                </p>
+              ) : (
+                <p>
+                  Edit your profile and how you sign in, then sign out and try{' '}
+                  <Link
+                    href={signInLink}
+                    className="text-foreground underline underline-offset-4"
+                  >
+                    another way in
+                  </Link>
+                  .
+                </p>
+              )}
               {user ? (
                 <div>
                   <Button asChild size="sm" variant="outline">
