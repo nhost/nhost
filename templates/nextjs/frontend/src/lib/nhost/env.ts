@@ -52,7 +52,21 @@ export const localServiceURL = (service: string): string =>
  * has its emails captured.
  */
 export const localMailboxURL = (): string | null =>
-  nhostRegion() === LOCAL ? localServiceURL('mailhog') : null;
+  isLocalBackend() ? localServiceURL('mailhog') : null;
+
+/** Whether the app targets the stack `nhost up` runs rather than a project. */
+export const isLocalBackend = (): boolean => nhostRegion() === LOCAL;
+
+/**
+ * Where to manage the backend: the local stack's own dashboard, or the Nhost
+ * dashboard's project picker. The app knows a cloud project's subdomain but
+ * not the organization it belongs to, and the dashboard has no URL that
+ * finds a project from its subdomain alone.
+ */
+export const dashboardURL = (): string =>
+  isLocalBackend()
+    ? localServiceURL('dashboard')
+    : 'https://app.nhost.io/orgs/_/projects/_';
 
 if (
   process.env.NODE_ENV === 'production' &&
