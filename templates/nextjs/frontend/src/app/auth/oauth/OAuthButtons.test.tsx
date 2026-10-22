@@ -10,7 +10,7 @@ const linksFor = (ids: string[]) =>
   ids.map((id) => ({ id, label: `Continue with ${id}`, href: `/auth/${id}` }));
 
 describe('OAuthButtons', () => {
-  it('sends the visitor to the auth service, not through the router', () => {
+  it('leaves through a plain anchor, not through the router', () => {
     const html = render(linksFor(['github']));
 
     expect(html).toContain('href="/auth/github"');
