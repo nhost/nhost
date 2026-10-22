@@ -18,20 +18,22 @@ async function render(params: {
 describe('sign-in page', () => {
   // A protected page sends a visitor here with `next` and no intent, so the
   // page opens on sign up. Switching to sign in has to keep `next`, or signing
-  // in lands on the home page instead of the page they asked for.
+  // in lands on the default page instead of the one they asked for.
   it('offers sign in from sign up, keeping next', async () => {
-    const html = await render({ next: '/account' });
+    const html = await render({ next: '/protected' });
 
     expect(html).toContain('Create an account');
     expect(html).toContain('Already have an account?');
-    expect(html).toContain('href="/signin?next=%2Faccount&amp;intent=sign-in"');
+    expect(html).toContain(
+      'href="/signin?next=%2Fprotected&amp;intent=sign-in"',
+    );
   });
 
   it('offers sign up from sign in, keeping next', async () => {
-    const html = await render({ next: '/account', intent: 'sign-in' });
+    const html = await render({ next: '/protected', intent: 'sign-in' });
 
     expect(html).toContain('New here?');
-    expect(html).toContain('href="/signin?next=%2Faccount"');
+    expect(html).toContain('href="/signin?next=%2Fprotected"');
   });
 
   it('switches on the bare page without a next', async () => {
