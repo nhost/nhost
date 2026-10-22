@@ -1,4 +1,4 @@
-import { AlertTriangle, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
@@ -99,7 +99,6 @@ export default function CostEstimate() {
 
       {hasAutoscaler && (
         <Alert variant="warning">
-          <AlertTriangle className="size-5" />
           <AlertTitle>Autoscaler can vary the bill</AlertTitle>
           <AlertDescription className="text-muted-foreground">
             Each extra replica is billed by the minute while it runs. Bursts to

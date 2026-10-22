@@ -24,7 +24,7 @@ export default function DatabaseStorageCapacityWarning({
       <Alert variant="warning" className="flex flex-col gap-3 text-left">
         <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
           <p className="flex items-start gap-1 font-semibold">
-            <span>⚠</span> Warning: Increasing disk size
+            Warning: Increasing disk size
           </p>
         </div>
         <div>
@@ -42,8 +42,7 @@ export default function DatabaseStorageCapacityWarning({
       <Alert variant="warning" className="flex flex-col gap-3 text-left">
         <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
           <p className="flex items-start gap-1 font-semibold">
-            <span>⚠</span> Warning: Decreasing disk size requires project to be
-            paused first.
+            Warning: Decreasing disk size requires project to be paused first.
           </p>
         </div>
       </Alert>
@@ -54,7 +53,7 @@ export default function DatabaseStorageCapacityWarning({
       <Alert variant="warning" className="flex flex-col gap-3 text-left">
         <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
           <p className="flex items-start gap-1 font-semibold">
-            <span>⚠</span> Warning: Ensure enough space before downsizing.
+            Warning: Ensure enough space before downsizing.
           </p>
         </div>
         <div>
