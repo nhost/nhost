@@ -5,8 +5,8 @@ import type { ReactNode } from 'react';
  * list and every method's page. Left at the top of a tall window the card
  * looked like the start of a page with nothing after it.
  *
- * The height is the viewport less the nav and `main`'s vertical padding, so
- * a short card never makes the page scroll. A little more room below than
+ * The height is the viewport less the nav, a one-row footer and `main`'s
+ * vertical padding, so a short card never makes the page scroll. A little more room below than
  * above sits it just over the middle, where a centred thing reads as centred.
  *
  * The pages are wrapped in a plain block before the flex column sees them.
@@ -15,7 +15,7 @@ import type { ReactNode } from 'react';
  */
 export default function CenteredLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-[calc(100svh-9rem)] flex-col justify-center pb-[6vh]">
+    <div className="flex min-h-[calc(100svh-12.5rem)] flex-col justify-center pb-[6vh]">
       <div>{children}</div>
     </div>
   );
