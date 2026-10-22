@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
-import StackLogos from '@/components/StackLogos';
+import StackTitle from '@/components/StackTitle';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
 
@@ -61,12 +61,7 @@ export default async function Home() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-12 py-6">
       <header className="flex flex-col gap-3">
-        <div className="mb-3">
-          <StackLogos />
-        </div>
-        <h1 className="font-semibold text-3xl tracking-tight">
-          Nhost + Next.js
-        </h1>
+        <StackTitle />
         <p className="text-muted-foreground">
           An auth starter, rendered on the server.
         </p>
