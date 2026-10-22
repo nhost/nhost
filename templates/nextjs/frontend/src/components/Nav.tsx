@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
 import NhostLogo from '@/components/NhostLogo';
+import RefreshOnSessionChange from '@/components/RefreshOnSessionChange';
 import SignOutButton from '@/components/SignOutButton';
 import UserAvatar from '@/components/UserAvatar';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ export default async function Nav() {
 
   return (
     <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <RefreshOnSessionChange signedIn={!!user} />
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link
           href="/"
