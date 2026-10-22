@@ -59,15 +59,16 @@ export default async function Home() {
   const user = nhost.getUserSession()?.user;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-12 py-6">
-      <header className="flex flex-col gap-3">
+    <div className="mx-auto flex max-w-2xl flex-col gap-12 pt-24 pb-6">
+      <header className="flex flex-col items-center gap-3 text-center">
         <StackTitle />
         <p className="text-muted-foreground">
           An auth starter, rendered on the server.
         </p>
       </header>
 
-      <section className="flex flex-col gap-6">
+      {/* Centred as a block, read down from the left inside it. */}
+      <section className="flex flex-col gap-6 self-center">
         <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
           Get started
         </h2>
