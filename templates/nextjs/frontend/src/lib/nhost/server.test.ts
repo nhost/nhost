@@ -11,6 +11,8 @@ import {
   getVerifiedUser,
   handleNhostProxy,
   LINK_TOKEN_PARAM,
+  LINK_TYPE_PARAM,
+  PASSWORD_RESET_KEY,
   updateSessionUser,
 } from '@/lib/nhost/server';
 
@@ -222,7 +224,7 @@ describe('session cookies', () => {
     },
   );
 
-  it('deletes both cookies when the session is rejected', async () => {
+  it('deletes the session cookies when the session is rejected', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     fetchMock.mockImplementation(async () =>
@@ -231,7 +233,11 @@ describe('session cookies', () => {
 
     const response = await proxyResponse(storedSession(-60));
 
-    for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
+    for (const name of [
+      DEFAULT_SESSION_KEY,
+      ACCESS_TOKEN_KEY,
+      PASSWORD_RESET_KEY,
+    ]) {
       expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
     }
   });
@@ -303,6 +309,41 @@ describe('link redemption', () => {
     expect(
       decodeURIComponent(setCookie(response, DEFAULT_SESSION_KEY)),
     ).toContain('new-refresh-token');
+  });
+
+  // The proxy holds the visitor on this page until the password is saved.
+  it('marks the page a reset link signed the visitor in on', async () => {
+    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
+
+    const result = await handleNhostProxy(
+      new NextRequest(
+        `http://localhost:3000/reset?${LINK_TOKEN_PARAM}=link-token&${LINK_TYPE_PARAM}=passwordReset`,
+      ),
+    );
+    const response = result.applySessionCookies(NextResponse.next());
+
+    expect(result.pendingReset).toBe('/reset');
+    const line = setCookie(response, PASSWORD_RESET_KEY);
+    expect(line).toContain(`${PASSWORD_RESET_KEY}=%2Freset`);
+    expect(line).toMatch(/; HttpOnly/i);
+  });
+
+  it('marks no reset for any other link', async () => {
+    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
+
+    const result = await handleNhostProxy(
+      new NextRequest(
+        `http://localhost:3000/?${LINK_TOKEN_PARAM}=link-token&${LINK_TYPE_PARAM}=emailVerify`,
+      ),
+    );
+
+    expect(result.pendingReset).toBeNull();
+    expect(
+      setCookie(
+        result.applySessionCookies(NextResponse.next()),
+        PASSWORD_RESET_KEY,
+      ),
+    ).toBe('');
   });
 
   it('keeps a live session instead of redeeming the link', async () => {

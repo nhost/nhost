@@ -4,7 +4,7 @@ import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { signInDestination } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
-import { createNhostClient } from '@/lib/nhost/server';
+import { createNhostClient, endPasswordReset } from '@/lib/nhost/server';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
 // the client, and never `redirect()` (see the comment there for why).
@@ -140,6 +140,7 @@ export async function setNewPassword(
     }
 
     await nhost.auth.changeUserPassword({ newPassword });
+    await endPasswordReset();
 
     return { success: true };
   } catch (err) {

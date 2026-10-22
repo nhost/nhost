@@ -44,7 +44,8 @@ function signInRedirect(request: NextRequest): URL {
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
 
-  const { session, applySessionCookies } = await handleNhostProxy(request);
+  const { session, pendingReset, applySessionCookies } =
+    await handleNhostProxy(request);
 
   // A refresh token has no business staying in the address bar: query strings
   // leak through history, bookmarks and the referer header. Stripped whenever
@@ -56,6 +57,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     clean.searchParams.delete(LINK_TYPE_PARAM);
 
     return applySessionCookies(NextResponse.redirect(clean));
+  }
+
+  // A reset link signed this visitor in so they could choose a new password,
+  // not so they could use the account with the old one forgotten. Until the
+  // password is saved, every page but the reset page sends them back to it.
+  // The cookie is the visitor's own to edit, so it is held to a path here.
+  if (pendingReset) {
+    const resetPage = signInDestination(pendingReset);
+    if (path !== resetPage) {
+      return applySessionCookies(
+        NextResponse.redirect(new URL(resetPage, request.url)),
+      );
+    }
   }
 
   const isProtectedRoute = protectedRoutes.some(
