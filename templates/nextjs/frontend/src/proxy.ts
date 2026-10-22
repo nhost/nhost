@@ -1,7 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { signInDestination, signInHref } from '@/app/signin/destination';
 import {
+  promoteSignInAttempt,
+  recordSignInAttempt,
+} from '@/app/signin/lastUsed';
+import {
   handleNhostProxy,
+  isPrefetch,
   LINK_TOKEN_PARAM,
   LINK_TYPE_PARAM,
 } from '@/lib/nhost/server';
@@ -11,8 +16,9 @@ const protectedRoutes = ['/account'];
 // The pages that sign a visitor in: the list of methods, and each method's own
 // page, which `methods.ts` puts at `/auth/<method>`. Only that one segment:
 // deeper pages such as the password reset need the session they arrive with.
+const METHOD_PAGE = /^\/auth\/[^/]+\/?$/;
 const isSignInPage = (path: string): boolean =>
-  path === '/signin' || /^\/auth\/[^/]+\/?$/.test(path);
+  path === '/signin' || METHOD_PAGE.test(path);
 
 // What the auth service appends to `redirectTo` when a flow fails.
 const authErrorParams = ['error', 'errorDescription'];
@@ -47,6 +53,21 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { session, pendingReset, applySessionCookies } =
     await handleNhostProxy(request);
 
+  // Every response goes through here. Opening a method's page signed out is
+  // an attempt at that method, and the first response with a session keeps it
+  // as the way they last signed in (see `lastUsed.ts`). Not on a prefetch:
+  // the sign-in list prefetches every method it links to.
+  const respond = (response: NextResponse): NextResponse => {
+    applySessionCookies(response);
+    if (session) {
+      return promoteSignInAttempt(request, response);
+    }
+    if (METHOD_PAGE.test(path) && !isPrefetch(request)) {
+      return recordSignInAttempt(response, path.replace(/\/$/, ''));
+    }
+    return response;
+  };
+
   // A refresh token has no business staying in the address bar: query strings
   // leak through history, bookmarks and the referer header. Stripped whenever
   // one is there, not only when it was redeemed - a token the proxy declined
@@ -56,7 +77,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     clean.searchParams.delete(LINK_TOKEN_PARAM);
     clean.searchParams.delete(LINK_TYPE_PARAM);
 
-    return applySessionCookies(NextResponse.redirect(clean));
+    return respond(NextResponse.redirect(clean));
   }
 
   // A reset link signed this visitor in so they could choose a new password,
@@ -66,9 +87,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (pendingReset) {
     const resetPage = signInDestination(pendingReset);
     if (path !== resetPage) {
-      return applySessionCookies(
-        NextResponse.redirect(new URL(resetPage, request.url)),
-      );
+      return respond(NextResponse.redirect(new URL(resetPage, request.url)));
     }
   }
 
@@ -82,7 +101,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // on the default page. It reads the cookie without verifying it, so each
   // protected page still checks the visitor with `getVerifiedUser`.
   if (isProtectedRoute && !session) {
-    return applySessionCookies(NextResponse.redirect(signInRedirect(request)));
+    return respond(NextResponse.redirect(signInRedirect(request)));
   }
 
   // Someone already signed in has nothing to do on a sign-in page, so they go
@@ -93,15 +112,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       request.nextUrl.searchParams.get('next') ?? undefined,
     );
 
-    return applySessionCookies(
-      NextResponse.redirect(new URL(destination, request.url)),
-    );
+    return respond(NextResponse.redirect(new URL(destination, request.url)));
   }
 
   // `{ request }` forwards the cookies `handleNhostProxy` refreshed, so Server
   // Components on this request render with the new session instead of the one
   // the browser sent.
-  return applySessionCookies(NextResponse.next({ request }));
+  return respond(NextResponse.next({ request }));
 }
 
 // The second entry runs the proxy on the paths the first leaves out whenever

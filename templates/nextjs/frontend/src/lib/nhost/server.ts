@@ -206,7 +206,7 @@ export const LINK_TYPE_PARAM = 'type';
 // the httpOnly session cookie. Handing the browser that token so it could
 // refresh reopens exactly the race this function guards against, just with the
 // browser as the second rotator instead of a prefetch.
-function isPrefetch(request: NextRequest): boolean {
+export function isPrefetch(request: NextRequest): boolean {
   // In a production build every default <Link> in view prefetches, sending
   // `next-router-prefetch: 1`, some with `next-router-segment-prefetch`; the
   // runtime prefetches of Cache Components send `2` and `3`. Any value counts,
