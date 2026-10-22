@@ -94,7 +94,7 @@ export default function DeleteAssistantModal({
             Delete Assistant
           </ButtonWithLoading>
 
-          <Button variant="outline-emboss" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

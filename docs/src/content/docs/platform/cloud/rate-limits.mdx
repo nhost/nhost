@@ -23,7 +23,11 @@ You can rate-limit the GraphQL, Storage, and Functions services independently of
 
 <Tabs>
 <TabItem label="Dashboard">
-  **Project Dashboard -> Settings -> Rate Limiting**
+  Each service has its own **Rate Limiting** tab in its settings:
+
+  - **Project Dashboard -> GraphQL -> Settings -> Rate Limiting**
+  - **Project Dashboard -> Storage -> Settings -> Rate Limiting**
+  - **Project Dashboard -> Functions -> Settings -> Rate Limiting**
 
   ![Rate limit services](/images/platform/rate-limiting/misc.png)
 
@@ -47,7 +51,7 @@ interval = '15m'
 
 ## Auth
 
-Given that not all endpoints are equally sensitive, Auth supports more complex rate-limiting rules, allowing you to set different configurations depending on the properties of each endpoint.
+Given that not all endpoints are equally sensitive, [Auth](/products/auth) supports more complex rate-limiting rules, allowing you to set different configurations depending on the properties of each endpoint.
 
 | Endpoints             | Key | Limits | Description | Minimum version |
 | ----------------------|-----|--------|-------------|-----------------|
@@ -100,7 +104,7 @@ Limits are grouped within a given category. For instance, with a limit of 10 per
 
 <Tabs>
 <TabItem label="Dashboard">
-  **Project Dashboard -> Settings -> Rate Limiting**
+  **Project Dashboard -> Auth -> Settings -> Rate Limiting**
 
   ![Rate limit Auth](/images/platform/rate-limiting/auth.png)
 

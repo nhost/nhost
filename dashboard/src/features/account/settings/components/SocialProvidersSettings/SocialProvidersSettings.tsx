@@ -79,7 +79,7 @@ function ConfirmDisconnectGithubModal({
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-2">
-        <Button variant="outline-emboss" onClick={close}>
+        <Button variant="outline" onClick={close}>
           Cancel
         </Button>
         <ButtonWithLoading
@@ -155,7 +155,7 @@ export default function SocialProvidersSettings() {
         ) : (
           <Button
             variant="outline"
-            className="flex w-fit flex-row gap-2 bg-background text-sm+ hover:bg-accent"
+            className="flex w-fit flex-row gap-2 text-sm+"
             onClick={handleConnectGithub}
           >
             <GitHubIcon />

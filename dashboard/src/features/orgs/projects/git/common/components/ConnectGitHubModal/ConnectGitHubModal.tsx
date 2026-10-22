@@ -3,6 +3,7 @@ import debounce from 'lodash.debounce';
 import {
   ExternalLink as ArrowSquareOutIcon,
   CirclePlus as PlusCircleIcon,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ChangeEvent, ReactNode } from 'react';
@@ -455,7 +456,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                           </span>
                         </div>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => setSelectedRepoId(repo.node_id)}
                         >
                           Connect
@@ -487,5 +488,20 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   };
 
-  return <div className="md:w-[653px]">{renderContent()}</div>;
+  return (
+    <div className="relative w-full p-6">
+      {close && (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Close"
+          className="absolute top-4 right-4"
+          onClick={close}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      )}
+      {renderContent()}
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import { debounce } from '@mui/material/utils';
+import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';

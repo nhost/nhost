@@ -14,11 +14,7 @@ export default function AccountMenuSignOut() {
 
   return (
     <div className="p-2">
-      <Button
-        variant="ghost"
-        className="h-9 w-full justify-start gap-2 px-2 text-destructive hover:bg-destructive-hover"
-        onClick={handleSignOut}
-      >
+      <Button variant="menu-destructive" onClick={handleSignOut}>
         <LogOut className="h-4 w-4" />
         Sign out
       </Button>

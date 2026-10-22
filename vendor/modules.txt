@@ -646,7 +646,7 @@ github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/charset
 github.com/gabriel-vasile/mimetype/internal/json
 github.com/gabriel-vasile/mimetype/internal/magic
-# github.com/getkin/kin-openapi v0.144.0
+# github.com/getkin/kin-openapi v0.149.0
 ## explicit; go 1.25
 github.com/getkin/kin-openapi/openapi3
 github.com/getkin/kin-openapi/openapi3filter
@@ -1136,7 +1136,7 @@ github.com/rivo/uniseg
 # github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
+# github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 ## explicit; go 1.21
 github.com/santhosh-tekuri/jsonschema/v6
 github.com/santhosh-tekuri/jsonschema/v6/kind

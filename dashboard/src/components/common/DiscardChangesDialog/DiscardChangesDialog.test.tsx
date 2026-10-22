@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 import DiscardChangesDialog from '@/components/common/DiscardChangesDialog/DiscardChangesDialog';
-import { Drawer } from '@/components/ui/v2/Drawer';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/v3/sheet';
 import {
   render,
   screen,
@@ -45,15 +45,18 @@ function ControlledDialogs({
 }
 
 describe('DiscardChangesDialog', () => {
-  it('isolates Escape and restores focus inside a parent drawer', async () => {
+  it('isolates Escape and restores focus inside a parent sheet', async () => {
     const user = new TestUserEvent();
     const onDiscardChanges = vi.fn();
-    const onDrawerClose = vi.fn();
+    const onSheetOpenChange = vi.fn();
 
     render(
-      <Drawer open title="Draft drawer" onClose={onDrawerClose}>
-        <ControlledDialogs onDiscardChanges={onDiscardChanges} />
-      </Drawer>,
+      <Sheet open onOpenChange={onSheetOpenChange}>
+        <SheetContent aria-describedby={undefined}>
+          <SheetTitle>Draft sheet</SheetTitle>
+          <ControlledDialogs onDiscardChanges={onDiscardChanges} />
+        </SheetContent>
+      </Sheet>,
     );
 
     const parentDialog = screen.getByRole('dialog', { name: 'Draft editor' });
@@ -73,6 +76,6 @@ describe('DiscardChangesDialog', () => {
     expect(parentCloseButton).toHaveFocus();
     expect(parentDialog).toBeInTheDocument();
     expect(onDiscardChanges).not.toHaveBeenCalled();
-    expect(onDrawerClose).not.toHaveBeenCalled();
+    expect(onSheetOpenChange).not.toHaveBeenCalled();
   });
 });

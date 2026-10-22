@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/material';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -32,6 +31,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { useThemePreference } from '@/providers/Theme';
 
 const validationSchema = Yup.object({
   teamId: Yup.string()
@@ -65,7 +65,7 @@ const validationSchema = Yup.object({
 export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
@@ -173,7 +173,7 @@ export default function AppleProviderSettings() {
             title="Apple"
             description="Allow users to sign in with Apple."
             icon={
-              theme.palette.mode === 'dark'
+              resolvedTheme === 'dark'
                 ? '/assets/brands/light/apple.svg'
                 : '/assets/brands/apple.svg'
             }

@@ -24,10 +24,6 @@ export interface EditForeignKeyFormProps
    */
   foreignKeyRelation: ForeignKeyRelation;
   /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
-  /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void> | void;
@@ -35,29 +31,28 @@ export interface EditForeignKeyFormProps
 
 export default function EditForeignKeyForm({
   foreignKeyRelation,
-  selectedColumn,
   onSubmit,
   ...props
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
+  const referencedSchema = foreignKeyRelation.referencedSchema || 'public';
+  const { referencedTable, referencedColumns } = foreignKeyRelation;
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
-      columnName: selectedColumn || foreignKeyRelation.columnName,
-      referencedSchema: foreignKeyRelation.referencedSchema || 'public',
-      referencedTable: foreignKeyRelation.referencedTable,
-      referencedColumn: foreignKeyRelation.referencedColumn,
-
+      columns: foreignKeyRelation.columns,
+      referencedSchema,
+      referencedTable,
+      referencedKeyName: foreignKeyRelation.referencedKeyName ?? '',
+      referencedColumns,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
-
-  const disableOriginColumn = Boolean(selectedColumn);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);
@@ -85,12 +80,7 @@ export default function EditForeignKeyForm({
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button
-              onClick={() => setError(null)}
-              size="sm"
-              variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
+            <Button onClick={() => setError(null)} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>
@@ -100,7 +90,6 @@ export default function EditForeignKeyForm({
       <BaseForeignKeyForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
-        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

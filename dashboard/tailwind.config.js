@@ -37,7 +37,6 @@ module.exports = {
         'error-main': '#f13154',
         'error-bg': '#f131541a',
         'error-toast-bg': 'hsl(var(--error-toast-bg))',
-        'secondary-hover': '#475569',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -78,6 +77,8 @@ module.exports = {
           hover: 'hsl(var(--destructive-hover))',
         },
         warning: 'hsl(var(--warning) / <alpha-value>)',
+        'on-solid': 'hsl(var(--on-solid) / <alpha-value>)',
+        backdrop: 'hsl(var(--backdrop) / <alpha-value>)',
         'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
         'sidebar-section-title': 'hsl(var(--sidebar-section-title))',
         border: 'hsl(var(--border))',
@@ -99,6 +100,7 @@ module.exports = {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
         overlay: 'var(--shadow-overlay)',
+        raised: 'var(--shadow-raised)',
       },
       zIndex: {
         '-1': '-1',

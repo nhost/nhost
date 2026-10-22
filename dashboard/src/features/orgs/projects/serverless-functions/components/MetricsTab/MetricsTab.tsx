@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import MetricsTimeRangeFilter from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
+import { MetricsTimeRangeFilter } from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
 import { useMetricsTimeRangeUrlState } from '@/features/orgs/projects/common/metrics/hooks/useMetricsTimeRangeUrlState';
 import { resolveTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
 import ExpandedMetricPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel';

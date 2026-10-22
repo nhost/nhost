@@ -192,8 +192,7 @@ export default function CreateTableForm({
                 resetTrackError();
               }}
               size="sm"
-              variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              variant="outline"
             >
               Clear
             </Button>
