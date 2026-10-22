@@ -1,7 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { cn } from '@/lib/utils';
-import type { TooltipEntry } from './toEntries';
+import {
+  formatTooltipValue,
+  numericValue,
+  type TooltipEntry,
+} from './toEntries';
 
 export interface TooltipCardOptions {
   valueFormatter?: (v: number) => string;
@@ -59,10 +63,6 @@ function toListedEntries(
   ];
 }
 
-function numericValue(entry: TooltipEntry): number {
-  return typeof entry.value === 'number' ? entry.value : 0;
-}
-
 function formatLabel(
   label: number | string | undefined,
   labelFormatter?: (timestamp: number) => string,
@@ -117,7 +117,7 @@ export default function TooltipCard({
         {toListedEntries(entries, maxEntries).map((entry) => {
           const display =
             typeof entry.value === 'number'
-              ? (valueFormatter?.(entry.value) ?? entry.value.toLocaleString())
+              ? formatTooltipValue(entry.value, valueFormatter)
               : String(entry.value ?? '');
           return (
             <div key={entry.key} className="flex w-full items-center gap-2">

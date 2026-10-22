@@ -20,9 +20,7 @@ import {
 } from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
 import { ScaleCapture } from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
 import { TOOLTIP_WRAPPER_STYLE } from '@/features/orgs/projects/common/metrics/constants';
-import { useDragToZoom } from '@/features/orgs/projects/common/metrics/hooks/useDragToZoom';
-import { usePinnedTooltip } from '@/features/orgs/projects/common/metrics/hooks/usePinnedTooltip';
-import { useSeriesVisibility } from '@/features/orgs/projects/common/metrics/hooks/useSeriesVisibility';
+import { useChartInteractions } from '@/features/orgs/projects/common/metrics/hooks/useChartInteractions';
 import { useTimeAxis } from '@/features/orgs/projects/common/metrics/hooks/useTimeAxis';
 import type {
   ChartMouseEvent,
@@ -69,18 +67,22 @@ export default function MetricChart({
 
   const { ticks, tickFormatter } = useTimeAxis(xDomain);
 
-  const { hiddenSet, handleLegendClick } = useSeriesVisibility({
+  const {
+    hiddenSet,
+    pin,
+    zoom,
+    handleLegendItemClick,
+    handleClick,
+    handleDoubleClick,
+  } = useChartInteractions({
+    rows,
     keys,
+    config,
     hiddenKeys,
     onHiddenKeysChange,
-  });
-  const pin = usePinnedTooltip({ rows, keys, hiddenSet, config });
-  const zoom = useDragToZoom({
-    minRange: MIN_ZOOM_RANGE_MS,
-    onZoomRange: (from, to) => {
-      pin.clearPinned();
-      onZoomRange?.(from, to);
-    },
+    minZoomRange: MIN_ZOOM_RANGE_MS,
+    onZoomRange,
+    onZoomOut,
   });
 
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
@@ -143,28 +145,6 @@ export default function MetricChart({
 
   const handleMouseLeave = () => {
     setFocusedKey(null);
-  };
-
-  // A pinned tooltip is a snapshot of the series visible when it was pinned,
-  // so it is closed rather than left out of sync with the legend.
-  const { clearPinned } = pin;
-  const handleLegendItemClick = useCallback<typeof handleLegendClick>(
-    (key, modifiers) => {
-      clearPinned();
-      handleLegendClick(key, modifiers);
-    },
-    [clearPinned, handleLegendClick],
-  );
-
-  const handleClick = (e: ChartMouseEvent) => {
-    if (!zoom.consumeDragClick()) {
-      pin.togglePinAt(e);
-    }
-  };
-
-  const handleDoubleClick = () => {
-    pin.clearPinned();
-    onZoomOut?.();
   };
 
   const chartProps = {

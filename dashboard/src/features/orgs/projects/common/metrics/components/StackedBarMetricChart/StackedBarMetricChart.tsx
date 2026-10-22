@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Bar,
   BarChart,
@@ -10,7 +10,6 @@ import {
   YAxis,
 } from 'recharts';
 import {
-  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartTooltip,
@@ -22,11 +21,8 @@ import {
   type TooltipEntry,
 } from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
 import { TOOLTIP_WRAPPER_STYLE } from '@/features/orgs/projects/common/metrics/constants';
-import { useDragToZoom } from '@/features/orgs/projects/common/metrics/hooks/useDragToZoom';
-import { usePinnedTooltip } from '@/features/orgs/projects/common/metrics/hooks/usePinnedTooltip';
-import { useSeriesVisibility } from '@/features/orgs/projects/common/metrics/hooks/useSeriesVisibility';
+import { useChartInteractions } from '@/features/orgs/projects/common/metrics/hooks/useChartInteractions';
 import type {
-  ChartMouseEvent,
   MetricSeries,
   SeriesAccessors,
 } from '@/features/orgs/projects/common/metrics/types';
@@ -37,11 +33,9 @@ import {
 import { buildStackedValueTicks } from '@/features/orgs/projects/common/metrics/utils/buildStackedValueTicks';
 import type { Row } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 import { cn } from '@/lib/utils';
-
-interface StackedBarReferenceLine {
-  value: number;
-  label: string;
-}
+import TooltipFooter from './TooltipFooter';
+import type { StackedBarReferenceLine } from './types';
+import VerticalReferenceLineLabel from './VerticalReferenceLineLabel';
 
 export interface StackedBarMetricChartProps {
   data: MetricSeries[];
@@ -75,92 +69,6 @@ const MAX_TOOLTIP_ENTRIES = 7;
 // Vertical reference line labels sit in this margin above the plot, where no
 // bar can cover them.
 const REFERENCE_LABEL_MARGIN_TOP = 24;
-const REFERENCE_LABEL_GAP = 6;
-
-interface TooltipFooterProps {
-  entries: TooltipEntry[];
-  totalLabel: string;
-  referenceLines?: StackedBarReferenceLine[];
-  valueFormatter?: (value: number) => string;
-}
-
-function TooltipFooter({
-  entries,
-  totalLabel,
-  referenceLines,
-  valueFormatter,
-}: TooltipFooterProps) {
-  const format = (value: number) =>
-    valueFormatter?.(value) ?? value.toLocaleString();
-  const total = entries.reduce(
-    (sum, entry) => sum + (typeof entry.value === 'number' ? entry.value : 0),
-    0,
-  );
-  return (
-    <>
-      {referenceLines?.map((referenceLine) => (
-        <div
-          key={referenceLine.label}
-          className="flex items-center justify-between gap-4 border-border/50 border-t pt-1.5 leading-none"
-        >
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="w-3 border-primary border-t border-dashed" />
-            {referenceLine.label}
-          </span>
-          <span className="font-medium font-mono tabular-nums">
-            {format(referenceLine.value)}
-          </span>
-        </div>
-      ))}
-      <div className="flex items-center justify-between gap-4 border-border/50 border-t pt-1.5 leading-none">
-        <span className="font-medium">{totalLabel}</span>
-        <span className="font-medium font-mono tabular-nums">
-          {format(total)}
-        </span>
-      </div>
-    </>
-  );
-}
-
-function verticalReferenceLabelAnchor(
-  value: number,
-  timeDomain: [number, number] | undefined,
-): 'start' | 'end' {
-  if (!timeDomain) {
-    return 'end';
-  }
-  const midpoint = timeDomain[0] + (timeDomain[1] - timeDomain[0]) / 2;
-  return value <= midpoint ? 'start' : 'end';
-}
-
-interface VerticalReferenceLineLabelProps {
-  value: string;
-  textAnchor: 'start' | 'end';
-  viewBox?: { x?: number; y?: number };
-}
-
-// Recharts' built-in `top` position gives vertical-line labels a zero width,
-// which wraps every word onto its own line, so the label is drawn directly.
-function VerticalReferenceLineLabel({
-  value,
-  textAnchor,
-  viewBox,
-}: VerticalReferenceLineLabelProps) {
-  if (viewBox?.x == null || viewBox.y == null) {
-    return null;
-  }
-  return (
-    <text
-      x={viewBox.x}
-      y={viewBox.y - REFERENCE_LABEL_GAP}
-      textAnchor={textAnchor}
-      fill="hsl(var(--muted-foreground))"
-      fontSize={12}
-    >
-      {value}
-    </text>
-  );
-}
 
 // Bars are centred on their timestamps, so the zoom selection is widened by
 // half a bar on each side to cover the bars it includes.
@@ -211,71 +119,6 @@ function getFooterTotalLabel({
     return filteredTotalLabel(visibleCount);
   }
   return totalLabel;
-}
-
-interface UseChartInteractionsOptions {
-  rows: Row[];
-  keys: string[];
-  config: ChartConfig;
-  onZoomRange?: (from: number, to: number) => void;
-  onZoomOut?: VoidFunction;
-}
-
-// Legend filtering, click to pin a tooltip, drag to zoom and double-click to
-// zoom out. Drag and double-click only respond when their callback is set.
-function useChartInteractions({
-  rows,
-  keys,
-  config,
-  onZoomRange,
-  onZoomOut,
-}: UseChartInteractionsOptions) {
-  const { hiddenSet, handleLegendClick } = useSeriesVisibility({ keys });
-  const pin = usePinnedTooltip({ rows, keys, hiddenSet, config });
-  const zoom = useDragToZoom({
-    onZoomRange: (from, to) => {
-      pin.clearPinned();
-      onZoomRange?.(from, to);
-    },
-  });
-
-  // A pinned tooltip is a snapshot of the series visible when it was pinned,
-  // so it is closed rather than left out of sync with the legend.
-  const { clearPinned } = pin;
-  const handleLegendItemClick = useCallback<typeof handleLegendClick>(
-    (key, modifiers) => {
-      clearPinned();
-      handleLegendClick(key, modifiers);
-    },
-    [clearPinned, handleLegendClick],
-  );
-
-  const handleClick = (event: ChartMouseEvent) => {
-    if (!zoom.consumeDragClick()) {
-      pin.togglePinAt(event);
-    }
-  };
-
-  const handleDoubleClick = () => {
-    pin.clearPinned();
-    onZoomOut?.();
-  };
-
-  const chartHandlers = {
-    onClick: handleClick,
-    onMouseDown: onZoomRange ? zoom.handleMouseDown : undefined,
-    onMouseMove: onZoomRange ? zoom.handleMouseMove : undefined,
-    onMouseUp: onZoomRange ? zoom.handleMouseUp : undefined,
-    onDoubleClick: onZoomOut ? handleDoubleClick : undefined,
-  };
-
-  return {
-    hiddenSet,
-    pin,
-    zoomSelection: zoom.selection,
-    chartHandlers,
-    handleLegendItemClick,
-  };
 }
 
 export default function StackedBarMetricChart({
@@ -329,9 +172,10 @@ function StackedBarChart({
   const {
     hiddenSet,
     pin,
-    zoomSelection,
-    chartHandlers,
+    zoom,
     handleLegendItemClick,
+    handleClick,
+    handleDoubleClick,
   } = useChartInteractions({ rows, keys, config, onZoomRange, onZoomOut });
 
   const yTicks = useMemo(
@@ -405,7 +249,12 @@ function StackedBarChart({
               right: 12,
               left: 12,
             }}
-            {...chartHandlers}
+            onClick={handleClick}
+            // Drag and double-click only respond when their callback is set.
+            onMouseDown={onZoomRange ? zoom.handleMouseDown : undefined}
+            onMouseMove={onZoomRange ? zoom.handleMouseMove : undefined}
+            onMouseUp={onZoomRange ? zoom.handleMouseUp : undefined}
+            onDoubleClick={onZoomOut ? handleDoubleClick : undefined}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
@@ -428,10 +277,8 @@ function StackedBarChart({
                 label={
                   <VerticalReferenceLineLabel
                     value={referenceLine.label}
-                    textAnchor={verticalReferenceLabelAnchor(
-                      referenceLine.value,
-                      timeDomain,
-                    )}
+                    timestamp={referenceLine.value}
+                    timeDomain={timeDomain}
                   />
                 }
               />
@@ -474,10 +321,10 @@ function StackedBarChart({
                 maxBarSize={maxBarSize}
               />
             ))}
-            {zoomSelection ? (
+            {zoom.selection ? (
               <ReferenceArea
-                x1={zoomSelection.from - halfBarSpacing}
-                x2={zoomSelection.to + halfBarSpacing}
+                x1={zoom.selection.from - halfBarSpacing}
+                x2={zoom.selection.to + halfBarSpacing}
                 strokeOpacity={0.3}
                 fillOpacity={0.1}
               />
