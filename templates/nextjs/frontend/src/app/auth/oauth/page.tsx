@@ -12,7 +12,7 @@ import {
 import { appOrigin } from '@/lib/nhost/env';
 import { createNhostClient } from '@/lib/nhost/server';
 import OAuthButtons from './OAuthButtons';
-import { providers } from './providers';
+import { configuredProviders, providerNames } from './providers';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +36,9 @@ export default async function OAuth({
   const destination = signInDestination(next);
   const query = signInQuery(destination, signInIntent(intent));
 
+  const configured = configuredProviders();
   const nhost = await createNhostClient();
-  const links = providers.map(({ id, label }) => ({
+  const links = configured.map(({ id, label }) => ({
     id,
     label,
     href: nhost.auth.signInProviderURL(id, {
@@ -49,15 +50,23 @@ export default async function OAuth({
     <div className="mx-auto max-w-sm">
       <Card>
         <CardHeader>
-          <CardTitle>GitHub or Google</CardTitle>
+          <CardTitle>
+            {providerNames(configured) || 'Provider accounts'}
+          </CardTitle>
           <CardDescription>Sign in with a provider account.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <OAuthButtons links={links} />
-          <p className="text-muted-foreground text-sm">
-            A provider only works once it is enabled in <code>nhost.toml</code>.
-            The README&apos;s OAuth section has the callback URL and the config.
-          </p>
+          {/* The sign-in list leaves this method out when nothing is set
+              up, so only a typed or old link lands here empty. */}
+          {links.length > 0 ? (
+            <OAuthButtons links={links} />
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              No provider is set up. The README&apos;s OAuth section has the
+              steps, ending with listing it in{' '}
+              <code>NHOST_OAUTH_PROVIDERS</code>.
+            </p>
+          )}
           <OtherWaysLink query={query} />
         </CardContent>
       </Card>
