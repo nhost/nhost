@@ -26,7 +26,7 @@ export default function WebhooksDataSourcesFormSection() {
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add webhook data source"
           onClick={() =>

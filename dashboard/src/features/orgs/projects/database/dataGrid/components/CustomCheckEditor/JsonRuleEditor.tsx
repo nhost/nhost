@@ -131,7 +131,7 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
       />
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
         onClick={handleCopy}
         aria-label={copied ? 'Copied' : 'Copy JSON'}

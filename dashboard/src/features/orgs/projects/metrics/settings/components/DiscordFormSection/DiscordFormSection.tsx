@@ -35,7 +35,7 @@ export default function DiscordFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add Discord webhook"
           onClick={() => append({ url: '', avatarUrl: '' })}

@@ -47,7 +47,7 @@ export default function PagerdutyFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add PagerDuty integration"
           onClick={() =>

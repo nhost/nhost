@@ -46,7 +46,7 @@ export default function SlackFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add Slack channel"
           onClick={() =>

@@ -48,7 +48,7 @@ export default function WebhookFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add webhook"
           onClick={() =>

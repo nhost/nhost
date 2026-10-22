@@ -82,7 +82,7 @@ const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </span>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-pressed={filterMode}
           className={cn('h-8 w-8', filterMode && 'bg-primary/10 text-primary')}
@@ -98,7 +98,7 @@ const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={totalMatches === 0}
@@ -109,7 +109,7 @@ const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={totalMatches === 0}
@@ -120,7 +120,7 @@ const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={query.length === 0}

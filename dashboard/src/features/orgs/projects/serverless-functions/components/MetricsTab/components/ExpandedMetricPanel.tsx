@@ -96,7 +96,7 @@ export default function ExpandedMetricPanel({
             </CopyToClipboardButton>
             <Button
               type="button"
-              variant="ghost"
+              variant="subtle"
               size="icon"
               onClick={onClose}
               aria-label="Close expanded panel"

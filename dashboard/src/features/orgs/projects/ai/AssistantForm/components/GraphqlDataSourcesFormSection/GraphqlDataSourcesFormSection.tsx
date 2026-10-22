@@ -29,7 +29,7 @@ export default function GraphqlDataSourcesFormSection() {
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add GraphQL data source"
           onClick={() =>

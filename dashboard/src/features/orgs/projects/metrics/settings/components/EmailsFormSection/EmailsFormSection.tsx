@@ -35,7 +35,7 @@ export default function EmailsFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add email"
           onClick={() => append({ email: '' })}

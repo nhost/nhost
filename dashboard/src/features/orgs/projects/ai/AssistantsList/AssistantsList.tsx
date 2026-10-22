@@ -105,7 +105,7 @@ export default function AssistantsList({
 
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={(event) => {
               copy(assistant.assistantID, 'Assistant Id');
@@ -121,7 +121,7 @@ export default function AssistantsList({
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}

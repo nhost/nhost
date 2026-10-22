@@ -84,9 +84,9 @@ export default function EventTriggerListItem({
                 )}
               >
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   size="icon"
-                  className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                  className="h-6 w-6"
                   data-testid={`event-trigger-menu-${eventTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();

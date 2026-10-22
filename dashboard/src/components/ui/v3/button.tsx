@@ -22,9 +22,10 @@ const baseButtonVariants = cva(
         ghost: 'text-accent-foreground hover:bg-accent',
         // Low-key button: no background, the content turns primary on hover.
         // Meant for icon-only buttons, so it defaults to the `icon-sm` size,
-        // see `defaultSizeByVariant`.
+        // see `defaultSizeByVariant`. At rest a softened foreground: quieter
+        // than text, still clearly clickable (muted-foreground reads disabled).
         subtle:
-          'text-neutral-600 hover:text-primary-main dark:text-sidebar-foreground dark:hover:text-primary-main',
+          'text-[hsl(var(--foreground)/0.58)] hover:text-primary-main dark:text-[hsl(var(--foreground)/0.72)] dark:hover:text-primary-main',
         link: 'text-primary underline-offset-4 hover:underline',
         // Rows inside a menu, like the account menu. No border or fill until
         // hover; menu-destructive is the same row in the danger color.

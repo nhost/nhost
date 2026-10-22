@@ -119,7 +119,7 @@ export default function AutoEmbeddingsList({
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 aria-label="More options"
               >

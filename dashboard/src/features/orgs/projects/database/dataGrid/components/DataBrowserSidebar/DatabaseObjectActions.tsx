@@ -98,12 +98,9 @@ function DatabaseObjectActions({
       >
         <Button
           data-testid={`${idPrefix}-management-menu-${objectName}`}
-          variant="outline"
+          variant="subtle"
           size="icon"
-          className={cn(
-            'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent',
-            triggerClassName,
-          )}
+          className={cn('h-6 w-6', triggerClassName)}
         >
           {triggerIcon ?? <Ellipsis />}
         </Button>

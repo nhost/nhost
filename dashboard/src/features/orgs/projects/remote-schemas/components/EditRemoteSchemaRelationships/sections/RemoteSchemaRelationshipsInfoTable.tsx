@@ -160,7 +160,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon">
+                      <Button type="button" variant="subtle" size="icon">
                         <DotsHorizontalIcon />
                       </Button>
                     </DropdownMenuTrigger>

@@ -119,7 +119,7 @@ export default function ServicesList({
                   {serviceID}
                 </span>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   onClick={() => copy(serviceID!, 'Service Id')}
                   aria-label="Service Id"
@@ -132,7 +132,7 @@ export default function ServicesList({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label={`More options for ${serviceName}`}
                 >
