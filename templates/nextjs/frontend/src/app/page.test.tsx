@@ -31,7 +31,7 @@ describe('home page', () => {
     expect(hrefOf(html, 'Sign up')).toBe(
       `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`,
     );
-    expect(hrefOf(html, 'Sign in')).toBe(
+    expect(hrefOf(html, 'another way in')).toBe(
       `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`,
     );
   });
@@ -44,6 +44,24 @@ describe('home page', () => {
 
     const html = await render();
 
+    expect(html).toContain('signed in as ada@example.com');
     expect(hrefOf(html, 'Go to your account')).toBe('/account');
+    expect(hrefOf(html, 'Sign up')).toBeUndefined();
+  });
+
+  // Signing in lands there, so the steps have to say what it is.
+  it('tells a signed-out visitor about the account page', async () => {
+    getUserSession.mockReturnValueOnce(null);
+
+    const html = await render();
+
+    expect(html).toContain('Explore your account');
+    expect(hrefOf(html, 'Go to your account')).toBeUndefined();
+  });
+
+  it('links to the Nhost docs', async () => {
+    getUserSession.mockReturnValueOnce(null);
+
+    expect(await render()).toContain('href="https://docs.nhost.io"');
   });
 });
