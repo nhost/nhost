@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { configuredProviders, providerNames } from '@/app/auth/oauth/providers';
+import { configuredProviders } from '@/app/auth/oauth/providers';
 
 const ids = (value: string | undefined) =>
   configuredProviders(value).map((provider) => provider.id);
@@ -22,14 +22,5 @@ describe('configuredProviders', () => {
 
   it('keeps the order of providers.ts', () => {
     expect(ids('google,github')).toEqual(['github', 'google']);
-  });
-});
-
-describe('providerNames', () => {
-  it('names one provider, or two joined by or', () => {
-    expect(providerNames(configuredProviders('google'))).toBe('Google');
-    expect(providerNames(configuredProviders('github,google'))).toBe(
-      'GitHub or Google',
-    );
   });
 });
