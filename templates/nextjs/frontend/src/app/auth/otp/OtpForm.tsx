@@ -12,17 +12,21 @@ type Step = 'email' | 'code';
 
 export default function OtpForm({
   next,
+  sentTo,
   mailboxURL,
 }: {
   next: string;
+  sentTo?: string;
   mailboxURL: string | null;
 }) {
   const router = useRouter();
   const emailId = useId();
   const codeId = useId();
 
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
+  // Opened from the link in the code email, the code is already out, so the
+  // form starts where the visitor left it: waiting for them to type it in.
+  const [step, setStep] = useState<Step>(sentTo ? 'code' : 'email');
+  const [email, setEmail] = useState(sentTo ?? '');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
@@ -31,7 +35,7 @@ export default function OtpForm({
     setError(undefined);
     setIsPending(true);
     try {
-      const result = await sendCode(email);
+      const result = await sendCode(email, next);
       if (result?.error) {
         setError(result.error);
         return;
