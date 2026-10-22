@@ -77,7 +77,7 @@ export default async function Home() {
               <p>Done: you are signed in as {user.email ?? user.id}.</p>
             ) : (
               <>
-                <p>Sign up, then open the link in the verification email.</p>
+                <p>Sign up with any of the ways the sign-in page offers.</p>
                 <div>
                   <Button asChild size="sm">
                     <Link href={signUpLink}>Sign up</Link>
