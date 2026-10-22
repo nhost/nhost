@@ -4,6 +4,7 @@ import ProfileSummary from '@/app/account/ProfileSummary';
 import SignInSettings from '@/app/account/SignInSettings';
 import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
+import Code from '@/components/Code';
 import { Card } from '@/components/ui/card';
 import { getVerifiedUser } from '@/lib/nhost/server';
 
@@ -32,6 +33,11 @@ export default async function Account() {
         <SignOutCard />
         <DeleteAccountCard />
       </Card>
+
+      <p className="mt-6 text-center text-muted-foreground text-sm">
+        Edit this page in <Code>src/app/account/</Code>. Each sign-in setting
+        lives with its method in <Code>src/app/auth/</Code>.
+      </p>
     </div>
   );
 }

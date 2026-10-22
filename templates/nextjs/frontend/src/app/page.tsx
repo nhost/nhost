@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
 import CenteredLayout from '@/components/CenteredLayout';
+import Code from '@/components/Code';
 import SignOutLink from '@/components/SignOutLink';
 import StackTitle from '@/components/StackTitle';
 import { Button } from '@/components/ui/button';
@@ -12,14 +13,6 @@ export const dynamic = 'force-dynamic';
 
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
-
-function Code({ children }: { children: ReactNode }) {
-  return (
-    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em]">
-      {children}
-    </code>
-  );
-}
 
 function Step({
   n,
