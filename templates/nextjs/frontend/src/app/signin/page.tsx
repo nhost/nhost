@@ -74,22 +74,21 @@ export default async function SignIn({
   return (
     <div className="mx-auto max-w-sm">
       <Card>
-        {/* Centred, unlike the method links below: the heading and the way
-            out at the foot address the visitor, the links in between are a
-            list to read down. */}
+        {/* Everything is centred, the links included, to match the provider
+            buttons, which centre their own label. */}
         <CardHeader className="text-center">
           <CardTitle>{copy[chosen].title}</CardTitle>
           <CardDescription>{copy[chosen].description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-2 px-10">
           {methods.map((method) => (
             <Link
               key={method.href}
               href={`${method.href}${query}`}
-              className="rounded-md border px-4 py-3 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-md border px-4 py-2 text-center outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="font-medium text-sm">{method.title}</div>
-              <div className="text-muted-foreground text-sm">
+              <div className="text-muted-foreground text-xs">
                 {method.description}
               </div>
             </Link>
