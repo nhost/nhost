@@ -87,12 +87,22 @@ function UniqueKeyDialog({
           <MultiSelectTrigger aria-label="Columns" className="h-10 w-full">
             <MultiSelectValue placeholder="Select columns" />
           </MultiSelectTrigger>
-          <MultiSelectContent contentClassName="z-[1400]">
+          <MultiSelectContent
+            contentClassName="z-[1400]"
+            search={{
+              placeholder: 'Search columns...',
+              emptyMessage: 'No columns found.',
+            }}
+          >
             <MultiSelectGroup>
               {columnNames.map(
                 (columnName, columnIndex) =>
                   columnName && (
-                    <MultiSelectItem key={columnName} value={`${columnIndex}`}>
+                    <MultiSelectItem
+                      key={columnName}
+                      value={`${columnIndex}`}
+                      keywords={[columnName]}
+                    >
                       {columnName}
                     </MultiSelectItem>
                   ),

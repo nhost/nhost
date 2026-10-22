@@ -99,6 +99,29 @@ describe('UniqueKeysSection', () => {
     expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
   });
 
+  it('filters the columns by name', async () => {
+    const user = new TestUserEvent();
+    render(<TestWrapper />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Add Unique Constraint' }),
+    );
+    await user.click(screen.getByRole('combobox', { name: 'Columns' }));
+    const searchInput = screen.getByPlaceholderText('Search columns...');
+
+    await user.type(searchInput, 'sku');
+
+    expect(screen.getByRole('option', { name: 'sku' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', { name: 'order_id' }),
+    ).not.toBeInTheDocument();
+
+    await user.clear(searchInput);
+    await user.type(searchInput, 'zzz');
+
+    expect(screen.getByText('No columns found.')).toBeInTheDocument();
+  });
+
   it('ticks the Unique checkbox of a single column added from the dialog', async () => {
     const user = new TestUserEvent();
     render(<TestWrapper />);
