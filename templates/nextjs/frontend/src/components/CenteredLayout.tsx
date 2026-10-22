@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 
 /**
  * Centres a page's single card in the space under the nav, for the sign-in
- * list and every method's page. Left at the top of a tall window the card
- * looked like the start of a page with nothing after it.
+ * list, every method's page and the home page. Left at the top of a tall
+ * window the card looked like the start of a page with nothing after it.
  *
  * The height is the viewport less the nav, a one-row footer and `main`'s
  * vertical padding, so a short card never makes the page scroll. A little more room below than
