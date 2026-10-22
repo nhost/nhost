@@ -72,9 +72,9 @@ describe('BackendStatus', () => {
     );
   });
 
-  // The dashboard has no URL that finds a project from its subdomain, so the
-  // subdomain is kept on the link for picking it there.
-  it('links the project picker when the organization is not set', async () => {
+  // The dashboard has no URL that finds a project from its subdomain alone, so
+  // it asks for the organization and keeps the subdomain for after.
+  it('links the organization picker when the organization is not set', async () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_SUBDOMAIN', 'abcdefgh');
     vi.stubEnv('NEXT_PUBLIC_NHOST_REGION', 'eu-central-1');
     vi.stubEnv('NEXT_PUBLIC_NHOST_ORG_SLUG', '');
@@ -84,7 +84,7 @@ describe('BackendStatus', () => {
 
     expect(link()?.title).toBe('abcdefgh in eu-central-1');
     expect(link()?.getAttribute('href')).toBe(
-      'https://app.nhost.io/orgs/_/projects/_',
+      'https://app.nhost.io/orgs/_/projects/abcdefgh',
     );
   });
 
