@@ -9,7 +9,12 @@ const setNewPassword = vi.hoisted(() =>
   vi.fn<() => Promise<{ error?: string; success?: boolean }>>(),
 );
 
+const signOut = vi.hoisted(() => vi.fn<() => Promise<{ error?: string }>>());
+const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
+
 vi.mock('@/app/auth/password/actions', () => ({ setNewPassword }));
+vi.mock('@/lib/nhost/actions', () => ({ signOut }));
+vi.mock('next/navigation', () => ({ useRouter: () => router }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -46,6 +51,8 @@ async function submit(password: string): Promise<void> {
 describe('password reset layout, through a change', () => {
   beforeEach(() => {
     setNewPassword.mockReset();
+    signOut.mockReset();
+    router.push.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
   });
@@ -102,5 +109,21 @@ describe('password reset layout, through a change', () => {
     await act(async () => resolve({ error: 'Password is too short' }));
 
     expect(container.querySelector('button')?.disabled).toBe(false);
+  });
+
+  // The proxy keeps a reset link's session on this page until a password is
+  // saved, so this is the one way off it without one.
+  it('signs out and goes home on cancel', async () => {
+    signOut.mockResolvedValue({});
+    await render(<ResetPasswordForm />);
+
+    const cancel = [...container.querySelectorAll('button')].find(
+      (button) => button.textContent === 'Cancel',
+    );
+    await act(async () => cancel?.click());
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(setNewPassword).not.toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith('/');
   });
 });

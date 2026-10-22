@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
@@ -8,8 +9,10 @@ import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { signOut } from '@/lib/nhost/actions';
 
 export default function ResetPasswordForm() {
+  const router = useRouter();
   const replacePage = useReplacePage();
   const passwordId = useId();
   const confirmId = useId();
@@ -40,6 +43,28 @@ export default function ResetPasswordForm() {
       replacePage(<PasswordChanged />);
     } catch (err) {
       console.error('Error changing the password:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // The way out without a new password. The proxy keeps a reset link's
+  // session on this page until one is saved, so leaving means ending it.
+  const handleCancel = async (): Promise<void> => {
+    setError(undefined);
+    setIsSaving(true);
+    try {
+      const result = await signOut();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error('Error cancelling the reset:', err);
       setError('The request did not reach the server. Try again.');
     } finally {
       setIsSaving(false);
@@ -90,6 +115,17 @@ export default function ResetPasswordForm() {
 
       <Button type="submit" disabled={isSaving}>
         {isSaving ? 'Saving…' : 'Save password'}
+      </Button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="self-center"
+        disabled={isSaving}
+        onClick={() => void handleCancel()}
+      >
+        Cancel
       </Button>
     </form>
   );
