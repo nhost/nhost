@@ -125,7 +125,16 @@ export const baseTableValidationSchema = Yup.object({
     .max(
       POSTGRESQL_MAX_IDENTIFIER_LENGTH,
       `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
-    ),
+    )
+    // A UNIQUE constraint creates an index with its name, and an index cannot
+    // share its name with the table.
+    .test({
+      message: 'A unique constraint in this table already uses this name.',
+      test: (name, { parent }) =>
+        !(parent as BaseTableFormValues).uniqueKeys?.some(
+          (uniqueKey) => (uniqueKey.name ?? uniqueKey.newName) === name,
+        ),
+    }),
   columns: Yup.array()
     .of(baseColumnValidationSchema)
     .test({
