@@ -98,7 +98,9 @@ dashboard, and a cloud project's page there is addressed by its organization
 as well as its subdomain, which the app cannot look up. Set it to the part
 after `/orgs/` in the project's dashboard URL, for example `acme` in
 `https://app.nhost.io/orgs/acme/projects/abcdefgh`, and the link opens the
-project directly. Without it the link opens the dashboard's project picker.
+project directly. Without it the dashboard asks which organization first.
+`nhost list` shows the organization's name, which helps pick the right one,
+but the slug is only in the dashboard URL.
 
 ## Permissions
 
