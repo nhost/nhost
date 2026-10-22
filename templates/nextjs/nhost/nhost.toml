@@ -120,7 +120,7 @@ clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
 clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
 clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
