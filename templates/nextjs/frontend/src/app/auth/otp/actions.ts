@@ -2,18 +2,25 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
+import { codePageURL } from '@/app/auth/otp/link';
 import { createNhostClient } from '@/lib/nhost/server';
 
 export type OtpActionResult = { error?: string; success?: boolean };
 
-export async function sendCode(email: string): Promise<OtpActionResult> {
+export async function sendCode(
+  email: string,
+  next: string,
+): Promise<OtpActionResult> {
   if (!email) {
     return { error: 'Enter your email address.' };
   }
 
   try {
     const nhost = await createNhostClient();
-    await nhost.auth.signInOTPEmail({ email });
+    await nhost.auth.signInOTPEmail({
+      email,
+      options: { redirectTo: codePageURL(email, next) },
+    });
     return { success: true };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
