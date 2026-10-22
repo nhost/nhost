@@ -114,6 +114,26 @@ describe('avatar control', () => {
     expect(router.refresh).toHaveBeenCalled();
   });
 
+  // Storage can take a few seconds, and without this the image just sat
+  // there unchanged with nothing saying it was being replaced.
+  it('covers the image with a spinner while the upload runs', async () => {
+    let finish: (result: { success: true }) => void = () => {};
+    actions.uploadAvatar.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+
+    await choose(image());
+
+    expect(text('status')).toBe('Updating the avatar');
+    expect(byLabel('Upload a new avatar')?.disabled).toBe(true);
+
+    await act(async () => finish({ success: true }));
+
+    expect(text('status')).toBeNull();
+  });
+
   it('shows the action error and does not re-read', async () => {
     actions.uploadAvatar.mockResolvedValueOnce({ error: 'storage said no' });
 
