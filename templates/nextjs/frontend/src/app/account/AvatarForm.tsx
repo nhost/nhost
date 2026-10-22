@@ -1,7 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, type ReactNode, useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useRef,
+  useState,
+  useTransition,
+} from 'react';
 import { removeAvatar, uploadAvatar } from '@/app/account/actions';
 import {
   AVATAR_TOO_LARGE,
@@ -33,6 +39,13 @@ export default function AvatarForm({
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
+  // The request finishing is not the new image showing: the page still has
+  // to render again with its URL. Refreshing in a transition keeps the
+  // spinner up until that render is in.
+  const [isRefreshing, startRefresh] = useTransition();
+  const isBusy = isPending || isRefreshing;
+
+  const refresh = (): void => startRefresh(() => router.refresh());
 
   const handleChange = async (
     event: ChangeEvent<HTMLInputElement>,
@@ -66,7 +79,7 @@ export default function AvatarForm({
 
       // The image above reads its URL from the auth service, so the page is
       // re-rendered rather than patched here.
-      router.refresh();
+      refresh();
     } catch (err) {
       console.error('Error uploading the avatar:', err);
       setError('The request did not reach the server. Try again.');
@@ -88,7 +101,7 @@ export default function AvatarForm({
         return;
       }
 
-      router.refresh();
+      refresh();
     } catch (err) {
       console.error('Error removing the avatar:', err);
       setError('The request did not reach the server. Try again.');
@@ -101,13 +114,25 @@ export default function AvatarForm({
     <div className="flex flex-col items-center gap-1">
       <div className="relative">
         {children}
+        {isBusy ? (
+          <div
+            role="status"
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-background/60"
+          >
+            <span
+              aria-hidden="true"
+              className="size-8 animate-spin rounded-full border-2 border-foreground/25 border-t-foreground"
+            />
+            <span className="sr-only">Updating the avatar</span>
+          </div>
+        ) : null}
         <input
           ref={input}
           type="file"
           name="avatar"
           accept={AVATAR_TYPES.join(',')}
           className="sr-only"
-          disabled={isPending}
+          disabled={isBusy}
           aria-label="New avatar image"
           onChange={(event) => void handleChange(event)}
         />
@@ -117,7 +142,7 @@ export default function AvatarForm({
         <Button
           type="button"
           size="icon"
-          disabled={isPending}
+          disabled={isBusy}
           aria-label="Upload a new avatar"
           title="Upload a new avatar"
           className="absolute right-0 bottom-0 size-6 rounded-full ring-2 ring-card"
@@ -134,7 +159,7 @@ export default function AvatarForm({
           type="button"
           variant="link"
           size="sm"
-          disabled={isPending}
+          disabled={isBusy}
           className="h-auto p-0 text-muted-foreground text-xs"
           onClick={() => void handleRemove()}
         >
