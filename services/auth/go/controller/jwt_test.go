@@ -459,6 +459,75 @@ func TestProviderStateAudienceValidation(t *testing.T) {
 	}
 }
 
+func TestLegacyProviderStateValidation(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.New()
+
+	cases := []struct {
+		name      string
+		claims    jwt.MapClaims
+		wantValid bool
+	}{
+		{
+			name:      "legacy provider state",
+			claims:    jwt.MapClaims{"flow": "signin", "options": map[string]any{}},
+			wantValid: true,
+		},
+		{
+			name:      "legacy-typed token without options",
+			claims:    jwt.MapClaims{"flow": "signin"},
+			wantValid: false,
+		},
+		{
+			name: "legacy-typed token with an audience",
+			claims: jwt.MapClaims{
+				"flow": "signin", "options": map[string]any{}, "aud": "some-client",
+			},
+			wantValid: false,
+		},
+		{
+			name: "legacy session token",
+			claims: jwt.MapClaims{
+				"sub": userID.String(),
+				"https://hasura.io/jwt/claims": map[string]any{
+					"x-hasura-user-id": userID.String(),
+				},
+			},
+			wantValid: false,
+		},
+		{
+			name: "legacy OAuth2 access token",
+			claims: jwt.MapClaims{
+				"sub": userID.String(), "aud": "some-client", "scope": "openid",
+			},
+			wantValid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			getter := newAudienceGetter(t, "https://local.nhost.run")
+
+			// State signed before provider state had its own type used the
+			// default "JWT" type, the one OIDC ID tokens still carry.
+			signed, err := getter.SignTokenWithClaims(
+				tc.claims, time.Now().Add(time.Minute), tokenpurpose.OIDCIDToken,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_, err = getter.Validate(signed, tokenpurpose.ProviderState)
+			if (err == nil) != tc.wantValid {
+				t.Errorf("Validate() error = %v; want valid = %t", err, tc.wantValid)
+			}
+		})
+	}
+}
+
 func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 

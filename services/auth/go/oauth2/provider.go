@@ -44,8 +44,8 @@ type Config struct {
 type ValidatedClaims struct {
 	Sub         string
 	Aud         []string
-	ClientID    string
-	HasClientID bool
+	clientID    string
+	hasClientID bool
 	sid         string
 	jti         string
 	Scope       string

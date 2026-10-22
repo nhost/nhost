@@ -558,6 +558,10 @@ func (j *JWTGetter) hasPurpose(token *jwt.Token, purpose tokenpurpose.Purpose) b
 		return isLegacyOAuth2AccessToken(token)
 	}
 
+	if purpose == tokenpurpose.ProviderState {
+		return isLegacyProviderStateToken(token)
+	}
+
 	return false
 }
 
@@ -608,6 +612,28 @@ func isLegacyOAuth2AccessToken(token *jwt.Token) bool {
 	_, ok = claims["scope"].(string)
 
 	return ok
+}
+
+// Remove me in auth@0.54.0.
+func isLegacyProviderStateToken(token *jwt.Token) bool {
+	if !hasLegacyType(token) {
+		return false
+	}
+
+	aud, err := token.Claims.GetAudience()
+	if err != nil || len(aud) > 0 {
+		return false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	_, hasFlow := claims["flow"].(string)
+	_, hasOptions := claims["options"].(map[string]any)
+
+	return hasFlow && hasOptions
 }
 
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
@@ -785,8 +811,13 @@ func (j *JWTGetter) MiddlewareFunc(
 	return nil
 }
 
-// VerifiedTokenMiddleware enriches completion logs after OpenAPI has bound the request body.
-func VerifiedTokenMiddleware() api.StrictMiddlewareFunc {
+// NewStrictHandler wraps ssi with the strict middleware every auth router registers.
+func NewStrictHandler(ssi api.StrictServerInterface) api.ServerInterface { //nolint:ireturn
+	return api.NewStrictHandler(ssi, []api.StrictMiddlewareFunc{verifiedTokenMiddleware()})
+}
+
+// verifiedTokenMiddleware enriches completion logs after OpenAPI has bound the request body.
+func verifiedTokenMiddleware() api.StrictMiddlewareFunc {
 	return func(f api.StrictHandlerFunc, _ string) api.StrictHandlerFunc {
 		return func(ctx *gin.Context, args any) (any, error) {
 			if raw, ok := ctx.Get(JWTContextKey); ok {

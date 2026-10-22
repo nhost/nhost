@@ -17,7 +17,7 @@ Nhost Auth signs every kind of token it issues with the same key: the session ac
 Auth versions that predate typed tokens sign session tokens with `typ: JWT`, so on those versions the examples below reject every request. Upgrade Auth before adding the `typ` check. Session tokens issued before the upgrade still carry `typ: JWT` and will be rejected by these examples until clients obtain newly issued session tokens.
 :::
 
-If Auth issues an audience (your [configured `[auth].audience`](/products/auth/jwt#configuring-the-audience), or the Cloud/CLI default when it applies), set your Function's `JWT_AUDIENCE` environment variable to that value to check it during verification. Leave `JWT_AUDIENCE` unset whenever Auth issues no `aud`: for a self-hosted project without `AUTH_JWT_AUDIENCE`, or when the platform skips its default because `[auth].audience` is unset and a Hasura JWT secret already specifies an audience. Those session tokens have no `aud` claim, and `jsonwebtoken` rejects them if an `audience` option is supplied. Once you enable this check, session tokens issued before the audience was configured also fail here until refreshed, even though Auth temporarily accepts them. Do not use the OAuth2 client ID as the session-token audience.
+If your session tokens carry an `aud` claim (see [Configuring the audience](/products/auth/jwt#configuring-the-audience)), set your Function's `JWT_AUDIENCE` environment variable to that value to check it. Otherwise leave it unset, because `jsonwebtoken` rejects tokens without `aud` when an `audience` is given. After you enable the check, tokens issued before the audience was configured fail until the client refreshes them. Use the project audience, not an OAuth2 client ID.
 
 ## Dependencies
 
@@ -35,7 +35,7 @@ import type { Request, Response } from 'express'
 import process from 'node:process'
 import jwt, { type Jwt } from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.HASURA_GRAPHQL_JWT_SECRET
+const JWT_SECRET = JSON.parse(process.env.NHOST_JWT_SECRET).key
 const JWT_AUDIENCE = process.env.JWT_AUDIENCE
 const SESSION_TOKEN_TYPE = 'nhost-session+jwt'
 

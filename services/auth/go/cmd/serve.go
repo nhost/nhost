@@ -1454,7 +1454,6 @@ func getCORSOptions() oapimw.CORSOptions {
 	}
 }
 
-//nolint:funlen // Router construction includes optional middleware and legacy compatibility routes.
 func getGoServer(
 	ctx context.Context,
 	cmd *cli.Command,
@@ -1467,10 +1466,7 @@ func getGoServer(
 		return nil, err
 	}
 
-	handler := api.NewStrictHandler(
-		ctrl,
-		[]api.StrictMiddlewareFunc{controller.VerifiedTokenMiddleware()},
-	)
+	handler := controller.NewStrictHandler(ctrl)
 
 	swagger, err := api.GetSpec()
 	if err != nil {

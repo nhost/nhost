@@ -115,8 +115,8 @@ func (p *Provider) introspectAccessToken(
 		return nil
 	}
 
-	owner := claims.ClientID
-	if !claims.HasClientID {
+	owner := claims.clientID
+	if !claims.hasClientID {
 		if !slices.Contains(claims.Aud, clientID) {
 			return nil
 		}
@@ -239,8 +239,8 @@ func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 	return &ValidatedClaims{
 		Sub:         sub,
 		Aud:         aud,
-		ClientID:    clientID,
-		HasClientID: hasClientID,
+		clientID:    clientID,
+		hasClientID: hasClientID,
 		sid:         sid,
 		jti:         jti,
 		Scope:       scope,

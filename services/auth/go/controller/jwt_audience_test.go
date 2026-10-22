@@ -297,10 +297,7 @@ func newLoggedAuthRouter(
 		t.Fatal(err)
 	}
 
-	strictHandler := api.NewStrictHandler(
-		handler,
-		[]api.StrictMiddlewareFunc{controller.VerifiedTokenMiddleware()},
-	)
+	strictHandler := controller.NewStrictHandler(handler)
 	api.RegisterHandlersWithOptions(router, strictHandler, api.GinServerOptions{
 		BaseURL: "", Middlewares: []api.MiddlewareFunc{validator}, ErrorHandler: oapi.RecordError,
 	})
