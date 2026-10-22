@@ -112,7 +112,7 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.github]
-enabled = false
+enabled = true
 clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
 clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
