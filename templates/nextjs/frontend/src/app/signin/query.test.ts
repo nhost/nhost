@@ -17,7 +17,9 @@ describe('signInQuery', () => {
   });
 
   it('leaves off a default intent', () => {
-    expect(signInQuery('/account', DEFAULT_INTENT)).toBe('?next=%2Faccount');
+    expect(signInQuery('/protected', DEFAULT_INTENT)).toBe(
+      '?next=%2Fprotected',
+    );
   });
 
   it('leaves off a default next', () => {
@@ -42,8 +44,8 @@ describe('signInQuery', () => {
     Reflect.deleteProperty(URLSearchParams.prototype, 'size');
 
     expect('size' in URLSearchParams.prototype).toBe(false);
-    expect(signInQuery('/account', 'sign-in')).toBe(
-      '?next=%2Faccount&intent=sign-in',
+    expect(signInQuery('/protected', 'sign-in')).toBe(
+      '?next=%2Fprotected&intent=sign-in',
     );
     expect(signInQuery(DEFAULT_DESTINATION, DEFAULT_INTENT)).toBe('');
   });

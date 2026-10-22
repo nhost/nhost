@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { sendMagicLink } from '@/app/auth/magic-link/actions';
+import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
 
 const signInPasswordlessEmail = vi.hoisted(() => vi.fn());
@@ -17,9 +18,9 @@ describe('sendMagicLink', () => {
   });
 
   it('sends the link back to the requested path', async () => {
-    await sendMagicLink('user@example.com', '/account');
+    await sendMagicLink('user@example.com', '/protected');
 
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/account`);
+    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
   });
 
   // The action is callable without the page, so `next` here is whatever the
@@ -30,7 +31,7 @@ describe('sendMagicLink', () => {
 
       await sendMagicLink('user@example.com', hostile);
 
-      expect(sentRedirectTo()).toBe(`${appOrigin()}/`);
+      expect(sentRedirectTo()).toBe(`${appOrigin()}${DEFAULT_DESTINATION}`);
     }
   });
 });

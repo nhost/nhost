@@ -9,6 +9,7 @@ import {
   finishSignIn,
   finishSignUp,
 } from '@/app/auth/passkey/actions';
+import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
 
 const auth = vi.hoisted(() => ({
@@ -62,7 +63,9 @@ describe('sign-up keeps the verification link on this origin', () => {
 
       await beginSignUp('user@example.com', hostile);
 
-      expect(redirectOf(auth.signUpWebauthn)).toBe(`${appOrigin()}/`);
+      expect(redirectOf(auth.signUpWebauthn)).toBe(
+        `${appOrigin()}${DEFAULT_DESTINATION}`,
+      );
     }
   });
 
@@ -73,17 +76,19 @@ describe('sign-up keeps the verification link on this origin', () => {
 
       await finishSignUp(creation, hostile);
 
-      expect(redirectOf(auth.verifySignUpWebauthn)).toBe(`${appOrigin()}/`);
+      expect(redirectOf(auth.verifySignUpWebauthn)).toBe(
+        `${appOrigin()}${DEFAULT_DESTINATION}`,
+      );
     }
   });
 
   it('and carries a real path through', async () => {
     auth.verifySignUpWebauthn.mockResolvedValueOnce({ body: {} });
 
-    await finishSignUp(creation, '/account');
+    await finishSignUp(creation, '/protected');
 
     expect(redirectOf(auth.verifySignUpWebauthn)).toBe(
-      `${appOrigin()}/account`,
+      `${appOrigin()}/protected`,
     );
   });
 });
