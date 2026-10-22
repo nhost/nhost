@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { signInHref } from '@/app/signin/destination';
+import { signInDestination, signInHref } from '@/app/signin/destination';
 import {
   handleNhostProxy,
   LINK_TOKEN_PARAM,
@@ -7,6 +7,12 @@ import {
 } from '@/lib/nhost/server';
 
 const protectedRoutes = ['/account'];
+
+// The pages that sign a visitor in: the list of methods, and each method's own
+// page, which `methods.ts` puts at `/auth/<method>`. Only that one segment:
+// deeper pages such as the password reset need the session they arrive with.
+const isSignInPage = (path: string): boolean =>
+  path === '/signin' || /^\/auth\/[^/]+\/?$/.test(path);
 
 // What the auth service appends to `redirectTo` when a flow fails.
 const authErrorParams = ['error', 'errorDescription'];
@@ -63,6 +69,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // protected page still checks the visitor with `getVerifiedUser`.
   if (isProtectedRoute && !session) {
     return applySessionCookies(NextResponse.redirect(signInRedirect(request)));
+  }
+
+  // Someone already signed in has nothing to do on a sign-in page, so they go
+  // on to where it would have sent them. Like the check above it reads the
+  // cookie unverified, which is enough to choose a redirect.
+  if (isSignInPage(path) && session) {
+    const destination = signInDestination(
+      request.nextUrl.searchParams.get('next') ?? undefined,
+    );
+
+    return applySessionCookies(
+      NextResponse.redirect(new URL(destination, request.url)),
+    );
   }
 
   // `{ request }` forwards the cookies `handleNhostProxy` refreshed, so Server
