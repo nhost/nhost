@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Lock, TriangleAlert } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo } from 'react';
@@ -256,7 +256,6 @@ export default function GeneralSettings() {
                         >
                           <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
                             <p className="flex items-start gap-1 font-semibold">
-                              <TriangleAlert className="mt-0.5 size-4 shrink-0" />
                               Warning: This action will delete all volume data
                               for your Run services.
                             </p>

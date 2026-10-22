@@ -283,7 +283,10 @@ export default function SQLEditor({
 
             {!loading && !errorMessage && commandOk && rows.length === 0 && (
               <div className="flex flex-1 items-center justify-center p-4">
-                <Alert className="grid grid-flow-row place-content-center gap-2 border-green-600/50 text-green-600 dark:border-green-500/50 dark:text-green-500">
+                <Alert
+                  variant="success"
+                  className="grid grid-flow-row place-content-center gap-2"
+                >
                   <code>Success, no rows returned</code>
                 </Alert>
               </div>
