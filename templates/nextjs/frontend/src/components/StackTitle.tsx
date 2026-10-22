@@ -36,7 +36,7 @@ function LogoLink({
         className,
       )}
     >
-      <Logo className={cn('size-12 transition-[filter] duration-300', glow)} />
+      <Logo className={cn('size-16 transition-[filter] duration-300', glow)} />
       <span className="sr-only">{name}</span>
     </a>
   );
@@ -60,11 +60,11 @@ export default function StackTitle() {
   const [backend, framework] = logos;
 
   return (
-    <div className="grid w-fit grid-cols-[auto_auto_auto] items-end gap-x-3 gap-y-5">
+    <div className="grid w-fit grid-cols-[auto_auto_auto] items-end gap-x-3 gap-y-7">
       {/* Over the first and last columns; the middle one is the +. */}
       <LogoLink logo={backend} className="col-start-1" />
       <LogoLink logo={framework} className="col-start-3" />
-      <h1 className="col-span-3 row-start-2 grid grid-cols-subgrid font-semibold text-3xl tracking-tight">
+      <h1 className="col-span-3 row-start-2 grid grid-cols-subgrid font-semibold text-4xl tracking-tight">
         <span>{backend.name}</span> <span>+</span> <span>{framework.name}</span>
       </h1>
     </div>
