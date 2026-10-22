@@ -9,6 +9,8 @@ const getUserSession = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ getUserSession }),
 }));
+vi.mock('@/lib/nhost/actions', () => ({ signOut: vi.fn() }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({}) }));
 
 function hrefOf(html: string, label: string): string | undefined {
   return new RegExp(`<a[^>]*href="([^"]*)"[^>]*>${label}</a>`).exec(html)?.[1];
@@ -47,6 +49,17 @@ describe('home page', () => {
     expect(html).toContain('signed in as ada@example.com');
     expect(hrefOf(html, 'Go to your account')).toBe('/account');
     expect(hrefOf(html, 'Sign up')).toBeUndefined();
+  });
+
+  // Signed in, the sign-in page would only send them on to the account, so
+  // step two's link is the sign-out it asks for first.
+  it('offers a signed-in visitor sign out rather than another way in', async () => {
+    getUserSession.mockReturnValueOnce({ user: { email: 'ada@example.com' } });
+
+    const html = await render();
+
+    expect(html).toMatch(/<button[^>]*>sign out<\/button>/);
+    expect(hrefOf(html, 'another way in')).toBeUndefined();
   });
 
   // Signing in lands there, so the steps have to say what it is.
