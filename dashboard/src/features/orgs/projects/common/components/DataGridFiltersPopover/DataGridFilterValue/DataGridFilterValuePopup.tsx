@@ -38,7 +38,7 @@ function DataGridFilterValuePopup({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[28rem] p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
+          className="w-screen max-w-md p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
           align="end"
         >
           <Textarea
