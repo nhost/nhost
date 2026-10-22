@@ -58,10 +58,4 @@ describe('home page', () => {
     expect(html).toContain('Explore your account');
     expect(hrefOf(html, 'Go to your account')).toBeUndefined();
   });
-
-  it('links to the Nhost docs', async () => {
-    getUserSession.mockReturnValueOnce(null);
-
-    expect(await render()).toContain('href="https://docs.nhost.io"');
-  });
 });

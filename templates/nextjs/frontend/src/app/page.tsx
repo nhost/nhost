@@ -2,7 +2,6 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
-import BackendStatus from '@/components/BackendStatus';
 import StackLogos from '@/components/StackLogos';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -11,12 +10,6 @@ export const dynamic = 'force-dynamic';
 
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
-
-const resources = [
-  { href: 'https://docs.nhost.io', label: 'Nhost docs' },
-  { href: 'https://docs.nhost.io/products/auth', label: 'Auth guide' },
-  { href: 'https://nextjs.org/docs', label: 'Next.js docs' },
-];
 
 function Code({ children }: { children: ReactNode }) {
   return (
@@ -127,23 +120,6 @@ export default async function Home() {
           </Step>
         </ol>
       </section>
-
-      <footer className="flex flex-col gap-4 border-t pt-6">
-        <BackendStatus />
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          {resources.map((resource) => (
-            <a
-              key={resource.href}
-              href={resource.href}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              {resource.label} <span aria-hidden="true">↗</span>
-            </a>
-          ))}
-        </div>
-      </footer>
     </div>
   );
 }
