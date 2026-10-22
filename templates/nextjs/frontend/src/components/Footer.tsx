@@ -9,6 +9,7 @@ export default function Footer() {
   return (
     <footer className="sticky bottom-0 z-40 border-t bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-4 text-sm">
+        <BackendStatus />
         <a
           href="https://docs.nhost.io"
           target="_blank"
@@ -17,7 +18,6 @@ export default function Footer() {
         >
           Nhost docs <span aria-hidden="true">↗</span>
         </a>
-        <BackendStatus />
       </div>
     </footer>
   );
