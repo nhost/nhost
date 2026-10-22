@@ -180,4 +180,45 @@ describe('UniqueKeysSection', () => {
     expect(checkbox).toBeChecked();
     expect(checkbox).toBeDisabled();
   });
+
+  it.each([
+    'UNIQUE NULLS NOT DISTINCT (sku)',
+    'UNIQUE (sku) INCLUDE (order_id)',
+    'UNIQUE (sku) DEFERRABLE INITIALLY DEFERRED',
+  ])('shows %s and only allows deleting it', (definition) => {
+    render(
+      <TestWrapper
+        values={{
+          ...defaultValues,
+          uniqueKeys: [
+            { name: 'orders_sku_key', definition, columnIndices: ['2'] },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText(definition)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeEnabled();
+  });
+
+  it('allows editing a unique constraint without other options', () => {
+    render(
+      <TestWrapper
+        values={{
+          ...defaultValues,
+          uniqueKeys: [
+            {
+              name: 'orders_sku_key',
+              definition: 'UNIQUE (sku)',
+              columnIndices: ['2'],
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('UNIQUE (sku)')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled();
+  });
 });

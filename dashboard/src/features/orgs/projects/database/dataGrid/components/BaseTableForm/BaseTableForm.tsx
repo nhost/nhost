@@ -49,7 +49,15 @@ export interface BaseTableFormValues
    * UNIQUE constraints, as indices of their columns. A column's Unique
    * checkbox adds or removes the constraint on that column alone.
    */
-  uniqueKeys?: { name?: string; newName?: string; columnIndices: string[] }[];
+  uniqueKeys?: {
+    name?: string;
+    newName?: string;
+    columnIndices: string[];
+    /**
+     * Definition of an existing constraint, from Postgres.
+     */
+    definition?: string;
+  }[];
   /**
    * IDs of the columns a unique index keeps unique on their own, without a
    * UNIQUE constraint the form manages.

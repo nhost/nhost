@@ -439,6 +439,10 @@ export interface CandidateKey {
   name: string;
   isPrimary: boolean;
   columns: string[];
+  /**
+   * Definition from Postgres, e.g. `UNIQUE NULLS NOT DISTINCT (a, b)`.
+   */
+  definition: string;
 }
 
 /**
