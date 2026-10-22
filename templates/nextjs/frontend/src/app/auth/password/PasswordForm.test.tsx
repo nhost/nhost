@@ -21,7 +21,10 @@ vi.mock('@/app/auth/password/actions', () => ({}));
 
 // Two entries, so "Other ways to sign in" renders. Neither names a method, so
 // deleting a method leaves nothing here that names it.
-vi.mock('@/app/signin/methods', () => ({ methods: [{}, {}] }));
+vi.mock('@/app/signin/methods', () => ({
+  methods: [{}, {}],
+  buttons: [],
+}));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

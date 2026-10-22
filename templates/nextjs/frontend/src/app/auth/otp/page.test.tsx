@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import OtpSignIn from '@/app/auth/otp/page';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({}) }));
-vi.mock('@/app/signin/methods', () => ({ methods: [{}, {}] }));
+vi.mock('@/app/signin/methods', () => ({
+  methods: [{}, {}],
+  buttons: [],
+}));
 
 async function render(params: { email?: string }): Promise<string> {
   return renderToStaticMarkup(

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { methods } from '@/app/signin/methods';
+import { buttons, methods } from '@/app/signin/methods';
 
 /**
  * Sends the visitor back to the list of sign-in methods, when there is a list
@@ -8,13 +8,14 @@ import { methods } from '@/app/signin/methods';
  * A project may keep a single method, and `methods.ts` is the only thing that
  * knows how many there are. With one, the sign-in page offers nothing this
  * page does not already show, so the link would promise choices that do not
- * exist.
+ * exist. The provider buttons the list shows below the links are a choice
+ * too, so they count.
  *
  * It reads `methods.ts` rather than naming any method, which is what keeps it
  * shared: deleting a method changes the count and nothing here.
  */
 export default function OtherWaysLink({ query }: { query: string }) {
-  if (methods.length < 2) {
+  if (methods.length + buttons.length < 2) {
     return null;
   }
 

@@ -1,6 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactNode } from 'react';
-import { configuredProviders, providerNames } from '@/app/auth/oauth/providers';
+import ProviderSignIn from '@/app/auth/oauth/ProviderSignIn';
+import { configuredProviders } from '@/app/auth/oauth/providers';
 import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
@@ -35,7 +36,19 @@ export type SignInMethod = {
   signedOutPaths?: string[];
 };
 
-const oauthProviders = configuredProviders();
+/**
+ * A method that signs in from the sign-in list itself rather than from a page
+ * of its own, because it has nothing to type first. The list shows these under
+ * the links, past a divider, and passes on where the visitor was going.
+ */
+export type SignInButtons = (props: {
+  destination: string;
+}) => ReactNode | Promise<ReactNode>;
+
+// Only when the deployment says a provider is set up: with none, every button
+// would lead to the auth service refusing it.
+export const buttons: SignInButtons[] =
+  configuredProviders().length > 0 ? [ProviderSignIn] : [];
 
 export const methods: SignInMethod[] = [
   {
@@ -55,17 +68,6 @@ export const methods: SignInMethod[] = [
     title: 'Email code',
     description: 'Get a one-time code by email.',
   },
-  // Only when the deployment says a provider is set up: with none, every
-  // button would lead to the auth service refusing it.
-  ...(oauthProviders.length > 0
-    ? [
-        {
-          href: '/auth/oauth',
-          title: providerNames(oauthProviders),
-          description: 'Sign in with a provider account.',
-        },
-      ]
-    : []),
   {
     href: '/auth/passkey',
     title: 'Passkey',

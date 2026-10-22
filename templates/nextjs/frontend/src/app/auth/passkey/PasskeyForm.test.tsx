@@ -34,7 +34,10 @@ vi.mock('@/app/auth/passkey/actions', () => actions);
 vi.mock('@simplewebauthn/browser', () => webauthn);
 
 // Two entries, so "Other ways to sign in" renders. Neither names a method.
-vi.mock('@/app/signin/methods', () => ({ methods: [{}, {}] }));
+vi.mock('@/app/signin/methods', () => ({
+  methods: [{}, {}],
+  buttons: [],
+}));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }

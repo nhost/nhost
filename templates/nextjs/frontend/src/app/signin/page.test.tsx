@@ -1,10 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import SignIn from '@/app/signin/page';
 
-// The switch is what is under test, so no method is listed, and deleting a
-// method leaves nothing here that names it.
-vi.mock('@/app/signin/methods', () => ({ methods: [] }));
+// No real method is listed, so deleting one leaves nothing here that names it.
+const listed = vi.hoisted(() => ({
+  methods: [] as object[],
+  buttons: [] as ((props: { destination: string }) => string)[],
+}));
+
+vi.mock('@/app/signin/methods', () => listed);
 
 async function render(params: {
   next?: string;
@@ -16,6 +20,11 @@ async function render(params: {
 }
 
 describe('sign-in page', () => {
+  beforeEach(() => {
+    listed.methods = [];
+    listed.buttons = [];
+  });
+
   // A protected page sends a visitor here with `next` and no intent, so the
   // page opens on sign up. Switching to sign in has to keep `next`, or signing
   // in lands on the default page instead of the one they asked for.
@@ -39,5 +48,26 @@ describe('sign-in page', () => {
   it('switches on the bare page without a next', async () => {
     expect(await render({})).toContain('href="/signin?intent=sign-in"');
     expect(await render({ intent: 'sign-in' })).toContain('href="/signin"');
+  });
+
+  // Provider buttons leave for the provider straight from the list, so they
+  // have to carry where the visitor was going, and sit apart from the links.
+  it('lists the buttons under a divider with the destination', async () => {
+    listed.methods = [
+      { href: '/auth/a-method', title: 'A method', description: '' },
+    ];
+    listed.buttons = [({ destination }) => `buttons to ${destination}`];
+
+    const html = await render({ next: '/protected' });
+
+    expect(html).toMatch(/A method.*or.*buttons to \/protected/);
+  });
+
+  it('draws no divider when there are no buttons', async () => {
+    listed.methods = [
+      { href: '/auth/a-method', title: 'A method', description: '' },
+    ];
+
+    expect(await render({})).not.toContain('bg-border');
   });
 });
