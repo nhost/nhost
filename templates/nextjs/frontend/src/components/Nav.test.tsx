@@ -14,9 +14,12 @@ vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ getUserSession: () => session.current }),
 }));
 
-// A client component that needs the app router, which a static render has
+// Client components that need the app router, which a static render has
 // no business mounting. The nav's links are what is under test.
 vi.mock('@/components/SignOutButton', () => ({ default: () => null }));
+vi.mock('@/components/RefreshOnSessionChange', () => ({
+  default: () => null,
+}));
 
 function hrefOf(html: string, label: string): string | undefined {
   return new RegExp(`<a[^>]*href="([^"]*)"[^>]*>${label}</a>`).exec(html)?.[1];
