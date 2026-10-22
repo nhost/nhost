@@ -130,8 +130,9 @@ export default function PagerdutyFormSection() {
                 </Label>
                 <div className="flex">
                   <Button
-                    variant="ghost"
-                    className="h-10 text-destructive hover:text-destructive"
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
                     aria-label="Remove PagerDuty integration"
                     onClick={() => remove(index)}
                   >

@@ -79,8 +79,9 @@ export default function GraphqlDataSourcesFormSection() {
 
               <Button
                 type="button"
-                variant="ghost"
-                className="h-10 self-end text-destructive hover:text-destructive"
+                variant="subtle"
+                size="sm"
+                className="h-10 self-end"
                 aria-label="Remove GraphQL data source"
                 onClick={() => remove(index)}
               >

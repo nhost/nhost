@@ -96,7 +96,7 @@ export default function FeatureSidebar({
       </aside>
 
       <Button
-        variant="subtle"
+        variant="ghost"
         size="icon"
         className={cn(
           'absolute bottom-4 z-[38] h-11 w-11 rounded-full border bg-primary',

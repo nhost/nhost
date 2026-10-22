@@ -172,8 +172,9 @@ export default function SlackFormSection() {
                 </Label>
                 <div className="flex">
                   <Button
-                    variant="ghost"
-                    className="h-10 text-destructive hover:text-destructive"
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
                     aria-label="Remove Slack channel"
                     onClick={() => handleRemove(index)}
                   >

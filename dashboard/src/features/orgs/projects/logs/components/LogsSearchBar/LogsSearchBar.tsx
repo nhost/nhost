@@ -85,7 +85,10 @@ const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
           variant="subtle"
           size="icon"
           aria-pressed={filterMode}
-          className={cn('h-8 w-8', filterMode && 'bg-primary/10 text-primary')}
+          className={cn(
+            'h-8 w-8',
+            filterMode && 'bg-primary/10 text-primary dark:text-primary',
+          )}
           onClick={onToggleFilter}
           aria-label={filterMode ? 'Show all rows' : 'Filter to matching rows'}
           title={
