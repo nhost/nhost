@@ -1,6 +1,7 @@
 import { FetchError } from '@nhost/nhost-js/fetch';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { sendCode, verifyCode } from '@/app/auth/otp/actions';
+import { appOrigin } from '@/lib/nhost/env';
 
 const signInOTPEmail = vi.hoisted(() => vi.fn());
 const verifySignInOTPEmail = vi.hoisted(() => vi.fn());
@@ -17,16 +18,47 @@ describe('sendCode', () => {
   });
 
   it('asks for an email before calling the backend', async () => {
-    expect(await sendCode('')).toEqual({ error: 'Enter your email address.' });
+    expect(await sendCode('', '/')).toEqual({
+      error: 'Enter your email address.',
+    });
     expect(signInOTPEmail).not.toHaveBeenCalled();
   });
 
   it('reports a backend error instead of throwing', async () => {
     signInOTPEmail.mockRejectedValueOnce(new Error('rate limited'));
 
-    expect(await sendCode('user@example.com')).toEqual({
+    expect(await sendCode('user@example.com', '/')).toEqual({
       error: 'Could not send the code: rate limited',
     });
+  });
+
+  // The email's link has to open somewhere the code can be typed in.
+  it('links the email to the code step for that address', async () => {
+    signInOTPEmail.mockResolvedValueOnce({});
+
+    await sendCode('a+b@example.com', '/protected');
+
+    expect(signInOTPEmail).toHaveBeenCalledWith({
+      email: 'a+b@example.com',
+      options: {
+        redirectTo: `${appOrigin()}/auth/otp?next=%2Fprotected&intent=sign-in&email=a%2Bb%40example.com`,
+      },
+    });
+  });
+
+  // `next` is appended to the origin, so it is held to a path here too.
+  it('keeps the link on this origin', async () => {
+    signInOTPEmail.mockResolvedValueOnce({});
+
+    await sendCode('user@example.com', '//evil.example');
+
+    expect(signInOTPEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: {
+          redirectTo: `${appOrigin()}/auth/otp?intent=sign-in&email=user%40example.com`,
+        },
+      }),
+    );
   });
 });
 
