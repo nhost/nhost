@@ -7,12 +7,13 @@ const resources = [
 ];
 
 /**
- * On every page, so which backend the app is connected to is never more than
- * a glance away. `CenteredLayout` leaves room for its height.
+ * On every page and pinned to the bottom of the window, so which backend the
+ * app is connected to is never more than a glance away, even halfway down a
+ * long page. `CenteredLayout` leaves room for its height.
  */
 export default function Footer() {
   return (
-    <footer className="border-t">
+    <footer className="sticky bottom-0 z-40 border-t bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-4 text-sm">
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {resources.map((resource) => (
