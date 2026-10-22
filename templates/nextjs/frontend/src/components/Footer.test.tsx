@@ -7,6 +7,6 @@ describe('Footer', () => {
     const html = renderToStaticMarkup(<Footer />);
 
     expect(html).toContain('href="https://docs.nhost.io"');
-    expect(html).toContain('Connected:');
+    expect(html).toContain('Nhost Local');
   });
 });
