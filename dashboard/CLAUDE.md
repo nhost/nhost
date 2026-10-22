@@ -121,7 +121,7 @@ Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data 
 - `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
 - `useDragToZoom` — drag to select a range.
 
-Relative time ranges use `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState`.
+Time ranges stay per domain: `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState` for relative ranges; billing resolves its billing-cycle ranges with `resolveBillingUsageTimeRange` in `BillingUsage/utils/`.
 
 ## Tool Usage
 
