@@ -40,6 +40,22 @@ describe('Nav', () => {
     );
   });
 
+  it('links to sign up through signInQuery', async () => {
+    const html = renderToStaticMarkup(await Nav());
+
+    expect(hrefOf(html, 'Sign up')).toBe(
+      `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`,
+    );
+  });
+
+  // No account yet, so no avatar either.
+  it('shows no avatar when signed out', async () => {
+    const html = renderToStaticMarkup(await Nav());
+
+    expect(html).not.toContain('rounded-full');
+    expect(html).not.toContain('href="/account"');
+  });
+
   it('links a signed-in visitor to their account by their picture', async () => {
     session.current = {
       user: {
@@ -54,6 +70,7 @@ describe('Nav', () => {
     expect(html).toContain('href="/account"');
     expect(html).toContain('src="/api/avatar/current"');
     expect(html).not.toContain('>Sign in<');
+    expect(html).not.toContain('>Sign up<');
   });
 
   // The address is on the page this leads to; repeating it here crowded the
