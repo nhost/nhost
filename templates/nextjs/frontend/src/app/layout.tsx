@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { type ReactNode, Suspense } from 'react';
 import '@/app/globals.css';
 import AuthErrorFromUrl from '@/components/AuthErrorFromUrl';
+import Footer from '@/components/Footer';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
@@ -14,9 +15,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // globals.css explains what still reads it.
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen antialiased">
+      <body className="flex min-h-screen flex-col antialiased">
         <Nav />
-        <main className="mx-auto max-w-4xl px-6 py-10">
+        <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
           {/* Every page renders per request today, but on one Next prerenders,
               reading the query outside a boundary fails the build. */}
           <Suspense>
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </Suspense>
           {children}
         </main>
+        <Footer />
       </body>
     </html>
   );
