@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
+import { methods } from '@/app/signin/methods';
 import { signInQuery } from '@/app/signin/query';
+import NavAccount from '@/components/NavAccount';
 import NhostLogo from '@/components/NhostLogo';
 import RefreshOnSessionChange from '@/components/RefreshOnSessionChange';
 import SignOutButton from '@/components/SignOutButton';
@@ -10,6 +12,8 @@ import { createNhostClient } from '@/lib/nhost/server';
 
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
+
+const signedOutPaths = methods.flatMap((method) => method.signedOutPaths ?? []);
 
 export default async function Nav() {
   const nhost = await createNhostClient();
@@ -27,36 +31,42 @@ export default async function Nav() {
           Nhost
         </Link>
 
-        {user ? (
-          <div className="flex items-center gap-3">
-            <SignOutButton />
-            {/* The picture rather than the address: the address is already
-                on the account page this leads to, and at nav width a long
-                one crowded the sign-out beside it. The link needs a name of
-                its own, since the avatar is decorative. */}
-            <Link
-              href="/account"
-              className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <UserAvatar
-                avatarUrl={user.avatarUrl}
-                displayName={user.displayName}
-                width={64}
-                className="size-8 text-xs"
-              />
-              <span className="sr-only">Your account</span>
-            </Link>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="sm">
-              <Link href={signInLink}>Sign in</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href={signUpLink}>Sign up</Link>
-            </Button>
-          </div>
-        )}
+        <NavAccount
+          signedOutPaths={signedOutPaths}
+          signedIn={
+            user ? (
+              <div className="flex items-center gap-3">
+                <SignOutButton />
+                {/* The picture rather than the address: the address is
+                    already on the account page this leads to, and at nav
+                    width a long one crowded the sign-out beside it. The link
+                    needs a name of its own, since the avatar is decorative. */}
+                <Link
+                  href="/account"
+                  className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <UserAvatar
+                    avatarUrl={user.avatarUrl}
+                    displayName={user.displayName}
+                    width={64}
+                    className="size-8 text-xs"
+                  />
+                  <span className="sr-only">Your account</span>
+                </Link>
+              </div>
+            ) : null
+          }
+          signedOut={
+            <div className="flex items-center gap-3">
+              <Button asChild variant="outline" size="sm">
+                <Link href={signInLink}>Sign in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href={signUpLink}>Sign up</Link>
+              </Button>
+            </div>
+          }
+        />
       </div>
     </nav>
   );

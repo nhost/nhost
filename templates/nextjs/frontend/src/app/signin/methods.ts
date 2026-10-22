@@ -18,6 +18,10 @@ import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
  * place shared code reaches them, so the account page renders whatever is
  * listed and names no method itself. A method with nothing to configure
  * leaves it out and the account page lists it as needing no setup.
+ *
+ * `signedOutPaths` are the method's pages that hold a session only to finish
+ * something the visitor started signed out, like setting a new password from
+ * a reset link. The nav shows them as signed out there, see `NavAccount`.
  */
 export type AccountSetting = (props: {
   user: User;
@@ -28,6 +32,7 @@ export type SignInMethod = {
   title: string;
   description: string;
   account?: Record<string, AccountSetting>;
+  signedOutPaths?: string[];
 };
 
 const oauthProviders = configuredProviders();
@@ -38,6 +43,7 @@ export const methods: SignInMethod[] = [
     title: 'Email and password',
     description: 'Sign up or sign in with a password.',
     account: { password: ChangePasswordSetting, mfa: MfaSetting },
+    signedOutPaths: ['/auth/password/reset'],
   },
   {
     href: '/auth/magic-link',
