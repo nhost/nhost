@@ -5,9 +5,9 @@ import type { ReactNode } from 'react';
  * list, every method's page and the home page. Left at the top of a tall
  * window the card looked like the start of a page with nothing after it.
  *
- * The height is the viewport less the nav, a one-row footer and `main`'s
- * vertical padding, so a short card never makes the page scroll. A little more room below than
- * above sits it just over the middle, where a centred thing reads as centred.
+ * The height is the viewport less the nav (57px), a one-row footer (53px) and
+ * `main`'s vertical padding (80px), so a short card never makes the page
+ * scroll and sits at the true middle of the space between nav and footer.
  *
  * The pages are wrapped in a plain block before the flex column sees them.
  * As flex items themselves, their `mx-auto` shrank each card to its content
@@ -15,7 +15,7 @@ import type { ReactNode } from 'react';
  */
 export default function CenteredLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-[calc(100svh-12.5rem)] flex-col justify-center pb-[6vh]">
+    <div className="flex min-h-[calc(100svh-11.875rem)] flex-col justify-center">
       <div>{children}</div>
     </div>
   );
