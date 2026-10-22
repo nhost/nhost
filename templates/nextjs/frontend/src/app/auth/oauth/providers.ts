@@ -16,6 +16,14 @@ export const providers = [
 export type Provider = (typeof providers)[number];
 
 /**
+ * Where a provider's button links: this app's own route, which notes the
+ * attempt and sends the visitor on to the provider (see `[provider]/route.ts`).
+ */
+export function providerHref(id: SignInProvider): string {
+  return `/auth/oauth/${id}`;
+}
+
+/**
  * The providers `NHOST_OAUTH_PROVIDERS` turns on, a comma-separated list of
  * ids such as `github,google`.
  *

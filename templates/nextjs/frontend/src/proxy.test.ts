@@ -134,6 +134,60 @@ describe('proxy for a signed-in visitor', () => {
   });
 });
 
+describe('proxy, remembering the way in', () => {
+  const ATTEMPT = 'nhostSignInAttempt';
+  const LAST_USED = 'nhostLastSignIn';
+
+  const visit = (path: string, headers: Record<string, string> = {}) =>
+    proxy(new NextRequest(`http://localhost${path}`, { headers }));
+
+  afterEach(() => {
+    session.current = null;
+  });
+
+  it("records a signed-out visitor opening a method's page", async () => {
+    const response = await visit('/auth/password/');
+
+    expect(response.cookies.get(ATTEMPT)?.value).toBe('/auth/password');
+  });
+
+  // The sign-in list prefetches every method it links to, which is not the
+  // visitor choosing one.
+  it('ignores a prefetch', async () => {
+    const response = await visit('/auth/password', {
+      'next-router-prefetch': '1',
+    });
+
+    expect(response.cookies.get(ATTEMPT)).toBeUndefined();
+  });
+
+  it('records nothing for other pages', async () => {
+    for (const path of ['/signin', '/', '/auth/password/reset']) {
+      expect((await visit(path)).cookies.get(ATTEMPT)).toBeUndefined();
+    }
+  });
+
+  // Wherever the session first shows up: a form's redirect or a link token.
+  it('keeps the attempt once a session starts', async () => {
+    session.current = {};
+
+    const response = await visit('/account', {
+      cookie: `${ATTEMPT}=/auth/otp`,
+    });
+
+    expect(response.cookies.get(LAST_USED)?.value).toBe('/auth/otp');
+    expect(response.cookies.get(ATTEMPT)?.value).toBe('');
+  });
+
+  it('leaves the last used alone without an attempt', async () => {
+    session.current = {};
+
+    const response = await visit('/account');
+
+    expect(response.cookies.get(LAST_USED)).toBeUndefined();
+  });
+});
+
 describe('proxy during a password reset', () => {
   const location = async (path: string) =>
     (await proxy(new NextRequest(`http://localhost${path}`))).headers.get(

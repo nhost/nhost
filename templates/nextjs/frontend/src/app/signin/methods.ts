@@ -39,10 +39,12 @@ export type SignInMethod = {
 /**
  * A method that signs in from the sign-in list itself rather than from a page
  * of its own, because it has nothing to type first. The list shows these under
- * the links, past a divider, and passes on where the visitor was going.
+ * the links, past a divider, and passes on where the visitor was going, and
+ * the href of the way they last signed in, for a button to mark as its own.
  */
 export type SignInButtons = (props: {
   destination: string;
+  lastUsed: string | null;
 }) => ReactNode | Promise<ReactNode>;
 
 // Only when the deployment says a provider is set up: with none, every button

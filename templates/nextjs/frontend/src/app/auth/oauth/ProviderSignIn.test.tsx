@@ -1,34 +1,24 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ProviderSignIn from '@/app/auth/oauth/ProviderSignIn';
-import { providers } from '@/app/auth/oauth/providers';
-import { appOrigin } from '@/lib/nhost/env';
+import { providerHref, providers } from '@/app/auth/oauth/providers';
 
-// Stands in for the SDK's URL builder with something the test can read the
-// redirectTo back out of.
-vi.mock('@/lib/nhost/server', () => ({
-  createNhostClient: async () => ({
-    auth: {
-      signInProviderURL: (id: string, opts: { redirectTo: string }) =>
-        `https://auth.test/v1/signin/provider/${id}?redirectTo=${encodeURIComponent(opts.redirectTo)}`,
-    },
-  }),
-}));
+const render = (
+  destination = '/account',
+  lastUsed: string | null = null,
+): string =>
+  renderToStaticMarkup(<ProviderSignIn {...{ destination, lastUsed }} />);
 
-const render = async (destination = '/account'): Promise<string> =>
-  renderToStaticMarkup(await ProviderSignIn({ destination }));
-
-async function redirectTargets(destination?: string): Promise<string[]> {
-  return [...(await render(destination)).matchAll(/redirectTo=([^"&]+)/g)].map(
-    (m) => decodeURIComponent(m[1] ?? ''),
+const hrefs = (html: string): string[] =>
+  [...html.matchAll(/href="([^"]+)"/g)].map((m) =>
+    (m[1] ?? '').replaceAll('&amp;', '&'),
   );
-}
 
 describe('provider sign-in', () => {
   beforeEach(() => {
     vi.stubEnv(
       'NHOST_OAUTH_PROVIDERS',
-      providers.map((provider) => provider.id).join(','),
+      providers.map(({ id }) => id).join(','),
     );
   });
 
@@ -36,24 +26,35 @@ describe('provider sign-in', () => {
     vi.unstubAllEnvs();
   });
 
-  it('offers every configured provider', async () => {
-    expect(await redirectTargets()).toHaveLength(providers.length);
+  it('offers every configured provider', () => {
+    expect(hrefs(render())).toEqual(
+      providers.map(({ id }) => providerHref(id)),
+    );
   });
 
-  it('offers only the providers the deployment set up', async () => {
+  it('offers only the providers the deployment set up', () => {
     vi.stubEnv('NHOST_OAUTH_PROVIDERS', 'github');
 
-    const html = await render();
+    const html = render();
 
     expect(html).toContain('Continue with GitHub');
     expect(html).not.toContain('Continue with Google');
   });
 
-  // The destination is already a checked path (see `destination.ts`), and it
-  // goes on the origin, so the provider sends the token back to this site.
-  it('sends the provider back to where the visitor was going', async () => {
-    for (const target of await redirectTargets('/protected')) {
-      expect(target).toBe(`${appOrigin()}/protected`);
+  // The route is what hands the destination to the provider, so it has to
+  // arrive there.
+  it('passes on where the visitor was going', () => {
+    for (const href of hrefs(render('/protected'))) {
+      expect(new URL(href, 'http://localhost').searchParams.get('next')).toBe(
+        '/protected',
+      );
     }
+  });
+
+  it('marks the provider the visitor last signed in with', () => {
+    const html = render('/account', providerHref('google'));
+
+    expect(html).toMatch(/Continue with Google.*Last used/);
+    expect(html.match(/Last used/g)).toHaveLength(1);
   });
 });

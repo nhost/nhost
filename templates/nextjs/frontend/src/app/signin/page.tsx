@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { signInDestination } from '@/app/signin/destination';
 import { type Intent, signInIntent } from '@/app/signin/intent';
+import { lastUsedSignIn } from '@/app/signin/lastUsed';
 import { buttons, methods } from '@/app/signin/methods';
 import { signInQuery } from '@/app/signin/query';
+import LastUsedBadge from '@/components/LastUsedBadge';
 import {
   Card,
   CardContent,
@@ -70,6 +72,7 @@ export default async function SignIn({
   const chosen = signInIntent(intent);
   const query = signInQuery(destination, chosen);
   const { switchTo } = copy[chosen];
+  const lastUsed = await lastUsedSignIn();
 
   return (
     <div className="mx-auto max-w-sm">
@@ -80,13 +83,14 @@ export default async function SignIn({
           <CardTitle>{copy[chosen].title}</CardTitle>
           <CardDescription>{copy[chosen].description}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 px-10">
+        <CardContent className="flex flex-col gap-3 px-10">
           {methods.map((method) => (
             <Link
               key={method.href}
               href={`${method.href}${query}`}
-              className="rounded-md border px-4 py-2 text-center outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+              className="relative rounded-md border px-4 py-2 text-center outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
             >
+              {method.href === lastUsed ? <LastUsedBadge /> : null}
               <div className="font-medium text-sm">{method.title}</div>
               <div className="text-muted-foreground text-xs">
                 {method.description}
@@ -105,7 +109,11 @@ export default async function SignIn({
                 </div>
               ) : null}
               {buttons.map((Buttons) => (
-                <Buttons key={Buttons.name} destination={destination} />
+                <Buttons
+                  key={Buttons.name}
+                  destination={destination}
+                  lastUsed={lastUsed}
+                />
               ))}
             </>
           ) : null}

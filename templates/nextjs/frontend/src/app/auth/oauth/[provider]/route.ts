@@ -1,0 +1,39 @@
+import { type NextRequest, NextResponse } from 'next/server';
+import { signInDestination } from '@/app/signin/destination';
+import { recordSignInAttempt } from '@/app/signin/lastUsed';
+import { appOrigin } from '@/lib/nhost/env';
+import { createNhostClient } from '@/lib/nhost/server';
+import { configuredProviders, providerHref } from '../providers';
+
+/**
+ * Where a provider button goes before the provider. Linking straight to the
+ * auth service would leave this app without a request of its own, and this
+ * one is what notes the attempt, the way the proxy does when a method's page
+ * is opened, so the sign-in list can mark the provider as last used.
+ *
+ * Only the providers the deployment set up: any other would only lead to the
+ * auth service refusing it.
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ provider: string }> },
+): Promise<NextResponse> {
+  const { provider } = await params;
+  const found = configuredProviders().find(({ id }) => id === provider);
+  if (!found) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  const destination = signInDestination(
+    request.nextUrl.searchParams.get('next') ?? undefined,
+  );
+  const nhost = await createNhostClient();
+  const url = nhost.auth.signInProviderURL(found.id, {
+    redirectTo: appOrigin() + destination,
+  });
+
+  return recordSignInAttempt(
+    NextResponse.redirect(url),
+    providerHref(found.id),
+  );
+}
