@@ -68,9 +68,9 @@ export const isLocalBackend = (): boolean => nhostRegion() === LOCAL;
  * Where to manage the backend: the local stack's own dashboard, or the cloud
  * project's page on the Nhost dashboard. That page's URL needs the slug of the
  * organization the project belongs to, which the backend does not know, so it
- * is configured in `NEXT_PUBLIC_NHOST_ORG_SLUG`. Without it the link opens the
- * dashboard's project picker, as the dashboard has no URL that finds a project
- * from its subdomain alone.
+ * is configured in `NEXT_PUBLIC_NHOST_ORG_SLUG`. Without it the link keeps the
+ * subdomain and leaves the organization as `_`: the dashboard asks which
+ * organization, then opens the project in it.
  */
 export const dashboardURL = (): string => {
   if (isLocalBackend()) {
@@ -80,7 +80,7 @@ export const dashboardURL = (): string => {
   const orgSlug = process.env.NEXT_PUBLIC_NHOST_ORG_SLUG;
   return orgSlug
     ? `https://app.nhost.io/orgs/${orgSlug}/projects/${nhostSubdomain()}`
-    : 'https://app.nhost.io/orgs/_/projects/_';
+    : `https://app.nhost.io/orgs/_/projects/${nhostSubdomain()}`;
 };
 
 if (
