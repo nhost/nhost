@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
+import CenteredLayout from '@/components/CenteredLayout';
 import StackTitle from '@/components/StackTitle';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -58,64 +59,68 @@ export default async function Home() {
   const nhost = await createNhostClient();
   const user = nhost.getUserSession()?.user;
 
+  // Centred in a tall window like the sign-in pages, with room above the
+  // marks that grows with the window rather than a fixed gap under the nav.
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-12 pt-24 pb-6">
-      <header className="flex flex-col items-center gap-3 text-center">
-        <StackTitle />
-        <p className="text-muted-foreground">
-          An auth starter, rendered on the server.
-        </p>
-      </header>
+    <CenteredLayout>
+      <div className="mx-auto flex max-w-2xl flex-col gap-12 pt-[10vh] pb-6">
+        <header className="flex flex-col items-center gap-3 text-center">
+          <StackTitle />
+          <p className="text-muted-foreground">
+            An auth starter, rendered on the server.
+          </p>
+        </header>
 
-      {/* Centred as a block, read down from the left inside it. */}
-      <section className="flex flex-col gap-6 self-center">
-        <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
-          Get started
-        </h2>
-        <ol className="flex flex-col gap-8">
-          <Step n={1} title="Create an account">
-            {user ? (
-              <p>Done: you are signed in as {user.email ?? user.id}.</p>
-            ) : (
-              <>
-                <p>Sign up with any of the ways the sign-in page offers.</p>
+        {/* Centred as a block, read down from the left inside it. */}
+        <section className="flex flex-col gap-6 self-center">
+          <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
+            Get started
+          </h2>
+          <ol className="flex flex-col gap-8">
+            <Step n={1} title="Create an account">
+              {user ? (
+                <p>Done: you are signed in as {user.email ?? user.id}.</p>
+              ) : (
+                <>
+                  <p>Sign up with any of the ways the sign-in page offers.</p>
+                  <div>
+                    <Button asChild size="sm">
+                      <Link href={signUpLink}>Sign up</Link>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </Step>
+
+            <Step n={2} title="Explore your account">
+              <p>
+                Edit your profile and how you sign in, then sign out and try{' '}
+                <Link
+                  href={signInLink}
+                  className="text-foreground underline underline-offset-4"
+                >
+                  another way in
+                </Link>
+                .
+              </p>
+              {user ? (
                 <div>
-                  <Button asChild size="sm">
-                    <Link href={signUpLink}>Sign up</Link>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/account">Go to your account</Link>
                   </Button>
                 </div>
-              </>
-            )}
-          </Step>
+              ) : null}
+            </Step>
 
-          <Step n={2} title="Explore your account">
-            <p>
-              Edit your profile and how you sign in, then sign out and try{' '}
-              <Link
-                href={signInLink}
-                className="text-foreground underline underline-offset-4"
-              >
-                another way in
-              </Link>
-              .
-            </p>
-            {user ? (
-              <div>
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/account">Go to your account</Link>
-                </Button>
-              </div>
-            ) : null}
-          </Step>
-
-          <Step n={3} title="Make it yours">
-            <p>
-              Edit <Code>src/app/page.tsx</Code>. Sign-in methods live in{' '}
-              <Code>src/app/auth/</Code>.
-            </p>
-          </Step>
-        </ol>
-      </section>
-    </div>
+            <Step n={3} title="Make it yours">
+              <p>
+                Edit <Code>src/app/page.tsx</Code>. Sign-in methods live in{' '}
+                <Code>src/app/auth/</Code>.
+              </p>
+            </Step>
+          </ol>
+        </section>
+      </div>
+    </CenteredLayout>
   );
 }
