@@ -13,6 +13,11 @@ import {
   MultiSelectTrigger,
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import { areStrArraysEqual, areStrArraysEqualOrdered } from '@/lib/utils';
 import type { BaseTableFormValues } from './BaseTableForm';
@@ -21,6 +26,13 @@ type UniqueKey = NonNullable<BaseTableFormValues['uniqueKeys']>[number];
 
 function displayName({ name, newName }: UniqueKey) {
   return name ?? newName;
+}
+
+// Editing recreates a constraint from its name and columns only, so one with
+// other options (NULLS NOT DISTINCT, INCLUDE, DEFERRABLE, ...) can only be
+// deleted.
+function hasOtherOptions({ definition }: UniqueKey) {
+  return !!definition && !/^UNIQUE \([^)]*\)$/.test(definition);
 }
 
 interface UniqueKeyDialogValues {
@@ -194,19 +206,37 @@ export default function UniqueKeysSection() {
               >
                 {field.columnIndices.map((i) => columnNames[+i]).join(', ')}
               </p>
+              {hasOtherOptions(field) && (
+                <p className="m-0 truncate text-muted-foreground text-xs">
+                  {field.definition}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="grid grid-flow-col">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-primary hover:text-primary"
-              onClick={() => openUniqueKeyDialog(index)}
-            >
-              Edit
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-primary hover:text-primary"
+                    disabled={hasOtherOptions(field)}
+                    onClick={() => openUniqueKeyDialog(index)}
+                  >
+                    Edit
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {hasOtherOptions(field) && (
+                <TooltipContent>
+                  Editing would recreate this constraint without its other
+                  options. Change it with SQL instead.
+                </TooltipContent>
+              )}
+            </Tooltip>
             <Button
               type="button"
               variant="ghost"

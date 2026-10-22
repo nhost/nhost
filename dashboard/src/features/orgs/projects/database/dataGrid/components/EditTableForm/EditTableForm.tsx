@@ -130,8 +130,9 @@ export default function EditTableForm({
       );
       const uniqueKeys = (candidateKeys ?? [])
         .filter(({ name }) => uniqueConstraintNames.has(name))
-        .map(({ name, columns: keyColumns }) => ({
+        .map(({ name, definition, columns: keyColumns }) => ({
           name,
+          definition,
           columnIndices: keyColumns.map(
             (column) =>
               `${dataGridColumns.findIndex(({ id }) => id === column)}`,
