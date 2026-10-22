@@ -1,11 +1,13 @@
 /**
  * Where signing in lands when nothing asked for somewhere else.
  *
- * Home, not the account page: signing in is not by itself a request to go
- * anywhere. Somewhere specific only happens when the link that started it said
- * so, which is what `signInHref` is for.
+ * The account page: it is the one page a session opens, so it is where
+ * someone who just signed in can see that it worked and what came with it.
+ * Landing back on home showed them the page they started from. Somewhere
+ * else only happens when the link that started it said so, which is what
+ * `signInHref` is for.
  */
-export const DEFAULT_DESTINATION = '/';
+export const DEFAULT_DESTINATION = '/account';
 
 /**
  * Link to sign-in that comes back to `destination` afterwards.

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { signUp } from '@/app/auth/password/actions';
+import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
 
 const signUpEmailPassword = vi.hoisted(() => vi.fn());
@@ -18,9 +19,9 @@ describe('signUp', () => {
   });
 
   it('sends the verification link back to the requested path', async () => {
-    await signUp('user@example.com', 'password', '/account');
+    await signUp('user@example.com', 'password', '/protected');
 
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/account`);
+    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
   });
 
   // The action is callable without the page, so `next` here is whatever the
@@ -31,7 +32,7 @@ describe('signUp', () => {
 
       await signUp('user@example.com', 'password', hostile);
 
-      expect(sentRedirectTo()).toBe(`${appOrigin()}/`);
+      expect(sentRedirectTo()).toBe(`${appOrigin()}${DEFAULT_DESTINATION}`);
     }
   });
 });
