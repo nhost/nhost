@@ -10,8 +10,17 @@ const session = vi.hoisted(() => ({
   } | null,
 }));
 
+const pathname = vi.hoisted(() => ({ current: '/' }));
+
 vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ getUserSession: () => session.current }),
+}));
+
+vi.mock('next/navigation', () => ({ usePathname: () => pathname.current }));
+
+// A made-up method, so this test names no real one's pages.
+vi.mock('@/app/signin/methods', () => ({
+  methods: [{ signedOutPaths: ['/auth/method/finish'] }],
 }));
 
 // Client components that need the app router, which a static render has
@@ -28,6 +37,7 @@ function hrefOf(html: string, label: string): string | undefined {
 describe('Nav', () => {
   beforeEach(() => {
     session.current = null;
+    pathname.current = '/';
   });
 
   // Built any other way, this link would be left behind by a change to
@@ -124,5 +134,29 @@ describe('Nav', () => {
     expect(html).toContain(
       'src="https://www.gravatar.com/avatar/0?d=blank&amp;r=g"',
     );
+  });
+
+  // A reset link signs the visitor in only so the new password can be saved;
+  // until then the nav should not say they are signed in.
+  it('looks signed out on a method page that asks for it', async () => {
+    session.current = {
+      user: { displayName: 'Ada', avatarUrl: '/api/avatar/current' },
+    };
+
+    for (const path of ['/auth/method/finish', '/auth/method/finish/step']) {
+      pathname.current = path;
+      const html = renderToStaticMarkup(await Nav());
+
+      expect(html).not.toContain('href="/account"');
+      expect(html).toContain('>Sign in<');
+      expect(html).toContain('>Sign up<');
+    }
+  });
+
+  it('shows the account on every other page', async () => {
+    session.current = { user: { displayName: 'Ada' } };
+    pathname.current = '/auth/method/finished';
+
+    expect(renderToStaticMarkup(await Nav())).toContain('href="/account"');
   });
 });
