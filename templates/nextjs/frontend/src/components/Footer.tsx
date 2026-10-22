@@ -8,7 +8,7 @@ import BackendStatus from '@/components/BackendStatus';
 export default function Footer() {
   return (
     <footer className="sticky bottom-0 z-40 border-t bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-4 text-sm">
+      <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-6 py-4 text-sm">
         <BackendStatus />
         <a
           href="https://docs.nhost.io"
@@ -16,7 +16,7 @@ export default function Footer() {
           rel="noreferrer"
           className="font-medium underline-offset-4 hover:underline"
         >
-          Nhost docs <span aria-hidden="true">↗</span>
+          Docs <span aria-hidden="true">↗</span>
         </a>
       </div>
     </footer>
