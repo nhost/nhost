@@ -6,11 +6,13 @@ import { LINK_TOKEN_PARAM } from '@/lib/nhost/server';
 import { config, proxy } from '@/proxy';
 
 const session = vi.hoisted(() => ({ current: null as object | null }));
+const pendingReset = vi.hoisted(() => ({ current: null as string | null }));
 
 vi.mock('@/lib/nhost/server', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/nhost/server')>()),
   handleNhostProxy: async () => ({
     session: session.current,
+    pendingReset: pendingReset.current,
     applySessionCookies: (response: NextResponse) => response,
   }),
 }));
@@ -129,5 +131,42 @@ describe('proxy for a signed-in visitor', () => {
   it('leaves a signed-out visitor on the sign-in pages', async () => {
     expect(await location('/signin')).toBeNull();
     expect(await location('/auth/password')).toBeNull();
+  });
+});
+
+describe('proxy during a password reset', () => {
+  const location = async (path: string) =>
+    (await proxy(new NextRequest(`http://localhost${path}`))).headers.get(
+      'location',
+    );
+
+  afterEach(() => {
+    session.current = null;
+    pendingReset.current = null;
+  });
+
+  // The link signed them in to choose a password, not to use the account.
+  it('sends every other page back to the reset page', async () => {
+    session.current = {};
+    pendingReset.current = '/reset';
+
+    for (const path of ['/', '/account', '/signin']) {
+      expect(await location(path)).toBe('http://localhost/reset');
+    }
+  });
+
+  it('leaves them on the reset page', async () => {
+    session.current = {};
+    pendingReset.current = '/reset';
+
+    expect(await location('/reset')).toBeNull();
+  });
+
+  // The cookie is the visitor's own to edit.
+  it('never sends them off this origin', async () => {
+    session.current = {};
+    pendingReset.current = '//evil.example';
+
+    expect(await location('/')).toBe(`http://localhost${DEFAULT_DESTINATION}`);
   });
 });

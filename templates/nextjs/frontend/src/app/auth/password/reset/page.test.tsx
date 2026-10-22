@@ -8,6 +8,8 @@ vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ getUserSession }),
 }));
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({}) }));
+
 describe('password reset page', () => {
   // Only the sign-in mode offers to send a reset link, and the form opens on
   // sign up without an intent.

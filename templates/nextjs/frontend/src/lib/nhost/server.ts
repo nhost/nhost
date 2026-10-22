@@ -50,7 +50,14 @@ function accessTokenCookieOptions(session: StoredSession) {
   };
 }
 
-const sessionCookieNames = [key, ACCESS_TOKEN_KEY];
+// Set when a password-reset link signs the visitor in, and holds the page the
+// link landed on. The link signs them in only so the new password can be
+// saved, so until it is the proxy keeps them on that page (see `proxy.ts`).
+// httpOnly like the session, and removed with it, so signing out ends it too.
+export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
+const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
+
+const sessionCookieNames = [key, ACCESS_TOKEN_KEY, PASSWORD_RESET_KEY];
 
 function sessionCookies(value: StoredSession) {
   return [
@@ -145,6 +152,13 @@ export async function getVerifiedUser(): Promise<User | null> {
 }
 
 /**
+ * Lets the visitor leave the reset page, once the new password is saved.
+ */
+export async function endPasswordReset(): Promise<void> {
+  (await cookies()).delete(PASSWORD_RESET_KEY);
+}
+
+/**
  * Rewrites the stored session's user after a profile write has succeeded.
  *
  * The nav and the home page render the user from the session cookie, and the
@@ -208,6 +222,9 @@ function isPrefetch(request: NextRequest): boolean {
 
 export type NhostProxyResult = {
   session: StoredSession | null;
+  // The reset page a password-reset link signed this session in on, while
+  // the new password is still to be saved.
+  pendingReset: string | null;
   applySessionCookies: (response: NextResponse) => NextResponse;
 };
 
@@ -282,6 +299,21 @@ export async function handleNhostProxy(
       // access token is decoded into the stored shape the app reads.
       nhost.sessionStorage.set(body);
       session = nhost.sessionStorage.get();
+
+      if (
+        request.nextUrl.searchParams.get(LINK_TYPE_PARAM) ===
+        PASSWORD_RESET_LINK_TYPE
+      ) {
+        const page = request.nextUrl.pathname;
+        request.cookies.set(PASSWORD_RESET_KEY, page);
+        mutations.push((response) => {
+          response.cookies.set({
+            name: PASSWORD_RESET_KEY,
+            value: page,
+            ...cookieOptions,
+          });
+        });
+      }
     } catch (err) {
       // An expired or already-used link is normal; fall through and let the
       // page handle an anonymous visitor.
@@ -291,6 +323,9 @@ export async function handleNhostProxy(
 
   return {
     session,
+    pendingReset: session
+      ? (request.cookies.get(PASSWORD_RESET_KEY)?.value ?? null)
+      : null,
     applySessionCookies: (response) => {
       for (const mutate of mutations) {
         mutate(response);

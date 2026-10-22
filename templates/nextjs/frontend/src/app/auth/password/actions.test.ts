@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { signUp } from '@/app/auth/password/actions';
+import { setNewPassword, signUp } from '@/app/auth/password/actions';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
 
 const signUpEmailPassword = vi.hoisted(() => vi.fn());
+const changeUserPassword = vi.hoisted(() => vi.fn());
+const endPasswordReset = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/nhost/server', () => ({
-  createNhostClient: async () => ({ auth: { signUpEmailPassword } }),
+  createNhostClient: async () => ({
+    auth: { signUpEmailPassword, changeUserPassword },
+    getUserSession: () => ({ user: { id: 'user-id' } }),
+  }),
+  endPasswordReset,
 }));
 
 const sentRedirectTo = (): string =>
@@ -34,5 +40,27 @@ describe('signUp', () => {
 
       expect(sentRedirectTo()).toBe(`${appOrigin()}${DEFAULT_DESTINATION}`);
     }
+  });
+});
+
+describe('setNewPassword', () => {
+  beforeEach(() => {
+    changeUserPassword.mockReset();
+    endPasswordReset.mockReset();
+  });
+
+  // Saving the password is what lets a reset link's session leave the page.
+  it('ends the reset once the password is changed', async () => {
+    changeUserPassword.mockResolvedValueOnce({});
+
+    expect(await setNewPassword('a new password')).toEqual({ success: true });
+    expect(endPasswordReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the reset going when the change is refused', async () => {
+    changeUserPassword.mockRejectedValueOnce(new Error('too short'));
+
+    expect((await setNewPassword('short')).error).toContain('too short');
+    expect(endPasswordReset).not.toHaveBeenCalled();
   });
 });
