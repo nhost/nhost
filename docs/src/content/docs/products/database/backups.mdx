@@ -11,11 +11,11 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Every Pro and Team project comes with daily backups and 7 days retention. This means your data is automatically saved every day, and you can restore from any backup taken in the last week.
 
-Free projects do not have daily backups, but you can create manual backups whenever you need them utilizing the connection string and backup tools like `pg_dump`.
+Free projects do not have daily backups, but you can create manual backups whenever you need them utilizing the [connection string](/products/database/access) and backup tools like `pg_dump`.
 
 In addition, for projects with critical data or those requiring precise recovery control, we offer point-in-time recovery as an add-on. This feature continuously backs up your data and lets you restore your database to any specific moment. It's ideal for applications where every transaction matters and you need the ability to recover from any point in time, not just daily backups.
 
-Something important to note is that backups don't include your storage files. A backup will include all of your files metadata and permissions but not the files themselves. Similarly, Run services' data (if any) is not included in our managed backups.
+Something important to note is that backups don't include your [storage files](/products/storage). A backup will include all of your files metadata and permissions but not the files themselves. Similarly, [Run services](/products/run)' data (if any) is not included in our managed backups.
 
 For details visit the [pricing page](https://nhost.io/pricing)
 
@@ -39,7 +39,7 @@ Restoring wipes out all of the target project's data prior to initiating the res
 2. Select the source project you want to import a backup from. Only projects in the same organization and region are listed.
 3. The source project's daily backups are listed. Pick the backup you want and click "Import backup".
 
-This triggers the restore in the background. You can follow the progress in the target project's logs by filtering on "Service: Backup Jobs".
+This triggers the restore in the background. You can follow the progress in the target project's [logs](/platform/cloud/logs) by filtering on "Service: Backup Jobs".
 
 :::note
 If the source project has Point-in-Time Recovery enabled, the **Import backup** page shows the point-in-time restore flow instead (see [Restoring to a Specific Point in Time on a Different Project](#restoring-to-a-specific-point-in-time-on-a-different-project)).

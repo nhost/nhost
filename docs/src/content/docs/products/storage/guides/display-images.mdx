@@ -38,7 +38,7 @@ const { body } = await nhost.storage.getFile(fileId, {
 const url = URL.createObjectURL(body)
 ```
 
-Thumbnails can be loaded for each image file and stored in a state map:
+[Thumbnails](/products/storage/image-transformation) can be loaded for each image file and stored in a state map:
 
 ```typescript
 const loadThumbnail = useCallback(
