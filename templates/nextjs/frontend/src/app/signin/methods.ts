@@ -1,5 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactNode } from 'react';
+import { configuredProviders, providerNames } from '@/app/auth/oauth/providers';
 import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
@@ -29,6 +30,8 @@ export type SignInMethod = {
   account?: Record<string, AccountSetting>;
 };
 
+const oauthProviders = configuredProviders();
+
 export const methods: SignInMethod[] = [
   {
     href: '/auth/password',
@@ -46,11 +49,17 @@ export const methods: SignInMethod[] = [
     title: 'Email code',
     description: 'Get a one-time code by email.',
   },
-  {
-    href: '/auth/oauth',
-    title: 'GitHub or Google',
-    description: 'Sign in with a provider account.',
-  },
+  // Only when the deployment says a provider is set up: with none, every
+  // button would lead to the auth service refusing it.
+  ...(oauthProviders.length > 0
+    ? [
+        {
+          href: '/auth/oauth',
+          title: providerNames(oauthProviders),
+          description: 'Sign in with a provider account.',
+        },
+      ]
+    : []),
   {
     href: '/auth/passkey',
     title: 'Passkey',

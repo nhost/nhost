@@ -49,7 +49,7 @@ needs you.
 
 A provider only works once an app is registered with it and the backend knows
 the app's credentials. The config is already wired to `.secrets`, so it is
-three steps:
+four steps:
 
 1. Register an OAuth app with GitHub or Google. The callback URL for the local
    stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`,
@@ -57,9 +57,15 @@ three steps:
 2. Put the client id and secret in `.secrets`, replacing the `fixme` values.
 3. Set `enabled = true` on that provider in `nhost/nhost.toml`, then restart
    `nhost up`.
+4. List it in `NHOST_OAUTH_PROVIDERS` for the frontend, for example
+   `NHOST_OAUTH_PROVIDERS=github,google` in `frontend/.env.local`, then
+   restart `pnpm dev`.
 
-Until then the button is there but the auth service refuses the redirect, and
-the home page shows its reason.
+The frontend cannot read the backend's config, so the fourth step is how it
+knows. Until a provider is listed it offers no button for it, and with none
+listed the sign-in page leaves the method out. The variable is only read on
+the server, at request time, so a host that deploys the frontend sets it like
+any other runtime variable rather than before the build.
 
 ## Permissions
 
