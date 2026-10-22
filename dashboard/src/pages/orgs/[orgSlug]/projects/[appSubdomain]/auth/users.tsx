@@ -244,7 +244,7 @@ function UsersPageContent() {
           title="There are no users yet"
           description="All users for your project will be listed here."
           action={
-            <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
+            <div className="flex flex-row place-content-between rounded-lg lg:w-56">
               <Button className="w-full" onClick={openCreateUserDialog}>
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Create User

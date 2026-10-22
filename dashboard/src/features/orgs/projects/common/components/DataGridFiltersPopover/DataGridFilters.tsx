@@ -6,7 +6,7 @@ function DataGridFilters() {
   const { filters } = useDataGridFilters();
 
   return (
-    <div className="flex h-full max-h-[calc(var(--radix-popover-content-available-height)-16rem)] w-full flex-col gap-0 overflow-y-scroll">
+    <div className="flex h-full max-h-[calc(var(--radix-popover-content-available-height)-theme(spacing.64))] w-full flex-col gap-0 overflow-y-scroll">
       {isNotEmptyValue(filters) &&
         filters.map((filter, index) => (
           <DataGridFilter key={filter.id} {...filter} index={index} />
