@@ -591,7 +591,7 @@ const orgPageMeta: Record<(typeof orgPages)[number]['slug'], PaletteMeta> = {
   },
   billing: {
     icon: <CreditCardIcon className={iconClassName} />,
-    keywords: ['plan', 'payment'],
+    keywords: ['plan', 'payment', 'usage', 'invoices'],
   },
 };
 
