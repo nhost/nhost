@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
 
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
+const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 
 export default async function Nav() {
   const nhost = await createNhostClient();
@@ -28,6 +29,7 @@ export default async function Nav() {
 
         {user ? (
           <div className="flex items-center gap-3">
+            <SignOutButton />
             {/* The picture rather than the address: the address is already
                 on the account page this leads to, and at nav width a long
                 one crowded the sign-out beside it. The link needs a name of
@@ -44,12 +46,16 @@ export default async function Nav() {
               />
               <span className="sr-only">Your account</span>
             </Link>
-            <SignOutButton />
           </div>
         ) : (
-          <Button asChild variant="ghost" size="sm">
-            <Link href={signInLink}>Sign in</Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link href={signInLink}>Sign in</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href={signUpLink}>Sign up</Link>
+            </Button>
+          </div>
         )}
       </div>
     </nav>
