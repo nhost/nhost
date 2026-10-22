@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import type { BaseEventTriggerFormTriggerProps } from '@/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm';
 import { DeleteEventTriggerDialog } from '@/features/orgs/projects/events/event-triggers/components/DeleteEventTriggerDialog';
@@ -39,17 +40,7 @@ export default function EventTriggerListItem({
   return (
     <>
       <div className="group pb-1">
-        <Button
-          asChild
-          variant="link"
-          size="sm"
-          className={cn(
-            'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-            {
-              'bg-table-selected': isSelected,
-            },
-          )}
-        >
+        <SidebarListRow asChild selected={isSelected}>
           <div className="flex w-full max-w-full items-center">
             <Link
               href={href}
@@ -124,7 +115,7 @@ export default function EventTriggerListItem({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </Button>
+        </SidebarListRow>
       </div>
       <EditEventTriggerForm
         eventTrigger={eventTrigger}

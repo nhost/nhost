@@ -1,6 +1,6 @@
 import { Settings } from 'lucide-react';
 import NextLink from 'next/link';
-import { Button } from '@/components/ui/v3/button';
+import { MenuRow } from '@/components/ui/v3/menu-row';
 
 interface AccountMenuActionsProps {
   onNavigate?: VoidFunction;
@@ -11,12 +11,12 @@ export default function AccountMenuActions({
 }: AccountMenuActionsProps) {
   return (
     <div className="grid grid-flow-row gap-1 p-2">
-      <Button asChild variant="menu">
+      <MenuRow asChild>
         <NextLink href="/account" onClick={onNavigate}>
           <Settings className="h-4 w-4" />
           Account settings
         </NextLink>
-      </Button>
+      </MenuRow>
     </div>
   );
 }

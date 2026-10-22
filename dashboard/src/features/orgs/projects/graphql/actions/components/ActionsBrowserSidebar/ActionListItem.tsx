@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import {
   Tooltip,
   TooltipContent,
@@ -108,17 +109,7 @@ export default function ActionListItem({
 
   return (
     <div className="group pb-1">
-      <Button
-        asChild
-        variant="link"
-        size="sm"
-        className={cn(
-          'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-          {
-            'bg-table-selected': isSelected,
-          },
-        )}
-      >
+      <SidebarListRow asChild selected={isSelected}>
         <div className="flex w-full max-w-full items-center">
           <Link
             href={href}
@@ -214,7 +205,7 @@ export default function ActionListItem({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </Button>
+      </SidebarListRow>
     </div>
   );
 }

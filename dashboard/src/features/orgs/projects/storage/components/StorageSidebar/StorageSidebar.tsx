@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -41,17 +42,7 @@ function BucketNavItem({
 }: BucketNavItemProps) {
   return (
     <li className="group pb-1">
-      <Button
-        asChild
-        variant="link"
-        size="sm"
-        className={cn(
-          'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-          {
-            'bg-table-selected': isSelected,
-          },
-        )}
-      >
+      <SidebarListRow asChild selected={isSelected}>
         <div className="flex w-full items-center">
           <NextLink
             className={cn(
@@ -68,7 +59,7 @@ function BucketNavItem({
           </NextLink>
           <BucketActions onEdit={onEdit} onDelete={onDelete} />
         </div>
-      </Button>
+      </SidebarListRow>
     </li>
   );
 }

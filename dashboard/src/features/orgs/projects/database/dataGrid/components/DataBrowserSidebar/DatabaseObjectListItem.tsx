@@ -1,7 +1,7 @@
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import {
   Tooltip,
   TooltipContent,
@@ -108,17 +108,10 @@ export default function DatabaseObjectListItem({
         onOpenChange={setIsTooltipOpen}
       >
         <TooltipTrigger asChild>
-          <Button
+          <SidebarListRow
             asChild
-            variant="link"
-            size="sm"
+            selected={isSelected}
             disabled={objectKey === removableObject}
-            className={cn(
-              'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-              {
-                'bg-table-selected': isSelected,
-              },
-            )}
           >
             <div>
               <NextLink
@@ -212,7 +205,7 @@ export default function DatabaseObjectListItem({
                 }
               />
             </div>
-          </Button>
+          </SidebarListRow>
         </TooltipTrigger>
         <TooltipContent side="right" sideOffset={8}>
           Not tracked in GraphQL
