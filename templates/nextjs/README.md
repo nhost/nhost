@@ -93,6 +93,13 @@ secret, as all of them end up in the browser bundle, so they can also be
 committed in a `frontend/.env.production` once `frontend/.gitignore` stops
 ignoring it. Nothing secret belongs in that file.
 
+`NEXT_PUBLIC_NHOST_ORG_SLUG` is optional. The footer links the backend's
+dashboard, and a cloud project's page there is addressed by its organization
+as well as its subdomain, which the app cannot look up. Set it to the part
+after `/orgs/` in the project's dashboard URL, for example `acme` in
+`https://app.nhost.io/orgs/acme/projects/abcdefgh`, and the link opens the
+project directly. Without it the link opens the dashboard's project picker.
+
 ## Permissions
 
 The three files in `nhost/metadata/databases/default/tables/` grant the `user`
