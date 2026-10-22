@@ -37,8 +37,3 @@ export function configuredProviders(
 
   return providers.filter((provider) => ids.has(provider.id));
 }
-
-// "GitHub", "GitHub or Google".
-export function providerNames(configured: Provider[]): string {
-  return configured.map((provider) => provider.name).join(' or ');
-}

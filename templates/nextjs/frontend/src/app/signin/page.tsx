@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { signInDestination } from '@/app/signin/destination';
 import { type Intent, signInIntent } from '@/app/signin/intent';
-import { methods } from '@/app/signin/methods';
+import { buttons, methods } from '@/app/signin/methods';
 import { signInQuery } from '@/app/signin/query';
 import {
   Card,
@@ -48,7 +48,9 @@ const copy: Record<
 /**
  * Lists the ways to sign in. Each method is a page of its own under
  * `/auth/<method>`; this page only links to them, from the data in
- * `methods.ts`, so deleting a method never breaks it.
+ * `methods.ts`, so deleting a method never breaks it. The exception is a
+ * provider account, which needs nothing typed first: its buttons are listed
+ * here, under the links, rather than a click away on a page of their own.
  *
  * `next` is where the visitor was going when a protected page sent them here,
  * and `intent` is whether they came to sign up or to sign in. Both are passed
@@ -92,6 +94,22 @@ export default async function SignIn({
               </div>
             </Link>
           ))}
+          {buttons.length > 0 ? (
+            <>
+              {/* Set apart from the links: these leave for the provider
+                  straight away, where a link opens a page of the app's. */}
+              {methods.length > 0 ? (
+                <div className="flex items-center gap-3 py-2 text-muted-foreground text-xs">
+                  <span className="h-px flex-1 bg-border" />
+                  or
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              ) : null}
+              {buttons.map((Buttons) => (
+                <Buttons key={Buttons.name} destination={destination} />
+              ))}
+            </>
+          ) : null}
           {/* A clear gap, not a nudge: this is the way out of the list, not
               another item in it. */}
           <p className="pt-6 text-center text-muted-foreground text-sm">

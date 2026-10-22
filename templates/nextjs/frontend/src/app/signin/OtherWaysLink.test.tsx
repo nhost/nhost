@@ -4,7 +4,10 @@ import OtherWaysLink from '@/app/signin/OtherWaysLink';
 
 // Only the count is read, so the entries name no method, and deleting a
 // method leaves nothing here that names it.
-const listed = vi.hoisted(() => ({ methods: [] as object[] }));
+const listed = vi.hoisted(() => ({
+  methods: [] as object[],
+  buttons: [] as object[],
+}));
 
 vi.mock('@/app/signin/methods', () => listed);
 
@@ -15,6 +18,7 @@ function render(query: string): string {
 describe('OtherWaysLink', () => {
   beforeEach(() => {
     listed.methods = [{}, {}];
+    listed.buttons = [];
   });
 
   it('goes back to sign-in carrying the query', () => {
@@ -32,5 +36,13 @@ describe('OtherWaysLink', () => {
     listed.methods = [{}];
 
     expect(render('?intent=sign-in')).toBe('');
+  });
+
+  // The provider buttons on the list are somewhere else to go.
+  it('counts the provider buttons as another way', () => {
+    listed.methods = [{}];
+    listed.buttons = [{}];
+
+    expect(render('')).toContain('href="/signin"');
   });
 });
