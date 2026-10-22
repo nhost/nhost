@@ -2,7 +2,6 @@ import BackendStatus from '@/components/BackendStatus';
 
 const resources = [
   { href: 'https://docs.nhost.io', label: 'Nhost docs' },
-  { href: 'https://docs.nhost.io/products/auth', label: 'Auth guide' },
   { href: 'https://nextjs.org/docs', label: 'Next.js docs' },
 ];
 
