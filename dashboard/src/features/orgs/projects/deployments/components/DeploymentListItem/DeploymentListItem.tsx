@@ -8,7 +8,6 @@ import { NavLink } from '@/components/common/NavLink';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v3/avatar';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -16,6 +15,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { LiveBadge } from '@/features/orgs/projects/deployments/components/LiveBadge';
 import { RedeployDialog } from '@/features/orgs/projects/deployments/components/RedeployDialog';
 import { useRedeployDeployment } from '@/features/orgs/projects/deployments/hooks/useRedeployDeployment';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -93,9 +93,7 @@ export default function DeploymentListItem({
         <div className="grid grid-flow-col items-center justify-end gap-2">
           {isLive && (
             <div className="hidden w-12 justify-end sm:flex">
-              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
-                Live
-              </Badge>
+              <LiveBadge />
             </div>
           )}
 

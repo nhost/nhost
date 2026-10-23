@@ -16,21 +16,15 @@ import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
+import { useGitHubAccessToken } from '@/features/orgs/projects/common/hooks/useGitHubAccessToken';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
+import { startGitHubConnect } from '@/features/orgs/projects/common/utils/startGitHubConnect';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
-import {
-  getGitHubToken,
-  saveGitHubToken,
-} from '@/features/orgs/projects/git/common/utils';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
-import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
-import { isEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { nhost } from '@/utils/nhost';
 
 export type ConnectGitHubModalState =
   | 'CONNECTING'
@@ -93,88 +87,55 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const { org, loading: loadingOrg } = useCurrentOrg();
   const hostname = useHostName();
   const token = useAccessToken();
-  const {
-    data,
-    loading: loadingGithubConnected,
-    error: errorGithubConnected,
-  } = useGetAuthUserProvidersQuery();
-
-  const githubProvider = data?.authUserProviders?.find(
-    (item) => item.providerId === 'github',
-  );
+  const githubToken = useGitHubAccessToken();
+  const { status: tokenStatus, accessToken } = githubToken;
+  const tokenError =
+    githubToken.status === 'error' ? githubToken.error : undefined;
+  const errorGithubConnected =
+    githubToken.status === 'error' && githubToken.source === 'provider-query'
+      ? githubToken.error
+      : undefined;
 
   async function handleConnectGitHub() {
-    const { challenge, id } = await generateAndStorePKCE();
-    const url = nhost.auth.signInProviderURL('github', {
-      connect: token,
-      redirectTo: appendPkceId(
-        `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
-        id,
-      ),
-      codeChallenge: challenge,
+    await startGitHubConnect({
+      nhostAccessToken: token,
+      redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
     });
-    window.location.href = url;
   }
 
   useEffect(() => {
-    if (loadingGithubConnected) {
+    if (tokenStatus === 'loading' || errorGithubConnected) {
       return;
     }
-
+    if (tokenStatus === 'connection-required') {
+      setConnectGitHubModalState('GITHUB_CONNECTION_REQUIRED');
+      setLoading(false);
+      return;
+    }
+    if (tokenStatus === 'expired') {
+      setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
+      setLoading(false);
+      return;
+    }
+    if (tokenError) {
+      toast.error(tokenError.message, getToastStyleProps());
+      close?.();
+      return;
+    }
+    if (!accessToken) {
+      return;
+    }
+    const controller = new AbortController();
     const fetchGitHubData = async () => {
       try {
         setLoading(true);
-
-        if (isEmptyValue(githubProvider)) {
-          setConnectGitHubModalState('GITHUB_CONNECTION_REQUIRED');
-          setLoading(false);
+        const installations = await listGitHubInstallationRepos(
+          accessToken,
+          controller.signal,
+        );
+        if (controller.signal.aborted) {
           return;
         }
-        const githubToken = getGitHubToken();
-
-        if (
-          !githubToken?.authUserProviderId ||
-          githubProvider!.id !== githubToken.authUserProviderId
-        ) {
-          setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
-          setLoading(false);
-          return;
-        }
-
-        const { refreshToken, expiresAt: expiresAtString } = githubToken;
-        let accessToken = githubToken?.accessToken;
-
-        const expiresAt = new Date(expiresAtString).getTime();
-
-        const currentTime = Date.now();
-        const expiresAtMargin = 60 * 1000;
-        if (expiresAt - currentTime < expiresAtMargin) {
-          if (!refreshToken) {
-            setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
-            setLoading(false);
-            return;
-          }
-
-          const refreshResponse = await nhost.auth.refreshProviderToken(
-            'github',
-            { refreshToken },
-          );
-
-          if (!refreshResponse.body) {
-            setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
-            setLoading(false);
-            return;
-          }
-
-          saveGitHubToken({
-            ...refreshResponse.body,
-            authUserProviderId: githubProvider!.id,
-          });
-
-          accessToken = refreshResponse.body.accessToken;
-        }
-
-        const installations = await listGitHubInstallationRepos(accessToken);
 
         const transformedData = {
           githubAppInstallations: installations.map((item) => ({
@@ -199,7 +160,9 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
         setGithubData(transformedData);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching GitHub data:', err);
+        if (controller.signal.aborted) {
+          return;
+        }
         if (err instanceof GitHubAPIError && err.status === 401) {
           setConnectGitHubModalState('EXPIRED_GITHUB_SESSION');
           setLoading(false);
@@ -216,7 +179,8 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     };
 
     fetchGitHubData();
-  }, [githubProvider, loadingGithubConnected, close]);
+    return () => controller.abort();
+  }, [tokenStatus, accessToken, tokenError, errorGithubConnected, close]);
 
   const handleSelectAnotherRepository = () => {
     setSelectedRepoId(null);
@@ -249,7 +213,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
       );
     }
 
-    if (loading || loadingProject || loadingOrg || loadingGithubConnected) {
+    if (loading || loadingProject || loadingOrg || tokenStatus === 'loading') {
       return (
         <div className="px-1">
           <div className="flex flex-col">
