@@ -16,32 +16,35 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { RedeployDialog } from '@/features/orgs/projects/deployments/components/RedeployDialog';
+import { useRedeployDeployment } from '@/features/orgs/projects/deployments/hooks/useRedeployDeployment';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
-import {
-  GetOrganizationsDocument,
-  useInsertPipelineRunMutation,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
+import { cn } from '@/lib/utils';
 
 export interface DeploymentListItemProps {
   deployment: UnifiedDeploymentRowFragment;
-  isLive?: boolean;
-  showRedeploy?: boolean;
+  liveDeployment: UnifiedDeploymentRowFragment | null;
+  /**
+   * Keeps the Redeploy button visible. Otherwise it only shows while the row
+   * is hovered or focused.
+   */
+  alwaysShowRedeploy?: boolean;
   disableRedeploy?: boolean;
 }
 
 export default function DeploymentListItem({
   deployment,
-  isLive,
-  showRedeploy,
+  liveDeployment,
+  alwaysShowRedeploy,
   disableRedeploy,
 }: DeploymentListItemProps) {
   const { project } = useProject();
   const { org } = useCurrentOrg();
-  const userData = useUserData();
+  const { redeploy, confirm, cancel, warning, scheduling } =
+    useRedeployDeployment(deployment, liveDeployment);
+  const isLive = deployment.id === liveDeployment?.id;
 
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
   const relativeDateOfDeployment = deploymentDate
@@ -50,41 +53,10 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
-    refetchQueries: [
-      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
-    ],
-  });
-
-  async function redeploy(event: MouseEvent<HTMLButtonElement>) {
+  async function handleRedeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
-
-    const insertPromise = insertPipelineRun({
-      variables: {
-        object: {
-          input: {
-            name: 'nhost-backend-build',
-            app_id: project?.id,
-            commit_sha: deployment.commitSHA,
-            commit_user_name: deployment.commitUserName,
-            commit_user_avatar_url: deployment.commitUserAvatarUrl,
-            commit_message: deployment.commitMessage,
-          },
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await insertPromise;
-      },
-      {
-        loadingMessage: 'Scheduling deployment...',
-        successMessage: 'Deployment has been scheduled successfully.',
-        errorMessage: 'An error occurred when scheduling deployment.',
-      },
-    );
+    await redeploy();
   }
 
   return (
@@ -92,7 +64,7 @@ export default function DeploymentListItem({
       <NavLink
         variant="ghost"
         underline="none"
-        className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
+        className="group grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={deployment.commitMessage || 'No commit message'}
       >
@@ -119,16 +91,29 @@ export default function DeploymentListItem({
         </div>
 
         <div className="grid grid-flow-col items-center justify-end gap-2">
-          {showRedeploy && (
+          {isLive && (
+            <div className="hidden w-12 justify-end sm:flex">
+              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                Live
+              </Badge>
+            </div>
+          )}
+
+          {deployment.commitSHA && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span>
+                <span
+                  className={cn(
+                    !alwaysShowRedeploy &&
+                      'sr-only group-focus-within:not-sr-only group-hover:not-sr-only',
+                  )}
+                >
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={disableRedeploy || loading}
-                    onClick={redeploy}
+                    disabled={disableRedeploy || scheduling}
+                    onClick={handleRedeploy}
                     className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"
                   >
@@ -144,14 +129,6 @@ export default function DeploymentListItem({
                 </TooltipContent>
               )}
             </Tooltip>
-          )}
-
-          {isLive && (
-            <div className="hidden w-12 justify-end sm:flex">
-              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
-                Live
-              </Badge>
-            </div>
           )}
 
           <div className="hidden w-16 text-right font-medium font-mono text-foreground text-sm- sm:block">
@@ -170,6 +147,18 @@ export default function DeploymentListItem({
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
       </NavLink>
+
+      {warning && liveDeployment && (
+        <RedeployDialog
+          deployment={deployment}
+          liveDeployment={liveDeployment}
+          warning={warning}
+          inProgress={!!disableRedeploy}
+          scheduling={scheduling}
+          onCancel={cancel}
+          onConfirm={confirm}
+        />
+      )}
     </li>
   );
 }

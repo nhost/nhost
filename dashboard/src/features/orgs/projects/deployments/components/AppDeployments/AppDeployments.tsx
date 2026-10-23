@@ -99,7 +99,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const deployments = fetched.slice(0, limit);
   const nextAllowed = fetched.length > limit;
   const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
-  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
+  const liveDeployment = latestLiveData?.unifiedDeployments[0] ?? null;
 
   const nrOfItems = deployments.length;
 
@@ -114,8 +114,8 @@ export default function AppDeployments(props: AppDeploymentsProps) {
               <Fragment key={item.id}>
                 <DeploymentListItem
                   deployment={item}
-                  isLive={liveId === item.id}
-                  showRedeploy={page === 1 && index === 0}
+                  liveDeployment={liveDeployment}
+                  alwaysShowRedeploy={page === 1 && index === 0}
                   disableRedeploy={pendingOrRunning.length > 0}
                 />
 
