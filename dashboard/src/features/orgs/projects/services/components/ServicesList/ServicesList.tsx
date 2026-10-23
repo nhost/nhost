@@ -139,16 +139,16 @@ export default function ServicesList({
                   <DotsHorizontalIcon />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52 p-0">
+              <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem
                   onClick={() => viewService(service)}
-                  className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  className="cursor-pointer gap-2"
                 >
                   <EyeIcon className="h-4 w-4" />
                   <span>View Service</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                   onClick={() => deleteService(service)}
                   disabled={!isPlatform}
                 >
