@@ -1,3 +1,20 @@
+## [auth@0.53.0] - 2026-10-23
+
+### 🚀 Features
+
+- *(postgres)* Update postgres to 18.6 and drop support for 16 and 17 (#5020)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using TOTP (#4612)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Don't convert OAuth access errors to internal-server-error (#5058)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Add generic SMS provider settings to .env.example (#5251)
+
 ## [auth@0.52.0] - 2026-09-15
 
 ### 🚀 Features
