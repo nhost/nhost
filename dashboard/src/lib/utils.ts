@@ -39,6 +39,18 @@ export function areStrArraysEqual(arr1: string[], arr2: string[]) {
   return set1.size === set2.size && [...set1].every((col) => set2.has(col));
 }
 
+/**
+ * Order-sensitive counterpart of `areStrArraysEqual`, for lists that share one
+ * authoritative order, such as the paired columns of two foreign keys. Match
+ * `foreign_key_constraint_on` columns with `areStrArraysEqual` instead: Hasura
+ * resolves them by column set.
+ */
+export function areStrArraysEqualOrdered(arr1: string[], arr2: string[]) {
+  return (
+    arr1.length === arr2.length && arr1.every((item, i) => item === arr2[i])
+  );
+}
+
 export function isJSONString(str: string) {
   try {
     JSON.parse(str);

@@ -1,10 +1,12 @@
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
+import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -14,7 +16,7 @@ export default function DeploymentsPage() {
 
   if (!project?.githubRepository) {
     return (
-      <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
+      <Container className="grid max-w-3xl grid-flow-row gap-4 pt-8 pb-8 text-center antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
@@ -32,7 +34,7 @@ export default function DeploymentsPage() {
         </div>
         <div className="flex w-full justify-center">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
             underline="none"
             variant="ghost"
             className="!text-primary"
@@ -45,8 +47,8 @@ export default function DeploymentsPage() {
   }
 
   return (
-    <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
-      <div className="mt-4 flex flex-row place-content-between">
+    <Container className="mx-auto flex max-w-5xl flex-col space-y-2 pt-8 pb-8">
+      <div className="flex flex-row place-content-between">
         <h1 className="font-medium text-2xl">Deployments</h1>
       </div>
 
@@ -58,5 +60,11 @@ export default function DeploymentsPage() {
 }
 
 DeploymentsPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <DeploymentsArea>{page}</DeploymentsArea>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

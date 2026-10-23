@@ -428,7 +428,7 @@ export default function RolePermissionEditorForm({
 
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={resetError}
             >
@@ -440,7 +440,7 @@ export default function RolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1 bg-background-default"
+        className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1"
       >
         <div className="grid min-h-0 flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
@@ -494,7 +494,7 @@ export default function RolePermissionEditorForm({
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleCancelClick}
             tabIndex={isDirty ? -1 : 0}

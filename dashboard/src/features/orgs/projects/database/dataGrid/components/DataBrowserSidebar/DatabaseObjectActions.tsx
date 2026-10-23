@@ -90,14 +90,14 @@ function DatabaseObjectActions({
   const deleteLabel = deleteLabels[objectType] || 'Delete';
 
   return (
-    <DropdownMenu open={open} onOpenChange={handleOnOpenChange}>
+    <DropdownMenu open={open} onOpenChange={handleOnOpenChange} modal={false}>
       <DropdownMenuTrigger
         className={cn(className)}
         disabled={disabled}
         asChild
       >
         <Button
-          id={`${idPrefix}-management-menu-${objectName}`}
+          data-testid={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
           className={cn(

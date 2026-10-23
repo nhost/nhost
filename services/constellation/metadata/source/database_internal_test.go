@@ -393,7 +393,7 @@ func TestDatabaseMetadataSource_ResourceVersion_ConcurrentAccess(t *testing.T) {
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		for range ch { //nolint:revive // drain until Close shuts the channel
+		for range ch { // drain until Close shuts the channel
 		}
 	})
 

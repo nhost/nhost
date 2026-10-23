@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
-import { ButtonWithLoading, buttonVariants } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Separator } from '@/components/ui/v3/separator';
 
@@ -96,7 +96,7 @@ export default function DeleteBucketDialog({
           <AlertDialogAction asChild>
             <ButtonWithLoading
               onClick={handleDelete}
-              className={buttonVariants({ variant: 'destructive' })}
+              variant="destructive"
               disabled={deleting || !confirmed}
               loading={deleting}
             >

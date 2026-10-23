@@ -155,7 +155,7 @@ export default function RemoteSchemaPreview({
   }
 
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="rounded-lg border">
       <div className="border-b p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -209,7 +209,7 @@ export default function RemoteSchemaPreview({
           </div>
           <Button
             type="submit"
-            variant="secondary"
+            variant="outline"
             disabled={!searchTerm.trim() || isSearching}
             loading={isSearching}
           >

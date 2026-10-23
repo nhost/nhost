@@ -1916,6 +1916,8 @@ type Apps struct {
 	OrganizationID             *string        `json:"organizationID,omitempty"`
 	AutomaticDeploys           bool           `json:"automaticDeploys"`
 	// An object relationship
+	BillingDedicatedCompute *BillingDedicatedCompute `json:"billingDedicatedCompute,omitempty"`
+	// An object relationship
 	Creator *Users `json:"creator,omitempty"`
 	// An object relationship
 	GithubRepository *GithubRepositories `json:"githubRepository,omitempty"`
@@ -1975,39 +1977,40 @@ type AppsAvgOrderBy struct {
 
 // Boolean expression to filter rows from the table "apps". All fields are combined with a logical 'AND'.
 type AppsBoolExp struct {
-	And                        []*AppsBoolExp              `json:"_and,omitempty"`
-	Not                        *AppsBoolExp                `json:"_not,omitempty"`
-	Or                         []*AppsBoolExp              `json:"_or,omitempty"`
-	ID                         *UUIDComparisonExp          `json:"id,omitempty"`
-	CreatedAt                  *TimestamptzComparisonExp   `json:"createdAt,omitempty"`
-	UpdatedAt                  *TimestamptzComparisonExp   `json:"updatedAt,omitempty"`
-	WorkspaceID                *UUIDComparisonExp          `json:"workspaceId,omitempty"`
-	Name                       *StringComparisonExp        `json:"name,omitempty"`
-	Slug                       *StringComparisonExp        `json:"slug,omitempty"`
-	GithubRepositoryID         *UUIDComparisonExp          `json:"githubRepositoryId,omitempty"`
-	Subdomain                  *StringComparisonExp        `json:"subdomain,omitempty"`
-	RepositoryProductionBranch *StringComparisonExp        `json:"repositoryProductionBranch,omitempty"`
-	MetadataFunctions          *JsonbComparisonExp         `json:"metadataFunctions,omitempty"`
-	DesiredState               *IntComparisonExp           `json:"desiredState,omitempty"`
-	CreatorUserID              *UUIDComparisonExp          `json:"creatorUserId,omitempty"`
-	NhostBaseFolder            *StringComparisonExp        `json:"nhostBaseFolder,omitempty"`
-	IsLocked                   *BooleanComparisonExp       `json:"isLocked,omitempty"`
-	IsLockedReason             *StringComparisonExp        `json:"isLockedReason,omitempty"`
-	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
-	AutomaticDeploys           *BooleanComparisonExp       `json:"automaticDeploys,omitempty"`
-	Creator                    *UsersBoolExp               `json:"creator,omitempty"`
-	GithubRepository           *GithubRepositoriesBoolExp  `json:"githubRepository,omitempty"`
-	LegacyPlan                 *PlansBoolExp               `json:"legacyPlan,omitempty"`
-	Organization               *OrganizationsBoolExp       `json:"organization,omitempty"`
-	Region                     *RegionsBoolExp             `json:"region,omitempty"`
-	Workspace                  *WorkspacesBoolExp          `json:"workspace,omitempty"`
-	AppStates                  *AppStateHistoryBoolExp     `json:"appStates,omitempty"`
-	Backups                    *BackupsBoolExp             `json:"backups,omitempty"`
-	Deployments                *DeploymentsBoolExp         `json:"deployments,omitempty"`
-	FeatureFlags               *FeatureFlagsBoolExp        `json:"featureFlags,omitempty"`
-	PipelineRuns               *PipelineRunsBoolExp        `json:"pipelineRuns,omitempty"`
-	RunServices                *RunServiceBoolExp          `json:"runServices,omitempty"`
-	RunServicesAggregate       *RunServiceAggregateBoolExp `json:"runServices_aggregate,omitempty"`
+	And                        []*AppsBoolExp                  `json:"_and,omitempty"`
+	Not                        *AppsBoolExp                    `json:"_not,omitempty"`
+	Or                         []*AppsBoolExp                  `json:"_or,omitempty"`
+	ID                         *UUIDComparisonExp              `json:"id,omitempty"`
+	CreatedAt                  *TimestamptzComparisonExp       `json:"createdAt,omitempty"`
+	UpdatedAt                  *TimestamptzComparisonExp       `json:"updatedAt,omitempty"`
+	WorkspaceID                *UUIDComparisonExp              `json:"workspaceId,omitempty"`
+	Name                       *StringComparisonExp            `json:"name,omitempty"`
+	Slug                       *StringComparisonExp            `json:"slug,omitempty"`
+	GithubRepositoryID         *UUIDComparisonExp              `json:"githubRepositoryId,omitempty"`
+	Subdomain                  *StringComparisonExp            `json:"subdomain,omitempty"`
+	RepositoryProductionBranch *StringComparisonExp            `json:"repositoryProductionBranch,omitempty"`
+	MetadataFunctions          *JsonbComparisonExp             `json:"metadataFunctions,omitempty"`
+	DesiredState               *IntComparisonExp               `json:"desiredState,omitempty"`
+	CreatorUserID              *UUIDComparisonExp              `json:"creatorUserId,omitempty"`
+	NhostBaseFolder            *StringComparisonExp            `json:"nhostBaseFolder,omitempty"`
+	IsLocked                   *BooleanComparisonExp           `json:"isLocked,omitempty"`
+	IsLockedReason             *StringComparisonExp            `json:"isLockedReason,omitempty"`
+	OrganizationID             *UUIDComparisonExp              `json:"organizationID,omitempty"`
+	AutomaticDeploys           *BooleanComparisonExp           `json:"automaticDeploys,omitempty"`
+	BillingDedicatedCompute    *BillingDedicatedComputeBoolExp `json:"billingDedicatedCompute,omitempty"`
+	Creator                    *UsersBoolExp                   `json:"creator,omitempty"`
+	GithubRepository           *GithubRepositoriesBoolExp      `json:"githubRepository,omitempty"`
+	LegacyPlan                 *PlansBoolExp                   `json:"legacyPlan,omitempty"`
+	Organization               *OrganizationsBoolExp           `json:"organization,omitempty"`
+	Region                     *RegionsBoolExp                 `json:"region,omitempty"`
+	Workspace                  *WorkspacesBoolExp              `json:"workspace,omitempty"`
+	AppStates                  *AppStateHistoryBoolExp         `json:"appStates,omitempty"`
+	Backups                    *BackupsBoolExp                 `json:"backups,omitempty"`
+	Deployments                *DeploymentsBoolExp             `json:"deployments,omitempty"`
+	FeatureFlags               *FeatureFlagsBoolExp            `json:"featureFlags,omitempty"`
+	PipelineRuns               *PipelineRunsBoolExp            `json:"pipelineRuns,omitempty"`
+	RunServices                *RunServiceBoolExp              `json:"runServices,omitempty"`
+	RunServicesAggregate       *RunServiceAggregateBoolExp     `json:"runServices_aggregate,omitempty"`
 }
 
 // input type for incrementing numeric columns in table "apps"
@@ -2109,6 +2112,7 @@ type AppsOrderBy struct {
 	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
+	BillingDedicatedCompute    *BillingDedicatedComputeOrderBy  `json:"billingDedicatedCompute,omitempty"`
 	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesOrderBy       `json:"githubRepository,omitempty"`
 	LegacyPlan                 *PlansOrderBy                    `json:"legacyPlan,omitempty"`
@@ -2582,6 +2586,168 @@ type BigintComparisonExp struct {
 	Lte    *int64  `json:"_lte,omitempty"`
 	Neq    *int64  `json:"_neq,omitempty"`
 	Nin    []int64 `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "billing.dedicated_compute"
+type BillingDedicatedCompute struct {
+	AppID           string  `json:"appID"`
+	TotalMillicores int64   `json:"totalMillicores"`
+	OrganizationID  *string `json:"organizationID,omitempty"`
+	// An object relationship
+	App *Apps `json:"app,omitempty"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.dedicated_compute". All fields are combined with a logical 'AND'.
+type BillingDedicatedComputeBoolExp struct {
+	And             []*BillingDedicatedComputeBoolExp `json:"_and,omitempty"`
+	Not             *BillingDedicatedComputeBoolExp   `json:"_not,omitempty"`
+	Or              []*BillingDedicatedComputeBoolExp `json:"_or,omitempty"`
+	AppID           *UUIDComparisonExp                `json:"appID,omitempty"`
+	TotalMillicores *IntComparisonExp                 `json:"totalMillicores,omitempty"`
+	OrganizationID  *UUIDComparisonExp                `json:"organizationID,omitempty"`
+	App             *AppsBoolExp                      `json:"app,omitempty"`
+	Organization    *OrganizationsBoolExp             `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.dedicated_compute".
+type BillingDedicatedComputeOrderBy struct {
+	AppID           *OrderBy              `json:"appID,omitempty"`
+	TotalMillicores *OrderBy              `json:"totalMillicores,omitempty"`
+	OrganizationID  *OrderBy              `json:"organizationID,omitempty"`
+	App             *AppsOrderBy          `json:"app,omitempty"`
+	Organization    *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_dedicated_compute"
+type BillingDedicatedComputeStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingDedicatedComputeStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingDedicatedComputeStreamCursorValueInput struct {
+	AppID           *string `json:"appID,omitempty"`
+	TotalMillicores *int64  `json:"totalMillicores,omitempty"`
+	OrganizationID  *string `json:"organizationID,omitempty"`
+}
+
+// Boolean expression to compare columns of type "billing_report_type_enum". All fields are combined with logical 'AND'.
+type BillingReportTypeEnumComparisonExp struct {
+	Eq     *BillingReportTypeEnum  `json:"_eq,omitempty"`
+	In     []BillingReportTypeEnum `json:"_in,omitempty"`
+	IsNull *bool                   `json:"_is_null,omitempty"`
+	Neq    *BillingReportTypeEnum  `json:"_neq,omitempty"`
+	Nin    []BillingReportTypeEnum `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "billing.reports"
+type BillingReports struct {
+	AppID          string                `json:"appID"`
+	ReportEnds     time.Time             `json:"reportEnds"`
+	Value          int64                 `json:"value"`
+	Type           BillingReportTypeEnum `json:"type"`
+	OrganizationID *string               `json:"organizationID,omitempty"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.reports". All fields are combined with a logical 'AND'.
+type BillingReportsBoolExp struct {
+	And            []*BillingReportsBoolExp            `json:"_and,omitempty"`
+	Not            *BillingReportsBoolExp              `json:"_not,omitempty"`
+	Or             []*BillingReportsBoolExp            `json:"_or,omitempty"`
+	AppID          *UUIDComparisonExp                  `json:"appID,omitempty"`
+	ReportEnds     *TimestamptzComparisonExp           `json:"reportEnds,omitempty"`
+	Value          *IntComparisonExp                   `json:"value,omitempty"`
+	Type           *BillingReportTypeEnumComparisonExp `json:"type,omitempty"`
+	OrganizationID *UUIDComparisonExp                  `json:"organizationID,omitempty"`
+	Organization   *OrganizationsBoolExp               `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.reports".
+type BillingReportsOrderBy struct {
+	AppID          *OrderBy              `json:"appID,omitempty"`
+	ReportEnds     *OrderBy              `json:"reportEnds,omitempty"`
+	Value          *OrderBy              `json:"value,omitempty"`
+	Type           *OrderBy              `json:"type,omitempty"`
+	OrganizationID *OrderBy              `json:"organizationID,omitempty"`
+	Organization   *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_reports"
+type BillingReportsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingReportsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingReportsStreamCursorValueInput struct {
+	AppID          *string                `json:"appID,omitempty"`
+	ReportEnds     *time.Time             `json:"reportEnds,omitempty"`
+	Value          *int64                 `json:"value,omitempty"`
+	Type           *BillingReportTypeEnum `json:"type,omitempty"`
+	OrganizationID *string                `json:"organizationID,omitempty"`
+}
+
+// columns and relationships of "billing.resources"
+type BillingResources struct {
+	AppID            string  `json:"appID"`
+	FunctionsAmount  int64   `json:"functionsAmount"`
+	CustomDomains    int64   `json:"customDomains"`
+	PersistentVolume int64   `json:"persistentVolume"`
+	OrganizationID   *string `json:"organizationID,omitempty"`
+	Pitr             int64   `json:"pitr"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.resources". All fields are combined with a logical 'AND'.
+type BillingResourcesBoolExp struct {
+	And              []*BillingResourcesBoolExp `json:"_and,omitempty"`
+	Not              *BillingResourcesBoolExp   `json:"_not,omitempty"`
+	Or               []*BillingResourcesBoolExp `json:"_or,omitempty"`
+	AppID            *UUIDComparisonExp         `json:"appID,omitempty"`
+	FunctionsAmount  *IntComparisonExp          `json:"functionsAmount,omitempty"`
+	CustomDomains    *IntComparisonExp          `json:"customDomains,omitempty"`
+	PersistentVolume *IntComparisonExp          `json:"persistentVolume,omitempty"`
+	OrganizationID   *UUIDComparisonExp         `json:"organizationID,omitempty"`
+	Pitr             *IntComparisonExp          `json:"pitr,omitempty"`
+	Organization     *OrganizationsBoolExp      `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.resources".
+type BillingResourcesOrderBy struct {
+	AppID            *OrderBy              `json:"appID,omitempty"`
+	FunctionsAmount  *OrderBy              `json:"functionsAmount,omitempty"`
+	CustomDomains    *OrderBy              `json:"customDomains,omitempty"`
+	PersistentVolume *OrderBy              `json:"persistentVolume,omitempty"`
+	OrganizationID   *OrderBy              `json:"organizationID,omitempty"`
+	Pitr             *OrderBy              `json:"pitr,omitempty"`
+	Organization     *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_resources"
+type BillingResourcesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingResourcesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingResourcesStreamCursorValueInput struct {
+	AppID            *string `json:"appID,omitempty"`
+	FunctionsAmount  *int64  `json:"functionsAmount,omitempty"`
+	CustomDomains    *int64  `json:"customDomains,omitempty"`
+	PersistentVolume *int64  `json:"persistentVolume,omitempty"`
+	OrganizationID   *string `json:"organizationID,omitempty"`
+	Pitr             *int64  `json:"pitr,omitempty"`
 }
 
 // Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'.
@@ -4999,6 +5165,18 @@ type SubscriptionRoot struct {
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table in a streaming manner: "auth.users"
 	UsersStream []*Users `json:"users_stream"`
+	// fetch data from the table: "billing.dedicated_compute"
+	BillingDedicatedComputes []*BillingDedicatedCompute `json:"billingDedicatedComputes"`
+	// fetch data from the table in a streaming manner: "billing.dedicated_compute"
+	BillingDedicatedComputeStream []*BillingDedicatedCompute `json:"billing_dedicated_compute_stream"`
+	// fetch data from the table: "billing.reports"
+	BillingReports []*BillingReports `json:"billingReports"`
+	// fetch data from the table in a streaming manner: "billing.reports"
+	BillingReportsStream []*BillingReports `json:"billingReportsStream"`
+	// fetch data from the table: "billing.resources"
+	BillingResources []*BillingResources `json:"billingResources"`
+	// fetch data from the table in a streaming manner: "billing.resources"
+	BillingResourcesStream []*BillingResources `json:"billingResourcesStream"`
 	// fetch data from the table: "announcements"
 	Announcements []*Announcements `json:"announcements"`
 	// fetch data from the table: "announcements" using primary key columns
@@ -7176,6 +7354,264 @@ func (e *BackupsSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e BackupsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.dedicated_compute"
+type BillingDedicatedComputeSelectColumn string
+
+const (
+	// column name
+	BillingDedicatedComputeSelectColumnAppID BillingDedicatedComputeSelectColumn = "appID"
+	// column name
+	BillingDedicatedComputeSelectColumnTotalMillicores BillingDedicatedComputeSelectColumn = "totalMillicores"
+	// column name
+	BillingDedicatedComputeSelectColumnOrganizationID BillingDedicatedComputeSelectColumn = "organizationID"
+)
+
+var AllBillingDedicatedComputeSelectColumn = []BillingDedicatedComputeSelectColumn{
+	BillingDedicatedComputeSelectColumnAppID,
+	BillingDedicatedComputeSelectColumnTotalMillicores,
+	BillingDedicatedComputeSelectColumnOrganizationID,
+}
+
+func (e BillingDedicatedComputeSelectColumn) IsValid() bool {
+	switch e {
+	case BillingDedicatedComputeSelectColumnAppID, BillingDedicatedComputeSelectColumnTotalMillicores, BillingDedicatedComputeSelectColumnOrganizationID:
+		return true
+	}
+	return false
+}
+
+func (e BillingDedicatedComputeSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingDedicatedComputeSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingDedicatedComputeSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_dedicated_compute_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingDedicatedComputeSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingDedicatedComputeSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingDedicatedComputeSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type BillingReportTypeEnum string
+
+const (
+	// Dedicated compute
+	BillingReportTypeEnumDedicatedCompute BillingReportTypeEnum = "dedicated_compute"
+	// Egress usage in MB
+	BillingReportTypeEnumEgress BillingReportTypeEnum = "egress"
+	// Functions usage in seconds
+	BillingReportTypeEnumFunctions BillingReportTypeEnum = "functions"
+)
+
+var AllBillingReportTypeEnum = []BillingReportTypeEnum{
+	BillingReportTypeEnumDedicatedCompute,
+	BillingReportTypeEnumEgress,
+	BillingReportTypeEnumFunctions,
+}
+
+func (e BillingReportTypeEnum) IsValid() bool {
+	switch e {
+	case BillingReportTypeEnumDedicatedCompute, BillingReportTypeEnumEgress, BillingReportTypeEnumFunctions:
+		return true
+	}
+	return false
+}
+
+func (e BillingReportTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *BillingReportTypeEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingReportTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_report_type_enum", str)
+	}
+	return nil
+}
+
+func (e BillingReportTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingReportTypeEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingReportTypeEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.reports"
+type BillingReportsSelectColumn string
+
+const (
+	// column name
+	BillingReportsSelectColumnAppID BillingReportsSelectColumn = "appID"
+	// column name
+	BillingReportsSelectColumnReportEnds BillingReportsSelectColumn = "reportEnds"
+	// column name
+	BillingReportsSelectColumnValue BillingReportsSelectColumn = "value"
+	// column name
+	BillingReportsSelectColumnType BillingReportsSelectColumn = "type"
+	// column name
+	BillingReportsSelectColumnOrganizationID BillingReportsSelectColumn = "organizationID"
+)
+
+var AllBillingReportsSelectColumn = []BillingReportsSelectColumn{
+	BillingReportsSelectColumnAppID,
+	BillingReportsSelectColumnReportEnds,
+	BillingReportsSelectColumnValue,
+	BillingReportsSelectColumnType,
+	BillingReportsSelectColumnOrganizationID,
+}
+
+func (e BillingReportsSelectColumn) IsValid() bool {
+	switch e {
+	case BillingReportsSelectColumnAppID, BillingReportsSelectColumnReportEnds, BillingReportsSelectColumnValue, BillingReportsSelectColumnType, BillingReportsSelectColumnOrganizationID:
+		return true
+	}
+	return false
+}
+
+func (e BillingReportsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingReportsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingReportsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_reports_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingReportsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingReportsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingReportsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.resources"
+type BillingResourcesSelectColumn string
+
+const (
+	// column name
+	BillingResourcesSelectColumnAppID BillingResourcesSelectColumn = "appID"
+	// column name
+	BillingResourcesSelectColumnFunctionsAmount BillingResourcesSelectColumn = "functionsAmount"
+	// column name
+	BillingResourcesSelectColumnCustomDomains BillingResourcesSelectColumn = "customDomains"
+	// column name
+	BillingResourcesSelectColumnPersistentVolume BillingResourcesSelectColumn = "persistentVolume"
+	// column name
+	BillingResourcesSelectColumnOrganizationID BillingResourcesSelectColumn = "organizationID"
+	// column name
+	BillingResourcesSelectColumnPitr BillingResourcesSelectColumn = "pitr"
+)
+
+var AllBillingResourcesSelectColumn = []BillingResourcesSelectColumn{
+	BillingResourcesSelectColumnAppID,
+	BillingResourcesSelectColumnFunctionsAmount,
+	BillingResourcesSelectColumnCustomDomains,
+	BillingResourcesSelectColumnPersistentVolume,
+	BillingResourcesSelectColumnOrganizationID,
+	BillingResourcesSelectColumnPitr,
+}
+
+func (e BillingResourcesSelectColumn) IsValid() bool {
+	switch e {
+	case BillingResourcesSelectColumnAppID, BillingResourcesSelectColumnFunctionsAmount, BillingResourcesSelectColumnCustomDomains, BillingResourcesSelectColumnPersistentVolume, BillingResourcesSelectColumnOrganizationID, BillingResourcesSelectColumnPitr:
+		return true
+	}
+	return false
+}
+
+func (e BillingResourcesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingResourcesSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingResourcesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_resources_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingResourcesSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingResourcesSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingResourcesSelectColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
