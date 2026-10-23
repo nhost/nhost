@@ -185,14 +185,14 @@ in
 
   package = serverFiles;
 
-  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_22; };
-  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_24; };
+  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nhost.nodejs_22; };
+  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nhost.nodejs_24; };
   # Node >= 25 no longer bundles corepack, so add the standalone package (its
   # bins are corepack/pnpm/pnpx/yarn — no overlap with nodejs' node/npm/npx).
   # Without it, the shared install lib falls back to `npm install corepack`,
   # whose `#!/usr/bin/env node` shim fails in this minimal image (no /usr/bin/env).
   node26DockerImage = mkDockerImage {
-    nodeRuntime = pkgs.nodejs_26;
+    nodeRuntime = pkgs.nhost.nodejs_26;
     extraPaths = [ pkgs.corepack ];
   };
 
