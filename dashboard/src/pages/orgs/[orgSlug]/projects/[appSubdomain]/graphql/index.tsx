@@ -402,7 +402,22 @@ function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
     editors.prepend(slot);
     setContainer(slot);
 
+    // GraphiQL makes the whole Variables/Headers bar its drag handle, tabs
+    // included. A press on a tab or the collapse arrow stays a click: it never
+    // reaches the drag handler. The empty part of the bar still drags.
+    function keepButtonsClickable(event: MouseEvent) {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('.graphiql-editor-tools button')
+      ) {
+        event.stopPropagation();
+      }
+    }
+
+    editors.addEventListener('mousedown', keepButtonsClickable, true);
+
     return () => {
+      editors.removeEventListener('mousedown', keepButtonsClickable, true);
       slot.remove();
     };
   }, []);

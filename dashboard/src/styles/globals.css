@@ -238,11 +238,7 @@ html.dark .graphiql-themed .graphiql-container {
 .graphiql-themed
   .graphiql-container
   .graphiql-session
-  > .graphiql-horizontal-drag-bar:hover::after,
-.graphiql-themed
-  .graphiql-container
-  .graphiql-editors
-  > div:has(> .graphiql-editor-tools):hover::before {
+  > .graphiql-horizontal-drag-bar:hover::after {
   border-color: hsl(var(--muted-foreground));
 }
 
@@ -316,7 +312,9 @@ html.dark .graphiql-themed .graphiql-container {
 .graphiql-themed
   .graphiql-container
   .graphiql-editors
-  > div:has(> .graphiql-editor-tools:is(:hover, :active))::after {
+  > div:has(> .graphiql-editor-tools:is(:hover, :active)):not(
+    :has(.graphiql-editor-tools button:hover)
+  )::after {
   opacity: 1;
 }
 
@@ -327,7 +325,9 @@ html.dark .graphiql-themed .graphiql-container {
 .graphiql-themed
   .graphiql-container
   .graphiql-editors
-  > div:has(> .graphiql-editor-tools:is(:hover, :active))::before {
+  > div:has(> .graphiql-editor-tools:is(:hover, :active)):not(
+    :has(.graphiql-editor-tools button:hover)
+  )::before {
   border-color: hsl(var(--primary));
 }
 
@@ -422,6 +422,17 @@ html.dark .graphiql-themed .graphiql-container {
 
 .graphiql-themed .graphiql-container .btn-emboss-primary:disabled {
   color: hsl(var(--on-solid) / 0.5);
+}
+
+/* Variables/Headers tabs take focus on click now (their press no longer
+   reaches GraphiQL's drag handler, which used to cancel it). Show the focus
+   ring for the keyboard only, not after a mouse click. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editor-tools
+  button:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Active query tab: our main blue, like the active section tab. */
