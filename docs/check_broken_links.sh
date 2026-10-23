@@ -92,11 +92,10 @@ if ! jq -e . "$results" >/dev/null 2>&1; then
 fi
 
 total="$(jq '.links | length' "$results")"
-skipped="$(jq '[.links[] | select(.state == "SKIPPED")] | length' "$results")"
 broken="$(jq '[.links[] | select(.state == "BROKEN")] | length' "$results")"
 
 echo
-echo "Checked ${total} links (${skipped} skipped)."
+echo "Checked ${total} links."
 
 if [[ "$broken" -eq 0 ]]; then
   echo "✅ No broken links found."
