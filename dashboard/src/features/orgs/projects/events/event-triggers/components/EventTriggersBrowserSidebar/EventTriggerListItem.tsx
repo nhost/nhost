@@ -1,4 +1,4 @@
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
@@ -15,9 +15,6 @@ import { DeleteEventTriggerDialog } from '@/features/orgs/projects/events/event-
 import { EditEventTriggerForm } from '@/features/orgs/projects/events/event-triggers/components/EditEventTriggerForm';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { cn } from '@/lib/utils';
-
-const menuItemClassName =
-  'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';
 
 export interface EventTriggerListItemProps {
   eventTrigger: EventTriggerViewModel;
@@ -99,24 +96,21 @@ export default function EventTriggerListItem({
               <DropdownMenuContent
                 align="start"
                 side="bottom"
-                className="w-52 p-0"
+                className="w-52"
                 forceMount
               >
                 <DropdownMenuItem
                   onSelect={() => {
                     editTriggerRef.current?.open?.();
                   }}
-                  className={menuItemClassName}
+                  className="cursor-pointer gap-2"
                 >
-                  <SquarePen className="size-4" />
+                  <Pencil className="size-4" />
                   Edit Event Trigger
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => setShowDeleteEventTriggerDialog(true)}
-                  className={cn(
-                    menuItemClassName,
-                    'text-destructive focus:text-destructive',
-                  )}
+                  className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                 >
                   <Trash2 className="size-4" />
                   Delete Event Trigger

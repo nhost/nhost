@@ -1,4 +1,4 @@
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
@@ -16,8 +16,7 @@ import { EditCronTriggerForm } from '@/features/orgs/projects/events/cron-trigge
 import { cn } from '@/lib/utils';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 
-const menuItemClassName =
-  'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';
+const menuItemClassName = 'cursor-pointer gap-2';
 
 export interface CronTriggerListItemProps {
   cronTrigger: CronTrigger;
@@ -99,7 +98,7 @@ export default function CronTriggerListItem({
               <DropdownMenuContent
                 align="start"
                 side="bottom"
-                className="w-52 p-0"
+                className="w-52"
                 forceMount
               >
                 <DropdownMenuItem
@@ -108,14 +107,14 @@ export default function CronTriggerListItem({
                   }}
                   className={menuItemClassName}
                 >
-                  <SquarePen className="size-4" />
+                  <Pencil className="size-4" />
                   Edit Cron Trigger
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => setShowDeleteCronTriggerDialog(true)}
                   className={cn(
                     menuItemClassName,
-                    'text-destructive focus:text-destructive',
+                    'text-destructive focus:bg-destructive-hover focus:text-destructive',
                   )}
                 >
                   <Trash2 className="size-4" />
