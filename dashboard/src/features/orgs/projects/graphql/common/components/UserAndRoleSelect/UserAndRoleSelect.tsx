@@ -1,16 +1,11 @@
 import { useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+import { Button } from '@/components/ui/v3/button';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
 import type { GraphQLPlaygroundSelection } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
+import { cn } from '@/lib/utils';
 
 /**
- * Component that combines user selection and role selection functionality
+ * One "Request as" control: the user picker with the role chips below it.
  */
 interface UserAndRoleSelectProps {
   /**
@@ -49,33 +44,55 @@ export default function UserAndRoleSelect({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-      <UserSelect
-        className="col-span-1 md:col-auto md:w-52"
-        onUserChange={handleUserChange}
-      />
-
-      <div className="col-span-1 flex flex-col gap-2 md:col-auto md:w-52">
-        <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+    <UserSelect
+      onUserChange={handleUserChange}
+      triggerSuffix={
+        role ? (
+          <>
+            <span className="text-muted-foreground"> with role </span>
+            <span
+              data-testid="graphql-role-tag"
+              className="font-medium text-foreground"
+            >
+              {role}
+            </span>
+          </>
+        ) : null
+      }
+    >
+      <fieldset className="border-t px-3 pt-2 pb-3">
+        <legend className="float-left w-full font-medium text-muted-foreground text-xs">
           Role
-        </span>
-        <Select value={role} onValueChange={handleRoleChange}>
-          <SelectTrigger
-            aria-label="Role"
-            data-testid="graphql-role-select"
-            className="w-full"
-          >
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoles.map((availableRole) => (
-              <SelectItem value={availableRole} key={availableRole}>
+        </legend>
+        <div className="flex w-full flex-wrap gap-1.5 pt-2">
+          {availableRoles.map((availableRole) => {
+            const isSelected = availableRole === role;
+
+            return (
+              <Button
+                key={availableRole}
+                type="button"
+                variant="outline"
+                size="xs"
+                aria-pressed={isSelected}
+                onClick={() => handleRoleChange(availableRole)}
+                className={cn(
+                  'px-3 font-mono text-muted-foreground text-xs',
+                  isSelected &&
+                    'border-primary bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary',
+                )}
+              >
                 {availableRole}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+              </Button>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-muted-foreground text-xs">
+          {userId
+            ? 'Roles this user can use. The first one is the default.'
+            : 'Every role in the project. Admin sends the admin secret.'}
+        </p>
+      </fieldset>
+    </UserSelect>
   );
 }
