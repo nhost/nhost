@@ -22,6 +22,7 @@ import (
 const (
 	BearerAuthScopes         bearerAuthContextKey         = "BearerAuth.Scopes"
 	BearerAuthElevatedScopes bearerAuthElevatedContextKey = "BearerAuthElevated.Scopes"
+	BearerAuthOAuth2Scopes   bearerAuthOAuth2ContextKey   = "BearerAuthOAuth2.Scopes"
 )
 
 // Defines values for AttestationFormat.
@@ -1784,7 +1785,7 @@ type VerifyAddSecurityKeyResponse struct {
 
 // VerifyTokenRequest defines model for VerifyTokenRequest.
 type VerifyTokenRequest struct {
-	// Token JWT token to verify
+	// Token Session access token to verify
 	Token *string `json:"token,omitempty"`
 }
 
@@ -1805,6 +1806,9 @@ type bearerAuthContextKey string
 
 // bearerAuthElevatedContextKey is the context key for BearerAuthElevated security scheme
 type bearerAuthElevatedContextKey string
+
+// bearerAuthOAuth2ContextKey is the context key for BearerAuthOAuth2 security scheme
+type bearerAuthOAuth2ContextKey string
 
 // Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParams struct {

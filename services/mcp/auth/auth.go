@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	ErrMissingToken = errors.New("missing bearer token")
-	ErrInvalidToken = errors.New("invalid bearer token")
-	ErrRoleMismatch = errors.New("token default role does not match enforced role")
+	ErrMissingToken   = errors.New("missing bearer token")
+	ErrInvalidToken   = errors.New("invalid bearer token")
+	ErrRoleMismatch   = errors.New("token default role does not match enforced role")
+	errNotAccessToken = errors.New("bearer token is not an OAuth2 access token")
 )
 
 func scopesForRole(enforceRole string) []string {
@@ -216,7 +217,40 @@ func (a *Auth) extractAndValidateToken(r *http.Request) (*jwt.Token, error) {
 		return nil, ErrInvalidToken
 	}
 
+	if !isAccessToken(token) {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidToken, errNotAccessToken)
+	}
+
 	return token, nil
+}
+
+// isAccessToken reports whether token is an OAuth2 access token (typ: "at+jwt").
+func isAccessToken(token *jwt.Token) bool {
+	typ, _ := token.Header["typ"].(string)
+	typ = strings.TrimPrefix(strings.ToLower(typ), "application/")
+
+	if typ == "at+jwt" {
+		return true
+	}
+
+	return typ == "jwt" && isLegacyAccessToken(token)
+}
+
+// Remove me once MCP no longer supports Auth releases before 0.53.0.
+func isLegacyAccessToken(token *jwt.Token) bool {
+	aud, err := token.Claims.GetAudience()
+	if err != nil || len(aud) == 0 {
+		return false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	_, ok = claims["scope"].(string)
+
+	return ok
 }
 
 func (a *Auth) writeUnauthorized(c *gin.Context) {

@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/oauth2/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 )
 
@@ -322,7 +323,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().Validate(accessTokenValue).Return(validToken, nil)
+				m.EXPECT().
+					Validate(accessTokenValue, tokenpurpose.OAuth2AccessToken).
+					Return(validToken, nil)
 
 				return m
 			},
@@ -354,7 +357,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().Validate(accessTokenValue).Return(validToken, nil)
+				m.EXPECT().
+					Validate(accessTokenValue, tokenpurpose.OAuth2AccessToken).
+					Return(validToken, nil)
 
 				return m
 			},
@@ -387,7 +392,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().Validate(accessTokenValue).
+				m.EXPECT().Validate(accessTokenValue, tokenpurpose.OAuth2AccessToken).
 					Return(nil, errors.New("invalid token")) //nolint:err113
 
 				return m
@@ -423,7 +428,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 						"iss":   issuer,
 					},
 				}
-				m.EXPECT().Validate(accessTokenValue).Return(wrongAudToken, nil)
+				m.EXPECT().
+					Validate(accessTokenValue, tokenpurpose.OAuth2AccessToken).
+					Return(wrongAudToken, nil)
 
 				return m
 			},
@@ -457,7 +464,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 						"iss": issuer,
 					},
 				}
-				m.EXPECT().Validate(accessTokenValue).Return(noScopeToken, nil)
+				m.EXPECT().
+					Validate(accessTokenValue, tokenpurpose.OAuth2AccessToken).
+					Return(noScopeToken, nil)
 
 				return m
 			},

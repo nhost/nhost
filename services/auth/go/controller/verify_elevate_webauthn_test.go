@@ -39,7 +39,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 			Method: jwt.SigningMethodHS256,
 			Header: map[string]any{
 				"alg": "HS256",
-				"typ": "JWT",
+				"typ": "nhost-session+jwt",
 			},
 			Claims: jwt.MapClaims{
 				"exp": float64(time.Now().Add(900 * time.Second).Unix()),
@@ -138,7 +138,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{
 					"alg": "HS256",
-					"typ": "JWT",
+					"typ": "nhost-session+jwt",
 				},
 				Claims: jwt.MapClaims{
 					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
