@@ -23,6 +23,8 @@ pnpm dev:dashboard
 
 `pnpm dev` from `dashboard/` starts the same server. Open [http://localhost:3000](http://localhost:3000) to see the result in your browser.
 
+Run the remaining commands in this README from `dashboard/`, and create the `.env.*` files described below, including `.env.test`, in that directory.
+
 ## Environment
 
 ### Setup Environment Variables
