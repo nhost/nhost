@@ -27,7 +27,11 @@ import {
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/CreateLogicalModelForm';
 import { NativeQueryArgumentsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueryArgumentsSection';
 import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryDTO';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { useThemePreference } from '@/providers/Theme';
+
+// Shared by both editors; a stable reference so CodeMirror doesn't reconfigure.
+const SQL_EXTENSIONS = [sql({ dialect: PostgreSQL }), codeMirrorAppBackground];
 
 export type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryDTO';
 
@@ -212,7 +216,7 @@ export default function BaseNativeQueryForm({
                       height="180px"
                       className="overflow-hidden rounded-md border"
                       theme={editorTheme}
-                      extensions={[sql({ dialect: PostgreSQL })]}
+                      extensions={SQL_EXTENSIONS}
                       onChange={field.onChange}
                     />
                     <Dialog>
@@ -246,7 +250,7 @@ export default function BaseNativeQueryForm({
                             autoFocus
                             className="h-full overflow-hidden rounded-md border [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-auto"
                             theme={editorTheme}
-                            extensions={[sql({ dialect: PostgreSQL })]}
+                            extensions={SQL_EXTENSIONS}
                             onChange={field.onChange}
                           />
                         </div>
@@ -275,12 +279,7 @@ export default function BaseNativeQueryForm({
         </div>
 
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-foreground"
-            onClick={onCancel}
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <ButtonWithLoading

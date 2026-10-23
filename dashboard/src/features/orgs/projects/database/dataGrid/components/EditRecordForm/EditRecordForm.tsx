@@ -129,17 +129,12 @@ export default function EditRecordForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between border-none bg-[#f1315433] px-4 py-3"
+            className="grid grid-flow-col items-center justify-between"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
-            <Button
-              onClick={reset}
-              size="sm"
-              variant="destructive"
-              className="bg-transparent text-[#c91737] hover:bg-[#f131541a]"
-            >
+            <Button onClick={reset} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

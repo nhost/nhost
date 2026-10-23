@@ -218,7 +218,7 @@ export default function DatabaseConnectionInfo() {
                     </div>
                   ),
                 )}
-                <Alert variant="info" className="col-span-6 text-left">
+                <Alert className="col-span-6 text-left">
                   To connect to the Postgres database directly, generate a new
                   password, securely save it, and then modify your connection
                   string with the newly created password.

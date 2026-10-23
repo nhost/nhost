@@ -64,10 +64,7 @@ export default function DiscardChangesDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onDiscardChanges}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+          <AlertDialogAction onClick={onDiscardChanges} variant="destructive">
             Discard
           </AlertDialogAction>
         </AlertDialogFooter>

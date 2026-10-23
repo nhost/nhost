@@ -30,7 +30,7 @@ func newAudienceGetter(t *testing.T, audience string) *controller.JWTGetter {
 		jwtSecret,
 		time.Hour,
 		nil,
-		"disabled",
+		controller.ElevationConfig{Mode: "disabled"},
 		nil,
 		"hasura-auth",
 		audience,

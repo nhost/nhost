@@ -392,7 +392,7 @@ Any other JWT claims
 #### exp?
 
 ```ts
-optional exp?: number;
+exp?: number;
 ```
 
 Token expiration time as Date object
@@ -400,7 +400,7 @@ Token expiration time as Date object
 #### https://hasura.io/jwt/claims?
 
 ```ts
-optional https://hasura.io/jwt/claims?: Record<string, unknown>;
+"https://hasura.io/jwt/claims"?: Record<string, unknown>;
 ```
 
 Hasura JWT claims with PostgreSQL arrays converted to JavaScript arrays
@@ -408,7 +408,7 @@ Hasura JWT claims with PostgreSQL arrays converted to JavaScript arrays
 #### iat?
 
 ```ts
-optional iat?: number;
+iat?: number;
 ```
 
 Token issued at time as Date object
@@ -416,7 +416,7 @@ Token issued at time as Date object
 #### iss?
 
 ```ts
-optional iss?: string;
+iss?: string;
 ```
 
 Token issuer
@@ -424,7 +424,7 @@ Token issuer
 #### sub?
 
 ```ts
-optional sub?: string;
+sub?: string;
 ```
 
 Token subject (user ID)
@@ -587,11 +587,11 @@ refresh the token using the provided auth client.
 
 ### Parameters
 
-| Parameter       | Type                                | Default value | Description                                                                                                                                                                       |
-| --------------- | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth`          | [`Client`](./auth#client)          | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
-| `storage`       | [`SessionStorage`](#sessionstorage) | `undefined`   | The session storage implementation                                                                                                                                                |
-| `marginSeconds` | `number`                            | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
+| Parameter        | Type                                | Default value | Description                                                                                                                                                                       |
+| ---------------- | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth`           | [`Client`](./auth#client)          | `undefined`   | The authentication client to use for token refresh                                                                                                                                |
+| `storage`        | [`SessionStorage`](#sessionstorage) | `undefined`   | The session storage implementation                                                                                                                                                |
+| `marginSeconds?` | `number`                            | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
 
 ### Returns
 

@@ -1,7 +1,6 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
-import { useTheme } from '@mui/material';
 import { bbedit } from '@uiw/codemirror-theme-bbedit';
 import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
@@ -18,6 +17,8 @@ import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const removeTOMLIndentation = (tomlStr: string) => {
@@ -26,7 +27,7 @@ const removeTOMLIndentation = (tomlStr: string) => {
 };
 
 export default function TOMLEditor() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
 
   const [tomlCode, setTOMLCode] = useState('');
@@ -141,25 +142,26 @@ export default function TOMLEditor() {
   };
 
   return (
-    <>
-      <div className="flex w-full flex-col space-y-2 border-b p-4">
-        <p className="font-semibold">Configuration Editor</p>
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
+      <div className="flex w-full shrink-0 flex-col space-y-2 border-b p-4">
+        <h3 className="font-semibold text-lg">Configuration Editor</h3>
       </div>
-      <div className="h-full overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         {loading ? (
           <div className="h-full w-full animate-pulse bg-muted" />
         ) : (
           <CodeMirror
             value={tomlCode}
+            className="h-full"
             height="100%"
             width="100%"
-            theme={theme.palette.mode === 'light' ? bbedit : githubDark}
-            extensions={[StreamLanguage.define(toml)]}
+            theme={resolvedTheme === 'light' ? bbedit : githubDark}
+            extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
             onChange={onChange}
           />
         )}
       </div>
-      <div className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
+      <div className="grid w-full shrink-0 grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
         <Button
           type="button"
           variant="outline"
@@ -179,6 +181,6 @@ export default function TOMLEditor() {
           Save
         </ButtonWithLoading>
       </div>
-    </>
+    </div>
   );
 }

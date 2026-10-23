@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import {
   Sheet,
@@ -9,7 +10,6 @@ import {
 import { getServiceStyle } from '@/features/orgs/projects/logs/components/LogsBody/serviceStyle';
 import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 
 export interface LogsDetailSheetProps {
   entry: LogEntry | null;
@@ -62,7 +62,7 @@ export default function LogsDetailSheet({
 
         {entry && style && (
           <>
-            <div className="flex flex-col gap-2 border-b border-divider pb-3 text-base">
+            <div className="flex flex-col gap-2 border-divider border-b pb-3 text-base">
               <div className="flex items-center gap-2">
                 <span className="w-28 text-muted-foreground">Timestamp</span>
                 <span className="font-mono text-foreground">
@@ -87,9 +87,9 @@ export default function LogsDetailSheet({
               <CopyToClipboardButton
                 textToCopy={formatted}
                 title="Log copied"
-                className="absolute right-2 top-2 z-10 bg-muted/80 p-1 hover:bg-muted"
+                className="absolute top-2 right-2 z-10 bg-muted/80 p-1 hover:bg-muted"
               />
-              <pre className="h-full overflow-auto rounded border border-divider bg-muted p-3 pr-12 font-mono text-base text-foreground whitespace-pre-wrap break-words">
+              <pre className="h-full overflow-auto whitespace-pre-wrap break-words rounded border border-divider bg-muted p-3 pr-12 font-mono text-base text-foreground">
                 {formatted}
               </pre>
             </div>

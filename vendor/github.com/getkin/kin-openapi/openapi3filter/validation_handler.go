@@ -3,6 +3,7 @@ package openapi3filter
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/routers"
@@ -79,10 +80,20 @@ func (h *ValidationHandler) before(w http.ResponseWriter, r *http.Request) (hand
 	return false
 }
 
+// ErrEncodedPathSeparator is returned when a request path holds an encoded path
+// separator and the decoded path resolves to another operation than the escaped
+// path does. Serving such a request would validate one operation while the
+// wrapped handler serves the other one.
+var ErrEncodedPathSeparator error = &routers.RouteError{Reason: "path contains an encoded path separator resolving to another operation"}
+
 func (h *ValidationHandler) validateRequest(r *http.Request) error {
 	// Find route
 	route, pathParams, err := h.router.FindRoute(r)
 	if err != nil {
+		return err
+	}
+
+	if err := h.checkEncodedPathSeparator(r, route); err != nil {
 		return err
 	}
 
@@ -99,6 +110,34 @@ func (h *ValidationHandler) validateRequest(r *http.Request) error {
 	}
 	if err = ValidateRequest(r.Context(), requestValidationInput); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// checkEncodedPathSeparator rejects a request whose encoded path separators make
+// r.URL.Path and r.URL.RawPath select different operations. The router matches
+// on the decoded path while routers such as gorilla/mux with UseEncodedPath
+// match on the escaped one, so the operation validated here — its security
+// requirements included — would not be the operation the wrapped handler serves.
+func (h *ValidationHandler) checkEncodedPathSeparator(r *http.Request, route *routers.Route) error {
+	escapedPath := r.URL.EscapedPath()
+	segment := escapedPath
+	for _, separator := range []string{"%2F", "%2f"} {
+		segment = strings.ReplaceAll(segment, separator, "~")
+	}
+	if segment == escapedPath {
+		return nil
+	}
+
+	shadow := r.Clone(r.Context())
+	shadow.URL.Path, shadow.URL.RawPath = segment, ""
+	escapedRoute, _, err := h.router.FindRoute(shadow)
+	if err != nil ||
+		escapedRoute.Method != route.Method ||
+		escapedRoute.Path != route.Path ||
+		escapedRoute.Operation != route.Operation {
+		return ErrEncodedPathSeparator
 	}
 
 	return nil

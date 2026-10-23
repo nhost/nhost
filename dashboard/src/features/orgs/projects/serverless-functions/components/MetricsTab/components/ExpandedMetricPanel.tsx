@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import { MetricChart } from '@/features/orgs/projects/common/metrics/components/MetricChart';
 import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
 import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import {
@@ -73,7 +73,7 @@ export default function ExpandedMetricPanel({
         onClick={onClose}
         className="absolute inset-0 cursor-default"
       />
-      <div className="relative flex min-h-0 flex-1 flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-4 rounded-lg border p-4 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-semibold text-foreground text-lg">

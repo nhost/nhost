@@ -34,6 +34,10 @@ type schemaValidationSettings struct {
 	stringFormats  map[string]StringFormatValidator
 	numberFormats  map[string]NumberFormatValidator
 	integerFormats map[string]IntegerFormatValidator
+
+	// visitedSchemas provides pointer-identity cycle detection for runtime
+	// validation, matching the stack-based detection in Schema.validate().
+	visitedSchemas map[*Schema]struct{}
 }
 
 // FailFast returns schema validation errors quicker.

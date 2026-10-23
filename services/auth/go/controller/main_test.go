@@ -193,6 +193,7 @@ type getControllerOpts struct {
 	totp                      *controller.Totp
 	encrypter                 controller.Encrypter
 	audience                  string
+	elevationMode             string
 }
 
 type getControllerOptsFunc func(*getControllerOpts)
@@ -235,6 +236,12 @@ func withTotp(totp *controller.Totp) getControllerOptsFunc {
 	}
 }
 
+func withElevationMode(mode string) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.elevationMode = mode
+	}
+}
+
 func withEncrypter(encrypter controller.Encrypter) getControllerOptsFunc {
 	return func(o *getControllerOpts) {
 		o.encrypter = encrypter
@@ -268,12 +275,18 @@ func getController(
 		cc = controllerOpts.customClaimer(ctrl)
 	}
 
+	dbClient := db(ctrl)
+
 	jwtGetter, err := controller.NewJWTGetter(
 		[]byte(config.JWTSecret),
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
-		"",
-		nil,
+		controller.ElevationConfig{
+			Mode:            controllerOpts.elevationMode,
+			TOTPEnabled:     config.TOTPEnabled,
+			WebauthnEnabled: config.WebauthnEnabled,
+		},
+		dbClient,
 		config.ServerURL.String(),
 		controllerOpts.audience,
 	)
@@ -317,7 +330,7 @@ func getController(
 	}
 
 	c, err := controller.New(
-		db(ctrl),
+		dbClient,
 		config,
 		jwtGetter,
 		emailer,

@@ -1,15 +1,10 @@
+import { subMinutes } from 'date-fns';
 import type { PropsWithChildren } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { vi } from 'vitest';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { mockApplication } from '@/tests/mocks';
-import {
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
-import { subMinutes } from 'date-fns';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import LogsRangeSelector from './LogsRangeSelector';
 
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({

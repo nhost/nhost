@@ -840,7 +840,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         </div>
 
         <div className="box grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
-          <Button type="button" variant="ghost" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
 

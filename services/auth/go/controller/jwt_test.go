@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"crypto"
+	"errors"
 	"log/slog"
 	"maps"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
@@ -19,6 +21,7 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 )
@@ -247,7 +250,7 @@ func TestGetJWTFunc(t *testing.T) {
 				tc.key,
 				tc.expiresIn,
 				customClaimer,
-				"",
+				controller.ElevationConfig{},
 				nil,
 				"hasura-auth",
 				"",
@@ -534,19 +537,23 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
 	signingGetter, err := controller.NewJWTGetter(
-		jwtSecret,
-		time.Hour,
-		nil,
-		"",
-		nil,
-		"hasura-auth",
-		"",
+		jwtSecret, time.Hour, nil, controller.ElevationConfig{}, nil, "hasura-auth", "",
 	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
 	}
 
 	nonElevatedToken := signTestToken(t, signingGetter, userID, tokenpurpose.Session, nil)
+
+	subjectlessToken, err := signingGetter.SignTokenWithClaims(
+		jwt.MapClaims{},
+		time.Now().Add(time.Minute),
+		tokenpurpose.Session,
+	)
+	if err != nil {
+		t.Fatalf("failed to sign subjectless token: %v", err)
+	}
+
 	elevatedToken := signTestToken(t, signingGetter, userID, tokenpurpose.Session, map[string]any{
 		"https://hasura.io/jwt/claims": map[string]any{
 			"x-hasura-allowed-roles":     []string{"me", "user", "editor"},
@@ -592,60 +599,106 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	}
 
 	cases := []struct {
-		name         string
-		elevatedMode string
-		db           func(ctrl *gomock.Controller) *mock.MockDBClient
-		token        string
-		scheme       string
-		requestURL   *url.URL
-		expectErr    error
+		name       string
+		elevation  controller.ElevationConfig
+		db         func(ctrl *gomock.Controller) *mock.MockDBClient
+		token      string
+		scheme     string
+		requestURL *url.URL
+		routePath  string
+		expectErr  error
 	}{
 		{
-			name:         "BearerAuth: elevated disabled",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    nil,
+			name: "BearerAuth: elevated disabled",
+			elevation: controller.ElevationConfig{
+				Mode: "disabled", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuth: elevated recommended, no security keys, claim not present",
-			elevatedMode: "recommended",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    nil,
+			name: "BearerAuth: elevated recommended, no security keys, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuth: elevated required, no security keys, claim not present",
-			elevatedMode: "required",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    nil,
+			name: "BearerAuth: elevated required, no security keys, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated disabled",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
-			expectErr:    nil,
+			name: "BearerAuthElevated: elevated recommended, token without a subject",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			// Even a correctly typed session token must have a subject to
+			// satisfy elevated authentication.
+			db:         mock.NewMockDBClient,
+			token:      subjectlessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated recommended, no security keys, claim not present",
-			elevatedMode: "recommended",
+			name: "BearerAuthElevated: elevated required, token without a subject",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      subjectlessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated disabled",
+			elevation: controller.ElevationConfig{
+				Mode: "disabled", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, no security keys, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -656,11 +709,14 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated recommended, security keys, claim not present",
-			elevatedMode: "recommended",
+			name: "BearerAuthElevated: elevated recommended, security keys, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -675,12 +731,37 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated required, no security keys, claim not present",
-			elevatedMode: "required",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
+			name: "BearerAuthElevated: elevated recommended, counting security keys fails",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(
+					int64(0), errors.New("database error"), //nolint:err113
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, no security keys, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
 			expectErr: &oapi.AuthenticatorError{
 				Scheme:  "BearerAuthElevated",
 				Code:    "unauthorized",
@@ -689,14 +770,11 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated recommended, security keys, claim present",
-			elevatedMode: "recommended",
-			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
-
-				return mock
+			name: "BearerAuthElevated: elevated recommended, security keys, claim present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
 			},
+			db:         mock.NewMockDBClient,
 			token:      elevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: nil,
@@ -704,33 +782,212 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated required, security keys, claim present",
-			elevatedMode: "required",
-			db:           mock.NewMockDBClient,
-			token:        elevatedToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
-			expectErr:    nil,
+			name: "BearerAuthElevated: elevated required, security keys, claim present",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      elevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated required, no security keys, add first security key",
-			elevatedMode: "required",
+			name: "BearerAuthElevated: elevated required, no security keys, add first security key",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/user/webauthn/add"},
+			routePath:  "/user/webauthn/add",
 			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated required, no security keys, verify security key endpoint",
-			elevatedMode: "required",
+			name: "BearerAuthElevated: elevated required, no security keys, add first security key behind api prefix",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// With AUTH_API_PREFIX set the request URL carries the prefix
+				// but the matched route path does not.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/v1/user/webauthn/add"},
+			routePath:  "/user/webauthn/add",
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, no security keys, verify security key endpoint",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/user/webauthn/verify"},
+			routePath:  "/user/webauthn/verify",
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, no factor, generate totp secret",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// Setting up a first factor is the one thing a user with none
+				// must be able to do, or every guarded route stays unreachable.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			routePath:  "/mfa/totp/generate",
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, security key, generate totp secret",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// A user who already has a factor must elevate with it before
+				// enrolling another one.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			routePath:  "/mfa/totp/generate",
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, no security keys, totp active, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{
+						ActiveMfaType: sql.Text("totp"),
+						TotpSecret:    sql.Text("encrypted-secret"),
+					}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, totp active but no secret",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// ElevateTotp refuses this user with no-totp-secret, so it is
+				// not a factor and elevation must not be demanded over it.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, no security keys, totp active, claim present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      elevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, no security keys, get user fails",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{}, errors.New("database error"), //nolint:err113
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, totp disabled, stale active_mfa_type",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: false, WebauthnEnabled: true,
+			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -739,161 +996,199 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			},
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
-			requestURL: &url.URL{Path: "/user/webauthn/verify"},
+			requestURL: nil,
 			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuth: rejects an OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oauth2AccessToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuth"),
+			name:       "BearerAuth: rejects an OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oauth2AccessToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuth"),
 		},
 
 		{
-			name:         "BearerAuth: rejects an OIDC ID token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oidcIDToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuth"),
+			name:       "BearerAuth: rejects an OIDC ID token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oidcIDToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuth"),
 		},
 
 		{
-			name:         "BearerAuth: rejects a provider state token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        providerStateToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuth"),
+			name:       "BearerAuth: rejects a provider state token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      providerStateToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuth"),
 		},
 
 		{
-			name:         "BearerAuth: accepts a legacy session token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacySessionToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    nil,
+			name:       "BearerAuth: accepts a legacy session token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacySessionToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuth: rejects a legacy-typed token without Hasura claims",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacyTypeWithoutHasuraClaims,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuth"),
+			name:       "BearerAuth: rejects a legacy-typed token without Hasura claims",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacyTypeWithoutHasuraClaims,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuth"),
 		},
 
 		{
-			name:         "BearerAuth: rejects a legacy OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacyOAuth2AccessToken,
-			scheme:       "BearerAuth",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuth"),
+			name:       "BearerAuth: rejects a legacy OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacyOAuth2AccessToken,
+			scheme:     "BearerAuth",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuth"),
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated disabled, rejects a legacy OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacyOAuth2AccessToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthElevated"),
+			name:       "BearerAuthElevated: elevated disabled, rejects a legacy OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacyOAuth2AccessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthElevated"),
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated disabled, rejects an OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oauth2AccessToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthElevated"),
+			name:       "BearerAuthElevated: elevated disabled, rejects an OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oauth2AccessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthElevated"),
 		},
 
 		{
-			name:         "BearerAuthElevated: elevated disabled, rejects an OIDC ID token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oidcIDToken,
-			scheme:       "BearerAuthElevated",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthElevated"),
+			name:       "BearerAuthElevated: elevated disabled, rejects an OIDC ID token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oidcIDToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthElevated"),
 		},
 
 		{
-			name:         "BearerAuthOAuth2: accepts an OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oauth2AccessToken,
-			scheme:       "BearerAuthOAuth2",
-			requestURL:   nil,
-			expectErr:    nil,
+			name:       "BearerAuthOAuth2: accepts an OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oauth2AccessToken,
+			scheme:     "BearerAuthOAuth2",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuthOAuth2: accepts a legacy OAuth2 access token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacyOAuth2AccessToken,
-			scheme:       "BearerAuthOAuth2",
-			requestURL:   nil,
-			expectErr:    nil,
+			name:       "BearerAuthOAuth2: accepts a legacy OAuth2 access token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacyOAuth2AccessToken,
+			scheme:     "BearerAuthOAuth2",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
-			name:         "BearerAuthOAuth2: rejects a session token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "BearerAuthOAuth2",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthOAuth2"),
+			name:       "BearerAuthOAuth2: rejects a session token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthOAuth2",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthOAuth2"),
 		},
 
 		{
-			name:         "BearerAuthOAuth2: rejects a legacy session token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        legacySessionToken,
-			scheme:       "BearerAuthOAuth2",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthOAuth2"),
+			name:       "BearerAuthOAuth2: rejects a legacy session token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      legacySessionToken,
+			scheme:     "BearerAuthOAuth2",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthOAuth2"),
 		},
 
 		{
-			name:         "BearerAuthOAuth2: rejects an OIDC ID token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        oidcIDToken,
-			scheme:       "BearerAuthOAuth2",
-			requestURL:   nil,
-			expectErr:    rejected("BearerAuthOAuth2"),
+			name:       "BearerAuthOAuth2: rejects an OIDC ID token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      oidcIDToken,
+			scheme:     "BearerAuthOAuth2",
+			requestURL: nil,
+			expectErr:  rejected("BearerAuthOAuth2"),
 		},
 
 		{
-			name:         "unknown scheme accepts no token",
-			elevatedMode: "disabled",
-			db:           mock.NewMockDBClient,
-			token:        nonElevatedToken,
-			scheme:       "SomeOtherScheme",
-			requestURL:   nil,
+			name:       "unknown scheme accepts no token",
+			elevation:  controller.ElevationConfig{Mode: "disabled"},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "SomeOtherScheme",
+			requestURL: nil,
 			expectErr: &oapi.AuthenticatorError{
 				Scheme:  "SomeOtherScheme",
 				Code:    "unauthorized",
 				Message: "unsupported security scheme",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, webauthn disabled, stale security keys",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: false, WebauthnEnabled: false,
+			},
+			db:         mock.NewMockDBClient,
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, webauthn disabled, totp active",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: false,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{
+						ActiveMfaType: sql.Text("totp"),
+						TotpSecret:    sql.Text("encrypted-secret"),
+					}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
 			},
 		},
 	}
@@ -905,7 +1200,13 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			ctrl := gomock.NewController(t)
 
 			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret, time.Hour, nil, tc.elevatedMode, tc.db(ctrl), "hasura-auth", "",
+				jwtSecret,
+				time.Hour,
+				nil,
+				tc.elevation,
+				tc.db(ctrl),
+				"hasura-auth",
+				"",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
@@ -923,6 +1224,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			input := &openapi3filter.AuthenticationInput{
 				RequestValidationInput: &openapi3filter.RequestValidationInput{
 					Request: request,
+					Route:   &routers.Route{Path: tc.routePath},
 				},
 				SecuritySchemeName: tc.scheme,
 			}
