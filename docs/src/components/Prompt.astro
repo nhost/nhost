@@ -1,9 +1,15 @@
 ---
 interface Props {
   label?: string;
+  /** Text to put on the clipboard. Omit to render the prompt without a button. */
+  copy?: string;
+  /** Lead-in shown above the prompt, inside the box, so the two read as one unit. */
+  title?: string;
 }
 
-const { label = 'Prompt' } = Astro.props;
+const { label = 'Prompt', copy, title } = Astro.props;
+// Slotted content is optional; only draw the footer rule when it is used.
+const hasFooter = Astro.slots.has('footer');
 ---
 
 <figure class="prompt">
@@ -24,32 +30,81 @@ const { label = 'Prompt' } = Astro.props;
     </svg>
     {label}
   </figcaption>
-  <div class="prompt-body"><slot /></div>
+  {title && <p class="prompt-title">{title}</p>}
+  <div class="prompt-body">
+    <div class="prompt-text"><slot /></div>
+    {
+      copy && (
+        <span class="prompt-copy-wrap">
+          <button class="prompt-copy" type="button" data-prompt-copy={copy} aria-label="Copy prompt">
+            <svg
+              class="prompt-copy-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <span class="prompt-copy-tooltip" aria-hidden="true">
+            <span class="prompt-copy-tooltip-labels">
+              <span class="prompt-copy-tooltip-label prompt-copy-tooltip-label--copy">Copy</span>
+              <span class="prompt-copy-tooltip-label prompt-copy-tooltip-label--copied">
+                Copied!
+                <svg
+                  class="prompt-copy-tooltip-check"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="4 12 9 17 20 6" />
+                </svg>
+              </span>
+            </span>
+          </span>
+        </span>
+      )
+    }
+  </div>
+  {
+    hasFooter && (
+      <div class="prompt-footer">
+        <slot name="footer" />
+      </div>
+    )
+  }
 </figure>
 
 <style>
   .prompt {
-    /* Hug the prompt text instead of filling the column, so a short prompt reads
-       as a quoted utterance rather than a full-width panel. Long prompts still
-       wrap at the container's edge. */
-    /* Full width, matching the other callouts on the page. */
-    margin: 1rem 0 1.5rem;
-    /* Extra inline-start padding sets the content in from the accent bar. */
-    padding: 1rem 1.25rem 1rem 1.5rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.5rem;
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem 1.125rem;
+    /* Brighter hairline than the page's default so the callout reads as a
+       distinct surface rather than a faint panel. */
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.625rem;
     /* Accent bar as an inset shadow, not a thicker border: mismatched border
        widths get mitred across the radius and render as a tapered wedge. */
-    box-shadow: inset 3px 0 0 0 var(--sl-color-accent);
+    box-shadow: inset 4px 0 0 0 var(--sl-color-accent);
     background-color: var(--sl-color-gray-6);
   }
 
   .prompt-label {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    /* The perceived gap is mostly the label's leading, so flatten line-height
-       rather than leaning on margin alone. */
+    /* Flatten the leading so the label hugs the title below it. */
     margin-bottom: 0;
     line-height: 1;
     font-size: 0.6875rem;
@@ -59,28 +114,324 @@ const { label = 'Prompt' } = Astro.props;
     color: var(--sl-color-text-accent);
   }
 
-  .prompt-label svg {
+  .prompt-label > svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-inline-end: 0.375rem;
+  }
+
+  .prompt-title {
+    /* Starlight gives any element following a sibling `--sl-content-gap-y` of
+       top margin, which would open a 1rem gap under the label. */
+    margin-top: 0.5rem !important;
+    margin-bottom: 0 !important;
+    color: var(--sl-color-white);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  /* The quoted text sits in its own inset surface so it reads as something to
+     paste rather than as more prose. In dark mode the fill lands within a few
+     values of the callout behind it, so the accent outline does the separating. */
+  .prompt-body {
+    position: relative;
+    margin-top: 1rem;
+    padding: 0.9375rem 2.75rem 0.9375rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+    border-radius: 0.5rem;
+    background: var(--sl-color-black);
+  }
+
+  .prompt-text {
+    /* Monospace, smaller and dimmer than body copy: this is input, not reading
+       material, and it should not compete with the title above it.
+       `--sl-font-mono` is Starlight's override hook and is unset here, so it
+       needs the system stack as a fallback or the rule is dropped entirely. */
+    font-family: var(--sl-font-mono, var(--sl-font-system-mono));
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--sl-color-gray-2);
+  }
+
+  /* Slotted MDX content renders as paragraphs; keep them flush inside the box. */
+  .prompt-text :global(p) {
+    margin: 0 !important;
+  }
+
+  .prompt-text :global(p + p) {
+    margin-top: 0.5rem !important;
+  }
+
+  /* A bare URL in the prompt gets autolinked. This is text to paste, not
+     navigation, so it should not read as a link inside the box. */
+  .prompt-text :global(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* The wrapper owns the position so the tooltip can anchor to the button. */
+  .prompt-copy-wrap {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-end: 0.5rem;
+    display: block;
+  }
+
+  .prompt-copy {
+    display: block;
+    padding: 0.3125rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3125rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .prompt-copy:hover,
+  .prompt-copy:focus-visible {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-3);
+    background: var(--sl-color-gray-5);
+  }
+
+  .prompt-copy:focus-visible {
+    outline: 2px solid var(--sl-color-gray-3);
+    outline-offset: 1px;
+  }
+
+  /* Starlight gives any element following a sibling `--sl-content-gap-y` of top
+     margin. That applies inside this component too, and margins displace
+     absolutely positioned boxes, so it pushed the button down the box and the
+     tooltip off the button. */
+  .prompt-copy-wrap,
+  .prompt-copy-wrap :global(*) {
+    margin: 0 !important;
+  }
+
+  .prompt-copy svg {
+    display: block;
     width: 0.875rem;
     height: 0.875rem;
   }
 
-  .prompt-body {
-    /* Starlight gives any element following a sibling `--sl-content-gap-y` of
-       top margin, which would open a 1rem gap under the label. Zero it and set
-       the gap here instead. */
-    margin-top: 0.25rem;
-    color: var(--sl-color-white);
-    font-size: 1.0625rem;
+  /* Above the button, and anchored by its start edge so it opens outward past
+     the box rather than back across the prompt text. */
+  .prompt-copy-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    inset-inline-start: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 0.375rem;
+    background: var(--sl-color-gray-5);
+    color: var(--sl-color-gray-1);
+    font-family: var(--sl-font);
+    font-size: 0.75rem;
     font-weight: 500;
-    line-height: 1.6;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    /* Animate the disappear (fade + slide down). */
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    pointer-events: none;
+    z-index: 10;
   }
 
-  /* Slotted MDX content renders as paragraphs; keep them flush inside the box. */
-  .prompt-body :global(p) {
+  /* Visibility is driven by JS (the `open` class) so the label can stay
+     "Copied!" through the fade-out instead of flipping back mid-animation. */
+  .prompt-copy.open ~ .prompt-copy-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    /* Appear instantly; the base rule animates it back out. */
+    transition: none;
+  }
+
+  /* Only the active label is laid out, so the tooltip hugs it. Stacking both
+     in one cell would size it to "Copied!" and leave "Copy" in a loose box. */
+  .prompt-copy-tooltip-labels {
+    display: inline-flex;
+  }
+
+  .prompt-copy-tooltip-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .prompt-copy-tooltip-label--copied {
+    display: none;
+  }
+
+  .prompt-copy.copied ~ .prompt-copy-tooltip .prompt-copy-tooltip-label--copy {
+    display: none;
+  }
+
+  .prompt-copy.copied ~ .prompt-copy-tooltip .prompt-copy-tooltip-label--copied {
+    display: inline-flex;
+  }
+
+  /* A flex item with only width/height attributes is free to shrink, and this
+     one collapsed to 0 inside the label, taking the draw animation with it. */
+  .prompt-copy-tooltip-check {
+    flex: none;
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #3fb950;
+  }
+
+  :global([data-theme='light']) .prompt-copy-tooltip-check {
+    color: #1a7f37;
+  }
+
+  .prompt-copy-tooltip-check polyline {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+  }
+
+  /* Draw the checkmark in when the "Copied!" label appears. */
+  .prompt-copy.copied ~ .prompt-copy-tooltip .prompt-copy-tooltip-check polyline {
+    animation: prompt-copy-draw 0.3s ease 0.25s forwards;
+  }
+
+  @keyframes prompt-copy-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Opening outward clears the callout by a couple of dozen pixels, which a
+     phone-width viewport cannot spare, so anchor it the other way down there. */
+  @media (max-width: 30rem) {
+    .prompt-copy-tooltip {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+  }
+
+  .prompt-footer {
+    margin-top: 0.75rem;
+    text-align: end;
+    color: var(--sl-color-gray-3);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .prompt-footer :global(p) {
     margin: 0 !important;
+    /* Only the separator between the links is not a link, so styling the
+       paragraph and resetting the anchors hits the pipe alone. */
+    color: color-mix(in srgb, var(--sl-color-gray-3) 60%, transparent);
+    font-weight: 700;
   }
 
-  .prompt-body :global(p + p) {
-    margin-top: 0.5rem !important;
+  /* Only the weight is reset: the paragraph above carries 700 to thicken the
+     separator, and the links keep the page's own link colour. */
+  .prompt-footer :global(a) {
+    font-weight: 400;
   }
+
+  /* The separator between links is a bare text node in the MDX, so the space
+     around it has to come off the links. The last one stays flush right. */
+  .prompt-footer :global(a:not(:last-child)) {
+    margin-inline-end: 0.3125rem;
+  }
+
+  .prompt-footer :global(a + a) {
+    margin-inline-start: 0.3125rem;
+  }
+
 </style>
+
+<script>
+  let controller: AbortController;
+  const timers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+
+  function initPromptCopy() {
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.prompt-copy');
+
+    buttons.forEach((btn) => {
+      const open = () => btn.classList.add('open');
+      // Only close on hover/focus loss when we're not in the "Copied!" window;
+      // during that window the timer below owns closing.
+      const close = () => {
+        if (!btn.classList.contains('copied')) btn.classList.remove('open');
+      };
+
+      btn.addEventListener('mouseenter', open, { signal });
+      btn.addEventListener('mouseleave', close, { signal });
+      // Open on keyboard focus only, so a mouse click does not leave the
+      // tooltip stuck open after the pointer moves away.
+      btn.addEventListener(
+        'focus',
+        () => {
+          if (btn.matches(':focus-visible')) open();
+        },
+        { signal },
+      );
+      btn.addEventListener('blur', close, { signal });
+
+      btn.addEventListener(
+        'click',
+        () => {
+          navigator.clipboard
+            .writeText(btn.dataset.promptCopy || '')
+            .then(() => {
+              clearTimeout(timers.get(btn));
+              btn.classList.add('copied', 'open');
+              btn.setAttribute('aria-label', 'Copied');
+              timers.set(
+                btn,
+                setTimeout(() => {
+                  btn.setAttribute('aria-label', 'Copy prompt');
+                  if (btn.matches(':hover')) {
+                    // Still hovered: revert the label in place.
+                    btn.classList.remove('copied');
+                  } else {
+                    // Fade out first (keeping "Copied!"), then reset once hidden.
+                    btn.classList.remove('open');
+                    setTimeout(() => btn.classList.remove('copied'), 250);
+                  }
+                }, 2000),
+              );
+            })
+            .catch(() => {});
+        },
+        { signal },
+      );
+    });
+
+    // Safety net: leaving the tab/window clears every tooltip so none can
+    // reappear when focus or visibility is restored.
+    const closeAll = () => {
+      buttons.forEach((btn) => {
+        clearTimeout(timers.get(btn));
+        btn.classList.remove('open', 'copied');
+      });
+    };
+    window.addEventListener('blur', closeAll, { signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) closeAll();
+      },
+      { signal },
+    );
+  }
+
+  initPromptCopy();
+  document.addEventListener('astro:after-swap', initPromptCopy);
+</script>
