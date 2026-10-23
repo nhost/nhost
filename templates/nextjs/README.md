@@ -48,9 +48,9 @@ on magic link, the email code and passkeys. Passkeys are bound to the
 
 ### OAuth
 
-A provider only works once an app is registered with it and the backend knows
-the app's credentials. The config is already wired to `.secrets`, so it is
-four steps:
+Both providers ship switched off. A provider only works once an app is
+registered with it and the backend knows the app's credentials. The config is
+already wired to `.secrets`, so turning one on is four steps:
 
 1. Register an OAuth app with GitHub or Google. The callback URL for the local
    stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`,
@@ -82,7 +82,12 @@ nhost secrets create WEBAUTHN_RP_ID myapp.example.com
 
 The four OAuth secrets need to exist too, even while the providers are off,
 because the config references them. `fixme` is fine until a provider is
-enabled.
+enabled. Turning one on in the cloud follows the [OAuth](#oauth) steps, with
+the callback URL
+`https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/github/callback`
+and the credentials set with `nhost secrets update` instead of `.secrets`.
+`NHOST_OAUTH_PROVIDERS` goes on the frontend's host, on Vercel as a project
+environment variable, and the next deployment picks it up.
 
 The frontend needs the same origin as `NEXT_PUBLIC_APP_ORIGIN`, next to the
 project's subdomain and region; `frontend/.env.example` has all three. They
