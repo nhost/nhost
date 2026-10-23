@@ -90,9 +90,8 @@ export default function ColumnPermissionsSection({
 
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="text-primary"
           onClick={() => {
             if (isAllSelected) {
               setValue('columns', []);

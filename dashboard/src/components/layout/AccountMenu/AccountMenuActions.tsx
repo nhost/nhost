@@ -1,5 +1,6 @@
 import { Settings } from 'lucide-react';
-import { NavLink } from '@/components/common/NavLink';
+import NextLink from 'next/link';
+import { Button } from '@/components/ui/v3/button';
 
 interface AccountMenuActionsProps {
   onNavigate?: VoidFunction;
@@ -10,16 +11,12 @@ export default function AccountMenuActions({
 }: AccountMenuActionsProps) {
   return (
     <div className="grid grid-flow-row gap-1 p-2">
-      <NavLink
-        variant="ghost"
-        underline="none"
-        className="h-9 w-full justify-start gap-2 px-2"
-        href="/account"
-        onClick={onNavigate}
-      >
-        <Settings className="h-4 w-4" />
-        Account Settings
-      </NavLink>
+      <Button asChild variant="menu">
+        <NextLink href="/account" onClick={onNavigate}>
+          <Settings className="h-4 w-4" />
+          Account settings
+        </NextLink>
+      </Button>
     </div>
   );
 }

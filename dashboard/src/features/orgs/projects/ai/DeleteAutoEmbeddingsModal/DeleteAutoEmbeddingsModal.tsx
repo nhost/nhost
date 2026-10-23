@@ -129,7 +129,7 @@ export default function DeleteAutoEmbeddingsModal({
             Delete Auto-Embeddings Configuration
           </ButtonWithLoading>
 
-          <Button variant="outline-emboss" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

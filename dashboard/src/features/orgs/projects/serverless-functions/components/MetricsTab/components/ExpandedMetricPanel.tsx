@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import { MetricChart } from '@/features/orgs/projects/common/metrics/components/MetricChart';
 import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
 import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import {

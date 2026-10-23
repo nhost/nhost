@@ -2,17 +2,15 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { ConnectGitHubModal } from '@/features/orgs/projects/git/common/components/ConnectGitHubModal';
 
 export default function useGitHubModal() {
-  const { openAlertDialog, closeAlertDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
 
   function openGitHubModal() {
-    openAlertDialog({
+    openDialog({
       title: 'Connect GitHub Repository',
-      payload: <ConnectGitHubModal close={closeAlertDialog} />,
+      component: <ConnectGitHubModal close={closeDialog} />,
       props: {
-        hidePrimaryAction: true,
-        hideSecondaryAction: true,
         hideTitle: true,
-        maxWidth: 'md',
+        PaperProps: { className: 'max-w-2xl' },
       },
     });
   }

@@ -1,0 +1,27 @@
+import type { ReactNode } from 'react';
+import type { ChartConfig } from '@/components/ui/v3/chart';
+import type { PinnedPayloadEntry } from '@/features/orgs/projects/common/metrics/types';
+
+export interface TooltipEntry {
+  key: string;
+  label: ReactNode;
+  value: number | string | undefined;
+  color: string;
+}
+
+export function toEntries(
+  payload: PinnedPayloadEntry[],
+  config: ChartConfig,
+): TooltipEntry[] {
+  return payload
+    .filter((p) => p.type !== 'none' && p.value != null)
+    .map((p) => {
+      const key = String(p.dataKey ?? p.name ?? 'value');
+      return {
+        key,
+        label: config[key]?.label ?? p.name ?? key,
+        value: p.value,
+        color: p.color ?? p.payload?.fill ?? 'hsl(var(--muted-foreground))',
+      };
+    });
+}

@@ -160,13 +160,13 @@ export default function SchemaDiagramToolbar({
             <button
               type="button"
               aria-label="Search database objects"
-              className="flex h-8 w-[220px] items-center gap-1.5 rounded-md border border-border bg-background px-2 text-muted-foreground text-xs hover:bg-accent"
+              className="flex h-8 w-56 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-muted-foreground text-xs hover:bg-accent"
             >
               <Search className="h-4 w-4" />
               <span className="flex-1 text-left">Search database objects…</span>
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[320px] p-0">
+          <PopoverContent align="end" className="w-80 p-0">
             <Command>
               <CommandInput placeholder="Search database objects…" />
               <CommandList>

@@ -38,8 +38,8 @@ interface FormSelectProps<
   placeholder?: string;
   className?: string;
   containerClassName?: string;
-  // Forwarded to the dropdown content. Needed to raise the z-index when the
-  // select lives inside a higher-stacked container such as a MUI dialog.
+  // Forwarded to the dropdown content, e.g. to raise its z-index when the
+  // select lives inside a higher-stacked container.
   contentClassName?: string;
   inline?: boolean;
   helperText?: ReactNode;
@@ -47,6 +47,10 @@ interface FormSelectProps<
   disabled?: boolean;
   autoFocus?: boolean;
   transform?: Transformer;
+  /**
+   * Fired after the field is updated with the newly selected value.
+   */
+  onChange?: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -69,6 +73,7 @@ function FormSelectImpl<
     autoFocus,
     children,
     transform,
+    onChange: onChangeProp,
     'data-testid': dataTestId,
   }: PropsWithChildren<FormSelectProps<TFieldValues, TName>>,
   ref?: ForwardedRef<HTMLButtonElement>,
@@ -112,7 +117,10 @@ function FormSelectImpl<
             >
               <Select
                 disabled={disabled}
-                onValueChange={onChange}
+                onValueChange={(next) => {
+                  onChange(next);
+                  onChangeProp?.(next);
+                }}
                 {...fieldProps}
               >
                 <FormControl>

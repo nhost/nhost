@@ -98,10 +98,7 @@ export default function DeleteEventTriggerDialog({
             Delete
           </ButtonWithLoading>
           <DialogClose asChild>
-            <Button
-              variant="outline-emboss"
-              className="!text-sm+ text-foreground"
-            >
+            <Button variant="outline" className="!text-sm+ text-foreground">
               Cancel
             </Button>
           </DialogClose>

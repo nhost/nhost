@@ -32,6 +32,13 @@ vitest run --reporter=verbose src/features/orgs/guards/OrganizationGuard/Organiz
 Run Vitest with `dashboard/` as the working directory so it loads
 `vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
 
+In modal tests, interact with controls inside the open modal: modal layers hide outside
+content with `aria-hidden`, so `screen.getByRole` cannot find background buttons.
+For Radix backdrop-dismiss tests, wait one tick for its document pointer listener,
+then dispatch `fireEvent.pointerDown(target, { button: 0, pointerType: 'mouse' })`
+followed by `fireEvent.click(target)`: Radix defers primary-button outside dismissal
+until click. Use `waitFor` for asynchronous dismissal assertions.
+
 Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
 
 ### E2E Testing
@@ -54,7 +61,7 @@ pnpm format                 # Format code with Biome
 
 ```
 src/
-  components/       # UI components (ui/v2, ui/v3, presentational)
+  components/       # UI components (ui/v3, presentational)
   features/         # Feature-based modules with components/hooks/utils
   hooks/            # Shared React hooks
   pages/            # Next.js pages (file-system routing)
@@ -97,6 +104,16 @@ When creating a new feature page, check whether it needs to be added to:
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+
+### Metrics charts
+
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines). Its interactions live in shared hooks, so reuse them in any new chart instead of copying the logic:
+
+- `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
+- `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
+- `useDragToZoom` — drag to select a range; call `consumeDragClick()` in the click handler so a drag doesn't also pin.
+
+Relative time ranges use `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState`.
 
 ## Tool Usage
 

@@ -3,11 +3,11 @@ import {
   SiDocker as ServicesIcon,
 } from '@icons-pack/react-simple-icons';
 import {
+  ChartLineIcon,
   CodeIcon,
   CogIcon,
   DatabaseIcon,
   FileTextIcon,
-  GaugeIcon,
   HardDriveIcon,
   HomeIcon,
   RocketIcon,
@@ -120,7 +120,7 @@ export default function ProjectNavigation() {
           href={
             isPlatform ? `${baseHref}/metrics` : `${baseHref}/metrics/settings`
           }
-          icon={<GaugeIcon className={iconClassName} />}
+          icon={<ChartLineIcon className={iconClassName} />}
           activePath={`${baseHref}/metrics`}
           disabled={!isPlatform && settingsDisabled}
         />
