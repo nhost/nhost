@@ -689,14 +689,13 @@ func loadQuery(
 ) (*ast.QueryDocument, gqlerror.List) {
 	key := queryCacheKey{query: queryStr, role: role}
 
-	if cached, ok := cache.Get(key); ok {
-		return cached.doc, cached.errs
-	}
+	entry := cache.getOrLoad(key, func() queryCacheEntry {
+		doc, errs := gqlparser.LoadQueryWithRules(schema, queryStr, defaultRules())
 
-	doc, errs := gqlparser.LoadQueryWithRules(schema, queryStr, defaultRules())
-	cache.Put(key, queryCacheEntry{doc: doc, errs: errs})
+		return queryCacheEntry{doc: doc, errs: errs}
+	})
 
-	return doc, errs
+	return entry.doc, entry.errs
 }
 
 // buildRawResponse builds the complete JSON response bytes {"data":{...}} when
