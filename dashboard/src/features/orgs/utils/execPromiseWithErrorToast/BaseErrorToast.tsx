@@ -1,11 +1,11 @@
 import type { ApolloError } from '@apollo/client';
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon, XIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
-import { copy } from '@/utils/copy';
 
 interface ErrorDetails {
   info: {
@@ -94,17 +94,12 @@ export default function BaseErrorToast({
             <div className="relative flex max-h-[400px] w-full flex-row justify-between overflow-x-auto rounded-lg bg-black p-4">
               <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
             </div>
-            <button
-              type="button"
-              aria-label="Copy error details"
+            <CopyToClipboardButton
+              textToCopy={JSON.stringify(errorDetails, null, 2)}
+              title="Error details"
+              tooltip="Copy details"
               className="absolute top-2 right-2"
-              onClick={(event) => {
-                event.stopPropagation();
-                copy(JSON.stringify(errorDetails, null, 2), 'Error details');
-              }}
-            >
-              <CopyIcon className="h-4 w-4" />
-            </button>
+            />
           </div>
         </div>
       )}

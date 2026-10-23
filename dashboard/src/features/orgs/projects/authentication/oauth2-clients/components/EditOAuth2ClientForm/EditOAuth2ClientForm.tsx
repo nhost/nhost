@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import bcrypt from 'bcryptjs';
 import { format } from 'date-fns';
-import { CopyIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,6 +8,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   InputGroup,
@@ -202,16 +202,11 @@ export default function EditOAuth2ClientForm({
             <p className="truncate font-medium font-mono text-foreground text-sm">
               {oauth2Client.clientId}
             </p>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              aria-label="Copy Client ID"
-              onClick={() => copy(oauth2Client.clientId, 'Client ID')}
-            >
-              <CopyIcon className="h-4 w-4" />
-            </Button>
+            <CopyToClipboardButton
+              textToCopy={oauth2Client.clientId}
+              title="Client ID"
+              tooltip="Copy ID"
+            />
           </div>
 
           <Label>Created At</Label>
@@ -267,16 +262,11 @@ export default function EditOAuth2ClientForm({
             />
             {pendingSecret && (
               <InputGroupAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label="Copy secret"
-                  onClick={() => copy(pendingSecret, 'Client secret')}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <CopyToClipboardButton
+                  textToCopy={pendingSecret}
+                  title="Client secret"
+                  tooltip="Copy secret"
+                />
               </InputGroupAddon>
             )}
           </InputGroup>

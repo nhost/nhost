@@ -185,7 +185,8 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               <TruncatedText text={endpointUrl} tailLength={12} />
               <CopyToClipboardButton
                 textToCopy={endpointUrl}
-                title="Copy endpoint URL"
+                title="Endpoint URL"
+                tooltip="Copy endpoint"
                 className="ml-auto shrink-0"
               />
             </div>

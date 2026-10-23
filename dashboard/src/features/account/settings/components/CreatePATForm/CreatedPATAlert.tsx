@@ -1,7 +1,5 @@
-import { CopyIcon } from 'lucide-react';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
-import { Button } from '@/components/ui/v3/button';
-import { copy } from '@/utils/copy';
 
 interface CreatedPATAlertProps {
   personalAccessToken: string;
@@ -23,15 +21,11 @@ export default function CreatedPATAlert({
           {personalAccessToken}
         </code>
 
-        <Button
-          type="button"
-          size="icon"
-          variant="outline"
-          aria-label="Copy Personal Access Token"
-          onClick={() => copy(personalAccessToken, 'Personal access token')}
-        >
-          <CopyIcon className="h-4 w-4" />
-        </Button>
+        <CopyToClipboardButton
+          textToCopy={personalAccessToken}
+          title="Personal access token"
+          tooltip="Copy token"
+        />
       </div>
     </Alert>
   );

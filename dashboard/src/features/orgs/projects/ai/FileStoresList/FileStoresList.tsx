@@ -1,10 +1,10 @@
 import {
-  CopyIcon,
   Ellipsis as DotsHorizontalIcon,
   EyeIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -16,7 +16,6 @@ import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
-import { copy } from '@/utils/copy';
 
 interface FileStoresListProps {
   /**
@@ -93,19 +92,12 @@ export default function FileStoresList({
             </div>
           </button>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={(event) => {
-              copy(fileStore.id, 'File Store Id');
-              event.stopPropagation();
-            }}
-            aria-label="File Store Id"
-            className="hidden h-8 w-8 flex-shrink-0 md:inline-flex"
-          >
-            <CopyIcon className="h-4 w-4" />
-          </Button>
+          <CopyToClipboardButton
+            textToCopy={fileStore.id}
+            title="File Store Id"
+            tooltip="Copy ID"
+            className="hidden md:inline-flex"
+          />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

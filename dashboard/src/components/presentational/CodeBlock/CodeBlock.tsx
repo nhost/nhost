@@ -81,6 +81,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
           <CopyToClipboardButton
             textToCopy={getNodeText(children)}
             toastTitle={copyToClipboardToastTitle}
+            tooltip="Copy code"
             className="relative"
           />
         </CodeTabBar>
@@ -88,6 +89,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
         <CopyToClipboardButton
           textToCopy={getNodeText(children)}
           toastTitle={copyToClipboardToastTitle}
+          tooltip="Copy code"
           className="absolute top-3 right-3"
         />
       )}

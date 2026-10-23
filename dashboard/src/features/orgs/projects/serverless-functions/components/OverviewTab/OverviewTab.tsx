@@ -56,6 +56,7 @@ export default function OverviewTab({
             <CopyToClipboardButton
               textToCopy={endpointUrl}
               title="Endpoint URL"
+              tooltip="Copy endpoint"
             />
           </div>
           {defaultEndpointUrl && (
@@ -68,6 +69,7 @@ export default function OverviewTab({
                 <CopyToClipboardButton
                   textToCopy={defaultEndpointUrl}
                   title="Default endpoint URL"
+                  tooltip="Copy endpoint"
                 />
               </div>
             </div>
@@ -123,6 +125,7 @@ export default function OverviewTab({
                     <CopyToClipboardButton
                       textToCopy={fn.createdWithCommitSha}
                       title="Commit SHA"
+                      tooltip="Copy SHA"
                     />
                   </div>
                 </div>
@@ -142,6 +145,7 @@ export default function OverviewTab({
                     <CopyToClipboardButton
                       textToCopy={fn.checksum}
                       title="Checksum"
+                      tooltip="Copy checksum"
                     />
                   </div>
                 </div>

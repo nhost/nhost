@@ -69,7 +69,8 @@ export default function ActionOverview({
             <TruncatedText text={action.definition.handler} tailLength={12} />
             <CopyToClipboardButton
               textToCopy={action.definition.handler}
-              title="Copy handler URL"
+              title="Handler URL"
+              tooltip="Copy handler"
             />
           </div>
         </div>

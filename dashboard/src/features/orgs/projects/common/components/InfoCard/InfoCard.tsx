@@ -1,8 +1,6 @@
-import { CopyIcon } from 'lucide-react';
 import type { HTMLAttributes, ReactNode } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { cn } from '@/lib/utils';
-import { copy } from '@/utils/copy';
 
 export interface InfoCardProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -40,19 +38,11 @@ export default function InfoCard({
   ...props
 }: InfoCardProps) {
   const copyButton = !disableCopy && (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className="h-7 w-7 text-muted-foreground"
-      onClick={(event) => {
-        event.stopPropagation();
-        copy(value, title);
-      }}
-      aria-label={`Copy ${title}`}
-    >
-      <CopyIcon className="h-4 w-4" />
-    </Button>
+    <CopyToClipboardButton
+      textToCopy={value}
+      title={title}
+      tooltip={`Copy ${title.toLowerCase()}`}
+    />
   );
 
   if (layout === 'stacked') {

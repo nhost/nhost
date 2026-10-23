@@ -1,12 +1,11 @@
-import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useDnsLookupCnameLazyQuery } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { copy } from '@/utils/copy';
 
 interface VerifyDomainProps {
   recordType: string;
@@ -120,14 +119,11 @@ export default function VerifyDomain({
           {isPlatform ? (
             <>
               <p className="font-bold">{value}</p>
-              <Button
-                aria-label="Copy CNAME value"
-                variant="ghost"
-                size="icon"
-                onClick={() => copy(value, 'CNAME Value')}
-              >
-                <CopyIcon className="h-4 w-4" />
-              </Button>
+              <CopyToClipboardButton
+                textToCopy={value}
+                title="CNAME Value"
+                tooltip="Copy value"
+              />
             </>
           ) : null}
         </div>
