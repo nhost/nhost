@@ -283,6 +283,11 @@ export const projectDatabasePages = definePages([
     route: 'database/console/default',
   },
   {
+    name: 'Extensions',
+    slug: 'extensions',
+    route: 'database/extensions/default',
+  },
+  {
     name: 'Backups',
     slug: 'backups',
     route: 'database/backups',
