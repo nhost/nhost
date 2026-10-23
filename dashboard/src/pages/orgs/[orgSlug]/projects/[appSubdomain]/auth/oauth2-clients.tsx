@@ -149,7 +149,7 @@ function OAuth2ClientsPageContent() {
   ) {
     return (
       <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-raised">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
               Auth Version Too Old
@@ -196,7 +196,7 @@ function OAuth2ClientsPageContent() {
   if (!oauth2Enabled) {
     return (
       <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-raised">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
               OAuth2 Provider is Disabled
@@ -270,7 +270,7 @@ function OAuth2ClientsPageContent() {
         </Button>
       </div>
       {clientsCount === 0 && !searchString ? (
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-raised">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
               No OAuth2 Clients

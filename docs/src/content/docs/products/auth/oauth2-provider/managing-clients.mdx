@@ -132,7 +132,7 @@ const clientSecretHash = await Bun.password.hash(plainSecret, {
 
 ### Creating a Public Client
 
-Create a client without a `clientSecretHash`. Public clients **must** use PKCE for the authorization flow.
+Create a client without a `clientSecretHash`. [Public clients](/products/auth/oauth2-provider/public-clients) **must** use PKCE for the authorization flow.
 
 ```graphql
 mutation CreatePublicClient($object: authOauth2Clients_insert_input!) {

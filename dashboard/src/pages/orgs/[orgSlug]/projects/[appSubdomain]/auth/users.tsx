@@ -231,7 +231,7 @@ function UsersPageContent() {
         </Button>
       </div>
       {usersCount === 0 ? (
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-raised sm:px-48">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -241,7 +241,7 @@ function UsersPageContent() {
               All users for your project will be listed here.
             </p>
           </div>
-          <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
+          <div className="flex flex-row place-content-between rounded-lg lg:w-56">
             <Button className="w-full" onClick={openCreateUserDialog}>
               <PlusIcon className="mr-2 h-4 w-4" />
               Create User
