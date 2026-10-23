@@ -95,7 +95,7 @@ If a step fails, `pgmigrate` stops and attempts to release its connections. A fa
 
 1. `pgmigrate` checks the embedded files. Each version needs matching `up` and `down` files with the same name after the version number. Empty files, comment-only files, and unrelated files in that directory are rejected.
 2. It takes a database lock (the same one `golang-migrate` uses) so another call cannot migrate this schema at the same time. It creates or reuses `<schema>.schema_migrations` (the current version) and `<schema>.schema_migration_catalog` (the saved SQL). It checks that the current version isn't marked dirty, then saves the embedded SQL. If the database already has migration state but no catalog, it fills in the missing entries **without running that SQL again**.
-3. It checks that it can read every migration needed to reach the target before running the first one. It then runs migrations from the catalog: `up` SQL saved from this build or `down` SQL that may have been saved by a newer build. The underlying driver marks each migration dirty while it runs and clean when it finishes.
+3. It checks that it can read every migration needed to reach the target before running the first one. It then runs migrations from the catalog: `up` SQL saved from this build or `down` SQL that may have been saved by a newer build. The underlying driver records each step's destination version as dirty before running its SQL, then marks it clean on success. For a down step, that version is the predecessor of the migration being undone; see [Failures and timeouts](#failures-and-timeouts).
 4. After a downgrade, it marks catalog entries above the new version as archived. It keeps their SQL and history instead of deleting them, so those version numbers can be reused by a later release.
 
 The catalog keeps the exact SQL, a SHA-256 checksum for each file, each migration's name, and which migration came before it. `pgmigrate` checks a saved file's checksum before running it. This catches damage or unexpected changes, but not an attacker who can edit both the SQL and its checksum. Only the migration user should be able to write to these tables.
@@ -112,7 +112,9 @@ If even version `1` changed, the builds have no migration in common. `pgmigrate`
 
 ## Failures and timeouts
 
-Migration SQL and version updates are **not one all-or-nothing transaction**. The driver marks a version dirty, runs its SQL, then marks it clean. If SQL fails, some changes may already have happened. `pgmigrate` tries to roll back any transaction left open on its connection, but that cannot undo changes already committed. It does not clear or repair a dirty migration for you.
+Migration SQL and version updates are **not one all-or-nothing transaction**. The driver records the step's destination version as dirty, runs the SQL, then marks that version clean. If SQL fails, some changes may already have happened. `pgmigrate` tries to roll back any transaction left open on its connection, but that cannot undo changes already committed. It does not clear or repair a dirty migration for you.
+
+For an upgrade to version `V`, dirty version `V` identifies `V`'s `up` step. For a downgrade from `V` to its predecessor `P`, dirty version `P` identifies **`V`'s `down` step**, not `P`'s. If that SQL was rolled back, `V`'s objects may still exist even though the state row says `P`.
 
 Saving migration files in the catalog happens before running SQL. Archiving and connection cleanup happen afterward. So an error does **not** necessarily mean the schema stayed at its old version. Before retrying or repairing a failed migration, inspect `<schema>.schema_migrations`, `<schema>.schema_migration_catalog`, and the affected tables. For example:
 
@@ -122,6 +124,24 @@ SELECT version, identifier, archived_at
 FROM service_schema.schema_migration_catalog
 ORDER BY version, registered_at;
 ```
+
+For a failed downgrade, find the migration whose `down` step was attempted by following the active catalog's `previous_id` links. Versions need not be consecutive, and archived rows are history, not the current chain:
+
+```sql
+SELECT successor.version, successor.identifier
+FROM service_schema.schema_migration_catalog AS successor
+JOIN service_schema.schema_migration_catalog AS predecessor
+  ON successor.previous_id = predecessor.id
+JOIN service_schema.schema_migrations AS state
+  ON state.version = predecessor.version
+WHERE state.dirty
+  AND predecessor.archived_at IS NULL
+  AND successor.archived_at IS NULL;
+```
+
+Before manual recovery, stop all migration callers and back up the database. Compare the affected tables and other schema objects with the failed step's saved SQL. Finish or undo any partial changes, then set `schema_migrations` to the version that matches the actual schema with `dirty = false`. For example, if `V`'s failed down step left the schema at `V`, restore the state row to `V` before retrying; record `P` only once the reversal to `P` is complete. **Clearing dirty alone does not repair the schema.**
+
+A new build cannot replace an applied migration's failing `down` SQL: applied catalog rows are immutable. Fix any data that makes the saved SQL fail before retrying from the matching clean version, or complete the reversal manually before recording the lower version.
 
 Canceling the caller's context does not interrupt migration SQL once it starts. The context applies to most setup and catalog work, but it does **not** strictly bound the whole call: the upstream PostgreSQL driver checks or creates the state table and reads its version without using the caller's context. After SQL finishes, catalog archival and connection cleanup each use a separate five-second timeout for their database operations, even if the caller's context was canceled. Use PostgreSQL timeouts for the migration user if you need a bound on database operations.
 
