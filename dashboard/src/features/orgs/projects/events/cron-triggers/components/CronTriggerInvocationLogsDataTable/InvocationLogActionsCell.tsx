@@ -32,7 +32,7 @@ export default function InvocationLogActionsCell({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button
-            variant="ghost"
+            variant="subtle"
             size="sm"
             onClick={() => meta.setSelectedLog(row)}
             className="h-8 w-8 p-0"

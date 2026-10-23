@@ -178,7 +178,7 @@ export default function CreateOAuth2ClientForm({
               <InputGroupAddon align="inline-end">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   className="h-8 w-8"
                   aria-label="Copy secret"

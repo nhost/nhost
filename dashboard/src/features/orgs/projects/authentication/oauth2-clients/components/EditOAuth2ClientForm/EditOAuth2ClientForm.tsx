@@ -204,7 +204,7 @@ export default function EditOAuth2ClientForm({
             </p>
             <Button
               type="button"
-              variant="ghost"
+              variant="subtle"
               size="icon"
               className="h-8 w-8"
               aria-label="Copy Client ID"
@@ -269,7 +269,7 @@ export default function EditOAuth2ClientForm({
               <InputGroupAddon align="inline-end">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   className="h-8 w-8"
                   aria-label="Copy secret"

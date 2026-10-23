@@ -78,7 +78,7 @@ export default function EditRemoteRelationshipButton({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
         onClick={() => setOpen(true)}
       >

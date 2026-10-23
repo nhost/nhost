@@ -161,9 +161,9 @@ export default function ActionListItem({
               )}
             >
               <Button
-                variant="outline"
+                variant="subtle"
                 size="icon"
-                className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                className="h-6 w-6"
                 aria-label={`Actions for ${action.name}`}
                 data-testid={`action-menu-${action.name}`}
                 onClick={(event) => {

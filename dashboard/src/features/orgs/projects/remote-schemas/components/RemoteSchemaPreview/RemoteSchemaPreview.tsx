@@ -192,7 +192,7 @@ export default function RemoteSchemaPreview({
             />
             {searchTerm && (
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 type="button"
                 onClick={() => {

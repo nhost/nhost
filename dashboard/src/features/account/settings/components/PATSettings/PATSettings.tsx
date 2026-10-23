@@ -165,7 +165,7 @@ export default function PATSettings() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           aria-label={`More options for ${pat.name}`}
                         >
