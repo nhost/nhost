@@ -1,3 +1,27 @@
+## [@nhost/dashboard@3.8.1] - 2026-10-23
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove the old navy from the data grid cells (#5214)
+- *(dashboard)* Ghost button (#5196)
+- *(dashboard)* Fix popover scroll in sheets and tooltip warning (#5228)
+- *(dashboard)* Show completion message after logical backup restore (#5230)
+- *(dashboard)* Design tokens round 2, base components (#5215)
+- *(dashboard)* One alert look with an automatic icon per type (#5224)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Move metrics chart interactions into shared hooks (#5208)
+- *(dashboard)* Correct local dashboard setup commands (#5111)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5161)
+- *(deps)* Update vulnerable dependencies (#5226)
+- *(deps)* Update vulnerable dependencies (#5242)
+
 ## [@nhost/dashboard@3.8.0] - 2026-10-20
 
 ### 🚀 Features
