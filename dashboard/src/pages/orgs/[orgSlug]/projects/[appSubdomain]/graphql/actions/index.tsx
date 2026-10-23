@@ -1,10 +1,11 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
-import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
 import { NoActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/NoActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
@@ -26,7 +27,9 @@ export default function ActionsPage() {
 
   if (error instanceof Error) {
     return (
-      <ActionsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={GraphQLIcon}
         title="Something went wrong"
         description="Actions could not be loaded. Please try again."
       />
@@ -40,7 +43,9 @@ export default function ActionsPage() {
   }
 
   return (
-    <ActionsEmptyState
+    <EmptyState
+      className="bg-background"
+      icon={GraphQLIcon}
       title="Actions"
       description="Select an action from the sidebar, or create a new one."
     />

@@ -1,8 +1,9 @@
+import { ZapIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
 import { EventsArea } from '@/features/orgs/projects/events/layout';
@@ -24,7 +25,9 @@ export default function CronTriggersPage() {
 
   if (errorCronTriggers instanceof Error) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={ZapIcon}
         title="Cron triggers"
         description="An error occurred while fetching cron triggers."
       />
@@ -36,7 +39,9 @@ export default function CronTriggersPage() {
 
   if (showNoCronTriggersMessage) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={ZapIcon}
         title="Cron triggers"
         description="Add a cron trigger to get started."
       />
@@ -44,7 +49,9 @@ export default function CronTriggersPage() {
   }
 
   return (
-    <EventsEmptyState
+    <EmptyState
+      className="bg-background"
+      icon={ZapIcon}
       title="Cron triggers"
       description="Select a cron trigger from the sidebar to get started."
     />

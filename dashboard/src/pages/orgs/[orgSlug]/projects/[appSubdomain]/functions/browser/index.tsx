@@ -1,9 +1,10 @@
+import { Code } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { FunctionsBrowserSidebar } from '@/features/orgs/projects/serverless-functions/components/FunctionsBrowserSidebar';
-import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
 import { FunctionsArea } from '@/features/orgs/projects/serverless-functions/layout';
 
@@ -20,7 +21,9 @@ export default function FunctionsPage() {
 
   if (error) {
     return (
-      <FunctionsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={Code}
         title="Functions"
         description="An error occurred while fetching functions."
       />
@@ -29,7 +32,9 @@ export default function FunctionsPage() {
 
   if (Array.isArray(functions) && functions.length === 0) {
     return (
-      <FunctionsEmptyState
+      <EmptyState
+        className="bg-background"
+        icon={Code}
         title="Functions"
         description="No functions have been deployed yet."
       />
@@ -37,7 +42,9 @@ export default function FunctionsPage() {
   }
 
   return (
-    <FunctionsEmptyState
+    <EmptyState
+      className="bg-background"
+      icon={Code}
       title="Functions"
       description="Select a function from the sidebar to get started."
     />

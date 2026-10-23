@@ -1,11 +1,11 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { DatabaseArea } from '@/features/orgs/projects/database/layout';
@@ -19,7 +19,7 @@ function DataBrowserDatabaseDetailsContent() {
 
   if (dataSourceSlug !== 'default') {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
         title="Database not found"
         description={
           <span>
@@ -45,7 +45,7 @@ function DataBrowserDatabaseDetailsContent() {
   }
 
   return (
-    <DataBrowserEmptyState
+    <EmptyState
       title="Database"
       description="Select a table from the sidebar to get started."
     />

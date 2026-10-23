@@ -1,10 +1,11 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
-import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 
 export default function RemoteSchemasPage() {
@@ -20,7 +21,8 @@ export default function RemoteSchemasPage() {
 
   if (remoteSchemas && remoteSchemas.length === 0) {
     return (
-      <RemoteSchemaEmptyState
+      <EmptyState
+        icon={GraphQLIcon}
         title="Remote Schemas"
         description={
           <span>Select a remote schema from the sidebar to get started.</span>
@@ -30,7 +32,8 @@ export default function RemoteSchemasPage() {
   }
 
   return (
-    <RemoteSchemaEmptyState
+    <EmptyState
+      icon={GraphQLIcon}
       title="Remote Schemas"
       description="Select a remote schema from the sidebar to get started."
     />

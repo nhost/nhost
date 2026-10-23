@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
@@ -212,7 +213,14 @@ function UsersPageContent() {
       ? dataRemoteAppUsersAndAuthRoles.filteredUsersAggreggate.aggregate.count
       : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
-    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
+    <Container
+      className={
+        usersCount === 0
+          ? 'mx-auto flex h-full max-w-9xl flex-col space-y-5 overflow-x-hidden'
+          : 'mx-auto max-w-9xl space-y-5 overflow-x-hidden'
+      }
+      rootClassName={usersCount === 0 ? 'h-full' : undefined}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
         <Input
           className="rounded-sm pl-9"
@@ -231,23 +239,19 @@ function UsersPageContent() {
         </Button>
       </div>
       {usersCount === 0 ? (
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-raised sm:px-48">
-          <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
-          <div className="flex flex-col space-y-1">
-            <h3 className="text-center font-medium text-foreground text-lg">
-              There are no users yet
-            </h3>
-            <p className="text-center text-muted-foreground text-sm">
-              All users for your project will be listed here.
-            </p>
-          </div>
-          <div className="flex flex-row place-content-between rounded-lg lg:w-56">
-            <Button className="w-full" onClick={openCreateUserDialog}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create User
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          icon={UserIcon}
+          title="There are no users yet"
+          description="All users for your project will be listed here."
+          action={
+            <div className="flex flex-row place-content-between rounded-lg lg:w-56">
+              <Button className="w-full" onClick={openCreateUserDialog}>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Create User
+              </Button>
+            </div>
+          }
+        />
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
@@ -266,20 +270,12 @@ function UsersPageContent() {
             {dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
               ?.count === 0 &&
               usersCount !== 0 && (
-                <div className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
-                  <UserIcon
-                    strokeWidth={1}
-                    className="h-10 w-10 text-disabled"
-                  />
-                  <div className="flex flex-col space-y-1">
-                    <h3 className="text-center font-medium text-foreground text-lg">
-                      No results for &quot;{searchString}&quot;
-                    </h3>
-                    <p className="text-center text-muted-foreground text-sm">
-                      Try a different search
-                    </p>
-                  </div>
-                </div>
+                <EmptyState
+                  className="border-x border-b"
+                  icon={UserIcon}
+                  title={<>No results for &quot;{searchString}&quot;</>}
+                  description="Try a different search"
+                />
               )}
             {thereAreUsers && (
               <div className="grid grid-flow-row gap-4">
