@@ -336,6 +336,7 @@ export default defineConfig({
                     { slug: 'products/database/backups' },
                     { slug: 'products/database/access' },
                     { slug: 'products/database/extensions' },
+                    { slug: 'products/database/native-queries' },
                     { slug: 'products/database/performance' },
                     { slug: 'products/database/upgrade-major' },
                   ],
