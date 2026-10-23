@@ -68,9 +68,6 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_check.yaml
     with:
-      RUNS_ON: >-
-        ["blacksmith-4vcpu-ubuntu-2404",
-         "blacksmith-4vcpu-ubuntu-2404-arm"]
       BUILD: true
       CHECKS: false
       NAME: dashboard

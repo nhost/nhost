@@ -92,8 +92,8 @@ class SharedInterfacesTests(unittest.TestCase):
         self.assertEqual(
             json.loads(defaults["RUNS_ON"]["default"]),
             [
+                "blacksmith-4vcpu-ubuntu-2404-arm",
                 "blacksmith-2vcpu-ubuntu-2404",
-                "blacksmith-2vcpu-ubuntu-2404-arm",
             ],
         )
         for removed in ["ARCHS", "RUNNER", "RUNNER_SIZE", "CHECK_RUNNER_SIZE"]:

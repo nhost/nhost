@@ -90,7 +90,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404-arm"]'
+      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'
       NAME: docs
       PROJECT: docs
       GIT_REF: >-

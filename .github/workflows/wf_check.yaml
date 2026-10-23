@@ -36,8 +36,8 @@ on:
         description: "JSON runner-label list; checks run on the first entry"
         type: string
         default: >-
-          ["blacksmith-2vcpu-ubuntu-2404",
-           "blacksmith-2vcpu-ubuntu-2404-arm"]
+          ["blacksmith-4vcpu-ubuntu-2404-arm",
+           "blacksmith-2vcpu-ubuntu-2404"]
       DOCKER:
         type: boolean
         default: false

@@ -1,9 +1,11 @@
 # CI building blocks
 
-The shared workflow defaults to `blacksmith-2vcpu-ubuntu-2404` (x86_64) and
-`blacksmith-2vcpu-ubuntu-2404-arm` (aarch64). Callers pass explicit `RUNS_ON`
-runner lists for larger builds, single-platform checks, or native macOS cache
-warming (`macos-15`). Other jobs use GitHub-hosted or Blacksmith runners. npm
+The shared workflow keeps the previous build defaults:
+`blacksmith-4vcpu-ubuntu-2404-arm` (aarch64) and
+`blacksmith-2vcpu-ubuntu-2404` (x86_64). Callers pass explicit `RUNS_ON` lists
+for larger builds, single-platform checks, or native macOS cache warming
+(`blacksmith-6vcpu-macos-latest`). Other jobs use GitHub-hosted or Blacksmith
+runners. npm
 trusted publishing uses GitHub-hosted `ubuntu-latest` because it rejects
 self-hosted runners.
 
@@ -36,11 +38,12 @@ and pass the **approved head SHA**, never a moving PR ref.
 - `LOGIN_ECR` defaults to false; enable it for authenticated ECR access during
   integration checks.
 - `RUNS_ON` is a JSON runner-label list, defaulting to
-  `["blacksmith-2vcpu-ubuntu-2404", "blacksmith-2vcpu-ubuntu-2404-arm"]`.
+  `["blacksmith-4vcpu-ubuntu-2404-arm", "blacksmith-2vcpu-ubuntu-2404"]`.
   Each entry creates one matrix job and is used verbatim as its runner label;
   checks run only on the first entry. Check-only callers pass one runner, for
   example `RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'`. Larger workloads pass
-  larger labels; macOS warming passes `RUNS_ON: '["macos-15"]'`.
+  larger labels; macOS warming passes
+  `RUNS_ON: '["blacksmith-6vcpu-macos-latest"]'`.
   Artifact platforms come from the actual host. Select only one runner per
   OS/architecture so artifact names remain unique.
 - `ENV` is a newline-separated list of environment assignments.

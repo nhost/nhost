@@ -12,9 +12,6 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_check.yaml
     with:
-      RUNS_ON: >-
-        ["blacksmith-32vcpu-ubuntu-2404-arm",
-         "blacksmith-8vcpu-ubuntu-2404"]
       BUILD: true
       CHECKS: false
       NAME: nixops

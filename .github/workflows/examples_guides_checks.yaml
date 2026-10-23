@@ -84,7 +84,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      RUNS_ON: '["blacksmith-4vcpu-ubuntu-2404"]'
+      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'
       BUILD: true
       NAME: guides
       PROJECT: examples/guides

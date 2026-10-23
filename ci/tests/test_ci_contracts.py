@@ -91,12 +91,14 @@ class ContractsTests(unittest.TestCase):
         self.assertEqual(
             json.loads(inputs["RUNS_ON"]["default"]),
             [
+                "blacksmith-4vcpu-ubuntu-2404-arm",
                 "blacksmith-2vcpu-ubuntu-2404",
-                "blacksmith-2vcpu-ubuntu-2404-arm",
             ],
         )
         mac = load(WORKFLOWS / "nixops_checks.yaml")["jobs"]["cache-macos"]["with"]
-        self.assertEqual(json.loads(mac["RUNS_ON"]), ["macos-15"])
+        self.assertEqual(
+            json.loads(mac["RUNS_ON"]), ["blacksmith-6vcpu-macos-latest"]
+        )
         self.assertFalse(mac["CHECKS"])
         self.assertFalse(mac["DOCKER"])
 

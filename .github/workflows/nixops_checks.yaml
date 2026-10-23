@@ -84,7 +84,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      RUNS_ON: '["macos-15"]'
+      RUNS_ON: '["blacksmith-6vcpu-macos-latest"]'
       BUILD: true
       CHECKS: false
       NAME: nixops
