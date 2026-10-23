@@ -72,10 +72,7 @@ export default function NativeQueriesSidebarListItem({
             </Tooltip>
             <TextWithTooltip
               containerClassName="w-full"
-              className={cn(
-                '!truncate text-sm+',
-                isSelected && 'text-primary',
-              )}
+              className={cn('!truncate text-sm+', isSelected && 'text-primary')}
               text={name}
             />
           </Link>
