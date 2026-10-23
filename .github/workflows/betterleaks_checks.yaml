@@ -52,7 +52,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      RUNNER_SIZE: "2c2g"
+      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404-arm"]'
       NAME: betterleaks
       PROJECT: tools/betterleaks
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}

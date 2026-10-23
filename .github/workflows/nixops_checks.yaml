@@ -61,13 +61,15 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: >-
+        ["blacksmith-32vcpu-ubuntu-2404-arm",
+         "blacksmith-8vcpu-ubuntu-2404"]
       BUILD: true
       NAME: nixops
       PROJECT: nixops
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true
-      RUNNER_SIZE: "8c16g"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -82,10 +84,9 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["macos-15"]'
       BUILD: true
       CHECKS: false
-      ARCHS: '["aarch64"]'
-      RUNNER: macos-15
       NAME: nixops
       PROJECT: nixops
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}

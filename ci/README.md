@@ -1,10 +1,11 @@
 # CI building blocks
 
-The shared workflow's Linux jobs use `blacksmith-2vcpu-ubuntu-2404` (x86_64) or
-`blacksmith-2vcpu-ubuntu-2404-arm` (aarch64). Other jobs use GitHub-hosted
-`ubuntu-latest`/`ubuntu-slim` or Blacksmith runners. Native macOS cache warming
-uses `macos-15`. npm trusted publishing uses GitHub-hosted `ubuntu-latest`
-because it rejects self-hosted runners.
+The shared workflow defaults to `blacksmith-2vcpu-ubuntu-2404` (x86_64) and
+`blacksmith-2vcpu-ubuntu-2404-arm` (aarch64). Callers pass explicit `RUNS_ON`
+runner lists for larger builds, single-platform checks, or native macOS cache
+warming (`macos-15`). Other jobs use GitHub-hosted or Blacksmith runners. npm
+trusted publishing uses GitHub-hosted `ubuntu-latest` because it rejects
+self-hosted runners.
 
 ## Shared check/build workflow
 
@@ -34,11 +35,14 @@ and pass the **approved head SHA**, never a moving PR ref.
   the target set `SKIP_CACHE_CHECK: true` to bypass the ready-cache gate.
 - `LOGIN_ECR` defaults to false; enable it for authenticated ECR access during
   integration checks.
-- `ARCHS` defaults to `["aarch64", "x86_64"]`. Each architecture uses its native
-  runner; checks run only on the first architecture. Check-only calls also use
-  the first entry. Single-platform projects set `ARCHS` explicitly.
-- `RUNNER` overrides the runner label, including for native macOS.
-  `RUNNER_SIZE` and `CHECK_RUNNER_SIZE` are accepted but do not affect selection.
+- `RUNS_ON` is a JSON runner-label list, defaulting to
+  `["blacksmith-2vcpu-ubuntu-2404", "blacksmith-2vcpu-ubuntu-2404-arm"]`.
+  Each entry creates one matrix job and is used verbatim as its runner label;
+  checks run only on the first entry. Check-only callers pass one runner, for
+  example `RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'`. Larger workloads pass
+  larger labels; macOS warming passes `RUNS_ON: '["macos-15"]'`.
+  Artifact platforms come from the actual host. Select only one runner per
+  OS/architecture so artifact names remain unique.
 - `ENV` is a newline-separated list of environment assignments.
   `ARTIFACT_SUFFIX` distinguishes Node/Postgres variants. Functions run integration
   checks only on Node 22; PostgreSQL checks both majors.
@@ -201,8 +205,10 @@ The app sets the manifest's `revision`, `status`, hashes, and executable flags;
 other metadata is preserved. Replacements are atomic per file, with the manifest
 written last. Rerun interrupted copies safely; do not concurrently edit managed
 files. Review the diff and run receiver checks before committing: synchronization
-does not adapt callers to interface changes. `--check` returns 0 when current,
-1 when updates are needed, and 2 for invalid/unsafe inputs. `--dry-run` never writes.
+does not adapt callers to interface changes. When updating older callers,
+replace `ARCHS`, `RUNNER`, `RUNNER_SIZE` and `CHECK_RUNNER_SIZE` with a `RUNS_ON`
+runner-label list. `--check` returns 0 when current, 1 when updates are needed,
+and 2 for invalid/unsafe inputs. `--dry-run` never writes.
 
 Apply/check requires a clean Git-backed source with an exact revision. Dirty
 and `path:` sources support previews only:

@@ -1,11 +1,22 @@
-"""Validate retained sizing inputs and restored CI runner selections."""
+"""Validate caller-owned runner lists and workload-specific CI capacity."""
 
-import re
+import json
 import unittest
 
 from test_ci_contracts import REPO, WORKFLOWS, load, triggers
 
-SIZES = {"1c1g", "2c2g", "2c4g", "4c8g", "8c16g", "16c32g"}
+DEFAULT_RUNNERS = [
+    "blacksmith-2vcpu-ubuntu-2404",
+    "blacksmith-2vcpu-ubuntu-2404-arm",
+]
+INTEGRATION_RUNNERS = [
+    "blacksmith-4vcpu-ubuntu-2404-arm",
+    "blacksmith-2vcpu-ubuntu-2404",
+]
+HEAVY_BUILD_RUNNERS = [
+    "blacksmith-32vcpu-ubuntu-2404-arm",
+    "blacksmith-8vcpu-ubuntu-2404",
+]
 
 
 def job(workflow, name):
@@ -16,26 +27,43 @@ def inputs(workflow):
     return triggers(load(WORKFLOWS / workflow))["workflow_call"]["inputs"]
 
 
+def runners(workflow, name):
+    default = inputs("wf_check.yaml")["RUNS_ON"]["default"]
+    return json.loads(job(workflow, name)["with"].get("RUNS_ON", default))
+
+
 class RunnerSizingTests(unittest.TestCase):
-    def test_available_tiers_and_all_selected_sizes_are_valid(self):
+    def test_shared_check_callers_select_literal_runner_lists(self):
         labels = load(REPO / ".github/actionlint.yaml")["self-hosted-runner"]["labels"]
         self.assertEqual(
             set(labels),
             {
-                f"nhost-{arch}-{size}"
-                for arch in ["aarch64", "x86_64"]
-                for size in SIZES
-            } | {
-                "blacksmith-2vcpu-ubuntu-2404",
-                "blacksmith-2vcpu-ubuntu-2404-arm",
+                *DEFAULT_RUNNERS,
+                *INTEGRATION_RUNNERS,
+                *HEAVY_BUILD_RUNNERS,
+                "blacksmith-4vcpu-ubuntu-2404",
             },
         )
+        default = inputs("wf_check.yaml")["RUNS_ON"]["default"]
         for path in WORKFLOWS.glob("*"):
-            for current in load(path)["jobs"].values():
-                for key in ["RUNNER_SIZE", "CHECK_RUNNER_SIZE"]:
-                    size = current.get("with", {}).get(key)
-                    if size:
-                        self.assertIn(size, SIZES, path.name)
+            for name, current in load(path)["jobs"].items():
+                if current.get("uses") != "./.github/workflows/wf_check.yaml":
+                    continue
+                with self.subTest(workflow=path.name, job=name):
+                    settings = current["with"]
+                    for removed in [
+                        "ARCHS", "RUNNER", "RUNNER_SIZE", "CHECK_RUNNER_SIZE"
+                    ]:
+                        self.assertNotIn(removed, settings)
+                    selected = json.loads(settings.get("RUNS_ON", default))
+                    self.assertIsInstance(selected, list)
+                    self.assertTrue(selected)
+                    self.assertEqual(len(selected), len(set(selected)))
+                    for runner in selected:
+                        self.assertIn(runner, [*labels, "macos-15"])
+                    if not settings.get("BUILD", False):
+                        self.assertIn("RUNS_ON", settings)
+                        self.assertEqual(len(selected), 1)
 
     def test_api_metadata_and_transfer_jobs_keep_original_runners(self):
         expected = {
@@ -61,48 +89,51 @@ class RunnerSizingTests(unittest.TestCase):
             with self.subTest(workflow=workflow):
                 self.assertEqual(job(workflow, name)["runs-on"], runner)
 
-    def test_shared_workflow_preserves_native_architecture_runner_selection(self):
-        defaults = inputs("wf_check.yaml")
-        self.assertEqual(defaults["RUNNER_SIZE"]["default"], "2c4g")
-        self.assertEqual(defaults["CHECK_RUNNER_SIZE"]["default"], "")
-        actual = job("wf_check.yaml", "tests")["runs-on"]
-        expected = """${{ inputs.RUNNER || format('blacksmith-2vcpu-ubuntu-2404{0}',
-          (matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
-          matrix.platform) == 'aarch64' && '-arm' || '') }}"""
-        self.assertEqual(re.sub(r"\s+", " ", actual), re.sub(r"\s+", " ", expected))
+    def test_integration_checks_use_a_larger_first_runner(self):
         for project in [
             "ai", "auth", "cli", "constellation", "storage", "functions", "nhost-js"
         ]:
             with self.subTest(project=project):
-                settings = job(project + "_checks.yaml", "tests")["with"]
-                self.assertEqual(settings["CHECK_RUNNER_SIZE"], "4c8g")
-                self.assertIn(settings.get("RUNNER_SIZE", "2c4g"), {"2c2g", "2c4g"})
+                self.assertEqual(
+                    runners(project + "_checks.yaml", "tests"), INTEGRATION_RUNNERS
+                )
 
-    def test_release_builds_do_not_inherit_integration_test_sizes(self):
-        expected = {
-            "ai": "2c4g",
-            "auth": "2c4g",
-            "cli": "2c4g",
-            "constellation": "2c4g",
-            "mcp": "2c4g",
-            "storage": "2c4g",
-            "functions": "2c2g",
-            "nixops": "2c2g",
-            # These build Next.js or PostgreSQL/native extensions, not just tags.
-            "dashboard": "4c8g",
-            "postgres": "4c8g",
-        }
-        for project, size in expected.items():
+    def test_release_builds_use_explicit_capacity_or_base_defaults(self):
+        for project in [
+            "ai", "auth", "cli", "constellation", "mcp", "storage", "functions"
+        ]:
             with self.subTest(project=project):
-                settings = job(project + "_wf_release.yaml", "build_artifacts")["with"]
-                self.assertFalse(settings["CHECKS"])
-                self.assertEqual(settings.get("RUNNER_SIZE", "2c4g"), size)
+                workflow = project + "_wf_release.yaml"
+                self.assertFalse(job(workflow, "build_artifacts")["with"]["CHECKS"])
+                self.assertEqual(runners(workflow, "build_artifacts"), DEFAULT_RUNNERS)
+        self.assertEqual(
+            runners("dashboard_wf_release.yaml", "build_artifacts"),
+            [
+                "blacksmith-4vcpu-ubuntu-2404",
+                "blacksmith-4vcpu-ubuntu-2404-arm",
+            ],
+        )
+        for project in ["nixops", "postgres"]:
+            with self.subTest(project=project):
+                workflow = project + "_wf_release.yaml"
+                self.assertFalse(job(workflow, "build_artifacts")["with"]["CHECKS"])
+                self.assertEqual(
+                    runners(workflow, "build_artifacts"), HEAVY_BUILD_RUNNERS
+                )
         self.assertEqual(
             job("cli_wf_release.yaml", "build-multiplatform")["runs-on"],
             "blacksmith-2vcpu-ubuntu-2404",
         )
 
     def test_frontend_builds_and_browser_suites_are_sized_separately(self):
+        for project in [
+            "dashboard", "examples_demos", "examples_guides", "examples_tutorials"
+        ]:
+            with self.subTest(project=project):
+                self.assertEqual(
+                    runners(project + "_checks.yaml", "tests"),
+                    ["blacksmith-4vcpu-ubuntu-2404"],
+                )
         self.assertEqual(
             inputs("wf_deploy_vercel.yaml")["RUNNER_SIZE"]["default"], "2c4g"
         )
@@ -122,7 +153,7 @@ class RunnerSizingTests(unittest.TestCase):
         )
         self.assertEqual(e2e["runs-on"], "blacksmith-2vcpu-ubuntu-2404")
 
-    def test_analysis_and_cache_warming_keep_original_runners(self):
+    def test_analysis_and_cache_warming_keep_workload_specific_runners(self):
         for workflow, name, runner in [
             ("ci_betterleaks.yaml", "scan", "blacksmith-2vcpu-ubuntu-2404"),
             (
@@ -139,12 +170,12 @@ class RunnerSizingTests(unittest.TestCase):
         self.assertEqual(
             job("gen_schedule_update_deps.yaml", "run")["timeout-minutes"], 240
         )
-        self.assertEqual(
-            job("nixops_checks.yaml", "tests")["with"]["RUNNER_SIZE"], "8c16g"
-        )
-        self.assertEqual(
-            job("postgres_checks.yaml", "tests")["with"]["RUNNER_SIZE"], "4c8g"
-        )
+        for project in ["nixops", "postgres"]:
+            with self.subTest(project=project):
+                self.assertEqual(
+                    runners(project + "_checks.yaml", "tests"), HEAVY_BUILD_RUNNERS
+                )
+        self.assertEqual(runners("nixops_checks.yaml", "cache-macos"), ["macos-15"])
 
 
 if __name__ == "__main__":

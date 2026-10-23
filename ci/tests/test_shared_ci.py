@@ -85,21 +85,58 @@ class SharedInterfacesTests(unittest.TestCase):
         )
         self.assertIn("inputs.SKIP_CACHE_CHECK", action["runs"]["steps"][-1]["if"])
 
-    def test_check_only_runner_uses_first_requested_architecture(self):
+    def test_runner_matrix_uses_caller_labels_verbatim(self):
         workflow = load(".github/workflows/wf_check.yaml")
+        defaults = workflow_inputs(workflow)
+        self.assertEqual(defaults["RUNS_ON"]["type"], "string")
         self.assertEqual(
-            json.loads(workflow_inputs(workflow)["ARCHS"]["default"])[0], "aarch64"
+            json.loads(defaults["RUNS_ON"]["default"]),
+            [
+                "blacksmith-2vcpu-ubuntu-2404",
+                "blacksmith-2vcpu-ubuntu-2404-arm",
+            ],
         )
+        for removed in ["ARCHS", "RUNNER", "RUNNER_SIZE", "CHECK_RUNNER_SIZE"]:
+            self.assertNotIn(removed, defaults)
         job = workflow["jobs"]["tests"]
         self.assertEqual(
-            job["strategy"]["matrix"]["platform"],
-            '${{ fromJSON(inputs.BUILD && inputs.ARCHS || \'["native"]\') }}',
+            job["strategy"]["matrix"],
+            {"runner": "${{ fromJSON(inputs.RUNS_ON) }}"},
         )
-        self.assertIn(
-            "matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] || "
-            "matrix.platform",
-            " ".join(job["runs-on"].split()),
+        self.assertEqual(job["runs-on"], "${{ matrix.runner }}")
+        self.assertEqual(
+            " ".join(job["env"]["RUN_CHECKS"].split()),
+            "${{ inputs.CHECKS && matrix.runner == fromJSON(inputs.RUNS_ON)[0] }}",
         )
+
+    def test_artifact_platform_comes_from_the_actual_runner(self):
+        workflow = load(".github/workflows/wf_check.yaml")
+        step = next(
+            step for step in workflow["jobs"]["tests"]["steps"]
+            if step["name"] == "Compute artifact version"
+        )
+        output = self.directory / "github-output"
+        for arch, runner_os, platform in [
+            ("X64", "Linux", "linux-x86_64"),
+            ("ARM64", "Linux", "linux-aarch64"),
+            ("ARM64", "macOS", "macos-aarch64"),
+        ]:
+            with self.subTest(platform=platform):
+                output.write_text("")
+                result = self.execute(
+                    step["run"],
+                    {
+                        "REQUESTED_VERSION": "0.0.0-dev",
+                        "RUNNER_ARCH": arch,
+                        "RUNNER_OS": runner_os,
+                        "GITHUB_OUTPUT": str(output),
+                    },
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                values = dict(
+                    line.split("=", 1) for line in output.read_text().splitlines()
+                )
+                self.assertEqual(values["PLATFORM"], platform)
 
     def test_cache_probe_uses_native_target_and_preserves_failures(self):
         action = load(".github/actions/setup-nix/action.yml")

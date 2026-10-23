@@ -43,7 +43,6 @@ jobs:
       - check-permissions
     with:
       BUILD: true
-      RUNNER_SIZE: "2c2g"
       NAME: stripe-graphql-js
       PROJECT: packages/stripe-graphql-js
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}

@@ -42,7 +42,6 @@ jobs:
     uses: ./.github/workflows/wf_check.yaml
     with:
       BUILD: true
-      RUNNER_SIZE: "2c2g"
       CHECKS: false
       NAME: functions
       PROJECT: services/functions

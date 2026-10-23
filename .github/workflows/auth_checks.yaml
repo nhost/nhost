@@ -66,8 +66,10 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: >-
+        ["blacksmith-4vcpu-ubuntu-2404-arm",
+         "blacksmith-2vcpu-ubuntu-2404"]
       BUILD: true
-      CHECK_RUNNER_SIZE: "4c8g"
       NAME: auth
       PROJECT: services/auth
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
