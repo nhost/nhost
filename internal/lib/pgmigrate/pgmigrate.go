@@ -33,7 +33,11 @@ var (
 )
 
 // Migrate publishes the embedded migration bundle and migrates schema to the
-// bundle's maximum version. The caller context bounds setup and preflight, but
+// bundle's maximum version. The schema argument scopes package-owned state and
+// catalog tables; Migrate does not change search_path, so migration bodies must
+// schema-qualify application objects they create or reference.
+//
+// The caller context bounds setup and preflight, but
 // cancellation does not abort migration SQL after execution starts.
 // Post-execution catalog archival and connection cleanup each use a separate
 // five-second, cancellation-independent timeout before Migrate returns. The

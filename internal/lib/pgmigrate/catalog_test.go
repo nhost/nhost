@@ -768,6 +768,81 @@ FROM %s AS catalog_row`,
 	}
 }
 
+func TestCatalogReconcileRejectsAppliedLocalForkMissingFromActiveLineage(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	root := testMigration(1, nil, "root")
+
+	activeStable := testBundle(
+		root,
+		testMigration(3, uintPointer(1), "stable_squashed"),
+	)
+	if err := catalog.reconcile(activeStable, -1); err != nil {
+		t.Fatalf("reconcile(active stable) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	stateQuery := fmt.Sprintf(
+		`SELECT jsonb_agg(to_jsonb(catalog_row) ORDER BY version)::text
+FROM %s AS catalog_row`,
+		relation,
+	)
+
+	var rowsBefore string
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(&rowsBefore); err != nil {
+		t.Fatalf("querying catalog state before rejected reconcile: %v", err)
+	}
+
+	localBeta := testBundle(
+		root,
+		testMigration(2, uintPointer(1), "beta_name"),
+	)
+
+	err := catalog.reconcile(localBeta, 3)
+	if err == nil {
+		t.Fatal("reconcile(local beta) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf("reconcile(local beta) error = %v (%T), want *IntegrityError", err, err)
+	}
+
+	const wantIssue = "embedded migration version 2 and still-applied active catalog version 3 are " +
+		"different successors of their last common version 1; downgrade below version 2 with an image " +
+		"whose bundle maximum is <= 1 before deploying this bundle"
+
+	if integrityErr.Version == nil {
+		t.Fatal("reconcile(local beta) integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"reconcile(local beta) integrity error = version %d, issue %q; want version 2, issue %q",
+			*integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	var rowsAfter string
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(&rowsAfter); err != nil {
+		t.Fatalf("querying catalog state after rejected reconcile: %v", err)
+	}
+
+	if rowsAfter != rowsBefore {
+		t.Fatalf("catalog rows changed from %s to %s", rowsBefore, rowsAfter)
+	}
+}
+
 func reconcileAdditiveCatalogAndAssertReuse(
 	t *testing.T,
 	database *sql.DB,

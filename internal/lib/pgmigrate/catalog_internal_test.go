@@ -267,8 +267,9 @@ func TestCatalogFindsFirstActiveFutureDivergenceAndProtectsAppliedRows(t *testin
 			currentVersion: 4,
 			wantDivergence: nil,
 			wantError:      true,
-			wantIssue: "active catalog version 4 belongs to a different lineage and is still applied; " +
-				"downgrade below version 4 with an image whose bundle maximum is <= 1 before deploying this bundle",
+			wantIssue: "embedded migration version 2 and still-applied active catalog version 4 are " +
+				"different successors of their last common version 1; downgrade below version 2 " +
+				"with an image whose bundle maximum is <= 1 before deploying this bundle",
 		},
 		{
 			name:           "higher replacement after omitted applied versions",
@@ -364,6 +365,84 @@ func TestCatalogFindsFirstActiveFutureDivergenceAndProtectsAppliedRows(t *testin
 				}
 			}
 		})
+	}
+}
+
+func TestCatalogFindsAppliedLocalForkMissingFromActiveLineage(t *testing.T) {
+	t.Parallel()
+
+	root := testMigration(1, nil, "root")
+	activeStable := testMigration(3, uintPointer(1), "stable_squashed")
+	localBeta := testBundle(
+		root,
+		testMigration(2, uintPointer(1), "beta_name"),
+	)
+	database := newMemoryCatalogDatabase(
+		storedMigrationFrom(root),
+		storedMigrationFrom(activeStable),
+	)
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	divergence, err := catalog.firstActiveFutureDivergence(localBeta, 3)
+	if err == nil {
+		t.Fatal("firstActiveFutureDivergence() error = nil")
+	}
+
+	if divergence != nil {
+		t.Fatalf("firstActiveFutureDivergence() = %d, want nil", *divergence)
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf(
+			"firstActiveFutureDivergence() error = %v (%T), want *IntegrityError",
+			err,
+			err,
+		)
+	}
+
+	const wantIssue = "embedded migration version 2 and still-applied active catalog version 3 are " +
+		"different successors of their last common version 1; downgrade below version 2 with an image " +
+		"whose bundle maximum is <= 1 before deploying this bundle"
+
+	if integrityErr.Version == nil {
+		t.Fatal("firstActiveFutureDivergence() integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"firstActiveFutureDivergence() integrity error = version %d, issue %q; want version 2, issue %q",
+			*integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+}
+
+func TestCatalogAllowsAppliedLegacyCatalogHydration(t *testing.T) {
+	t.Parallel()
+
+	local := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+	)
+
+	catalog, err := newCatalog(t.Context(), newMemoryCatalogDatabase(), "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	divergence, err := catalog.firstActiveFutureDivergence(local, 2)
+	if err != nil {
+		t.Fatalf("firstActiveFutureDivergence() error = %v", err)
+	}
+
+	if divergence != nil {
+		t.Fatalf("firstActiveFutureDivergence() = %d, want nil", *divergence)
 	}
 }
 

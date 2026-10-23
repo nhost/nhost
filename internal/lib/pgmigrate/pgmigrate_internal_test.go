@@ -489,6 +489,57 @@ func TestSlogAdapter(t *testing.T) {
 	}
 }
 
+func TestMigrateRunsUnqualifiedBodiesWithConfiguredSearchPath(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	migrationSchema := createCatalogTestSchema(t, database, "")
+	bodySchema := createCatalogTestSchema(t, database, migrationSchema+"_body")
+	migrationDatabase := searchPathDatabase{
+		database:   database,
+		searchPath: bodySchema,
+	}
+
+	const object = "unqualified_migration_object"
+
+	bundle := migrationFS(map[string]string{
+		"1_create_object.up.sql": "CREATE TABLE unqualified_migration_object " +
+			"(id INTEGER PRIMARY KEY);",
+		"1_create_object.down.sql": "DROP TABLE unqualified_migration_object;",
+	})
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		migrationDatabase,
+		bundle,
+		"migrations",
+		migrationSchema,
+	); err != nil {
+		t.Fatalf("Migrate(unqualified body) error = %v", err)
+	}
+
+	var (
+		foundInBodySchema      bool
+		foundInMigrationSchema bool
+	)
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT to_regclass($1) IS NOT NULL, to_regclass($2) IS NOT NULL",
+		pq.QuoteIdentifier(bodySchema)+"."+pq.QuoteIdentifier(object),
+		pq.QuoteIdentifier(migrationSchema)+"."+pq.QuoteIdentifier(object),
+	).Scan(&foundInBodySchema, &foundInMigrationSchema); err != nil {
+		t.Fatalf("locating object created by unqualified migration body: %v", err)
+	}
+
+	if !foundInBodySchema || foundInMigrationSchema {
+		t.Fatalf(
+			"unqualified migration object locations = (configured search path: %t, migration schema: %t), want (true, false)",
+			foundInBodySchema,
+			foundInMigrationSchema,
+		)
+	}
+}
+
 func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
 	t.Parallel()
 
@@ -520,39 +571,128 @@ func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
 		t.Fatalf("Migrate(session-scoped SET) error = %v", err)
 	}
 
-	connections := make([]*sql.Conn, 0, 2)
+	assertReleasedConnectionsReset(t, database, 2, initialApplicationName)
+}
+
+func TestMigrateCleansAbortedExecutionSession(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(3)
+	database.SetMaxIdleConns(3)
+	schema := createCatalogTestSchema(t, database, "")
+
+	probeConnection, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("acquiring independent cleanup probe connection: %v", err)
+	}
+
 	t.Cleanup(func() {
-		for _, connection := range connections {
-			if err := connection.Close(); err != nil {
-				t.Errorf("closing session reset probe connection: %v", err)
-			}
+		if closeErr := probeConnection.Close(); closeErr != nil {
+			t.Errorf("closing independent cleanup probe connection: %v", closeErr)
 		}
 	})
 
-	for range 2 {
-		connection, err := database.Conn(t.Context())
-		if err != nil {
-			t.Fatalf("acquiring session reset probe connection: %v", err)
+	var initialApplicationName string
+	if err := probeConnection.QueryRowContext(
+		t.Context(),
+		"SHOW application_name",
+	).Scan(&initialApplicationName); err != nil {
+		t.Fatalf("reading initial application_name: %v", err)
+	}
+
+	bundle := migrationFS(map[string]string{
+		"1_fail_in_transaction.up.sql": "SET application_name TO 'pgmigrate_poisoned'; " +
+			"BEGIN; SELECT id FROM pgmigrate_missing_relation;",
+		"1_fail_in_transaction.down.sql": "SELECT 1;",
+	})
+
+	err = Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		bundle,
+		"migrations",
+		schema,
+	)
+	if err == nil {
+		t.Fatal("Migrate(failed transaction body) error = nil")
+	}
+
+	// The upstream runner also reports its failed unlock from the aborted transaction;
+	// cleanup must still preserve the body error and restore the session.
+	if !strings.Contains(err.Error(), "pgmigrate_missing_relation") {
+		t.Fatalf("Migrate() error = %v, want original body failure", err)
+	}
+
+	assertOuterLockAvailableOnConnection(t, probeConnection, schema)
+	assertReleasedConnectionsReset(t, database, 2, initialApplicationName)
+}
+
+func TestMigrateRollsBackFailedExplicitTransactionBeforeReleasingConnection(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(3)
+	database.SetMaxIdleConns(3)
+	schema := createCatalogTestSchema(t, database, "")
+
+	lockProbe, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("acquiring independent advisory lock probe connection: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if closeErr := lockProbe.Close(); closeErr != nil {
+			t.Errorf("closing advisory lock probe connection: %v", closeErr)
 		}
+	})
 
-		connections = append(connections, connection)
+	lockIdentifier := advisoryLockIdentifierForTest(t, lockProbe, schema)
+	bundle := migrationFS(map[string]string{
+		"1_fail_transaction.up.sql": fmt.Sprintf(
+			"BEGIN; SELECT id FROM %s.missing_relation; COMMIT;",
+			pq.QuoteIdentifier(schema),
+		),
+		"1_fail_transaction.down.sql": "SELECT 1;",
+	})
 
-		var applicationName string
-		if err := connection.QueryRowContext(
-			t.Context(),
-			"SHOW application_name",
-		).Scan(&applicationName); err != nil {
-			t.Fatalf("reading released connection application_name: %v", err)
-		}
+	err = Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		bundle,
+		"migrations",
+		schema,
+	)
+	if err == nil {
+		t.Fatal("Migrate(failed explicit transaction) error = nil")
+	}
 
-		if applicationName != initialApplicationName {
-			t.Fatalf(
-				"released connection application_name = %q, want initial value %q",
-				applicationName,
-				initialApplicationName,
-			)
+	// golang-migrate's database.Error does not unwrap its original pq.Error.
+	wantPrimaryError := fmt.Sprintf(
+		"migration failed: relation %q does not exist",
+		schema+".missing_relation",
+	)
+	if !strings.Contains(err.Error(), wantPrimaryError) {
+		t.Fatalf("Migrate() error = %v, want primary error %q", err, wantPrimaryError)
+	}
+
+	for _, cleanupFailure := range []string{
+		"rolling back PostgreSQL migration execution connection",
+		"releasing outer PostgreSQL migration advisory lock",
+		"resetting PostgreSQL migration execution connection",
+	} {
+		if strings.Contains(err.Error(), cleanupFailure) {
+			t.Fatalf("Migrate() error contains cleanup failure %q: %v", cleanupFailure, err)
 		}
 	}
+
+	assertOuterLockIdentifierAvailableOnConnection(t, lockProbe, lockIdentifier)
+
+	// Holding the probe with MaxOpenConns(3) makes these the exact two sessions
+	// that Migrate returned to the pool.
+	assertPooledSessionsUsable(t, database, 2)
 }
 
 func TestMigrateHydratesExistingStateWithoutReplay(t *testing.T) {
@@ -1259,6 +1399,36 @@ func checkRestrictedDatabaseUser(ctx context.Context, database *sql.DB, role str
 	return nil
 }
 
+type searchPathDatabase struct {
+	database   *sql.DB
+	searchPath string
+}
+
+func (d searchPathDatabase) Conn(ctx context.Context) (*sql.Conn, error) {
+	connection, err := d.database.Conn(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("acquiring configured search-path connection: %w", err)
+	}
+
+	if _, err := connection.ExecContext(
+		ctx,
+		"SELECT set_config('search_path', $1, false)",
+		d.searchPath,
+	); err != nil {
+		setErr := fmt.Errorf("configuring connection search path: %w", err)
+		if closeErr := connection.Close(); closeErr != nil {
+			return nil, errors.Join(
+				setErr,
+				fmt.Errorf("closing connection after search-path failure: %w", closeErr),
+			)
+		}
+
+		return nil, setErr
+	}
+
+	return connection, nil
+}
+
 type recordingMigrationSource struct {
 	versions          []uint
 	previousOverrides map[uint]uint
@@ -1527,6 +1697,71 @@ func assertCatalogRowCount(t *testing.T, database *sql.DB, schema string, want i
 	}
 }
 
+func assertPooledSessionsUsable(t *testing.T, database *sql.DB, count int) {
+	t.Helper()
+
+	connections := make([]*sql.Conn, 0, count)
+	t.Cleanup(func() {
+		for _, connection := range connections {
+			if err := connection.Close(); err != nil {
+				t.Errorf("closing pooled session probe connection: %v", err)
+			}
+		}
+	})
+
+	for range count {
+		connection, err := database.Conn(t.Context())
+		if err != nil {
+			t.Fatalf("acquiring pooled session probe connection: %v", err)
+		}
+
+		connections = append(connections, connection)
+
+		var value int
+		if err := connection.QueryRowContext(t.Context(), "SELECT 1").Scan(&value); err != nil {
+			t.Fatalf("querying pooled session: %v", err)
+		}
+
+		if value != 1 {
+			t.Fatalf("pooled session query = %d, want 1", value)
+		}
+	}
+}
+
+func assertOuterLockIdentifierAvailableOnConnection(
+	t *testing.T,
+	connection *sql.Conn,
+	identifier string,
+) {
+	t.Helper()
+
+	var acquired bool
+	if err := connection.QueryRowContext(
+		t.Context(),
+		"SELECT pg_try_advisory_lock($1)",
+		identifier,
+	).Scan(&acquired); err != nil {
+		t.Fatalf("trying released outer lock from independent session: %v", err)
+	}
+
+	if !acquired {
+		t.Fatal("outer lock remained held by failed migration session")
+	}
+
+	var released bool
+	if err := connection.QueryRowContext(
+		t.Context(),
+		"SELECT pg_advisory_unlock($1)",
+		identifier,
+	).Scan(&released); err != nil {
+		t.Fatalf("releasing advisory lock probe: %v", err)
+	}
+
+	if !released {
+		t.Fatal("advisory lock probe did not hold acquired lock")
+	}
+}
+
 func assertOuterLockUnavailable(t *testing.T, database *sql.DB, schema string) {
 	t.Helper()
 
@@ -1580,6 +1815,16 @@ func assertOuterLockAvailable(t *testing.T, database *sql.DB, schema string) {
 		}
 	}()
 
+	assertOuterLockAvailableOnConnection(t, connection, schema)
+}
+
+func assertOuterLockAvailableOnConnection(
+	t *testing.T,
+	connection *sql.Conn,
+	schema string,
+) {
+	t.Helper()
+
 	identifier := advisoryLockIdentifierForTest(t, connection, schema)
 
 	var acquired bool
@@ -1606,6 +1851,49 @@ func assertOuterLockAvailable(t *testing.T, database *sql.DB, schema string) {
 
 	if !unlocked {
 		t.Fatal("lock probe did not hold acquired lock")
+	}
+}
+
+func assertReleasedConnectionsReset(
+	t *testing.T,
+	database *sql.DB,
+	count int,
+	wantApplicationName string,
+) {
+	t.Helper()
+
+	connections := make([]*sql.Conn, 0, count)
+	t.Cleanup(func() {
+		for _, connection := range connections {
+			if err := connection.Close(); err != nil {
+				t.Errorf("closing session reset probe connection: %v", err)
+			}
+		}
+	})
+
+	for range count {
+		connection, err := database.Conn(t.Context())
+		if err != nil {
+			t.Fatalf("acquiring session reset probe connection: %v", err)
+		}
+
+		connections = append(connections, connection)
+
+		var applicationName string
+		if err := connection.QueryRowContext(
+			t.Context(),
+			"SHOW application_name",
+		).Scan(&applicationName); err != nil {
+			t.Fatalf("using released migration connection: %v", err)
+		}
+
+		if applicationName != wantApplicationName {
+			t.Fatalf(
+				"released connection application_name = %q, want initial value %q",
+				applicationName,
+				wantApplicationName,
+			)
+		}
 	}
 }
 

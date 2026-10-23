@@ -57,6 +57,8 @@ func Apply(ctx context.Context, dsn string, logger *slog.Logger) (err error) {
 
 Here `"postgres"` is the directory inside `embeddedMigrations`; `"service_schema"` is the PostgreSQL schema name. There is no separate "latest version" setting: the highest version in the SQL files is the target.
 
+The `schema` argument scopes the migration state and catalog tables and the advisory lock; it does not change the connection’s `search_path`. Schema-qualify every application object created or referenced in up and down SQL, or unqualified names will follow the connection’s configured search path instead of the supplied schema.
+
 Use a **separate database pool** for migrations, not the pool your service uses for normal queries. `Migrate` needs two connections at once: one runs SQL, and the other reads saved migrations. Allow at least two connections per call (`SetMaxOpenConns(2)` is enough for one call at a time). Close the pool after `Migrate` returns, as the example does. Before releasing its connections, `Migrate` tries to reset the one that ran SQL. If the pool allows only one connection, it fails within five seconds instead of waiting forever.
 
 ## What happens when it runs
@@ -145,6 +147,108 @@ A new build cannot replace an applied migration's failing `down` SQL: applied ca
 
 Canceling the caller's context does not interrupt migration SQL once it starts. The context applies to most setup and catalog work, but it does **not** strictly bound the whole call: the upstream PostgreSQL driver checks or creates the state table and reads its version without using the caller's context. After SQL finishes, catalog archival and connection cleanup each use a separate five-second timeout for their database operations, even if the caller's context was canceled. Use PostgreSQL timeouts for the migration user if you need a bound on database operations.
 
+## Recovering a dirty migration
+
+Treat dirty-state recovery as a database repair, not as a state-table reset. Stop every instance that can call `Migrate` (or remove its migration-role access), prevent application writes that could conflict with the repair, and keep migration writers stopped until verification is complete. Use a maintenance window and take a restorable backup or snapshot before destructive or data-changing work; test the procedure on a restored copy when the migration can lose data.
+
+The examples below are for an interactive `psql` session. Set `schema` to the exact service schema; `:"schema"` quotes it as an identifier and `:'schema'` quotes it as a value, so do not replace those forms with unquoted string concatenation.
+
+```sql
+\set schema 'service_schema'
+
+SELECT version AS dirty_version, dirty AS state_is_dirty
+FROM :"schema".schema_migrations
+\gset recovery_
+
+\echo Dirty version is :recovery_dirty_version; dirty is :recovery_state_is_dirty
+```
+
+Expect exactly one row and `recovery_state_is_dirty` to be `t`. If the table is empty, has multiple rows, or is not dirty, stop and investigate instead of using this procedure. The dirty version alone does not identify the direction when it is nonnegative; establish the attempted direction from the migration logs, the previous known-clean version, and the rollout target.
+
+`golang-migrate` writes the target state with `dirty = true` *before* it executes a body. Its recorded-version semantics differ by direction:
+
+- **Failed up:** dirty version `v` identifies the `v` row whose `up_sql` was attempted. The prior clean state is that row's `previous_version` (or no applied version when it is the root). Inspect the active row and both the attempted and compensating bodies:
+
+  ```sql
+  SELECT
+    migration.id,
+    migration.version,
+    migration.previous_id,
+    predecessor.version AS previous_version,
+    migration.identifier,
+    convert_from(migration.up_sql, 'UTF8') AS attempted_up_sql,
+    encode(migration.up_sha256, 'hex') AS up_sha256,
+    convert_from(migration.down_sql, 'UTF8') AS compensating_down_sql,
+    encode(migration.down_sha256, 'hex') AS down_sha256,
+    migration.format_version
+  FROM :"schema".schema_migration_catalog AS migration
+  LEFT JOIN :"schema".schema_migration_catalog AS predecessor
+    ON predecessor.id = migration.previous_id
+  WHERE migration.archived_at IS NULL
+    AND migration.version = :'recovery_dirty_version'::bigint;
+  ```
+
+  Either safely finish the `up_sql` and verify state `v`, or reverse every effect already made by it and verify the predecessor state. Do not assume the whole body rolled back: inspect each DDL and data operation, including operations committed before the reported error.
+
+- **Failed down:** dirty version `p` is the *target predecessor*, not the version of the down body. The attempted body is `down_sql` from the active successor row `v` whose predecessor is `p`. A dirty version of `-1` is the special case where the root migration's down body was attempting to reach the no-migration state.
+
+  ```sql
+  SELECT
+    migration.id,
+    migration.version AS down_migration_version,
+    migration.previous_id,
+    predecessor.version AS recorded_dirty_target,
+    migration.identifier,
+    convert_from(migration.down_sql, 'UTF8') AS attempted_down_sql,
+    encode(migration.down_sha256, 'hex') AS down_sha256,
+    convert_from(migration.up_sql, 'UTF8') AS compensating_up_sql,
+    encode(migration.up_sha256, 'hex') AS up_sha256,
+    migration.format_version
+  FROM :"schema".schema_migration_catalog AS migration
+  LEFT JOIN :"schema".schema_migration_catalog AS predecessor
+    ON predecessor.id = migration.previous_id
+  WHERE migration.archived_at IS NULL
+    AND (
+      (:'recovery_dirty_version'::bigint = -1 AND migration.previous_id IS NULL)
+      OR predecessor.version = :'recovery_dirty_version'::bigint
+    );
+  ```
+
+  Either safely finish that row's `down_sql` and verify predecessor state `p`, or restore every removed/changed object and datum and verify successor state `v`. For the root-to-`-1` case, a completed down means that no migration is applied. If either catalog query returns no row or more than one row, do not edit migration state; resolve the catalog or lineage inconsistency first.
+
+Compare the selected SQL with the live database statement by statement. Check object definitions, columns, constraints, indexes, functions, ownership/privileges, and any data transformations or backfills relevant to that migration. For example, this gives a column inventory, but it is not a substitute for migration-specific integrity queries:
+
+```sql
+SELECT table_name, ordinal_position, column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = :'schema'
+ORDER BY table_name, ordinal_position;
+```
+
+Manually apply only the missing operations, or apply reviewed compensating operations to return to the other valid state. Use an explicit transaction when every operation permits it, and verify the resulting object definitions and application data before touching `schema_migrations`. Do not edit the catalog SQL, lineage, or checksums as part of recovery.
+
+Only after the schema and data have been verified, set the state to the version they actually represent. Set `verified_version` to `v`, its numeric predecessor, or `-1` for no applied migration according to the outcome above—not merely to the release's intended target. Execute the following statements one at a time while migration writers remain stopped:
+
+```sql
+\set verified_version 42
+
+BEGIN;
+LOCK TABLE :"schema".schema_migrations IN ACCESS EXCLUSIVE MODE;
+SELECT version, dirty FROM :"schema".schema_migrations;
+-- Stop and ROLLBACK unless this still shows the dirty row inspected above.
+
+TRUNCATE TABLE :"schema".schema_migrations;
+INSERT INTO :"schema".schema_migrations (version, dirty)
+SELECT :'verified_version'::bigint, false
+WHERE :'verified_version'::bigint >= 0;
+
+SELECT version, dirty FROM :"schema".schema_migrations;
+-- COMMIT only if this exactly matches the verified database state.
+COMMIT;
+```
+
+The empty table produced by `verified_version = -1` is the PostgreSQL driver's clean representation of "no migration applied"; otherwise there must be exactly one row with the verified version and `dirty = false`. **Never clear `dirty` blindly or choose a version only because it was the intended target.** Fix the cause of the original failure, then start one migration writer and observe its result before restoring normal rollout concurrency or application writes.
+
 ## Rolling out and rolling back
 
 Let only **one release** run migrations at a time. If old and new builds migrate the same database concurrently, they can keep moving it between their different target versions. Finish the schema change before sending mixed-version application traffic to that database.
@@ -162,6 +266,8 @@ The database user that calls `Migrate` needs:
 Let this user create the migration tables when possible. If another user created them, make the migration user their owner: the state table needs `SELECT`, `INSERT`, and `TRUNCATE`; the catalog needs `SELECT`, `INSERT`, and `UPDATE`; and setup needs to create or maintain catalog indexes. PostgreSQL normally allows ordinary users to take advisory locks, but grant access if your database has revoked it.
 
 ## Running tests
+
+Service-owned, database-free tests can call `ValidateBundle` to apply the same bundle parser used by `Migrate` and assert the inferred target. Validate both the production embedded filesystem and its on-disk migration directory: an embed glob such as `postgres/*.sql` excludes stray files that the on-disk check must reject.
 
 Without a PostgreSQL connection, `go test ./internal/lib/pgmigrate/...` runs unit tests and skips database tests. To run all tests, use a **disposable** database: the tests create and drop schemas and login roles. Provide a key/value DSN (not a URL) for a superuser, and allow the test-created roles to connect without passwords (for example, using `trust` on a local Unix socket):
 

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4/source"
@@ -213,7 +214,7 @@ func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
 	return c.publish(local)
 }
 
-//nolint:cyclop,funlen // One ordered scan preserves divergence precedence and its lineage state.
+//nolint:funlen // One ordered scan preserves divergence precedence and its lineage state.
 func (c *catalog) firstActiveFutureDivergence(
 	local *bundle,
 	currentVersion int64,
@@ -230,22 +231,10 @@ ORDER BY version
 		return nil, err
 	}
 
-	activeVersionSet := make(map[uint]struct{}, len(activeVersions))
-	for _, version := range activeVersions {
-		activeVersionSet[version] = struct{}{}
-	}
-
 	localByVersion := make(map[uint]*migration, len(local.migrations))
-	localAppliedVersionMissingFromCatalog := false
-
 	for index := range local.migrations {
 		migration := &local.migrations[index]
 		localByVersion[migration.version] = migration
-
-		_, active := activeVersionSet[migration.version]
-		if !active && !versionAfter(migration.version, currentVersion) {
-			localAppliedVersionMissingFromCatalog = true
-		}
 	}
 
 	var (
@@ -277,7 +266,7 @@ ORDER BY version
 		}
 
 		if !present {
-			if firstMissingAppliedVersion == nil {
+			if firstMissingAppliedVersion == nil && local.target > version {
 				missingVersion := version
 				firstMissingAppliedVersion = &missingVersion
 			}
@@ -297,13 +286,73 @@ ORDER BY version
 		lastCommonVersion = &commonVersion
 	}
 
-	// Defer this diagnostic so a later shared version can report its more specific mismatch first.
-	if firstMissingAppliedVersion != nil &&
-		(local.target > *firstMissingAppliedVersion || localAppliedVersionMissingFromCatalog) {
-		return nil, appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
+	// Defer missing-version diagnostics so shared versions can report specific mismatches first.
+	lineageErr := appliedLineageComparisonError(
+		firstMissingAppliedVersion,
+		local,
+		activeVersions,
+		currentVersion,
+		lastCommonVersion,
+	)
+	if lineageErr != nil {
+		return nil, lineageErr
 	}
 
 	return firstDivergentFutureVersion, nil
+}
+
+func appliedLineageComparisonError(
+	firstMissingAppliedVersion *uint,
+	local *bundle,
+	activeVersions []uint,
+	currentVersion int64,
+	lastCommonVersion *uint,
+) error {
+	if firstMissingAppliedVersion != nil {
+		return appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
+	}
+
+	localVersion, blockingActiveVersion, diverges := firstLocalForkBlockedByAppliedVersion(
+		local,
+		activeVersions,
+		currentVersion,
+	)
+	if !diverges {
+		return nil
+	}
+
+	return localOnlyLineageDivergence(
+		localVersion,
+		blockingActiveVersion,
+		lastCommonVersion,
+	)
+}
+
+func firstLocalForkBlockedByAppliedVersion(
+	local *bundle,
+	activeVersions []uint,
+	currentVersion int64,
+) (uint, uint, bool) {
+	for index := range local.migrations {
+		localVersion := local.migrations[index].version
+		if versionAfter(localVersion, currentVersion) {
+			return 0, 0, false
+		}
+
+		activeIndex, present := slices.BinarySearch(activeVersions, localVersion)
+		if present || activeIndex == len(activeVersions) {
+			continue
+		}
+
+		activeVersion := activeVersions[activeIndex]
+		if versionAfter(activeVersion, currentVersion) {
+			return 0, 0, false
+		}
+
+		return localVersion, activeVersion, true
+	}
+
+	return 0, 0, false
 }
 
 func versionAfter(version uint, currentVersion int64) bool {
@@ -516,6 +565,43 @@ func migrationMatches(local migration, stored storedMigration) bool {
 func migrationLineageDiffers(local migration, stored storedMigration) bool {
 	return stored.identifier != local.identifier ||
 		!equalOptionalVersion(stored.previousVersion, local.previousVersion)
+}
+
+func localOnlyLineageDivergence(
+	localVersion uint,
+	blockingActiveVersion uint,
+	lastCommonVersion *uint,
+) error {
+	if lastCommonVersion == nil {
+		return &IntegrityError{
+			Version: new(localVersion),
+			Issue: fmt.Sprintf(
+				"embedded migration version %d conflicts with still-applied active catalog version %d; "+
+					"the active and embedded bundles have no common lineage version, so pgmigrate "+
+					"cannot replace this lineage in place; keep using a compatible bundle or "+
+					"reinitialize the schema and explicitly migrate required data before deploying "+
+					"this bundle",
+				localVersion,
+				blockingActiveVersion,
+			),
+			Cause: nil,
+		}
+	}
+
+	return &IntegrityError{
+		Version: new(localVersion),
+		Issue: fmt.Sprintf(
+			"embedded migration version %d and still-applied active catalog version %d are "+
+				"different successors of their last common version %d; downgrade below version %d "+
+				"with an image whose bundle maximum is <= %d before deploying this bundle",
+			localVersion,
+			blockingActiveVersion,
+			*lastCommonVersion,
+			localVersion,
+			*lastCommonVersion,
+		),
+		Cause: nil,
+	}
 }
 
 func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
