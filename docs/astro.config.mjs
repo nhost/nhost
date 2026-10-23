@@ -366,6 +366,7 @@ export default defineConfig({
                         { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
+                    { slug: 'products/graphql/relationships' },
                     { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/actions' },
