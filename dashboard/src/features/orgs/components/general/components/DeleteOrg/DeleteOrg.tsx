@@ -142,9 +142,11 @@ export default function DeleteOrg() {
               </Button>
             </AlertDialogTrigger>
           </span>
-          <AlertDialogContent className="flex w-full flex-col gap-6 text-left text-foreground">
+          <AlertDialogContent className="flex w-full flex-col gap-6 p-12 text-left text-foreground">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">
+                Delete Organization
+              </AlertDialogTitle>
               <AlertDialogDescription className="flex flex-col gap-2">
                 Are you sure you want to delete this Organization?
                 <span className="font-bold text-destructive">
@@ -203,7 +205,7 @@ export default function DeleteOrg() {
               </form>
             </Form>
 
-            <AlertDialogFooter className="gap-2 sm:space-x-0">
+            <AlertDialogFooter className="mt-6 gap-2 sm:space-x-0">
               <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
               <ButtonWithLoading
                 type="submit"
