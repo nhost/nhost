@@ -22,46 +22,7 @@ func (r *relationshipFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	targetAlias := fmt.Sprintf("\"%s%d\"", r.aliasPrefix, r.nestingLevel)
-	if r.nestingLevel == 0 {
-		targetAlias = r.aliasPrefix
-	}
-
-	target := r.relationship.Target()
-
-	b.WriteString("EXISTS (SELECT 1 FROM ")
-	b.WriteString(target.TableFromClause())
-	b.WriteString(" ")
-	b.WriteString(targetAlias)
-	b.WriteString(" WHERE ")
-
-	r.relationship.WriteJoinConditionAliased(b, source, targetAlias)
-
-	var err error
-
-	if r.conditions != nil {
-		b.WriteString(" AND ")
-
-		params, paramIndex, err = r.conditions.WriteCondition(b, targetAlias, params, paramIndex)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write relationship conditions: %w", err)
-		}
-	}
-
-	if r.role != "" && target.HasRowLevelPermissions(r.role) {
-		b.WriteString(" AND ")
-
-		params, paramIndex, err = target.WriteRowLevelPermissions(
-			b, params, paramIndex, r.role, r.sessionVariables, targetAlias,
-		)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to apply row-level permissions: %w", err)
-		}
-	}
-
-	b.WriteByte(')')
-
-	return params, paramIndex, nil
+	return r.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
 }
 
 // parseExists parses an _exists operator value into an existsFilter.
@@ -154,32 +115,9 @@ type existsFilter struct {
 
 func (f *existsFilter) WriteCondition(
 	b *strings.Builder,
-	_ string,
+	source string,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	targetAlias := fmt.Sprintf("\"%s%d\"", f.aliasPrefix, f.nestingLevel)
-	if f.nestingLevel == 0 {
-		targetAlias = f.aliasPrefix
-	}
-
-	b.WriteString("EXISTS (SELECT 1 FROM ")
-	b.WriteString(f.targetTable.TableFromClause())
-	b.WriteString(" ")
-	b.WriteString(targetAlias)
-
-	if f.conditions != nil {
-		b.WriteString(" WHERE ")
-
-		var err error
-
-		params, paramIndex, err = f.conditions.WriteCondition(b, targetAlias, params, paramIndex)
-		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write _exists conditions: %w", err)
-		}
-	}
-
-	b.WriteByte(')')
-
-	return params, paramIndex, nil
+	return f.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
 }

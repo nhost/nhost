@@ -389,7 +389,7 @@ func TestFixColumns_ColumnNotFound(t *testing.T) {
 
 	tr := &fakeTable{name: "users"}
 
-	_, err := fixColumns(tr, map[string]any{"unknown": map[string]any{"_eq": 1}})
+	_, err := fixColumns(tr, tr, map[string]any{"unknown": map[string]any{"_eq": 1}})
 	if err == nil {
 		t.Fatal("expected error for unknown column, got nil")
 	}
@@ -405,7 +405,7 @@ func TestFixColumns_RenamesSQLToGraphQL(t *testing.T) {
 		},
 	}
 
-	got, err := fixColumns(tr, map[string]any{
+	got, err := fixColumns(tr, tr, map[string]any{
 		"user_id": map[string]any{"_eq": "X-Hasura-User-Id"},
 	})
 	if err != nil {
@@ -462,7 +462,116 @@ func TestFixColumns_TopLevelComparison(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := fixColumns(tr, tc.in)
+			got, err := fixColumns(tr, tr, tc.in)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("fixColumns mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+// TestFixColumns_ColumnComparison covers the column checks for _ceq and
+// friends, using the shape from nhost/nhost#5113: an insert check on
+// club_stocking_plans that compares water.club_id with the root row's club_id.
+func TestFixColumns_ColumnComparison(t *testing.T) {
+	t.Parallel()
+
+	waters := &fakeTable{
+		name: "waters",
+		columns: map[string]*core.Column{
+			"id":      {SQLName: "id", GraphqlName: "id", SQLType: "uuid"},
+			"club_id": {SQLName: "club_id", GraphqlName: "clubID", SQLType: "uuid"},
+		},
+	}
+	plans := &fakeTable{
+		name: "club_stocking_plans",
+		columns: map[string]*core.Column{
+			"club_id":  {SQLName: "club_id", GraphqlName: "clubID", SQLType: "uuid"},
+			"water_id": {SQLName: "water_id", GraphqlName: "waterID", SQLType: "uuid"},
+		},
+		relationships: map[string]*fakeRelationship{
+			"water": {name: "water", target: waters},
+		},
+	}
+
+	throughWater := func(operator string, operand any) map[string]any {
+		return map[string]any{
+			"water": map[string]any{
+				"club_id": map[string]any{operator: operand},
+			},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		in      map[string]any
+		want    map[string]any
+		wantErr string
+	}{
+		{
+			name: "root reference inside relationship",
+			in:   throughWater("_ceq", []any{"$", "club_id"}),
+			want: map[string]any{
+				"water": map[string]any{
+					"clubID": map[string]any{"_ceq": []any{"$", "club_id"}},
+				},
+			},
+		},
+		{
+			name: "same-table reference inside relationship",
+			in:   throughWater("_cneq", "id"),
+			want: map[string]any{
+				"water": map[string]any{"clubID": map[string]any{"_cneq": "id"}},
+			},
+		},
+		{
+			name: "single-element list at the root",
+			in:   map[string]any{"club_id": map[string]any{"_cgte": []any{"water_id"}}},
+			want: map[string]any{"clubID": map[string]any{"_cgte": []any{"water_id"}}},
+		},
+		{
+			name:    "root reference to a column the root table lacks",
+			in:      throughWater("_ceq", []any{"$", "id"}),
+			wantErr: "id (in _ceq on column club_id) not found in table club_stocking_plans",
+		},
+		{
+			name:    "same-table reference to a root-only column",
+			in:      throughWater("_clt", "water_id"),
+			wantErr: "water_id (in _clt on column club_id) not found in table waters",
+		},
+		{
+			// Shape errors are reported by the where parser, which owns the
+			// operand grammar.
+			name: "malformed operand passes through",
+			in:   throughWater("_ceq", []any{"a", "b"}),
+			want: map[string]any{
+				"water": map[string]any{"clubID": map[string]any{"_ceq": []any{"a", "b"}}},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := fixColumns(plans, plans, tc.in)
+
+			if tc.wantErr != "" {
+				if !errors.Is(err, errComparedColumnNotFound) {
+					t.Fatalf("expected errComparedColumnNotFound, got %v", err)
+				}
+
+				if !strings.Contains(err.Error(), tc.wantErr) {
+					t.Errorf("error %q does not mention %q", err, tc.wantErr)
+				}
+
+				return
+			}
+
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -498,7 +607,7 @@ func TestFixColumns_Relationship(t *testing.T) {
 			},
 		}
 
-		got, err := fixColumns(tr, map[string]any{
+		got, err := fixColumns(tr, tr, map[string]any{
 			"posts": map[string]any{
 				"author_id": map[string]any{"_eq": "X-Hasura-User-Id"},
 			},
@@ -527,7 +636,7 @@ func TestFixColumns_Relationship(t *testing.T) {
 			},
 		}
 
-		_, err := fixColumns(tr, map[string]any{"posts": "not-a-map"})
+		_, err := fixColumns(tr, tr, map[string]any{"posts": "not-a-map"})
 		if err == nil {
 			t.Fatal("expected error for non-map relationship value, got nil")
 		}
@@ -548,7 +657,7 @@ func TestFixColumns_Relationship(t *testing.T) {
 			},
 		}
 
-		_, err := fixColumns(tr, map[string]any{
+		_, err := fixColumns(tr, tr, map[string]any{
 			"remote_posts": map[string]any{},
 		})
 		if err == nil {
@@ -573,7 +682,7 @@ func TestFixColumns_Relationship(t *testing.T) {
 		// "unknown" is not a column on the posts target, so fixColumns inside
 		// fixRelationship fails and the error is wrapped with the
 		// relationship name.
-		_, err := fixColumns(tr, map[string]any{
+		_, err := fixColumns(tr, tr, map[string]any{
 			"posts": map[string]any{"unknown": map[string]any{"_eq": 1}},
 		})
 		if err == nil {
@@ -608,7 +717,7 @@ func TestFixColumns_ExistsEntry(t *testing.T) {
 			siblings: map[string]*fakeTable{"public.posts": sibling},
 		}
 
-		got, err := fixColumns(tr, map[string]any{
+		got, err := fixColumns(tr, tr, map[string]any{
 			"_exists": map[string]any{
 				"_table": map[string]any{"schema": "public", "name": "posts"},
 				"_where": map[string]any{
@@ -638,7 +747,7 @@ func TestFixColumns_ExistsEntry(t *testing.T) {
 
 		tr := &fakeTable{name: "users"} // no siblings configured
 
-		_, err := fixColumns(tr, map[string]any{
+		_, err := fixColumns(tr, tr, map[string]any{
 			"_exists": map[string]any{
 				"_table": map[string]any{"schema": "public", "name": "ghosts"},
 				"_where": map[string]any{},
@@ -667,7 +776,7 @@ func TestFixColumns_LogicalOperators(t *testing.T) {
 	t.Run("_and with valid leaf", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixColumns(tr, map[string]any{
+		_, err := fixColumns(tr, tr, map[string]any{
 			"_and": []any{
 				map[string]any{"id": map[string]any{"_eq": "X-Hasura-User-Id"}},
 			},
@@ -680,7 +789,7 @@ func TestFixColumns_LogicalOperators(t *testing.T) {
 	t.Run("_or with non-list value errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixColumns(tr, map[string]any{"_or": "not-a-list"})
+		_, err := fixColumns(tr, tr, map[string]any{"_or": "not-a-list"})
 		if err == nil {
 			t.Fatal("expected error for non-list _or, got nil")
 		}
@@ -689,7 +798,7 @@ func TestFixColumns_LogicalOperators(t *testing.T) {
 	t.Run("_not with non-map value errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixColumns(tr, map[string]any{"_not": "not-a-map"})
+		_, err := fixColumns(tr, tr, map[string]any{"_not": "not-a-map"})
 		if err == nil {
 			t.Fatal("expected error for non-map _not, got nil")
 		}
@@ -842,7 +951,7 @@ func TestFixExists(t *testing.T) {
 			siblings: map[string]*fakeTable{"public.posts": sibling},
 		}
 
-		got, err := fixExists(tr, map[string]any{
+		got, err := fixExists(tr, tr, map[string]any{
 			"_table": map[string]any{"schema": "public", "name": "posts"},
 			"_where": map[string]any{
 				"author_id": map[string]any{"_eq": "X-Hasura-User-Id"},
@@ -866,7 +975,7 @@ func TestFixExists(t *testing.T) {
 	t.Run("non-map value errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixExists(&fakeTable{}, "not-a-map")
+		_, err := fixExists(&fakeTable{}, &fakeTable{}, "not-a-map")
 		if err == nil {
 			t.Fatal("expected error for non-map _exists value, got nil")
 		}
@@ -875,7 +984,7 @@ func TestFixExists(t *testing.T) {
 	t.Run("missing _table errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixExists(&fakeTable{}, map[string]any{
+		_, err := fixExists(&fakeTable{}, &fakeTable{}, map[string]any{
 			"_where": map[string]any{},
 		})
 		if err == nil {
@@ -886,7 +995,7 @@ func TestFixExists(t *testing.T) {
 	t.Run("non-string schema errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixExists(&fakeTable{}, map[string]any{
+		_, err := fixExists(&fakeTable{}, &fakeTable{}, map[string]any{
 			"_table": map[string]any{"schema": 1, "name": "posts"},
 			"_where": map[string]any{},
 		})
@@ -898,7 +1007,7 @@ func TestFixExists(t *testing.T) {
 	t.Run("non-string name errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixExists(&fakeTable{}, map[string]any{
+		_, err := fixExists(&fakeTable{}, &fakeTable{}, map[string]any{
 			"_table": map[string]any{"schema": "public", "name": 1},
 			"_where": map[string]any{},
 		})
@@ -910,7 +1019,7 @@ func TestFixExists(t *testing.T) {
 	t.Run("missing _where errors", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := fixExists(&fakeTable{}, map[string]any{
+		_, err := fixExists(&fakeTable{}, &fakeTable{}, map[string]any{
 			"_table": map[string]any{"schema": "public", "name": "posts"},
 		})
 		if err == nil {
@@ -923,7 +1032,7 @@ func TestFixExists(t *testing.T) {
 
 		tr := &fakeTable{name: "users"}
 
-		_, err := fixExists(tr, map[string]any{
+		_, err := fixExists(tr, tr, map[string]any{
 			"_table": map[string]any{"schema": "public", "name": "ghosts"},
 			"_where": map[string]any{},
 		})
@@ -940,7 +1049,7 @@ func TestFixExists(t *testing.T) {
 			siblings: map[string]*fakeTable{"public.posts": sibling},
 		}
 
-		_, err := fixExists(tr, map[string]any{
+		_, err := fixExists(tr, tr, map[string]any{
 			"_table": map[string]any{"schema": "public", "name": "posts"},
 			"_where": map[string]any{"unknown": map[string]any{"_eq": 1}},
 		})
