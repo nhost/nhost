@@ -413,6 +413,17 @@ html.dark .graphiql-themed .graphiql-container {
   outline: none;
 }
 
+/* GraphiQL's legacy stylesheet colors every button inside the playground
+   with the text color, which beats the main button's own white text (Run sits
+   in the Query bar). Give it back, disabled state included. */
+.graphiql-themed .graphiql-container .btn-emboss-primary {
+  color: hsl(var(--on-solid));
+}
+
+.graphiql-themed .graphiql-container .btn-emboss-primary:disabled {
+  color: hsl(var(--on-solid) / 0.5);
+}
+
 /* Active query tab: our main blue, like the active section tab. */
 .graphiql-themed .graphiql-container .graphiql-tab.graphiql-tab-active {
   background-color: hsl(var(--primary) / 0.1);

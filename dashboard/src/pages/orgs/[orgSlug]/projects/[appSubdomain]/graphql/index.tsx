@@ -121,17 +121,6 @@ interface PlaygroundRequest {
 }
 
 function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
-  const executionContext = useExecutionContext();
-
-  const isQueryFetching = isNotEmptyValue(executionContext)
-    ? !!executionContext?.isFetching
-    : false;
-  const runQuery = isNotEmptyValue(executionContext)
-    ? executionContext.run
-    : () => {};
-  const stopQuery = isNotEmptyValue(executionContext)
-    ? executionContext.stop
-    : () => {};
   const { theme, setTheme } = useTheme();
   const pluginContext = usePluginContext();
 
@@ -147,14 +136,6 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
       setTheme('light');
     }
   }, [setTheme, theme]);
-
-  function executeQuery() {
-    if (isQueryFetching) {
-      stopQuery();
-    }
-
-    runQuery();
-  }
 
   // This is a very hacky way to toggle the plugin visibility. Although
   // GraphiQL exposes a way to manage plugins via the `PluginContext`, it
@@ -222,22 +203,6 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Docs</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={executeQuery}
-              aria-label="Execute GraphQL query"
-              className="flex-1 py-2 md:flex-none"
-            >
-              <PlayIcon className="mr-2 h-5 w-5" />
-              Run
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" align="end" sideOffset={8}>
-            Execute query (Ctrl+Enter)
-          </TooltipContent>
         </Tooltip>
       </div>
     </header>
@@ -388,6 +353,37 @@ function getRequestHeaders({
 // add an element as the first child of its editors container.
 function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
   const editorContext = useEditorContext({ nonNull: true });
+  const executionContext = useExecutionContext({ nonNull: true });
+
+  const { queryEditor } = editorContext;
+  const [hasQuery, setHasQuery] = useState(true);
+
+  // Run is off while the editor holds nothing to run: empty, or only
+  // comments (like GraphiQL's welcome text).
+  useEffect(() => {
+    if (!queryEditor) {
+      return undefined;
+    }
+
+    const update = () =>
+      setHasQuery(queryEditor.getValue().replace(/#.*$/gm, '').trim() !== '');
+
+    update();
+    queryEditor.on('change', update);
+
+    return () => {
+      queryEditor.off('change', update);
+    };
+  }, [queryEditor]);
+
+  // Same as before the move: a run in progress is stopped, then run again.
+  function executeQuery() {
+    if (executionContext.isFetching) {
+      executionContext.stop();
+    }
+
+    executionContext.run();
+  }
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
   const [container, setContainer] = useState<HTMLElement | null>(null);
@@ -453,7 +449,7 @@ function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
   }
 
   return createPortal(
-    <div className="flex h-10 shrink-0 items-center justify-between border-b pr-2 pl-4">
+    <div className="flex h-12 shrink-0 items-center justify-between border-b pr-2 pl-4">
       <span className="font-medium text-foreground text-sm">Query</span>
       <div className="flex items-center">
         <Tooltip>
@@ -529,6 +525,27 @@ function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/* A disabled button gets no hover, so the span carries the tooltip. */}
+            <span className="ml-3 inline-flex">
+              <Button
+                size="xs"
+                onClick={executeQuery}
+                disabled={!hasQuery}
+                aria-label="Execute GraphQL query"
+                className="gap-1.5 px-2.5"
+              >
+                <PlayIcon className="h-3.5 w-3.5" />
+                Run
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {hasQuery ? 'Run (Ctrl+Enter)' : 'Write a query to run it'}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>,
     container,
@@ -570,7 +587,7 @@ function ResponsePaneExtras() {
 
   return (
     <>
-      <div className="flex h-10 shrink-0 items-center justify-between border-b pr-2 pl-4">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b pr-2 pl-4">
         <div className="flex min-w-0 items-center gap-3">
           <span className="font-medium text-foreground text-sm">Response</span>
           <ResponseStatus />
@@ -595,7 +612,7 @@ function ResponsePaneExtras() {
       </div>
 
       {!response && !executionContext.isFetching && (
-        <div className="pointer-events-none absolute inset-x-0 top-10 bottom-0">
+        <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0">
           <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
             <span aria-hidden="true" className="flex shrink-0 text-disabled">
               <Braces strokeWidth={1} className="h-12 w-12" />
