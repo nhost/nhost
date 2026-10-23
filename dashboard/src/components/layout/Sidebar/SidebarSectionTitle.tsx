@@ -9,7 +9,7 @@ export default function SidebarSectionTitle({
   return (
     <h2
       className={cn(
-        'mb-1 px-2 font-normal text-2xs text-muted-foreground uppercase tracking-[0.08em] dark:text-sidebar-section-title',
+        'mb-1 px-2 font-normal text-2xs text-muted-foreground uppercase tracking-wider dark:text-sidebar-section-title',
         className,
       )}
       {...props}

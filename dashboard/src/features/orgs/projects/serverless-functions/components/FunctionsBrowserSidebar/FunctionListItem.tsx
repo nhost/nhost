@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Button } from '@/components/ui/v3/button';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import {
   isFunctionTab,
@@ -37,17 +37,7 @@ export default function FunctionListItem({
 
   return (
     <div className="group">
-      <Button
-        asChild
-        variant="link"
-        size="md"
-        className={cn(
-          'flex h-auto w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-          {
-            'bg-table-selected': isSelected,
-          },
-        )}
-      >
+      <SidebarListRow asChild selected={isSelected} size="auto">
         <div className="flex w-full max-w-full items-center">
           <Link
             href={href}
@@ -76,7 +66,7 @@ export default function FunctionListItem({
             />
           </Link>
         </div>
-      </Button>
+      </SidebarListRow>
     </div>
   );
 }

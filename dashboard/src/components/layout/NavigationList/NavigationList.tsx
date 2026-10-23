@@ -139,7 +139,7 @@ function NavigationListSection({
     <section
       id={id}
       aria-labelledby={labelId}
-      className={cn('mt-[1.2rem] first:mt-0', className)}
+      className={cn('mt-5 first:mt-0', className)}
       {...props}
     >
       {label && (

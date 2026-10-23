@@ -1,6 +1,6 @@
 import { useApolloClient } from '@apollo/client';
 import { LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/v3/button';
+import { MenuRow } from '@/components/ui/v3/menu-row';
 import { useAuth } from '@/providers/Auth';
 
 export default function AccountMenuSignOut() {
@@ -14,10 +14,10 @@ export default function AccountMenuSignOut() {
 
   return (
     <div className="p-2">
-      <Button variant="menu-destructive" onClick={handleSignOut}>
+      <MenuRow variant="destructive" onClick={handleSignOut}>
         <LogOut className="h-4 w-4" />
         Sign out
-      </Button>
+      </MenuRow>
     </div>
   );
 }

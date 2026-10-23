@@ -36,11 +36,11 @@ const SidebarItem = forwardRef<HTMLElement, SidebarItemProps>(
     // The dark-mode repeats are needed: `dark:text-sidebar-foreground` would
     // otherwise win over the plain hover and active colors.
     const itemClassName = cn(
-      'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 font-semibold text-neutral-600 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:text-sidebar-foreground dark:hover:bg-accent dark:hover:text-foreground',
+      'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 font-semibold text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:text-sidebar-foreground dark:hover:bg-accent dark:hover:text-foreground',
       active &&
-        'bg-neutral-100 text-primary hover:bg-neutral-100 hover:text-primary dark:bg-muted dark:text-primary dark:hover:bg-muted dark:hover:text-primary',
+        'bg-accent text-primary hover:bg-accent hover:text-primary dark:bg-muted dark:text-primary dark:hover:bg-muted dark:hover:text-primary',
       disabled &&
-        'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-neutral-600 dark:hover:bg-transparent dark:hover:text-sidebar-foreground',
+        'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent dark:hover:text-sidebar-foreground',
       className,
     );
 

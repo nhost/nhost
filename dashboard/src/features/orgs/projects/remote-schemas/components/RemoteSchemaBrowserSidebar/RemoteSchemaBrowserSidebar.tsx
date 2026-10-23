@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { InlineCode } from '@/components/ui/v3/inline-code';
+import { SidebarListRow } from '@/components/ui/v3/sidebar-list-row';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -219,17 +220,7 @@ function RemoteSchemaBrowserSidebarContent({
                   sidebarMenuRemoteSchema === remoteSchema.name;
                 return (
                   <li className="group pb-1" key={remoteSchema.name}>
-                    <Button
-                      asChild
-                      variant="link"
-                      size="sm"
-                      className={cn(
-                        'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-                        {
-                          'bg-table-selected': isSelected,
-                        },
-                      )}
-                    >
+                    <SidebarListRow asChild selected={isSelected}>
                       <div>
                         <Link
                           href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
@@ -339,7 +330,7 @@ function RemoteSchemaBrowserSidebarContent({
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </Button>
+                    </SidebarListRow>
                   </li>
                 );
               })}
