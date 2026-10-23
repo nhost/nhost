@@ -181,7 +181,7 @@ export default function ProjectColorPicker({
             </p>
             <div className="flex justify-end gap-2">
               <Button
-                variant="outline-emboss"
+                variant="outline"
                 size="sm"
                 onClick={() => setPendingSwap(null)}
               >
