@@ -228,7 +228,15 @@ remote_relationships:
           id: community_id
 ```
 
-Run `nhost up` to apply the files to your local project. In a local project, relationships you create in the dashboard are written to the same files. {/* VERIFY: the local dashboard writes relationship changes to nhost/metadata/ — create, rename and delete call /v1/metadata directly (dashboard/src/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation/createRelationship.ts), not the migrations API; create one with nhost up running and check git status */}
+Run `nhost up` to apply the files to your local project.
+
+In a local project, the dashboard writes to these files only when it saves a change as a migration, as the table form does when you add a foreign key. Relationships you add from a suggestion or with **Relationship +**, and any you edit, rename, or delete, change only the running project. Export the metadata to keep them before you commit:
+
+```bash
+nhost dev hasura metadata export \
+    --endpoint https://local.hasura.local.nhost.run \
+    --admin-secret nhost-admin-secret
+```
 
 ## Query across a relationship
 
