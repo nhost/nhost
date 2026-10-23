@@ -3,17 +3,17 @@
 Two halves, laid out the way an Nhost project is:
 
 - `nhost/` is the backend configuration `nhost up` runs. It is what
-  `nhost init` writes, with the sign-in methods this app offers switched on,
-  plus `nhost/metadata/`: the Hasura permissions the account page needs. The
-  auth service tracks its own tables but grants nothing, so without these a
+  `nhost init` writes, with the sign-in methods this app offers switched on
+  except OAuth, which needs credentials first (see [OAuth](#oauth)), plus
+  `nhost/metadata/`: the Hasura permissions the account page needs. The auth
+  service tracks its own tables but grants nothing, so without these a
   signed-in user could register a passkey and never see it listed. `nhost up`
   applies them, restarts the auth and storage services so they re-add what
   they manage themselves, then exports Hasura's full metadata back into
-  `nhost/metadata/`. The first run therefore adds a file for every table the
-  two services track and rewrites the three committed ones without their
-  comments. That is expected; commit the exported form, as the example
-  backends under `examples/` do. The reasons behind the permissions are in
-  [Permissions](#permissions) below, which the export does not touch.
+  `nhost/metadata/`. That export is what is committed, as in the example
+  backends under `examples/`, so there is a file for every table the two
+  services track. The exported files carry no comments, so the reasons
+  behind the permissions are in [Permissions](#permissions) below.
   `nhost/emails/` holds only the `en` email templates `nhost init` writes,
   because the config allows only `en` and auth swaps any other locale for the
   default at sign-up. Adding a locale to `allowed` means adding its templates
@@ -109,10 +109,11 @@ but the slug is only in the dashboard URL.
 
 ## Permissions
 
-The three files in `nhost/metadata/databases/default/tables/` grant the `user`
-role what the account page needs and nothing more. The headers in those files
-say the same, but the first `nhost up` rewrites the files without them, so
-this is the record that lasts.
+Three of the files in `nhost/metadata/databases/default/tables/`,
+`auth_users.yaml`, `auth_user_security_keys.yaml` and `storage_files.yaml`,
+grant the `user` role what the account page needs and nothing more. The rest
+are the services' own tables with no permissions. Hasura's export keeps no
+comments, so this section is the record of why.
 
 `auth.users`: the auth API has no endpoint for writing a profile field or for
 closing an account, so both go through GraphQL. Select, update and delete are
