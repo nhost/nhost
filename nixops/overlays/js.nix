@@ -2,55 +2,75 @@
   final: prev:
   let
     biome_version = "2.5.11";
-  in
-  rec {
-    # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
-    # (see default.nix). Deliberately NOT exported as global
-    # `nodejs`/`nodejs-slim_24`: overriding those globally taints every nixpkgs
-    # package with node in its build closure (npm hooks, docs themes, scons,
-    # ...), forcing source rebuilds of huge dependency cones instead of
-    # substituting them from cache.nixos.org.
-    nodejs-slim = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.21.0";
-      src = prev.fetchurl {
-        url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-pvVN77b9fIT0HboT1h546bTglhcSz2HylxXAX1ztlPw=";
-      };
-      # Node 24.21.0 includes the OpenSSL CCM test fix, so this inherited
-      # patch no longer applies.
-      patches = builtins.filter (
-        p: !(prev.lib.hasInfix "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d" (toString p))
-      ) (oldAttrs.patches or [ ]);
 
-      # nixpkgs runs the upstream `test-ci-js` suite during the build. Two tests
-      # fail only inside the macOS Nix sandbox (they pass on Linux/hydra, where
-      # the base package is built): test-dgram-connect-sync connects to
-      # 127.0.0.2, which the sandbox denies with EPERM despite
-      # __darwinAllowLocalNetworking; test-https-connect-localport hangs and
-      # times out. Append both to CI_SKIP_TESTS on Darwin, matching how nixpkgs
-      # already skips other Darwin-sandbox-only network tests.
-      checkFlags = map (
-        f:
-        if prev.lib.hasPrefix "CI_SKIP_TESTS=" f then
-          f
-          + prev.lib.optionalString final.stdenv.buildPlatform.isDarwin ",test-dgram-connect-sync,test-https-connect-localport"
-        else
-          f
-      ) oldAttrs.checkFlags;
-    });
+    # Keep runtime overrides under `pkgs.nhost.*`. Overriding global nixpkgs
+    # Node attrs taints unrelated build closures and defeats binary caches.
+    mkNodejsSlim =
+      {
+        version,
+        sha256,
+        obsoletePatches ? [ ],
+      }:
+      prev.${"nodejs-slim_${prev.lib.versions.major version}"}.overrideAttrs (oldAttrs: {
+        inherit version;
+        src = prev.fetchurl {
+          url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
+          inherit sha256;
+        };
+        patches = builtins.filter (
+          p: !builtins.any (name: prev.lib.hasInfix name (toString p)) obsoletePatches
+        ) (oldAttrs.patches or [ ]);
 
-    # Node 24.21.0 already bundles npm 11.19.0. Reuse nixpkgs' standard
-    # nodejs wrapper to combine the slim runtime with its npm output.
-    # The attrs override exists solely to unwrap nixpkgs' `lib.warn` from `nodejs.src`.
-    nodejs =
-      (prev.nodejs_24.override {
-        nodejs-slim = final.nhost.nodejs-slim;
+        # These network tests fail only inside the macOS Nix sandbox:
+        # 127.0.0.2 is denied with EPERM and the HTTPS local-port test hangs.
+        checkFlags = map (
+          f:
+          if prev.lib.hasPrefix "CI_SKIP_TESTS=" f then
+            f
+            + prev.lib.optionalString final.stdenv.buildPlatform.isDarwin ",test-dgram-connect-sync,test-https-connect-localport"
+          else
+            f
+        ) oldAttrs.checkFlags;
+      });
+
+    # Reuse nixpkgs' wrapper, including each release's bundled npm/corepack.
+    # Unwrap nixpkgs' `lib.warn` from `nodejs.src` for source consumers.
+    mkNodejs =
+      nodejs-slim:
+      (prev.${"nodejs_${prev.lib.versions.major nodejs-slim.version}"}.override {
+        inherit nodejs-slim;
       }).overrideAttrs
         (oldAttrs: {
           passthru = oldAttrs.passthru // {
-            inherit (final.nhost.nodejs-slim) src;
+            inherit (nodejs-slim) src;
           };
         });
+  in
+  rec {
+    nodejs-slim_22 = mkNodejsSlim {
+      version = "22.23.4";
+      sha256 = "7b9adc82d612d0a2a863d96c46de2292552e250cee51956ebbe0146c42aacae9";
+      # The OpenSSL CCM test fix is already included upstream.
+      obsoletePatches = [ "40eac4a32f3676b286fd44435be4514962a40b79" ];
+    };
+    nodejs-slim_24 = mkNodejsSlim {
+      version = "24.22.1";
+      sha256 = "4f5379796280cdaeb0c2f358fd04b6a16cc4fb7dfa83b5a8c91a9d963b435231";
+      # The OpenSSL CCM test fix is already included upstream.
+      obsoletePatches = [ "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d" ];
+    };
+    nodejs-slim_26 = mkNodejsSlim {
+      version = "26.12.1";
+      sha256 = "053e3b296859b6d8d93f99ef97fa9cec1c4ee171c72968100c649978c1dbd38c";
+      # Upstream now supports Temporal with system ICU directly.
+      obsoletePatches = [ "fix-temporal-integration-with-shared-icu.patch" ];
+    };
+
+    nodejs_22 = mkNodejs nodejs-slim_22;
+    nodejs_24 = mkNodejs nodejs-slim_24;
+    nodejs_26 = mkNodejs nodejs-slim_26;
+    nodejs-slim = nodejs-slim_24;
+    nodejs = nodejs_24;
 
     vercel =
       (import ./vercel {
