@@ -192,7 +192,17 @@ function PipelineRunDetails({
           <h1 className="font-medium text-2xl">Deployment Details</h1>
         </div>
         {input?.commit_sha && (
-          <DeploymentRedeployButton deploymentId={pipelineRun.id} />
+          <DeploymentRedeployButton
+            deployment={{
+              commitSHA: input.commit_sha,
+              commitMessage: input.commit_message,
+              commitUserName: input.commit_user_name,
+              commitUserAvatarUrl: input.commit_user_avatar_url,
+              status: pipelineRun.status,
+              createdAt: pipelineRun.createdAt,
+              startedAt: pipelineRun.startedAt,
+            }}
+          />
         )}
       </div>
 
@@ -371,7 +381,16 @@ function LegacyDeploymentDetailsView({
             <span className="text-sm+">Serverless Functions</span>
           </div>
           {deployment.commitSHA && (
-            <DeploymentRedeployButton deploymentId={deployment.id} />
+            <DeploymentRedeployButton
+              deployment={{
+                commitSHA: deployment.commitSHA,
+                commitMessage: deployment.commitMessage,
+                commitUserName: deployment.commitUserName,
+                commitUserAvatarUrl: deployment.commitUserAvatarUrl,
+                status: deployment.deploymentStatus,
+                startedAt: deployment.deploymentStartedAt,
+              }}
+            />
           )}
         </div>
       </div>

@@ -31720,13 +31720,6 @@ export type GetUnifiedDeploymentsSubSubscriptionVariables = Exact<{
 
 export type GetUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
 
-export type UnifiedDeploymentSubSubscriptionVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type UnifiedDeploymentSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
-
 export type PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -35828,36 +35821,6 @@ export function useGetUnifiedDeploymentsSubSubscription(baseOptions: Apollo.Subs
       }
 export type GetUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetUnifiedDeploymentsSubSubscription>;
 export type GetUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetUnifiedDeploymentsSubSubscription>;
-export const UnifiedDeploymentSubDocument = gql`
-    subscription UnifiedDeploymentSub($id: uuid!) {
-  unifiedDeployments(where: {id: {_eq: $id}}, limit: 1) {
-    ...UnifiedDeploymentRow
-  }
-}
-    ${UnifiedDeploymentRowFragmentDoc}`;
-
-/**
- * __useUnifiedDeploymentSubSubscription__
- *
- * To run a query within a React component, call `useUnifiedDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useUnifiedDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useUnifiedDeploymentSubSubscription({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useUnifiedDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<UnifiedDeploymentSubSubscription, UnifiedDeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<UnifiedDeploymentSubSubscription, UnifiedDeploymentSubSubscriptionVariables>(UnifiedDeploymentSubDocument, options);
-      }
-export type UnifiedDeploymentSubSubscriptionHookResult = ReturnType<typeof useUnifiedDeploymentSubSubscription>;
-export type UnifiedDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<UnifiedDeploymentSubSubscription>;
 export const PendingOrRunningUnifiedDeploymentsSubDocument = gql`
     subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
   unifiedDeployments(

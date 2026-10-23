@@ -1,10 +1,7 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { ArrowRight, ExternalLink, TriangleAlert } from 'lucide-react';
 import { useRef } from 'react';
-import {
-  StatusCircle,
-  type StatusCircleProps,
-} from '@/components/presentational/StatusCircle';
+import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -21,7 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import type { RedeployWarning } from '@/features/orgs/projects/deployments/utils/redeploy-warning';
+import type { RedeployWarning } from '@/features/orgs/projects/deployments/utils/getRedeployWarning';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
@@ -33,19 +30,18 @@ const titles: Record<RedeployWarning, string> = {
   different: 'Redeploy a different commit?',
 };
 
-function getStatusLabel(status: string | null | undefined) {
-  switch (status) {
-    case 'succeeded':
-    case 'DEPLOYED':
-      return 'Deployed';
-    case 'failed':
-    case 'FAILED':
-      return 'Failed';
-    case 'aborted':
-      return 'Aborted';
-    default:
-      return status ?? 'Unknown';
-  }
+const statusLabels = {
+  succeeded: 'Deployed',
+  DEPLOYED: 'Deployed',
+  failed: 'Failed',
+  FAILED: 'Failed',
+  aborted: 'Aborted',
+} as const;
+
+type Status = keyof typeof statusLabels;
+
+function isStatus(status: string | null | undefined): status is Status {
+  return status != null && Object.hasOwn(statusLabels, status);
 }
 
 interface CommitCardProps {
@@ -59,6 +55,8 @@ function CommitCard({ label, deployment, target }: CommitCardProps) {
   const time = date
     ? formatDistanceToNowStrict(parseISO(date), { addSuffix: true })
     : '';
+  const status = isStatus(deployment.status) ? deployment.status : null;
+  const statusLabel = status ? statusLabels[status] : 'Unknown';
 
   return (
     <div
@@ -87,11 +85,9 @@ function CommitCard({ label, deployment, target }: CommitCardProps) {
         </span>
       </div>
       <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
-        <StatusCircle
-          status={deployment.status as StatusCircleProps['status']}
-        />
+        <StatusCircle status={status} />
         <span className="truncate">
-          {getStatusLabel(deployment.status)} · {time}
+          {statusLabel} · {time}
         </span>
       </span>
     </div>

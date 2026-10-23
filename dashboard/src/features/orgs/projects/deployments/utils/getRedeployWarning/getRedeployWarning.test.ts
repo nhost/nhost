@@ -1,4 +1,4 @@
-import { getRedeployWarning } from './redeploy-warning';
+import getRedeployWarning from './getRedeployWarning';
 
 const live = {
   commitSHA: 'a'.repeat(40),

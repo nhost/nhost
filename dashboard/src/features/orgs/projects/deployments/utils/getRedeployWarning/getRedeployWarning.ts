@@ -10,7 +10,7 @@ export type RedeployWarning = 'older' | 'failed' | 'aborted' | 'different';
  * Returns why redeploying `target` needs confirmation, or `null` when it can
  * be scheduled right away: nothing is live or it is the live commit.
  */
-export function getRedeployWarning(
+export default function getRedeployWarning(
   target: RedeployTarget,
   live: RedeployTarget | null,
 ): RedeployWarning | null {

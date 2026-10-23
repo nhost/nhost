@@ -100,35 +100,37 @@ export default function DeploymentListItem({
           )}
 
           {deployment.commitSHA && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span
-                  className={cn(
-                    !alwaysShowRedeploy &&
-                      'sr-only group-focus-within:not-sr-only group-hover:not-sr-only',
-                  )}
-                >
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={disableRedeploy || scheduling}
-                    onClick={handleRedeploy}
-                    className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
-                    aria-label="Redeploy"
-                  >
-                    <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
-                    Redeploy
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              {disableRedeploy && (
-                <TooltipContent>
-                  Deployments cannot be re-triggered when a deployment is in
-                  progress.
-                </TooltipContent>
+            <div
+              className={cn(
+                !alwaysShowRedeploy &&
+                  'pointer-events-none opacity-0 transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100',
               )}
-            </Tooltip>
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={disableRedeploy || scheduling}
+                      onClick={handleRedeploy}
+                      className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
+                      aria-label="Redeploy"
+                    >
+                      <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
+                      Redeploy
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {disableRedeploy && (
+                  <TooltipContent>
+                    Deployments cannot be re-triggered when a deployment is in
+                    progress.
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
           )}
 
           <div className="hidden w-16 text-right font-medium font-mono text-foreground text-sm- sm:block">

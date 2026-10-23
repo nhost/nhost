@@ -166,12 +166,6 @@ subscription getUnifiedDeploymentsSub(
   }
 }
 
-subscription UnifiedDeploymentSub($id: uuid!) {
-  unifiedDeployments(where: { id: { _eq: $id } }, limit: 1) {
-    ...UnifiedDeploymentRow
-  }
-}
-
 subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
   unifiedDeployments(
     where: {

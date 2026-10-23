@@ -79,10 +79,6 @@ function serve({ live: liveRows, pending, liveError }: Scenario) {
             });
           case 'GetOrganizations':
             return HttpResponse.json({ data: { organizations: [] } });
-          case 'UnifiedDeploymentSub':
-            return HttpResponse.json({
-              data: { unifiedDeployments: [target] },
-            });
           case 'LatestLiveUnifiedDeploymentSub':
             return liveError
               ? HttpResponse.json({ errors: [{ message: 'Unavailable' }] })
@@ -133,7 +129,7 @@ afterAll(() => server.close());
 
 it('redeploys the live commit without asking', async () => {
   serve({ live: [{ ...live, commitSHA: target.commitSHA }], pending: [] });
-  render(<DeploymentRedeployButton deploymentId="target" />);
+  render(<DeploymentRedeployButton deployment={target} />);
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Redeploy' })).toBeEnabled(),
   );
@@ -149,7 +145,7 @@ it('redeploys the live commit without asking', async () => {
 
 it('asks before redeploying a commit that is not live', async () => {
   serve({ live: [live], pending: [] });
-  render(<DeploymentRedeployButton deploymentId="target" />);
+  render(<DeploymentRedeployButton deployment={target} />);
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Redeploy' })).toBeEnabled(),
   );
@@ -167,7 +163,7 @@ it('asks before redeploying a commit that is not live', async () => {
 
 it('disables Redeploy while a deployment is in progress', async () => {
   serve({ live: [live], pending: [{ ...live, id: 'running' }] });
-  render(<DeploymentRedeployButton deploymentId="target" />);
+  render(<DeploymentRedeployButton deployment={target} />);
 
   await waitFor(async () => {
     await userEvent.hover(
@@ -182,12 +178,11 @@ it('disables Redeploy while a deployment is in progress', async () => {
 
 it('keeps Redeploy disabled when the live deployment cannot be loaded', async () => {
   serve({ live: [], pending: [], liveError: true });
-  render(<DeploymentRedeployButton deploymentId="target" />);
+  render(<DeploymentRedeployButton deployment={target} />);
 
   await waitFor(() =>
     expect(served).toEqual(
       expect.arrayContaining([
-        'UnifiedDeploymentSub',
         'LatestLiveUnifiedDeploymentSub',
         'PendingOrRunningUnifiedDeploymentsSub',
       ]),

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   getRedeployWarning,
   type RedeployWarning,
-} from '@/features/orgs/projects/deployments/utils/redeploy-warning';
+} from '@/features/orgs/projects/deployments/utils/getRedeployWarning';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {

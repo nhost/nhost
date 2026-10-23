@@ -12,7 +12,6 @@ import {
   type UnifiedDeploymentRowFragment,
   useLatestLiveUnifiedDeploymentSubSubscription,
   usePendingOrRunningUnifiedDeploymentsSubSubscription,
-  useUnifiedDeploymentSubSubscription,
 } from '@/generated/graphql';
 
 interface LoadedRedeployButtonProps {
@@ -66,16 +65,13 @@ function LoadedRedeployButton({
 }
 
 export interface DeploymentRedeployButtonProps {
-  deploymentId: string;
+  deployment: UnifiedDeploymentRowFragment;
 }
 
 export default function DeploymentRedeployButton({
-  deploymentId,
+  deployment,
 }: DeploymentRedeployButtonProps) {
   const { project } = useProject();
-  const { data } = useUnifiedDeploymentSubSubscription({
-    variables: { id: deploymentId },
-  });
   const { data: liveData } = useLatestLiveUnifiedDeploymentSubSubscription({
     variables: { appId: project?.id },
     skip: !project,
@@ -85,10 +81,8 @@ export default function DeploymentRedeployButton({
       variables: { appId: project?.id },
       skip: !project,
     });
-  const deployment = data?.unifiedDeployments[0];
-
   // Without the live deployment we can't tell whether to warn, so wait for it.
-  if (!deployment || !liveData || !pendingData) {
+  if (!liveData || !pendingData) {
     return (
       <Button variant="outline" disabled>
         <RotateCcw className="mr-2 h-4 w-4" />
