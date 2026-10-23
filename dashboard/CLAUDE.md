@@ -107,11 +107,11 @@ When creating a new feature page, check whether it needs to be added to:
 
 ### Metrics charts
 
-Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines). Its interactions live in shared hooks, so reuse them in any new chart instead of copying the logic:
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines) or `StackedBarMetricChart` (stacked bars). Both get their interactions from `useChartInteractions`, so use it in any new chart instead of copying the logic. It wires these hooks together, so zooming or a legend change closes the pinned tooltip and a drag doesn't also pin; attach its handlers to the chart:
 
 - `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
 - `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
-- `useDragToZoom` — drag to select a range; call `consumeDragClick()` in the click handler so a drag doesn't also pin.
+- `useDragToZoom` — drag to select a range.
 
 Relative time ranges use `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState`.
 
