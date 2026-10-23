@@ -97,7 +97,9 @@ test('should create a table with nullable columns', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
@@ -137,7 +139,9 @@ test('should create a table with an identity column', async ({
     page.getByRole('link', { name: tableName, exact: true }),
   ).toBeVisible();
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
@@ -194,9 +198,6 @@ test('should create table with foreign key constraint', async ({
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /author_id/i }).click();
-
   // select reference schema
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
@@ -205,8 +206,13 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  // select the referenced key
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  // map the local column to the referenced column
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'author_id', exact: true }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -262,7 +268,9 @@ test('should be able to create a table with a composite key', async ({
   ).toBeVisible();
 
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('div[data-testid="id"]')).toBeVisible();
@@ -338,7 +346,9 @@ test('should be able to untrack and re-track a table', async ({
   ).toBeVisible();
 
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
   await page.getByRole('menuitem', { name: /edit graphql/i }).click();
 

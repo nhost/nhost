@@ -57,7 +57,7 @@ function ShowHideAllColumnsButtons() {
         >
           Show all columns
         </Button>
-        <Button variant="secondary" className="flex-1" onClick={hideAllColumns}>
+        <Button variant="outline" className="flex-1" onClick={hideAllColumns}>
           Hide all columns
         </Button>
       </ButtonGroup>

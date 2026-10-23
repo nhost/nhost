@@ -1,5 +1,7 @@
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isFKConstraintOnSameTable } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { AutocompleteOption } from './types';
 
@@ -26,6 +28,10 @@ export interface UseColumnGroupsOptions {
   disableRelationships?: boolean;
 }
 
+function toColumnSetKey(columns: string[]) {
+  return JSON.stringify([...columns].sort());
+}
+
 export default function useColumnGroups({
   selectedTable,
   selectedSchema,
@@ -35,9 +41,9 @@ export default function useColumnGroups({
 }: UseColumnGroupsOptions) {
   const { columns, foreignKeyRelations } = tableData || {};
 
-  const columnTargetMap = foreignKeyRelations?.reduce(
+  const constraintTargetMap = foreignKeyRelations?.reduce(
     (map, currentRelation) =>
-      map.set(currentRelation.columnName, {
+      map.set(toColumnSetKey(currentRelation.columns), {
         schema: currentRelation.referencedSchema || 'public',
         table: currentRelation.referencedTable,
       }),
@@ -66,60 +72,77 @@ export default function useColumnGroups({
   const objectAndArrayRelationships = [
     ...(object_relationships || []),
     ...(array_relationships || []),
-  ].reduce<{ schema: string; table: string; column: string; name: string }[]>(
-    (relationships, currentRelationship) => {
-      if (isNotEmptyValue(currentRelationship?.using)) {
-        const { foreign_key_constraint_on, manual_configuration } =
-          currentRelationship.using;
+  ].reduce<
+    {
+      schema: string;
+      table: string;
+      column: string;
+      name: string;
+    }[]
+  >((relationships, currentRelationship) => {
+    if (isNotEmptyValue(currentRelationship?.using)) {
+      const { foreign_key_constraint_on, manual_configuration } =
+        currentRelationship.using;
 
-        if (manual_configuration) {
-          return [
-            ...relationships,
-            ...Object.keys(manual_configuration.column_mapping).map(
-              (column) => ({
-                schema: manual_configuration.remote_table?.schema || 'public',
-                table: manual_configuration.remote_table?.name,
-                column,
-                name: currentRelationship.name,
-              }),
-            ),
-          ];
-        }
-
-        if (
-          typeof foreign_key_constraint_on === 'string' &&
-          isNotEmptyValue(selectedSchema) &&
-          isNotEmptyValue(selectedTable)
-        ) {
-          return [
-            ...relationships,
-            {
-              schema: selectedSchema!,
-              table: selectedTable!,
-              column: foreign_key_constraint_on,
-              name: currentRelationship.name,
-            },
-          ];
-        }
-        if (
-          isNotEmptyValue(foreign_key_constraint_on) &&
-          typeof foreign_key_constraint_on !== 'string'
-        ) {
-          return [
-            ...relationships,
-            {
-              schema: foreign_key_constraint_on.table.schema,
-              table: foreign_key_constraint_on.table.name,
-              column: foreign_key_constraint_on.column,
-              name: currentRelationship.name,
-            },
-          ];
-        }
+      if (manual_configuration) {
+        return [
+          ...relationships,
+          ...Object.keys(manual_configuration.column_mapping).map((column) => ({
+            schema: manual_configuration.remote_table?.schema || 'public',
+            table: manual_configuration.remote_table?.name,
+            column,
+            name: currentRelationship.name,
+          })),
+        ];
       }
-      return relationships;
-    },
-    [] as { schema: string; table: string; column: string; name: string }[],
-  );
+
+      const isSameTable = isFKConstraintOnSameTable(foreign_key_constraint_on);
+
+      if (
+        isSameTable &&
+        isNotEmptyValue(selectedSchema) &&
+        isNotEmptyValue(selectedTable)
+      ) {
+        const constraintColumns = getForeignKeyConstraintColumns(
+          foreign_key_constraint_on,
+        );
+        // A composite FK still points at a single table, so its first
+        // column is enough to build the one option for this relationship.
+        const [column] = constraintColumns;
+        const referencedTable = constraintTargetMap?.get(
+          toColumnSetKey(constraintColumns),
+        );
+
+        return [
+          ...relationships,
+          {
+            schema: referencedTable?.schema ?? selectedSchema,
+            table: referencedTable?.table ?? selectedTable,
+            column,
+            name: currentRelationship.name,
+          },
+        ];
+      }
+
+      if (!isSameTable && isNotEmptyValue(foreign_key_constraint_on)) {
+        const { table } = foreign_key_constraint_on;
+        const [column] = getForeignKeyConstraintColumns(
+          foreign_key_constraint_on,
+        );
+
+        return [
+          ...relationships,
+          {
+            schema: table?.schema ?? 'public',
+            table: table?.name ?? '',
+            column,
+            name: currentRelationship.name,
+          },
+        ];
+      }
+    }
+    return relationships;
+  }, []);
 
   return [
     ...columnOptions,
@@ -132,7 +155,6 @@ export default function useColumnGroups({
           schema: relationship.schema,
           table: relationship.table,
           column: relationship.column,
-          ...(columnTargetMap?.get(relationship.column) || {}),
           name: relationship.name,
         },
       },

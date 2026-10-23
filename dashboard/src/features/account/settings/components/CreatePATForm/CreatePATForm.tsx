@@ -105,7 +105,7 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
 
         <Button
           type="button"
-          variant="outline-emboss"
+          variant="outline"
           aria-label="Close personal access token dialog"
           onClick={onCancel}
         >
@@ -174,7 +174,7 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
               Create
             </ButtonWithLoading>
 
-            <Button type="button" variant="outline-emboss" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
           </div>

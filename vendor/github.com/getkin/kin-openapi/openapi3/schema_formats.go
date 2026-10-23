@@ -34,6 +34,11 @@ const (
 	// FormatOfStringForUUIDOfRFC4122 is an optional predefined format for UUID v1-v5 as specified by RFC4122
 	FormatOfStringForUUIDOfRFC4122 = `^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$`
 
+	// FormatOfStringForUUIDOfRFC9562 is an optional predefined format for UUID v1-v8 as specified by RFC9562,
+	// which obsoletes RFC4122. In addition to the versioned layout it also accepts the special Nil UUID
+	// (all zeroes) and Max UUID (all ones) defined in sections 5.9 and 5.10 of the RFC.
+	FormatOfStringForUUIDOfRFC9562 = `^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|[fF]{8}-[fF]{4}-[fF]{4}-[fF]{4}-[fF]{12})$`
+
 	// FormatOfStringForEmail pattern catches only some suspiciously wrong-looking email addresses.
 	// Use DefineStringFormat(...) if you need something stricter.
 	FormatOfStringForEmail = `^[^@]+@[^@<>",\s]+$`

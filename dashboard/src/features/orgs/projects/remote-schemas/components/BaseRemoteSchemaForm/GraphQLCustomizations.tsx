@@ -75,7 +75,7 @@ export default function GraphQLCustomizations() {
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="mt-2 gap-1 px-2"
+          className="mt-2 gap-2"
         >
           <PlusIcon className="h-4 w-4" />
           Add GraphQL Customization
@@ -90,7 +90,7 @@ export default function GraphQLCustomizations() {
         <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
         <Button
           type="button"
-          variant="outline-emboss"
+          variant="outline"
           size="sm"
           onClick={() => setIsOpen(false)}
         >

@@ -224,7 +224,7 @@ export default function SecretsSettings() {
 
             <Button
               type="button"
-              variant="outline-emboss"
+              variant="outline"
               className="mx-4 justify-self-start"
               onClick={handleOpenCreator}
             >

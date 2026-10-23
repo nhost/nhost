@@ -192,7 +192,7 @@ export default function SelectOrganizationAndProject() {
                       </p>
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => goToServices(project)}
                     >
                       Proceed

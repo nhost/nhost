@@ -15,7 +15,7 @@ export default function GitHubConnectedNotice() {
   }
 
   return (
-    <Alert variant="info">
+    <Alert>
       <AlertTitle>GitHub repository connected</AlertTitle>
       <AlertDescription>
         Run <InlineCode>nhost config pull</InlineCode> to sync your changes. To

@@ -4,7 +4,6 @@ import (
 	"maps"
 	"slices"
 	"strconv"
-	"strings"
 )
 
 // WalkParametersFunc is called once for each parameter visited by
@@ -86,10 +85,9 @@ func (w *parameterWalker) pathItem(ptr string, item *PathItem) error {
 			return err
 		}
 	}
-	ops := item.Operations()
-	for _, method := range slices.Sorted(maps.Keys(ops)) {
-		op := ops[method]
-		opPtr := ptr + "/" + strings.ToLower(method)
+	for _, entry := range item.operationEntries() {
+		op := entry.operation
+		opPtr := ptr + entry.pointerSuffix
 		for i, pr := range op.Parameters {
 			if err := w.parameter(opPtr+"/parameters/"+strconv.Itoa(i), pr); err != nil {
 				return err

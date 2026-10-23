@@ -278,7 +278,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               </div>
               <DialogFooter>
                 <Button
-                  variant="outline-emboss"
+                  variant="outline"
                   type="button"
                   onClick={handleDismissDialog}
                 >
