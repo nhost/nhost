@@ -422,10 +422,14 @@ class PackageTests(unittest.TestCase):
                     bool(original.stat().st_mode & 0o111),
                 )
 
+    def test_ci_documentation_does_not_override_repository_readme(self):
+        self.assertTrue((REPO / "ci/README.md").is_file())
+        self.assertFalse((REPO / ".github/README.md").exists())
+
     def test_documented_install_works_with_only_packaged_exports(self):
         bundle = Path(os.environ["CI_FILES"])
         catalog = json.loads((bundle / "bundle.json").read_text())
-        documentation = (REPO / ".github/README.md").read_text()
+        documentation = (REPO / "ci/README.md").read_text()
         example = documentation.split("## Synchronizing shared CI files\n", 1)[1]
         manifest = json.loads(example.split("```json\n", 1)[1].split("\n```", 1)[0])
         entries = manifest["files"]

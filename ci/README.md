@@ -8,8 +8,8 @@ because it rejects self-hosted runners.
 
 ## Shared check/build workflow
 
-`workflows/wf_check.yaml` runs project checks and optionally builds and uploads
-artifacts. Project-specific options belong in callers:
+`.github/workflows/wf_check.yaml` runs project checks and optionally builds and
+uploads artifacts. Project-specific options belong in callers:
 
 ```yaml
 uses: ./.github/workflows/wf_check.yaml
@@ -64,8 +64,8 @@ publishing is supported.
 
 ## Nix cache
 
-`actions/setup-nix` initializes `NIX_CACHE_ROOTS` with locked flake inputs,
-excluding this repository's per-commit source. It verifies that `CACHE_TARGET`
+`.github/actions/setup-nix` initializes `NIX_CACHE_ROOTS` with locked flake
+inputs, excluding this repository's per-commit source. It verifies that `CACHE_TARGET`
 needs no local build, except for `NAME: nixops` or `SKIP_CACHE_CHECK: "true"`
 (the string form for direct action callers).
 
@@ -82,8 +82,8 @@ checks and version stamping. Custom builds append `nix path-info --derivation`
 results with the same environment and impurity flags as the build. Docker Make
 targets also record auxiliary image graphs during integration setup.
 
-`actions/cache-nix` takes `ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}`. It uploads
-realized outputs reachable from those graphs, including successful intermediates
+`.github/actions/cache-nix` takes `ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}`. It
+uploads realized outputs reachable from those graphs, including successful intermediates
 of failed checks, runtime references, and locked inputs. It does not scan the
 whole store or upload incidental evaluation sources or `.drv` files. Only
 unsigned paths or paths signed exclusively by the Nhost key are probed and

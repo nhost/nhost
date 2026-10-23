@@ -83,7 +83,7 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 - Project check/release callers use `.github/workflows/wf_check.yaml` for checks and optional builds; releases set `CHECKS: false`.
 - Linux CI uses Blacksmith and GitHub-hosted runners. macOS cache warming uses `macos-15`; npm trusted publishing uses GitHub-hosted `ubuntu-latest`.
 - `checks.<system>.ci` tests workflows, caching, Makefile contracts, and shared-file synchronization offline; it is included in the `nixops` check.
-- `ci/shared-ci.nix` defines the verbatim `ci-files` bundle and `sync-ci` app. Receivers select files in `build/shared-ci.json`. Apply/check requires a clean Git source revision; dirty/`path:` sources allow previews only. See `.github/README.md` for CI contracts and synchronization safety rules.
+- `ci/shared-ci.nix` defines the verbatim `ci-files` bundle and `sync-ci` app. Receivers select files in `build/shared-ci.json`. Apply/check requires a clean Git source revision; dirty/`path:` sources allow previews only. See `ci/README.md` for CI contracts and synchronization safety rules.
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.

@@ -14,6 +14,7 @@ let
       ../services/mcp/Makefile
       ../services/functions/Makefile
       ../services/postgres/Makefile
+      ./README.md
       ./sync_ci.py
       (pkgs.lib.fileset.fileFilter (f: f.hasExt "py") ./tests)
     ];
