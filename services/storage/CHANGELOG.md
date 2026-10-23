@@ -1,3 +1,10 @@
+## [storage@0.15.2] - 2026-10-23
+
+### 🐛 Bug Fixes
+
+- *(storage)* Preserve modification time for transformed images (#5204)
+- *(storage)* Skip transforms for conditional image responses (#5205)
+
 ## [storage@0.15.1] - 2026-09-30
 
 ### 🐛 Bug Fixes
