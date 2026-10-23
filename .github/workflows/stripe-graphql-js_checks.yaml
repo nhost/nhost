@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   check-permissions:
-    runs-on: nhost-aarch64-1c1g
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions

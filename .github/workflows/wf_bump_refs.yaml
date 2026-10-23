@@ -20,7 +20,7 @@ on:
 
 jobs:
   bump-refs:
-    runs-on: nhost-aarch64-1c1g
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 10
     concurrency:
       group: bump-refs-main

@@ -74,7 +74,7 @@ jobs:
       run:
         working-directory: cli
 
-    runs-on: nhost-x86_64-2c4g
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 180
 
     steps:

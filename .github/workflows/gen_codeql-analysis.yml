@@ -7,7 +7,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: nhost-x86_64-4c8g
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read

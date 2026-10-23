@@ -64,11 +64,11 @@ class ContractsTests(unittest.TestCase):
     def test_runner_and_artifact_contracts(self):
         for path in WORKFLOWS.glob("*"):
             text = path.read_text()
-            self.assertNotIn("blacksmith-", text, path.name)
             self.assertNotIn("wf_build_artifacts.yaml", text, path.name)
             self.assertNotIn("/home/runner", text, path.name)
             for name, job in load(path)["jobs"].items():
                 runner = job.get("runs-on", "")
+                self.assertNotIn("nhost-", runner, path.name)
                 if not runner or "${{" in runner:
                     continue
                 if (path.name, name) in {
@@ -77,7 +77,16 @@ class ContractsTests(unittest.TestCase):
                 }:
                     self.assertEqual(runner, "ubuntu-latest")
                 else:
-                    self.assertRegex(runner, r"^nhost-(aarch64|x86_64)-\d+c\d+g$")
+                    self.assertIn(
+                        runner,
+                        {
+                            "ubuntu-latest",
+                            "ubuntu-slim",
+                            "blacksmith-2vcpu-ubuntu-2404",
+                            "blacksmith-2vcpu-ubuntu-2404-arm",
+                        },
+                        path.name,
+                    )
         inputs = triggers(load(WORKFLOWS / "wf_check.yaml"))["workflow_call"]["inputs"]
         self.assertEqual(json.loads(inputs["ARCHS"]["default"]), ["aarch64", "x86_64"])
         mac = load(WORKFLOWS / "nixops_checks.yaml")["jobs"]["cache-macos"]["with"]

@@ -1,4 +1,4 @@
-"""Keep cheap orchestration separate from compilation and integration workloads."""
+"""Validate retained sizing inputs and restored CI runner selections."""
 
 import re
 import unittest
@@ -25,6 +25,9 @@ class RunnerSizingTests(unittest.TestCase):
                 f"nhost-{arch}-{size}"
                 for arch in ["aarch64", "x86_64"]
                 for size in SIZES
+            } | {
+                "blacksmith-2vcpu-ubuntu-2404",
+                "blacksmith-2vcpu-ubuntu-2404-arm",
             },
         )
         for path in WORKFLOWS.glob("*"):
@@ -34,37 +37,38 @@ class RunnerSizingTests(unittest.TestCase):
                     if size:
                         self.assertIn(size, SIZES, path.name)
 
-    def test_api_metadata_and_transfer_jobs_use_the_smallest_tier(self):
+    def test_api_metadata_and_transfer_jobs_keep_original_runners(self):
+        expected = {
+            "check-permissions": "ubuntu-latest",
+            "detect": "ubuntu-latest",
+            "final-status": "blacksmith-2vcpu-ubuntu-2404",
+            "bump-refs": "blacksmith-2vcpu-ubuntu-2404",
+        }
         for path in WORKFLOWS.glob("*"):
             for name, current in load(path)["jobs"].items():
                 if "uses" in current:
                     continue
-                if name in {"check-permissions", "detect", "final-status", "bump-refs"}:
-                    self.assertEqual(
-                        current["runs-on"], "nhost-aarch64-1c1g", path.name
-                    )
-        for workflow, name in [
-            ("ci_release.yaml", "extract-project"),
-            ("ci_create_release.yaml", "create-release"),
-            ("ci_update_changelog.yaml", "update-changelog"),
-            ("wf_docker_push_image.yaml", "push-to-registry"),
-            ("wf_docker_push_image_ecr.yaml", "push-to-registry"),
-            ("mcp_wf_release.yaml", "publish-mcp-registry"),
+                if name in expected:
+                    self.assertEqual(current["runs-on"], expected[name], path.name)
+        for workflow, name, runner in [
+            ("ci_release.yaml", "extract-project", "blacksmith-2vcpu-ubuntu-2404"),
+            ("ci_create_release.yaml", "create-release", "blacksmith-2vcpu-ubuntu-2404"),
+            ("ci_update_changelog.yaml", "update-changelog", "blacksmith-2vcpu-ubuntu-2404"),
+            ("wf_docker_push_image.yaml", "push-to-registry", "ubuntu-latest"),
+            ("wf_docker_push_image_ecr.yaml", "push-to-registry", "ubuntu-latest"),
+            ("mcp_wf_release.yaml", "publish-mcp-registry", "ubuntu-latest"),
         ]:
             with self.subTest(workflow=workflow):
-                self.assertEqual(job(workflow, name)["runs-on"], "nhost-aarch64-1c1g")
+                self.assertEqual(job(workflow, name)["runs-on"], runner)
 
-    def test_shared_workflow_only_upsizes_the_leg_that_runs_checks(self):
+    def test_shared_workflow_preserves_native_architecture_runner_selection(self):
         defaults = inputs("wf_check.yaml")
         self.assertEqual(defaults["RUNNER_SIZE"]["default"], "2c4g")
         self.assertEqual(defaults["CHECK_RUNNER_SIZE"]["default"], "")
         actual = job("wf_check.yaml", "tests")["runs-on"]
-        expected = """${{ inputs.RUNNER || format('nhost-{0}-{1}',
-          matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
-          matrix.platform,
-          (inputs.CHECKS &&
-            (!inputs.BUILD || matrix.platform == fromJSON(inputs.ARCHS)[0]) &&
-            inputs.CHECK_RUNNER_SIZE) || inputs.RUNNER_SIZE) }}"""
+        expected = """${{ inputs.RUNNER || format('blacksmith-2vcpu-ubuntu-2404{0}',
+          (matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
+          matrix.platform) == 'aarch64' && '-arm' || '') }}"""
         self.assertEqual(re.sub(r"\s+", " ", actual), re.sub(r"\s+", " ", expected))
         for project in [
             "ai", "auth", "cli", "constellation", "storage", "functions", "nhost-js"
@@ -95,7 +99,7 @@ class RunnerSizingTests(unittest.TestCase):
                 self.assertEqual(settings.get("RUNNER_SIZE", "2c4g"), size)
         self.assertEqual(
             job("cli_wf_release.yaml", "build-multiplatform")["runs-on"],
-            "nhost-x86_64-2c4g",
+            "blacksmith-2vcpu-ubuntu-2404",
         )
 
     def test_frontend_builds_and_browser_suites_are_sized_separately(self):
@@ -116,15 +120,19 @@ class RunnerSizingTests(unittest.TestCase):
             },
             {"main": "2c4g", "onboarding": "2c4g", "local": "4c8g"},
         )
-        self.assertIn("matrix.runner-size", e2e["runs-on"])
+        self.assertEqual(e2e["runs-on"], "blacksmith-2vcpu-ubuntu-2404")
 
-    def test_analysis_and_cache_warming_keep_workload_specific_headroom(self):
+    def test_analysis_and_cache_warming_keep_original_runners(self):
         for workflow, name, runner in [
-            ("ci_betterleaks.yaml", "scan", "nhost-aarch64-2c2g"),
-            ("gen_nhost_code_review.yaml", "nhost-code-review", "nhost-aarch64-2c4g"),
-            ("gen_schedule_update_deps.yaml", "run", "nhost-aarch64-8c16g"),
-            ("gen_security_updates.yaml", "run", "nhost-aarch64-2c4g"),
-            ("gen_codeql-analysis.yml", "analyze", "nhost-x86_64-4c8g"),
+            ("ci_betterleaks.yaml", "scan", "blacksmith-2vcpu-ubuntu-2404"),
+            (
+                "gen_nhost_code_review.yaml",
+                "nhost-code-review",
+                "blacksmith-2vcpu-ubuntu-2404-arm",
+            ),
+            ("gen_schedule_update_deps.yaml", "run", "ubuntu-latest"),
+            ("gen_security_updates.yaml", "run", "blacksmith-2vcpu-ubuntu-2404"),
+            ("gen_codeql-analysis.yml", "analyze", "ubuntu-latest"),
         ]:
             with self.subTest(workflow=workflow):
                 self.assertEqual(job(workflow, name)["runs-on"], runner)

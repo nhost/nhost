@@ -87,7 +87,7 @@ env:
 
 jobs:
   tests:
-    runs-on: ${{ format('nhost-x86_64-{0}', matrix.runner-size) }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
     concurrency:
       group: dashboard-e2e-staging-${{ matrix.suite }}

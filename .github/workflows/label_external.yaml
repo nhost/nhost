@@ -19,7 +19,7 @@ jobs:
         github.event.issue.author_association ||
         github.event.pull_request.author_association
       )
-    runs-on: nhost-aarch64-1c1g
+    runs-on: ubuntu-slim
     permissions:
       issues: write
       pull-requests: write

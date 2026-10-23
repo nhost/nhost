@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   run:
-    runs-on: nhost-aarch64-2c4g
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     permissions:
       id-token: write

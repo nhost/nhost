@@ -74,12 +74,9 @@ on:
 jobs:
   tests:
     runs-on: >-
-      ${{ inputs.RUNNER || format('nhost-{0}-{1}',
-        matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
-        matrix.platform,
-        (inputs.CHECKS &&
-          (!inputs.BUILD || matrix.platform == fromJSON(inputs.ARCHS)[0]) &&
-          inputs.CHECK_RUNNER_SIZE) || inputs.RUNNER_SIZE) }}
+      ${{ inputs.RUNNER || format('blacksmith-2vcpu-ubuntu-2404{0}',
+        (matrix.platform == 'native' && fromJSON(inputs.ARCHS)[0] ||
+        matrix.platform) == 'aarch64' && '-arm' || '') }}
     timeout-minutes: ${{ inputs.BUILD && 180 || 60 }}
 
     defaults:

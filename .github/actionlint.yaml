@@ -1,6 +1,8 @@
 ---
 self-hosted-runner:
   labels:
+    - blacksmith-2vcpu-ubuntu-2404
+    - blacksmith-2vcpu-ubuntu-2404-arm
     - nhost-aarch64-1c1g
     - nhost-aarch64-2c2g
     - nhost-aarch64-2c4g

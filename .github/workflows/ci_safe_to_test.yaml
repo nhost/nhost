@@ -24,7 +24,7 @@ permissions: {}
 jobs:
   approve:
     if: github.event.label.name == 'safe_to_test'
-    runs-on: nhost-aarch64-1c1g
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
       group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}

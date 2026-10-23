@@ -16,7 +16,7 @@ concurrency:
 jobs:
   update-changelog:
     if: ${{ !startsWith(github.event.head_commit.message, 'release(') }}
-    runs-on: nhost-aarch64-1c1g
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
 
     strategy:

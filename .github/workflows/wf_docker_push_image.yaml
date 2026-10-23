@@ -28,7 +28,7 @@ on:
 
 jobs:
   push-to-registry:
-    runs-on: nhost-aarch64-1c1g
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     permissions:

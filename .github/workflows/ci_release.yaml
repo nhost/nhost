@@ -6,7 +6,7 @@ on:
 
 jobs:
   extract-project:
-    runs-on: nhost-aarch64-1c1g
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 5
     outputs:
       project: ${{ steps.extract.outputs.project }}
