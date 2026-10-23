@@ -189,6 +189,11 @@
             ;
         };
 
+        sharedCI = import ./ci/shared-ci.nix {
+          inherit pkgs;
+          revision = self.rev or null;
+        };
+
         nixopsf = import ./nixops/project.nix {
           inherit
             self
@@ -246,6 +251,7 @@
           ai = aif.check;
           auth = authf.check;
           betterleaks = betterleaksf.check;
+          ci = import ./ci/ci.nix { inherit pkgs; };
           cli = clif.check;
           codegen = codegenf.check;
           configdocs = configdocsf.check;
@@ -267,6 +273,11 @@
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
+        };
+
+        apps.sync-ci = {
+          type = "app";
+          program = "${sharedCI.sync}/bin/sync-ci";
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -426,6 +437,7 @@
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
           betterleaks = betterleaksf.package;
+          ci-files = sharedCI.files;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
@@ -477,6 +489,7 @@
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           storage-vips = storagef.vips;
+          sync-ci = sharedCI.sync;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };
