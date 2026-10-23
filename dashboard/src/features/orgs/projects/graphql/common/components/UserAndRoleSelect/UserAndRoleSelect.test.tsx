@@ -94,13 +94,16 @@ describe('UserAndRoleSelect', () => {
       });
     });
 
-    const userTrigger = screen.getAllByRole('combobox')[0];
-    const roleTrigger = screen.getByTestId('graphql-role-select');
-    await user.click(roleTrigger);
-    await user.click(screen.getByRole('option', { name: 'public' }));
+    const trigger = screen.getByTestId('graphql-request-as-trigger');
+    await user.click(trigger);
+    await user.click(screen.getByRole('button', { name: 'public' }));
 
-    await user.click(userTrigger);
-    await user.type(screen.getByPlaceholderText('Search...'), 't');
+    expect(screen.getByRole('button', { name: 'public' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.type(screen.getByPlaceholderText('Search users...'), 't');
 
     await waitFor(() => {
       expect(mocks.fetchAppUsers).toHaveBeenCalledTimes(2);
@@ -111,8 +114,8 @@ describe('UserAndRoleSelect', () => {
       await refetchResponse;
     });
 
-    expect(userTrigger).toHaveTextContent('Admin');
-    expect(roleTrigger).toHaveTextContent('public');
+    expect(trigger).toHaveTextContent('Admin');
+    expect(screen.getByTestId('graphql-role-tag')).toHaveTextContent('public');
     expect(onSelectionChange).toHaveBeenLastCalledWith({
       userId: '',
       role: 'public',
@@ -131,19 +134,21 @@ describe('UserAndRoleSelect', () => {
       expect(mocks.fetchAppUsers).toHaveBeenCalledTimes(1);
     });
 
-    const userTrigger = screen.getAllByRole('combobox')[0];
-    await user.click(userTrigger);
-    await user.click(await screen.findByRole('option', { name: 'First User' }));
+    await user.click(screen.getByTestId('graphql-request-as-trigger'));
+    await user.click(await screen.findByRole('option', { name: /First User/ }));
 
     expect(onSelectionChange).toHaveBeenLastCalledWith({
       userId: USER_ID,
       role: 'user',
     });
 
-    await user.click(userTrigger);
-    await user.click(screen.getByRole('option', { name: 'Second User' }));
+    await user.click(screen.getByRole('option', { name: /Second User/ }));
 
-    expect(screen.getByTestId('graphql-role-select')).toHaveTextContent('me');
+    expect(screen.getByTestId('graphql-role-tag')).toHaveTextContent('me');
+    expect(screen.getByRole('button', { name: 'me' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(onSelectionChange).toHaveBeenLastCalledWith({
       userId: SECOND_USER_ID,
       role: 'me',
