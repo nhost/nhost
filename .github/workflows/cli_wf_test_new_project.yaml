@@ -39,8 +39,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: write
-      actions: read
+      contents: read
 
     steps:
       - name: "Check out repository"
@@ -48,11 +47,6 @@ jobs:
         with:
           ref: ${{ inputs.GIT_REF }}
           allow-unsafe-pr-checkout: true
-
-      - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@v2
-        with:
-          comment_on_pr: false
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6

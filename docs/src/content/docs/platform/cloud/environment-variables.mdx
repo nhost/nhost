@@ -18,7 +18,10 @@ Here is how you would access an environment variable, `MY_NHOST_CONFIG`, from a 
 import { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
-  res.status(200).send(`${process.env.MY_NHOST_CONFIG} ${req.query.name}!`)
+  res
+    .status(200)
+    .set('Content-Type', 'text/plain')
+    .send(`${process.env.MY_NHOST_CONFIG} ${req.query.name}!`)
 }
 ```
 

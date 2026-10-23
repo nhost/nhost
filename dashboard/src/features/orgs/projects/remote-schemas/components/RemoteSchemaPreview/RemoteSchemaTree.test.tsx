@@ -1,7 +1,7 @@
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { buildSchema } from 'graphql';
 import React from 'react';
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 import { RemoteSchemaTree, type RemoteSchemaTreeRef } from './RemoteSchemaTree';
 import { buildComplexTreeData } from './utils';
 
@@ -37,21 +37,21 @@ const sdl = `
 const schema = buildSchema(sdl);
 
 describe('RemoteSchemaTree', () => {
-  it('applies dark theme classes/styles on wrapper', () => {
-    const darkTheme = createTheme({ palette: { mode: 'dark' } });
-    const { container } = render(
-      <ThemeProvider theme={darkTheme}>
-        <RemoteSchemaTree schema={schema} />
-      </ThemeProvider>,
-    );
+  afterEach(() => {
+    window.localStorage.removeItem(THEME_STORAGE_KEY);
+  });
 
-    const wrapper = container.querySelector('.rct-dark') as HTMLElement | null;
-    expect(wrapper).toBeTruthy();
-    expect(wrapper!).toHaveClass('rct-dark');
-    expect(wrapper).toHaveStyle({
-      backgroundColor: '#171d26',
-      color: '#e3e3e3',
-    });
+  it('applies dark theme classes/styles on wrapper', async () => {
+    window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    const { container } = render(<RemoteSchemaTree schema={schema} />);
+
+    await waitFor(() =>
+      expect(container.querySelector('.rct-dark')).toBeInTheDocument(),
+    );
+    const wrapper = container.querySelector('.rct-dark') as HTMLElement;
+    // Read the inline style directly: jsdom can't resolve `var()` values.
+    expect(wrapper.style.backgroundColor).toBe('hsl(var(--background))');
+    expect(wrapper.style.color).toBe('hsl(var(--foreground))');
   });
 
   it('builds tree data including all SDL types and fields', () => {

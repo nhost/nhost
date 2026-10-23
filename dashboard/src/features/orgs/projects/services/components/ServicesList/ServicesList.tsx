@@ -24,11 +24,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
-import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
-import {
-  defaultServiceFormValues,
-  type ServiceFormInitialData,
-} from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { getServiceFormInitialData } from '@/features/orgs/projects/services/utils/getServiceFormInitialData';
 import { copy } from '@/utils/copy';
 
 interface ServicesListProps {
@@ -66,34 +62,7 @@ export default function ServicesList({
       component: (
         <ServiceForm
           serviceID={service.id ?? service.serviceID}
-          initialData={
-            {
-              ...service.config,
-              image: service.config?.image?.image,
-              pullCredentials: service.config?.image?.pullCredentials,
-              subdomain: service.subdomain,
-              command: service.config?.command?.map((arg) => ({
-                argument: arg,
-              })),
-              ports: service.config?.ports?.map((item) => ({
-                port: item.port,
-                type: item.type as PortTypes,
-                publish: item.publish,
-                ingresses: item.ingresses,
-                rateLimit: item.rateLimit,
-              })),
-              compute:
-                service.config?.resources?.compute ??
-                defaultServiceFormValues.compute,
-              replicas:
-                service.config?.resources?.replicas ??
-                defaultServiceFormValues.replicas,
-              autoscaler:
-                service?.config?.resources?.autoscaler ??
-                defaultServiceFormValues.autoscaler,
-              storage: service.config?.resources?.storage,
-            } as ServiceFormInitialData
-          }
+          initialData={getServiceFormInitialData(service)}
           onSubmit={() => onCreateOrUpdate()}
         />
       ),

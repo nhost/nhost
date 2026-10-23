@@ -166,7 +166,7 @@ export default function TableRelationshipDetails() {
           <div className="flex justify-start">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="flex items-center gap-2"
               onClick={() =>

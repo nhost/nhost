@@ -193,7 +193,7 @@ function TransferProjectForm({
 
         <div className="flex justify-end space-x-2">
           <Button
-            variant="secondary"
+            variant="outline"
             type="button"
             disabled={form.formState.isSubmitting}
             onClick={onCancel}

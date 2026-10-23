@@ -82,7 +82,9 @@ overrides:
   seroval@<=1.6.2: 1.6.3
   postcss-selector-parser@<7.1.6: 7.1.6
   source-map-js@<1.2.2: 1.2.2
-  '@graphql-tools/utils@<=12.0.0': 12.0.1
+  '@graphql-tools/utils@<=12.0.1': 12.0.2
+  katex@>=0.11.0 <0.18.2: '>=0.18.2 <0.19.0'
+  '@vitest/mocker@>=4.1.11 <4.1.12': '>=4.1.12 <5.0.0'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

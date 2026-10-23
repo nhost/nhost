@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import {
@@ -10,11 +11,24 @@ import {
   useRef,
   useState,
 } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { AlertDialog } from '@/components/ui/v2/AlertDialog';
-import { BaseDialog } from '@/components/ui/v2/Dialog';
-import { Drawer } from '@/components/ui/v2/Drawer';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { Button } from '@/components/ui/v3/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+} from '@/components/ui/v3/sheet';
+import { useRestoreFocus } from '@/hooks/useRestoreFocus';
+import { cn } from '@/lib/utils';
 import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
@@ -25,6 +39,22 @@ import {
 
 function isBaseSyntheticEvent(event: unknown): event is BaseSyntheticEvent {
   return (event as BaseSyntheticEvent)?.type !== undefined;
+}
+
+const MAX_WIDTH = {
+  xs: 'max-w-[444px]',
+  sm: 'max-w-[640px]',
+  md: 'max-w-[768px]',
+} as const;
+
+function defaultOverflow(className?: string) {
+  return className
+    ?.split(/\s+/)
+    .some((utility) =>
+      /(?:^|:)!?overflow(?:-[xy])?-|^!?\[overflow(?:-[xy])?:/.test(utility),
+    )
+    ? undefined
+    : 'overflow-y-auto';
 }
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
@@ -61,6 +91,15 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     open: false,
   });
 
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+  const drawerContentRef = useRef<HTMLDivElement>(null);
+  const drawerOverlayRef = useRef<HTMLDivElement>(null);
+  const alertContentRef = useRef<HTMLDivElement>(null);
+  const primaryButtonRef = useRef<HTMLButtonElement>(null);
+  const secondaryButtonRef = useRef<HTMLButtonElement>(null);
+  const alertFocus = useRestoreFocus();
+  const dialogFocus = useRestoreFocus();
+  const drawerFocus = useRestoreFocus();
   const isDrawerDirty = useRef(false);
   const isDialogDirty = useRef(false);
   const dirtySourcesRef = useRef<
@@ -104,9 +143,15 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [],
   );
 
-  const openDialog = useCallback((options: OpenDialogOptions) => {
-    dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
-  }, []);
+  const { rememberFocus: rememberDialogFocus } = dialogFocus;
+  const openDialog = useCallback(
+    (options: OpenDialogOptions) => {
+      // Before render: content with autoFocus makes Radix skip onOpenAutoFocus.
+      rememberDialogFocus();
+      dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
+    },
+    [rememberDialogFocus],
+  );
 
   const closeDialog = useCallback(() => {
     dialogDispatch({ type: 'HIDE_DIALOG' });
@@ -114,13 +159,14 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     clearDirtySources('dialog');
   }, [clearDirtySources]);
 
-  const clearDialogContent = useCallback(() => {
-    dialogDispatch({ type: 'CLEAR_DIALOG_CONTENT' });
-  }, []);
-
-  const openDrawer = useCallback((options: OpenDialogOptions) => {
-    drawerDispatch({ type: 'OPEN_DRAWER', payload: options });
-  }, []);
+  const { rememberFocus: rememberDrawerFocus } = drawerFocus;
+  const openDrawer = useCallback(
+    (options: OpenDialogOptions) => {
+      rememberDrawerFocus();
+      drawerDispatch({ type: 'OPEN_DRAWER', payload: options });
+    },
+    [rememberDrawerFocus],
+  );
 
   const closeDrawer = useCallback(() => {
     drawerDispatch({ type: 'HIDE_DRAWER' });
@@ -128,21 +174,14 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     clearDirtySources('drawer');
   }, [clearDirtySources]);
 
-  const clearDrawerContent = useCallback(() => {
-    drawerDispatch({ type: 'CLEAR_DRAWER_CONTENT' });
-  }, []);
-
   function openAlertDialog<TConfig = string>(config: DialogConfig<TConfig>) {
+    alertFocus.rememberFocus();
     alertDialogDispatch({ type: 'OPEN_ALERT', payload: config });
   }
 
   function closeAlertDialog() {
     alertDialogDispatch({ type: 'HIDE_ALERT' });
     setShowDirtyConfirmation(false);
-  }
-
-  function clearAlertDialogContent() {
-    alertDialogDispatch({ type: 'CLEAR_ALERT_CONTENT' });
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: openAlertDialog does the same every render
@@ -284,107 +323,267 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   return (
     <DialogContext.Provider value={contextValue}>
       <AlertDialog
-        {...alertDialogProps}
-        title={alertDialogTitle}
-        message={alertDialogPayload}
-        hideTitle={alertDialogProps?.hideTitle}
-        open={alertDialogOpen || showDirtyConfirmation}
-        onClose={closeAlertDialog}
-        onSecondaryAction={() => {
-          if (alertDialogProps?.onSecondaryAction) {
-            alertDialogProps.onSecondaryAction();
-          }
-
-          closeAlertDialog();
-        }}
-        onPrimaryAction={() => {
-          if (alertDialogProps?.onPrimaryAction) {
-            alertDialogProps.onPrimaryAction();
-          }
-
-          closeAlertDialog();
-        }}
-        TransitionProps={{
-          onExited: (node) => {
-            if (alertDialogProps?.TransitionProps?.onExited) {
-              alertDialogProps.TransitionProps.onExited(node);
-            }
-
-            clearAlertDialogContent();
-          },
-        }}
-      />
-
-      <BaseDialog
-        {...dialogProps}
-        title={dialogTitle}
-        open={!!dialogOpen}
-        onClose={closeDialogWithDirtyGuard}
-        TransitionProps={{ onExited: clearDialogContent, unmountOnExit: false }}
-        PaperProps={{
-          ...dialogProps?.PaperProps,
-          className: twMerge(
-            'max-w-md w-full',
-            dialogProps?.PaperProps?.className,
-            'z-30',
-          ),
-        }}
+        open={!!(alertDialogOpen || showDirtyConfirmation)}
+        onOpenChange={(open) => !open && closeAlertDialog()}
       >
-        <RetryableErrorBoundary
-          errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
+        <AlertDialogContent
+          ref={alertContentRef}
+          className={cn(
+            'max-h-[calc(100dvh-4rem)] max-w-[444px] gap-0',
+            defaultOverflow(alertDialogProps?.PaperProps?.className),
+            MAX_WIDTH[alertDialogProps?.maxWidth ?? 'xs'],
+            alertDialogProps?.PaperProps?.className,
+          )}
+          onOpenAutoFocus={(event) => {
+            // Radix otherwise focuses AlertDialogCancel, which this provider does not render.
+            event.preventDefault();
+            const content = alertContentRef.current;
+            (
+              primaryButtonRef.current ??
+              secondaryButtonRef.current ??
+              content?.querySelector<HTMLElement>(
+                'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+              ) ??
+              content
+            )?.focus();
+          }}
+          onCloseAutoFocus={(event) => {
+            alertFocus.restoreFocus(event);
+            // Presence keeps the content mounted through exit; a reopen during exit cancels this callback.
+            alertDialogProps?.TransitionProps?.onExited?.();
+          }}
         >
-          {isValidElement(activeDialog)
-            ? cloneElement(activeDialog, {
-                ...activeDialog.props,
-                location: 'dialog',
-                // biome-ignore lint/suspicious/noExplicitAny: TODO
-                onSubmit: async (values?: any) => {
-                  await activeDialog?.props?.onSubmit?.(values);
-                  closeDialog();
-                },
-                onCancel: (event?: unknown) => {
-                  activeDialog?.props?.onCancel?.(event);
-                  closeDialogWithDirtyGuard(event);
-                },
-              })
-            : null}
-        </RetryableErrorBoundary>
-      </BaseDialog>
+          <AlertDialogTitle
+            className={cn(
+              'pb-2 font-medium',
+              (alertDialogProps?.hideTitle || !alertDialogTitle) && 'sr-only',
+              alertDialogProps?.titleProps?.className,
+            )}
+          >
+            {alertDialogTitle}
+          </AlertDialogTitle>
+          <AlertDialogDescription
+            asChild
+            className="text-[0.9375rem] text-foreground leading-[1.375rem]"
+          >
+            <div
+              className={cn(
+                (!alertDialogProps?.hidePrimaryAction ||
+                  !alertDialogProps?.hideSecondaryAction) &&
+                  'pb-4',
+              )}
+            >
+              {alertDialogPayload}
+            </div>
+          </AlertDialogDescription>
+          {(!alertDialogProps?.hidePrimaryAction ||
+            !alertDialogProps?.hideSecondaryAction) && (
+            <div className="grid w-full gap-2">
+              {!alertDialogProps?.hidePrimaryAction && (
+                <Button
+                  ref={primaryButtonRef}
+                  className="w-full"
+                  variant={
+                    alertDialogProps?.primaryButtonColor === 'error'
+                      ? 'destructive'
+                      : 'default'
+                  }
+                  onClick={() => {
+                    alertDialogProps?.onPrimaryAction?.();
+                    closeAlertDialog();
+                  }}
+                >
+                  {alertDialogProps?.primaryButtonText ?? 'Confirm'}
+                </Button>
+              )}
+              {!alertDialogProps?.hideSecondaryAction && (
+                <Button
+                  ref={secondaryButtonRef}
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => {
+                    alertDialogProps?.onSecondaryAction?.();
+                    closeAlertDialog();
+                  }}
+                >
+                  {alertDialogProps?.secondaryButtonText ?? 'Cancel'}
+                </Button>
+              )}
+            </div>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <Drawer
-        anchor="right"
-        {...drawerProps}
-        title={drawerTitle}
-        open={drawerOpen}
-        onClose={closeDrawerWithDirtyGuard}
-        SlideProps={{ onExited: clearDrawerContent, unmountOnExit: false }}
-        className="z-40"
-        PaperProps={{
-          ...drawerProps?.PaperProps,
-          className: twMerge(
-            'max-w-4xl w-full',
-            drawerProps?.PaperProps?.className,
-          ),
+      <Dialog
+        open={!!dialogOpen}
+        onOpenChange={(open) => {
+          // No DialogClose can bind to this provider-owned root; fallback for future consumers.
+          if (!open) {
+            closeDialog();
+          }
         }}
       >
-        <RetryableErrorBoundary>
-          {isValidElement(activeDrawer)
-            ? cloneElement(activeDrawer, {
-                ...activeDrawer.props,
-                location: 'drawer',
-                // biome-ignore lint/suspicious/noExplicitAny: TODO
-                onSubmit: async (values?: any) => {
-                  await activeDrawer?.props?.onSubmit?.(values);
-                  closeDrawer();
-                },
-                onCancel: (event?: unknown) => {
-                  activeDrawer?.props?.onCancel?.(event);
-                  closeDrawerWithDirtyGuard(event);
-                },
-              })
-            : null}
-        </RetryableErrorBoundary>
-      </Drawer>
+        <DialogContent
+          ref={dialogContentRef}
+          tabIndex={-1}
+          hideCloseButton
+          aria-describedby={undefined}
+          className={cn(
+            'flex max-h-[calc(100dvh-4rem)] w-full max-w-md flex-col gap-0 p-0',
+            defaultOverflow(dialogProps?.PaperProps?.className),
+            dialogProps?.PaperProps?.className,
+          )}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            dialogContentRef.current?.focus();
+          }}
+          onCloseAutoFocus={dialogFocus.restoreFocus}
+          onEscapeKeyDown={(event) => {
+            event.preventDefault();
+            closeDialogWithDirtyGuard(event);
+          }}
+          onPointerDownOutside={(event) => {
+            event.preventDefault();
+            if (
+              event.detail.originalEvent.target ===
+              dialogContentRef.current?.parentElement
+            ) {
+              closeDialogWithDirtyGuard(event);
+            }
+          }}
+          // A nested portal (including the alert) must not dismiss the underlying dialog.
+          onFocusOutside={(event) => event.preventDefault()}
+        >
+          {dialogTitle && !dialogProps?.hideTitle ? (
+            <div
+              className={cn(
+                'grid grid-flow-col items-center justify-between px-6 pt-6 pb-3',
+                dialogProps?.titleProps?.className,
+              )}
+            >
+              <DialogTitle className="font-medium text-lg leading-7 tracking-normal">
+                {dialogTitle}
+              </DialogTitle>
+              {dialogProps?.titleProps?.onClose && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Close"
+                  onClick={dialogProps.titleProps.onClose}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            <DialogTitle className="sr-only">{dialogTitle}</DialogTitle>
+          )}
+          <RetryableErrorBoundary
+            errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
+          >
+            {isValidElement(activeDialog)
+              ? cloneElement(activeDialog, {
+                  ...activeDialog.props,
+                  location: 'dialog',
+                  // biome-ignore lint/suspicious/noExplicitAny: TODO
+                  onSubmit: async (values?: any) => {
+                    await activeDialog?.props?.onSubmit?.(values);
+                    closeDialog();
+                  },
+                  onCancel: (event?: unknown) => {
+                    activeDialog?.props?.onCancel?.(event);
+                    closeDialogWithDirtyGuard(event);
+                  },
+                })
+              : null}
+          </RetryableErrorBoundary>
+        </DialogContent>
+      </Dialog>
+
+      <Sheet
+        open={!!drawerOpen}
+        onOpenChange={(open) => {
+          // No SheetClose can bind to this provider-owned root; fallback for future consumers.
+          if (!open) {
+            closeDrawer();
+          }
+        }}
+      >
+        <SheetPortal>
+          <SheetOverlay
+            ref={drawerOverlayRef}
+            className="z-40 bg-black/30 backdrop-blur-sm"
+          />
+        </SheetPortal>
+        <SheetContent
+          ref={drawerContentRef}
+          side="right"
+          showOverlay={false}
+          hideCloseButton
+          tabIndex={-1}
+          aria-describedby={undefined}
+          className={cn(
+            'z-40 flex h-full w-full max-w-4xl flex-col gap-0 p-0 data-[state=open]:duration-300 sm:max-w-4xl',
+            defaultOverflow(drawerProps?.PaperProps?.className),
+            drawerProps?.PaperProps?.className,
+          )}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            drawerContentRef.current?.focus();
+          }}
+          onCloseAutoFocus={drawerFocus.restoreFocus}
+          onEscapeKeyDown={(event) => {
+            event.preventDefault();
+            closeDrawerWithDirtyGuard(event);
+          }}
+          onPointerDownOutside={(event) => {
+            event.preventDefault();
+            if (
+              event.detail.originalEvent.target === drawerOverlayRef.current
+            ) {
+              closeDrawerWithDirtyGuard(event);
+            }
+          }}
+          // A nested portal or a dialog/alert above the drawer must not dismiss it.
+          onFocusOutside={(event) => event.preventDefault()}
+        >
+          <div
+            className={cn(
+              'grid grid-flow-col items-center justify-between px-6 py-5',
+              drawerProps?.titleProps?.className,
+            )}
+          >
+            <SheetTitle className="font-medium text-lg leading-7">
+              {drawerTitle}
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Close"
+              onClick={closeDrawerWithDirtyGuard}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <RetryableErrorBoundary>
+            {isValidElement(activeDrawer)
+              ? cloneElement(activeDrawer, {
+                  ...activeDrawer.props,
+                  location: 'drawer',
+                  // biome-ignore lint/suspicious/noExplicitAny: TODO
+                  onSubmit: async (values?: any) => {
+                    await activeDrawer?.props?.onSubmit?.(values);
+                    closeDrawer();
+                  },
+                  onCancel: (event?: unknown) => {
+                    activeDrawer?.props?.onCancel?.(event);
+                    closeDrawerWithDirtyGuard(event);
+                  },
+                })
+              : null}
+          </RetryableErrorBoundary>
+        </SheetContent>
+      </Sheet>
 
       {children}
     </DialogContext.Provider>

@@ -21,7 +21,14 @@ func TestVerifyToken(t *testing.T) {
 	config := getConfig()
 
 	signingGetter, err := controller.NewJWTGetter(
-		[]byte(config.JWTSecret), time.Hour, nil, "", nil, config.ServerURL.String(),
+		[]byte(
+			config.JWTSecret,
+		),
+		time.Hour,
+		nil,
+		controller.ElevationConfig{},
+		nil,
+		config.ServerURL.String(),
 	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)

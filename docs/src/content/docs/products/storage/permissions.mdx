@@ -105,7 +105,7 @@ This allows anyone to download files from the `public` bucket, whether authentic
 
 ### Multi-Tenant -- Organization-Scoped Files
 
-For multi-tenant applications where files belong to an organization. This uses a custom claim `X-Hasura-Org-Id`.
+For multi-tenant applications where files belong to an organization. This uses a [custom claim](/products/graphql/permissions/permission-variables) `X-Hasura-Org-Id`.
 
 This example assumes you have a relationship from `storage.files` to your `organizations` table through a custom `org_id` column in your file metadata or through a linking table.
 

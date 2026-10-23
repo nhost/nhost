@@ -1,10 +1,11 @@
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useGetProjectsQuery } from '@/generated/graphql';
 
@@ -35,7 +36,7 @@ export default function OrgProjects() {
 
   if (apps?.length === 0) {
     return (
-      <div className="flex h-full w-full items-start justify-center bg-accent-background p-4">
+      <div className="flex h-full w-full items-start justify-center bg-background p-4">
         <div className="flex w-full flex-col items-center justify-center space-y-8 rounded-md border bg-background p-12">
           <div className="flex flex-col items-center justify-center">
             <h2 className="font-medium text-xl">Welcome to Nhost!</h2>
@@ -58,12 +59,16 @@ export default function OrgProjects() {
   }
 
   return (
-    <div className="h-full bg-accent-background">
+    <div className="h-full bg-background">
       <ProjectsGrid projects={apps} />
     </div>
   );
 }
 
 OrgProjects.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout isOrgPage>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };
