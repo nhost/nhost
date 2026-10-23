@@ -8,6 +8,7 @@ import { DisplayNameSetting } from '@/features/account/settings/components/Displ
 import { EmailSetting } from '@/features/account/settings/components/EmailSetting';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
+import { ProjectColorsSettings } from '@/features/account/settings/components/ProjectColorsSettings';
 import { SecurityKeysSettings } from '@/features/account/settings/components/SecurityKeysSettings';
 import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
 import {
@@ -57,6 +58,10 @@ export default function AccountSettingsPage() {
         </RetryableErrorBoundary>
         <RetryableErrorBoundary>
           <SocialProvidersSettings />
+        </RetryableErrorBoundary>
+
+        <RetryableErrorBoundary>
+          <ProjectColorsSettings />
         </RetryableErrorBoundary>
 
         <RetryableErrorBoundary>

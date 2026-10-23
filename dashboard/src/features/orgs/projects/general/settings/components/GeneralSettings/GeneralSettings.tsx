@@ -33,6 +33,7 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
+import { ProjectColorBadge } from '@/features/project-colors';
 import {
   useBillingDeleteAppMutation,
   useUpdateApplicationMutation,
@@ -244,6 +245,10 @@ export default function GeneralSettings() {
                   title: 'Pause Project?',
                   payload: (
                     <div className="flex flex-col gap-2">
+                      <ProjectColorBadge
+                        projectId={project?.id}
+                        projectName={project?.name}
+                      />
                       {showWarning ? (
                         <Alert
                           variant="warning"

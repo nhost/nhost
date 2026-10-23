@@ -18,6 +18,7 @@ import { Form } from '@/components/ui/v3/form';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ProjectColorBadge } from '@/features/project-colors';
 import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
@@ -197,6 +198,11 @@ export default function RemoveApplicationDialog({
             >
               <div className="flex flex-col gap-2">
                 <AlertDialogTitle>{title || 'Delete Project'}</AlertDialogTitle>
+
+                <ProjectColorBadge
+                  projectId={project?.id}
+                  projectName={project?.name}
+                />
 
                 <AlertDialogDescription>
                   {description ||
