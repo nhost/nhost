@@ -418,8 +418,6 @@ return ctrl.respondWithError(apiErr), nil
 6. **Test**: Write comprehensive tests
 7. Run the mandatory post-change checks from `.claude/docs/go-design-rules.md`.
 
-For local Go checks, use `nix develop .#auth -c <command>` from the repository root when `gofumpt` or `golangci-lint` is missing from `PATH`; a login shell (`bash -lc`) can reset the Nix shell's tool paths. The full `go test ./services/auth/...` suite also requires the dev environment's Memcached (`127.0.0.1:11211`) and SMTP (`localhost:1025`) services; start it with `cd services/auth && make dev-env-up` before running the full gate.
-
 ## Additional Notes
 
 When implementing new features:

@@ -515,6 +515,7 @@ func (j *JWTGetter) verifyAudience(token *jwt.Token, purpose tokenpurpose.Purpos
 		}
 	}
 
+	// Remove me in auth@0.54.0: accept tokens issued before an audience was configured.
 	raw, present := claims["aud"]
 	if !present {
 		return nil // Tokens issued before audience configuration remain valid until expiry.
