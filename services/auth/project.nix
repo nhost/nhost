@@ -131,6 +131,9 @@ rec {
         --ruleset ${src}/${submodule}/vacuum.yaml \
         ${src}/${submodule}/docs/openapi.yaml
       echo ""
+
+      export AUTH_MIGRATION_TEST_DATABASE_REQUIRED=1
+      export AUTH_MIGRATION_TEST_DSN="postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
     '';
 
     extraCheck = ''
