@@ -61,7 +61,7 @@ export default function NativeQueriesSidebarListItem({
             href={href}
             className={cn(
               'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
-              isSelected && 'text-primary-main',
+              isSelected && 'text-primary',
             )}
           >
             <Tooltip>
@@ -72,10 +72,7 @@ export default function NativeQueriesSidebarListItem({
             </Tooltip>
             <TextWithTooltip
               containerClassName="w-full"
-              className={cn(
-                '!truncate text-sm+',
-                isSelected && 'text-primary-main',
-              )}
+              className={cn('!truncate text-sm+', isSelected && 'text-primary')}
               text={name}
             />
           </Link>

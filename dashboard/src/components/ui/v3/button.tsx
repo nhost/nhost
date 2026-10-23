@@ -24,7 +24,7 @@ const baseButtonVariants = cva(
         // Meant for icon-only buttons, so it defaults to the `icon-sm` size,
         // see `defaultSizeByVariant`.
         subtle:
-          'text-neutral-600 hover:text-primary-main dark:text-sidebar-foreground dark:hover:text-primary-main',
+          'text-neutral-600 hover:text-primary dark:text-sidebar-foreground dark:hover:text-primary',
         link: 'text-primary underline-offset-4 hover:underline',
         // Rows inside a menu, like the account menu. No border or fill until
         // hover; menu-destructive is the same row in the danger color.
