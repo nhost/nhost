@@ -1,18 +1,33 @@
-import { clsx } from 'clsx';
 import { Copy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
-import { isNotEmptyValue } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 
+// The copy button. Icon only, it is the subtle icon button (32 by 32) with a
+// short tooltip ("Copy handler"). With children it is an outline Button with
+// the copy icon and the label.
 function CopyToClipboardButton({
   textToCopy,
   className,
   title,
+  tooltip,
+  children,
   ...props
 }: {
   textToCopy?: string | null;
+  /** Name shown in the "<title> copied to clipboard" toast. */
   title: string;
+  /**
+   * Short tooltip, one to three words (e.g. "Copy handler"). Leave it out
+   * only when a parent already wraps the button in a tooltip.
+   */
+  tooltip?: string;
 } & ButtonProps) {
   const [disabled, setDisabled] = useState(true);
 
@@ -32,29 +47,51 @@ function CopyToClipboardButton({
   if (!textToCopy || disabled) {
     return null;
   }
-  const hasChildren = isNotEmptyValue(props.children);
 
-  return (
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    copy(textToCopy, title);
+  };
+
+  if (isNotEmptyValue(children)) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        className={className}
+        onClick={handleClick}
+        {...props}
+      >
+        <Copy className="mr-2 h-4 w-4" />
+        {children}
+      </Button>
+    );
+  }
+
+  const button = (
     <Button
       type="button"
-      size="icon"
-      variant="outline"
-      className={clsx(
-        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:brightness-75 dark:hover:bg-[#1e2942] dark:hover:brightness-100',
-        className,
-        { 'gap-3': hasChildren },
-      )}
-      onClick={(event) => {
-        event.stopPropagation();
-
-        copy(textToCopy, title);
-      }}
-      aria-label={textToCopy}
+      variant="subtle"
+      size="icon-sm"
+      className={cn('shrink-0', className)}
+      onClick={handleClick}
+      aria-label={tooltip ?? `Copy ${title}`}
       {...props}
     >
-      {props.children}
-      <Copy className="top-5 h-4 w-4" />
+      <Copy className="h-4 w-4" />
     </Button>
+  );
+
+  if (!tooltip) {
+    return button;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{tooltip}</TooltipContent>
+    </Tooltip>
   );
 }
 export default CopyToClipboardButton;

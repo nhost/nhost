@@ -1,13 +1,11 @@
-import { CopyIcon } from 'lucide-react';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/v3/input-group';
 import { Label } from '@/components/ui/v3/label';
 import { cn } from '@/lib/utils';
-import { copy } from '@/utils/copy';
 
 export interface ProviderRedirectUrlInputProps {
   id: string;
@@ -26,15 +24,11 @@ export default function ProviderRedirectUrlInput({
       <InputGroup className="bg-transparent dark:bg-transparent">
         <InputGroupInput id={id} value={value} disabled readOnly />
         <InputGroupAddon align="inline-end">
-          <InputGroupButton
-            aria-label="Copy Redirect URL"
-            onClick={(e) => {
-              e.stopPropagation();
-              copy(value, 'Redirect URL');
-            }}
-          >
-            <CopyIcon className="h-4 w-4" />
-          </InputGroupButton>
+          <CopyToClipboardButton
+            textToCopy={value}
+            title="Redirect URL"
+            tooltip="Copy URL"
+          />
         </InputGroupAddon>
       </InputGroup>
     </div>

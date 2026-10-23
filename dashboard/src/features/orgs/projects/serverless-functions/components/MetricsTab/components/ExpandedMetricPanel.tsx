@@ -90,7 +90,6 @@ export default function ExpandedMetricPanel({
               textToCopy={shareUrl}
               title="Link"
               aria-label="Copy link"
-              className="px-3 py-2.5 text-sm"
             >
               Copy link
             </CopyToClipboardButton>
