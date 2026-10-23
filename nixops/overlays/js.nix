@@ -21,6 +21,13 @@
           p: !builtins.any (name: prev.lib.hasInfix name (toString p)) obsoletePatches
         ) (oldAttrs.patches or [ ]);
 
+        # These releases expose Brotli error codes missing from nixpkgs' shared
+        # library. Use the matching bundled Brotli without changing global deps.
+        configureFlags = builtins.filter (
+          flag: !(prev.lib.hasPrefix "--shared-brotli" flag)
+        ) oldAttrs.configureFlags;
+        buildInputs = builtins.filter (input: input != prev.brotli) oldAttrs.buildInputs;
+
         # These network tests fail only inside the macOS Nix sandbox:
         # 127.0.0.2 is denied with EPERM and the HTTPS local-port test hangs.
         checkFlags = map (
