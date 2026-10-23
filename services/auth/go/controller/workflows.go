@@ -557,7 +557,14 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 	}
 
 	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
-		ctx, user.ID, user.IsAnonymous, allowedRoles, user.DefaultRole, nil, logger,
+		ctx,
+		user.ID,
+		userRoles[0].RefreshTokenID,
+		user.IsAnonymous,
+		allowedRoles,
+		user.DefaultRole,
+		nil,
+		logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting jwt", logError(err))
@@ -631,7 +638,14 @@ func (wf *Workflows) NewSession( //nolint:funlen
 	}
 
 	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
-		ctx, user.ID, user.IsAnonymous, allowedRoles, user.DefaultRole, customClaims, logger,
+		ctx,
+		user.ID,
+		refreshTokenID,
+		user.IsAnonymous,
+		allowedRoles,
+		user.DefaultRole,
+		customClaims,
+		logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting jwt: %w", err)
@@ -1087,7 +1101,14 @@ func (wf *Workflows) SignupUserWithSession( //nolint:funlen
 	}
 
 	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
-		ctx, userID, false, deptr(options.AllowedRoles), *options.DefaultRole, nil, logger,
+		ctx,
+		userID,
+		refreshTokenID,
+		false,
+		deptr(options.AllowedRoles),
+		*options.DefaultRole,
+		nil,
+		logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting jwt", logError(err))
@@ -1227,7 +1248,14 @@ func (wf *Workflows) SignupAnonymousUser( //nolint:funlen
 	}
 
 	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
-		ctx, resp.ID, true, []string{anonymousRole}, anonymousRole, nil, logger,
+		ctx,
+		resp.ID,
+		resp.RefreshTokenID,
+		true,
+		[]string{anonymousRole},
+		anonymousRole,
+		nil,
+		logger,
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting jwt", logError(err))

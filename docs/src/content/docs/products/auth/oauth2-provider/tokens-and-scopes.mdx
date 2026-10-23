@@ -20,18 +20,28 @@ sidebar:
 
 ## Access Token
 
-Access tokens are RSA-signed JWTs. They contain standard OAuth2 claims:
+Access tokens are RSA-signed JWTs. With a [configured project audience](/products/auth/jwt#configuring-the-audience), an access token contains:
 
 ```json
 {
   "iss": "https://your-project.auth.nhost.run/v1",
   "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
-  "aud": "nhoa_a1b2c3d4e5f67890",
+  "aud": "https://your-project.nhost.run",
+  "client_id": "nhoa_a1b2c3d4e5f67890",
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
   "iat": 1234567890,
   "exp": 1234568790,
   "scope": "openid profile email"
 }
 ```
+
+| Claim | Description |
+|-------|-------------|
+| `aud` | Project audience when configured; otherwise the OAuth2 client ID (unlike session tokens, OAuth2 access tokens still include `aud` when unset). |
+| `client_id` | Client to which the access token was issued. Introspection uses this claim to bind the token to the authenticated client, rather than treating the project audience as a client ID. |
+| `sid` | `auth.oauth2_refresh_tokens.id`, stable across refresh-token rotations within the OAuth2 session. This is not the refresh-token value. |
+| `jti` | New random UUID for each access token, including tokens obtained by refresh. |
 
 The JWT header includes `typ: at+jwt` ([RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068)) and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
 
@@ -47,7 +57,10 @@ When the `graphql` scope is requested, the access token includes GraphQL-compati
 {
   "iss": "https://your-project.auth.nhost.run/v1",
   "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
-  "aud": "nhoa_a1b2c3d4e5f67890",
+  "aud": "https://your-project.nhost.run",
+  "client_id": "nhoa_a1b2c3d4e5f67890",
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
   "iat": 1234567890,
   "exp": 1234568790,
   "scope": "openid profile email graphql",
@@ -82,7 +95,10 @@ Example: a client with `scopes: ["openid", "graphql:role:viewer"]` requesting `s
 {
   "iss": "https://your-project.auth.nhost.run/v1",
   "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
-  "aud": "nhoa_a1b2c3d4e5f67890",
+  "aud": "https://your-project.nhost.run",
+  "client_id": "nhoa_a1b2c3d4e5f67890",
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
   "iat": 1234567890,
   "exp": 1234568790,
   "scope": "openid graphql:role:viewer",
@@ -132,7 +148,7 @@ The ID token is issued when the `openid` scope is requested. It contains identit
 
 The `nonce` claim is included in the ID token if a `nonce` parameter was provided in the authorization request. It is **not** included on refresh.
 
-The ID token's JWT header includes `typ: JWT`. The ID token identifies the signed-in user to the OAuth2 client; it must not be used as a bearer access token for resource APIs.
+The ID token's JWT header includes `typ: JWT`. ID tokens are unchanged by the project-audience setting: `aud` remains the client ID, and they do not receive `client_id`, `sid`, or `jti`. The ID token identifies the signed-in user to the OAuth2 client; it must not be used as a bearer access token for resource APIs.
 
 ## UserInfo Endpoint
 
@@ -181,7 +197,7 @@ Both `GET` and `POST` methods are supported, per the OIDC specification.
 
 ## Refresh Tokens
 
-Refresh tokens are UUID strings (not JWTs). They implement **token rotation**: each time a refresh token is used, it is deleted and a new one is issued. The new token inherits the original scopes.
+Refresh tokens are UUID strings (not JWTs). They implement **token rotation**: each time a refresh token is used, its stored hash is replaced and a new token is issued. The refresh-token row (and hence `sid`) stays the same, and the new token inherits the original scopes.
 
 ```js
 const { body: tokens } = await nhost.auth.oauth2Token({
@@ -216,6 +232,9 @@ Active token response:
   "active": true,
   "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
   "client_id": "nhoa_a1b2c3d4e5f67890",
+  "aud": ["https://your-project.nhost.run"],
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
   "scope": "openid profile email",
   "exp": 1234568790,
   "iat": 1234567890,
@@ -223,6 +242,8 @@ Active token response:
   "token_type": "access_token"
 }
 ```
+
+For active access tokens, `aud` is returned as an array, and `sid`/`jti` are returned when present. `sid` is an Nhost extension to the introspection response. The response's `client_id` identifies the authenticated client bound to the token, not the project `aud`. For pre-change access tokens without a `client_id` claim, introspection instead requires `aud` to contain the authenticated client's ID. For active refresh tokens, `sid` is the stored refresh-token row ID; `aud` and `jti` are omitted. Older access tokens may omit these fields. Inactive results contain only `active: false`.
 
 Inactive token response:
 

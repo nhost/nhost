@@ -1188,12 +1188,21 @@ type OAuth2IntrospectRequestTokenTypeHint string
 
 // OAuth2IntrospectResponse defines model for OAuth2IntrospectResponse.
 type OAuth2IntrospectResponse struct {
-	Active    bool    `json:"active"`
-	ClientId  *string `json:"client_id,omitempty"`
-	Exp       *int    `json:"exp,omitempty"`
-	Iat       *int    `json:"iat,omitempty"`
-	Iss       *string `json:"iss,omitempty"`
-	Scope     *string `json:"scope,omitempty"`
+	Active bool `json:"active"`
+
+	// Aud Audiences of an active access token, when present in the token.
+	Aud      *[]string `json:"aud,omitempty"`
+	ClientId *string   `json:"client_id,omitempty"`
+	Exp      *int      `json:"exp,omitempty"`
+	Iat      *int      `json:"iat,omitempty"`
+	Iss      *string   `json:"iss,omitempty"`
+
+	// Jti Unique identifier of an active access token, when present in the token.
+	Jti   *string `json:"jti,omitempty"`
+	Scope *string `json:"scope,omitempty"`
+
+	// Sid Nhost extension identifying the session backing an active access or refresh token.
+	Sid       *string `json:"sid,omitempty"`
 	Sub       *string `json:"sub,omitempty"`
 	TokenType *string `json:"token_type,omitempty"`
 }

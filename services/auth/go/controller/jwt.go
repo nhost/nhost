@@ -14,9 +14,11 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/internal/lib/oapi"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
@@ -130,19 +132,21 @@ type CustomClaimer interface {
 }
 
 type JWTGetter struct {
-	claimsNamespace      string
-	issuer               string
-	kid                  string
-	signingKey           any
-	validatingKey        any
-	method               jwt.SigningMethod
-	customClaimer        CustomClaimer
-	accessTokenExpiresIn time.Duration
-	elevatedClaimMode    string
-	totpEnabled          bool
-	webauthnEnabled      bool
-	db                   DBClient
-	jwks                 []api.JWK
+	claimsNamespace       string
+	issuer                string
+	audience              string
+	providerStateAudience string
+	kid                   string
+	signingKey            any
+	validatingKey         any
+	method                jwt.SigningMethod
+	customClaimer         CustomClaimer
+	accessTokenExpiresIn  time.Duration
+	elevatedClaimMode     string
+	totpEnabled           bool
+	webauthnEnabled       bool
+	db                    DBClient
+	jwks                  []api.JWK
 }
 
 // Values of AUTH_REQUIRE_ELEVATED_CLAIM.
@@ -165,6 +169,7 @@ func NewJWTGetter(
 	elevation ElevationConfig,
 	db DBClient,
 	defaultIssuer string,
+	audience string,
 ) (*JWTGetter, error) {
 	jwtSecret, jwks, err := decodeJWTSecret(jwtSecretb, defaultIssuer)
 	if err != nil {
@@ -173,21 +178,33 @@ func NewJWTGetter(
 
 	method := jwt.GetSigningMethod(jwtSecret.Type)
 
+	providerStateAudience := ""
+	if audience != "" {
+		providerStateAudience = strings.TrimSuffix(audience, "/") + "/auth/provider-callback"
+	}
+
 	return &JWTGetter{
-		claimsNamespace:      jwtSecret.ClaimsNamespace,
-		issuer:               jwtSecret.Issuer,
-		signingKey:           jwtSecret.SigningKey,
-		kid:                  jwtSecret.KeyID,
-		validatingKey:        jwtSecret.Key,
-		method:               method,
-		customClaimer:        customClaimer,
-		accessTokenExpiresIn: accessTokenExpiresIn,
-		elevatedClaimMode:    elevation.Mode,
-		totpEnabled:          elevation.TOTPEnabled,
-		webauthnEnabled:      elevation.WebauthnEnabled,
-		db:                   db,
-		jwks:                 jwks,
+		claimsNamespace:       jwtSecret.ClaimsNamespace,
+		issuer:                jwtSecret.Issuer,
+		audience:              audience,
+		providerStateAudience: providerStateAudience,
+		signingKey:            jwtSecret.SigningKey,
+		kid:                   jwtSecret.KeyID,
+		validatingKey:         jwtSecret.Key,
+		method:                method,
+		customClaimer:         customClaimer,
+		accessTokenExpiresIn:  accessTokenExpiresIn,
+		elevatedClaimMode:     elevation.Mode,
+		totpEnabled:           elevation.TOTPEnabled,
+		webauthnEnabled:       elevation.WebauthnEnabled,
+		db:                    db,
+		jwks:                  jwks,
 	}, nil
+}
+
+// Audience returns the configured project audience, or an empty string when unset.
+func (j *JWTGetter) Audience() string {
+	return j.audience
 }
 
 func (j *JWTGetter) JWKS() []api.JWK {
@@ -367,6 +384,7 @@ func addRawClaimsToMap(
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
+	sessionID uuid.UUID,
 	isAnonymous bool,
 	allowedRoles []string,
 	defaultRole string,
@@ -387,10 +405,15 @@ func (j *JWTGetter) GetToken(
 	// Create the Claims
 	claims := &jwt.MapClaims{
 		"sub": userID.String(),
+		"sid": sessionID.String(),
+		"jti": uuid.NewString(),
 		"iss": j.issuer,
 		"iat": iat,
 		"exp": exp,
 		ns:    c,
+	}
+	if j.audience != "" {
+		(*claims)["aud"] = j.audience
 	}
 
 	token := j.newToken(claims, tokenpurpose.Session)
@@ -413,7 +436,11 @@ func (j *JWTGetter) SignTokenWithClaims(
 
 	claims["iss"] = j.issuer
 	claims["iat"] = iat
+
 	claims["exp"] = exp.Unix()
+	if purpose == tokenpurpose.ProviderState && j.providerStateAudience != "" {
+		claims["aud"] = j.providerStateAudience
+	}
 
 	token := j.newToken(&claims, purpose)
 
@@ -460,7 +487,79 @@ func (j *JWTGetter) Validate(
 		)
 	}
 
+	if err := j.verifyAudience(jwtToken, purpose); err != nil {
+		return nil, fmt.Errorf("verifying token audience: %w", err)
+	}
+
 	return jwtToken, nil
+}
+
+func (j *JWTGetter) expectedAudience(purpose tokenpurpose.Purpose) string {
+	switch purpose {
+	case tokenpurpose.Session, tokenpurpose.OAuth2AccessToken:
+		return j.audience
+	case tokenpurpose.ProviderState:
+		return j.providerStateAudience
+	case tokenpurpose.OIDCIDToken:
+		return ""
+	default:
+		return ""
+	}
+}
+
+func (j *JWTGetter) verifyAudience(token *jwt.Token, purpose tokenpurpose.Purpose) error {
+	expected := j.expectedAudience(purpose)
+	if expected == "" {
+		return nil
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return fmt.Errorf("%w: invalid claims", errTokenAudienceMismatch)
+	}
+
+	clientID, hasClientID := "", false
+	if purpose == tokenpurpose.OAuth2AccessToken {
+		if rawClientID, present := claims["client_id"]; present {
+			var valid bool
+
+			clientID, valid = rawClientID.(string)
+			if !valid {
+				return fmt.Errorf("%w: malformed client_id", errTokenAudienceMismatch)
+			}
+
+			hasClientID = true
+		}
+	}
+
+	// Remove me in auth@0.54.0: accept tokens issued before an audience was configured.
+	raw, present := claims["aud"]
+	if !present {
+		return nil // Tokens issued before audience configuration remain valid until expiry.
+	}
+
+	// MapClaims.GetAudience treats null and other unexpected types as absent.
+	switch raw.(type) {
+	case string, []string, []any:
+	default:
+		return fmt.Errorf("%w: malformed aud", errTokenAudienceMismatch)
+	}
+
+	audiences, err := claims.GetAudience()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errTokenAudienceMismatch, err)
+	}
+
+	if !slices.Contains(audiences, expected) {
+		if purpose == tokenpurpose.OAuth2AccessToken &&
+			(!hasClientID || len(audiences) == 1 && audiences[0] == clientID) {
+			return nil
+		}
+
+		return fmt.Errorf("%w: expected %q", errTokenAudienceMismatch, expected)
+	}
+
+	return nil
 }
 
 func (j *JWTGetter) hasPurpose(token *jwt.Token, purpose tokenpurpose.Purpose) bool {
@@ -475,6 +574,10 @@ func (j *JWTGetter) hasPurpose(token *jwt.Token, purpose tokenpurpose.Purpose) b
 
 	if purpose == tokenpurpose.OAuth2AccessToken {
 		return isLegacyOAuth2AccessToken(token)
+	}
+
+	if purpose == tokenpurpose.ProviderState {
+		return isLegacyProviderStateToken(token)
 	}
 
 	return false
@@ -527,6 +630,28 @@ func isLegacyOAuth2AccessToken(token *jwt.Token) bool {
 	_, ok = claims["scope"].(string)
 
 	return ok
+}
+
+// Remove me in auth@0.54.0.
+func isLegacyProviderStateToken(token *jwt.Token) bool {
+	if !hasLegacyType(token) {
+		return false
+	}
+
+	aud, err := token.Claims.GetAudience()
+	if err != nil || len(aud) > 0 {
+		return false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	_, hasFlow := claims["flow"].(string)
+	_, hasOptions := claims["options"].(map[string]any)
+
+	return hasFlow && hasOptions
 }
 
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
@@ -757,6 +882,57 @@ func (j *JWTGetter) MiddlewareFunc(
 	c.Set(JWTContextKey, jwtToken)
 
 	return nil
+}
+
+// NewStrictHandler wraps ssi with the strict middleware every auth router registers.
+func NewStrictHandler(ssi api.StrictServerInterface) api.ServerInterface { //nolint:ireturn
+	return api.NewStrictHandler(ssi, []api.StrictMiddlewareFunc{verifiedTokenMiddleware()})
+}
+
+// verifiedTokenMiddleware enriches completion logs after OpenAPI has bound the request body.
+func verifiedTokenMiddleware() api.StrictMiddlewareFunc {
+	return func(f api.StrictHandlerFunc, _ string) api.StrictHandlerFunc {
+		return func(ctx *gin.Context, args any) (any, error) {
+			if raw, ok := ctx.Get(JWTContextKey); ok {
+				if token, ok := raw.(*jwt.Token); ok {
+					if attrs := verifiedTokenLogAttrs(token); len(attrs) > 0 {
+						ctx.Request = ctx.Request.WithContext(oapimw.AddLoggerAttrs(
+							ctx.Request.Context(), slog.Group("jwt", attrsToAny(attrs)...),
+						))
+					}
+				}
+			}
+
+			return f(ctx, args)
+		}
+	}
+}
+
+func attrsToAny(attrs []slog.Attr) []any {
+	values := make([]any, len(attrs))
+	for i, attr := range attrs {
+		values[i] = attr
+	}
+
+	return values
+}
+
+func verifiedTokenLogAttrs(token *jwt.Token) []slog.Attr {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil
+	}
+
+	keys := []string{"sid", "jti", "client_id"}
+
+	attrs := make([]slog.Attr, 0, len(keys))
+	for _, key := range keys {
+		if value, ok := claims[key].(string); ok {
+			attrs = append(attrs, slog.String(key, value))
+		}
+	}
+
+	return attrs
 }
 
 func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string {

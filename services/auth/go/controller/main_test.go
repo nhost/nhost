@@ -14,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
@@ -191,6 +192,7 @@ type getControllerOpts struct {
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
 	totp                      *controller.Totp
 	encrypter                 controller.Encrypter
+	audience                  string
 	elevationMode             string
 }
 
@@ -246,6 +248,12 @@ func withEncrypter(encrypter controller.Encrypter) getControllerOptsFunc {
 	}
 }
 
+func withAudience(audience string) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.audience = audience
+	}
+}
+
 func getController(
 	t *testing.T,
 	ctrl *gomock.Controller,
@@ -280,6 +288,7 @@ func getController(
 		},
 		dbClient,
 		config.ServerURL.String(),
+		controllerOpts.audience,
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)
@@ -440,6 +449,46 @@ func assertOAuth2DualCredentials[T, U any](
 	)
 }
 
+func assertSessionIdentifiers(
+	t *testing.T,
+	token, expectedJWT *jwt.Token,
+	expectedSession *api.Session,
+) {
+	t.Helper()
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("session claims are not MapClaims")
+	}
+
+	if got, ok := claims["sid"].(string); !ok || got != expectedSession.RefreshTokenId {
+		t.Errorf(
+			"session sid = %q, want refresh token row id %q",
+			got,
+			expectedSession.RefreshTokenId,
+		)
+	}
+
+	jti, ok := claims["jti"].(string)
+	if !ok {
+		t.Fatal("session jti is not a string")
+	}
+
+	id, err := uuid.Parse(jti)
+	if err != nil || id.Version() != 4 {
+		t.Errorf("session jti is not a UUID v4: %v", err)
+	}
+
+	delete(claims, "jti")
+	// Each session golden uses its expected refresh-row ID as the stable sid.
+	expectedClaims, ok := expectedJWT.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("golden session claims are not MapClaims")
+	}
+
+	expectedClaims["sid"] = expectedSession.RefreshTokenId
+}
+
 func assertSession(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
@@ -460,6 +509,10 @@ func assertSession(
 		if err != nil {
 			t.Fatalf("failed to get claims: %v", err)
 		}
+	}
+
+	if token != nil && expectedJWT != nil {
+		assertSessionIdentifiers(t, token, expectedJWT, expectedSession)
 	}
 
 	if diff := cmp.Diff(

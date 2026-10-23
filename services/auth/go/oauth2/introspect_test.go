@@ -39,6 +39,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 	}
 
 	validRefreshToken := sql.AuthOauth2RefreshToken{
+		ID:        uuid.MustParse("33333333-3333-4333-8333-333333333333"),
 		TokenHash: tokenHash,
 		ClientID:  clientID,
 		UserID:    userID,
@@ -50,12 +51,15 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 	validToken := &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{
-			"sub":   userID.String(),
-			"aud":   clientID,
-			"scope": "openid profile",
-			"iat":   float64(now.Add(-time.Hour).Unix()),
-			"exp":   float64(now.Add(time.Hour).Unix()),
-			"iss":   issuer,
+			"sub":       userID.String(),
+			"aud":       "https://project.example.com",
+			"client_id": clientID,
+			"sid":       validRefreshToken.ID.String(),
+			"jti":       "44444444-4444-4444-8444-444444444444",
+			"scope":     "openid profile",
+			"iat":       float64(now.Add(-time.Hour).Unix()),
+			"exp":       float64(now.Add(time.Hour).Unix()),
+			"iss":       issuer,
 		},
 	}
 
@@ -192,6 +196,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				Iat:       new(int(validRefreshToken.CreatedAt.Time.Unix())),
 				Iss:       new(issuer),
 				TokenType: new(oauth2.TokenTypeRefreshToken),
+				Sid:       new(validRefreshToken.ID.String()),
 			},
 			expectedErr: nil,
 		},
@@ -227,6 +232,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				Iat:       new(int(validRefreshToken.CreatedAt.Time.Unix())),
 				Iss:       new(issuer),
 				TokenType: new(oauth2.TokenTypeRefreshToken),
+				Sid:       new(validRefreshToken.ID.String()),
 			},
 			expectedErr: nil,
 		},
@@ -343,6 +349,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				Iat:       new(int(now.Add(-time.Hour).Unix())),
 				Iss:       new(issuer),
 				TokenType: new("access_token"),
+				Aud:       &[]string{"https://project.example.com"},
+				Sid:       new(validRefreshToken.ID.String()),
+				Jti:       new("44444444-4444-4444-8444-444444444444"),
 			},
 			expectedErr: nil,
 		},
@@ -378,6 +387,9 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				Iat:       new(int(now.Add(-time.Hour).Unix())),
 				Iss:       new(issuer),
 				TokenType: new("access_token"),
+				Aud:       &[]string{"https://project.example.com"},
+				Sid:       new(validRefreshToken.ID.String()),
+				Jti:       new("44444444-4444-4444-8444-444444444444"),
 			},
 			expectedErr: nil,
 		},
@@ -478,6 +490,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			expectedResponse: &api.OAuth2IntrospectResponse{
 				Active:    true,
+				Aud:       &[]string{clientID},
 				ClientId:  new(clientID),
 				Sub:       new(userID.String()),
 				Exp:       new(int(now.Add(time.Hour).Unix())),

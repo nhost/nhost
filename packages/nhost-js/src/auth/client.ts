@@ -2129,6 +2129,9 @@ export interface OAuth2IntrospectRequest {
 /**
  * 
  @property active (`boolean`) - 
+ @property aud? (`string[]`) - Audiences of an active access token, when present in the token.
+ @property jti? (`string`) - Unique identifier of an active access token, when present in the token.
+ @property sid? (`string`) - Nhost extension identifying the session backing an active access or refresh token.
  @property scope? (`string`) - 
  @property client_id? (`string`) - 
  @property sub? (`string`) - 
@@ -2141,6 +2144,18 @@ export interface OAuth2IntrospectResponse {
    *
    */
   active: boolean;
+  /**
+   * Audiences of an active access token, when present in the token.
+   */
+  aud?: string[];
+  /**
+   * Unique identifier of an active access token, when present in the token.
+   */
+  jti?: string;
+  /**
+   * Nhost extension identifying the session backing an active access or refresh token.
+   */
+  sid?: string;
   /**
    *
    */
