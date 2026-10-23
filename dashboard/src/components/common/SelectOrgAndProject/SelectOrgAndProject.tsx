@@ -39,7 +39,7 @@ export default function SelectOrganizationAndProject() {
     projectName: string;
     value: string;
   }) => {
-    const { slug } = router.query;
+    const { slug, ...query } = router.query;
     await router.push({
       pathname: `${project.value}/${(() => {
         if (!slug) {
@@ -47,6 +47,7 @@ export default function SelectOrganizationAndProject() {
         }
         return Array.isArray(slug) ? slug.join('/') : slug;
       })()}`,
+      query,
     });
   };
 

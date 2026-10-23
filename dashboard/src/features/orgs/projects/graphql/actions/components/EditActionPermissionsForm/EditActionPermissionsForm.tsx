@@ -152,8 +152,8 @@ export default function EditActionPermissionsForm({
             isMutating={isMutating}
           />
 
-          <Alert className="border-none bg-primary/10 text-left">
-            <AlertDescription className="text-sm+">
+          <Alert className="text-left">
+            <AlertDescription>
               <p>
                 Go to the{' '}
                 <NavLink
@@ -171,7 +171,7 @@ export default function EditActionPermissionsForm({
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

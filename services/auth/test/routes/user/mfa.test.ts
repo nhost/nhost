@@ -31,7 +31,7 @@ describe('mfa totp', () => {
 
   it('should generate a secret, enable mfa and sign in with mfa', async () => {
     await request.post('/change-env').send({
-      AUTH_MFA_ENABLED: true,
+      AUTH_TOTP_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
@@ -132,7 +132,7 @@ describe('mfa totp', () => {
 
   it('shoud not be possible to generate MFA code when anonymous', async () => {
     await request.post('/change-env').send({
-      AUTH_MFA_ENABLED: true,
+      AUTH_TOTP_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
     });
@@ -149,7 +149,7 @@ describe('mfa totp', () => {
 
   it('shoud not be possible to enable MFA when anonymous', async () => {
     await request.post('/change-env').send({
-      AUTH_MFA_ENABLED: true,
+      AUTH_TOTP_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
     });

@@ -276,7 +276,6 @@ html.dark .graphiql-themed .graphiql-container {
     --primary-foreground: 210 40% 98%;
     --secondary: 215.4, 16.3%, 46.9%;
     --secondary-foreground: 210 40% 98%;
-    --secondary-hover: 215.3, 19.3%, 34.5%;
     --muted: 0 0% 98%;
     --muted-foreground: 0 0% 38.8%;
     --accent: 0 0% 96.1%;
@@ -291,6 +290,28 @@ html.dark .graphiql-themed .graphiql-container {
     --radius: 0.5rem;
     --shadow-overlay:
       0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    /* Small lift for elements that sit just above their surface
+       (active tab, empty state boxes). Same in both themes on purpose. */
+    --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    /* Text and icons drawn on a solid color fill (filled buttons,
+       checked checkbox, filled badge). White in both themes. */
+    --on-solid: 0 0% 100%;
+    /* Dimmed layer behind dialogs and drawers. */
+    --backdrop: 0 0% 0%;
+    /* Emboss button edge and depth tints, one pair per filled button
+       color. The shadows themselves are shared, see .btn-emboss. */
+    --primary-emboss-edge: 217.24 100% 22.75%;
+    --primary-emboss-depth: 218.33 100% 14.12%;
+    --destructive-emboss-edge: 341.89 96.36% 21.57%;
+    --destructive-emboss-depth: 342.86 100% 13.73%;
+    --destructive-gradient-from: 344.23 80.83% 47.06%;
+    --destructive-gradient-to: 344.47 90.78% 42.55%;
+    --destructive-gradient-hover-from: 344.62 78.31% 51.18%;
+    --destructive-gradient-hover-to: 344.1 86.96% 45.1%;
+    --destructive-gradient-active-from: 345.6 91.62% 37.45%;
+    --destructive-gradient-active-to: 344.53 90.48% 41.18%;
+    --destructive-gradient-disabled-from: 342.69 50% 79.61%;
+    --destructive-gradient-disabled-to: 341.79 44.44% 75.29%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -370,6 +391,23 @@ html.dark .graphiql-themed .graphiql-container {
     --primary-text: 220 7% 91.6%;
     --shadow-overlay:
       0 16px 32px -8px rgb(0 0 0 / 0.6), 0 4px 12px -2px rgb(0 0 0 / 0.45);
+    --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --on-solid: 0 0% 100%;
+    --backdrop: 0 0% 0%;
+    --primary-emboss-edge: 217.24 100% 22.75%;
+    --primary-emboss-depth: 218.33 100% 14.12%;
+    --destructive-emboss-edge: 341.89 96.36% 21.57%;
+    --destructive-emboss-depth: 342.86 100% 13.73%;
+    --destructive-gradient-from: 345.46 76.38% 49.8%;
+    --destructive-gradient-mid: 344.16 86.78% 44.51%;
+    --destructive-gradient-to: 344.58 89.95% 39.02%;
+    --destructive-gradient-hover-from: 345.55 81.97% 54.31%;
+    --destructive-gradient-hover-mid: 343.8 82.64% 47.45%;
+    --destructive-gradient-hover-to: 344.19 88.57% 41.18%;
+    --destructive-gradient-active-from: 346.32 91.44% 36.67%;
+    --destructive-gradient-active-to: 344.52 90.29% 40.39%;
+    --destructive-gradient-disabled-from: 338.05 38.32% 20.98%;
+    --destructive-gradient-disabled-to: 338.71 37.35% 16.27%;
     --background-default: 214.29, 8.24%, 16.67%;
     --data-cell-bg: 214.7, 24.1%, 15.5%;
     --data-cell-bg-hover: 215 20% 22%;
@@ -408,6 +446,10 @@ html.dark .graphiql-themed .graphiql-container {
   }
   body {
     @apply bg-background text-foreground;
+    /* Base text size the dashboard was designed around. */
+    font-size: 0.9375rem;
+    /* 22px at 15px; unitless so children scale with their own font size. */
+    line-height: 1.4667;
   }
 }
 
@@ -450,28 +492,74 @@ html.dark .graphiql-themed .graphiql-container {
  * ------------------------------------------------------------------ */
 .btn-emboss {
   border: 0;
+  color: hsl(var(--on-solid));
+  text-shadow: 0 1px 1px hsl(var(--emboss-depth) / 0.35);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.28),
+    inset 0 0 0 1px hsl(var(--emboss-edge) / 0.42);
   transition:
     background 0.16s cubic-bezier(0.32, 0.72, 0, 1),
     box-shadow 0.16s cubic-bezier(0.32, 0.72, 0, 1),
     transform 0.1s ease;
 }
+.btn-emboss:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.34),
+    inset 0 0 0 1px hsl(var(--emboss-edge) / 0.36);
+}
+.btn-emboss:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 4px hsl(var(--emboss-depth) / 0.4),
+    inset 0 0 0 1px hsl(var(--emboss-edge) / 0.5);
+}
 .btn-emboss:disabled,
 .btn-emboss[aria-disabled="true"] {
   transform: none;
   cursor: not-allowed;
+  color: hsl(var(--on-solid));
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.35),
+    inset 0 0 0 1px hsl(var(--emboss-edge) / 0.14);
+}
+.dark .btn-emboss {
+  text-shadow: 0 1px 1px hsl(var(--emboss-depth) / 0.45);
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.26),
+    inset 0 0 0 1px hsl(var(--on-solid) / 0.1),
+    inset 0 -1px 1px hsl(var(--emboss-depth) / 0.35);
+}
+.dark .btn-emboss:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.32),
+    inset 0 0 0 1px hsl(var(--on-solid) / 0.14),
+    inset 0 -1px 1px hsl(var(--emboss-depth) / 0.3);
+}
+.dark .btn-emboss:active:not(:disabled) {
+  box-shadow:
+    inset 0 2px 4px hsl(var(--emboss-depth) / 0.55),
+    inset 0 0 0 1px hsl(var(--on-solid) / 0.08);
+}
+.dark .btn-emboss:disabled,
+.dark .btn-emboss[aria-disabled="true"] {
+  color: hsl(var(--on-solid) / 0.5);
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 hsl(var(--on-solid) / 0.06),
+    inset 0 0 0 1px hsl(var(--on-solid) / 0.05);
 }
 
+/* Each filled color only sets its tints and its gradient. The shadows,
+ * text and pressed state above are shared by all of them. */
 .btn-emboss-primary {
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 32, 86, 0.35);
+  --emboss-edge: var(--primary-emboss-edge);
+  --emboss-depth: var(--primary-emboss-depth);
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-from)) 0%,
     hsl(var(--primary-gradient-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 0 0 1px rgba(0, 44, 116, 0.42);
 }
 .btn-emboss-primary:hover:not(:disabled) {
   background: linear-gradient(
@@ -479,47 +567,29 @@ html.dark .graphiql-themed .graphiql-container {
     hsl(var(--primary-gradient-hover-from)) 0%,
     hsl(var(--primary-gradient-hover-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    inset 0 0 0 1px rgba(0, 44, 116, 0.36);
 }
 .btn-emboss-primary:active:not(:disabled) {
-  transform: translateY(1px);
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-active-from)) 0%,
     hsl(var(--primary-gradient-active-to)) 100%
   );
-  box-shadow:
-    inset 0 2px 4px rgba(0, 26, 72, 0.4),
-    inset 0 0 0 1px rgba(0, 44, 116, 0.5);
 }
 .btn-emboss-primary:disabled,
 .btn-emboss-primary[aria-disabled="true"] {
-  color: #ffffff;
-  text-shadow: none;
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-disabled-from)) 0%,
     hsl(var(--primary-gradient-disabled-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 0 0 1px rgba(0, 44, 116, 0.14);
 }
 .dark .btn-emboss-primary {
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 26, 72, 0.45);
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-from)) 0%,
     hsl(var(--primary-gradient-mid)) 46%,
     hsl(var(--primary-gradient-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 -1px 1px rgba(0, 20, 60, 0.35);
 }
 .dark .btn-emboss-primary:hover:not(:disabled) {
   background: linear-gradient(
@@ -528,34 +598,21 @@ html.dark .graphiql-themed .graphiql-container {
     hsl(var(--primary-gradient-hover-mid)) 46%,
     hsl(var(--primary-gradient-hover-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    inset 0 -1px 1px rgba(0, 20, 60, 0.3);
 }
 .dark .btn-emboss-primary:active:not(:disabled) {
-  transform: translateY(1px);
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-active-from)) 0%,
     hsl(var(--primary-gradient-active-to)) 100%
   );
-  box-shadow:
-    inset 0 2px 4px rgba(0, 18, 54, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 .dark .btn-emboss-primary:disabled,
 .dark .btn-emboss-primary[aria-disabled="true"] {
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: none;
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-disabled-from)) 0%,
     hsl(var(--primary-gradient-disabled-to)) 100%
   );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* ------------------------------------------------------------------
@@ -564,7 +621,7 @@ html.dark .graphiql-themed .graphiql-container {
  * the raised 3D look is too much, e.g. the Discord banner.
  * ------------------------------------------------------------------ */
 .btn-emboss-primary-gradient-only {
-  color: #ffffff;
+  color: hsl(var(--on-solid));
   border: 0;
   background: linear-gradient(
     180deg,
@@ -582,7 +639,7 @@ html.dark .graphiql-themed .graphiql-container {
 }
 .btn-emboss-primary-gradient-only:disabled,
 .btn-emboss-primary-gradient-only[aria-disabled="true"] {
-  color: #ffffff;
+  color: hsl(var(--on-solid));
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-disabled-from)) 0%,
@@ -590,7 +647,7 @@ html.dark .graphiql-themed .graphiql-container {
   );
 }
 .dark .btn-emboss-primary-gradient-only {
-  color: #ffffff;
+  color: hsl(var(--on-solid));
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-from)) 0%,
@@ -608,7 +665,7 @@ html.dark .graphiql-themed .graphiql-container {
 }
 .dark .btn-emboss-primary-gradient-only:disabled,
 .dark .btn-emboss-primary-gradient-only[aria-disabled="true"] {
-  color: rgba(255, 255, 255, 0.5);
+  color: hsl(var(--on-solid) / 0.5);
   background: linear-gradient(
     180deg,
     hsl(var(--primary-gradient-disabled-from)) 0%,
@@ -617,119 +674,68 @@ html.dark .graphiql-themed .graphiql-container {
 }
 
 /* ------------------------------------------------------------------
- * SECONDARY button ("soft emboss").
- * Border only, transparent background.
- * ------------------------------------------------------------------ */
-.btn-emboss-secondary {
-  color: #26303f;
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.18);
-}
-.btn-emboss-secondary:hover:not(:disabled) {
-  color: #16202e;
-  background: rgba(16, 38, 74, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.26);
-}
-.btn-emboss-secondary:active:not(:disabled) {
-  transform: translateY(1px);
-  background: rgba(16, 38, 74, 0.09);
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.28);
-}
-.btn-emboss-secondary:disabled,
-.btn-emboss-secondary[aria-disabled="true"] {
-  color: rgba(38, 48, 63, 0.3);
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.1);
-}
-.dark .btn-emboss-secondary {
-  color: #dbe4f0;
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-}
-.dark .btn-emboss-secondary:hover:not(:disabled) {
-  color: #f0f5fb;
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-.dark .btn-emboss-secondary:active:not(:disabled) {
-  transform: translateY(1px);
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-}
-.dark .btn-emboss-secondary:disabled,
-.dark .btn-emboss-secondary[aria-disabled="true"] {
-  color: rgba(219, 228, 240, 0.3);
-  text-shadow: none;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-/* ------------------------------------------------------------------
- * DANGER button ("soft emboss").
- * Same recipe as the primary CTA, in the destructive red family.
+ * DANGER button ("soft emboss"), matching the Lovable reference.
+ * Same shared recipe as the primary CTA, in the destructive red family.
  * ------------------------------------------------------------------ */
 .btn-emboss-danger {
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(84, 0, 24, 0.35);
-  background: linear-gradient(180deg, #d9174a 0%, #cf0a3d 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    inset 0 0 0 1px rgba(108, 2, 34, 0.42);
+  --emboss-edge: var(--destructive-emboss-edge);
+  --emboss-depth: var(--destructive-emboss-depth);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-from)) 0%,
+    hsl(var(--destructive-gradient-to)) 100%
+  );
 }
 .btn-emboss-danger:hover:not(:disabled) {
-  background: linear-gradient(180deg, #e42153 0%, #d70f44 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 0 0 1px rgba(108, 2, 34, 0.36);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-hover-from)) 0%,
+    hsl(var(--destructive-gradient-hover-to)) 100%
+  );
 }
 .btn-emboss-danger:active:not(:disabled) {
-  transform: translateY(1px);
-  background: linear-gradient(180deg, #b70832 0%, #c80a3b 100%);
-  box-shadow:
-    inset 0 2px 4px rgba(70, 0, 20, 0.4),
-    inset 0 0 0 1px rgba(108, 2, 34, 0.5);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-active-from)) 0%,
+    hsl(var(--destructive-gradient-active-to)) 100%
+  );
 }
 .btn-emboss-danger:disabled,
 .btn-emboss-danger[aria-disabled="true"] {
-  color: #ffffff;
-  text-shadow: none;
-  background: linear-gradient(180deg, #e5b1c0 0%, #dca4b5 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 0 0 1px rgba(108, 2, 34, 0.14);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-disabled-from)) 0%,
+    hsl(var(--destructive-gradient-disabled-to)) 100%
+  );
 }
 .dark .btn-emboss-danger {
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(70, 0, 18, 0.5);
-  background: linear-gradient(180deg, #e01e4d 0%, #d40f43 46%, #bd0a38 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 -1px 1px rgba(60, 0, 16, 0.38);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-from)) 0%,
+    hsl(var(--destructive-gradient-mid)) 46%,
+    hsl(var(--destructive-gradient-to)) 100%
+  );
 }
 .dark .btn-emboss-danger:hover:not(:disabled) {
-  background: linear-gradient(180deg, #ea2b59 0%, #dd154b 46%, #c60c3d 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
-    inset 0 -1px 1px rgba(60, 0, 16, 0.34);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-hover-from)) 0%,
+    hsl(var(--destructive-gradient-hover-mid)) 46%,
+    hsl(var(--destructive-gradient-hover-to)) 100%
+  );
 }
 .dark .btn-emboss-danger:active:not(:disabled) {
-  transform: translateY(1px);
-  background: linear-gradient(180deg, #b3082f 0%, #c40a3a 100%);
-  box-shadow:
-    inset 0 2px 4px rgba(54, 0, 14, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-active-from)) 0%,
+    hsl(var(--destructive-gradient-active-to)) 100%
+  );
 }
 .dark .btn-emboss-danger:disabled,
 .dark .btn-emboss-danger[aria-disabled="true"] {
-  color: rgba(255, 255, 255, 0.5);
-  text-shadow: none;
-  background: linear-gradient(180deg, #4a2130 0%, #391a25 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--destructive-gradient-disabled-from)) 0%,
+    hsl(var(--destructive-gradient-disabled-to)) 100%
+  );
 }

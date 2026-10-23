@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: used with value*/
 
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
-import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
@@ -42,6 +41,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 
 function InfoTooltip({ title }: { title: string }) {
   return (
@@ -70,7 +70,7 @@ export default function SQLEditor({
   initialSQL,
   hideEmptyResults = false,
 }: SQLEditorProps) {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
   const trackEvent = useTrackEvent();
 
@@ -219,7 +219,7 @@ export default function SQLEditor({
         value={sqlCode}
         height="100%"
         className="min-h-[100px] flex-1 overflow-y-auto"
-        theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+        theme={resolvedTheme === 'light' ? githubLight : githubDark}
         extensions={[
           sql({ dialect: PostgreSQL }),
           Prec.highest(
@@ -283,7 +283,10 @@ export default function SQLEditor({
 
             {!loading && !errorMessage && commandOk && rows.length === 0 && (
               <div className="flex flex-1 items-center justify-center p-4">
-                <Alert className="grid grid-flow-row place-content-center gap-2 border-green-600/50 text-green-600 dark:border-green-500/50 dark:text-green-500">
+                <Alert
+                  variant="success"
+                  className="grid grid-flow-row place-content-center gap-2"
+                >
                   <code>Success, no rows returned</code>
                 </Alert>
               </div>

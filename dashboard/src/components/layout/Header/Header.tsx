@@ -112,7 +112,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           <>
             <PlatformOnly>
               {isFreeOrganization && upgradeHref && (
-                <Button asChild size="xs" variant="outline-emboss">
+                <Button asChild size="xs" variant="outline">
                   <Link href={upgradeHref}>Upgrade</Link>
                 </Button>
               )}

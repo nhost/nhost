@@ -239,13 +239,13 @@ export default function StorageRolePermissionEditorForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between bg-destructive/10 px-4 py-3"
+            className="grid grid-flow-col items-center justify-between"
           >
-            <span className="text-left text-sm+">
+            <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
 
-            <Button variant="ghost" size="sm" onClick={resetError}>
+            <Button variant="outline" size="sm" onClick={resetError}>
               Clear
             </Button>
           </Alert>
@@ -286,7 +286,7 @@ export default function StorageRolePermissionEditorForm({
 
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             type="button"
             onClick={handleCancelClick}

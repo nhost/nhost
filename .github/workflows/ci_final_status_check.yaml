@@ -77,6 +77,7 @@ jobs:
               || context.payload.merge_group?.head_sha
               || context.sha;
             const THIS_CHECK_NAME = 'ci: final status check';
+            const SAFE_TO_TEST = '.github/workflows/ci_safe_to_test.yaml';
 
             const POLL_INTERVAL_S = 30;
             // After all currently-known checks are complete, wait this long
@@ -126,6 +127,28 @@ jobs:
               }
             }
 
+            // Ignore 'ci: safe to test' runs: a failed approval leaves the
+            // gated checks red anyway, and a later label never supersedes it.
+            const workflowSuites = new Set();
+            const safeToTestSuites = new Set();
+
+            async function loadSuites(checkRuns) {
+              const known = checkRuns.every(
+                (r) => workflowSuites.has(r.check_suite?.id),
+              );
+              if (known) return;
+              const runs = await github.paginate(
+                github.rest.actions.listWorkflowRunsForRepo,
+                { owner, repo, head_sha: sha, per_page: 100 },
+              );
+              for (const r of runs) {
+                workflowSuites.add(r.check_suite_id);
+                if (r.path.split('@')[0] === SAFE_TO_TEST) {
+                  safeToTestSuites.add(r.check_suite_id);
+                }
+              }
+            }
+
             // Fetch all check runs for the PR head SHA, excluding our own.
             async function getCheckRuns() {
               const allRuns = [];
@@ -143,7 +166,11 @@ jobs:
                 if (allRuns.length >= data.total_count) break;
                 page++;
               }
-              return allRuns.filter((r) => r.name !== THIS_CHECK_NAME);
+              const others = allRuns.filter((r) => r.name !== THIS_CHECK_NAME);
+              await loadSuites(others);
+              return others.filter(
+                (r) => !safeToTestSuites.has(r.check_suite?.id),
+              );
             }
 
             // Give other workflows time to be queued.
