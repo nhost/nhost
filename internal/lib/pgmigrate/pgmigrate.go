@@ -37,8 +37,12 @@ var (
 // catalog tables; Migrate does not change search_path, so migration bodies must
 // schema-qualify application objects they create or reference.
 //
-// The caller context bounds setup and preflight, but
-// cancellation does not abort migration SQL after execution starts.
+// The caller context applies to connection acquisition, advisory-lock waiting,
+// catalog bootstrap, reconciliation, and preflight. It does not strictly bound
+// setup: the upstream PostgreSQL driver's state-table check/creation and
+// state-version reads ignore it, as does migration SQL execution. Configure
+// PostgreSQL timeouts (such as lock_timeout or statement_timeout) for the
+// migration role or connection to bound database operations.
 // Post-execution catalog archival and connection cleanup each use a separate
 // five-second, cancellation-independent timeout before Migrate returns. The
 // caller owns the dedicated migration database; Migrate acquires and closes two
