@@ -1,3 +1,5 @@
+import { BlogCategorySlug } from '@/data/blogCategories'
+
 export interface Author {
   name: string
   title: string
@@ -18,7 +20,22 @@ export interface Article {
    */
   updatedAt?: string
   authors: Author[]
+  /**
+   * Freeform labels describing the post. Useful on the post itself, too
+   * granular to navigate by, which is what `category` is for.
+   */
   tags: string[]
+  /**
+   * The one section this post belongs to on /blog. See
+   * `@/data/blogCategories` for the list and what belongs in each.
+   */
+  category: BlogCategorySlug
+  /**
+   * Shows the post in the featured feed at the top of /blog. Reserved for
+   * important announcements and technical deep dives: the things worth
+   * leading with. Roundups, guides, and comparisons stay in their category.
+   */
+  featured?: boolean
   slug: string
   /** SEO meta title (without the "| Nhost Blog" suffix). Keep under 50 chars. */
   seoTitle?: string

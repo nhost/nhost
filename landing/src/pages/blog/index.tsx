@@ -1,22 +1,26 @@
+import { BlogDirectory } from '@/components/blog/BlogDirectory'
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { Article } from '@/utils/types'
+import { getAllArticles } from '@/lib/blog'
+import { getFeaturedArticles } from '@/lib/blogGrouping'
 import { buildSeo } from '@/utils/seo'
-import glob from 'fast-glob'
+import { Article } from '@/utils/types'
 import Image from 'next/image'
-import * as path from 'path'
 import { ReactElement } from 'react'
 
 export interface BlogPageProps {
+  /** Every post, newest first. */
   articles: Article[]
+  /** Posts flagged `featured`, newest first. */
+  featured: Article[]
 }
 
-export default function BlogPage({ articles }: BlogPageProps) {
-  const [firstArticle, ...otherArticles] = articles
+export default function BlogPage({ articles, featured }: BlogPageProps) {
+  const [leadArticle, ...otherFeatured] = featured
 
   return (
     <>
@@ -43,57 +47,68 @@ export default function BlogPage({ articles }: BlogPageProps) {
         />
       </Container>
 
+      {leadArticle && (
+        <Container
+          component="section"
+          className="grid max-w-5xl grid-flow-row gap-6 pb-16 lg:pb-24"
+        >
+          <BlogPostCard
+            image={
+              <Image
+                src={leadArticle.image}
+                width={1920}
+                height={1080}
+                alt={`Cover of ${leadArticle.title}`}
+                blurDataURL={leadArticle.image}
+                placeholder="blur"
+                className="max-w-full object-cover"
+                priority
+                quality={100}
+              />
+            }
+            title={leadArticle.title}
+            description={leadArticle.description}
+            href={`/blog/${leadArticle.slug}`}
+            tags={leadArticle.tags}
+            authors={leadArticle.authors}
+            date={leadArticle.date}
+            className="col-span-2 mb-16 max-w-full"
+            highlighted
+          />
+
+          {otherFeatured.length > 0 && (
+            <div className="grid gap-6 gap-y-16 md:grid-cols-2">
+              {otherFeatured.map((article) => (
+                <BlogPostCard
+                  key={article.slug}
+                  image={
+                    <Image
+                      src={article.image}
+                      width={400}
+                      height={225}
+                      alt={`Cover of ${article.title}`}
+                      className="h-full w-full object-contain"
+                      quality={90}
+                    />
+                  }
+                  title={article.title}
+                  description={article.description}
+                  href={`/blog/${article.slug}`}
+                  tags={article.tags}
+                  authors={article.authors}
+                  date={article.date}
+                />
+              ))}
+            </div>
+          )}
+        </Container>
+      )}
+
       <Container
         component="section"
-        className="grid max-w-5xl grid-flow-row gap-6 pb-16 lg:pb-28"
+        className="max-w-5xl pb-16 lg:pb-28"
       >
-        <BlogPostCard
-          image={
-            <Image
-              src={firstArticle.image}
-              width={1920}
-              height={1080}
-              alt={`Cover of ${firstArticle.title}`}
-              blurDataURL={firstArticle.image}
-              placeholder="blur"
-              className="max-w-full object-cover"
-              priority
-              quality={100}
-            />
-          }
-          title={firstArticle.title}
-          description={firstArticle.description}
-          href={`/blog/${firstArticle.slug}`}
-          tags={firstArticle.tags}
-          authors={firstArticle.authors}
-          date={firstArticle.date}
-          className="col-span-2 mb-16 max-w-full"
-          highlighted
-        />
-
-        <div className="grid gap-6 gap-y-16 md:grid-cols-2">
-          {otherArticles.map((article) => (
-            <BlogPostCard
-              key={article.slug}
-              image={
-                <Image
-                  src={article.image}
-                  width={400}
-                  height={225}
-                  alt={`Cover of ${article.title}`}
-                  className="h-full w-full object-contain"
-                  quality={90}
-                />
-              }
-              title={article.title}
-              description={article.description}
-              href={`/blog/${article.slug}`}
-              tags={article.tags}
-              authors={article.authors}
-              date={article.date}
-            />
-          ))}
-        </div>
+        <BlogDirectory articles={articles} />
       </Container>
     </>
   )
@@ -117,35 +132,12 @@ BlogPage.getLayout = function getLayout(page: ReactElement) {
 }
 
 export async function getStaticProps() {
-  // TODO: Move this function to a separate file
-  const importArticle = async (articleFilename: any) => {
-    // if we change the location of this folder, make sure the path is correct!
-    let { article, default: component } = await import(`./${articleFilename}`)
-    return {
-      slug: articleFilename.replace(/(\/index)?\.mdx$/, ''),
-      ...article,
-      component,
-    }
-  }
-
-  // TODO: move this function to a separate file
-  const getAllArticles = async () => {
-    const articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
-      cwd: path.join(process.cwd(), 'src/pages/blog'),
-    })
-
-    const articles = await Promise.all(articleFilenames.map(importArticle))
-
-    return articles.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    )
-  }
+  const articles = await getAllArticles()
 
   return {
     props: {
-      articles: (await getAllArticles()).map(
-        ({ component, ...article }) => article,
-      ),
+      articles,
+      featured: getFeaturedArticles(articles),
     },
   }
 }
