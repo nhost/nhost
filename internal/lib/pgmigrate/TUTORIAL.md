@@ -18,51 +18,62 @@ This is a local demonstration, not a production deployment or a backup/restore p
 
 You need a checkout of the Nhost repository. `pgmigrate` is an internal Go package, so do not create a separate Go module for this example.
 
-Run the commands from the **repository root, in one Bash terminal**, as a normal user—not root. You need Go 1.27 or later and PostgreSQL's `initdb`, `pg_ctl`, and `psql`. The project's Nix shell provides them:
+Run the commands from the **repository root, in one Bash terminal**. You need Go 1.27 or later and a running local Docker daemon, such as Docker Desktop. PostgreSQL and `psql` will run inside the container; you do not need to install them locally.
+
+If you use Nix, the project's shell provides the Go toolchain:
 
 ```bash
 nix develop .#pgmigrate
 ```
 
-If those tools are already installed, you can use your existing Bash shell instead. On macOS, use native macOS PostgreSQL binaries, not Linux binaries from a remote Nix builder.
+Otherwise, use your existing Bash shell with Go installed.
 
 ## 1. Start a disposable database
 
-Everything goes into temporary directories. The server listens only on a private Unix socket, not on a network port. Trust authentication is convenient for this isolated demo; **do not use it as a production authentication configuration**.
+Start PostgreSQL 18 in Docker. Docker picks an unused port bound to `127.0.0.1`, so this will not conflict with an existing PostgreSQL server. The password below is only for this disposable local demo.
 
 ```bash
 set -euo pipefail
 
 mkdir -p .nhost-code/tmp
 demo=$(mktemp -d "$PWD/.nhost-code/tmp/pgmigrate-hello.XXXXXX")
-
-export PGDATA="$demo/pgdata"
-export PGHOST=$(mktemp -d /tmp/pgmigrate-hello.XXXXXX)
-export PGPORT=5432
-export PGDATABASE=postgres
-export PGUSER=postgres
-export DATABASE_URL="host=$PGHOST port=$PGPORT dbname=$PGDATABASE user=$PGUSER sslmode=disable"
+container=$(basename "$demo")
 
 cleanup() {
-  if [ -f "$PGDATA/postmaster.pid" ]; then
-    pg_ctl -D "$PGDATA" -m fast -w stop || return 1
-  fi
-  rm -rf -- "$demo" "$PGHOST"
+  docker rm --force --volumes "$container" >/dev/null 2>&1 || true
+  rm -rf -- "$demo"
 }
 trap cleanup EXIT
 
-initdb --auth=trust --no-locale --encoding=UTF8 -U postgres -D "$PGDATA"
-pg_ctl -D "$PGDATA" -l "$demo/postgres.log" \
-  -o "-F -h '' -k $PGHOST -p $PGPORT" -w start
+docker run --detach --rm --name "$container" \
+  --env POSTGRES_PASSWORD=postgres \
+  --publish 127.0.0.1::5432 \
+  postgres:18
 
+# Wait up to 30 seconds for PostgreSQL's TCP listener.
+for attempt in {1..30}; do
+  if docker exec "$container" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+docker exec "$container" pg_isready -h 127.0.0.1 -U postgres
+
+port=$(docker port "$container" 5432/tcp | cut -d: -f2)
+export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:$port/postgres?sslmode=disable"
+
+# Run all following psql commands inside this container.
+psql() {
+  docker exec -i "$container" psql -U postgres -d postgres "$@"
+}
 psql -X -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA hello;'
 ```
 
-`PGHOST`, `PGPORT`, `PGDATABASE`, and `PGUSER` tell `psql` where to connect. `DATABASE_URL` passes the same connection to the Go app; despite the variable's name, its value here is a PostgreSQL key/value DSN.
+The Go app connects through `DATABASE_URL`. The `psql` helper runs SQL inside the same container, including the multiline queries below.
 
 The schema is created separately because `pgmigrate` creates its bookkeeping tables, not the application schema.
 
-The exit trap stops the server and removes the temporary files if the shell exits early. You can also run the [cleanup step](#8-clean-up) explicitly. While the demo is running, PostgreSQL's startup log is at `$demo/postgres.log`.
+The exit trap removes the container, its anonymous data volume, and the temporary files if the shell exits early. You can also run the [cleanup step](#8-clean-up) explicitly. To inspect server logs while it is running, use `docker logs "$container"`.
 
 ## 2. Create the app and its first migration
 
@@ -363,12 +374,13 @@ You can also start `hello-v3` again to upgrade back to version 3, even with the 
 
 ## 8. Clean up
 
-Stop the disposable server before removing its data and binaries:
+Remove the PostgreSQL container, its data volume, and the generated source files and binaries:
 
 ```bash
 cleanup
 trap - EXIT
-unset DATABASE_URL PGDATA PGHOST PGPORT PGDATABASE PGUSER
+unset DATABASE_URL
+unset -f psql
 ```
 
 If you entered the Nix shell for this tutorial, `exit` returns to your previous shell.
