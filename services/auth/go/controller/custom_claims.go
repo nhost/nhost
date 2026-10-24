@@ -139,6 +139,10 @@ func extractFilterFields(filter string) []string { //nolint:cyclop,gocognit
 }
 
 func parseClaims(parts []string) map[string]any {
+	if len(parts) == 0 {
+		return map[string]any{}
+	}
+
 	parts[0] = strings.Split(parts[0], "[")[0]
 	switch len(parts) {
 	case 1:
