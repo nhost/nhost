@@ -101,7 +101,7 @@ export default function BlogPostCard({
         </div>
 
         {authors && (
-          <div className="mt-4 grid grid-flow-col items-center justify-start gap-3 text-sm font-medium text-white text-opacity-65">
+          <div className="isolate mt-4 grid grid-flow-col items-center justify-start gap-3 text-sm font-medium text-white text-opacity-65">
             {authors.slice(0, 3).map((author, index) => (
               <div
                 className={twMerge(

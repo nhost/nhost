@@ -26,25 +26,17 @@ export const blogCategories = [
   {
     slug: 'announcements',
     label: 'Announcements',
-    description:
-      'New products, platform capabilities, regions, and releases.',
+    description: 'Product launches, new features, and releases.',
   },
   {
     slug: 'engineering',
     label: 'Engineering',
-    description:
-      'How we build and run Nhost, in detail.',
+    description: 'How we build and run Nhost, in detail.',
   },
   {
     slug: 'guides',
     label: 'Guides',
-    description:
-      'Tutorials, templates, and walkthroughs for building on Nhost.',
-  },
-  {
-    slug: 'comparisons',
-    label: 'Comparisons',
-    description: 'How Nhost compares to other backends.',
+    description: 'Tutorials, templates, and walkthroughs.',
   },
   {
     slug: 'customers',
@@ -55,6 +47,11 @@ export const blogCategories = [
     slug: 'company',
     label: 'Company',
     description: 'Funding, milestones, and periodic roundups.',
+  },
+  {
+    slug: 'comparisons',
+    label: 'Comparisons',
+    description: 'How Nhost compares to other backends.',
   },
 ] as const satisfies readonly BlogCategory[]
 

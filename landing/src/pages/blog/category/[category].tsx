@@ -1,4 +1,5 @@
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
+import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
@@ -11,6 +12,10 @@ import { buildSeo } from '@/utils/seo'
 import { Article } from '@/utils/types'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import Image from 'next/image'
+import { useState } from 'react'
+
+/** How many posts show at first, and how many more each "Load more" adds. */
+const PAGE_SIZE = 10
 
 export interface BlogCategoryPageProps {
   label: string
@@ -36,6 +41,8 @@ export default function BlogCategoryPage({
   articles,
   seo,
 }: BlogCategoryPageProps) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
       <Container
@@ -43,7 +50,7 @@ export default function BlogCategoryPage({
         className="relative flex max-w-5xl py-20 lg:py-28"
       >
         <LineGrid
-          className="top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-16 lg:h-40 lg:w-40"
+          className="left-0 right-0 top-5 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-16 lg:h-40 lg:w-40"
           slotProps={{ image: { className: 'mx-auto' } }}
           priority
         />
@@ -68,7 +75,7 @@ export default function BlogCategoryPage({
         <Link href="/blog">Back to all posts</Link>
 
         <div className="grid gap-6 gap-y-16 md:grid-cols-2">
-          {articles.map((article) => (
+          {articles.slice(0, visibleCount).map((article) => (
             <BlogPostCard
               key={article.slug}
               image={
@@ -90,6 +97,17 @@ export default function BlogCategoryPage({
             />
           ))}
         </div>
+
+        {articles.length > visibleCount && (
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            className="mt-10 justify-self-center"
+          >
+            Load more
+          </Button>
+        )}
       </Container>
     </Layout>
   )
