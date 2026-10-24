@@ -127,6 +127,17 @@ func TestCustomClaims(t *testing.T) {
 				"nonexistent": "defaultNonExistent",
 			},
 		},
+		{
+			name: "empty claim path",
+			claims: map[string]string{
+				"empty": "",
+			},
+			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {} }",
+			expectedData: map[string]any{
+				"empty": nil,
+			},
+			customClaimsDefaults: nil,
+		},
 	}
 
 	for _, tc := range cases {
