@@ -95,6 +95,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.GetFilePresignedURL(

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"net/textproto"
 	"os"
 	"strings"
@@ -275,6 +276,7 @@ func TestUploadFile(t *testing.T) {
 				nil,
 				av,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.UploadFiles(
@@ -369,6 +371,7 @@ func TestUploadFiles_FileTooBig(t *testing.T) {
 		nil,
 		av,
 		logger,
+		controller.StorageLimit{},
 	)
 
 	resp, err := ctrl.UploadFiles(
@@ -399,4 +402,89 @@ func TestUploadFiles_FileTooBig(t *testing.T) {
 		},
 		StatusCode: http.StatusBadRequest,
 	})
+}
+
+func TestUploadStorageLimit(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name           string
+		total          int64
+		readErr        error
+		files          int
+		wantStatus     int
+		withoutLimiter bool
+	}{
+		{"disabled", 0, nil, 1, http.StatusNotFound, true},
+		{"below", 9, nil, 1, http.StatusNotFound, false},
+		{"equal", 10, nil, 1, http.StatusRequestEntityTooLarge, false},
+		{"above", 11, nil, 1, http.StatusRequestEntityTooLarge, false},
+		{"multi-file", 11, nil, 2, http.StatusRequestEntityTooLarge, false},
+		{"read failure", 0, io.ErrUnexpectedEOF, 1, http.StatusNotFound, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			c := gomock.NewController(t)
+			md := mock.NewMockMetadataStorage(c)
+			content := mock.NewMockContentStorage(c)
+
+			limiter := mock.NewMockUsageLimiter(c)
+			if !tc.withoutLimiter {
+				limiter.EXPECT().Total(gomock.Any()).Return(tc.total, tc.readErr).Times(1)
+			}
+
+			if tc.wantStatus == http.StatusNotFound {
+				md.EXPECT().
+					GetBucketByID(gomock.Any(), "blah", gomock.Any()).
+					Return(controller.BucketMetadata{}, controller.ErrBucketNotFound)
+			}
+
+			var options controller.StorageLimit
+			if !tc.withoutLimiter {
+				options = controller.StorageLimit{Limiter: limiter, Max: 10}
+			}
+
+			ctrl := controller.New(
+				"",
+				"",
+				"",
+				md,
+				content,
+				nil,
+				nil,
+				slog.New(slog.DiscardHandler),
+				options,
+			)
+
+			files := make([]fakeFile, tc.files)
+			for i := range files {
+				files[i] = fakeFile{
+					contents: "abc",
+					md: fakeFileMetadata{
+						Name:     "a.txt",
+						ID:       uuid.NewString(),
+						Metadata: map[string]any{},
+					},
+				}
+			}
+
+			resp, err := ctrl.UploadFiles(
+				t.Context(),
+				api.UploadFilesRequestObject{Body: createMultiForm(t, files...)},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := httptest.NewRecorder()
+			if err := resp.VisitUploadFilesResponse(rec); err != nil {
+				t.Fatal(err)
+			}
+
+			if got := rec.Code; got != tc.wantStatus {
+				t.Fatalf("status = %d, want %d", got, tc.wantStatus)
+			}
+		})
+	}
 }

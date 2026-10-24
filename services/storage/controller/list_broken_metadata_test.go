@@ -99,6 +99,7 @@ func TestListBrokenMetadata(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.ListBrokenMetadata(
@@ -160,6 +161,7 @@ func TestListBrokenMetadataEmptyS3(t *testing.T) {
 		nil,
 		nil,
 		logger,
+		controller.StorageLimit{},
 	)
 
 	expected := api.ListBrokenMetadata200JSONResponse{

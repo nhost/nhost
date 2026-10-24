@@ -158,6 +158,10 @@ func (ctrl *Controller) upload(
 	request uploadFileRequest,
 	sessionHeaders http.Header,
 ) ([]api.FileMetadata, *APIError) {
+	if err := ctrl.checkStorageLimit(ctx); err != nil {
+		return nil, err
+	}
+
 	bucket, err := ctrl.metadataStorage.GetBucketByID(
 		ctx,
 		request.bucketID,

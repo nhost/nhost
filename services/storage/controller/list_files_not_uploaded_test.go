@@ -87,6 +87,7 @@ func TestListNotUploaded(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.ListFilesNotUploaded(

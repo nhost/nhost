@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -182,6 +183,7 @@ func TestReplaceFile(t *testing.T) {
 				nil,
 				av,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.ReplaceFile(
@@ -312,6 +314,7 @@ func TestReplaceFile_FileSize(t *testing.T) {
 				nil,
 				av,
 				logger,
+				controller.StorageLimit{},
 			)
 
 			resp, err := ctrl.ReplaceFile(
@@ -336,6 +339,90 @@ func TestReplaceFile_FileSize(t *testing.T) {
 				Message: tc.expectedMessage,
 				Data:    tc.expectedData,
 			})
+		})
+	}
+}
+
+func TestReplaceStorageLimit(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		total   int64
+		readErr error
+		reject  bool
+	}{
+		{"below", 9, nil, false}, {"equal", 10, nil, true}, {"above", 11, nil, true}, {"read failure", 0, io.ErrUnexpectedEOF, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			c := gomock.NewController(t)
+			md := mock.NewMockMetadataStorage(c)
+			content := mock.NewMockContentStorage(c)
+			limiter := mock.NewMockUsageLimiter(c)
+
+			md.EXPECT().
+				GetFileByID(gomock.Any(), "id", gomock.Any()).
+				Return(api.FileMetadata{Id: "id", BucketId: "bucket", IsUploaded: true}, nil)
+			md.EXPECT().
+				GetBucketByID(gomock.Any(), "bucket", gomock.Any()).
+				Return(controller.BucketMetadata{MaxUploadFile: 100}, nil)
+			limiter.EXPECT().Total(gomock.Any()).Return(tc.total, tc.readErr)
+
+			av := mock.NewMockAntivirus(c)
+			if !tc.reject {
+				av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
+				md.EXPECT().SetIsUploaded(gomock.Any(), "id", false, gomock.Any()).Return(nil)
+				content.EXPECT().
+					PutFile(gomock.Any(), ReaderMatcher("abc"), "id", "text/plain; charset=utf-8").
+					Return("etag", nil)
+				md.EXPECT().
+					PopulateMetadata(gomock.Any(), "id", "a.txt", int64(3), "bucket", "etag", true, "text/plain; charset=utf-8", map[string]any{}, gomock.Any()).
+					Return(api.FileMetadata{Id: "id", Name: "a.txt", BucketId: "bucket", Size: 3, Etag: "etag", IsUploaded: true, MimeType: "text/plain; charset=utf-8"}, nil)
+			}
+
+			ctrl := controller.New(
+				"",
+				"",
+				"",
+				md,
+				content,
+				nil,
+				av,
+				slog.New(slog.DiscardHandler),
+				controller.StorageLimit{Limiter: limiter, Max: 10},
+			)
+
+			resp, err := ctrl.ReplaceFile(
+				t.Context(),
+				api.ReplaceFileRequestObject{
+					Id: "id",
+					Body: createReplaceMultiForm(
+						t,
+						fakeFile{
+							contents: "abc",
+							md:       fakeFileMetadata{Name: "a.txt", Metadata: map[string]any{}},
+						},
+					),
+				},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := httptest.NewRecorder()
+			if err := resp.VisitReplaceFileResponse(rec); err != nil {
+				t.Fatal(err)
+			}
+
+			want := http.StatusOK
+			if tc.reject {
+				want = http.StatusRequestEntityTooLarge
+			}
+
+			if rec.Code != want {
+				t.Fatalf("status = %d, want %d", rec.Code, want)
+			}
 		})
 	}
 }
