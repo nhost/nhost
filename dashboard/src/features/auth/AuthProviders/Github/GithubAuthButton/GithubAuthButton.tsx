@@ -1,6 +1,9 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import type { SignInProviderParams } from '@nhost/nhost-js/auth';
-import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import {
+  ButtonWithLoading as Button,
+  type ButtonProps,
+} from '@/components/ui/v3/button';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { getAnonId } from '@/lib/segment';
 import { cn, isNotEmptyValue } from '@/lib/utils';
@@ -8,6 +11,8 @@ import { nhost } from '@/utils/nhost';
 
 interface Props {
   buttonText?: string;
+  variant?: ButtonProps['variant'];
+  size?: ButtonProps['size'];
   className?: string;
   withAnonId?: boolean;
   redirectTo?: string;
@@ -19,6 +24,8 @@ function GithubAuthButton({
   withAnonId = false,
   redirectTo,
   className,
+  variant,
+  size,
   'aria-describedby': ariaDescribedBy,
 }: Props) {
   async function signInWithGithub() {
@@ -49,6 +56,8 @@ function GithubAuthButton({
 
   return (
     <Button
+      variant={variant}
+      size={size}
       className={cn('gap-2 text-sm+', className)}
       onClick={signInWithGithub}
       aria-describedby={ariaDescribedBy}

@@ -73,7 +73,7 @@ function OverviewDeploymentList() {
 
   const deployments = data?.unifiedDeployments ?? [];
   const pendingOrRunning = pendingOrRunningData?.unifiedDeployments ?? [];
-  const liveId = latestLiveData?.unifiedDeployments[0]?.id ?? '';
+  const liveDeployment = latestLiveData?.unifiedDeployments[0] ?? null;
 
   if (!deployments.length) {
     return (
@@ -113,8 +113,8 @@ function OverviewDeploymentList() {
         <DeploymentListItem
           key={item.id}
           deployment={item}
-          isLive={item.id === liveId}
-          showRedeploy={index === 0}
+          liveDeployment={liveDeployment}
+          alwaysShowRedeploy={index === 0}
           disableRedeploy={pendingOrRunning.length > 0}
         />
       ))}

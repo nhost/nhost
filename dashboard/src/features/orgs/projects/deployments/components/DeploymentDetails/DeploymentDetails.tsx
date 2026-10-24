@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { DeploymentRedeployButton } from '@/features/orgs/projects/deployments/components/DeploymentRedeployButton';
 import { DeploymentServiceLogs } from '@/features/orgs/projects/deployments/components/DeploymentServiceLogs';
 import { useDeployment } from '@/features/orgs/projects/deployments/hooks/useDeployment';
 import {
@@ -190,6 +191,19 @@ function PipelineRunDetails({
         <div>
           <h1 className="font-medium text-2xl">Deployment Details</h1>
         </div>
+        {input?.commit_sha && (
+          <DeploymentRedeployButton
+            deployment={{
+              commitSHA: input.commit_sha,
+              commitMessage: input.commit_message,
+              commitUserName: input.commit_user_name,
+              commitUserAvatarUrl: input.commit_user_avatar_url,
+              status: pipelineRun.status,
+              createdAt: pipelineRun.createdAt,
+              startedAt: pipelineRun.startedAt,
+            }}
+          />
+        )}
       </div>
 
       <div className="my-8 grid grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-6">
@@ -366,6 +380,18 @@ function LegacyDeploymentDetailsView({
             />
             <span className="text-sm+">Serverless Functions</span>
           </div>
+          {deployment.commitSHA && (
+            <DeploymentRedeployButton
+              deployment={{
+                commitSHA: deployment.commitSHA,
+                commitMessage: deployment.commitMessage,
+                commitUserName: deployment.commitUserName,
+                commitUserAvatarUrl: deployment.commitUserAvatarUrl,
+                status: deployment.deploymentStatus,
+                startedAt: deployment.deploymentStartedAt,
+              }}
+            />
+          )}
         </div>
       </div>
       <div className="my-8 flex justify-between">

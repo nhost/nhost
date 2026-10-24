@@ -166,6 +166,27 @@ subscription getUnifiedDeploymentsSub(
   }
 }
 
+query searchUnifiedDeployments(
+  $appId: uuid!
+  $messagePattern: String!
+  $shaPattern: String!
+  $limit: Int!
+) {
+  unifiedDeployments(
+    where: {
+      appId: { _eq: $appId }
+      _or: [
+        { commitMessage: { _ilike: $messagePattern } }
+        { commitSHA: { _ilike: $shaPattern } }
+      ]
+    }
+    order_by: { createdAt: desc }
+    limit: $limit
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+
 subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
   unifiedDeployments(
     where: {
