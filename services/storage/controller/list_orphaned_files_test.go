@@ -1,7 +1,9 @@
 package controller_test
 
 import (
+	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"testing"
 
@@ -89,4 +91,59 @@ func TestListOrphans(t *testing.T) {
 			assert(t, tc.expected, resp)
 		})
 	}
+}
+
+func TestListOrphansIgnoresUploadInFlight(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+
+	// an upload finishes between the two listings: whichever is listed first
+	// sees the old state, the second one sees the new file
+	listed := 0
+
+	metadataStorage.EXPECT().ListFiles(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, _ http.Header) ([]controller.FileSummary, *controller.APIError) {
+			listed++
+			if listed == 1 {
+				return []controller.FileSummary{}, nil
+			}
+
+			return []controller.FileSummary{{ID: "new-file", IsUploaded: false}}, nil
+		},
+	)
+	contentStorage.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(_ context.Context) ([]string, *controller.APIError) {
+			listed++
+			if listed == 1 {
+				return []string{}, nil
+			}
+
+			return []string{"app_id/new-file"}, nil
+		},
+	)
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		nil,
+		logger,
+	)
+
+	resp, err := ctrl.ListOrphanedFiles(t.Context(), api.ListOrphanedFilesRequestObject{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assert(t, api.ListOrphanedFiles200JSONResponse{Files: &[]string{}}, resp)
 }
