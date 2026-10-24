@@ -28,6 +28,17 @@ func TestValidateBundle(t *testing.T) {
 			wantIssue:  "",
 		},
 		{
+			name: "non-contiguous versions infer highest target",
+			files: fstest.MapFS{
+				"migrations/2_first.up.sql":     &fstest.MapFile{Data: []byte("SELECT 1;")},
+				"migrations/2_first.down.sql":   &fstest.MapFile{Data: []byte("SELECT 2;")},
+				"migrations/10_second.up.sql":   &fstest.MapFile{Data: []byte("SELECT 3;")},
+				"migrations/10_second.down.sql": &fstest.MapFile{Data: []byte("SELECT 4;")},
+			},
+			wantTarget: 10,
+			wantIssue:  "",
+		},
+		{
 			name: "missing down migration",
 			files: fstest.MapFS{
 				"migrations/1_first.up.sql": &fstest.MapFile{Data: []byte("SELECT 1;")},
@@ -71,48 +82,13 @@ func TestValidateBundle(t *testing.T) {
 				t.Errorf("ValidateBundle() target = %d, want 0 on error", target)
 			}
 
+			if _, ok := errors.AsType[*pgmigrate.BundleError](err); !ok {
+				t.Fatalf("ValidateBundle() error = %v (%T), want *BundleError", err, err)
+			}
+
 			if !strings.Contains(err.Error(), tt.wantIssue) {
 				t.Fatalf("ValidateBundle() error = %q, want issue %q", err, tt.wantIssue)
 			}
 		})
-	}
-}
-
-func TestValidateBundleReturnsInferredTarget(t *testing.T) {
-	t.Parallel()
-
-	target, err := pgmigrate.ValidateBundle(
-		fstest.MapFS{
-			"migrations/2_first.up.sql":     &fstest.MapFile{Data: []byte("SELECT 1;")},
-			"migrations/2_first.down.sql":   &fstest.MapFile{Data: []byte("SELECT 2;")},
-			"migrations/10_second.up.sql":   &fstest.MapFile{Data: []byte("SELECT 3;")},
-			"migrations/10_second.down.sql": &fstest.MapFile{Data: []byte("SELECT 4;")},
-		},
-		"migrations",
-	)
-	if err != nil {
-		t.Fatalf("ValidateBundle() error = %v", err)
-	}
-
-	if target != 10 {
-		t.Fatalf("ValidateBundle() target = %d, want 10", target)
-	}
-}
-
-func TestValidateBundleReturnsTypedErrors(t *testing.T) {
-	t.Parallel()
-
-	_, err := pgmigrate.ValidateBundle(
-		fstest.MapFS{
-			"migrations/1_first.up.sql": &fstest.MapFile{Data: []byte("SELECT 1;")},
-		},
-		"migrations",
-	)
-	if err == nil {
-		t.Fatal("ValidateBundle() error = nil")
-	}
-
-	if _, ok := errors.AsType[*pgmigrate.BundleError](err); !ok {
-		t.Fatalf("ValidateBundle() error = %v (%T), want *BundleError", err, err)
 	}
 }
