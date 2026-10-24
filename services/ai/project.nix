@@ -21,6 +21,7 @@ let
       ../../.golangci.yaml
       ../../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
+      (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/pgmigrate)
       ./gqlgenc.yml
       ./hasura/client.graphqls
       ./migrations/postgres
@@ -53,6 +54,11 @@ rec {
       nativeBuildInputs
       checkDeps
       ;
+
+    preCheck = ''
+      export AI_MIGRATION_TEST_DATABASE_REQUIRED=1
+      export POSTGRES_CONNECTION="postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
+    '';
   };
 
   devShell = nixops-lib.go.devShell {
