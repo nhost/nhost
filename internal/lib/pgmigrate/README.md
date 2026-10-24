@@ -12,7 +12,7 @@ The key difference from file-only migration runners: **it saves both up and down
 
 Both builds must use `pgmigrate`, and their shared migration history must match. The older build still needs its own migration files; it does **not** need the newer files it is undoing. Rollback executes your down SQL—it is not a backup restore and cannot recover data that SQL discards.
 
-**Start with the [hello-world tutorial](TUTORIAL.md)** to build three versions of an app, inspect their tables, delete the source SQL files, and watch the older binaries roll the database back automatically.
+**Start with the [hello-world tutorial](TUTORIAL.md)** to run the ready-made v1 and v2 apps, inspect their tables, and watch v1 roll back v2's migration using SQL saved in PostgreSQL.
 
 ## Add it to a service
 

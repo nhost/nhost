@@ -1,164 +1,114 @@
 # Tutorial: upgrade and roll back a hello-world app
 
-In this tutorial you will build three versions of a tiny Go app. Each build runs `pgmigrate` on startup, then prints a greeting. SQL migrations change a `hello.greetings` table, which you will inspect with `psql`.
+Run two ready-made versions of a small Go app and watch PostgreSQL follow the version you start:
 
-The important part comes at the end: **you will delete the source code and SQL files, then start the older binaries**. They will undo newer migrations using SQL saved in PostgreSQL—not files shipped with the older build.
+```text
+Start v1 → database version 1
+Start v2 → database version 2
+Start v1 → database version 1 again
+```
 
-| Build | Embedded migrations | Effect when upgrading |
-| --- | --- | --- |
-| v1 | 1 | Create a table containing `Hello, world!` |
-| v2 | 1, 2 | Add a language column and change the greeting |
-| v3 | 1, 2, 3 | Add a Spanish greeting |
+**v1 does not contain migration 2—not even its down script.** It rolls back using SQL that v2 saved in PostgreSQL.
 
-Then you will run v2 and v1 again, moving the database from **3 → 2 → 1** without passing any migration commands or target flags.
-
-This is a local demonstration, not a production deployment or a backup/restore procedure. Use the [README](README.md) for integration and rollout requirements, and the [recovery guide](RECOVERY.md) only if a migration fails.
+The apps and SQL are already provided in [`demo/`](demo/). You only need to build them, run them, and inspect the results. No source files need to be created, edited, or deleted.
 
 ## Before you start
 
-You need a checkout of the Nhost repository. `pgmigrate` is an internal Go package, so do not create a separate Go module for this example.
+Start from the **Nhost repository root and keep using the same Bash terminal**. You need Go 1.27 or later and a running local Docker daemon, such as Docker Desktop. PostgreSQL and `psql` run inside the container; no local PostgreSQL installation is needed.
 
-Run the commands from the **repository root, in one Bash terminal**. You need Go 1.27 or later and a running local Docker daemon, such as Docker Desktop. PostgreSQL and `psql` will run inside the container; you do not need to install them locally.
-
-If you use Nix, the project's shell provides the Go toolchain:
+If you use Nix, enter the project's shell for the Go toolchain:
 
 ```bash
 nix develop .#pgmigrate
 ```
 
-Otherwise, use your existing Bash shell with Go installed.
+The demos use Nhost's internal Go package, so build them from this checkout rather than creating a separate Go module.
 
-## 1. Start a disposable database
+## 1. Start PostgreSQL
 
-Start PostgreSQL 18 in Docker. Docker picks an unused port bound to `127.0.0.1`, so this will not conflict with an existing PostgreSQL server. The password below is only for this disposable local demo.
+Create a directory for the compiled binaries. This is **not** database storage:
 
 ```bash
 set -euo pipefail
 
-mkdir -p .nhost-code/tmp
-demo=$(mktemp -d "$PWD/.nhost-code/tmp/pgmigrate-hello.XXXXXX")
-container=$(basename "$demo")
+repo="$PWD"
+demo="$repo/.pgmigrate-hello"
+mkdir "$demo"
 
-cleanup() {
-  docker rm --force --volumes "$container" >/dev/null 2>&1 || true
-  rm -rf -- "$demo"
-}
-trap cleanup EXIT
-
-docker run --detach --rm --name "$container" \
+docker run --detach --rm --name pgmigrate-hello \
   --env POSTGRES_PASSWORD=postgres \
   --publish 127.0.0.1::5432 \
   postgres:18
 
 # Wait up to 30 seconds for PostgreSQL's TCP listener.
 for attempt in {1..30}; do
-  if docker exec "$container" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then
+  if docker exec pgmigrate-hello pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
-docker exec "$container" pg_isready -h 127.0.0.1 -U postgres
+docker exec pgmigrate-hello pg_isready -h 127.0.0.1 -U postgres
 
-port=$(docker port "$container" 5432/tcp | cut -d: -f2)
+port=$(docker port pgmigrate-hello 5432/tcp | cut -d: -f2)
 export DATABASE_URL="postgres://postgres:postgres@127.0.0.1:$port/postgres?sslmode=disable"
 
-# Run all following psql commands inside this container.
+# Run the following psql commands inside the container.
 psql() {
-  docker exec -i "$container" psql -U postgres -d postgres "$@"
+  docker exec -i pgmigrate-hello psql -U postgres -d postgres "$@"
 }
 psql -X -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA hello;'
 ```
 
-The Go app connects through `DATABASE_URL`. The `psql` helper runs SQL inside the same container, including the multiline queries below.
+Docker picks an unused port bound to `127.0.0.1`. No host directory or named volume is mounted for PostgreSQL. Keep the container running throughout the walkthrough; stopping it discards the demo database because of `--rm`.
 
-The schema is created separately because `pgmigrate` creates its bookkeeping tables, not the application schema.
+The schema is created separately because `pgmigrate` creates its migration tables, not the application schema. The password above is only for this disposable local demo.
 
-The exit trap removes the container, its anonymous data volume, and the temporary files if the shell exits early. You can also run the [cleanup step](#8-clean-up) explicitly. To inspect server logs while it is running, use `docker logs "$container"`.
+If you stop partway through, use the [cleanup commands](#7-clean-up). To inspect server logs, run `docker logs pgmigrate-hello`.
 
-## 2. Create the app and its first migration
+## 2. Build the two app versions
 
-The app uses a dedicated two-connection migration pool and closes it when startup finishes. It does not need a migration-direction setting: the embedded files determine its target.
+The relevant files are:
 
-```bash
-mkdir -p "$demo/app/migrations"
-
-cat > "$demo/app/main.go" <<'GO'
-package main
-
-import (
-	"context"
-	"database/sql"
-	"embed"
-	"errors"
-	"fmt"
-	"log"
-	"log/slog"
-	"os"
-
-	_ "github.com/lib/pq"
-	"github.com/nhost/nhost/internal/lib/pgmigrate"
-)
-
-//go:embed migrations/*.sql
-var migrations embed.FS
-
-var release = "dev"
-
-func main() {
-	if err := run(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func run() (err error) {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		return errors.New("set DATABASE_URL before starting the app")
-	}
-
-	database, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return fmt.Errorf("opening migration database: %w", err)
-	}
-	defer func() {
-		if closeErr := database.Close(); closeErr != nil {
-			err = errors.Join(err, fmt.Errorf("closing migration database: %w", closeErr))
-		}
-	}()
-	database.SetMaxOpenConns(2)
-
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelWarn,
-	}))
-	if err := pgmigrate.Migrate(
-		context.Background(), logger, database, migrations, "migrations", "hello",
-	); err != nil {
-		return fmt.Errorf("migrating hello schema: %w", err)
-	}
-
-	fmt.Printf("Hello from %s!\n", release)
-	return nil
-}
-GO
-
-cat > "$demo/app/migrations/1_create_greetings.up.sql" <<'SQL'
-CREATE TABLE hello.greetings (
-    id integer PRIMARY KEY,
-    message text NOT NULL
-);
-INSERT INTO hello.greetings (id, message) VALUES (1, 'Hello, world!');
-SQL
-
-cat > "$demo/app/migrations/1_create_greetings.down.sql" <<'SQL'
-DROP TABLE hello.greetings;
-SQL
-
-go build -ldflags='-X main.release=v1' -o "$demo/hello-v1" "$demo/app"
+```text
+demo/
+├── v1/
+│   ├── main.go
+│   └── migrations/
+│       ├── 1_create_greetings.up.sql
+│       └── 1_create_greetings.down.sql
+└── v2/
+    ├── main.go
+    └── migrations/
+        ├── 1_create_greetings.up.sql
+        ├── 1_create_greetings.down.sql
+        ├── 2_add_languages.up.sql
+        └── 2_add_languages.down.sql
 ```
 
-At this point, only migration 1 exists. `hello-v1` cannot contain migrations 2 or 3: you have not written them yet. The `release` string only labels the app's output; it does not select the database version.
+Each app embeds **only its own** migration directory:
 
-Define a helper to inspect the application table and current migration state after each run:
+```go
+//go:embed migrations/*.sql
+var migrations embed.FS
+```
+
+On startup, each calls `pgmigrate.Migrate` with that filesystem and the `hello` schema. The highest embedded migration determines the target; there is no up/down flag or separate target setting. Both apps use a dedicated, two-connection migration pool and close it after migration finishes.
+
+Build them, then switch to the directory containing just the binaries:
+
+```bash
+go build -o "$demo/hello-v1" ./internal/lib/pgmigrate/demo/v1
+go build -o "$demo/hello-v2" ./internal/lib/pgmigrate/demo/v2
+cd "$demo"
+```
+
+Neither binary reads SQL files from disk at runtime. You can read the complete startup code in [`v1/main.go`](demo/v1/main.go) and [`v2/main.go`](demo/v2/main.go).
+
+Migration logs go to stderr. The output blocks below show the app's stdout and the SQL query results.
+
+## 3. Start v1
+
+Define a helper for inspecting the greeting table and current version, then start v1:
 
 ```bash
 inspect() {
@@ -168,7 +118,7 @@ SELECT version, dirty FROM hello.schema_migrations;
 SQL
 }
 
-"$demo/hello-v1"
+./hello-v1
 inspect
 ```
 
@@ -187,26 +137,14 @@ Hello from v1!
 (1 row)
 ```
 
-Version `1` and `dirty = f` mean migration 1 completed successfully. Its SQL has also been saved in `hello.schema_migration_catalog`.
+[Migration 1](demo/v1/migrations/1_create_greetings.up.sql) created the table and inserted its first greeting. `dirty = f` means the migration completed successfully.
 
-## 3. Upgrade to v2
+## 4. Upgrade to v2
 
-Add a second migration. Its down script restores the original greeting and removes the new column.
+Start the newer app—nothing else is needed to request an upgrade:
 
 ```bash
-cat > "$demo/app/migrations/2_add_language.up.sql" <<'SQL'
-ALTER TABLE hello.greetings ADD COLUMN language text NOT NULL DEFAULT 'en';
-UPDATE hello.greetings SET message = 'Hello, migrations!' WHERE id = 1;
-SQL
-
-cat > "$demo/app/migrations/2_add_language.down.sql" <<'SQL'
-UPDATE hello.greetings SET message = 'Hello, world!' WHERE id = 1;
-ALTER TABLE hello.greetings DROP COLUMN language;
-SQL
-
-go build -ldflags='-X main.release=v2' -o "$demo/hello-v2" "$demo/app"
-
-"$demo/hello-v2"
+./hello-v2
 inspect
 ```
 
@@ -217,7 +155,8 @@ Hello from v2!
  id |      message       | language
 ----+--------------------+----------
   1 | Hello, migrations! | en
-(1 row)
+  2 | Hola, mundo!       | es
+(2 rows)
 
  version | dirty
 ---------+-------
@@ -225,45 +164,9 @@ Hello from v2!
 (1 row)
 ```
 
-Starting v2 ran migration 2 automatically. Migration 1 was checked against the catalog, not run again.
+[Migration 2's up script](demo/v2/migrations/2_add_languages.up.sql) added a language column, changed the English message, and inserted a Spanish greeting. Migration 1 is byte-for-byte identical in both apps; it was checked, not replayed.
 
-## 4. Upgrade to v3
-
-The third migration adds a row. Its down script removes only that row.
-
-```bash
-cat > "$demo/app/migrations/3_add_spanish_greeting.up.sql" <<'SQL'
-INSERT INTO hello.greetings (id, message, language)
-VALUES (2, 'Hola, mundo!', 'es');
-SQL
-
-cat > "$demo/app/migrations/3_add_spanish_greeting.down.sql" <<'SQL'
-DELETE FROM hello.greetings WHERE id = 2;
-SQL
-
-go build -ldflags='-X main.release=v3' -o "$demo/hello-v3" "$demo/app"
-
-"$demo/hello-v3"
-inspect
-```
-
-Expected output:
-
-```text
-Hello from v3!
- id |      message       | language
-----+--------------------+----------
-  1 | Hello, migrations! | en
-  2 | Hola, mundo!       | es
-(2 rows)
-
- version | dirty
----------+-------
-       3 | f
-(1 row)
-```
-
-Now inspect the catalog. It contains SQL for all three versions, including their down scripts:
+Before running migration 2, v2 saved its up **and down** SQL in the catalog. Inspect it:
 
 ```bash
 psql -X -v ON_ERROR_STOP=1 -P pager=off <<'SQL'
@@ -274,52 +177,19 @@ SQL
 ```
 
 ```text
- version |      identifier      | saved_down_sql
----------+----------------------+----------------
-       1 | create_greetings     | t
-       2 | add_language         | t
-       3 | add_spanish_greeting | t
-(3 rows)
+ version |    identifier    | saved_down_sql
+---------+------------------+----------------
+       1 | create_greetings | t
+       2 | add_languages    | t
+(2 rows)
 ```
 
-The catalog saves exact SQL bytes and checksums. That is what lets a compatible older build undo a migration absent from its own bundle.
+`saved_down_sql = t` confirms the database has the SQL needed to undo each migration.
 
-## 5. Delete the source files and roll back to v2
-
-Remove the generated app source directory. This deletes **every source SQL file**, but leaves the three compiled binaries and PostgreSQL data intact:
+## 5. Roll back by starting v1 again
 
 ```bash
-rm -r -- "$demo/app"
-
-"$demo/hello-v2"
-inspect
-```
-
-Expected output:
-
-```text
-Hello from v2!
- id |      message       | language
-----+--------------------+----------
-  1 | Hello, migrations! | en
-(1 row)
-
- version | dirty
----------+-------
-       2 | f
-(1 row)
-```
-
-The Spanish row is gone. `hello-v2` still embeds migrations 1 and 2, but it was built **before migration 3 existed**. It read migration 3's saved down SQL from PostgreSQL and executed it to reach its own target, version 2.
-
-There was no separate rollback command, and no copy of `3_add_spanish_greeting.down.sql` was supplied to the older build.
-
-## 6. Roll back to v1
-
-Run the original binary:
-
-```bash
-"$demo/hello-v1"
+./hello-v1
 inspect
 ```
 
@@ -338,9 +208,11 @@ Hello from v1!
 (1 row)
 ```
 
-The language column has disappeared and the original message is back. `hello-v1` embeds only migration 1; migration 2's down SQL came from the database.
+The original greeting is back, the Spanish row is gone, and the language column has been removed. v1 inferred its own target, version 1, and ran migration 2's down SQL **from PostgreSQL**.
 
-The retired migrations are retained as archived history:
+You did not give v1 a rollback command or a new down file. Its [migration directory](demo/v1/migrations/) still contains only migration 1. The checked-in v2 files remain untouched; v1 does not read them.
+
+Inspect the retained history:
 
 ```bash
 psql -X -v ON_ERROR_STOP=1 -P pager=off <<'SQL'
@@ -351,44 +223,44 @@ SQL
 ```
 
 ```text
- version |      identifier      | archived
----------+----------------------+----------
-       1 | create_greetings     | f
-       2 | add_language         | t
-       3 | add_spanish_greeting | t
-(3 rows)
+ version |    identifier    | archived
+---------+------------------+----------
+       1 | create_greetings | f
+       2 | add_languages    | t
+(2 rows)
 ```
 
-`f` means migration 1 remains active; `t` means migrations 2 and 3 are archived. Their SQL has not been deleted. Only active rows define the current migration chain.
+Migration 2 is archived, not deleted. Its SQL remains available as history; only unarchived rows form the active migration chain.
 
-## 7. Try starting the same build again
+## 6. Try another startup
 
 ```bash
-"$demo/hello-v1"
+./hello-v1
 inspect
 ```
 
-You should see the same output as step 6. The database already matches v1, so no migration SQL is replayed.
+You should see the same output as step 5. The database already matches v1, so no migration SQL is replayed.
 
-You can also start `hello-v3` again to upgrade back to version 3, even with the source directory deleted: that binary embeds all three migrations. Re-publishing retired migrations creates new active catalog rows while keeping the archived history, so the catalog can then contain multiple rows for a version.
+You can also run `./hello-v2` again to upgrade back to version 2. The catalog will retain the archived migration 2 and register a new active row for it, so its history can contain multiple rows for the same version.
 
-## 8. Clean up
+## 7. Clean up
 
-Remove the PostgreSQL container, its data volume, and the generated source files and binaries:
+Return to the checkout and stop the disposable database. Docker removes the container and discards its database automatically because of `--rm`. Delete only the generated binaries, leaving `demo/v1` and `demo/v2` unchanged:
 
 ```bash
-cleanup
-trap - EXIT
+cd "$repo"
+docker stop pgmigrate-hello
+rm -r -- "$demo"
 unset DATABASE_URL
 unset -f psql
 ```
 
-If you entered the Nix shell for this tutorial, `exit` returns to your previous shell.
+If you entered the Nix shell, `exit` returns to your previous shell.
 
 ## What to take into a real service
 
-- Call `Migrate` during startup with the build's embedded filesystem. Use a separate migration pool, not the pool that serves application requests.
-- Keep applied migration files unchanged across builds. SQL saved in the database does not make incompatible migration histories interchangeable.
-- Let only one release version migrate a database at a time. The sequential runs here are deliberate; running v1 and v3 migration callers together can alternate the database between their targets.
-- Both sides of a rollback must use `pgmigrate`. A build from before adoption cannot read the catalog.
-- The demo's down SQL restores its small example exactly. Real down migrations may lose data or fail; take backups, review reversals, and use the [recovery guide](RECOVERY.md) for failures rather than resetting migration state blindly.
+- Call `Migrate` during startup with the build's embedded migrations and a dedicated migration pool.
+- Keep applied migrations unchanged across builds. Saving SQL does not make incompatible migration histories interchangeable.
+- Let only one release version migrate a database at a time. Concurrent v1 and v2 migration callers can keep moving it between their targets.
+- Both sides of a rollback must use `pgmigrate`; builds from before adoption cannot read the catalog.
+- Real down scripts may lose data or fail. Review reversals, take backups, and use the [recovery guide](RECOVERY.md) for failures rather than resetting migration state blindly.

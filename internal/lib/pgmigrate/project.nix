@@ -18,7 +18,7 @@ let
       ../../../vendor
       ../../../.golangci.yaml
       ../../../govulncheck.yaml
-      (fs.fileFilter (f: f.hasExt "go") ./.)
+      (fs.fileFilter (f: f.hasExt "go" || f.hasExt "sql") ./.)
     ];
   };
 
