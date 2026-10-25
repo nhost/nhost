@@ -40,9 +40,9 @@ export const blogCategories = [
     description: 'Tutorials, templates, and walkthroughs.',
   },
   {
-    slug: 'customer-stories',
-    label: 'Customer stories',
-    description: 'What teams have shipped on Nhost.',
+    slug: 'community',
+    label: 'Community',
+    description: 'Customer stories and projects built by the Nhost community.',
   },
   {
     slug: 'company',
