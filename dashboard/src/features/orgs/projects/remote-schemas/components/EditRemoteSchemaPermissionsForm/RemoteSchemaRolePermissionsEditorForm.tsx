@@ -51,8 +51,8 @@ import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generat
 import PresetValueInput from './PresetValueInput';
 
 const rolePermissionsSchema = z.object({
-  selectedFields: z.array(z.string()).optional().default([]),
-  presetValues: z.any().optional().default({}),
+  selectedFields: z.array(z.string()),
+  presetValues: z.record(z.string(), z.unknown()),
 });
 
 type RolePermissionsFormValues = z.infer<typeof rolePermissionsSchema>;

@@ -19,7 +19,7 @@
     "noImplicitAny": false,
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
-    "types": ["@types/ace"],
+    "types": ["@types/ace", "vitest/globals"],
     "paths": {
       "@/*": ["./*"],
       "@/tests/*": ["tests/*"],
