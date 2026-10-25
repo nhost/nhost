@@ -8,9 +8,10 @@
  * sections appear on /blog.
  *
  * Adding a category means adding it here and setting `category` on the posts
- * that belong to it. `Article['category']` is typed from this list, so a typo
- * or a missing category fails typecheck rather than silently dropping posts out
- * of the blog.
+ * that belong to it. Posts are MDX and not typechecked, so `getAllArticles` in
+ * `@/lib/blog` fails the build when a post has a missing or unknown category.
+ * `Article['category']` is typed from this list, but that only covers
+ * TypeScript consumers.
  */
 
 export interface BlogCategory {

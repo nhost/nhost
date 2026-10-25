@@ -7,8 +7,6 @@ import * as path from 'path'
  * Loads blog posts from disk.
  *
  * Posts are MDX files in `src/pages/blog`, each exporting an `article` object.
- * This used to live inline in `src/pages/blog/index.tsx` with a TODO asking for
- * it to be moved out; the category page needs the same data, so here it is.
  *
  * BUILD TIME ONLY. It reads the filesystem, so importing it from a component
  * that also runs in the browser pulls `fs` into the client bundle and fails the
@@ -49,7 +47,9 @@ function assertCategories(articles: Article[]): void {
 
   if (invalid.length > 0) {
     throw new Error(
-      `Blog posts with a missing or unknown category:\n  ${invalid.join('\n  ')}\n` +
+      `Blog posts with a missing or unknown category:\n  ${invalid.join(
+        '\n  ',
+      )}\n` +
         `Valid categories: ${blogCategories.map((c) => c.slug).join(', ')}. ` +
         `See src/data/blogCategories.ts.`,
     )
