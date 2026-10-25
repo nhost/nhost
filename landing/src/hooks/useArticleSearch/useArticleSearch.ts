@@ -20,6 +20,10 @@ function searchableText(article: Article): string {
  *
  * With neither set, `results` is every article, so a page can list them all
  * through the same paging. The page resets whenever either filter changes.
+ *
+ * `statusMessage` describes the match count while filtering and is empty
+ * otherwise. Render it in an always-mounted `role="status"` element so screen
+ * readers announce result changes.
  */
 export default function useArticleSearch(articles: Article[], pageSize = 10) {
   const [query, setQueryState] = useState('')
@@ -48,6 +52,15 @@ export default function useArticleSearch(articles: Article[], pageSize = 10) {
     )
   }, [articles, trimmedQuery, tag, isFiltering, haystacks])
 
+  let statusMessage = ''
+
+  if (isFiltering) {
+    statusMessage =
+      results.length === 0
+        ? 'No posts match'
+        : `${results.length} ${results.length === 1 ? 'post' : 'posts'}`
+  }
+
   function setQuery(value: string) {
     setQueryState(value)
     setVisibleCount(pageSize)
@@ -65,6 +78,7 @@ export default function useArticleSearch(articles: Article[], pageSize = 10) {
     setTag,
     isFiltering,
     results,
+    statusMessage,
     visible: results.slice(0, visibleCount),
     hasMore: results.length > visibleCount,
     loadMore: () => setVisibleCount((count) => count + pageSize),

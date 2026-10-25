@@ -114,6 +114,7 @@ export default function BlogDirectory({
     setTag,
     isFiltering,
     results,
+    statusMessage,
     visible,
     hasMore,
     loadMore,
@@ -140,6 +141,10 @@ export default function BlogDirectory({
         />
 
         <BlogTagFilter tags={tags} selected={tag} onChange={setTag} />
+
+        <p role="status" className="sr-only">
+          {statusMessage}
+        </p>
       </div>
 
       {isFiltering ? (

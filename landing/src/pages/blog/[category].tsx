@@ -41,7 +41,8 @@ export default function BlogCategoryPage({
   // Only this category's posts reach the page, so search stays inside it.
   // Every post renders without paging, so the prerendered HTML links all of
   // them for crawlers and visitors without JavaScript.
-  const { query, setQuery, isFiltering, results } = useArticleSearch(articles)
+  const { query, setQuery, isFiltering, results, statusMessage } =
+    useArticleSearch(articles)
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
@@ -83,6 +84,10 @@ export default function BlogCategoryPage({
           onChange={setQuery}
           placeholder={`Search ${label}`}
         />
+
+        <p role="status" className="sr-only">
+          {statusMessage}
+        </p>
 
         {isFiltering && results.length === 0 ? (
           <p className="text-center text-sm text-white text-opacity-65">
