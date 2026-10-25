@@ -35,8 +35,7 @@ export default async function Account() {
       </Card>
 
       <p className="mt-2 text-center text-muted-foreground text-sm">
-        Edit this page in <Code>src/app/account/</Code>. Each sign-in setting
-        lives with its method in <Code>src/app/auth/</Code>.
+        Edit this page in <Code>src/app/account/</Code>.
       </p>
     </div>
   );

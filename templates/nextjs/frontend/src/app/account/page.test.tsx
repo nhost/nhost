@@ -91,13 +91,12 @@ describe('account page', () => {
     expect(html).not.toContain('New email');
   });
 
-  it('says where the page and its settings live in the starter', async () => {
+  it('says where the page lives in the starter', async () => {
     getVerifiedUser.mockResolvedValueOnce(user);
 
     const html = renderToStaticMarkup(await Account());
 
     expect(html).toContain('src/app/account/');
-    expect(html).toContain('src/app/auth/');
   });
 
   // The point of the section: a method with nothing to configure is still
