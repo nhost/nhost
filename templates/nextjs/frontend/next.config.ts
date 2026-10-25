@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
     // leaves room for the multipart framing around a file at
     // MAX_AVATAR_BYTES (src/app/account/avatar.ts).
     serverActions: { bodySizeLimit: '6mb' },
+    // Every page reads the session, so every page is dynamic, and by default
+    // the browser keeps none of them: going home and back to the account
+    // rendered both again on the server. Kept for 30 seconds, a page visited
+    // that recently comes back at once. Nothing goes stale that matters:
+    // signing in or out sets cookies in a Server Action, which clears this
+    // cache, and each change on the account page refreshes it.
+    staleTimes: { dynamic: 30 },
   },
   // The access token is readable by JS (see accessTokenCookieOptions in
   // src/lib/nhost/server.ts), so an XSS here can act as the user until that

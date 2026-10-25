@@ -21,3 +21,11 @@ describe('next config headers', () => {
     expect(csp).toContain("frame-ancestors 'none'");
   });
 });
+
+describe('next config client cache', () => {
+  // Next keeps no dynamic page in the browser by default, and every page here
+  // is dynamic, so without this each click renders again on the server.
+  it('keeps recently visited pages in the browser', () => {
+    expect(nextConfig.experimental?.staleTimes?.dynamic).toBeGreaterThan(0);
+  });
+});
