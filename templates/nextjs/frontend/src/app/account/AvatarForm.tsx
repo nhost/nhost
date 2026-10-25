@@ -141,16 +141,25 @@ export default function AvatarForm({
             card colour, so the button reads as cut out of the image. */}
         <Button
           type="button"
+          variant="secondary"
           size="icon"
           disabled={isBusy}
           aria-label="Upload a new avatar"
-          title="Upload a new avatar"
-          className="absolute right-0 bottom-0 size-6 rounded-full ring-2 ring-card"
+          title="Change photo"
+          className="absolute -right-0.5 -bottom-0.5 size-6.5 rounded-full ring-2 ring-card hover:bg-accent"
           onClick={() => input.current?.click()}
         >
-          <span aria-hidden="true" className="text-sm leading-none">
-            +
-          </span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            className="size-3"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
         </Button>
       </div>
 
@@ -167,8 +176,13 @@ export default function AvatarForm({
         </Button>
       ) : null}
 
+      {/* Narrow and centred under the avatar, which is the column it is in
+          now that the name sits beside it. */}
       {error ? (
-        <p role="alert" className="text-destructive text-sm">
+        <p
+          role="alert"
+          className="max-w-36 text-center text-destructive text-xs"
+        >
           {error}
         </p>
       ) : null}

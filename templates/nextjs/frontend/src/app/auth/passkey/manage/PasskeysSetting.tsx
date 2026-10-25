@@ -1,10 +1,10 @@
 import { listPasskeys } from '@/app/auth/passkey/manage/actions';
 import ManagePasskeys from '@/app/auth/passkey/manage/ManagePasskeys';
-import { ExpandableSetting } from '@/components/Setting';
+import { DialogSetting } from '@/components/Setting';
 
-// Read when the account page renders, not when the row is opened: the count
-// is the row's value, and adding or removing one refreshes the page, which
-// reads it again.
+// Read when the account page renders, not when the dialog opens: the names
+// are the row's value, and adding or removing one refreshes the page, which
+// reads them again.
 export default async function PasskeysSetting() {
   const { keys, error } = await listPasskeys();
   const count = keys?.length ?? 0;
@@ -15,14 +15,18 @@ export default async function PasskeysSetting() {
   } else if (count === 0) {
     value = 'None';
   } else {
-    value = `${count} ${count === 1 ? 'passkey' : 'passkeys'}`;
+    value = (keys ?? [])
+      .map((key) => key.nickname || 'Unnamed passkey')
+      .join(', ');
   }
 
   return (
-    <ExpandableSetting
+    <DialogSetting
       label="Passkeys"
       value={value}
-      action={count === 0 ? 'Add passkey' : 'Manage'}
+      action={count === 0 ? 'Add' : 'Manage'}
+      title={count === 0 ? 'Add a passkey' : 'Passkeys'}
+      description="Sign in with your fingerprint, face or device PIN."
     >
       {error ? (
         <p role="alert" className="text-destructive text-sm">
@@ -31,6 +35,6 @@ export default async function PasskeysSetting() {
       ) : (
         <ManagePasskeys keys={keys ?? []} />
       )}
-    </ExpandableSetting>
+    </DialogSetting>
   );
 }

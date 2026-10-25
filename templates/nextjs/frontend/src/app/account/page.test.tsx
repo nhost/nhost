@@ -67,8 +67,9 @@ describe('account page', () => {
 
     expect(html).toContain('user@example.com');
     expect(html).toContain('Ada');
-    expect(html).toContain('2026-10-13 16:00 UTC');
-    expect(html).toContain(user.id);
+    expect(html).toContain('Joined Oct 13, 2026');
+    // Cut short on the chip, and whole in its tooltip.
+    expect(html).toContain(`title="${user.id}"`);
     expect(html).toContain('src="https://avatars.example/ada"');
   });
 
@@ -80,14 +81,14 @@ describe('account page', () => {
     expect(html).toContain(`<li>Setting for ${user.id}</li>`);
   });
 
-  it('leads the settings with the address, closed until opened', async () => {
+  it('leads the settings with the address, its dialog shut', async () => {
     getVerifiedUser.mockResolvedValueOnce({ ...user, emailVerified: false });
 
     const html = renderToStaticMarkup(await Account());
 
-    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain('not verified');
-    expect(html).toContain('New email');
+    expect(html).not.toContain('New email');
   });
 
   it('says where the page and its settings live in the starter', async () => {

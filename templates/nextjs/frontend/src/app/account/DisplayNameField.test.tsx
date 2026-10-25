@@ -17,9 +17,12 @@ vi.mock('@/app/account/actions', () => ({ updateDisplayName }));
 let container: HTMLElement;
 let root: Root;
 
+// By its words, or by its name for one that is only an icon.
 const button = (label: string): HTMLButtonElement | undefined =>
   [...container.querySelectorAll('button')].find(
-    (candidate) => candidate.textContent === label,
+    (candidate) =>
+      candidate.textContent === label ||
+      candidate.getAttribute('aria-label') === label,
   );
 
 async function click(label: string): Promise<void> {
@@ -73,14 +76,14 @@ describe('display name field', () => {
   });
 
   it('opens on the current name', async () => {
-    await click('Edit');
+    await click('Edit name');
 
     expect(container.querySelector('input')?.value).toBe('Ada');
   });
 
   it('saves the new name, closes and re-reads the page', async () => {
     updateDisplayName.mockResolvedValueOnce({ success: true });
-    await click('Edit');
+    await click('Edit name');
     await type('Display name', 'Ada Lovelace');
 
     await submit();
@@ -92,7 +95,7 @@ describe('display name field', () => {
 
   it('shows the action error, stays open and does not re-read', async () => {
     updateDisplayName.mockResolvedValueOnce({ error: 'not applied' });
-    await click('Edit');
+    await click('Edit name');
 
     await submit();
 
@@ -104,13 +107,27 @@ describe('display name field', () => {
   // Otherwise the next edit would open on the abandoned text rather than on
   // what the account actually holds.
   it('forgets an abandoned edit', async () => {
-    await click('Edit');
+    await click('Edit name');
     await type('Display name', 'Someone else');
     await click('Cancel');
 
     expect(container.querySelector('form')).toBeNull();
-    await click('Edit');
+    await click('Edit name');
 
     expect(container.querySelector('input')?.value).toBe('Ada');
+  });
+
+  it('backs out on Escape', async () => {
+    await click('Edit name');
+    await act(async () =>
+      container
+        .querySelector('input')
+        ?.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+        ),
+    );
+
+    expect(container.querySelector('form')).toBeNull();
+    expect(updateDisplayName).not.toHaveBeenCalled();
   });
 });

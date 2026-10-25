@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ExpandableSetting, SettingsList } from '@/components/Setting';
+import { DialogClose } from '@/components/Dialog';
+import { DialogSetting, SettingsList } from '@/components/Setting';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -11,29 +12,46 @@ import { ExpandableSetting, SettingsList } from '@/components/Setting';
 let container: HTMLElement;
 let root: Root;
 
-const link = (action: string): HTMLButtonElement | undefined =>
-  [...container.querySelectorAll<HTMLButtonElement>('button')].find(
-    (button) =>
-      button.textContent === action ||
-      button.getAttribute('aria-label') === `Close: ${action}`,
+const button = (label: string): HTMLButtonElement | undefined =>
+  [...container.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent === label,
   );
 
-const isOpen = (action: string): boolean =>
-  link(action)?.getAttribute('aria-expanded') === 'true';
+async function click(label: string): Promise<void> {
+  await act(async () => button(label)?.click());
+}
 
-describe('settings list', () => {
+const dialog = (): HTMLDialogElement | null =>
+  container.querySelector('dialog');
+
+// A field that keeps what was typed in it, to tell a fresh form from a kept
+// one.
+function Draft() {
+  const [text, setText] = useState('');
+  return (
+    <>
+      <input value={text} onChange={(event) => setText(event.target.value)} />
+      <DialogClose />
+    </>
+  );
+}
+
+describe('dialog setting', () => {
   beforeEach(async () => {
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () =>
       root.render(
         <SettingsList>
-          <ExpandableSetting label="Email" value="a@b.c" action="Change email">
-            <p>Email form</p>
-          </ExpandableSetting>
-          <ExpandableSetting label="Password" value="•••" action="Change">
-            <p>Password form</p>
-          </ExpandableSetting>
+          <DialogSetting
+            label="Email"
+            value="a@b.c"
+            action="Change"
+            title="Change email"
+            description="A link goes to the new address."
+          >
+            <Draft />
+          </DialogSetting>
         </SettingsList>,
       ),
     );
@@ -44,27 +62,42 @@ describe('settings list', () => {
     container.remove();
   });
 
-  it('shows the label, the value and the link, all closed', () => {
+  it('shows the label, the value and the button, with the dialog shut', () => {
     expect(container.textContent).toContain('Emaila@b.c');
-    expect(isOpen('Change email')).toBe(false);
-    expect(isOpen('Change')).toBe(false);
+    expect(button('Change')?.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(dialog()?.open).toBe(false);
+    expect(dialog()?.querySelector('input')).toBeNull();
   });
 
-  it('keeps one row open at a time', async () => {
-    await act(async () => link('Change email')?.click());
-    expect(isOpen('Change email')).toBe(true);
+  it('opens the dialog, titled, from the row button', async () => {
+    await click('Change');
 
-    await act(async () => link('Change')?.click());
-    expect(isOpen('Change')).toBe(true);
-    expect(isOpen('Change email')).toBe(false);
+    expect(dialog()?.open).toBe(true);
+    expect(dialog()?.textContent).toContain('Change email');
+    expect(dialog()?.textContent).toContain('A link goes to the new address.');
+    expect(
+      container.querySelector(
+        `[id="${dialog()?.getAttribute('aria-labelledby')}"]`,
+      )?.textContent,
+    ).toBe('Change email');
   });
 
-  it('closes the open row from its own link, now a caret', async () => {
-    await act(async () => link('Change email')?.click());
-    const opened = link('Change email');
-    expect(opened?.getAttribute('aria-label')).toBe('Close: Change email');
+  // Otherwise the next opening would show whatever was abandoned in it.
+  it('closes from Cancel and opens fresh the next time', async () => {
+    await click('Change');
+    const input = dialog()?.querySelector('input') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set?.call(input, 'half typed');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
 
-    await act(async () => opened?.click());
-    expect(isOpen('Change email')).toBe(false);
+    await click('Cancel');
+    expect(dialog()?.open).toBe(false);
+
+    await click('Change');
+    expect(dialog()?.querySelector('input')?.value).toBe('');
   });
 });

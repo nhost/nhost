@@ -30,22 +30,26 @@ export default function PasswordRequirements({
       className={cn('flex flex-col items-center gap-1 text-sm', className)}
     >
       {passwordRequirements(password, confirm).map((rule) => (
-        <li key={rule.label} className="flex items-center gap-2">
+        // A dash while a rule is still open, so the list does not read as a
+        // row of failures before anything is typed. Green once it is met.
+        <li
+          key={rule.label}
+          className={cn(
+            'flex items-center gap-1.5',
+            rule.met ? 'text-success' : 'text-muted-foreground',
+          )}
+        >
           <span
             aria-hidden="true"
-            className={
-              rule.met
-                ? 'w-3 text-center text-foreground'
-                : 'w-3 text-center text-muted-foreground'
-            }
+            className="flex w-2.5 justify-center font-bold"
           >
-            {rule.met ? '✓' : '○'}
+            {rule.met ? (
+              '✓'
+            ) : (
+              <span className="h-0.5 w-2 rounded-full bg-muted-foreground/60" />
+            )}
           </span>
-          <span
-            className={rule.met ? 'text-foreground' : 'text-muted-foreground'}
-          >
-            {rule.label}
-          </span>
+          <span>{rule.label}</span>
           {/* The tick is decoration; this is the same state as words. */}
           <span className="sr-only">{rule.met ? 'met' : 'not met'}</span>
         </li>

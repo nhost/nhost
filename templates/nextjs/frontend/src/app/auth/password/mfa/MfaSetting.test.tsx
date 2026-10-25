@@ -38,10 +38,9 @@ async function render(active: boolean): Promise<void> {
 }
 
 const row = (): HTMLButtonElement | null =>
-  container.querySelector('button[aria-expanded]');
+  container.querySelector('button[aria-haspopup="dialog"]');
 
-const panel = (): HTMLElement | null =>
-  container.querySelector(`[id="${row()?.getAttribute('aria-controls')}"]`);
+const isOpen = (): boolean => container.querySelector('dialog')?.open ?? false;
 
 async function enterCode(code: string): Promise<void> {
   const input = container.querySelector('input') as HTMLInputElement;
@@ -76,13 +75,13 @@ describe('two-factor row', () => {
 
   it('says where the account stands without opening', async () => {
     await render(false);
-    expect(container.querySelector('li > div')?.textContent).toContain('Off');
-    expect(row()?.textContent).toContain('Turn on');
-    expect(panel()?.inert).toBe(true);
+    expect(container.querySelector('li')?.textContent).toContain('Off');
+    expect(row()?.textContent).toBe('Set up');
+    expect(isOpen()).toBe(false);
 
     await render(true);
-    expect(container.querySelector('li > div')?.textContent).toContain('On');
-    expect(row()?.textContent).toContain('Manage');
+    expect(container.querySelector('li')?.textContent).toContain('On');
+    expect(row()?.textContent).toBe('Turn off');
   });
 
   it('fetches a code to scan on opening, and turns on with the code', async () => {
@@ -95,7 +94,7 @@ describe('two-factor row', () => {
     await act(async () => row()?.click());
 
     expect(actions.generateMfa).toHaveBeenCalledTimes(1);
-    expect(panel()?.inert).toBe(false);
+    expect(isOpen()).toBe(true);
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
       'data:image/png;base64,qr',
     );
@@ -108,7 +107,7 @@ describe('two-factor row', () => {
 
     expect(actions.enableMfa).toHaveBeenCalledWith('123456');
     expect(refresh).toHaveBeenCalledTimes(1);
-    expect(panel()?.inert).toBe(true);
+    expect(isOpen()).toBe(false);
   });
 
   it('asks for a current code to turn it off, without a new secret', async () => {
@@ -136,7 +135,7 @@ describe('two-factor row', () => {
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'Invalid code',
     );
-    expect(panel()?.inert).toBe(false);
+    expect(isOpen()).toBe(true);
     expect(refresh).not.toHaveBeenCalled();
   });
 
@@ -152,13 +151,18 @@ describe('two-factor row', () => {
     expect(container.querySelector('input')).toBeNull();
   });
 
-  it('closes on a second press', async () => {
+  it('closes from Cancel without changing anything', async () => {
     await render(true);
 
     await act(async () => row()?.click());
-    expect(panel()?.inert).toBe(false);
+    expect(isOpen()).toBe(true);
 
-    await act(async () => row()?.click());
-    expect(panel()?.inert).toBe(true);
+    const cancel = [...container.querySelectorAll('dialog button')].find(
+      (candidate) => candidate.textContent === 'Cancel',
+    ) as HTMLButtonElement | undefined;
+    await act(async () => cancel?.click());
+
+    expect(isOpen()).toBe(false);
+    expect(actions.disableMfa).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,8 @@
 import type { User } from '@nhost/nhost-js/auth';
-import AccountSection from '@/app/account/AccountSection';
 import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import { methods } from '@/app/signin/methods';
-import { ExpandableSetting, SettingsList } from '@/components/Setting';
+import { DialogSetting, SettingsList } from '@/components/Setting';
+import { Card } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
 
 /**
@@ -34,18 +34,12 @@ export default function SignInSettings({ user }: { user: User }) {
   const unmanaged = methods.filter((method) => !method.account);
 
   return (
-    <AccountSection
-      title="Sign-in settings"
-      // The methods that configure nothing are the description. "The ways
-      // this account can sign in" said less than naming them does.
-      description={
-        unmanaged.length > 0
-          ? `${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, with nothing to set up here.`
-          : 'The ways this account can sign in.'
-      }
-    >
+    <Card className="gap-0 py-0">
+      <h2 className="px-5 pt-4 pb-1 font-semibold text-muted-foreground text-sm">
+        Sign-in
+      </h2>
       <SettingsList>
-        <ExpandableSetting
+        <DialogSetting
           label="Email"
           value={
             user.email ? (
@@ -59,20 +53,27 @@ export default function SignInSettings({ user }: { user: User }) {
               'None'
             )
           }
-          action="Change email"
+          action="Change"
+          title="Change email"
+          description="We'll send a link to the new address to confirm it."
         >
           <ChangeEmailForm
             email={user.email}
             verified={user.emailVerified}
             mailboxURL={localMailboxURL()}
           />
-        </ExpandableSetting>
+        </DialogSetting>
         {methods.flatMap((method) =>
           Object.entries(method.account ?? {}).map(([name, Setting]) => (
             <Setting key={`${method.href}#${name}`} user={user} />
           )),
         )}
       </SettingsList>
-    </AccountSection>
+      {unmanaged.length > 0 ? (
+        <p className="border-t px-5 py-3 text-muted-foreground text-xs">
+          {`${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, with nothing to set up here.`}
+        </p>
+      ) : null}
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
 import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
-import { ExpandableSetting } from '@/components/Setting';
+import { DialogSetting } from '@/components/Setting';
 
 // The value is a mask, not a fact: the auth service never says whether an
 // account has a password, and one made by magic link has none until it is
@@ -7,12 +7,14 @@ import { ExpandableSetting } from '@/components/Setting';
 // is not asked for.
 export default function ChangePasswordSetting() {
   return (
-    <ExpandableSetting
+    <DialogSetting
       label="Password"
       value="••••••••"
-      action="Change password"
+      action="Change"
+      title="Change password"
+      description="You'll be signed out everywhere, this device included."
     >
       <ChangePasswordForm />
-    </ExpandableSetting>
+    </DialogSetting>
   );
 }

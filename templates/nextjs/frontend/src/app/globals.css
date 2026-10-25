@@ -25,6 +25,7 @@
   --accent: oklch(0.32 0 0);
   --accent-foreground: oklch(0.97 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.762 0.154 159.4);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.6 0 0);
@@ -50,6 +51,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -62,6 +64,11 @@
 
   html {
     scrollbar-gutter: stable;
+  }
+
+  /* A modal dialog makes the page under it inert but leaves it scrolling. */
+  html:has(dialog:modal) {
+    overflow: hidden;
   }
 
   body {

@@ -3,11 +3,12 @@
 import { type FormEvent, useId, useState } from 'react';
 import { changeEmail, resendVerification } from '@/app/account/actions';
 import CheckYourInbox from '@/components/CheckYourInbox';
+import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// What the page shows once a link has gone out: the next step is in the
+// What the dialog shows once a link has gone out: the next step is in the
 // inbox.
 type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
 
@@ -16,9 +17,8 @@ type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
  *
  * A change is not applied here: the auth service sends a confirmation link
  * to the new address, and the account only moves when that link is opened.
- * Which is the reason this is a row with its own form rather than a field
- * on the profile, where an edit that visibly changes nothing reads as a
- * failure.
+ * So the dialog ends on where the link went rather than closing on a toast,
+ * since nothing on the page will have changed yet.
  */
 export default function ChangeEmailForm({
   email,
@@ -78,23 +78,26 @@ export default function ChangeEmailForm({
 
   if (sent) {
     return (
-      <div className="flex flex-col gap-2 text-sm" role="status">
-        <CheckYourInbox url={mailboxURL} />
-        <p className="text-muted-foreground">
-          {sent.kind === 'change'
-            ? `We sent a confirmation link to ${sent.to}. The address changes when you open it.`
-            : `Another verification link is on its way to ${email}.`}
-        </p>
+      <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1 text-sm" role="status">
+          <CheckYourInbox url={mailboxURL} />
+          <p className="text-muted-foreground">
+            {sent.kind === 'change'
+              ? `We sent a confirmation link to ${sent.to}. The address changes when you open it.`
+              : `Another verification link is on its way to ${email}.`}
+          </p>
+        </div>
+        <DialogFooter>
+          <DialogClose>Done</DialogClose>
+        </DialogFooter>
       </div>
     );
   }
 
-  // Narrow and centred: an address is not long, and stretched across the
-  // row the field read as asking for a paragraph.
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-col gap-4">
+    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
       {email && !verified ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
           <p className="text-destructive text-sm">
             This address has not been verified.
           </p>
@@ -110,30 +113,36 @@ export default function ChangeEmailForm({
         </div>
       ) : null}
 
-      <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+      <div className="flex flex-col gap-2">
         <Label htmlFor={emailId}>New email</Label>
-        <div className="flex items-center gap-2">
-          <Input
-            id={emailId}
-            type="email"
-            autoComplete="email"
-            required
-            value={newEmail}
-            onChange={(event) => setNewEmail(event.target.value)}
-            disabled={isPending}
-            className="min-w-0 flex-1"
-          />
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'Sending…' : 'Send link'}
-          </Button>
-        </div>
+        <Input
+          id={emailId}
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          required
+          value={newEmail}
+          onChange={(event) => setNewEmail(event.target.value)}
+          disabled={isPending}
+        />
+      </div>
 
-        {error ? (
-          <p role="alert" className="text-destructive text-sm">
-            {error}
-          </p>
-        ) : null}
-      </form>
-    </div>
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
+
+      <DialogFooter>
+        <DialogClose disabled={isPending} />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={isPending || !newEmail.includes('@')}
+        >
+          {isPending ? 'Sending…' : 'Send link'}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }

@@ -40,7 +40,10 @@ function type(input: HTMLInputElement, value: string): void {
 }
 
 const row = (): HTMLButtonElement | null =>
-  container.querySelector('button[aria-expanded]');
+  container.querySelector('button[aria-haspopup="dialog"]');
+
+const dialog = (): HTMLDialogElement | null =>
+  container.querySelector('dialog');
 
 async function submit(password: string): Promise<void> {
   await act(async () => row()?.click());
@@ -68,22 +71,42 @@ describe('change password row, through a change', () => {
     container.remove();
   });
 
-  it('opens the form in place and closes it again', async () => {
+  it('opens the form in a dialog and closes it again', async () => {
     await render(<ChangePasswordSetting />);
-    const panel = (): HTMLElement | null =>
-      container.querySelector(`[id="${row()?.getAttribute('aria-controls')}"]`);
 
-    expect(row()?.getAttribute('aria-expanded')).toBe('false');
-    expect(panel()?.inert).toBe(true);
+    expect(dialog()?.open).toBe(false);
+    expect(dialog()?.querySelector('form')).toBeNull();
 
     await act(async () => row()?.click());
 
-    expect(row()?.getAttribute('aria-expanded')).toBe('true');
-    expect(panel()?.inert).toBe(false);
+    expect(dialog()?.open).toBe(true);
+    expect(dialog()?.textContent).toContain('signed out everywhere');
 
+    const cancel = [...(dialog()?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent === 'Cancel',
+    );
+    await act(async () => cancel?.click());
+
+    expect(dialog()?.open).toBe(false);
+  });
+
+  it('holds the change back until both entries meet the rules', async () => {
+    await render(<ChangePasswordSetting />);
     await act(async () => row()?.click());
+    const change = (): HTMLButtonElement | null | undefined =>
+      dialog()?.querySelector('button[type="submit"]');
+    const [password, confirm] = dialog()?.querySelectorAll('input') ?? [];
 
-    expect(panel()?.inert).toBe(true);
+    expect(change()?.disabled).toBe(true);
+
+    await act(async () => {
+      type(password, 'a new password');
+      type(confirm, 'a new passwor');
+    });
+    expect(change()?.disabled).toBe(true);
+
+    await act(async () => type(confirm, 'a new password'));
+    expect(change()?.disabled).toBe(false);
   });
 
   it('keeps the changed card when the page comes back as a redirect', async () => {

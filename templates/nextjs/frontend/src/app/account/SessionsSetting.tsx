@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import ConfirmInPlace from '@/app/account/ConfirmInPlace';
+import ConfirmAction from '@/app/account/ConfirmAction';
+import { DialogSetting } from '@/components/Setting';
 import { signOut } from '@/lib/nhost/actions';
 
 /**
- * Signing out everywhere, which is the one worth a section.
+ * Signing out everywhere, which is the one worth a row.
  *
  * Signing out of this browser alone is in the nav, on every page. Repeating
  * it here only made the visitor choose between two buttons that read alike.
@@ -14,7 +15,7 @@ import { signOut } from '@/lib/nhost/actions';
  * other device signed in to the account is signed out with it, and nothing
  * warns them.
  */
-export default function SignOutCard() {
+export default function SessionsSetting() {
   const router = useRouter();
 
   const handleSignOut = async (): Promise<string | undefined> => {
@@ -34,22 +35,20 @@ export default function SignOutCard() {
   };
 
   return (
-    <ConfirmInPlace
-      title="Sessions"
-      description="Revokes every session this account holds, here and anywhere else."
-      // Red like the delete below it: a visitor on another device loses
-      // whatever they were doing, with no warning of their own.
-      warning={
-        <span className="text-destructive">
-          Every device signed in to this account will be signed out, including
-          this one.
-        </span>
-      }
-      start="Sign out of all devices"
-      confirm="Sign out everywhere"
-      pending="Signing out…"
-      destructive
-      onConfirm={handleSignOut}
-    />
+    <DialogSetting
+      label="Sessions"
+      // Left out on a phone, where the button takes the row and the words
+      // were cut to a letter.
+      value={<span className="max-sm:hidden">Signed in on this device</span>}
+      action="Sign out everywhere"
+      title="Sign out everywhere?"
+      description="Every device signed in to this account will be signed out, including this one."
+    >
+      <ConfirmAction
+        confirm="Sign out everywhere"
+        pending="Signing out…"
+        onConfirm={handleSignOut}
+      />
+    </DialogSetting>
   );
 }

@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import SignOutCard from '@/app/account/SignOutCard';
+import SessionsSetting from '@/app/account/SessionsSetting';
 
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 const signOut = vi.hoisted(() => vi.fn());
@@ -17,21 +17,32 @@ vi.mock('@/lib/nhost/actions', () => ({ signOut }));
 let container: HTMLElement;
 let root: Root;
 
-async function click(label: string): Promise<void> {
-  const button = [...container.querySelectorAll('button')].find(
+const dialog = (): HTMLDialogElement | null =>
+  container.querySelector('dialog');
+
+// The row's button and the one that acts share their words, so each is
+// looked for on its own side of the dialog.
+async function clickRow(): Promise<void> {
+  await act(async () =>
+    container.querySelector<HTMLButtonElement>('li > button')?.click(),
+  );
+}
+
+async function clickInDialog(label: string): Promise<void> {
+  const button = [...(dialog()?.querySelectorAll('button') ?? [])].find(
     (candidate) => candidate.textContent === label,
   );
   await act(async () => button?.click());
 }
 
-describe('sign-out card', () => {
+describe('sessions setting', () => {
   beforeEach(async () => {
     router.push.mockReset();
     router.refresh.mockReset();
     signOut.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
-    await act(async () => root.render(<SignOutCard />));
+    await act(async () => root.render(<SessionsSetting />));
   });
 
   afterEach(() => {
@@ -39,48 +50,45 @@ describe('sign-out card', () => {
     container.remove();
   });
 
-  // This reaches past the browser it is clicked in, so the first press only
-  // asks.
-  it('does not sign out on the first press', async () => {
-    await click('Sign out of all devices');
+  // This reaches past the browser it is clicked in, so the row only asks.
+  it('does not sign out from the row', async () => {
+    await clickRow();
 
     expect(signOut).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('including this one');
-    expect(
-      [...container.querySelectorAll('button')]
-        .find((candidate) => candidate.textContent === 'Sign out everywhere')
-        ?.closest('[inert]'),
-    ).toBeNull();
+    expect(dialog()?.open).toBe(true);
+    expect(dialog()?.textContent).toContain('including this one');
   });
 
   // Signing out of this browser alone is in the nav, on every page, so the
   // only thing here is the one that covers the account.
-  it('signs out everywhere on the second press and goes home', async () => {
+  it('signs out everywhere once confirmed and goes home', async () => {
     signOut.mockResolvedValueOnce({});
 
-    await click('Sign out of all devices');
-    await click('Sign out everywhere');
+    await clickRow();
+    await clickInDialog('Sign out everywhere');
 
     expect(signOut).toHaveBeenCalledWith({ all: true });
     expect(router.push).toHaveBeenCalledWith('/');
   });
 
   it('backs out without calling the action', async () => {
-    await click('Sign out of all devices');
-    await click('Cancel');
+    await clickRow();
+    await clickInDialog('Cancel');
 
     expect(signOut).not.toHaveBeenCalled();
+    expect(dialog()?.open).toBe(false);
   });
 
-  it('stays put and says why when the action fails', async () => {
+  it('stays open and says why when the action fails', async () => {
     signOut.mockResolvedValueOnce({ error: 'still signed in' });
 
-    await click('Sign out of all devices');
-    await click('Sign out everywhere');
+    await clickRow();
+    await clickInDialog('Sign out everywhere');
 
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
+    expect(dialog()?.querySelector('[role="alert"]')?.textContent).toBe(
       'still signed in',
     );
+    expect(dialog()?.open).toBe(true);
     expect(router.push).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
-import DeleteAccountCard from '@/app/account/DeleteAccountCard';
+import DeleteAccountSetting from '@/app/account/DeleteAccountSetting';
 import ProfileSummary from '@/app/account/ProfileSummary';
+import SessionsSetting from '@/app/account/SessionsSetting';
 import SignInSettings from '@/app/account/SignInSettings';
-import SignOutCard from '@/app/account/SignOutCard';
 import { signInHref } from '@/app/signin/destination';
 import Code from '@/components/Code';
+import { SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 import { getVerifiedUser } from '@/lib/nhost/server';
 
@@ -21,20 +22,19 @@ export default async function Account() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* One card, not one per section: these are all settings for the same
-          account, and separate cards left a row of rounded corners down the
-          page. The card's own padding and gap come off so each section sets
-          its own, divide-y draws the rule between them, and overflow-hidden
-          keeps the first and last section square inside the rounded edge. */}
-      <Card className="gap-0 divide-y overflow-hidden py-0">
-        <ProfileSummary user={user} />
-        <SignInSettings user={user} />
-        <SignOutCard />
-        <DeleteAccountCard />
+    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      <ProfileSummary user={user} />
+      <SignInSettings user={user} />
+      {/* One line each, untitled: the label says what the row is, and what
+          each button does is spelled out in the dialog it opens. */}
+      <Card className="gap-0 py-0">
+        <SettingsList>
+          <SessionsSetting />
+          <DeleteAccountSetting />
+        </SettingsList>
       </Card>
 
-      <p className="mt-6 text-center text-muted-foreground text-sm">
+      <p className="mt-2 text-center text-muted-foreground text-sm">
         Edit this page in <Code>src/app/account/</Code>. Each sign-in setting
         lives with its method in <Code>src/app/auth/</Code>.
       </p>

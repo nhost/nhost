@@ -4,6 +4,8 @@ import { type FormEvent, useId, useState } from 'react';
 import { changePassword } from '@/app/account/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
+import { passwordRequirements } from '@/app/auth/password/requirements';
+import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +21,10 @@ export default function ChangePasswordForm() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
+
+  const ready = passwordRequirements(password, confirm).every(
+    (rule) => rule.met,
+  );
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -47,13 +53,9 @@ export default function ChangePasswordForm() {
   };
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-      {/* The two fields and the button in one row: the account row is wide,
-          and there is nothing else to fill it with. They stack on a narrow
-          screen. items-end lines the button up with the inputs rather than
-          with their labels. What changing it costs is said where it is
-          done, since nothing on the row says it. */}
-      <div className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
+    // What changing it costs is the dialog's description, above this.
+    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor={passwordId}>New password</Label>
           <Input
@@ -82,27 +84,26 @@ export default function ChangePasswordForm() {
           />
         </div>
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Changing…' : 'Change password'}
-        </Button>
+        <PasswordRequirements
+          id={rulesId}
+          password={password}
+          confirm={confirm}
+          className="flex-row flex-wrap items-start gap-x-4 text-xs"
+        />
       </div>
-
-      <PasswordRequirements
-        id={rulesId}
-        password={password}
-        confirm={confirm}
-        className="flex-row flex-wrap items-start gap-x-4"
-      />
-
-      <p className="text-muted-foreground text-sm">
-        Changing it signs every session out, this browser included.
-      </p>
 
       {error ? (
         <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       ) : null}
+
+      <DialogFooter>
+        <DialogClose disabled={isPending} />
+        <Button type="submit" size="sm" disabled={isPending || !ready}>
+          {isPending ? 'Changing…' : 'Change password'}
+        </Button>
+      </DialogFooter>
     </form>
   );
 }
