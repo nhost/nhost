@@ -33,8 +33,9 @@ export interface Article {
   /**
    * Puts the post in the featured feed at the top of /blog, which shows the
    * newest five; older ones list in their category as usual. Reserved for
-   * important announcements and technical deep dives: the things worth
-   * leading with. Roundups, guides, and comparisons stay in their category.
+   * important announcements, technical deep dives, and quarterly product
+   * updates: the things worth leading with. Monthly roundups, guides, and
+   * comparisons stay in their category.
    */
   featured?: boolean
   slug: string
