@@ -82,6 +82,11 @@ func chooseImageFormat( //nolint: cyclop
 	case api.Auto:
 		for _, acceptHeader := range acceptHeader {
 			acceptedTypes := strings.Split(acceptHeader, ",")
+			for i, t := range acceptedTypes {
+				mediaType := strings.TrimSpace(t)
+				mediaType, _, _ = strings.Cut(mediaType, ";")
+				acceptedTypes[i] = mediaType
+			}
 			switch {
 			case slices.Contains(acceptedTypes, "image/avif"):
 				return originalFormat, image.ImageTypeAVIF, nil
