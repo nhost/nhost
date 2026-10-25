@@ -15,6 +15,49 @@ export function getFeaturedArticles(articles: Article[]): Article[] {
   return articles.filter((article) => article.featured)
 }
 
+/**
+ * Tags never offered as filters: catch-alls on so many posts that they narrow
+ * almost nothing, and tags that repeat a category, which the category columns
+ * and pages already cover.
+ */
+const EXCLUDED_TAGS = new Set([
+  'Product',
+  'Company',
+  'Guide',
+  'Guides',
+  'Engineering',
+  'Comparison',
+  'Customer',
+])
+
+/** Tags always offered as filters, even below `minPosts`: topics we push. */
+const INCLUDED_TAGS = new Set(['MCP'])
+
+/**
+ * Tags worth offering as filters: on at least `minPosts` posts or in
+ * `INCLUDED_TAGS`, and not in `EXCLUDED_TAGS`. Most tags appear once, which
+ * makes them noise as buttons. Ordered by how many posts carry them, then
+ * alphabetically.
+ */
+export function getPopularTags(articles: Article[], minPosts = 3): string[] {
+  const counts = new Map<string, number>()
+
+  for (const article of articles) {
+    for (const tag of article.tags ?? []) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    }
+  }
+
+  return Array.from(counts)
+    .filter(
+      ([tag, count]) =>
+        (count >= minPosts || INCLUDED_TAGS.has(tag)) &&
+        !EXCLUDED_TAGS.has(tag),
+    )
+    .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
+    .map(([tag]) => tag)
+}
+
 export interface ArticlesByCategory {
   slug: BlogCategorySlug
   label: string

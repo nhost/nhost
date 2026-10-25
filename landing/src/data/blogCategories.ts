@@ -14,7 +14,7 @@
  */
 
 export interface BlogCategory {
-  /** URL segment, used by /blog/category/<slug>. */
+  /** URL segment, used by /blog/<slug>. */
   slug: string
   /** Heading shown on /blog and on the category page. */
   label: string
@@ -39,7 +39,7 @@ export const blogCategories = [
     description: 'Tutorials, templates, and walkthroughs.',
   },
   {
-    slug: 'customers',
+    slug: 'customer-stories',
     label: 'Customer stories',
     description: 'What teams have shipped on Nhost.',
   },

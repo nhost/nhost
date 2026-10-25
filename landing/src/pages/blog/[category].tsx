@@ -1,4 +1,6 @@
-import { BlogPostCard } from '@/components/blog/BlogPostCard'
+import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
+import { BlogSearchField } from '@/components/blog/BlogSearchField'
+import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
@@ -7,12 +9,11 @@ import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { blogCategories, getBlogCategory } from '@/data/blogCategories'
+import { useArticleSearch } from '@/hooks/useArticleSearch'
 import { getAllArticles } from '@/lib/blog'
 import { buildSeo } from '@/utils/seo'
 import { Article } from '@/utils/types'
 import { GetStaticPaths, GetStaticProps } from 'next'
-import Image from 'next/image'
-import { useState } from 'react'
 
 /** How many posts show at first, and how many more each "Load more" adds. */
 const PAGE_SIZE = 10
@@ -41,7 +42,9 @@ export default function BlogCategoryPage({
   articles,
   seo,
 }: BlogCategoryPageProps) {
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  // Only this category's posts reach the page, so search stays inside it.
+  const { query, setQuery, isFiltering, results, visible, hasMore, loadMore } =
+    useArticleSearch(articles, PAGE_SIZE)
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
@@ -72,37 +75,31 @@ export default function BlogCategoryPage({
         component="section"
         className="grid max-w-5xl grid-flow-row gap-10 pb-16 lg:pb-28"
       >
-        <Link href="/blog">Back to all posts</Link>
+        <Link href="/blog">
+          <ArrowLeftIcon /> Back to all posts
+        </Link>
 
-        <div className="grid gap-6 gap-y-16 md:grid-cols-2">
-          {articles.slice(0, visibleCount).map((article) => (
-            <BlogPostCard
-              key={article.slug}
-              image={
-                <Image
-                  src={article.image}
-                  width={400}
-                  height={225}
-                  alt={`Cover of ${article.title}`}
-                  className="h-full w-full object-contain"
-                  quality={90}
-                />
-              }
-              title={article.title}
-              description={article.description}
-              href={`/blog/${article.slug}`}
-              tags={article.tags}
-              authors={article.authors}
-              date={article.date}
-            />
-          ))}
-        </div>
+        <BlogSearchField
+          id="blog-category-search"
+          label={`Search ${label} posts`}
+          value={query}
+          onChange={setQuery}
+          placeholder={`Search ${label}`}
+        />
 
-        {articles.length > visibleCount && (
+        {isFiltering && results.length === 0 ? (
+          <p className="text-center text-sm text-white text-opacity-65">
+            No posts match.
+          </p>
+        ) : (
+          <BlogPostGrid articles={visible} />
+        )}
+
+        {hasMore && (
           <Button
             type="button"
             variant="outlined"
-            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            onClick={loadMore}
             className="mt-10 justify-self-center"
           >
             Load more
@@ -113,12 +110,27 @@ export default function BlogCategoryPage({
   )
 }
 
-export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: blogCategories.map((category) => ({
-    params: { category: category.slug },
-  })),
-  fallback: false,
-})
+export const getStaticPaths: GetStaticPaths = async () => {
+  // Categories share /blog/<slug> with posts, and a post page wins over this
+  // dynamic route, so a post named after a category would hide the category.
+  const postSlugs = new Set(
+    (await getAllArticles()).map((article) => article.slug),
+  )
+  const clash = blogCategories.find((category) => postSlugs.has(category.slug))
+
+  if (clash) {
+    throw new Error(
+      `Blog post "${clash.slug}" uses the same URL as the "${clash.label}" category. Rename the post.`,
+    )
+  }
+
+  return {
+    paths: blogCategories.map((category) => ({
+      params: { category: category.slug },
+    })),
+    fallback: false,
+  }
+}
 
 export const getStaticProps: GetStaticProps<BlogCategoryPageProps> = async ({
   params,
@@ -140,7 +152,7 @@ export const getStaticProps: GetStaticProps<BlogCategoryPageProps> = async ({
       description: category.description,
       articles,
       seo: {
-        path: `/blog/category/${slug}`,
+        path: `/blog/${slug}`,
         // `_app.tsx` appends "| Nhost" via titleTemplate, so no suffix here.
         title: `${category.label} on the Nhost blog`,
         description: category.description,

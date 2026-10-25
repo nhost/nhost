@@ -1,35 +1,15 @@
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
-import { Button } from '@/components/common/Button'
+import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { Article } from '@/utils/types'
 import Image from 'next/image'
-import { useState } from 'react'
 
 export interface BlogFeaturedFeedProps {
-  /** Posts flagged `featured`, newest first. */
+  /** The featured posts to show, newest first. The first one leads. */
   articles: Article[]
-  /**
-   * How many posts show before "Load more".
-   *
-   * @default 3
-   */
-  initialCount?: number
-  /**
-   * How many more posts each "Load more" reveals.
-   *
-   * @default 10
-   */
-  pageSize?: number
 }
 
-export default function BlogFeaturedFeed({
-  articles,
-  initialCount = 3,
-  pageSize = 10,
-}: BlogFeaturedFeedProps) {
-  const [visibleCount, setVisibleCount] = useState(initialCount)
-
-  const [leadArticle, ...otherArticles] = articles.slice(0, visibleCount)
-  const remaining = articles.length - visibleCount
+export default function BlogFeaturedFeed({ articles }: BlogFeaturedFeedProps) {
+  const [leadArticle, ...otherArticles] = articles
 
   if (!leadArticle) {
     return null
@@ -61,42 +41,7 @@ export default function BlogFeaturedFeed({
         highlighted
       />
 
-      {otherArticles.length > 0 && (
-        <div className="grid gap-6 gap-y-16 md:grid-cols-2">
-          {otherArticles.map((article) => (
-            <BlogPostCard
-              key={article.slug}
-              image={
-                <Image
-                  src={article.image}
-                  width={400}
-                  height={225}
-                  alt={`Cover of ${article.title}`}
-                  className="h-full w-full object-contain"
-                  quality={90}
-                />
-              }
-              title={article.title}
-              description={article.description}
-              href={`/blog/${article.slug}`}
-              tags={article.tags}
-              authors={article.authors}
-              date={article.date}
-            />
-          ))}
-        </div>
-      )}
-
-      {remaining > 0 && (
-        <Button
-          type="button"
-          variant="outlined"
-          onClick={() => setVisibleCount((count) => count + pageSize)}
-          className="mt-10 justify-self-center"
-        >
-          Load more
-        </Button>
-      )}
+      {otherArticles.length > 0 && <BlogPostGrid articles={otherArticles} />}
     </div>
   )
 }

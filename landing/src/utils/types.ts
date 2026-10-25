@@ -31,7 +31,8 @@ export interface Article {
    */
   category: BlogCategorySlug
   /**
-   * Shows the post in the featured feed at the top of /blog. Reserved for
+   * Puts the post in the featured feed at the top of /blog, which shows the
+   * newest five; older ones list in their category as usual. Reserved for
    * important announcements and technical deep dives: the things worth
    * leading with. Roundups, guides, and comparisons stay in their category.
    */
