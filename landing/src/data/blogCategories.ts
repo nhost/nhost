@@ -42,7 +42,7 @@ export const blogCategories = [
   {
     slug: 'community',
     label: 'Community',
-    description: 'Customer stories and projects built by the Nhost community.',
+    description: 'Customer stories and projects built by our community.',
   },
   {
     slug: 'company',
