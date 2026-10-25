@@ -51,6 +51,20 @@ func mimeTypeToImageType(mimeType string) (image.ImageType, *APIError) {
 	}
 }
 
+func normalizeAcceptMediaTypes(acceptHeader string) []string {
+	rawTypes := strings.Split(acceptHeader, ",")
+	types := make([]string, 0, len(rawTypes))
+	for _, rawType := range rawTypes {
+		mediaType := strings.TrimSpace(rawType)
+		mediaType, _, _ = strings.Cut(mediaType, ";")
+		if mediaType != "" {
+			types = append(types, mediaType)
+		}
+	}
+
+	return types
+}
+
 func chooseImageFormat( //nolint: cyclop
 	params ImageManipulationOptionsGetter,
 	mimeType string,
@@ -81,7 +95,7 @@ func chooseImageFormat( //nolint: cyclop
 		return originalFormat, image.ImageTypeHEIC, nil
 	case api.Auto:
 		for _, acceptHeader := range acceptHeader {
-			acceptedTypes := strings.Split(acceptHeader, ",")
+			acceptedTypes := normalizeAcceptMediaTypes(acceptHeader)
 			switch {
 			case slices.Contains(acceptedTypes, "image/avif"):
 				return originalFormat, image.ImageTypeAVIF, nil
