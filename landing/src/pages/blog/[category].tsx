@@ -1,7 +1,6 @@
 import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { BlogSearchField } from '@/components/blog/BlogSearchField'
 import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
-import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
@@ -14,9 +13,6 @@ import { getAllArticles } from '@/lib/blog'
 import { buildSeo } from '@/utils/seo'
 import { Article } from '@/utils/types'
 import { GetStaticPaths, GetStaticProps } from 'next'
-
-/** How many posts show at first, and how many more each "Load more" adds. */
-const PAGE_SIZE = 10
 
 export interface BlogCategoryPageProps {
   label: string
@@ -43,8 +39,9 @@ export default function BlogCategoryPage({
   seo,
 }: BlogCategoryPageProps) {
   // Only this category's posts reach the page, so search stays inside it.
-  const { query, setQuery, isFiltering, results, visible, hasMore, loadMore } =
-    useArticleSearch(articles, PAGE_SIZE)
+  // Every post renders without paging, so the prerendered HTML links all of
+  // them for crawlers and visitors without JavaScript.
+  const { query, setQuery, isFiltering, results } = useArticleSearch(articles)
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
@@ -92,18 +89,7 @@ export default function BlogCategoryPage({
             No posts match.
           </p>
         ) : (
-          <BlogPostGrid articles={visible} />
-        )}
-
-        {hasMore && (
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={loadMore}
-            className="mt-10 justify-self-center"
-          >
-            Load more
-          </Button>
+          <BlogPostGrid articles={results} />
         )}
       </Container>
     </Layout>
