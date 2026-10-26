@@ -17,15 +17,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
+import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hooks/useScheduleDeployment';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
-import {
-  GetOrganizationsDocument,
-  useInsertPipelineRunMutation,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
 
 function CommitRef({ commitRef }: { commitRef: string | null | undefined }) {
   const isCommitSHA = /^[\da-f]{40}$/i.test(commitRef ?? '');
@@ -63,7 +58,7 @@ export default function DeploymentListItem({
 }: DeploymentListItemProps) {
   const { project } = useProject();
   const { org } = useCurrentOrg();
-  const userData = useUserData();
+  const { schedule, scheduling } = useScheduleDeployment();
 
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
   const relativeDateOfDeployment = deploymentDate
@@ -72,41 +67,10 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
-    refetchQueries: [
-      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
-    ],
-  });
-
   async function redeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
     event.preventDefault();
-
-    const insertPromise = insertPipelineRun({
-      variables: {
-        object: {
-          input: {
-            name: 'nhost-backend-build',
-            app_id: project?.id,
-            commit_sha: deployment.commitSHA,
-            commit_user_name: deployment.commitUserName,
-            commit_user_avatar_url: deployment.commitUserAvatarUrl,
-            commit_message: deployment.commitMessage,
-          },
-        },
-      },
-    });
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await insertPromise;
-      },
-      {
-        loadingMessage: 'Scheduling deployment...',
-        successMessage: 'Deployment has been scheduled successfully.',
-        errorMessage: 'An error occurred when scheduling deployment.',
-      },
-    );
+    await schedule(deployment);
   }
 
   return (
@@ -149,7 +113,7 @@ export default function DeploymentListItem({
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={disableRedeploy || loading}
+                    disabled={disableRedeploy || scheduling}
                     onClick={redeploy}
                     className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"

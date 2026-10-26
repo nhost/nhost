@@ -1,7 +1,10 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
-import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
+import type {
+  InsertPipelineRunMutationVariables,
+  UnifiedDeploymentRowFragment,
+} from '@/generated/graphql';
 import {
   mockApplication,
   mockMatchMediaValue,
@@ -38,11 +41,13 @@ const deployment: UnifiedDeploymentRowFragment = {
   startedAt: '2026-10-19T12:01:00Z',
   endedAt: '2026-10-19T12:02:00Z',
 };
+const requests: InsertPipelineRunMutationVariables[] = [];
 const server = setupServer(
   tokenQuery,
   http.post('https://local.graphql.local.nhost.run/v1', async ({ request }) => {
-    const { operationName } = (await request.json()) as {
+    const { operationName, variables } = (await request.json()) as {
       operationName: string;
+      variables: InsertPipelineRunMutationVariables;
     };
     switch (operationName) {
       case 'getProject':
@@ -50,6 +55,24 @@ const server = setupServer(
       case 'getOrganization':
         return HttpResponse.json({
           data: { organizations: [mockOrganization] },
+        });
+      case 'GetOrganizations':
+        return HttpResponse.json({ data: { organizations: [] } });
+      case 'InsertPipelineRun':
+        requests.push(variables);
+        return HttpResponse.json({
+          data: {
+            insertPipelineRun: {
+              id: 'new',
+              name: 'nhost-backend-build',
+              status: 'pending',
+              appId: deployment.appId,
+              input: variables.object.input,
+              createdAt: deployment.createdAt,
+              startedAt: null,
+              endedAt: null,
+            },
+          },
         });
       default:
         return HttpResponse.json({ data: {} });
@@ -66,6 +89,7 @@ beforeAll(() => {
 beforeEach(() => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
   vi.mocked(mockRouter.push).mockClear();
+  requests.length = 0;
 });
 afterEach(() => {
   server.resetHandlers();
@@ -73,6 +97,29 @@ afterEach(() => {
   toast.remove();
 });
 afterAll(() => server.close());
+
+it('redeploys the commit of the row', async () => {
+  render(
+    <ul>
+      <DeploymentListItem deployment={deployment} showRedeploy />
+    </ul>,
+  );
+
+  await new TestUserEvent().click(
+    await screen.findByRole('button', { name: 'Redeploy' }),
+  );
+
+  await waitFor(() => expect(requests).toHaveLength(1));
+  expect(requests[0].object.input).toEqual({
+    name: 'nhost-backend-build',
+    app_id: mockApplication.id,
+    commit_sha: deployment.commitSHA,
+    commit_message: deployment.commitMessage,
+    commit_user_name: deployment.commitUserName,
+    commit_user_avatar_url: deployment.commitUserAvatarUrl,
+  });
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
 
 it.each([
   {
