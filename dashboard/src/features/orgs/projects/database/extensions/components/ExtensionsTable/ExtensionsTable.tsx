@@ -11,6 +11,7 @@ import {
   InstalledBadge,
 } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
+import { ExtensionPreloadStatus } from '@/features/orgs/projects/database/extensions/components/ExtensionPreloadStatus';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionVersionLabel } from '@/features/orgs/projects/database/extensions/utils/getExtensionVersionLabel';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
@@ -42,18 +43,20 @@ function ExtensionRow({
       <TableCell className="w-72 break-words">
         <div className="flex items-center gap-1.5">
           {isBuiltIn && <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />}
-          <ExtensionName
+          <ExtensionName extension={extension} className="font-medium" />
+        </div>
+      </TableCell>
+      <TableCell className="w-44">
+        <div className="mr-4 flex items-center justify-end gap-1">
+          <ExtensionPreloadStatus
             extension={extension}
             preloadedLibraries={preloadedLibraries}
             onAction={onAction}
-            className="font-medium"
           />
+          <span className="text-right text-muted-foreground tabular-nums">
+            {getExtensionVersionLabel(extension) ?? '—'}
+          </span>
         </div>
-      </TableCell>
-      <TableCell className="w-44 text-right">
-        <span className="mr-4 text-muted-foreground tabular-nums">
-          {getExtensionVersionLabel(extension) ?? '—'}
-        </span>
       </TableCell>
       <TableCell>
         <span className="text-muted-foreground">{extension.comment}</span>

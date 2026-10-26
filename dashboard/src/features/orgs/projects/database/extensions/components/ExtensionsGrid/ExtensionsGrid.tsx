@@ -5,6 +5,7 @@ import {
   InstalledBadge,
 } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import { ExtensionName } from '@/features/orgs/projects/database/extensions/components/ExtensionName';
+import { ExtensionPreloadStatus } from '@/features/orgs/projects/database/extensions/components/ExtensionPreloadStatus';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionVersionLabel } from '@/features/orgs/projects/database/extensions/utils/getExtensionVersionLabel';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
@@ -44,12 +45,7 @@ function ExtensionCard({
           ) : (
             <Blocks className="h-5 w-5 shrink-0" aria-hidden />
           )}
-          <ExtensionName
-            extension={extension}
-            preloadedLibraries={preloadedLibraries}
-            onAction={onAction}
-            className="truncate font-bold"
-          />
+          <ExtensionName extension={extension} className="truncate font-bold" />
         </div>
         {versionLabel && (
           <span className="mt-[3px] shrink-0 text-muted-foreground text-xs tabular-nums">
@@ -63,6 +59,11 @@ function ExtensionCard({
       </p>
 
       <div className="flex items-center gap-2">
+        <ExtensionPreloadStatus
+          extension={extension}
+          preloadedLibraries={preloadedLibraries}
+          onAction={onAction}
+        />
         {extension.installed_version !== null && <InstalledBadge />}
         <div className="ml-auto">
           <ExtensionActionControl extension={extension} onAction={onAction} />
