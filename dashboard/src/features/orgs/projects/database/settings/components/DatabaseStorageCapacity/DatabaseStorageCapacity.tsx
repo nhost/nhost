@@ -157,10 +157,7 @@ export default function DatabaseStorageCapacity() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
-          <SettingsCardHeader
-            title="Storage capacity"
-            description="Specify the storage capacity for your PostgreSQL database."
-          />
+          <SettingsCardHeader description="Specify the storage capacity for your PostgreSQL database." />
 
           <SettingsCardContent className="flex flex-col">
             {isFreeProject && (

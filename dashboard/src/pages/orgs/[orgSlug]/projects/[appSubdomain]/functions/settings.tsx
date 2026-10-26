@@ -10,6 +10,7 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -127,6 +128,26 @@ function FunctionsSettingsSidebar() {
   );
 }
 
+function getFunctionsSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'custom-domain':
+      return 'Custom domain';
+    case 'rate-limiting':
+      return 'Rate limiting';
+    default:
+      return null;
+  }
+}
+
+function FunctionsSettingsTitle() {
+  const router = useRouter();
+  const title = getFunctionsSettingsTitle(
+    getSingleQueryParam(router.query.tab),
+  );
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
+}
+
 export default function FunctionsSettingsPage() {
   const router = useRouter();
   const tab = getSingleQueryParam(router.query.tab);
@@ -168,7 +189,10 @@ FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <FunctionsArea>
-          <AreaSettingsLayout sidebar={<FunctionsSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<FunctionsSettingsSidebar />}
+            title={<FunctionsSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </FunctionsArea>

@@ -40,7 +40,6 @@ export default function DatabasePiTRSettings() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        title="Point-in-Time Recovery"
         description="Enable Point-in-Time Recovery (PiTR)."
         control={
           shouldShowSwitch ? (

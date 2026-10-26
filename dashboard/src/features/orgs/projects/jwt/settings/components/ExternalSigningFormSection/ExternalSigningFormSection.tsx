@@ -1,6 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
-import { Label } from '@/components/ui/v3/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { RadioCard, RadioGroup } from '@/components/ui/v3/radio-group';
 
 import { ExternalSigningField } from '@/features/orgs/projects/jwt/settings/components/ExternalSigningField';
 import type { ExternalSigningType } from '@/features/orgs/projects/jwt/settings/types';
@@ -28,16 +27,18 @@ export default function ExternalSigningFormSection({
             defaultValue="jwk-endpoint"
             value={externalSigningType}
             onValueChange={handleExternalSigningTypeChange}
-            className="flex flex-col gap-4 lg:flex-row"
+            className="grid gap-3 lg:grid-cols-2"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="jwk-endpoint" id="jwk-endpoint" />
-              <Label htmlFor="jwk-endpoint">JWK Endpoint</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="public-key" id="public-key" />
-              <Label htmlFor="public-key">Public Key</Label>
-            </div>
+            <RadioCard
+              value="jwk-endpoint"
+              title="JWK endpoint"
+              description="Verify JWTs with the public keys published at a JWK URL."
+            />
+            <RadioCard
+              value="public-key"
+              title="Public key"
+              description="Verify JWTs with a public key you paste in directly."
+            />
           </RadioGroup>
         </div>
         <ExternalSigningField externalSigningType={externalSigningType} />

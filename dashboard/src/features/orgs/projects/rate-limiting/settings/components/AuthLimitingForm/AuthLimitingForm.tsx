@@ -233,7 +233,7 @@ export default function AuthLimitingForm() {
         className="flex h-full flex-col overflow-hidden"
       >
         <SettingsCard>
-          <SettingsCardHeader title="Auth" />
+          <SettingsCardHeader description="Limits how many requests each client IP can make to the Auth service." />
 
           <SettingsCardContent className="flex flex-col px-0">
             <div className="border-t" />

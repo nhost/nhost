@@ -24,7 +24,7 @@ export default function ExternalSigningField({
         control={control}
         name="jwkUrl"
         placeholder="https://acme.com/jwks.json"
-        containerClassName="col-span-5 lg:col-span-4"
+        containerClassName="col-span-5"
         label="JWK URL"
       />
     );
@@ -48,7 +48,7 @@ export default function ExternalSigningField({
         </FormSelect>
         <div className="lg:col-span-4" />
 
-        <div className="col-span-5 lg:col-span-4">
+        <div className="col-span-5">
           <FormTextarea
             control={control}
             name="key"

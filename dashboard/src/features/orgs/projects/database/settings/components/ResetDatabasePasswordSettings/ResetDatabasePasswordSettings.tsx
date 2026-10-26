@@ -105,10 +105,7 @@ export default function ResetDatabasePasswordSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsCard className="border-destructive">
-          <SettingsCardHeader
-            title="Reset Password"
-            description="This password will be used for accessing your database."
-          />
+          <SettingsCardHeader description="This password will be used for accessing your database." />
 
           <SettingsCardContent className="pb-4">
             <FormInput

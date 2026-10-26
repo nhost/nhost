@@ -6,6 +6,8 @@ import { AreaSidebarLayout } from '@/features/orgs/projects/common/layout/AreaSi
 interface AreaSettingsLayoutProps {
   /** The area's settings navigation, usually an `AreaSidebarRoot`. */
   sidebar: ReactNode;
+  /** The page title, usually a `SettingsPageTitle` for the active tab. */
+  title?: ReactNode;
   children: ReactNode;
 }
 
@@ -16,12 +18,15 @@ interface AreaSettingsLayoutProps {
  */
 export default function AreaSettingsLayout({
   sidebar,
+  title,
   children,
 }: AreaSettingsLayoutProps) {
   return (
     <AreaSidebarLayout sidebar={sidebar}>
       <SettingsGuard>
-        <SettingsArea className="py-0">{children}</SettingsArea>
+        <SettingsArea className="py-0" title={title}>
+          {children}
+        </SettingsArea>
       </SettingsGuard>
     </AreaSidebarLayout>
   );

@@ -33,10 +33,7 @@ export default function DatabaseDomain() {
 
   return (
     <SettingsCard>
-      <SettingsCardHeader
-        title="Database Domain"
-        description="Enter below your custom domain for the PostgreSQL database to verify. Once verified there is no need to save this value as no configuration on our end is required."
-      />
+      <SettingsCardHeader description="Enter below your custom domain for the PostgreSQL database to verify. Once verified there is no need to save this value as no configuration on our end is required." />
 
       <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">
         <Input

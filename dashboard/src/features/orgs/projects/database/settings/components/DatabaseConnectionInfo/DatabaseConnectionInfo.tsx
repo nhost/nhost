@@ -166,7 +166,6 @@ export default function DatabaseConnectionInfo() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Public access"
             description={
               enablePublicAccess
                 ? 'Connect directly to the Postgres database with this information.'

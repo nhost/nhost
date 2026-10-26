@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 export interface SettingsCardHeaderProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   /**
-   * The title of the section.
+   * The title of the section. Leave it out when the page title already
+   * names the card, so the card opens with its description.
    */
-  title: React.ReactNode;
+  title?: React.ReactNode;
   /**
    * The description shown under the title.
    */
@@ -61,7 +62,7 @@ const SettingsCardHeader = React.forwardRef<
           )}
 
           {description && (
-            <p className="text-muted-foreground">{description}</p>
+            <div className="text-muted-foreground">{description}</div>
           )}
         </div>
       </div>

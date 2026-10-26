@@ -32,7 +32,7 @@ import {
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const inputClasses =
-  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500 disabled:!bg-data-cell-bg-disabled disabled:text-disabled disabled:placeholder:text-disabled disabled:opacity-100';
+  '!bg-transparent aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive disabled:!bg-data-cell-bg-disabled disabled:text-disabled disabled:placeholder:text-disabled disabled:opacity-100';
 
 interface FormInputProps<
   TFieldValues extends FieldValues = FieldValues,

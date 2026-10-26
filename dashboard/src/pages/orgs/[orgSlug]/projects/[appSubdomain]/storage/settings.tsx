@@ -9,6 +9,7 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -109,6 +110,24 @@ function StorageSettingsSidebar() {
   );
 }
 
+function getStorageSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'storage':
+      return 'Storage';
+    case 'rate-limiting':
+      return 'Rate limiting';
+    default:
+      return null;
+  }
+}
+
+function StorageSettingsTitle() {
+  const router = useRouter();
+  const title = getStorageSettingsTitle(getSingleQueryParam(router.query.tab));
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
+}
+
 export default function StorageSettingsPage() {
   const router = useRouter();
   const tab = router.query.tab;
@@ -148,7 +167,10 @@ StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <StorageArea>
-          <AreaSettingsLayout sidebar={<StorageSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<StorageSettingsSidebar />}
+            title={<StorageSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </StorageArea>

@@ -1,6 +1,7 @@
 import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -72,75 +73,80 @@ export default function VerifyDomain({
     );
   };
 
+  const variant = verificationFailed
+    ? 'destructive'
+    : verificationSucceeded
+      ? 'success'
+      : 'default';
+
   return (
-    <div
-      className={`flex flex-col space-y-4 rounded-md p-4 ${
-        verificationFailed
-          ? 'bg-destructive/10 text-destructive'
-          : verificationSucceeded
-            ? 'bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-400'
-            : !isPlatform
-              ? 'bg-muted text-muted-foreground'
-              : 'bg-primary/10 text-foreground'
-      }`}
-    >
-      <div className="flex flex-row items-center justify-between">
-        {!verificationFailed && !verificationSucceeded && (
-          <p>Add the record below in your DNS provider to verify {hostname}</p>
-        )}
+    <Alert variant={variant} iconPosition="top">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          {!verificationFailed && !verificationSucceeded && (
+            <p className="font-medium">
+              Add the record below in your DNS provider to verify {hostname}
+            </p>
+          )}
 
-        {verificationSucceeded && (
-          <p>
-            <span className="font-semibold">{hostname}</span> was verified
-            successfully. {saveEnabled ? 'Hit save to apply.' : ''}
-          </p>
-        )}
+          {verificationSucceeded && (
+            <p className="font-medium">
+              <span className="font-semibold">{hostname}</span> was verified
+              successfully. {saveEnabled ? 'Hit save to apply.' : ''}
+            </p>
+          )}
 
-        {verificationFailed && (
-          <p>
-            An error occurred while trying to verify{' '}
-            <span className="font-semibold">{hostname}</span>. Make sure you
-            correctly added the <span className="font-semibold">CNAME</span> and
-            try again.
-          </p>
-        )}
-      </div>
+          {verificationFailed && (
+            <p className="font-medium">
+              An error occurred while trying to verify{' '}
+              <span className="font-semibold">{hostname}</span>. Make sure you
+              correctly added the <span className="font-semibold">CNAME</span>{' '}
+              and try again.
+            </p>
+          )}
 
-      <div className="relative flex flex-col text-slate-500">
-        <div className="flex space-x-2">
-          <p>Record type: </p>
-          <p className="font-bold">{recordType}</p>
+          <dl className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-1.5 text-sm">
+            <dt className="text-muted-foreground">Record type</dt>
+            <dd className="font-mono">{recordType}</dd>
+
+            <dt className="text-muted-foreground">Host</dt>
+            <dd className="min-w-0 break-all font-mono">
+              {hostname || (
+                <span className="font-sans text-muted-foreground text-sm">
+                  Enter a domain above
+                </span>
+              )}
+            </dd>
+
+            <dt className="text-muted-foreground">Value</dt>
+            <dd className="flex min-w-0 items-center gap-1">
+              {isPlatform ? (
+                <>
+                  <span className="break-all font-mono">{value}</span>
+                  <Button
+                    aria-label="Copy CNAME value"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => copy(value, 'CNAME Value')}
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : null}
+            </dd>
+          </dl>
         </div>
-        <div className="flex space-x-2">
-          <p>Host:</p>
-          <p className="font-bold">{hostname}</p>
-        </div>
-        <div className="flex flex-row space-x-2">
-          <p>Value:</p>
-          {isPlatform ? (
-            <>
-              <p className="font-bold">{value}</p>
-              <Button
-                aria-label="Copy CNAME value"
-                variant="ghost"
-                size="icon"
-                onClick={() => copy(value, 'CNAME Value')}
-              >
-                <CopyIcon className="h-4 w-4" />
-              </Button>
-            </>
-          ) : null}
-        </div>
+
         {isPlatform ? (
           <Button
+            variant="outline"
             disabled={loading || !hostname}
             onClick={handleVerifyDomain}
-            className="mt-4 sm:absolute sm:right-0 sm:bottom-0 sm:mt-0"
           >
             Verify
           </Button>
         ) : null}
       </div>
-    </div>
+    </Alert>
   );
 }

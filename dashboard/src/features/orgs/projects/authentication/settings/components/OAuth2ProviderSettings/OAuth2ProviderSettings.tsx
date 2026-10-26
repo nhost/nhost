@@ -176,7 +176,6 @@ export default function OAuth2ProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="OAuth2 Provider"
             description={
               <>
                 Enable the OAuth2 provider to allow third-party applications to

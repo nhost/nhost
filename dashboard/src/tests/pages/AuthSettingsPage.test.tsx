@@ -230,21 +230,38 @@ describe('AuthSettingsPage', () => {
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
+  // Cards whose title repeats the page H1 have no title of their own, so
+  // they are found by their description instead.
   it.each([
-    ['sign-in-methods', 'Email and Password'],
-    ['oauth2-provider', 'OAuth2 Provider'],
-    ['smtp', 'SMTP Settings'],
-    ['authentication', 'Client URL'],
-    ['roles-and-permissions', 'Default Allowed Roles'],
-    ['jwt', 'JSON Web Token Settings'],
-    ['custom-domain', 'Auth Custom Domain'],
-    ['rate-limiting', 'Auth'],
-  ])('renders the selected %s settings content', async (tab, heading) => {
+    ['sign-in-methods', { heading: 'Email and Password' }],
+    [
+      'oauth2-provider',
+      {
+        text: 'Enable the OAuth2 provider to allow third-party applications to authenticate users via OAuth2.',
+      },
+    ],
+    ['smtp', { heading: 'SMTP Settings' }],
+    ['authentication', { heading: 'Client URL' }],
+    ['roles-and-permissions', { heading: 'Default Allowed Roles' }],
+    [
+      'jwt',
+      { text: 'Select how JSON Web Tokens (JWTs) are signed and verified.' },
+    ],
+    ['custom-domain', { heading: 'Auth Custom Domain' }],
+    [
+      'rate-limiting',
+      {
+        text: 'Limits how many requests each client IP can make to the Auth service.',
+      },
+    ],
+  ])('renders the selected %s settings content', async (tab, expected) => {
     loadProject();
     renderTab(tab);
 
     expect(
-      await screen.findByRole('heading', { name: heading }),
+      'heading' in expected
+        ? await screen.findByRole('heading', { name: expected.heading })
+        : await screen.findByText(expected.text),
     ).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
     expect(
@@ -287,7 +304,12 @@ describe('AuthSettingsPage', () => {
       within(navigation).getAllByRole('link', { current: 'page' }),
     ).toEqual([within(navigation).getByRole('link', { name: 'JWT' })]);
     expect(
-      await screen.findByRole('heading', { name: 'JSON Web Token Settings' }),
+      await screen.findByRole('heading', { level: 1, name: 'JWT' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Select how JSON Web Tokens (JWTs) are signed and verified.',
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(

@@ -16,6 +16,7 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
@@ -186,6 +187,24 @@ function RunSettingsSidebar() {
   );
 }
 
+function getRunSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'custom-domain':
+      return 'Custom domain';
+    case 'rate-limiting':
+      return 'Rate limiting';
+    default:
+      return null;
+  }
+}
+
+function RunSettingsTitle() {
+  const router = useRouter();
+  const title = getRunSettingsTitle(getSingleQueryParam(router.query.tab));
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
+}
+
 export default function RunSettingsPage() {
   const router = useRouter();
   const tab = getSingleQueryParam(router.query.tab);
@@ -227,7 +246,10 @@ RunSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <RunArea>
-          <AreaSettingsLayout sidebar={<RunSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<RunSettingsSidebar />}
+            title={<RunSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </RunArea>

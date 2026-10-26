@@ -12,6 +12,7 @@ import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { GeneralSettings } from '@/features/orgs/projects/general/settings/components/GeneralSettings';
@@ -127,10 +128,26 @@ function ProjectSettingsSidebar() {
   );
 }
 
+function getProjectSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'general':
+      return 'General';
+    case 'compute-resources':
+      return 'Compute resources';
+    case 'environment-variables':
+      return 'Environment variables';
+    case 'secrets':
+      return 'Secrets';
+    default:
+      return null;
+  }
+}
+
 function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
   const router = useRouter();
+  const tab = getSingleQueryParam(router.query.tab);
 
-  if (getSingleQueryParam(router.query.tab) === 'editor') {
+  if (tab === 'editor') {
     return (
       <RetryableErrorBoundary resetKeys={[router.asPath]}>
         {children}
@@ -138,7 +155,15 @@ function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
     );
   }
 
-  return <SettingsArea>{children}</SettingsArea>;
+  const title = getProjectSettingsTitle(tab);
+
+  return (
+    <SettingsArea
+      title={title ? <SettingsPageTitle>{title}</SettingsPageTitle> : undefined}
+    >
+      {children}
+    </SettingsArea>
+  );
 }
 
 export default function SettingsGeneralPage() {

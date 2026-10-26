@@ -28,7 +28,7 @@ export default function SymmetricKeyFormSection() {
         name="key"
         label="Key"
         placeholder="Enter symmetric key"
-        containerClassName="col-span-5 lg:col-span-3"
+        containerClassName="col-span-5 lg:col-span-4"
       />
     </div>
   );

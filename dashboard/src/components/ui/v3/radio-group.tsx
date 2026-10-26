@@ -39,4 +39,60 @@ const RadioGroupItem = React.forwardRef<
 });
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
 
-export { RadioGroup, RadioGroupItem };
+export interface RadioCardProps
+  extends Omit<
+    React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>,
+    'title'
+  > {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  /**
+   * Shown at the bottom of the card, e.g. a "Learn more" docs link. It sits
+   * above the clickable area, so a link here works without selecting the
+   * card.
+   */
+  footer?: React.ReactNode;
+}
+
+// A radio option shown as a card. The selected card is marked by the primary
+// border and a light tint instead of a radio circle. The real radio is a
+// transparent button covering the whole card, so keyboard (arrow keys within
+// the group) and screen readers work like a normal RadioGroup, and the footer
+// can hold a link without nesting it inside a button.
+const RadioCard = React.forwardRef<
+  React.ComponentRef<typeof RadioGroupPrimitive.Item>,
+  RadioCardProps
+>(({ className, title, description, footer, ...props }, ref) => {
+  const id = React.useId();
+  const titleId = `${id}-title`;
+  const descriptionId = `${id}-description`;
+
+  return (
+    <div
+      className={cn(
+        'relative flex flex-col gap-1.5 rounded-lg border p-4 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[:disabled]:opacity-50',
+        className,
+      )}
+    >
+      <RadioGroupPrimitive.Item
+        ref={ref}
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        className="absolute inset-0 cursor-pointer rounded-lg ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+        {...props}
+      />
+      <span id={titleId} className="font-medium text-sm">
+        {title}
+      </span>
+      {description && (
+        <p id={descriptionId} className="text-muted-foreground text-sm">
+          {description}
+        </p>
+      )}
+      {footer && <div className="relative mt-auto pt-1 text-sm">{footer}</div>}
+    </div>
+  );
+});
+RadioCard.displayName = 'RadioCard';
+
+export { RadioCard, RadioGroup, RadioGroupItem };

@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/v3/textarea';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const inputClasses =
-  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+  '!bg-transparent aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive';
 
 interface FormTextareaProps<
   TFieldValues extends FieldValues = FieldValues,

@@ -26,7 +26,7 @@ import {
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const selectClasses =
-  'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+  'aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive';
 
 interface FormSelectProps<
   TFieldValues extends FieldValues = FieldValues,

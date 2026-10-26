@@ -516,46 +516,48 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
         </TabsList>
       </div>
 
-      <TabsContent
-        value="overview"
-        className="mt-0 flex flex-col gap-4 px-4 py-4"
-      >
-        <PresetSelector />
-        <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,18rem)]">
-          <ResourceBreakdownChart />
-          <CostEstimate />
-        </div>
-        <RatioBanner />
-      </TabsContent>
-
-      <TabsContent value="advanced" className="mt-0 flex flex-col">
-        <div className="px-4 py-4">
+      {/* Layout classes live on an inner div: a display class on TabsContent overrides the hidden attribute Radix sets on the inactive panel. */}
+      <TabsContent value="overview" className="mt-0">
+        <div className="flex flex-col gap-4 px-4 py-4">
+          <PresetSelector />
+          <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,18rem)]">
+            <ResourceBreakdownChart />
+            <CostEstimate />
+          </div>
           <RatioBanner />
         </div>
-        <ServiceRow
-          title="PostgreSQL Database"
-          description="Primary OLTP database. Sized independently — no replicas."
-          serviceKey="database"
-          disableReplicas
-        />
-        <div className="border-t" />
-        <ServiceRow
-          title="Hasura GraphQL"
-          description="GraphQL API gateway. Scale horizontally with replicas."
-          serviceKey="hasura"
-        />
-        <div className="border-t" />
-        <ServiceRow
-          title="Auth"
-          description="Authentication service."
-          serviceKey="auth"
-        />
-        <div className="border-t" />
-        <ServiceRow
-          title="Storage"
-          description="File storage and image transformations."
-          serviceKey="storage"
-        />
+      </TabsContent>
+
+      <TabsContent value="advanced" className="mt-0">
+        <div className="flex flex-col">
+          <div className="px-4 py-4">
+            <RatioBanner />
+          </div>
+          <ServiceRow
+            title="PostgreSQL Database"
+            description="Primary OLTP database. Sized independently — no replicas."
+            serviceKey="database"
+            disableReplicas
+          />
+          <div className="border-t" />
+          <ServiceRow
+            title="Hasura GraphQL"
+            description="GraphQL API gateway. Scale horizontally with replicas."
+            serviceKey="hasura"
+          />
+          <div className="border-t" />
+          <ServiceRow
+            title="Auth"
+            description="Authentication service."
+            serviceKey="auth"
+          />
+          <div className="border-t" />
+          <ServiceRow
+            title="Storage"
+            description="File storage and image transformations."
+            serviceKey="storage"
+          />
+        </div>
       </TabsContent>
 
       <div className="border-t bg-muted/30">

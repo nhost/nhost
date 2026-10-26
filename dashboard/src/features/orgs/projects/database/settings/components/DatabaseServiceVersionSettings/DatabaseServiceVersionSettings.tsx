@@ -289,7 +289,6 @@ export default function DatabaseServiceVersionSettings() {
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Postgres Version"
             description="The version of Postgres to use."
             actions={
               shouldShowUpgradeLogs ? (

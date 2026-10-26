@@ -58,6 +58,7 @@ import { WebAuthnSettings } from '@/features/orgs/projects/authentication/settin
 import { WindowsLiveProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WorkOsProviderSettings';
 import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
@@ -493,6 +494,36 @@ function AuthSettingsSidebar() {
   );
 }
 
+function getAuthSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'sign-in-methods':
+      return 'Sign-in methods';
+    case 'oauth2-provider':
+      return 'OAuth2 provider';
+    case 'smtp':
+      return 'SMTP';
+    case 'authentication':
+      return 'Authentication';
+    case 'roles-and-permissions':
+      return 'Roles and permissions';
+    case 'jwt':
+      return 'JWT';
+    case 'custom-domain':
+      return 'Custom domain';
+    case 'rate-limiting':
+      return 'Rate limiting';
+    default:
+      return null;
+  }
+}
+
+function AuthSettingsTitle() {
+  const router = useRouter();
+  const title = getAuthSettingsTitle(getSingleQueryParam(router.query.tab));
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
+}
+
 export default function AuthSettingsPage() {
   const router = useRouter();
   const tab = router.query.tab;
@@ -555,7 +586,10 @@ AuthSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <AuthArea>
-          <AreaSettingsLayout sidebar={<AuthSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<AuthSettingsSidebar />}
+            title={<AuthSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </AuthArea>

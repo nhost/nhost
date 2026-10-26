@@ -10,6 +10,7 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -147,6 +148,28 @@ function GraphQLSettingsSidebar() {
   );
 }
 
+function getGraphQLSettingsTitle(tab: string | undefined): string | null {
+  switch (tab) {
+    case 'engine':
+      return 'Engine';
+    case 'access-and-tooling':
+      return 'Access and tooling';
+    case 'custom-domain':
+      return 'Custom domain';
+    case 'rate-limiting':
+      return 'Rate limiting';
+    default:
+      return null;
+  }
+}
+
+function GraphQLSettingsTitle() {
+  const router = useRouter();
+  const title = getGraphQLSettingsTitle(getSingleQueryParam(router.query.tab));
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
+}
+
 export default function GraphQLSettingsPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
@@ -210,7 +233,10 @@ GraphQLSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <GraphQLArea>
-          <AreaSettingsLayout sidebar={<GraphQLSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<GraphQLSettingsSidebar />}
+            title={<GraphQLSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </GraphQLArea>

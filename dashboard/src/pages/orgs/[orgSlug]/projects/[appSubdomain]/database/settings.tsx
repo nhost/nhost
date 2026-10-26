@@ -4,6 +4,7 @@ import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { SettingsPageTitle } from '@/features/orgs/projects/common/components/settings/SettingsPageTitle';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -20,6 +21,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 function DatabaseCustomDomainSettings() {
   const { org } = useCurrentOrg();
@@ -40,6 +42,39 @@ function DatabaseCustomDomainSettings() {
       <DatabaseDomain />
     </div>
   );
+}
+
+function getDatabaseSettingsTitle(
+  tab: string | undefined,
+  isPlatform: boolean,
+): string | null {
+  switch (tab) {
+    case 'version':
+      return 'Postgres version';
+    case 'capacity':
+      return 'Capacity';
+    case 'point-in-time':
+      return isPlatform ? 'Point-in-time recovery' : null;
+    case 'access':
+      return isPlatform ? 'Access' : null;
+    case 'custom-domain':
+      return isPlatform ? 'Custom domain' : null;
+    case 'reset-password':
+      return isPlatform ? 'Reset password' : null;
+    default:
+      return null;
+  }
+}
+
+function DatabaseSettingsTitle() {
+  const router = useRouter();
+  const isPlatform = useIsPlatform();
+  const title = getDatabaseSettingsTitle(
+    getSingleQueryParam(router.query.tab),
+    isPlatform,
+  );
+
+  return title ? <SettingsPageTitle>{title}</SettingsPageTitle> : null;
 }
 
 export default function DatabaseSettingsPage() {
@@ -127,7 +162,10 @@ DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <DatabaseArea>
-          <AreaSettingsLayout sidebar={<DatabaseSettingsNavigation />}>
+          <AreaSettingsLayout
+            sidebar={<DatabaseSettingsNavigation />}
+            title={<DatabaseSettingsTitle />}
+          >
             {page}
           </AreaSettingsLayout>
         </DatabaseArea>

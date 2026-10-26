@@ -29,10 +29,10 @@ export default function AsymmetricKeyFormSection() {
         name="kid"
         label="Key ID"
         placeholder="Enter unique key ID"
-        containerClassName="col-span-5 lg:col-span-3"
+        containerClassName="col-span-5 lg:col-span-4"
       />
 
-      <div className="col-span-5 lg:col-span-4">
+      <div className="col-span-5">
         <FormTextarea
           control={control}
           name="key"
@@ -41,7 +41,7 @@ export default function AsymmetricKeyFormSection() {
           className="min-h-[130px] resize-y"
         />
       </div>
-      <div className="col-span-5 lg:col-span-4">
+      <div className="col-span-5">
         <FormTextarea
           control={control}
           name="signingKey"

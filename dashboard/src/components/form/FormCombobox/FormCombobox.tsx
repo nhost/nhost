@@ -17,7 +17,7 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 export type { ComboboxOption as FormComboboxOption };
 
 const comboboxTriggerClasses =
-  'aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+  'aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive';
 
 interface FormComboboxProps<
   TFieldValues extends FieldValues = FieldValues,

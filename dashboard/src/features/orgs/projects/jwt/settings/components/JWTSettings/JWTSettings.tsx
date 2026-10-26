@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InfoIcon } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -13,14 +12,8 @@ import {
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { Label } from '@/components/ui/v3/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { RadioCard, RadioGroup } from '@/components/ui/v3/radio-group';
 import { TextLink } from '@/components/ui/v3/text-link';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -43,17 +36,6 @@ import {
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { removeTypename } from '@/utils/helpers';
-
-function InfoTooltip({ children }: { children: ReactNode }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs">{children}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 export default function JWTSettings() {
   const { project } = useProject();
@@ -302,90 +284,58 @@ export default function JWTSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleJWTSettingsChange}>
         <SettingsCard>
-          <SettingsCardHeader
-            title="JSON Web Token Settings"
-            description="Select how JSON Web Tokens (JWTs) are signed and verified."
-          />
+          <SettingsCardHeader description="Select how JSON Web Tokens (JWTs) are signed and verified." />
 
           <SettingsCardContent className="gap-x-4 gap-y-2">
             <div className="flex flex-col gap-6">
               <RadioGroup
-                className="flex flex-col gap-4 lg:flex-row"
+                className="grid gap-3 lg:grid-cols-3"
                 defaultValue="public"
                 value={signatureType}
                 onValueChange={handleSignatureTypeChange}
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="symmetric" id="symmetric" />
-                  <Label
-                    htmlFor="symmetric"
-                    className="flex items-center gap-1"
-                  >
-                    Symmetric key
-                    <InfoTooltip>
-                      <span>
-                        With symmetric keys your project uses a single key for
-                        both signing and verifying JWTs. Refer to{' '}
-                        <TextLink
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          href="https://docs.nhost.io/products/auth/jwt#symmetric-keys"
-                          className="underline"
-                        >
-                          symmetric keys
-                        </TextLink>{' '}
-                        for more information.
-                      </span>
-                    </InfoTooltip>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="asymmetric" id="asymmetric" />
-                  <Label
-                    htmlFor="asymmetric"
-                    className="flex items-center gap-1"
-                  >
-                    Asymmetric key
-                    <InfoTooltip>
-                      <span>
-                        With asymmetric keys your project uses a public and
-                        private key pair for signing and verifying JWTs. Refer
-                        to{' '}
-                        <TextLink
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          href="https://docs.nhost.io/products/auth/jwt#asymmetric-keys"
-                          className="underline"
-                        >
-                          asymmetric keys
-                        </TextLink>{' '}
-                        for more information.
-                      </span>
-                    </InfoTooltip>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="external" id="external" />
-                  <Label htmlFor="external" className="flex items-center gap-1">
-                    External signing
-                    <InfoTooltip>
-                      <span>
-                        This will use a third party service&apos;s JWK endpoint
-                        to verify JWT&apos;s. Alternatively you can configure
-                        the public key directly. Refer to{' '}
-                        <TextLink
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          href="https://docs.nhost.io/products/auth/jwt#external-signing"
-                          className="underline"
-                        >
-                          external signing
-                        </TextLink>{' '}
-                        for more information.
-                      </span>
-                    </InfoTooltip>
-                  </Label>
-                </div>
+                <RadioCard
+                  value="symmetric"
+                  title="Symmetric key"
+                  description="Your project uses a single key for both signing and verifying JWTs."
+                  footer={
+                    <TextLink
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://docs.nhost.io/products/auth/jwt#symmetric-keys"
+                    >
+                      Learn more
+                    </TextLink>
+                  }
+                />
+                <RadioCard
+                  value="asymmetric"
+                  title="Asymmetric key"
+                  description="Your project uses a public and private key pair for signing and verifying JWTs."
+                  footer={
+                    <TextLink
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://docs.nhost.io/products/auth/jwt#asymmetric-keys"
+                    >
+                      Learn more
+                    </TextLink>
+                  }
+                />
+                <RadioCard
+                  value="external"
+                  title="External signing"
+                  description="Uses a third party service's JWK endpoint to verify JWTs. You can also set the public key directly."
+                  footer={
+                    <TextLink
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://docs.nhost.io/products/auth/jwt#external-signing"
+                    >
+                      Learn more
+                    </TextLink>
+                  }
+                />
               </RadioGroup>
               <JWTSecretField
                 secretType={signatureType}
