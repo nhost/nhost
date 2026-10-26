@@ -93,7 +93,10 @@ export default function DeploymentListItem({
         <div className="grid grid-flow-col items-center justify-end gap-2">
           {isLive && (
             <div className="hidden w-12 justify-end sm:flex">
-              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+              <Badge
+                variant="outline"
+                className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+              >
                 Live
               </Badge>
             </div>
