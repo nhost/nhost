@@ -339,3 +339,145 @@ func TestReplaceFile_FileSize(t *testing.T) {
 		})
 	}
 }
+
+func TestReplaceFile_PreserveFilenameWhenMetadataNameEmpty(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+	)
+
+	originalFilename := "original_report.pdf"
+	fileID := uuid.New().String()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	boundary := writer.Boundary()
+
+	formWriter, err := writer.CreateFormFile("file", originalFilename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.Copy(formWriter, strings.NewReader("new content")); err != nil {
+		t.Fatal(err)
+	}
+
+	formWriter, err = writer.CreateFormField("metadata")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Metadata has empty name or omits name
+	if _, err := io.Copy(formWriter, strings.NewReader(`{"metadata":{"key":"value"}}`)); err != nil {
+		t.Fatal(err)
+	}
+	writer.Close()
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+	av := mock.NewMockAntivirus(c)
+
+	metadataStorage.EXPECT().GetFileByID(
+		gomock.Any(), fileID, gomock.Any(),
+	).Return(
+		api.FileMetadata{
+			Id:               fileID,
+			Name:             originalFilename,
+			Size:             11,
+			BucketId:         "default",
+			Etag:             "etag-123",
+			CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+			UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+			IsUploaded:       true,
+			MimeType:         "application/pdf",
+			UploadedByUserId: new("user-1"),
+		},
+		nil,
+	)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "default", gomock.Any(),
+	).Return(
+		controller.BucketMetadata{
+			ID:                   "default",
+			MinUploadFile:        0,
+			MaxUploadFile:        10 << 20,
+			PresignedURLsEnabled: true,
+			DownloadExpiration:   30,
+		},
+		nil,
+	)
+
+	metadataStorage.EXPECT().SetIsUploaded(
+		gomock.Any(), fileID, false, gomock.Any(),
+	).Return(nil)
+
+	contentStorage.EXPECT().PutFile(
+		gomock.Any(),
+		gomock.Any(),
+		fileID,
+		gomock.Any(),
+	).Return("new-etag", nil)
+
+	// CRITICAL ASSERTION: The filename passed to PopulateMetadata must be originalFilename, NOT empty string ""
+	metadataStorage.EXPECT().PopulateMetadata(
+		gomock.Any(),
+		fileID,
+		originalFilename,
+		int64(11),
+		"default",
+		"new-etag",
+		true,
+		gomock.Any(),
+		map[string]any{"key": "value"},
+		gomock.Any(),
+	).Return(
+		api.FileMetadata{
+			Id:               fileID,
+			Name:             originalFilename,
+			Size:             11,
+			BucketId:         "default",
+			Etag:             "new-etag",
+			IsUploaded:       true,
+			MimeType:         "application/pdf",
+			UploadedByUserId: new("user-1"),
+			Metadata:         new(map[string]any{"key": "value"}),
+		},
+		nil,
+	)
+
+	av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
+
+	ctrl := controller.New(
+		"http://localhost",
+		"/v1",
+		"secret",
+		metadataStorage,
+		contentStorage,
+		nil,
+		av,
+		logger,
+	)
+
+	resp, err := ctrl.ReplaceFile(
+		t.Context(),
+		api.ReplaceFileRequestObject{
+			Id:   fileID,
+			Body: multipart.NewReader(bytes.NewReader(body.Bytes()), boundary),
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	successResp, ok := resp.(api.ReplaceFile200JSONResponse)
+	if !ok {
+		t.Fatalf("expected api.ReplaceFile200JSONResponse, got %T", resp)
+	}
+
+	if successResp.Name != originalFilename {
+		t.Errorf("expected filename %q, got %q", originalFilename, successResp.Name)
+	}
+}

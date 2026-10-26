@@ -63,7 +63,9 @@ func replaceFileParseRequest(
 			return fileData{}, nil, WrongMetadataFormatError(err)
 		}
 
-		res.Name = d.Name
+		if d.Name != "" {
+			res.Name = d.Name
+		}
 		res.Metadata = d.Metadata
 	}
 
@@ -94,6 +96,10 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 		return apiErr, nil
 	}
 	defer form.RemoveAll() //nolint:errcheck
+
+	if file.Name == "" {
+		file.Name = originalMetadata.Name
+	}
 
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
