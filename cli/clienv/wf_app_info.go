@@ -20,7 +20,7 @@ func getRemoteAppInfo(
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	resp, err := cl.GetOrganizationsAndWorkspacesApps(
+	resp, err := cl.GetOrganizationsApps(
 		ctx,
 	)
 	if err != nil {

@@ -29,7 +29,7 @@ func List(ctx context.Context, ce *clienv.CliEnv) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
+	orgs, err := cl.GetOrganizationsApps(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get projects: %w", err)
 	}

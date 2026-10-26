@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
-func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
+func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsApps) error {
 	if len(orgs.GetOrganizations()) == 0 {
 		return errors.New("no apps found") //nolint:err113
 	}
@@ -68,7 +68,7 @@ func confirmApp(ce *CliEnv, app *graphql.AppSummaryFragment) error {
 }
 
 func getApp(
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 	idx string,
 ) (*graphql.AppSummaryFragment, error) {
 	x := 1
@@ -92,7 +92,7 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
+	orgs, err := cl.GetOrganizationsApps(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get projects: %w", err)
 	}

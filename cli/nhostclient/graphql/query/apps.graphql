@@ -1,4 +1,4 @@
-query GetOrganizationsAndWorkspacesApps {
+query GetOrganizationsApps {
   organizations {
     name
     apps {
