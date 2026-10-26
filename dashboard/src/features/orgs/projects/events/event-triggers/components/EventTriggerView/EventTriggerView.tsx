@@ -70,7 +70,6 @@ export default function EventTriggerView() {
   if (error instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Event trigger not found"
         description={
@@ -89,7 +88,6 @@ export default function EventTriggerView() {
   if (isEmptyValue(eventTrigger)) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Event trigger not found"
         description={

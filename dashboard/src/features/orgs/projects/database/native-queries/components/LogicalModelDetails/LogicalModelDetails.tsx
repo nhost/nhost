@@ -38,7 +38,6 @@ export default function LogicalModelDetails() {
   if (!model) {
     return (
       <EmptyState
-        className="bg-background"
         title="Logical model not found"
         description={
           <span>

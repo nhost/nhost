@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -52,6 +53,7 @@ export default function EditFunctionForm({
   if (status === 'error' || functionError) {
     return (
       <EmptyState
+        icon={Database}
         title="Error loading function"
         description={
           <span>
@@ -68,6 +70,7 @@ export default function EditFunctionForm({
   if (!functionDefinition) {
     return (
       <EmptyState
+        icon={Database}
         title="Function not found"
         description={
           <span>

@@ -23,7 +23,6 @@ function NativeQueriesIndexContent() {
   if (error instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         title="Something went wrong"
         description="Logical models could not be loaded. Please try again."
       />
@@ -36,7 +35,6 @@ function NativeQueriesIndexContent() {
 
   return (
     <EmptyState
-      className="bg-background"
       title="Native queries"
       description="Select a logical model or native query from the sidebar, or create a new one."
     />
@@ -49,7 +47,6 @@ export default function NativeQueriesIndexPage() {
   if (dataSourceSlug !== 'default') {
     return (
       <EmptyState
-        className="bg-background"
         title="Database not found"
         description={
           <span>

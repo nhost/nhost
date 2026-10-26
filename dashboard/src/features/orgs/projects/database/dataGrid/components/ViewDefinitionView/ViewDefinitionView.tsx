@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react';
 import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -62,6 +63,7 @@ export default function ViewDefinitionView({
   if (status === 'error' || viewError) {
     return (
       <EmptyState
+        icon={Database}
         title="Error loading view"
         description={
           <span>
@@ -77,6 +79,7 @@ export default function ViewDefinitionView({
   if (!viewDefinition) {
     return (
       <EmptyState
+        icon={Database}
         title="View not found"
         description={
           <span>

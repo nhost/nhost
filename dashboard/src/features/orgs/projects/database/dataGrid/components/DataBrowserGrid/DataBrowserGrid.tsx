@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { CellContext, Row } from '@tanstack/react-table';
-import { Copy, Edit, KeyRound, Trash2 } from 'lucide-react';
+import { Copy, Database, Edit, KeyRound, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -505,6 +505,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   if (metadata?.schemaNotFound) {
     return (
       <EmptyState
+        icon={Database}
         title="Schema not found"
         description={
           <span>
@@ -522,6 +523,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
   if (metadata?.tableNotFound) {
     return (
       <EmptyState
+        icon={Database}
         title="Table not found"
         description={
           <span>

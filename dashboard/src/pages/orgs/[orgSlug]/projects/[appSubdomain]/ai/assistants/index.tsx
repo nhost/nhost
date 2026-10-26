@@ -147,7 +147,7 @@ export default function AssistantsPage() {
 
   if (assistants.length === 0 && !assistantsLoading) {
     return (
-      <div className="flex h-full w-full flex-col bg-background p-6">
+      <div className="flex h-full w-full flex-col p-6">
         <EmptyState
           icon={SparklesIcon}
           title="No Assistants are configured"

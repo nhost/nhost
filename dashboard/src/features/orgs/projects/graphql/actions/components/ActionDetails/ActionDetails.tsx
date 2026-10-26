@@ -47,7 +47,6 @@ export default function ActionDetails() {
   if (!action) {
     return (
       <EmptyState
-        className="bg-background"
         icon={GraphQLIcon}
         title="Action not found"
         description={

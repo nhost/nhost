@@ -1,7 +1,7 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { ChevronDown, ChevronRight, Info, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, Info, Pencil } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -109,6 +109,7 @@ export default function FunctionDefinitionView() {
   if (status === 'error' || functionError) {
     return (
       <EmptyState
+        icon={Database}
         title="Error loading function"
         description={
           <span>
@@ -125,6 +126,7 @@ export default function FunctionDefinitionView() {
   if (!functionMetadata) {
     return (
       <EmptyState
+        icon={Database}
         title="Function not found"
         description={<span>The function does not exist.</span>}
       />

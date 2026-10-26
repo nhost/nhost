@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -20,6 +21,7 @@ function DataBrowserDatabaseDetailsContent() {
   if (dataSourceSlug !== 'default') {
     return (
       <EmptyState
+        icon={Database}
         title="Database not found"
         description={
           <span>
@@ -46,6 +48,7 @@ function DataBrowserDatabaseDetailsContent() {
 
   return (
     <EmptyState
+      icon={Database}
       title="Database"
       description="Select a table from the sidebar to get started."
     />

@@ -107,7 +107,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   return (
     <div className="mt-6">
       {nrOfItems === 0 ? (
-        <EmptyState icon={null} title="No deployments yet." />
+        <EmptyState title="No deployments yet." />
       ) : (
         <div>
           <ul className="mt-3 border-border border-y">

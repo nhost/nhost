@@ -75,7 +75,6 @@ export default function CronTriggerView() {
   if (error instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Cron trigger not found"
         description={
@@ -94,7 +93,6 @@ export default function CronTriggerView() {
   if (isEmptyValue(cronTrigger)) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Cron trigger not found"
         description={

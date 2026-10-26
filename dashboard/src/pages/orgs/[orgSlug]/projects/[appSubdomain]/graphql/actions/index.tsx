@@ -28,7 +28,6 @@ export default function ActionsPage() {
   if (error instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={GraphQLIcon}
         title="Something went wrong"
         description="Actions could not be loaded. Please try again."
@@ -44,7 +43,6 @@ export default function ActionsPage() {
 
   return (
     <EmptyState
-      className="bg-background"
       icon={GraphQLIcon}
       title="Actions"
       description="Select an action from the sidebar, or create a new one."

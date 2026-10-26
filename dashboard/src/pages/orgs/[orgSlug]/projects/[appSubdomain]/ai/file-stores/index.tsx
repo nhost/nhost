@@ -122,7 +122,7 @@ export default function FileStoresPage() {
 
   if (fileStores.length === 0 && !loading) {
     return (
-      <div className="flex h-full w-full flex-col bg-background p-6">
+      <div className="flex h-full w-full flex-col p-6">
         <EmptyState
           icon={SparklesIcon}
           title="No File Stores are configured"

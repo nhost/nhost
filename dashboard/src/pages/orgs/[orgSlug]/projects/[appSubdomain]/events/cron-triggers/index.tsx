@@ -26,7 +26,6 @@ export default function CronTriggersPage() {
   if (errorCronTriggers instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Cron triggers"
         description="An error occurred while fetching cron triggers."
@@ -40,7 +39,6 @@ export default function CronTriggersPage() {
   if (showNoCronTriggersMessage) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Cron triggers"
         description="Add a cron trigger to get started."
@@ -50,7 +48,6 @@ export default function CronTriggersPage() {
 
   return (
     <EmptyState
-      className="bg-background"
       icon={ZapIcon}
       title="Cron triggers"
       description="Select a cron trigger from the sidebar to get started."

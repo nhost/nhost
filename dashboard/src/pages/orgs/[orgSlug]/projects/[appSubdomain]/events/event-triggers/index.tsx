@@ -26,7 +26,6 @@ export default function EventTriggersPage() {
   if (errorEventTriggers instanceof Error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Event triggers"
         description="An error occurred while fetching event triggers."
@@ -40,7 +39,6 @@ export default function EventTriggersPage() {
   if (showNoEventTriggersMessage) {
     return (
       <EmptyState
-        className="bg-background"
         icon={ZapIcon}
         title="Event triggers"
         description="Add an event trigger to get started."
@@ -50,7 +48,6 @@ export default function EventTriggersPage() {
 
   return (
     <EmptyState
-      className="bg-background"
       icon={ZapIcon}
       title="Event triggers"
       description="Select an event trigger from the sidebar to get started."

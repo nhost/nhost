@@ -1,16 +1,6 @@
-import { Database } from 'lucide-react';
-import type {
-  ComponentType,
-  DetailedHTMLProps,
-  HTMLProps,
-  ReactNode,
-} from 'react';
+import type { LucideIcon } from 'lucide-react';
+import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-
-export type EmptyStateIconComponent = ComponentType<{
-  className?: string;
-  strokeWidth?: number;
-}>;
 
 export interface EmptyStateProps
   extends Omit<
@@ -26,39 +16,20 @@ export interface EmptyStateProps
    */
   description?: ReactNode;
   /**
-   * Icon component of the section. Defaults to the Database icon, `null`
-   * hides the icon. Size, stroke and color always come from EmptyState,
-   * never from the page.
+   * Icon component of the section. Rendered only when provided. Size, stroke
+   * and color always come from EmptyState, never from the page.
    */
-  icon?: EmptyStateIconComponent | null;
+  icon?: LucideIcon;
   /**
    * Call to action rendered below the description.
    */
   action?: ReactNode;
 }
 
-interface EmptyStateIconProps {
-  icon?: EmptyStateIconComponent | null;
-}
-
-function EmptyStateIcon({ icon }: EmptyStateIconProps) {
-  if (icon === null) {
-    return null;
-  }
-
-  const Icon = icon ?? Database;
-
-  return (
-    <span aria-hidden="true" className="flex shrink-0 text-disabled">
-      <Icon strokeWidth={1} className="h-12 w-12" />
-    </span>
-  );
-}
-
 export default function EmptyState({
   title,
   description,
-  icon,
+  icon: Icon,
   action,
   className,
   ...props
@@ -71,7 +42,13 @@ export default function EmptyState({
       )}
       {...props}
     >
-      <EmptyStateIcon icon={icon} />
+      {Icon && (
+        <Icon
+          aria-hidden="true"
+          strokeWidth={1}
+          className="h-12 w-12 shrink-0 text-disabled"
+        />
+      )}
       <div className="flex w-full flex-col gap-1 sm:max-w-md">
         <h3 className="font-semibold text-foreground text-lg">{title}</h3>
         {description && (

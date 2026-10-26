@@ -28,7 +28,6 @@ export default function NativeQueryDetails() {
   if (!query) {
     return (
       <EmptyState
-        className="bg-background"
         title="Native query not found"
         description={
           <span>

@@ -28,7 +28,6 @@ export default function ServerlessFunctionView() {
   if (error || isEmptyValue(fn)) {
     return (
       <EmptyState
-        className="bg-background"
         icon={Code}
         title="Function not found"
         description={

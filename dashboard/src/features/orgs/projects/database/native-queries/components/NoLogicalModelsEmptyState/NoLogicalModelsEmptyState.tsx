@@ -9,7 +9,6 @@ export default function NoLogicalModelsEmptyState() {
 
   return (
     <EmptyState
-      className="bg-background"
       title="Create your first logical model"
       description="Logical models define reusable field structures for native query results."
       action={

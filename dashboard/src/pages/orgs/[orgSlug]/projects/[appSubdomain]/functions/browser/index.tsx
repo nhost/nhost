@@ -22,7 +22,6 @@ export default function FunctionsPage() {
   if (error) {
     return (
       <EmptyState
-        className="bg-background"
         icon={Code}
         title="Functions"
         description="An error occurred while fetching functions."
@@ -33,7 +32,6 @@ export default function FunctionsPage() {
   if (Array.isArray(functions) && functions.length === 0) {
     return (
       <EmptyState
-        className="bg-background"
         icon={Code}
         title="Functions"
         description="No functions have been deployed yet."
@@ -43,7 +41,6 @@ export default function FunctionsPage() {
 
   return (
     <EmptyState
-      className="bg-background"
       icon={Code}
       title="Functions"
       description="Select a function from the sidebar to get started."
