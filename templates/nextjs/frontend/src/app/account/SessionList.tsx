@@ -3,7 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState, useSyncExternalStore } from 'react';
 import { signOutSession } from '@/app/account/actions';
+import ConfirmAction from '@/app/account/ConfirmAction';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
+import Dialog from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { useRemoved } from '@/components/useRemoved';
@@ -28,8 +30,9 @@ function useHydrated(): boolean {
  * out. This one signs out the way the nav does, which clears its cookies and
  * goes home; the others have their row deleted.
  *
- * No dialog before signing one out: it reaches a single device, which can
- * sign in again.
+ * Asked first: the lines look alike, and the session a stray click ends is
+ * on a device that may not be at hand to sign in again. Each line holds its
+ * own dialog, since a list can only hold lines.
  */
 export default function SessionList({
   sessions: listed,
@@ -40,6 +43,7 @@ export default function SessionList({
   const toast = useToast();
   const hydrated = useHydrated();
   const [error, setError] = useState<string | undefined>();
+  const [confirming, setConfirming] = useState<string | undefined>();
   const here = useSignOut();
 
   // Another session leaves the list as soon as it is signed out, rather than
@@ -47,6 +51,18 @@ export default function SessionList({
   // if the server refused.
   const { removed, remove, restore } = useRemoved();
   const sessions = listed.filter((session) => !removed.has(session.id));
+
+  // The dialog closes on confirming: this session's line then says it is
+  // signing out until the home page arrives, and another's leaves the list.
+  const handleConfirm = async (session: SessionSummary): Promise<undefined> => {
+    setConfirming(undefined);
+    if (session.current) {
+      here.handleSignOut();
+    } else {
+      void handleSignOut(session);
+    }
+    return undefined;
+  };
 
   const handleSignOut = async (session: SessionSummary): Promise<void> => {
     setError(undefined);
@@ -110,16 +126,38 @@ export default function SessionList({
               size="sm"
               className="shrink-0"
               disabled={here.isSigningOut}
-              onClick={() =>
-                void (session.current
-                  ? here.handleSignOut()
-                  : handleSignOut(session))
-              }
+              aria-haspopup="dialog"
+              onClick={() => setConfirming(session.id)}
             >
               {session.current && here.isSigningOut
                 ? 'Signing out…'
                 : 'Sign out'}
             </Button>
+            <Dialog
+              open={confirming === session.id}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setConfirming(undefined);
+                }
+              }}
+              title={
+                session.current
+                  ? 'Sign out of this browser?'
+                  : 'Sign out this session?'
+              }
+              description={
+                session.current
+                  ? "You'll go back to the home page and need to sign in again here."
+                  : `${[session.device, session.place].filter(Boolean).join(', ')} will need to sign in again.`
+              }
+            >
+              <ConfirmAction
+                confirm="Sign out"
+                pending="Signing out…"
+                destructive
+                onConfirm={() => handleConfirm(session)}
+              />
+            </Dialog>
           </li>
         );
       })}

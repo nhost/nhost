@@ -42,6 +42,19 @@ const button = (row: number): HTMLButtonElement =>
     .querySelectorAll('li')
     [row].querySelector('button') as HTMLButtonElement;
 
+const dialog = (): HTMLDialogElement | null =>
+  container.querySelector('dialog[open]');
+
+// The line's button only asks; the dialog's is the one that signs out.
+async function signOutLine(row: number): Promise<void> {
+  await act(async () => button(row).click());
+  await act(async () =>
+    dialog()
+      ?.querySelector('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })),
+  );
+}
+
 // React holds every async action in a page together, so one left pending
 // would hold back the next test's. Each test's is let go when it ends.
 let release: VoidFunction = () => undefined;
@@ -108,12 +121,42 @@ describe('session list', () => {
     );
   });
 
+  it('asks before signing out another session, naming it', async () => {
+    await act(async () => button(1).click());
+
+    expect(dialog()?.textContent).toContain('Sign out this session?');
+    expect(dialog()?.textContent).toContain(
+      'Safari - iOS, Stockholm, 198.51.100.7 will need to sign in again.',
+    );
+    expect(signOutSession).not.toHaveBeenCalled();
+  });
+
+  it('leaves the session alone when the question is cancelled', async () => {
+    await act(async () => button(1).click());
+    const cancel = [...(dialog()?.querySelectorAll('button') ?? [])].find(
+      (candidate) => candidate.textContent === 'Cancel',
+    );
+
+    await act(async () => cancel?.click());
+
+    expect(dialog()).toBeNull();
+    expect(signOutSession).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('Safari - iOS');
+  });
+
+  it('asks before signing this browser out', async () => {
+    await act(async () => button(0).click());
+
+    expect(dialog()?.textContent).toContain('Sign out of this browser?');
+    expect(signOutAndGoHome).not.toHaveBeenCalled();
+  });
+
   // Deleting its own row would leave this browser holding cookies for a
   // session that is gone, so it signs out the way the nav does.
   it('signs this device out the way the nav does and goes home', async () => {
     signOutAndGoHome.mockReturnValueOnce(held());
 
-    await act(async () => button(0).click());
+    await signOutLine(0);
 
     expect(signOutAndGoHome).toHaveBeenCalledOnce();
     expect(signOutSession).not.toHaveBeenCalled();
@@ -125,7 +168,7 @@ describe('session list', () => {
       error: 'Could not reach the server. You are still signed in.',
     });
 
-    await act(async () => button(0).click());
+    await signOutLine(0);
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'Could not reach the server. You are still signed in.',
@@ -135,7 +178,7 @@ describe('session list', () => {
   it('signs out another session and reads the list again', async () => {
     signOutSession.mockResolvedValueOnce({ success: true });
 
-    await act(async () => button(1).click());
+    await signOutLine(1);
 
     expect(signOutSession).toHaveBeenCalledWith('phone-0000');
     expect(router.refresh).toHaveBeenCalledOnce();
@@ -146,7 +189,7 @@ describe('session list', () => {
   it('takes another session off the list as soon as it is signed out', async () => {
     signOutSession.mockReturnValueOnce(new Promise(() => undefined));
 
-    await act(async () => button(1).click());
+    await signOutLine(1);
 
     expect(container.querySelectorAll('li')).toHaveLength(1);
     expect(container.textContent).not.toContain('Safari - iOS');
@@ -157,7 +200,7 @@ describe('session list', () => {
       error: 'That session is not on this account.',
     });
 
-    await act(async () => button(1).click());
+    await signOutLine(1);
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'That session is not on this account.',
