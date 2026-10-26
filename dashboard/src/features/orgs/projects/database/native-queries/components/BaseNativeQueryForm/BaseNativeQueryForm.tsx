@@ -147,7 +147,7 @@ export default function BaseNativeQueryForm({
                   <Combobox
                     ref={returnsTriggerRef}
                     id="native-query-returns"
-                    className="flex h-10 max-w-md"
+                    className="max-w-md"
                     aria-label="Returns logical model"
                     aria-invalid={fieldState.invalid}
                     aria-describedby={
@@ -224,10 +224,10 @@ export default function BaseNativeQueryForm({
                         <Button
                           type="button"
                           variant="subtle"
-                          size="icon"
+                          size="icon-xs"
                           title="Expand SQL editor"
                           aria-label="Expand SQL editor"
-                          className="absolute top-1 right-2 z-10 h-6 w-6 bg-background/90"
+                          className="absolute top-1 right-2 z-10 bg-background/90"
                         >
                           <ExpandIcon className="h-4 w-4" strokeWidth={1} />
                         </Button>

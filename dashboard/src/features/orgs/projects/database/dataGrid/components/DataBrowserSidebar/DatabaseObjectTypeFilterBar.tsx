@@ -52,9 +52,9 @@ function FilterButton({
       <TooltipTrigger asChild>
         <Button
           variant="subtle"
-          size="icon"
+          size="icon-sm"
           aria-label={`Toggle filter by ${filterLabels[filterType]}`}
-          className={cn('h-7 w-7', {
+          className={cn({
             'bg-accent ring-1 ring-ring/50': isActive,
             'opacity-30': !isActive && hasActiveFilters,
           })}
@@ -97,8 +97,8 @@ export default function DatabaseObjectTypeFilterBar({
             <TooltipTrigger asChild>
               <Button
                 variant="subtle"
-                size="icon"
-                className="ml-auto h-7 w-7"
+                size="icon-sm"
+                className="ml-auto"
                 onClick={onClear}
               >
                 <X className="size-4" />

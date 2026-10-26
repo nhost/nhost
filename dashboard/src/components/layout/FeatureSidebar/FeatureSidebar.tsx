@@ -99,7 +99,7 @@ export default function FeatureSidebar({
         variant="ghost"
         size="icon"
         className={cn(
-          'absolute bottom-4 z-[38] h-11 w-11 rounded-full border bg-primary',
+          'absolute bottom-4 z-[38] rounded-full border bg-primary',
           toggleOffset === 'left-4' && 'left-4',
           toggleOffset === 'left-8' && 'left-8',
           mobileBreakpoint === 'sm' && 'sm:hidden',

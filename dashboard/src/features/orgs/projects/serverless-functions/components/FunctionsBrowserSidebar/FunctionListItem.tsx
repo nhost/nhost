@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import {
   isFunctionTab,
@@ -36,47 +35,29 @@ export default function FunctionListItem({
   };
 
   return (
-    <div className="group">
-      <Button
-        asChild
-        variant="link"
-        size="md"
-        className={cn(
-          'flex h-auto w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
-          {
-            'bg-table-selected': isSelected,
-          },
-        )}
-      >
-        <div className="flex w-full max-w-full items-center">
-          <Link
-            href={href}
-            className={cn(
-              'flex h-full w-full flex-col items-start px-[0.625rem] py-1.5 text-left',
-              {
-                'text-primary': isSelected,
-              },
-            )}
-          >
-            <TextWithTooltip
-              containerClassName="w-full"
-              className={cn('!truncate text-sm+', {
-                'text-primary': isSelected,
-              })}
-              truncateMode="middle"
-              tailLength={12}
-              text={nhostFunction.route}
-            />
-            <TextWithTooltip
-              containerClassName="w-full"
-              className="!truncate text-muted-foreground text-xs"
-              truncateMode="middle"
-              tailLength={12}
-              text={nhostFunction.path}
-            />
-          </Link>
-        </div>
-      </Button>
-    </div>
+    <Link
+      href={href}
+      className={cn(
+        'flex w-full max-w-full flex-col items-start rounded-md py-3.5 pr-[1.625rem] pl-2.5 text-left font-medium text-sm+ hover:bg-accent',
+        { 'bg-table-selected text-primary': isSelected },
+      )}
+    >
+      <TextWithTooltip
+        containerClassName="w-full"
+        className={cn('!truncate text-sm+', {
+          'text-primary': isSelected,
+        })}
+        truncateMode="middle"
+        tailLength={12}
+        text={nhostFunction.route}
+      />
+      <TextWithTooltip
+        containerClassName="w-full"
+        className="!truncate text-muted-foreground text-xs"
+        truncateMode="middle"
+        tailLength={12}
+        text={nhostFunction.path}
+      />
+    </Link>
   );
 }

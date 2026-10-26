@@ -194,8 +194,9 @@ export default function CreateOAuth2ClientForm({
             <div className="grid grid-flow-col items-center justify-start gap-1">
               <Button
                 onClick={handleGenerateSecret}
-                className="h-auto px-1 py-0.5 text-xs"
+                className="px-1 py-0.5 text-xs"
                 variant="link"
+                size="inline"
                 type="button"
               >
                 Generate a secret
@@ -205,9 +206,10 @@ export default function CreateOAuth2ClientForm({
               <div className="grid grid-flow-col items-center justify-start gap-1">
                 <Button
                   variant="link"
+                  size="inline"
                   onClick={handleRemoveSecret}
                   type="button"
-                  className="h-auto px-1 py-0.5 text-destructive text-xs"
+                  className="px-1 py-0.5 text-destructive text-xs"
                 >
                   Remove secret (make public)
                 </Button>

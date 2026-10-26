@@ -12,7 +12,6 @@ import {
   useState,
 } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button } from '@/components/ui/v3/button';
 import {
   Command,
   CommandEmpty,
@@ -22,6 +21,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/v3/command';
+import { controlMinHeight, controlText } from '@/components/ui/v3/control';
 import {
   Popover,
   PopoverContent,
@@ -122,24 +122,26 @@ export function MultiSelectTrigger({
 }: {
   className?: string;
   children?: ReactNode;
-} & ComponentPropsWithoutRef<typeof Button>) {
+} & ComponentPropsWithoutRef<'button'>) {
   const { open } = useMultiSelectContext();
 
   return (
     <PopoverTrigger asChild>
-      <Button
+      <button
+        type="button"
         {...props}
-        variant={props.variant ?? 'outline'}
         role={props.role ?? 'combobox'}
         aria-expanded={props['aria-expanded'] ?? open}
         className={cn(
-          "flex h-auto min-h-9 w-fit items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
+          controlMinHeight,
+          controlText,
+          "flex w-fit items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-1.5 shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[placeholder]:text-muted-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0",
           className,
         )}
       >
         {children}
         <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
-      </Button>
+      </button>
     </PopoverTrigger>
   );
 }
