@@ -44,8 +44,13 @@ describe('copy user id', () => {
     container.remove();
   });
 
-  it('shows the ends of the id, and the whole of it on hover', () => {
-    expect(chip()?.textContent).toContain('2c35…2e24');
+  // The name beside it takes the room first, so CSS cuts the id short where
+  // there is not enough. The text and the tooltip are always whole.
+  it('shows the whole id, cut short by CSS where it must be', () => {
+    const text = chip()?.querySelector('span');
+
+    expect(text?.textContent).toBe(id);
+    expect(text?.className).toContain('truncate');
     expect(chip()?.title).toBe(id);
   });
 

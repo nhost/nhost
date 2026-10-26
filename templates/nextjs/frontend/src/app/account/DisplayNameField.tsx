@@ -69,10 +69,11 @@ export default function DisplayNameField({
 
   if (!editing) {
     return (
-      <div className="flex min-w-0 items-center gap-1">
-        <span className="truncate font-semibold text-xl leading-tight">
-          {displayName}
-        </span>
+      // Wraps rather than truncates: the name is what the card is for. It is
+      // often the address, which has no spaces, so it may break anywhere.
+      // Inline, so the pencil follows the last word rather than the edge.
+      <p className="min-w-0 font-semibold text-xl leading-tight [overflow-wrap:anywhere]">
+        {displayName}
         {/* Always shown rather than on hover: a phone has no hover, and a
             pencil is small enough not to crowd the name. */}
         <Button
@@ -81,7 +82,7 @@ export default function DisplayNameField({
           size="icon"
           aria-label="Edit name"
           title="Edit name"
-          className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+          className="-my-1 ml-1 size-7 align-middle text-muted-foreground hover:text-foreground"
           onClick={() => setEditing(true)}
         >
           <svg
@@ -98,7 +99,7 @@ export default function DisplayNameField({
             <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
           </svg>
         </Button>
-      </div>
+      </p>
     );
   }
 
