@@ -5,12 +5,6 @@ query GetOrganizationsAndWorkspacesApps {
       ...AppSummaryFragment
     }
   }
-  workspaces {
-    name
-    apps {
-      ...AppSummaryFragment
-    }
-  }
 }
 
 fragment AppSummaryFragment on apps {

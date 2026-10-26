@@ -31,7 +31,7 @@ func List(ctx context.Context, ce *clienv.CliEnv) error {
 
 	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get workspaces: %w", err)
+		return fmt.Errorf("failed to get projects: %w", err)
 	}
 
 	return clienv.Printlist(ce, orgs) //nolint:wrapcheck

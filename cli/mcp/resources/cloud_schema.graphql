@@ -10,6 +10,8 @@ scalar ConfigLocale
 
 scalar ConfigPort
 
+scalar ConfigPostgresPreloadLibrary
+
 scalar ConfigUint
 
 scalar ConfigUint32
@@ -57,6 +59,7 @@ type ConfigAuth {
   elevatedPrivileges: ConfigAuthElevatedPrivileges
   method: ConfigAuthMethod
   misc: ConfigAuthMisc
+  oauth2Provider: ConfigAuthOauth2Provider
   rateLimit: ConfigAuthRateLimit
   redirections: ConfigAuthRedirections
   resources: ConfigResources
@@ -100,6 +103,7 @@ type ConfigAuthMethodOauth {
   azuread: ConfigAuthMethodOauthAzuread
   bitbucket: ConfigStandardOauthProvider
   discord: ConfigStandardOauthProviderWithScope
+  entraid: ConfigAuthMethodOauthEntraid
   facebook: ConfigStandardOauthProviderWithScope
   github: ConfigStandardOauthProviderWithScope
   gitlab: ConfigStandardOauthProviderWithScope
@@ -124,6 +128,13 @@ type ConfigAuthMethodOauthApple {
 }
 
 type ConfigAuthMethodOauthAzuread {
+  clientId: String
+  clientSecret: String
+  enabled: Boolean
+  tenant: String
+}
+
+type ConfigAuthMethodOauthEntraid {
   clientId: String
   clientSecret: String
   enabled: Boolean
@@ -176,10 +187,31 @@ type ConfigAuthMisc {
   concealErrors: Boolean
 }
 
+type ConfigAuthOauth2Provider {
+  accessToken: ConfigAuthOauth2ProviderAccessToken
+  clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocument
+  enabled: Boolean
+  loginURL: String
+  refreshToken: ConfigAuthOauth2ProviderRefreshToken
+}
+
+type ConfigAuthOauth2ProviderAccessToken {
+  expiresIn: ConfigUint32
+}
+
+type ConfigAuthOauth2ProviderClientIdMetadataDocument {
+  enabled: Boolean
+}
+
+type ConfigAuthOauth2ProviderRefreshToken {
+  expiresIn: ConfigUint32
+}
+
 type ConfigAuthRateLimit {
   bruteForce: ConfigRateLimit
   emails: ConfigRateLimit
   global: ConfigRateLimit
+  oauth2Server: ConfigRateLimit
   signups: ConfigRateLimit
   sms: ConfigRateLimit
 }
@@ -204,6 +236,7 @@ type ConfigAuthSessionRefreshToken {
 }
 
 type ConfigAuthSignUp {
+  disableAutoSignup: Boolean
   disableNewUsers: Boolean
   enabled: Boolean
   turnstile: ConfigAuthSignUpTurnstile
@@ -253,6 +286,7 @@ type ConfigAuthUserRoles {
 }
 
 type ConfigAuthsessionaccessTokenCustomClaims {
+  default: String
   key: String!
   value: String!
 }
@@ -276,6 +310,7 @@ type ConfigComputeResources {
 type ConfigConfig {
   ai: ConfigAI
   auth: ConfigAuth
+  experimental: ConfigExperimental
   functions: ConfigFunctions
   global: ConfigGlobal
   graphql: ConfigGraphql
@@ -284,6 +319,22 @@ type ConfigConfig {
   postgres: ConfigPostgres!
   provider: ConfigProvider
   storage: ConfigStorage
+}
+
+type ConfigConstellation {
+  settings: ConfigConstellationSettings
+  version: String
+}
+
+type ConfigConstellationSettings {
+  corsAllowedOrigins: [String!]
+  debug: Boolean
+  devMode: Boolean
+  subscriptionPollInterval: String
+}
+
+type ConfigExperimental {
+  constellation: ConfigConstellation
 }
 
 type ConfigFunctions {
@@ -465,6 +516,7 @@ type ConfigPostgresPitr {
 }
 
 type ConfigPostgresResources {
+  allowedCIDRs: [String!]
   compute: ConfigResourcesCompute
   enablePublicAccess: Boolean
   replicas: Int
@@ -478,26 +530,64 @@ type ConfigPostgresResourcesStorage {
 type ConfigPostgresSettings {
   archiveTimeout: ConfigInt32
   checkpointCompletionTarget: Float
+  checkpointTimeout: String
   defaultStatisticsTarget: ConfigInt32
   effectiveCacheSize: String
   effectiveIOConcurrency: ConfigInt32
+  extensions: ConfigPostgresSettingsExtensions
   hugePages: String
   jit: String
+  logAutovacuumMinDuration: String
+  logMinDurationStatement: String
+  logTempFiles: String
   maintenanceWorkMem: String
   maxConnections: ConfigInt32
   maxParallelMaintenanceWorkers: ConfigInt32
   maxParallelWorkers: ConfigInt32
   maxParallelWorkersPerGather: ConfigInt32
   maxReplicationSlots: ConfigInt32
+  maxSlotWalKeepSize: String
   maxWalSenders: ConfigInt32
   maxWalSize: String
   maxWorkerProcesses: ConfigInt32
   minWalSize: String
   randomPageCost: Float
   sharedBuffers: String
+  sharedPreloadLibraries: [ConfigPostgresPreloadLibrary!]
+  trackIoTiming: String
   walBuffers: String
+  walCompression: String
   walLevel: String
   workMem: String
+}
+
+type ConfigPostgresSettingsExtensions {
+  cron: ConfigPostgresSettingsExtensionsCron
+  pgDurable: ConfigPostgresSettingsExtensionsPgDurable
+  pgStatStatements: ConfigPostgresSettingsExtensionsPgStatStatements
+  timescaledb: ConfigPostgresSettingsExtensionsTimescaledb
+}
+
+type ConfigPostgresSettingsExtensionsCron {
+  logRun: String
+  maxRunningJobs: ConfigInt32
+  timezone: String
+}
+
+type ConfigPostgresSettingsExtensionsPgDurable {
+  logWorkflowSql: String
+  maxUserConnections: ConfigInt32
+  retentionDays: ConfigInt32
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatements {
+  max: ConfigInt32
+  track: String
+  trackPlanning: String
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledb {
+  maxBackgroundWorkers: ConfigInt32
 }
 
 type ConfigProvider {
@@ -530,13 +620,13 @@ type ConfigSms {
 }
 
 type ConfigSmtp {
-  host: String!
-  method: String!
-  password: String!
-  port: ConfigPort!
-  secure: Boolean!
-  sender: String!
-  user: String!
+  host: String
+  method: String
+  password: String
+  port: ConfigPort
+  secure: Boolean
+  sender: String
+  user: String
 }
 
 type ConfigStandardOauthProvider {
@@ -555,6 +645,7 @@ type ConfigStandardOauthProviderWithScope {
 
 type ConfigStorage {
   antivirus: ConfigStorageAntivirus
+  imageTransformer: ConfigStorageImageTransformer
   rateLimit: ConfigRateLimit
   resources: ConfigResources
   version: String
@@ -564,64 +655,70 @@ type ConfigStorageAntivirus {
   server: String
 }
 
+type ConfigStorageImageTransformer {
+  maxBlurSigma: ConfigUint32
+  maxImageOutputDimension: ConfigUint32
+}
+
 type apps {
-  appSecrets: [ConfigEnvironmentVariable!]!
-  """An array relationship"""
-appStates(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!]): [appStateHistory!]!
-  automaticDeploys: Boolean!
-  """An array relationship"""
-backups(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!]): [backups!]!
-  config(resolve: Boolean!): ConfigConfig
-  createdAt: timestamptz!
-  creatorUserId: uuid
-  """An array relationship"""
-deployments(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!]): [deployments!]!
-  desiredState: Int!
-  """An array relationship"""
-featureFlags(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!]): [featureFlags!]!
-  githubRepositoryId: uuid
   id: uuid!
+  createdAt: timestamptz!
+  updatedAt: timestamptz!
+  name: String!
+  slug: String!
+  githubRepositoryId: uuid
+  subdomain: String!
+  repositoryProductionBranch: String!
+  metadataFunctions(path: String): jsonb!
+  desiredState: Int!
+  creatorUserId: uuid
+  nhostBaseFolder: String!
   isLocked: Boolean
   isLockedReason: String
-  metadataFunctions(path: String): jsonb!
-  name: String!
-  nhostBaseFolder: String!
+  organizationID: uuid!
+  automaticDeploys: Boolean!
   """An object relationship"""
-organization: organizations
-  organizationID: uuid
+organization: organizations!
   """An object relationship"""
 region: regions!
-  repositoryProductionBranch: String!
+  """An array relationship"""
+appStates(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!]): [appStateHistory!]!
+  """An array relationship"""
+backups(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!]): [backups!]!
+  """An array relationship"""
+deployments(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!]): [deployments!]!
+  """An array relationship"""
+featureFlags(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!]): [featureFlags!]!
+  """An array relationship"""
+pipelineRuns(distinct_on: [pipelineRuns_select_column!], limit: Int, offset: Int, order_by: [pipelineRuns_order_by!]): [pipelineRuns!]!
   """An array relationship"""
 runServices(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!]): [run_service!]!
   """An aggregate relationship"""
 runServices_aggregate(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!]): run_service_aggregate!
-  slug: String!
-  subdomain: String!
-  updatedAt: timestamptz!
-  workspaceId: uuid
+  appSecrets: [ConfigEnvironmentVariable!]!
+  config(resolve: Boolean!): ConfigConfig
 }
 
 type organizations {
+  id: uuid!
+  createdAt: timestamptz!
+  updatedAt: timestamptz!
+  name: String!
+  slug: String!
+  planID: uuid!
+  status: organization_status_enum!
+  threshold: Int!
+  current_threshold: organization_costs_thresholds_enum!
+  """An object relationship"""
+plan: plans!
   """An array relationship"""
 allowedPrivateRegions(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!]): [regions_allowed_organization!]!
   """An array relationship"""
 apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
-  createdAt: timestamptz!
-  current_threshold: organization_costs_thresholds_enum!
-  id: uuid!
   """An array relationship"""
 invites(distinct_on: [organization_member_invites_select_column!], limit: Int, offset: Int, order_by: [organization_member_invites_order_by!]): [organization_member_invites!]!
   """An array relationship"""
 members(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!]): [organization_members!]!
-  name: String!
-  """An object relationship"""
-plan: plans!
-  planID: uuid!
-  slug: String!
-  status: organization_status_enum!
-  threshold: Int!
-  updatedAt: timestamptz!
 }
 
 input Boolean_comparison_exp {
@@ -684,45 +781,43 @@ input apps_bool_exp {
   _and: [apps_bool_exp!]
   _not: apps_bool_exp
   _or: [apps_bool_exp!]
-  automaticDeploys: Boolean_comparison_exp
-  createdAt: timestamptz_comparison_exp
-  creatorUserId: uuid_comparison_exp
-  desiredState: Int_comparison_exp
-  githubRepositoryId: uuid_comparison_exp
   id: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  name: String_comparison_exp
+  slug: String_comparison_exp
+  githubRepositoryId: uuid_comparison_exp
+  subdomain: String_comparison_exp
+  repositoryProductionBranch: String_comparison_exp
+  metadataFunctions: jsonb_comparison_exp
+  desiredState: Int_comparison_exp
+  creatorUserId: uuid_comparison_exp
+  nhostBaseFolder: String_comparison_exp
   isLocked: Boolean_comparison_exp
   isLockedReason: String_comparison_exp
-  metadataFunctions: jsonb_comparison_exp
-  name: String_comparison_exp
-  nhostBaseFolder: String_comparison_exp
-  organization: organizations_bool_exp
   organizationID: uuid_comparison_exp
-  repositoryProductionBranch: String_comparison_exp
-  slug: String_comparison_exp
-  subdomain: String_comparison_exp
-  updatedAt: timestamptz_comparison_exp
-  workspaceId: uuid_comparison_exp
+  automaticDeploys: Boolean_comparison_exp
+  organization: organizations_bool_exp
 }
 
 input apps_order_by {
-  automaticDeploys: order_by
-  createdAt: order_by
-  creatorUserId: order_by
-  desiredState: order_by
-  githubRepositoryId: order_by
   id: order_by
+  createdAt: order_by
+  updatedAt: order_by
+  name: order_by
+  slug: order_by
+  githubRepositoryId: order_by
+  subdomain: order_by
+  repositoryProductionBranch: order_by
+  metadataFunctions: order_by
+  desiredState: order_by
+  creatorUserId: order_by
+  nhostBaseFolder: order_by
   isLocked: order_by
   isLockedReason: order_by
-  metadataFunctions: order_by
-  name: order_by
-  nhostBaseFolder: order_by
-  organization: organizations_order_by
   organizationID: order_by
-  repositoryProductionBranch: order_by
-  slug: order_by
-  subdomain: order_by
-  updatedAt: order_by
-  workspaceId: order_by
+  automaticDeploys: order_by
+  organization: organizations_order_by
 }
 
 input jsonb_comparison_exp {
@@ -767,28 +862,28 @@ input organizations_bool_exp {
   _and: [organizations_bool_exp!]
   _not: organizations_bool_exp
   _or: [organizations_bool_exp!]
-  apps: apps_bool_exp
-  createdAt: timestamptz_comparison_exp
-  current_threshold: organization_costs_thresholds_enum_comparison_exp
   id: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  updatedAt: timestamptz_comparison_exp
   name: String_comparison_exp
-  planID: uuid_comparison_exp
   slug: String_comparison_exp
+  planID: uuid_comparison_exp
   status: organization_status_enum_comparison_exp
   threshold: Int_comparison_exp
-  updatedAt: timestamptz_comparison_exp
+  current_threshold: organization_costs_thresholds_enum_comparison_exp
+  apps: apps_bool_exp
 }
 
 input organizations_order_by {
-  createdAt: order_by
-  current_threshold: order_by
   id: order_by
+  createdAt: order_by
+  updatedAt: order_by
   name: order_by
-  planID: order_by
   slug: order_by
+  planID: order_by
   status: order_by
   threshold: order_by
-  updatedAt: order_by
+  current_threshold: order_by
 }
 
 input timestamptz_comparison_exp {
@@ -818,12 +913,12 @@ input uuid_comparison_exp {
 type Query {
   """fetch data from the table: "apps" using primary key columns"""
 app(id: uuid!): apps
-  """An array relationship"""
+  """fetch data from the table: "apps""""
 apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
   config(appID: uuid!, resolve: Boolean!): ConfigConfig
   """fetch data from the table: "organizations" using primary key columns"""
 organization(id: uuid!): organizations
-  """An array relationship"""
+  """fetch data from the table: "organizations""""
 organizations(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): [organizations!]!
 }
 

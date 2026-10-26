@@ -24,15 +24,7 @@ func getRemoteAppInfo(
 		ctx,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get workspaces: %w", err)
-	}
-
-	for _, workspace := range resp.Workspaces {
-		for _, app := range workspace.Apps {
-			if app.Subdomain == subdomain {
-				return app, nil
-			}
-		}
+		return nil, fmt.Errorf("failed to get projects: %w", err)
 	}
 
 	for _, organization := range resp.Organizations {

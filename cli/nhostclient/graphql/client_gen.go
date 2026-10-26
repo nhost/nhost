@@ -89,35 +89,6 @@ func (t *GetOrganizationsAndWorkspacesApps_Organizations) GetName() string {
 	return t.Name
 }
 
-type GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region struct {
-	Name string "json:\"name\" graphql:\"name\""
-}
-
-func (t *GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region) GetName() string {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps_Workspaces_Apps_AppSummaryFragment_Region{}
-	}
-	return t.Name
-}
-
-type GetOrganizationsAndWorkspacesApps_Workspaces struct {
-	Apps []*AppSummaryFragment "json:\"apps\" graphql:\"apps\""
-	Name string                "json:\"name\" graphql:\"name\""
-}
-
-func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetApps() []*AppSummaryFragment {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
-	}
-	return t.Apps
-}
-func (t *GetOrganizationsAndWorkspacesApps_Workspaces) GetName() string {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps_Workspaces{}
-	}
-	return t.Name
-}
-
 type GetHasuraAdminSecret_App_Config_Hasura struct {
 	AdminSecret string  "json:\"adminSecret\" graphql:\"adminSecret\""
 	Version     *string "json:\"version,omitempty\" graphql:\"version\""
@@ -511,7 +482,6 @@ func (t *GetSoftwareVersions_SoftwareVersions) GetVersion() string {
 
 type GetOrganizationsAndWorkspacesApps struct {
 	Organizations []*GetOrganizationsAndWorkspacesApps_Organizations "json:\"organizations\" graphql:\"organizations\""
-	Workspaces    []*GetOrganizationsAndWorkspacesApps_Workspaces    "json:\"workspaces\" graphql:\"workspaces\""
 }
 
 func (t *GetOrganizationsAndWorkspacesApps) GetOrganizations() []*GetOrganizationsAndWorkspacesApps_Organizations {
@@ -519,12 +489,6 @@ func (t *GetOrganizationsAndWorkspacesApps) GetOrganizations() []*GetOrganizatio
 		t = &GetOrganizationsAndWorkspacesApps{}
 	}
 	return t.Organizations
-}
-func (t *GetOrganizationsAndWorkspacesApps) GetWorkspaces() []*GetOrganizationsAndWorkspacesApps_Workspaces {
-	if t == nil {
-		t = &GetOrganizationsAndWorkspacesApps{}
-	}
-	return t.Workspaces
 }
 
 type GetHasuraAdminSecret struct {
@@ -734,12 +698,6 @@ func (t *GetSoftwareVersions) GetSoftwareVersions() []*GetSoftwareVersions_Softw
 
 const GetOrganizationsAndWorkspacesAppsDocument = `query GetOrganizationsAndWorkspacesApps {
 	organizations {
-		name
-		apps {
-			... AppSummaryFragment
-		}
-	}
-	workspaces {
 		name
 		apps {
 			... AppSummaryFragment
