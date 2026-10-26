@@ -3,7 +3,11 @@ import { signInDestination } from '@/app/signin/destination';
 import { recordSignInAttempt } from '@/app/signin/lastUsed';
 import { appOrigin } from '@/lib/nhost/env';
 import { createNhostClient } from '@/lib/nhost/server';
-import { configuredProviders, providerHref } from '../providers';
+import {
+  ACCOUNT_PICKER,
+  configuredProviders,
+  providerHref,
+} from '../providers';
 
 /**
  * Where a provider button goes before the provider. Linking straight to the
@@ -30,6 +34,7 @@ export async function GET(
   const nhost = await createNhostClient();
   const url = nhost.auth.signInProviderURL(found.id, {
     redirectTo: appOrigin() + destination,
+    upstreamParams: ACCOUNT_PICKER,
   });
 
   return recordSignInAttempt(
