@@ -68,6 +68,31 @@ listed the sign-in page leaves the method out. The variable is only read on
 the server, at request time, so a host that deploys the frontend sets it like
 any other runtime variable rather than before the build.
 
+## Sessions
+
+The account page lists every browser signed in to the account, one line
+each: the browser and system, then, where the host provides it, the city,
+then the address, and last when it was last used, in the visitor's time
+zone. Any session but the current one can be signed out from there, and all
+of them at once with Sign out everywhere.
+
+The auth service records none of this, so the app does. The proxy writes it to
+the session's row in `auth.refresh_tokens`, in the `metadata` column the auth
+service leaves empty for a browser session, when it changes and at most every
+five minutes otherwise. The address comes from `x-real-ip` or
+`x-forwarded-for`, and the location from the headers Vercel
+(`x-vercel-ip-country`, `x-vercel-ip-country-region`, `x-vercel-ip-city`) or
+Cloudflare (`cf-ipcountry`, plus `cf-ipcity` and `cf-region` with its visitor
+location headers on) set. Elsewhere there is no location, and a server that
+takes requests directly records whatever address the browser claims. The user
+role may write the column, so this is the user's own record of their
+sessions, not an audit log.
+
+Signing a session out deletes its row, but an access token stays valid until
+it expires, 15 minutes with this config. So on every page load the proxy also
+looks for the session's row, and signs the browser out when it is gone. A tab
+left open checks again when it is next looked at, at most every 30 seconds.
+
 ## Deploying
 
 The config takes the frontend's address from two secrets rather than from
@@ -109,9 +134,10 @@ but the slug is only in the dashboard URL.
 
 ## Permissions
 
-Three of the files in `nhost/metadata/databases/default/tables/`,
-`auth_users.yaml`, `auth_user_security_keys.yaml` and `storage_files.yaml`,
-grant the `user` role what the account page needs and nothing more. The rest
+Four of the files in `nhost/metadata/databases/default/tables/`,
+`auth_users.yaml`, `auth_user_security_keys.yaml`, `auth_refresh_tokens.yaml`
+and `storage_files.yaml`, grant the `user` role what the account page needs
+and nothing more. The rest
 are the services' own tables with no permissions. Hasura's export keeps no
 comments, so this section is the record of why.
 
@@ -129,6 +155,14 @@ avatar through the storage API before it deletes the user.
 `auth.user_security_keys`: select and delete, scoped to the user's own rows.
 The auth service writes the row itself when a passkey is registered, so
 without these a signed-in user could add one but never list or remove it.
+
+`auth.refresh_tokens`: one row per session. Select, update and delete are
+scoped to the user's own `regular` rows, which leaves out personal access
+tokens. Select is `id`, `created_at`, `expires_at` and `metadata`, never
+`refresh_token_hash`, and update is `metadata` alone (see
+[Sessions](#sessions)). The proxy reads a session's row on every page load to
+find out whether it was revoked, so without the select permission a session
+signed out from another device lasts until its access token expires.
 
 `storage.files`: the storage service inserts the row for an upload through
 Hasura as the uploading user, so the insert permission decides who may upload

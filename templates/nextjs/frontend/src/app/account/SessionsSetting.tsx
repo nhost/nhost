@@ -6,14 +6,15 @@ import { DialogSetting } from '@/components/Setting';
 import { signOut } from '@/lib/nhost/actions';
 
 /**
- * Signing out everywhere, which is the one worth a row.
+ * Signing out everywhere, under the list of sessions.
  *
  * Signing out of this browser alone is in the nav, on every page. Repeating
  * it here only made the visitor choose between two buttons that read alike.
  *
  * Asked first, because this reaches past the browser it is clicked in: every
  * other device signed in to the account is signed out with it, and nothing
- * warns them.
+ * warns them. They find out on their next page load or when their tab is
+ * looked at again, when the proxy finds their session gone.
  */
 export default function SessionsSetting() {
   const router = useRouter();
@@ -36,10 +37,10 @@ export default function SessionsSetting() {
 
   return (
     <DialogSetting
-      label="Sessions"
-      // Left out on a phone, where the button takes the row and the words
-      // were cut to a letter.
-      value={<span className="max-sm:hidden">Signed in on this device</span>}
+      label="All devices"
+      // The list above says where the account is signed in, so the row has
+      // nothing to add to its label.
+      value={null}
       action="Sign out everywhere"
       title="Sign out everywhere?"
       description="Every device signed in to this account will be signed out, including this one."

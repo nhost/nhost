@@ -18,6 +18,7 @@ import {
   getVerifiedUser,
   updateSessionUser,
 } from '@/lib/nhost/server';
+import type { SessionMetadata } from '@/lib/nhost/session-metadata';
 
 // Same convention as `@/lib/nhost/actions`: return { error }, never throw to
 // the client, and never `redirect()` (see the comment there for why).
@@ -354,5 +355,104 @@ export async function resendVerification(): Promise<ActionResult> {
     return {
       error: `Could not send the verification email: ${errorMessage(err)}`,
     };
+  }
+}
+
+export type AccountSession = {
+  id: string;
+  createdAt: string;
+  metadata: SessionMetadata | null;
+  current: boolean;
+};
+
+// Every browser signed in to the account, from the refresh tokens' rows and
+// the permission on them in nhost/metadata. `metadata` is what the proxy wrote
+// on the session's visits (see `trackSession` in `@/lib/nhost/server`), so a
+// session that has not made a request since this app started recording has
+// none. An expired row lingers until the auth service cleans it up, and can
+// no longer sign anyone in, so it is left out.
+export async function listSessions(): Promise<
+  ActionResult & { sessions?: AccountSession[] }
+> {
+  try {
+    const nhost = await createNhostClient();
+    const session = nhost.getUserSession();
+
+    if (!session) {
+      return { error: SIGNED_OUT };
+    }
+
+    const { body } = await nhost.graphql.request<{
+      authRefreshTokens: Omit<AccountSession, 'current'>[];
+    }>({
+      query: `query Sessions {
+        authRefreshTokens(
+          where: { expiresAt: { _gt: "now()" } }
+          order_by: { createdAt: desc }
+        ) { id createdAt metadata }
+      }`,
+    });
+
+    if (body.errors?.length) {
+      return { error: graphqlErrorMessage(body.errors) };
+    }
+
+    return {
+      sessions: (body.data?.authRefreshTokens ?? []).map((row) => ({
+        ...row,
+        current: row.id === session.refreshTokenId,
+      })),
+    };
+  } catch (err) {
+    return { error: `Could not list the sessions: ${errorMessage(err)}` };
+  }
+}
+
+// Revokes one other session. Its access token keeps working until the proxy
+// on that device next looks for the row, which is its next page load.
+//
+// Not this one: deleting the row under the session in use would leave this
+// browser holding cookies for a session that is gone, and the nav already
+// signs out here properly.
+export async function signOutSession(id: string): Promise<ActionResult> {
+  if (!id) {
+    return { error: 'Which session?' };
+  }
+
+  try {
+    const nhost = await createNhostClient();
+    const session = nhost.getUserSession();
+
+    if (!session) {
+      return { error: SIGNED_OUT };
+    }
+
+    if (id === session.refreshTokenId) {
+      return {
+        error:
+          'This is the session you are using. Sign out from the menu instead.',
+      };
+    }
+
+    const { body } = await nhost.graphql.request<{
+      deleteAuthRefreshToken: { id: string } | null;
+    }>({
+      query: `mutation SignOutSession($id: uuid!) {
+        deleteAuthRefreshToken(id: $id) { id }
+      }`,
+      variables: { id },
+    });
+
+    if (body.errors?.length) {
+      return { error: graphqlErrorMessage(body.errors) };
+    }
+
+    if (!body.data?.deleteAuthRefreshToken) {
+      return { error: 'That session is not on this account.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not sign out the session: ${errorMessage(err)}` };
   }
 }

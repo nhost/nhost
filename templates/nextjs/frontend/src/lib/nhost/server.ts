@@ -13,6 +13,12 @@ import {
   serializeAccessTokenCookie,
 } from './access-token';
 import { nhostRegion, nhostSubdomain } from './env';
+import { graphqlErrorMessage } from './graphql';
+import {
+  needsUpdate,
+  requestDetails,
+  type SessionMetadata,
+} from './session-metadata';
 
 const key = DEFAULT_SESSION_KEY;
 
@@ -220,6 +226,83 @@ export function isPrefetch(request: NextRequest): boolean {
   );
 }
 
+export type TrackedSession = 'live' | 'revoked' | 'unknown';
+
+/**
+ * Looks up the session's row in `auth.refresh_tokens`, and records where it
+ * is being used from while there (see `session-metadata.ts`).
+ *
+ * Rotation keeps the row's id and revocation deletes the row, so no row means
+ * the session is over. Any failure to ask, including the permissions in
+ * nhost/metadata not being applied, answers `unknown` and the session stays:
+ * a check that signs people out whenever GraphQL is unreachable would be worse
+ * than the minutes it saves.
+ */
+export async function trackSession(
+  nhost: NhostClient,
+  session: StoredSession,
+  headers: Headers,
+): Promise<TrackedSession> {
+  const id = session.refreshTokenId;
+
+  if (!id) {
+    return 'unknown';
+  }
+
+  try {
+    const { body } = await nhost.graphql.request<{
+      authRefreshToken: { id: string; metadata: SessionMetadata | null } | null;
+    }>({
+      query: `query Session($id: uuid!) {
+        authRefreshToken(id: $id) { id metadata }
+      }`,
+      variables: { id },
+    });
+
+    if (body.errors?.length) {
+      console.error(
+        'Could not check the session:',
+        graphqlErrorMessage(body.errors),
+      );
+      return 'unknown';
+    }
+
+    const row = body.data?.authRefreshToken;
+    if (row === null) {
+      return 'revoked';
+    }
+    if (!row) {
+      return 'unknown';
+    }
+
+    const current = requestDetails(headers);
+    if (needsUpdate(row.metadata, current)) {
+      const metadata: SessionMetadata = {
+        ...current,
+        seenAt: new Date().toISOString(),
+      };
+      const { body: updated } = await nhost.graphql.request({
+        query: `mutation SeenSession($id: uuid!, $metadata: jsonb!) {
+          updateAuthRefreshToken(pk_columns: { id: $id }, _set: { metadata: $metadata }) { id }
+        }`,
+        variables: { id, metadata },
+      });
+
+      if (updated.errors?.length) {
+        console.error(
+          'Could not record the session:',
+          graphqlErrorMessage(updated.errors),
+        );
+      }
+    }
+
+    return 'live';
+  } catch (err) {
+    console.error('Could not check the session:', err);
+    return 'unknown';
+  }
+}
+
 export type NhostProxyResult = {
   session: StoredSession | null;
   // The reset page a password-reset link signed this session in on, while
@@ -281,6 +364,18 @@ export async function handleNhostProxy(
   let session = isPrefetch(request)
     ? storage.get()
     : await nhost.refreshSession(PROXY_REFRESH_MARGIN_SECONDS);
+
+  // A session revoked from elsewhere, by signing out everywhere or from
+  // another device's account page, still holds an access token the backend
+  // accepts until it expires. Only the refresh token's row says it is over, so
+  // every real navigation looks for it. Prefetches do not: nobody is looking
+  // at their response yet, and the navigation that follows checks.
+  if (session && !isPrefetch(request)) {
+    if ((await trackSession(nhost, session, request.headers)) === 'revoked') {
+      nhost.clearSession();
+      session = null;
+    }
+  }
 
   // A link may sign in a visitor who is signed out; it may not replace somebody
   // who is already here. Redeeming on sight would let a crafted link swap a

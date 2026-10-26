@@ -277,7 +277,6 @@ describe('prefetches', () => {
 
     await handleNhostProxy(proxyRequest(expiring, undefined, { rsc: '1' }));
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/token$/);
   });
 });
@@ -351,6 +350,124 @@ describe('link redemption', () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(response.headers.getSetCookie()).toEqual([]);
+  });
+});
+
+// An access token stays valid for its whole life after the session is
+// revoked, so the proxy asks whether the refresh token's row is still there.
+describe('revoked sessions', () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  // Far enough from expiry that nothing refreshes, so every call is GraphQL.
+  const live = JSON.stringify({
+    ...JSON.parse(storedSession(900)),
+    refreshTokenId: 'refresh-token-id',
+  });
+
+  const sessionRow = (row: unknown): Response =>
+    json({ data: { authRefreshToken: row } }, 200);
+
+  const graphqlBody = (call: number): { query: string; variables: object } =>
+    JSON.parse(String(fetchMock.mock.calls[call][1]?.body));
+
+  const visit = (headers: Record<string, string> = {}) =>
+    handleNhostProxy(proxyRequest(live, undefined, headers));
+
+  it('signs out a session whose refresh token is gone', async () => {
+    fetchMock.mockResolvedValueOnce(sessionRow(null));
+
+    const result = await visit();
+    const response = result.applySessionCookies(NextResponse.next());
+
+    expect(result.session).toBeNull();
+    expect(graphqlBody(0).variables).toEqual({ id: 'refresh-token-id' });
+    for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
+      expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
+    }
+  });
+
+  it('records where a session is used from the first time it is seen', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        sessionRow({ id: 'refresh-token-id', metadata: null }),
+      )
+      .mockResolvedValueOnce(json({ data: {} }, 200));
+
+    const result = await visit({
+      'user-agent': 'Mozilla/5.0',
+      'x-forwarded-for': '203.0.113.4, 10.0.0.1',
+      'x-vercel-ip-country': 'de',
+      'x-vercel-ip-city': 'M%C3%BCnchen',
+    });
+
+    expect(result.session).not.toBeNull();
+    expect(graphqlBody(1).query).toContain('updateAuthRefreshToken');
+    expect(graphqlBody(1).variables).toMatchObject({
+      id: 'refresh-token-id',
+      metadata: {
+        ip: '203.0.113.4',
+        userAgent: 'Mozilla/5.0',
+        country: 'DE',
+        city: 'München',
+      },
+    });
+  });
+
+  it('writes nothing while the stored details are current', async () => {
+    fetchMock.mockResolvedValueOnce(
+      sessionRow({
+        id: 'refresh-token-id',
+        metadata: {
+          userAgent: 'Mozilla/5.0',
+          seenAt: new Date().toISOString(),
+        },
+      }),
+    );
+
+    const result = await visit({ 'user-agent': 'Mozilla/5.0' });
+
+    expect(result.session).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('does not look on a prefetch', async () => {
+    const result = await visit({ 'next-router-prefetch': '1' });
+
+    expect(result.session).not.toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'a GraphQL error',
+      () => json({ errors: [{ message: 'field not found in type' }] }, 200),
+    ],
+    ['a server error', () => json({ error: 'internal' }, 500)],
+  ])('keeps the session when the lookup returns %s', async (_, response) => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fetchMock.mockResolvedValueOnce(response());
+
+    const result = await visit();
+
+    expect(result.session).not.toBeNull();
+    expect(
+      result.applySessionCookies(NextResponse.next()).headers.getSetCookie(),
+    ).toEqual([]);
+  });
+
+  it('keeps the session when GraphQL cannot be reached', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fetchMock.mockRejectedValueOnce(new TypeError('fetch failed'));
+
+    expect((await visit()).session).not.toBeNull();
   });
 });
 

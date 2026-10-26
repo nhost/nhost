@@ -21,7 +21,16 @@ import { readAccessTokenCookie } from '@/lib/nhost/access-token';
  * disagrees with what the nav was rendered with, a refresh renders the layout
  * too. It runs again only when the path or the nav's answer changes, so a
  * refresh that changes nothing does not start another.
+ *
+ * A tab left open makes no navigation, so a session revoked from another
+ * device would go on looking signed in there until the next click. Coming
+ * back to the tab refreshes too, which sends a request through the proxy and
+ * its check of the session (see `trackSession`). At most once per
+ * `FOCUS_REFRESH_MS`, so moving between windows does not re-render the page
+ * every time.
  */
+export const FOCUS_REFRESH_MS = 30_000;
+
 export default function RefreshOnSessionChange({
   signedIn,
 }: {
@@ -36,6 +45,31 @@ export default function RefreshOnSessionChange({
       router.refresh();
     }
   }, [pathname, signedIn, router]);
+
+  useEffect(() => {
+    if (!signedIn) {
+      return;
+    }
+
+    let last = Date.now();
+    const onReturn = (): void => {
+      if (
+        document.visibilityState !== 'visible' ||
+        Date.now() - last < FOCUS_REFRESH_MS
+      ) {
+        return;
+      }
+      last = Date.now();
+      router.refresh();
+    };
+
+    document.addEventListener('visibilitychange', onReturn);
+    window.addEventListener('focus', onReturn);
+    return () => {
+      document.removeEventListener('visibilitychange', onReturn);
+      window.removeEventListener('focus', onReturn);
+    };
+  }, [signedIn, router]);
 
   return null;
 }

@@ -3,15 +3,20 @@ import {
   changeEmail,
   changePassword,
   deleteAccount,
+  listSessions,
   removeAvatar,
   resendVerification,
+  signOutSession,
   updateDisplayName,
   uploadAvatar,
 } from '@/app/account/actions';
 import { appOrigin } from '@/lib/nhost/env';
 
 const client = vi.hoisted(() => ({
-  session: null as { user?: { id: string; avatarUrl?: string } } | null,
+  session: null as {
+    refreshTokenId?: string;
+    user?: { id: string; avatarUrl?: string };
+  } | null,
   verifiedUser: null as {
     id: string;
     email?: string;
@@ -582,5 +587,103 @@ describe('deleteAccount', () => {
       error: 'You are signed out. Sign in and try again.',
     });
     expect(client.graphql.request).not.toHaveBeenCalled();
+  });
+});
+
+describe('listSessions', () => {
+  beforeEach(() => {
+    client.session = { refreshTokenId: 'this-one', user: { id: 'user-1' } };
+  });
+
+  it('marks the session in use', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: {
+        data: {
+          authRefreshTokens: [
+            { id: 'other', createdAt: '2026-10-01T00:00:00Z', metadata: null },
+            {
+              id: 'this-one',
+              createdAt: '2026-10-02T00:00:00Z',
+              metadata: null,
+            },
+          ],
+        },
+      },
+    });
+
+    expect((await listSessions()).sessions).toEqual([
+      expect.objectContaining({ id: 'other', current: false }),
+      expect.objectContaining({ id: 'this-one', current: true }),
+    ]);
+  });
+
+  it('names the metadata when the schema lacks the table', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: {
+        errors: [
+          {
+            message:
+              "field 'authRefreshTokens' not found in type: 'query_root'",
+          },
+        ],
+      },
+    });
+
+    expect((await listSessions()).error).toContain('nhost/metadata');
+  });
+
+  it('refuses without a session', async () => {
+    client.session = null;
+
+    expect((await listSessions()).error).toBe(
+      'You are signed out. Sign in and try again.',
+    );
+    expect(client.graphql.request).not.toHaveBeenCalled();
+  });
+});
+
+describe('signOutSession', () => {
+  beforeEach(() => {
+    client.session = { refreshTokenId: 'this-one', user: { id: 'user-1' } };
+  });
+
+  it('deletes the session row', async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { deleteAuthRefreshToken: { id: 'other' } } },
+    });
+
+    expect(await signOutSession('other')).toEqual({ success: true });
+    expect(client.graphql.request.mock.calls[0][0].variables).toEqual({
+      id: 'other',
+    });
+  });
+
+  // Deleting the row under this browser would leave it holding cookies for a
+  // session that no longer exists.
+  it('refuses the session in use', async () => {
+    expect((await signOutSession('this-one')).error).toContain(
+      'Sign out from the menu',
+    );
+    expect(client.graphql.request).not.toHaveBeenCalled();
+  });
+
+  // The permission filters by user, so another account's session deletes
+  // nothing rather than failing.
+  it("reports a session that is not this account's", async () => {
+    client.graphql.request.mockResolvedValueOnce({
+      body: { data: { deleteAuthRefreshToken: null } },
+    });
+
+    expect(await signOutSession('someone-elses')).toEqual({
+      error: 'That session is not on this account.',
+    });
+  });
+
+  it('refuses without a session', async () => {
+    client.session = null;
+
+    expect((await signOutSession('other')).error).toBe(
+      'You are signed out. Sign in and try again.',
+    );
   });
 });

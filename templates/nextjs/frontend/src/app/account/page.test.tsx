@@ -24,6 +24,12 @@ vi.mock('@/app/signin/methods', () => ({
   ],
 }));
 
+// It reads the sessions from GraphQL as it renders, which a static render
+// cannot wait for; its own tests cover it.
+vi.mock('@/app/account/SessionsCard', () => ({
+  default: () => <section>Sessions card</section>,
+}));
+
 // Next's redirect() throws to unwind the render; the stand-in throws the
 // target so a test can read it. The router is for the client cards on the
 // page, which a static render has no app router to give.
@@ -68,7 +74,7 @@ describe('account page', () => {
     expect(html).toContain('user@example.com');
     expect(html).toContain('Ada');
     expect(html).toContain('Joined Oct 13, 2026');
-    // Cut short on the chip, and whole in its tooltip.
+    // Whole in the chip's tooltip, whatever the chip shows.
     expect(html).toContain(`title="${user.id}"`);
     expect(html).toContain('src="https://avatars.example/ada"');
   });

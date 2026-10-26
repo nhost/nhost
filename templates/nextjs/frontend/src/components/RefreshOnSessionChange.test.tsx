@@ -2,7 +2,9 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import RefreshOnSessionChange from '@/components/RefreshOnSessionChange';
+import RefreshOnSessionChange, {
+  FOCUS_REFRESH_MS,
+} from '@/components/RefreshOnSessionChange';
 import { ACCESS_TOKEN_KEY } from '@/lib/nhost/access-token';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
@@ -87,5 +89,64 @@ describe('RefreshOnSessionChange', () => {
     await render(false);
 
     expect(router.refresh).toHaveBeenCalledOnce();
+  });
+});
+
+// A tab left open never navigates, so coming back to it is what lets the
+// proxy see a session revoked from another device.
+describe('RefreshOnSessionChange, returning to the tab', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    router.refresh.mockReset();
+    setAccessTokenCookie(true);
+    container = document.body.appendChild(document.createElement('div'));
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  const returnToTab = (): void => {
+    act(() => {
+      window.dispatchEvent(new Event('focus'));
+    });
+  };
+
+  it('refreshes a signed-in tab returned to after a while', async () => {
+    await render(true);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
+    returnToTab();
+
+    expect(router.refresh).toHaveBeenCalledOnce();
+  });
+
+  it('does not refresh on a quick return', async () => {
+    await render(true);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS - 1);
+    returnToTab();
+
+    expect(router.refresh).not.toHaveBeenCalled();
+  });
+
+  it('waits the interval again after a refresh', async () => {
+    await render(true);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
+    returnToTab();
+    returnToTab();
+
+    expect(router.refresh).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a signed-out tab alone', async () => {
+    setAccessTokenCookie(false);
+    await render(false);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
+    returnToTab();
+
+    expect(router.refresh).not.toHaveBeenCalled();
   });
 });

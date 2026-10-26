@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import DeleteAccountSetting from '@/app/account/DeleteAccountSetting';
 import ProfileSummary from '@/app/account/ProfileSummary';
-import SessionsSetting from '@/app/account/SessionsSetting';
+import SessionsCard from '@/app/account/SessionsCard';
 import SignInSettings from '@/app/account/SignInSettings';
 import { signInHref } from '@/app/signin/destination';
 import Code from '@/components/Code';
@@ -25,11 +25,11 @@ export default async function Account() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <ProfileSummary user={user} />
       <SignInSettings user={user} />
-      {/* One line each, untitled: the label says what the row is, and what
-          each button does is spelled out in the dialog it opens. */}
+      <SessionsCard />
+      {/* Untitled: the label says what the row is, and the dialog it opens
+          spells out what the button does. */}
       <Card className="gap-0 py-0">
         <SettingsList>
-          <SessionsSetting />
           <DeleteAccountSetting />
         </SettingsList>
       </Card>
