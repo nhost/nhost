@@ -28,7 +28,7 @@ const validationSchema = z.object({
     .trim()
     .min(1, 'Enter a branch, tag or commit SHA.')
     .regex(/^\S+$/, "A ref can't contain spaces."),
-  message: z.string().trim().min(1, 'Enter a message.'),
+  commitMessage: z.string().trim().min(1, 'Enter a commit message.'),
 });
 
 type NewDeploymentFormValues = z.infer<typeof validationSchema>;
@@ -45,14 +45,14 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
   const inProgress = (pendingData?.unifiedDeployments.length ?? 0) > 0;
   const form = useForm<NewDeploymentFormValues>({
     resolver: zodResolver(validationSchema),
-    defaultValues: { ref: '', message: '' },
+    defaultValues: { ref: '', commitMessage: '' },
   });
   const { isSubmitting } = form.formState;
 
-  async function deploy({ ref, message }: NewDeploymentFormValues) {
+  async function deploy({ ref, commitMessage }: NewDeploymentFormValues) {
     const scheduled = await schedule({
       commitSHA: ref,
-      commitMessage: message,
+      commitMessage,
       commitUserName: userData?.displayName,
       commitUserAvatarUrl: userData?.avatarUrl,
     });
@@ -81,14 +81,13 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
         />
         <FormInput<NewDeploymentFormValues>
           control={form.control}
-          name="message"
-          label="Message"
-          placeholder="Why are you deploying this?"
+          name="commitMessage"
+          label="Commit message"
           autoComplete="off"
         />
         <Alert variant="warning">
           <AlertDescription>
-            This ref's metadata, settings and functions replace the current
+            This ref's metadata, settings and functions will replace the current
             ones. <strong>Database migrations are not rolled back.</strong>
           </AlertDescription>
         </Alert>

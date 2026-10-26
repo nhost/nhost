@@ -148,7 +148,7 @@ it('warns about migrations and deploys the ref as the signed-in user', async () 
     ' feat/comments ',
   );
   await user.type(
-    screen.getByRole('textbox', { name: 'Message' }),
+    screen.getByRole('textbox', { name: 'Commit message' }),
     'Roll back the comments table',
   );
   await user.click(screen.getByRole('button', { name: 'Deploy' }));
@@ -170,24 +170,24 @@ it('warns about migrations and deploys the ref as the signed-in user', async () 
 it.each([
   {
     name: 'without a ref',
-    fields: [['Message', 'Fix comments']],
+    fields: [['Commit message', 'Fix comments']],
     error: 'Enter a branch, tag or commit SHA.',
   },
   {
     name: 'with spaces in the ref',
     fields: [
       [refLabel, 'two words'],
-      ['Message', 'Fix comments'],
+      ['Commit message', 'Fix comments'],
     ],
     error: "A ref can't contain spaces.",
   },
   {
-    name: 'with a blank message',
+    name: 'with a blank commit message',
     fields: [
       [refLabel, 'main'],
-      ['Message', '   '],
+      ['Commit message', '   '],
     ],
-    error: 'Enter a message.',
+    error: 'Enter a commit message.',
   },
 ])('does not deploy $name', async ({ fields, error }) => {
   serve();
@@ -209,7 +209,10 @@ it('stays open with the values entered when scheduling fails', async () => {
   const user = await openPopover();
 
   await user.type(screen.getByRole('textbox', { name: refLabel }), 'main');
-  await user.type(screen.getByRole('textbox', { name: 'Message' }), 'Retry');
+  await user.type(
+    screen.getByRole('textbox', { name: 'Commit message' }),
+    'Retry',
+  );
   await user.click(screen.getByRole('button', { name: 'Deploy' }));
 
   expect(await screen.findByText('Scheduling failed')).toBeInTheDocument();
