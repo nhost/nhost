@@ -28,7 +28,7 @@ export default function CopyUserId({ id }: { id: string }) {
       title={id}
       aria-label="Copy user ID"
       onClick={() => void copy()}
-      className="inline-flex h-6 min-w-0 max-w-full cursor-pointer items-center whitespace-nowrap gap-1.5 rounded-full border bg-secondary px-2.5 text-muted-foreground text-xs outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className="inline-flex h-6 min-w-0 max-w-full cursor-pointer items-center whitespace-nowrap gap-1.5 rounded-full border bg-secondary px-2.5 text-[11px] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
       ID
       <span className="min-w-0 truncate font-mono">{id}</span>
