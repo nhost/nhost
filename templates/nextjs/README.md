@@ -70,9 +70,9 @@ any other runtime variable rather than before the build.
 
 ## Sessions
 
-The account page lists every browser signed in to the account, one line
-each: the start of the session's id, then, where the host provides it, the
-city, then the address, the browser and system, and when it was last used,
+The account page lists every browser signed in to the account, two lines
+each: the start of the session's id and the browser and system, then, where
+the host provides it, the city, then the address and when it was last used,
 in the visitor's time zone. Each one can be signed out from its line, this browser's included.
 
 The auth service records none of this, so the app does. The proxy writes it to

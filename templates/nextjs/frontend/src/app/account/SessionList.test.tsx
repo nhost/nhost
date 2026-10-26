@@ -20,13 +20,14 @@ vi.mock('@/lib/nhost/actions', () => ({ signOut }));
 const sessions: SessionSummary[] = [
   {
     id: 'laptop-000',
-    details: 'Chrome - macOS',
+    device: 'Chrome - macOS',
     lastActive: '2026-10-26T12:24:00Z',
     current: true,
   },
   {
     id: 'phone-0000',
-    details: 'Stockholm, 198.51.100.7, Safari - iOS',
+    device: 'Safari - iOS',
+    place: 'Stockholm, 198.51.100.7',
     lastActive: '2026-10-20T16:12:00Z',
     current: false,
   },
@@ -57,15 +58,37 @@ describe('session list', () => {
   });
 
   // The browser's own zone, here the one the tests run in, once hydrated.
-  it('reads as one line per session', () => {
-    expect(container.querySelectorAll('li')[1].textContent).toBe(
-      `phone - Stockholm, 198.51.100.7, Safari - iOS, ${formatSessionTime('2026-10-20T16:12:00Z')}Sign out`,
+  it('reads what a session is on one line, and where and when on the next', () => {
+    const lines = [
+      ...container.querySelectorAll('li')[1].querySelectorAll('p'),
+    ];
+
+    expect(
+      [...lines[0].querySelectorAll('span')].map((part) => part.textContent),
+    ).toEqual(['phone', 'Safari - iOS']);
+    expect(lines[1].textContent).toBe(
+      `Stockholm, 198.51.100.7, ${formatSessionTime('2026-10-20T16:12:00Z')}`,
     );
   });
 
-  it('marks this device', () => {
+  it('shows the start of the id, and the whole of it on hover', () => {
+    const chip = container.querySelectorAll('li')[1].querySelector('span');
+
+    expect(chip?.textContent).toBe('phone');
+    expect(chip?.title).toBe('phone-0000');
+  });
+
+  it('gives only the time when where is not known', () => {
+    const lines = container.querySelectorAll('li')[0].querySelectorAll('p');
+
+    expect(lines[1].textContent).toBe(
+      formatSessionTime('2026-10-26T12:24:00Z'),
+    );
+  });
+
+  it('marks this session', () => {
     expect(container.querySelectorAll('li')[0].textContent).toContain(
-      'This device',
+      'This session',
     );
   });
 

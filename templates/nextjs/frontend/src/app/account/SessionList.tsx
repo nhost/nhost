@@ -74,19 +74,30 @@ export default function SessionList({
             key={session.id}
             className="flex min-h-12 items-center gap-3 px-5 py-2 text-sm"
           >
-            <p className="min-w-0 flex-1 text-muted-foreground">
-              {/* Enough of the id to tell two alike sessions apart. */}
-              <span title={session.id} className="font-mono text-foreground">
-                {session.id.slice(0, 5)}
-              </span>
-              {` - ${session.details}, `}
-              <time dateTime={session.lastActive}>{time}</time>
-              {session.current ? (
-                <span className="ml-2 whitespace-nowrap rounded-full border bg-secondary px-2 text-xs">
-                  This device
+            {/* Two lines that are each cut short rather than wrapped, so
+                every session takes the same room: what it is, then where
+                and when. */}
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <p className="flex min-w-0 items-center gap-2">
+                {/* Enough of the id to tell two alike sessions apart. */}
+                <span
+                  title={session.id}
+                  className="shrink-0 rounded bg-secondary px-1.5 font-mono text-[11px] text-muted-foreground"
+                >
+                  {session.id.slice(0, 5)}
                 </span>
-              ) : null}
-            </p>
+                <span className="min-w-0 truncate">{session.device}</span>
+                {session.current ? (
+                  <span className="shrink-0 whitespace-nowrap rounded-full border bg-secondary px-2 text-xs">
+                    This session
+                  </span>
+                ) : null}
+              </p>
+              <p className="truncate text-muted-foreground text-xs">
+                {session.place ? `${session.place}, ` : null}
+                <time dateTime={session.lastActive}>{time}</time>
+              </p>
+            </div>
             <Button
               type="button"
               variant="outline"

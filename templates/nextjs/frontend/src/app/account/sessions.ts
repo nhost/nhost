@@ -7,8 +7,10 @@ import {
 
 export type SessionSummary = {
   id: string;
-  /** Location, address and device, as far as they are known. */
-  details: string;
+  /** The browser and system. */
+  device: string;
+  /** Location and address, as far as they are known. */
+  place?: string;
   /** When it was last used, or signed in if nothing was recorded since. */
   lastActive: string;
   current: boolean;
@@ -36,13 +38,14 @@ export function summarizeSessions(
 
       return {
         id: session.id,
-        details: [
-          metadata ? describeLocation(metadata) : undefined,
-          describeAddress(metadata?.ip),
-          describeUserAgent(metadata?.userAgent),
-        ]
-          .filter(Boolean)
-          .join(', '),
+        device: describeUserAgent(metadata?.userAgent),
+        place:
+          [
+            metadata ? describeLocation(metadata) : undefined,
+            describeAddress(metadata?.ip),
+          ]
+            .filter(Boolean)
+            .join(', ') || undefined,
         lastActive: lastActive(session),
         current: session.current,
       };
@@ -58,8 +61,8 @@ const SUFFIXES: Record<string, string> = {
 };
 
 /**
- * "Oct 26th 2026 12:24", in `timeZone`, or the runtime's own zone without
- * one.
+ * "Oct 26th 2026 12:24 PM", in `timeZone`, or the runtime's own zone
+ * without one.
  */
 export function formatSessionTime(iso: string, timeZone?: string): string {
   const parts = Object.fromEntries(
@@ -67,9 +70,9 @@ export function formatSessionTime(iso: string, timeZone?: string): string {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
+      hour: 'numeric',
       minute: '2-digit',
-      hourCycle: 'h23',
+      hour12: true,
       timeZone,
     })
       .formatToParts(new Date(iso))
@@ -77,5 +80,5 @@ export function formatSessionTime(iso: string, timeZone?: string): string {
   );
   const suffix = SUFFIXES[ordinals.select(Number(parts.day))] ?? 'th';
 
-  return `${parts.month} ${parts.day}${suffix} ${parts.year} ${parts.hour}:${parts.minute}`;
+  return `${parts.month} ${parts.day}${suffix} ${parts.year} ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }

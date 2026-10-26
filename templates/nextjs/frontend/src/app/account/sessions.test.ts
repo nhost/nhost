@@ -9,18 +9,18 @@ const safariOnIphone =
 
 describe('formatSessionTime', () => {
   it.each([
-    ['2026-10-26T12:24:00Z', 'Oct 26th 2026 12:24'],
-    ['2026-10-01T09:05:00Z', 'Oct 1st 2026 09:05'],
-    ['2026-10-22T00:00:00Z', 'Oct 22nd 2026 00:00'],
-    ['2026-10-23T23:59:00Z', 'Oct 23rd 2026 23:59'],
-    ['2026-10-11T18:30:00Z', 'Oct 11th 2026 18:30'],
+    ['2026-10-26T12:24:00Z', 'Oct 26th 2026 12:24 PM'],
+    ['2026-10-01T09:05:00Z', 'Oct 1st 2026 9:05 AM'],
+    ['2026-10-22T00:00:00Z', 'Oct 22nd 2026 12:00 AM'],
+    ['2026-10-23T23:59:00Z', 'Oct 23rd 2026 11:59 PM'],
+    ['2026-10-11T18:30:00Z', 'Oct 11th 2026 6:30 PM'],
   ])('%s reads "%s"', (iso, expected) => {
     expect(formatSessionTime(iso, 'UTC')).toBe(expected);
   });
 
   it('reads the time in the zone it is given', () => {
     expect(formatSessionTime('2026-10-26T12:24:00Z', 'Europe/Stockholm')).toBe(
-      'Oct 26th 2026 13:24',
+      'Oct 26th 2026 1:24 PM',
     );
   });
 });
@@ -65,10 +65,11 @@ describe('summarizeSessions', () => {
     ]);
   });
 
-  it('names where, from which address and on what it was last used', () => {
+  it('names what it was last used on, and where and from which address', () => {
     expect(summarizeSessions(sessions)[1]).toEqual({
       id: 'phone-0000',
-      details: 'Stockholm, 198.51.100.7, Safari - iOS',
+      device: 'Safari - iOS',
+      place: 'Stockholm, 198.51.100.7',
       lastActive: '2026-10-26T11:00:00Z',
       current: false,
     });
@@ -76,12 +77,16 @@ describe('summarizeSessions', () => {
 
   // Running locally, the address is the machine's own, which says nothing.
   it('leaves out the loopback address', () => {
-    expect(summarizeSessions(sessions)[0].details).toBe('Chrome - macOS');
+    expect(summarizeSessions(sessions)[0]).toMatchObject({
+      device: 'Chrome - macOS',
+      place: undefined,
+    });
   });
 
   it('falls back to when a session started when nothing was recorded', () => {
     expect(summarizeSessions(sessions)[2]).toMatchObject({
-      details: 'Unknown device',
+      device: 'Unknown device',
+      place: undefined,
       lastActive: '2026-10-10T08:00:00Z',
     });
   });
