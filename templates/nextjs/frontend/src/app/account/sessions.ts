@@ -7,7 +7,7 @@ import {
 
 export type SessionSummary = {
   id: string;
-  /** Device, location and address, as far as they are known. */
+  /** Location, address and device, as far as they are known. */
   details: string;
   /** When it was last used, or signed in if nothing was recorded since. */
   lastActive: string;
@@ -37,9 +37,9 @@ export function summarizeSessions(
       return {
         id: session.id,
         details: [
-          describeUserAgent(metadata?.userAgent),
           metadata ? describeLocation(metadata) : undefined,
           describeAddress(metadata?.ip),
+          describeUserAgent(metadata?.userAgent),
         ]
           .filter(Boolean)
           .join(', '),

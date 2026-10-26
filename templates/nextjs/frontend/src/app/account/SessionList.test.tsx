@@ -26,7 +26,7 @@ const sessions: SessionSummary[] = [
   },
   {
     id: 'phone-0000',
-    details: 'Safari - iOS, Stockholm, 198.51.100.7',
+    details: 'Stockholm, 198.51.100.7, Safari - iOS',
     lastActive: '2026-10-20T16:12:00Z',
     current: false,
   },
@@ -59,7 +59,7 @@ describe('session list', () => {
   // The browser's own zone, here the one the tests run in, once hydrated.
   it('reads as one line per session', () => {
     expect(container.querySelectorAll('li')[1].textContent).toBe(
-      `Safari - iOS, Stockholm, 198.51.100.7 · Last active ${formatSessionTime('2026-10-20T16:12:00Z')}Sign out`,
+      `phone - Stockholm, 198.51.100.7, Safari - iOS, ${formatSessionTime('2026-10-20T16:12:00Z')}Sign out`,
     );
   });
 

@@ -65,10 +65,10 @@ describe('summarizeSessions', () => {
     ]);
   });
 
-  it('names what, where and from which address it was last used', () => {
+  it('names where, from which address and on what it was last used', () => {
     expect(summarizeSessions(sessions)[1]).toEqual({
       id: 'phone-0000',
-      details: 'Safari - iOS, Stockholm, 198.51.100.7',
+      details: 'Stockholm, 198.51.100.7, Safari - iOS',
       lastActive: '2026-10-26T11:00:00Z',
       current: false,
     });
