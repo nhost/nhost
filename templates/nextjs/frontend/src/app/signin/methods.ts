@@ -1,5 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactNode } from 'react';
+import LinkedAccountsSetting from '@/app/auth/oauth/linked/LinkedAccountsSetting';
 import ProviderSignIn from '@/app/auth/oauth/ProviderSignIn';
 import { configuredProviders } from '@/app/auth/oauth/providers';
 import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
@@ -51,6 +52,14 @@ export type SignInButtons = (props: {
 // would lead to the auth service refusing it.
 export const buttons: SignInButtons[] =
   configuredProviders().length > 0 ? [ProviderSignIn] : [];
+
+/**
+ * The account-page rows of the methods in `buttons`, which have no entry in
+ * `methods` to carry an `account`. The account page puts them after the
+ * methods' own rows.
+ */
+export const buttonSettings: AccountSetting[] =
+  configuredProviders().length > 0 ? [LinkedAccountsSetting] : [];
 
 export const methods: SignInMethod[] = [
   {

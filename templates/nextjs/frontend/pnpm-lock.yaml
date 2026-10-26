@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^4.7.2
+        specifier: ^4.8.0
         version: 4.8.0
       '@radix-ui/react-label':
         specifier: ^2.1.1

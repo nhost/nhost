@@ -22,6 +22,9 @@ vi.mock('@/app/signin/methods', () => ({
     },
     { href: '/auth/plain', title: 'Plain method', description: '' },
   ],
+  buttonSettings: [
+    ({ user }: { user: User }) => <li>Button setting for {user.id}</li>,
+  ],
 }));
 
 // It reads the sessions from GraphQL as it renders, which a static render
@@ -87,6 +90,18 @@ describe('account page', () => {
     expect(html).toContain(`<li>Setting for ${user.id}</li>`);
   });
 
+  // Sign-in buttons have no method entry, so their rows come from their own
+  // list, after the methods' rows.
+  it('renders the rows the sign-in buttons declare after the methods', async () => {
+    getVerifiedUser.mockResolvedValueOnce(user);
+
+    const html = renderToStaticMarkup(await Account());
+
+    expect(
+      html.indexOf(`<li>Button setting for ${user.id}</li>`),
+    ).toBeGreaterThan(html.indexOf(`<li>Setting for ${user.id}</li>`));
+  });
+
   it('leads the settings with the address, its dialog shut', async () => {
     getVerifiedUser.mockResolvedValueOnce({ ...user, emailVerified: false });
 
@@ -113,7 +128,7 @@ describe('account page', () => {
     const html = renderToStaticMarkup(await Account());
 
     expect(html).toContain(
-      'Plain method also signs in to this account, with nothing to set up here.',
+      'Plain method also signs in to this account, no additional set up needed.',
     );
   });
 });

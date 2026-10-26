@@ -16,11 +16,29 @@ export const providers = [
 export type Provider = (typeof providers)[number];
 
 /**
+ * Passed on to the provider on every trip there, signing in and linking, to
+ * show its account picker. A provider the user has authorized before
+ * otherwise answers at once with whichever account is signed in there, even
+ * after the user unlinked it here, since that does not revoke the app on the
+ * provider's side. The picker is the one step GitHub can be made to show,
+ * and it lets the user choose which of their accounts to use.
+ */
+export const ACCOUNT_PICKER = { prompt: 'select_account' };
+
+/**
  * Where a provider's button links: this app's own route, which notes the
  * attempt and sends the visitor on to the provider (see `[provider]/route.ts`).
  */
 export function providerHref(id: SignInProvider): string {
   return `/auth/oauth/${id}`;
+}
+
+/**
+ * Where a provider's Link account button on the account page goes, to add it to
+ * the signed-in account (see `[provider]/connect/route.ts`).
+ */
+export function connectHref(id: SignInProvider): string {
+  return `/auth/oauth/${id}/connect`;
 }
 
 /**

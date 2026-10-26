@@ -68,6 +68,13 @@ listed the sign-in page leaves the method out. The variable is only read on
 the server, at request time, so a host that deploys the frontend sets it like
 any other runtime variable rather than before the build.
 
+The same list puts a Linked accounts row on the account page, where a
+signed-in user can link a provider to their account or unlink one. Linking is
+the sign-in round trip with the session's access token passed as `connect`,
+so the provider callback URL above covers it. A provider is not unlinked when
+it is the only way into the account, which is only possible for an account
+with no email address.
+
 ## Sessions
 
 The account page lists every browser signed in to the account, two lines
@@ -133,10 +140,10 @@ but the slug is only in the dashboard URL.
 
 ## Permissions
 
-Four of the files in `nhost/metadata/databases/default/tables/`,
-`auth_users.yaml`, `auth_user_security_keys.yaml`, `auth_refresh_tokens.yaml`
-and `storage_files.yaml`, grant the `user` role what the account page needs
-and nothing more. The rest
+Five of the files in `nhost/metadata/databases/default/tables/`,
+`auth_users.yaml`, `auth_user_security_keys.yaml`, `auth_refresh_tokens.yaml`,
+`auth_user_providers.yaml` and `storage_files.yaml`, grant the `user` role
+what the account page needs and nothing more. The rest
 are the services' own tables with no permissions. Hasura's export keeps no
 comments, so this section is the record of why.
 
@@ -162,6 +169,11 @@ tokens. Select is `id`, `created_at`, `expires_at` and `metadata`, never
 [Sessions](#sessions)). The proxy reads a session's row on every page load to
 find out whether it was revoked, so without the select permission a session
 signed out from another device lasts until its access token expires.
+
+`auth.user_providers`: select and delete, scoped to the user's own rows.
+Select is `id`, `provider_id` and `created_at`. The row also holds the
+provider's access and refresh tokens, which must stay out of it. The auth
+service writes the row when a provider is connected.
 
 `storage.files`: the storage service inserts the row for an upload through
 Hasura as the uploading user, so the insert permission decides who may upload

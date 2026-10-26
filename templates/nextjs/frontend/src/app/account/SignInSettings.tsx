@@ -1,6 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import ChangeEmailForm from '@/app/account/ChangeEmailForm';
-import { methods } from '@/app/signin/methods';
+import { buttonSettings, methods } from '@/app/signin/methods';
 import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
@@ -68,10 +68,14 @@ export default function SignInSettings({ user }: { user: User }) {
             <Setting key={`${method.href}#${name}`} user={user} />
           )),
         )}
+        {buttonSettings.map((Setting, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the list is fixed at startup
+          <Setting key={`buttons#${index}`} user={user} />
+        ))}
       </SettingsList>
       {unmanaged.length > 0 ? (
         <p className="border-t px-5 py-3 text-muted-foreground text-xs">
-          {`${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, with nothing to set up here.`}
+          {`${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, no additional set up needed.`}
         </p>
       ) : null}
     </Card>
