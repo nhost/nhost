@@ -160,9 +160,8 @@ export default function DataBrowserGridControls({
             </Badge>
 
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
-              className="border-none text-destructive hover:bg-destructive/10 hover:text-destructive"
               loading={status === 'loading'}
               onClick={() =>
                 openAlertDialog({
