@@ -33,7 +33,6 @@ export default function MfaSetting({ user }: { user: User }) {
   const router = useRouter();
   const toast = useToast();
   const codeId = useId();
-  const hintId = useId();
 
   const [open, setOpen] = useState(false);
   // Which way the dialog was opened. Kept apart from `active` so the form
@@ -103,6 +102,18 @@ export default function MfaSetting({ user }: { user: User }) {
     }
   };
 
+  // Typing a key this long from the screen is where entering it by hand goes
+  // wrong, so it can be pasted instead.
+  const copyKey = async (key: string): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(key);
+      toast('Key copied');
+    } catch (err) {
+      console.error('Error copying the two-factor key:', err);
+      toast('Could not copy the key');
+    }
+  };
+
   const ready = turningOff || setup !== undefined;
   const turning = turningOff ? 'off' : 'on';
 
@@ -126,63 +137,95 @@ export default function MfaSetting({ user }: { user: User }) {
       description={
         turningOff
           ? 'Enter a current code from your authenticator app to turn it off.'
-          : 'Scan the code with an authenticator app, then enter the 6 digit code it shows.'
+          : 'Asks for a code from an authenticator app when you sign in with your password. Other sign-in methods and emailed links skip it.'
       }
       open={open}
       onOpenChange={setOpen}
       onOpen={handleOpen}
     >
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-        {!turningOff && setup ? (
-          <div className="flex flex-col items-center gap-2 text-center">
-            {/* biome-ignore lint/performance/noImgElement: a data URL the auth service just generated, nothing for next/image to optimise */}
-            <img
-              src={setup.imageUrl}
-              alt="QR code for the authenticator app"
-              width={160}
-              height={160}
-              className="size-40 rounded-lg border-8 border-white bg-white"
-            />
-            <p className="text-muted-foreground text-xs">
-              Or enter this key by hand:{' '}
-              <code className="break-all font-mono">{setup.totpSecret}</code>
+        {/* Setting up is two steps, numbered so the dialog reads top to
+            bottom: get the key into the app, then prove it with a code.
+            Both are laid out from the moment it opens, with the room for
+            the QR code and the key held while the auth service makes them,
+            so the dialog does not grow when they arrive. */}
+        {turningOff ? null : (
+          <div className="flex flex-col gap-3">
+            <p className="font-medium text-sm">
+              1. Scan this QR code with your authenticator app.
             </p>
-          </div>
-        ) : null}
-
-        {!ready && isPending ? (
-          <p className="text-center text-muted-foreground text-sm">
-            Preparing a code to scan…
-          </p>
-        ) : null}
-
-        {ready ? (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={codeId}>Code</Label>
-            <Input
-              id={codeId}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder="000000"
-              required
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              disabled={isPending}
-              aria-describedby={turningOff ? undefined : hintId}
-              className="font-mono tracking-widest"
-            />
-            {/* What it covers, under the field it is about, since the
-                answer to "will this lock me out of X" is no for everything
-                but the password. */}
-            {turningOff ? null : (
-              <p id={hintId} className="text-muted-foreground text-xs">
-                Only signing in with your password will ask for this code. Other
-                sign-in methods and links sent by email, including password
-                reset, won't.
+            <div className="flex flex-col items-center gap-2 text-center">
+              {setup ? (
+                // biome-ignore lint/performance/noImgElement: a data URL the auth service just generated, nothing for next/image to optimise
+                <img
+                  src={setup.imageUrl}
+                  alt="QR code for the authenticator app"
+                  width={160}
+                  height={160}
+                  className="size-40 rounded-lg border-8 border-white bg-white"
+                />
+              ) : (
+                <div className="flex size-40 items-center justify-center rounded-lg bg-muted px-4 text-muted-foreground text-xs">
+                  {isPending ? 'Preparing a code to scan…' : null}
+                </div>
+              )}
+              <p className="text-muted-foreground text-xs">
+                Can't scan it? Enter this key instead:
               </p>
-            )}
+              {/* In groups of four, the way authenticator apps show a key, so
+                  it reads in chunks and wraps between them into even lines,
+                  with the copy button after the last. It copies the key
+                  without the spaces. Two lines' room either way. */}
+              <p className="min-h-10 max-w-xs text-balance text-muted-foreground text-xs">
+                {setup ? (
+                  <>
+                    <code className="font-mono tracking-wide">
+                      {setup.totpSecret.match(/.{1,4}/g)?.join(' ')}
+                    </code>
+                    <button
+                      type="button"
+                      aria-label="Copy key"
+                      title="Copy key"
+                      onClick={() => void copyKey(setup.totpSecret)}
+                      className="ml-1 inline-flex size-6 cursor-pointer items-center justify-center rounded-md align-middle outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="size-3.5"
+                      >
+                        <rect x="9" y="9" width="12" height="12" rx="2" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
+                    </button>
+                  </>
+                ) : null}
+              </p>
+            </div>
           </div>
-        ) : null}
+        )}
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={codeId}>
+            {turningOff ? 'Code' : '2. Enter the 6-digit code.'}
+          </Label>
+          <Input
+            id={codeId}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="000000"
+            required
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            disabled={isPending || !ready}
+            className="font-mono tracking-widest"
+          />
+        </div>
 
         {error ? (
           <p role="alert" className="text-destructive text-sm">
@@ -192,16 +235,14 @@ export default function MfaSetting({ user }: { user: User }) {
 
         <DialogFooter>
           <DialogClose disabled={isPending && ready} />
-          {ready ? (
-            <Button
-              type="submit"
-              size="sm"
-              variant={turningOff ? 'destructive' : 'default'}
-              disabled={isPending || !/^\d{6}$/.test(code.trim())}
-            >
-              {isPending ? `Turning ${turning}…` : `Turn ${turning}`}
-            </Button>
-          ) : null}
+          <Button
+            type="submit"
+            size="sm"
+            variant={turningOff ? 'destructive' : 'default'}
+            disabled={isPending || !ready || !/^\d{6}$/.test(code.trim())}
+          >
+            {isPending && ready ? `Turning ${turning}…` : `Turn ${turning}`}
+          </Button>
         </DialogFooter>
       </form>
     </DialogSetting>
