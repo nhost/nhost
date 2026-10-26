@@ -396,7 +396,8 @@ export default function CreateOrgDialog({
         <DialogTrigger asChild>
           <Button
             variant="ghost"
-            className="flex h-8 w-full flex-row justify-start gap-3 px-2 text-foreground dark:hover:bg-muted"
+            size="xs"
+            className="flex w-full flex-row justify-start gap-3 text-foreground dark:hover:bg-muted"
           >
             <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
             New Organization

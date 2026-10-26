@@ -23,14 +23,14 @@ export default function MultipartEditor({ name }: MultipartEditorProps) {
             <Input
               placeholder="Parameter name"
               {...register(`${name}.${index}.key`)}
-              className="h-8 font-mono text-sm"
+              className="font-mono"
             />
             <Input
               placeholder="Value"
               {...(file
                 ? { value: file.name, disabled: true }
                 : register(`${name}.${index}.value`))}
-              className="h-8 font-mono text-sm"
+              className="font-mono"
             />
             <input
               ref={(el) => {
@@ -51,7 +51,7 @@ export default function MultipartEditor({ name }: MultipartEditorProps) {
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0"
+              className="shrink-0"
               onClick={() => {
                 if (file) {
                   setValue(`${name}.${index}.file`, null);

@@ -114,7 +114,7 @@ export function FancyMultiSelect({
     >
       <div
         className={cn(
-          'group flex min-h-10 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent',
+          'group flex min-h-11 flex-1 rounded-md border bg-background px-4 py-0 text-sm ring-offset-background hover:bg-accent md:min-h-9',
           disabled && 'pointer-events-none opacity-50',
           className,
         )}
@@ -163,7 +163,7 @@ export function FancyMultiSelect({
             onFocus={() => setOpen(true)}
             disabled={disabled}
             placeholder="Select options..."
-            className="!ring-0 !ring-offset-0 flex flex-1 border-none bg-transparent px-0 py-1 font-medium text-sm outline-none placeholder:text-muted-foreground placeholder:text-sm disabled:cursor-not-allowed disabled:opacity-50 group-hover:text-accent-foreground"
+            className="!ring-0 !ring-offset-0 flex flex-1 border-none bg-transparent px-0 py-1 font-medium text-base outline-none placeholder:text-base placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 group-hover:text-accent-foreground md:text-sm md:placeholder:text-sm"
           />
         </div>
       </div>

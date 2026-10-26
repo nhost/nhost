@@ -129,7 +129,7 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
         value={displayed}
         onChange={handleChange}
         className={cn(
-          'min-h-10 resize-none overflow-x-auto whitespace-pre py-2.5 pr-10 font-mono text-xs leading-5',
+          'min-h-10 resize-none overflow-x-auto whitespace-pre py-2.5 pr-10 font-mono text-base leading-5 md:text-xs md:leading-5',
           overflowing ? 'overflow-y-auto' : 'overflow-y-hidden',
           error && 'border-destructive focus-visible:ring-destructive',
         )}

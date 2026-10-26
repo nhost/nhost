@@ -132,7 +132,6 @@ export default function PagerdutyFormSection() {
                   <Button
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove PagerDuty integration"
                     onClick={() => remove(index)}
                   >

@@ -59,7 +59,7 @@ function LogsServiceFilter<TFieldValues extends FieldValues>({
       control={control}
       name={name}
       containerClassName="space-y-0"
-      className="h-10 w-full font-normal text-sm"
+      className="w-full font-normal"
       placeholder="All Services"
       data-testid="ServicePicker"
     >

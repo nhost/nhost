@@ -51,7 +51,6 @@ export default function NativeQueryArgumentsSection({
                       <FreeCombobox
                         aria-label={`Argument ${index + 1} type`}
                         aria-invalid={fieldState.invalid}
-                        className="h-10"
                         aria-describedby={
                           fieldState.error ? errorId : undefined
                         }
@@ -77,7 +76,7 @@ export default function NativeQueryArgumentsSection({
                   const id = `native-query-argument-${index + 1}-nullable`;
 
                   return (
-                    <div className="flex h-10 items-center justify-center">
+                    <div className="flex h-11 items-center justify-center md:h-9">
                       <Checkbox
                         id={id}
                         aria-label={`Argument ${index + 1} nullable`}

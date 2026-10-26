@@ -100,7 +100,6 @@ function TypeNodeEditor({
             aria-label={`${pathLabel} scalar type`}
             aria-invalid={Boolean(valueError)}
             aria-describedby={valueErrorId}
-            className="h-10"
             value={value.scalar || null}
             options={postgresTypeOptions}
             placeholder="Select or enter a type"
@@ -114,7 +113,6 @@ function TypeNodeEditor({
             aria-label={`${pathLabel} logical model`}
             aria-invalid={Boolean(valueError)}
             aria-describedby={valueErrorId}
-            className="h-10"
             value={value.logicalModel || null}
             options={logicalModelNames.map((name) => ({
               label: name,
@@ -133,7 +131,7 @@ function TypeNodeEditor({
         )}
       </div>
 
-      <div className="flex h-10 items-center justify-center">
+      <div className="flex h-11 items-center justify-center md:h-9">
         <Checkbox
           id={nullableId}
           aria-label={`${pathLabel} nullable`}

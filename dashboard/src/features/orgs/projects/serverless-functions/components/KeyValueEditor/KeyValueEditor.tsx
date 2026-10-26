@@ -24,12 +24,12 @@ export default function KeyValueEditor({
           <Input
             placeholder={keyPlaceholder}
             {...register(`${name}.${index}.key`)}
-            className="h-8 font-mono text-sm"
+            className="font-mono"
           />
           <Input
             placeholder={valuePlaceholder}
             {...register(`${name}.${index}.value`)}
-            className="h-8 max-w-md flex-1 font-mono text-sm"
+            className="max-w-md flex-1 font-mono"
           />
           <Button
             type="button"

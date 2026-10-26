@@ -78,7 +78,7 @@ export default function WebhooksDataSourcesFormSection() {
                 type="button"
                 variant="subtle"
                 size="sm"
-                className="h-10 self-end"
+                className="self-end"
                 aria-label="Remove webhook data source"
                 onClick={() => remove(index)}
               >

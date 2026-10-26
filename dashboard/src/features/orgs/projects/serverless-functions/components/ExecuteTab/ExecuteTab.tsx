@@ -145,7 +145,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               >
                 <SelectTrigger
                   className={cn(
-                    'h-10 w-24 font-mono font-semibold text-sm',
+                    'w-24 font-mono font-semibold',
                     HTTP_METHOD_TEXT_CLASSES[method],
                   )}
                 >
@@ -170,7 +170,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               <Button
                 type="submit"
                 disabled={response.status === 'loading'}
-                className="h-10 gap-2 lg:hidden"
+                className="gap-2 lg:hidden"
               >
                 {response.status === 'loading' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -193,7 +193,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             <Button
               type="submit"
               disabled={response.status === 'loading'}
-              className="hidden h-10 gap-2 lg:inline-flex"
+              className="hidden gap-2 lg:inline-flex"
             >
               {response.status === 'loading' ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -227,15 +227,11 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             >
               {hasBody && (
                 <div className="mb-2 flex items-center gap-2">
-                  <Input
-                    value="Content-Type"
-                    disabled
-                    className="h-8 font-mono text-sm"
-                  />
+                  <Input value="Content-Type" disabled className="font-mono" />
                   <Input
                     {...register('contentType')}
                     placeholder="Content-Type"
-                    className="h-8 max-w-md flex-1 font-mono text-sm"
+                    className="max-w-md flex-1 font-mono"
                   />
                   <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
                     <Lock className="size-4" />

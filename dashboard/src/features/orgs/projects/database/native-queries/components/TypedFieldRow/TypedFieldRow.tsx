@@ -65,7 +65,7 @@ export default function TypedFieldRow({
 
         {typeEditor}
 
-        <div className="flex h-10 items-center justify-center">
+        <div className="flex h-11 items-center justify-center md:h-9">
           <TypedFieldDescription
             noun={noun}
             index={index}
@@ -74,12 +74,11 @@ export default function TypedFieldRow({
           />
         </div>
 
-        <div className="flex h-10 items-center justify-center">
+        <div className="flex h-11 items-center justify-center md:h-9">
           <Button
             type="button"
             variant="outline"
             size="icon"
-            className="h-9 w-9"
             aria-label={removeLabel}
             onClick={onRemove}
           >

@@ -29,8 +29,9 @@ export default function CommandPaletteTrigger({
     <Button
       aria-keyshortcuts="Meta+K Control+K"
       aria-label="Open command palette"
+      size="xs"
       className={cn(
-        'h-8 justify-start gap-2 border border-transparent bg-neutral-100 px-3 font-normal text-neutral-500 hover:border-neutral-200 hover:bg-neutral-100 hover:text-neutral-500 focus-visible:border-neutral-300 focus-visible:bg-white dark:bg-muted dark:text-muted-foreground dark:focus-visible:border-ring dark:focus-visible:bg-accent dark:hover:border-border dark:hover:bg-muted',
+        'justify-start gap-2 border border-transparent bg-neutral-100 px-3 font-normal text-neutral-500 hover:border-neutral-200 hover:bg-neutral-100 hover:text-neutral-500 focus-visible:border-neutral-300 focus-visible:bg-white dark:bg-muted dark:text-muted-foreground dark:focus-visible:border-ring dark:focus-visible:bg-accent dark:hover:border-border dark:hover:bg-muted',
         className,
       )}
       onClick={onOpen}

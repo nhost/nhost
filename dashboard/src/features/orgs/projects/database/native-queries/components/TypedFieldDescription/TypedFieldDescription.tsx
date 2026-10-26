@@ -45,7 +45,6 @@ export default function TypedFieldDescription({
           size="icon"
           title={actionLabel}
           data-testid={`${lowercaseNoun}s.${index}.description`}
-          className="h-8 w-8"
         >
           <DescriptionIcon strokeWidth={1} className="h-5 w-5" />
         </Button>
