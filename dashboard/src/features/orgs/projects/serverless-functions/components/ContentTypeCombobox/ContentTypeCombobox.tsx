@@ -59,7 +59,8 @@ export default function ContentTypeCombobox() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="h-8 w-80 justify-between font-normal text-sm"
+          size="xs"
+          className="w-80 justify-between font-normal text-sm"
         >
           <span className="truncate">{value || 'None'}</span>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />

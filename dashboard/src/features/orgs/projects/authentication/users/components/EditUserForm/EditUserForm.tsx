@@ -358,7 +358,8 @@ export default function EditUserForm({
               </div>
               <Button
                 variant="link"
-                className="col-span-6 h-auto place-self-start px-2"
+                size="inline"
+                className="col-span-6 place-self-start px-2"
                 onClick={handleChangeUserPassword}
               >
                 Change

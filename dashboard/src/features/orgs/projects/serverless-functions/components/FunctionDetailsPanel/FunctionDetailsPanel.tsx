@@ -163,7 +163,7 @@ export default function FunctionDetailsPanel({
         </div>
       )}
       {activeTab === 'execute' && (
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-auto lg:overflow-hidden">
           <ExecuteTab endpointUrl={defaultEndpointUrl} />
         </div>
       )}

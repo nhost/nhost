@@ -73,7 +73,6 @@ export default function DiscordFormSection() {
                   <Button
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove Discord webhook"
                     onClick={() => remove(index)}
                   >
