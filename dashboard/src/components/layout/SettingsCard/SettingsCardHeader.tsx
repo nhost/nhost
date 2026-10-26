@@ -26,6 +26,12 @@ export interface SettingsCardHeaderProps
    * owned by the surrounding form (e.g. an RHF `FormSwitch`).
    */
   control?: React.ReactNode;
+  /**
+   * Additional classes for the left side (icon, title and description)
+   * wrapper. Pass a max-width (e.g. `sm:max-w-lg`) to keep the description
+   * from running right up against `actions`/`control`.
+   */
+  contentClassName?: string;
 }
 
 const SettingsCardHeader = React.forwardRef<
@@ -33,7 +39,16 @@ const SettingsCardHeader = React.forwardRef<
   SettingsCardHeaderProps
 >(
   (
-    { className, title, description, icon, actions, control, ...props },
+    {
+      className,
+      title,
+      description,
+      icon,
+      actions,
+      control,
+      contentClassName,
+      ...props
+    },
     ref,
   ) => (
     <div
@@ -44,7 +59,7 @@ const SettingsCardHeader = React.forwardRef<
       )}
       {...props}
     >
-      <div className="flex min-w-0 flex-1 gap-4">
+      <div className={cn('flex min-w-0 flex-1 gap-4', contentClassName)}>
         {typeof icon === 'string' ? (
           <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
             <Image src={icon} alt="" width={32} height={32} />
@@ -53,7 +68,7 @@ const SettingsCardHeader = React.forwardRef<
           icon
         )}
 
-        <div className="grid min-w-0 grid-flow-row gap-1">
+        <div className="grid min-w-0 grid-flow-row gap-0.5">
           {typeof title === 'string' ? (
             <h3 className="font-semibold text-lg">{title}</h3>
           ) : (

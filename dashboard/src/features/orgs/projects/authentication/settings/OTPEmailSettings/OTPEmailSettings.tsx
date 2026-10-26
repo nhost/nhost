@@ -121,6 +121,7 @@ export default function OTPEmailSettings() {
       <Form onSubmit={handleOTPEmailSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="One-Time Passwords over email"
             description="Allow users to sign in with a one-time password sent to their email address."
             control={

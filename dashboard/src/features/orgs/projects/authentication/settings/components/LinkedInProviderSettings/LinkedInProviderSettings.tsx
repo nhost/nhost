@@ -131,6 +131,7 @@ export default function LinkedInProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="LinkedIn"
             description="Allow users to sign in with LinkedIn."
             icon="/assets/brands/linkedin.svg"

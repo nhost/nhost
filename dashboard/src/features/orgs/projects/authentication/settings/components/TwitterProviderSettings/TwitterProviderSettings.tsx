@@ -143,6 +143,7 @@ export default function TwitterProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Twitter"
             description="Allow users to sign in with Twitter."
             icon="/assets/brands/twitter.svg"

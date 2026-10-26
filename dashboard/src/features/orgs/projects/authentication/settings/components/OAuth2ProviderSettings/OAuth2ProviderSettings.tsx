@@ -176,6 +176,7 @@ export default function OAuth2ProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="OAuth2 Provider"
             description={
               <>

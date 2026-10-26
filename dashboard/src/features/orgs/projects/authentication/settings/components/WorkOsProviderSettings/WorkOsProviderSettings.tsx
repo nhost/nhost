@@ -170,6 +170,7 @@ export default function WorkOsProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="WorkOS"
             description="Allow users to sign in with WorkOS."
             icon="/assets/brands/workos.svg"

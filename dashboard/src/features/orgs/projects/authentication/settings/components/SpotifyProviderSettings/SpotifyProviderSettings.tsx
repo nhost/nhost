@@ -131,6 +131,7 @@ export default function SpotifyProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Spotify"
             description="Allow users to sign in with Spotify."
             icon="/assets/brands/spotify.svg"

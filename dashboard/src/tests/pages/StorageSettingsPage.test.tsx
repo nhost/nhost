@@ -214,8 +214,8 @@ describe('StorageSettingsPage', () => {
   });
 
   it.each([
-    ['storage', 'Storage Version', 'Storage'],
-    ['rate-limiting', 'Storage', 'Storage Version'],
+    ['storage', 'Storage Version', 'Rate limiting'],
+    ['rate-limiting', 'Rate limiting', 'Storage Version'],
   ])(
     'renders the selected %s settings content',
     async (tab, heading, otherHeading) => {
@@ -258,7 +258,7 @@ describe('StorageSettingsPage', () => {
       within(navigation).getByRole('link', { name: 'Rate Limiting' }),
     ]);
     expect(
-      await screen.findByRole('heading', { name: 'Storage' }),
+      await screen.findByRole('heading', { name: 'Rate limiting' }),
     ).toBeVisible();
     expect(
       screen.queryByText(

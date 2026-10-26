@@ -113,6 +113,7 @@ export default function HasuraConsoleSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Hasura Console"
             description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
             control={

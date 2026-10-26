@@ -139,7 +139,7 @@ export default function SecretsSettings() {
 
   return (
     <div className="grid grid-flow-row gap-6">
-      <SettingsCard className="gap-0 pb-0">
+      <SettingsCard className="gap-0">
         <SettingsCardHeader
           title="Secrets"
           description={

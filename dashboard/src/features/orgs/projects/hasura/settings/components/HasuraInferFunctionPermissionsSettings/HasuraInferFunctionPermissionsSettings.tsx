@@ -118,6 +118,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Infer Function Permissions"
             description="Enable or disable infer function permissions."
             control={

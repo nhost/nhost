@@ -128,6 +128,7 @@ export default function HasuraCorsDomainSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Configure CORS"
             description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."
             control={

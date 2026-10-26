@@ -118,6 +118,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Remote Schema Permissions"
             description="Enable or disable remote schema permissions."
             control={

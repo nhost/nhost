@@ -153,6 +153,7 @@ export default function EntraIDProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Entra ID"
             description="Allow users to sign in with Microsoft Entra ID."
             icon="/assets/brands/entraid.svg"

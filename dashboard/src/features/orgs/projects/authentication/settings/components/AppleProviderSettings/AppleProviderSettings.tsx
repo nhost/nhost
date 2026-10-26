@@ -170,6 +170,7 @@ export default function AppleProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Apple"
             description="Allow users to sign in with Apple."
             icon={

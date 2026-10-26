@@ -133,6 +133,7 @@ export default function GitHubProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="GitHub"
             description="Allow users to sign in with GitHub."
             icon={

@@ -264,7 +264,7 @@ describe('FunctionsSettingsPage content', () => {
       within(navigation).getByRole('link', { name: 'Rate Limiting' }),
     ]);
     expect(
-      await screen.findByRole('heading', { name: 'Functions' }),
+      await screen.findByRole('heading', { name: 'Rate limiting' }),
     ).toBeInTheDocument();
   });
 });

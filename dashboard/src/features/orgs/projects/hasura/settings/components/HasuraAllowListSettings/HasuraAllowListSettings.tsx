@@ -113,6 +113,7 @@ export default function HasuraAllowListSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Allow List"
             description="Safely allow a limited number of GraphQL queries, mutations and subscriptions for your project."
             control={

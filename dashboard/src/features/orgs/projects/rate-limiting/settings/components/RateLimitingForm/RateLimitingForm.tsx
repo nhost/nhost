@@ -39,6 +39,7 @@ export interface RateLimitingFormProps {
   defaultValues: RateLimitDefaultValues;
   serviceName: keyof ConfigConfigUpdateInput;
   title: string;
+  description?: string;
   loading: boolean;
 }
 
@@ -48,6 +49,7 @@ export default function RateLimitingForm({
   defaultValues,
   serviceName,
   title,
+  description,
   loading,
 }: RateLimitingFormProps) {
   const { project } = useProject();
@@ -138,22 +140,29 @@ export default function RateLimitingForm({
       >
         <SettingsCard>
           <SettingsCardHeader
-            title={title}
+            title="Rate limiting"
+            description={description}
+            contentClassName="sm:max-w-lg"
             control={
               <FormSwitch
                 control={form.control}
                 name="enabled"
-                label={`Toggle ${title}`}
+                label={`Toggle ${title} rate limiting`}
                 labelClassName="sr-only"
                 containerClassName="space-y-0"
               />
             }
           />
 
-          <SettingsCardContent className="flex flex-col px-0">
-            <div className="border-t" />
-            <RateLimitField disabled={!enabled} id="rateLimit" />
-          </SettingsCardContent>
+          {/* The fields only show while the toggle is on. Hidden values stay
+              in the form, and saving already ignores them when it's off. They
+              also show while they have an error, so a failed save is never
+              caused by a field you can't see. */}
+          {(enabled || formState.errors.rateLimit) && (
+            <SettingsCardContent className="flex flex-col px-0">
+              <RateLimitField disabled={!enabled} id="rateLimit" />
+            </SettingsCardContent>
+          )}
 
           <SettingsCardFooter>
             <ButtonWithLoading

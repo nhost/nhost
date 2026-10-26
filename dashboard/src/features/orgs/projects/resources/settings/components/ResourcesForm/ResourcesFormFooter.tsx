@@ -50,7 +50,7 @@ export default function ResourcesFormFooter() {
   const disabled = !isDirty || hasFieldErrors || !!aggregateError;
 
   return (
-    <div className="flex flex-col items-stretch gap-3 border-t px-4 pt-3.5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col items-stretch gap-3 bg-accent/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:bg-muted/30">
       <p>
         Learn more about{' '}
         <a

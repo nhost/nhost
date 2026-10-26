@@ -154,6 +154,7 @@ export default function GoogleProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
+            contentClassName="sm:max-w-lg"
             title="Google"
             description="Allow users to sign in with Google."
             icon="/assets/brands/google.svg"

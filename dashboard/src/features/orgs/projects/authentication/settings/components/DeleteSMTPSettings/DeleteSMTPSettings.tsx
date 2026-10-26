@@ -3,7 +3,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
-  SettingsCardContent,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -130,23 +129,20 @@ export default function DeleteSMTPSettings() {
   return (
     <SettingsCard>
       <SettingsCardHeader
+        contentClassName="sm:max-w-lg"
         title="Delete SMTP Settings"
         description="Delete SMTP settings and revert to default values"
-      />
-
-      <SettingsCardContent className="px-0">
-        <div className="grid grid-flow-row border-t">
+        control={
           <ButtonWithLoading
             variant="destructive"
-            className="mx-4 mt-4 justify-self-end"
             onClick={confirmDeleteSMTPSettings}
             disabled={loading || !isSMTPConfigured}
             loading={loading}
           >
             Delete
           </ButtonWithLoading>
-        </div>
-      </SettingsCardContent>
+        }
+      />
     </SettingsCard>
   );
 }
