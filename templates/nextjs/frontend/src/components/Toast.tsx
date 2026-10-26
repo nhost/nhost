@@ -24,16 +24,33 @@ export function useToast(): (message: string) => void {
  * One at a time; a second replaces the first rather than stacking. The region
  * is in the page from the start and polite, which is what gets a screen
  * reader to read each message once without cutting anything off.
+ *
+ * The region is a popover, which puts it in the browser's top layer: a modal
+ * `<dialog>` is drawn there too, above anything a z-index can lift, so a toast
+ * from inside one (a copied key) would otherwise show behind it. The top layer
+ * stacks in the order things were shown, so each toast shows the region again
+ * to come out above whatever dialog opened since.
  */
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const count = useRef(0);
+  const region = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<
     { id: number; message: string } | undefined
   >();
 
   useEffect(() => {
+    region.current?.showPopover?.();
+  }, []);
+
+  useEffect(() => {
     if (!toast) {
       return;
+    }
+
+    const el = region.current;
+    if (el?.showPopover) {
+      el.hidePopover();
+      el.showPopover();
     }
 
     const timer = setTimeout(() => setToast(undefined), 2400);
@@ -48,11 +65,15 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={show}>
       {children}
-      {/* Clear of the footer, which is pinned to the bottom of the window. */}
+      {/* Clear of the footer, which is pinned to the bottom of the window.
+          The popover's own box (centred, bordered, filled) is undone, so it
+          is only the strip the message sits in. */}
       <div
+        ref={region}
+        popover="manual"
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex justify-center px-4"
+        className="pointer-events-none fixed inset-x-0 top-auto bottom-20 m-0 flex h-auto w-auto max-w-none justify-center overflow-visible border-0 bg-transparent px-4 py-0"
       >
         {toast ? (
           <p
