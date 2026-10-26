@@ -105,17 +105,31 @@ describe('change password row, through a change', () => {
     expect(dialog()?.open).toBe(false);
   });
 
-  // Signing back in would need a code from the authenticator app, so this
-  // device is signed out too, and the dialog says so before the change.
-  it('warns a two-factor account that this device is signed out too', async () => {
+  // Signing back in takes a code from the authenticator app as well, which
+  // the form asks for.
+  it('keeps a two-factor account signed in, with a code to sign back in', async () => {
     await render(
       <ChangePasswordSetting user={{ ...user, activeMfaType: 'totp' }} />,
     );
     await act(async () => row()?.click());
 
     expect(dialog()?.textContent).toContain(
+      "Your other devices will be signed out. You'll stay signed in here.",
+    );
+    expect(dialog()?.textContent).toContain('Authenticator code');
+  });
+
+  // No email, nothing to sign back in with.
+  it('warns an account with no email that this device is signed out too', async () => {
+    await render(
+      <ChangePasswordSetting user={{ ...user, email: undefined }} />,
+    );
+    await act(async () => row()?.click());
+
+    expect(dialog()?.textContent).toContain(
       "You'll be signed out everywhere, this device included.",
     );
+    expect(dialog()?.textContent).not.toContain('Authenticator code');
   });
 
   it('holds the change back until both entries meet the rules', async () => {

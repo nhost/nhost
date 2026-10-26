@@ -85,7 +85,7 @@ describe('change password form', () => {
 
     await submit();
 
-    expect(changePassword).toHaveBeenCalledWith('correct horse');
+    expect(changePassword).toHaveBeenCalledWith('correct horse', undefined);
     expect(router.refresh).toHaveBeenCalledOnce();
     expect(container.textContent).not.toContain('Sign in again');
   });
@@ -100,6 +100,35 @@ describe('change password form', () => {
     expect(container.textContent).toContain('Password changed');
     expect(container.querySelector('form')).toBeNull();
     expect(router.refresh).not.toHaveBeenCalled();
+  });
+
+  // Two-factor: signing back in takes a current code as well.
+  it('asks a two-factor account for a code and sends it along', async () => {
+    act(() => root.unmount());
+    root = createRoot(container);
+    await act(async () =>
+      root.render(
+        <ReplacePageLayout>
+          <ChangePasswordForm needsCode />
+        </ReplacePageLayout>,
+      ),
+    );
+    changePassword.mockResolvedValueOnce({ success: true, signedIn: true });
+    await type('New password', 'correct horse');
+    await type('Confirm new password', 'correct horse');
+
+    const change = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+    expect(change?.disabled).toBe(true);
+
+    await type('Authenticator code', '123456');
+    expect(change?.disabled).toBe(false);
+
+    await submit();
+
+    expect(changePassword).toHaveBeenCalledWith('correct horse', '123456');
+    expect(router.refresh).toHaveBeenCalledOnce();
   });
 
   it('shows the action error', async () => {

@@ -13,7 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export default function ChangePasswordForm() {
+/**
+ * `needsCode` is for an account with two-factor on: signing this browser back
+ * in with the new password takes a current code from the authenticator app
+ * too, so the form asks for one alongside it.
+ */
+export default function ChangePasswordForm({
+  needsCode = false,
+}: {
+  needsCode?: boolean;
+}) {
   const replacePage = useReplacePage();
   const router = useRouter();
   const toast = useToast();
@@ -21,15 +30,17 @@ export default function ChangePasswordForm() {
   const passwordId = useId();
   const confirmId = useId();
   const rulesId = useId();
+  const codeId = useId();
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
 
-  const ready = passwordRequirements(password, confirm).every(
-    (rule) => rule.met,
-  );
+  const ready =
+    passwordRequirements(password, confirm).every((rule) => rule.met) &&
+    (!needsCode || /^\d{6}$/.test(code.trim()));
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -42,7 +53,10 @@ export default function ChangePasswordForm() {
 
     setIsPending(true);
     try {
-      const result = await changePassword(password);
+      const result = await changePassword(
+        password,
+        needsCode ? code.trim() : undefined,
+      );
       if (result.error) {
         setError(result.error);
         return;
@@ -104,6 +118,23 @@ export default function ChangePasswordForm() {
           confirm={confirm}
           className="flex-row flex-wrap items-start gap-x-4 text-xs"
         />
+
+        {needsCode ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={codeId}>Authenticator code</Label>
+            <Input
+              id={codeId}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000000"
+              required
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              disabled={isPending}
+              className="font-mono tracking-widest"
+            />
+          </div>
+        ) : null}
       </div>
 
       {error ? (

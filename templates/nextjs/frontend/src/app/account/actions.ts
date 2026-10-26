@@ -43,11 +43,13 @@ const ACCOUNT_URL = () => `${appOrigin()}/account`;
 // The auth service revokes every session with the old password, this one
 // included, so every other device is signed out. This browser then signs
 // straight back in with the new password, which is already here, so changing
-// it does not cost the visitor their place. That takes an email address and
-// no second factor: without them, or if the sign-in fails, `signedIn` is
-// false and the page asks for a fresh sign-in, as before.
+// it does not cost the visitor their place. That takes an email address, and
+// with two-factor on, `otp`, a current code from the authenticator app, which
+// the form asks for alongside the password. Without them, or if the sign-in
+// fails, `signedIn` is false and the page asks for a fresh sign-in.
 export async function changePassword(
   newPassword: string,
+  otp?: string,
 ): Promise<ActionResult & { signedIn?: boolean }> {
   if (!newPassword) {
     return { error: 'A new password is required.' };
@@ -73,6 +75,16 @@ export async function changePassword(
         email,
         password: newPassword,
       });
+
+      // Two-factor answers the password with a ticket, which the code trades
+      // for the session.
+      if (!body.session && body.mfa?.ticket && otp) {
+        const verified = await nhost.auth.verifySignInMfaTotp({
+          ticket: body.mfa.ticket,
+          otp,
+        });
+        return { success: true, signedIn: Boolean(verified.body.session) };
+      }
 
       return { success: true, signedIn: Boolean(body.session) };
     } catch (err) {

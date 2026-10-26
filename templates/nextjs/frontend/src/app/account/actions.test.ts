@@ -25,6 +25,7 @@ const client = vi.hoisted(() => ({
   auth: {
     changeUserPassword: vi.fn(),
     signInEmailPassword: vi.fn(),
+    verifySignInMfaTotp: vi.fn(),
     changeUserEmail: vi.fn(),
     sendVerificationEmail: vi.fn(),
   },
@@ -125,6 +126,44 @@ describe('changePassword', () => {
     });
 
     expect(await changePassword('correct horse')).toEqual({
+      success: true,
+      signedIn: false,
+    });
+  });
+
+  it('signs a two-factor account back in with the code it was given', async () => {
+    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+    client.auth.signInEmailPassword.mockResolvedValueOnce({
+      body: { mfa: { ticket: 'mfaTotp:abc' } },
+    });
+    client.auth.verifySignInMfaTotp.mockResolvedValueOnce({
+      body: { session: { accessToken: 'new' } },
+    });
+
+    expect(await changePassword('correct horse', '123456')).toEqual({
+      success: true,
+      signedIn: true,
+    });
+    expect(client.auth.verifySignInMfaTotp).toHaveBeenCalledWith({
+      ticket: 'mfaTotp:abc',
+      otp: '123456',
+    });
+  });
+
+  // The password is changed by then; only this browser's session is lost.
+  it('reports this device signed out when the code does not work', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+    client.auth.signInEmailPassword.mockResolvedValueOnce({
+      body: { mfa: { ticket: 'mfaTotp:abc' } },
+    });
+    client.auth.verifySignInMfaTotp.mockRejectedValueOnce(
+      new Error('invalid code'),
+    );
+
+    expect(await changePassword('correct horse', '000000')).toEqual({
       success: true,
       signedIn: false,
     });

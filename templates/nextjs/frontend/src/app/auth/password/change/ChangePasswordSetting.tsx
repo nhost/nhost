@@ -8,11 +8,11 @@ import { DialogSetting } from '@/components/Setting';
 // is not asked for.
 //
 // Every other device is signed out. This one signs back in with the new
-// password (see `changePassword`), except where that would need a second
-// factor or there is no email to sign in with, so the description says
-// which ahead of time.
+// password (see `changePassword`), and with two-factor on, a code the form
+// asks for. An account with no email has nothing to sign in with, so the
+// description says ahead of time that this device goes too.
 export default function ChangePasswordSetting({ user }: { user: User }) {
-  const staysSignedIn = Boolean(user.email) && user.activeMfaType !== 'totp';
+  const staysSignedIn = Boolean(user.email);
 
   return (
     <DialogSetting
@@ -26,7 +26,7 @@ export default function ChangePasswordSetting({ user }: { user: User }) {
           : "You'll be signed out everywhere, this device included."
       }
     >
-      <ChangePasswordForm />
+      <ChangePasswordForm needsCode={user.activeMfaType === 'totp'} />
     </DialogSetting>
   );
 }
