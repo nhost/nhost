@@ -18,6 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { DeploymentRollbackNotes } from '@/features/orgs/projects/deployments/components/DeploymentRollbackNotes';
 import type { RedeployWarning } from '@/features/orgs/projects/deployments/utils/getRedeployWarning';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
@@ -147,19 +148,7 @@ export default function RedeployDialog({
           </div>
           <CommitCard label="Will deploy" deployment={deployment} target />
         </div>
-        {rollback && (
-          <ul className="list-disc space-y-1 pl-5 text-muted-foreground text-sm">
-            <li>
-              This commit's metadata, settings and functions replace the current
-              ones.
-            </li>
-            <li>
-              <strong className="text-foreground">
-                Database migrations are not rolled back.
-              </strong>
-            </li>
-          </ul>
-        )}
+        {rollback && <DeploymentRollbackNotes />}
         <DialogFooter className="sm:items-center sm:justify-between">
           {rollback && (
             <TextLink

@@ -31720,6 +31720,16 @@ export type GetUnifiedDeploymentsSubSubscriptionVariables = Exact<{
 
 export type GetUnifiedDeploymentsSubSubscription = { __typename?: 'subscription_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
 
+export type SearchUnifiedDeploymentsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+  messagePattern: Scalars['String'];
+  shaPattern: Scalars['String'];
+  limit: Scalars['Int'];
+}>;
+
+
+export type SearchUnifiedDeploymentsQuery = { __typename?: 'query_root', unifiedDeployments: Array<{ __typename?: 'unifiedDeployments', id?: any | null, appId?: any | null, source?: string | null, commitSHA?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null, startedAt?: any | null, endedAt?: any | null, status?: string | null, createdAt?: any | null }> };
+
 export type PendingOrRunningUnifiedDeploymentsSubSubscriptionVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -35821,6 +35831,51 @@ export function useGetUnifiedDeploymentsSubSubscription(baseOptions: Apollo.Subs
       }
 export type GetUnifiedDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetUnifiedDeploymentsSubSubscription>;
 export type GetUnifiedDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetUnifiedDeploymentsSubSubscription>;
+export const SearchUnifiedDeploymentsDocument = gql`
+    query searchUnifiedDeployments($appId: uuid!, $messagePattern: String!, $shaPattern: String!, $limit: Int!) {
+  unifiedDeployments(
+    where: {appId: {_eq: $appId}, _or: [{commitMessage: {_ilike: $messagePattern}}, {commitSHA: {_ilike: $shaPattern}}]}
+    order_by: {createdAt: desc}
+    limit: $limit
+  ) {
+    ...UnifiedDeploymentRow
+  }
+}
+    ${UnifiedDeploymentRowFragmentDoc}`;
+
+/**
+ * __useSearchUnifiedDeploymentsQuery__
+ *
+ * To run a query within a React component, call `useSearchUnifiedDeploymentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchUnifiedDeploymentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchUnifiedDeploymentsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      messagePattern: // value for 'messagePattern'
+ *      shaPattern: // value for 'shaPattern'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchUnifiedDeploymentsQuery(baseOptions: Apollo.QueryHookOptions<SearchUnifiedDeploymentsQuery, SearchUnifiedDeploymentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchUnifiedDeploymentsQuery, SearchUnifiedDeploymentsQueryVariables>(SearchUnifiedDeploymentsDocument, options);
+      }
+export function useSearchUnifiedDeploymentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchUnifiedDeploymentsQuery, SearchUnifiedDeploymentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchUnifiedDeploymentsQuery, SearchUnifiedDeploymentsQueryVariables>(SearchUnifiedDeploymentsDocument, options);
+        }
+export type SearchUnifiedDeploymentsQueryHookResult = ReturnType<typeof useSearchUnifiedDeploymentsQuery>;
+export type SearchUnifiedDeploymentsLazyQueryHookResult = ReturnType<typeof useSearchUnifiedDeploymentsLazyQuery>;
+export type SearchUnifiedDeploymentsQueryResult = Apollo.QueryResult<SearchUnifiedDeploymentsQuery, SearchUnifiedDeploymentsQueryVariables>;
+export function refetchSearchUnifiedDeploymentsQuery(variables: SearchUnifiedDeploymentsQueryVariables) {
+      return { query: SearchUnifiedDeploymentsDocument, variables: variables }
+    }
 export const PendingOrRunningUnifiedDeploymentsSubDocument = gql`
     subscription PendingOrRunningUnifiedDeploymentsSub($appId: uuid!) {
   unifiedDeployments(

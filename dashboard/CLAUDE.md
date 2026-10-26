@@ -49,6 +49,15 @@ until click. Use `waitFor` for asynchronous dismissal assertions.
 
 Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
 
+- Defer the MSW response when asserting a transient resolving/comparing state. An immediate response can complete during an awaited user interaction, before the loading assertion runs.
+- For cancellable Apollo queries cached by TanStack, `fetchPolicy: 'no-cache'` does not disable Apollo's in-flight deduplication. Set operation context `queryDeduplication: false` so revisiting a canceled query cannot reuse its aborted signal during transport retries. Test abort-and-revisit and close/reopen with query network retries enabled.
+- cmdk supplies an input `aria-labelledby` pointing to its hidden Command label. Set the Command's `label` as well as the input's `aria-label`; otherwise the empty hidden label overrides the input's accessible name.
+- Highlighting an option label with separate inline nodes can collapse whitespace in its computed accessible name in tests. Give highlighted command options an `aria-label` built from the unsplit message/ref and SHA.
+- Keep non-command action buttons outside the cmdk Command root: its Enter handler prevents native button activation from descendants. Test keyboard activation of embedded auth actions as well as pointer clicks.
+- `vi.unstubAllGlobals()` also removes the setup file's `ResizeObserver` stub. Tests that restore globals must re-stub it in `beforeEach` when rendering cmdk lists.
+- The module-level Nhost client captures `fetch` on import. Tests exercising it through MSW must start the server before importing the client (for example, in `vi.hoisted`); starting it in `beforeAll` is too late.
+- For auth-bound hooks, also test SDK session loss that unmounts the consumer, as `AuthGuard` does. Updating authentication while leaving the probe mounted does not exercise that cleanup path; ordinary consumer closure must still retain single-use credential rotations. Cover same-user provider removal/replacement after the final consumer unmounts too: an SDK user observer alone cannot detect those changes. GitHub refreshes revalidate the linked provider over the network before persistence, retaining session observation through that validation.
+
 ### E2E Testing
 
 ```bash
@@ -104,6 +113,13 @@ When creating a new feature page, check whether it needs to be added to:
 - `components/layout/DashboardNavigation/ProjectNavigation.tsx` or `components/layout/DashboardNavigation/OrganizationNavigation.tsx` for visible sidebar entries.
 - The area's `features/orgs/projects/<area>/layout/<Area>RouteTabs.tsx` for its route tabs.
 - `features/command-palette/catalog.tsx` (page names, routes, palette gates via `isHiddenFromPalette`, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it. A page's palette `gate` only hides it in the command palette; it does not control sidebar entries or direct page access.
+
+### GitHub credentials
+
+- Use `useGitHubAccessToken` from `features/orgs/projects/common/hooks/useGitHubAccessToken` for browser GitHub access. It reads storage on mount, checks the linked provider, shares in-flight refreshes per user/provider and discards results after sign-out or a provider change. Its statuses are `loading`, `connection-required`, `expired`, `ready` and `error`; only `ready` carries an access token.
+- Use `startGitHubConnect` from `features/orgs/projects/common/utils/startGitHubConnect` to link GitHub to a Nhost session. Its `redirectTo` must be absolute for PKCE.
+- Linking GitHub alone does not yield a browser GitHub token. A second GitHub sign-in is needed; reuse `GithubAuthButton` for that flow (optional `variant` and `size`, existing defaults unchanged).
+- GitHub access tokens belong only in requests to `api.github.com`, never query keys, GraphQL variables or logs. REST helpers in `lib/github.ts` accept an `AbortSignal` and expose HTTP status and rate-limit classification through `GitHubAPIError`.
 
 ### Helpers and references
 

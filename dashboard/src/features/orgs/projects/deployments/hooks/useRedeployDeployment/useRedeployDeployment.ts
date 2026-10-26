@@ -1,16 +1,10 @@
 import { useState } from 'react';
+import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hooks/useScheduleDeployment';
 import {
   getRedeployWarning,
   type RedeployWarning,
 } from '@/features/orgs/projects/deployments/utils/getRedeployWarning';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import {
-  GetOrganizationsDocument,
-  type UnifiedDeploymentRowFragment,
-  useInsertPipelineRunMutation,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
+import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
 
 /**
  * Redeploys `deployment` right away when it is the live commit or nothing is
@@ -21,44 +15,8 @@ export default function useRedeployDeployment(
   deployment: UnifiedDeploymentRowFragment,
   liveDeployment: UnifiedDeploymentRowFragment | null,
 ) {
-  const { project } = useProject();
-  const userData = useUserData();
   const [warning, setWarning] = useState<RedeployWarning | null>(null);
-  const [insertPipelineRun, { loading: scheduling }] =
-    useInsertPipelineRunMutation({
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  async function schedule() {
-    const result = await execPromiseWithErrorToast(
-      () =>
-        insertPipelineRun({
-          variables: {
-            object: {
-              input: {
-                name: 'nhost-backend-build',
-                app_id: project?.id,
-                commit_sha: deployment.commitSHA,
-                commit_user_name: deployment.commitUserName,
-                commit_user_avatar_url: deployment.commitUserAvatarUrl,
-                commit_message: deployment.commitMessage,
-              },
-            },
-          },
-        }),
-      {
-        loadingMessage: 'Scheduling deployment...',
-        successMessage: 'Deployment has been scheduled successfully.',
-        errorMessage: 'An error occurred when scheduling deployment.',
-      },
-    );
-    return result !== null;
-  }
+  const { schedule, scheduling } = useScheduleDeployment();
 
   async function redeploy() {
     const nextWarning = getRedeployWarning(deployment, liveDeployment);
@@ -66,11 +24,11 @@ export default function useRedeployDeployment(
       setWarning(nextWarning);
       return;
     }
-    await schedule();
+    await schedule(deployment);
   }
 
   async function confirm() {
-    if (await schedule()) {
+    if (await schedule(deployment)) {
       setWarning(null);
     }
   }
