@@ -6,8 +6,10 @@ import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
 import ReplacePageLayout from '@/components/ReplacePageLayout';
 
 const changePassword = vi.hoisted(() => vi.fn());
+const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
 vi.mock('@/app/account/actions', () => ({ changePassword }));
+vi.mock('next/navigation', () => ({ useRouter: () => router }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -46,6 +48,7 @@ const text = (role: string): string | null =>
 describe('change password form', () => {
   beforeEach(async () => {
     changePassword.mockReset();
+    router.refresh.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () =>
@@ -73,16 +76,30 @@ describe('change password form', () => {
     expect(container.textContent).not.toContain('Password changed');
   });
 
-  it('sends the password and puts the changed card in place of the page', async () => {
-    changePassword.mockResolvedValueOnce({ success: true });
+  // The action signed this browser back in with the new password, so only
+  // the other devices lost their session and the page stays.
+  it('keeps the page when this device is signed back in', async () => {
+    changePassword.mockResolvedValueOnce({ success: true, signedIn: true });
     await type('New password', 'correct horse');
     await type('Confirm new password', 'correct horse');
 
     await submit();
 
     expect(changePassword).toHaveBeenCalledWith('correct horse');
+    expect(router.refresh).toHaveBeenCalledOnce();
+    expect(container.textContent).not.toContain('Sign in again');
+  });
+
+  it('puts the changed card in place of the page when this device is signed out too', async () => {
+    changePassword.mockResolvedValueOnce({ success: true, signedIn: false });
+    await type('New password', 'correct horse');
+    await type('Confirm new password', 'correct horse');
+
+    await submit();
+
     expect(container.textContent).toContain('Password changed');
     expect(container.querySelector('form')).toBeNull();
+    expect(router.refresh).not.toHaveBeenCalled();
   });
 
   it('shows the action error', async () => {

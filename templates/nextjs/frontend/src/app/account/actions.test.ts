@@ -15,7 +15,7 @@ import { appOrigin } from '@/lib/nhost/env';
 const client = vi.hoisted(() => ({
   session: null as {
     refreshTokenId?: string;
-    user?: { id: string; avatarUrl?: string };
+    user?: { id: string; email?: string; avatarUrl?: string };
   } | null,
   verifiedUser: null as {
     id: string;
@@ -24,6 +24,7 @@ const client = vi.hoisted(() => ({
   } | null,
   auth: {
     changeUserPassword: vi.fn(),
+    signInEmailPassword: vi.fn(),
     changeUserEmail: vi.fn(),
     sendVerificationEmail: vi.fn(),
   },
@@ -89,10 +90,68 @@ describe('changePassword', () => {
   it('sends the new password and nothing else', async () => {
     client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
 
-    expect(await changePassword('correct horse')).toEqual({ success: true });
+    await changePassword('correct horse');
+
     expect(client.auth.changeUserPassword).toHaveBeenCalledWith({
       newPassword: 'correct horse',
     });
+  });
+
+  // The change revoked this session with the rest, so the new password signs
+  // this browser straight back in.
+  it('signs this device back in with the new password', async () => {
+    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+    client.auth.signInEmailPassword.mockResolvedValueOnce({
+      body: { session: { accessToken: 'new' } },
+    });
+
+    expect(await changePassword('correct horse')).toEqual({
+      success: true,
+      signedIn: true,
+    });
+    expect(client.auth.signInEmailPassword).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      password: 'correct horse',
+    });
+  });
+
+  // Two-factor answers the password with a ticket, not a session.
+  it('reports this device signed out when signing back in needs a second factor', async () => {
+    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+    client.auth.signInEmailPassword.mockResolvedValueOnce({
+      body: { mfa: { ticket: 'mfaTotp:abc' } },
+    });
+
+    expect(await changePassword('correct horse')).toEqual({
+      success: true,
+      signedIn: false,
+    });
+  });
+
+  it('still reports the change when signing back in fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+    client.auth.signInEmailPassword.mockRejectedValueOnce(
+      new Error('email not verified'),
+    );
+
+    expect(await changePassword('correct horse')).toEqual({
+      success: true,
+      signedIn: false,
+    });
+  });
+
+  it('does not try to sign back in without an email address', async () => {
+    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
+
+    expect(await changePassword('correct horse')).toEqual({
+      success: true,
+      signedIn: false,
+    });
+    expect(client.auth.signInEmailPassword).not.toHaveBeenCalled();
   });
 
   it('reports a backend error instead of throwing', async () => {

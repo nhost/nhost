@@ -1,3 +1,4 @@
+import type { User } from '@nhost/nhost-js/auth';
 import ChangePasswordForm from '@/app/auth/password/change/ChangePasswordForm';
 import { DialogSetting } from '@/components/Setting';
 
@@ -5,14 +6,25 @@ import { DialogSetting } from '@/components/Setting';
 // account has a password, and one made by magic link has none until it is
 // set here. Being signed in authorises the change, so the current password
 // is not asked for.
-export default function ChangePasswordSetting() {
+//
+// Every other device is signed out. This one signs back in with the new
+// password (see `changePassword`), except where that would need a second
+// factor or there is no email to sign in with, so the description says
+// which ahead of time.
+export default function ChangePasswordSetting({ user }: { user: User }) {
+  const staysSignedIn = Boolean(user.email) && user.activeMfaType !== 'totp';
+
   return (
     <DialogSetting
       label="Password"
       value="••••••••"
       action="Change"
       title="Change password"
-      description="You'll be signed out everywhere, this device included."
+      description={
+        staysSignedIn
+          ? "Your other devices will be signed out. You'll stay signed in here."
+          : "You'll be signed out everywhere, this device included."
+      }
     >
       <ChangePasswordForm />
     </DialogSetting>

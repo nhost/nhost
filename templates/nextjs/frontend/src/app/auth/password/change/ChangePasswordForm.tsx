@@ -1,18 +1,23 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { changePassword } from '@/app/account/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import { passwordRequirements } from '@/app/auth/password/requirements';
-import { DialogClose, DialogFooter } from '@/components/Dialog';
+import { DialogClose, DialogFooter, useCloseDialog } from '@/components/Dialog';
 import { useReplacePage } from '@/components/ReplacePageLayout';
+import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ChangePasswordForm() {
   const replacePage = useReplacePage();
+  const router = useRouter();
+  const toast = useToast();
+  const close = useCloseDialog();
   const passwordId = useId();
   const confirmId = useId();
   const rulesId = useId();
@@ -40,6 +45,15 @@ export default function ChangePasswordForm() {
       const result = await changePassword(password);
       if (result.error) {
         setError(result.error);
+        return;
+      }
+
+      // Signed back in, so the page stays: only the other devices lost
+      // their session, and the session list under this is re-read.
+      if (result.signedIn) {
+        close();
+        toast('Password changed');
+        router.refresh();
         return;
       }
 

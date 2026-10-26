@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+
+import type { User } from '@nhost/nhost-js/auth';
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,10 +8,21 @@ import AccountLayout from '@/app/account/layout';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
 
 const changePassword = vi.hoisted(() =>
-  vi.fn<() => Promise<{ error?: string; success?: boolean }>>(),
+  vi.fn<
+    () => Promise<{ error?: string; success?: boolean; signedIn?: boolean }>
+  >(),
 );
 
 vi.mock('@/app/account/actions', () => ({ changePassword }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: () => undefined }),
+}));
+
+const user = {
+  id: 'user-1',
+  email: 'user@example.com',
+  activeMfaType: '',
+} as User;
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -72,7 +85,7 @@ describe('change password row, through a change', () => {
   });
 
   it('opens the form in a dialog and closes it again', async () => {
-    await render(<ChangePasswordSetting />);
+    await render(<ChangePasswordSetting user={user} />);
 
     expect(dialog()?.open).toBe(false);
     expect(dialog()?.querySelector('form')).toBeNull();
@@ -80,7 +93,9 @@ describe('change password row, through a change', () => {
     await act(async () => row()?.click());
 
     expect(dialog()?.open).toBe(true);
-    expect(dialog()?.textContent).toContain('signed out everywhere');
+    expect(dialog()?.textContent).toContain(
+      "Your other devices will be signed out. You'll stay signed in here.",
+    );
 
     const cancel = [...(dialog()?.querySelectorAll('button') ?? [])].find(
       (candidate) => candidate.textContent === 'Cancel',
@@ -90,8 +105,21 @@ describe('change password row, through a change', () => {
     expect(dialog()?.open).toBe(false);
   });
 
+  // Signing back in would need a code from the authenticator app, so this
+  // device is signed out too, and the dialog says so before the change.
+  it('warns a two-factor account that this device is signed out too', async () => {
+    await render(
+      <ChangePasswordSetting user={{ ...user, activeMfaType: 'totp' }} />,
+    );
+    await act(async () => row()?.click());
+
+    expect(dialog()?.textContent).toContain(
+      "You'll be signed out everywhere, this device included.",
+    );
+  });
+
   it('holds the change back until both entries meet the rules', async () => {
-    await render(<ChangePasswordSetting />);
+    await render(<ChangePasswordSetting user={user} />);
     await act(async () => row()?.click());
     const change = (): HTMLButtonElement | null | undefined =>
       dialog()?.querySelector('button[type="submit"]');
@@ -110,8 +138,8 @@ describe('change password row, through a change', () => {
   });
 
   it('keeps the changed card when the page comes back as a redirect', async () => {
-    changePassword.mockResolvedValue({ success: true });
-    await render(<ChangePasswordSetting />);
+    changePassword.mockResolvedValue({ success: true, signedIn: false });
+    await render(<ChangePasswordSetting user={user} />);
 
     await submit('a new password');
 
@@ -125,7 +153,7 @@ describe('change password row, through a change', () => {
 
   it('keeps a refused change on the form and says why', async () => {
     changePassword.mockResolvedValue({ error: 'Password is too short' });
-    await render(<ChangePasswordSetting />);
+    await render(<ChangePasswordSetting user={user} />);
 
     await submit('short');
 

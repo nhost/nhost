@@ -39,23 +39,46 @@ const ACCOUNT_URL = () => `${appOrigin()}/account`;
 // created by magic link as much as one created with a password. A signed-in
 // session is what authorises the change, which is why the form says so
 // rather than asking for something it would not use.
+//
+// The auth service revokes every session with the old password, this one
+// included, so every other device is signed out. This browser then signs
+// straight back in with the new password, which is already here, so changing
+// it does not cost the visitor their place. That takes an email address and
+// no second factor: without them, or if the sign-in fails, `signedIn` is
+// false and the page asks for a fresh sign-in, as before.
 export async function changePassword(
   newPassword: string,
-): Promise<ActionResult> {
+): Promise<ActionResult & { signedIn?: boolean }> {
   if (!newPassword) {
     return { error: 'A new password is required.' };
   }
 
   try {
     const nhost = await createNhostClient();
+    const session = nhost.getUserSession();
 
-    if (!nhost.getUserSession()) {
+    if (!session) {
       return { error: SIGNED_OUT };
     }
 
     await nhost.auth.changeUserPassword({ newPassword });
 
-    return { success: true };
+    const email = session.user?.email;
+    if (!email) {
+      return { success: true, signedIn: false };
+    }
+
+    try {
+      const { body } = await nhost.auth.signInEmailPassword({
+        email,
+        password: newPassword,
+      });
+
+      return { success: true, signedIn: Boolean(body.session) };
+    } catch (err) {
+      console.error('Could not sign back in after the password change:', err);
+      return { success: true, signedIn: false };
+    }
   } catch (err) {
     return { error: `Could not change the password: ${errorMessage(err)}` };
   }
