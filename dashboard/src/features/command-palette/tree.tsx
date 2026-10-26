@@ -351,6 +351,7 @@ const subPageChildren: Record<
       schema: ['database', 'schema', 'columns'],
       'native-queries': ['database', 'native queries', 'logical models'],
       'sql-console': ['database', 'sql', 'console'],
+      extensions: ['database', 'extensions', 'postgres', 'pgvector', 'postgis'],
       backups: ['database', 'restore', 'snapshots'],
       settings: ['database', 'settings'],
     },
