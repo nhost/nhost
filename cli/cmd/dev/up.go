@@ -53,7 +53,7 @@ const (
 const (
 	defaultHTTPPort         = 443
 	defaultPostgresPort     = 5432
-	defaultFunctionsVersion = "2.3.2"
+	defaultFunctionsVersion = "2.3.3"
 )
 
 func CommandUp() *cli.Command { //nolint:funlen
