@@ -3,6 +3,8 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SignOutLink from '@/components/SignOutLink';
+import ToastProvider from '@/components/Toast';
+import { signOutFinished } from '@/components/useSignOut';
 
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 const signOut = vi.hoisted(() => vi.fn());
@@ -20,6 +22,9 @@ let root: Root;
 const button = (): HTMLButtonElement | null =>
   container.querySelector('button');
 
+const toast = (): string | null =>
+  container.querySelector('[role="status"]')?.textContent || null;
+
 async function click(): Promise<void> {
   await act(async () => button()?.click());
 }
@@ -29,9 +34,18 @@ describe('sign-out link', () => {
     router.push.mockReset();
     router.refresh.mockReset();
     signOut.mockReset();
+    // The sign-out under way is shared by the whole tab, and the nav that
+    // would end it is not rendered here.
+    signOutFinished();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
-    await act(async () => root.render(<SignOutLink>sign out</SignOutLink>));
+    await act(async () =>
+      root.render(
+        <ToastProvider>
+          <SignOutLink>sign out</SignOutLink>
+        </ToastProvider>,
+      ),
+    );
   });
 
   afterEach(() => {
@@ -47,22 +61,40 @@ describe('sign-out link', () => {
     expect(signOut).toHaveBeenCalledWith();
     expect(router.push).toHaveBeenCalledWith('/');
     expect(router.refresh).toHaveBeenCalled();
-    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(toast()).toBeNull();
   });
 
-  it('stays put and says why when the action fails', async () => {
-    signOut.mockResolvedValueOnce({ error: 'x' });
+  // The cookies are gone whatever the auth service said, so it goes home
+  // and says what went wrong on the way.
+  it('goes home and says so when the auth service refused', async () => {
+    signOut.mockResolvedValueOnce({
+      error:
+        'You are signed out on this device, but the sign-out request failed.',
+    });
 
     await click();
 
-    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
-      'x',
+    expect(router.push).toHaveBeenCalledWith('/');
+    expect(toast()).toContain('the sign-out request failed');
+  });
+
+  it('stays put and says why when this browser is still signed in', async () => {
+    signOut.mockResolvedValueOnce({
+      error: 'Could not reach the server. You are still signed in.',
+      stillSignedIn: true,
+    });
+
+    await click();
+
+    expect(toast()).toBe(
+      'Could not reach the server. You are still signed in.',
     );
     expect(router.push).not.toHaveBeenCalled();
     expect(button()?.disabled).toBe(false);
   });
 
-  it('cannot be pressed again while signing out', async () => {
+  // Until the nav is rendered signed out, the way home included.
+  it('cannot be pressed again once signing out', async () => {
     let finish: (result: { error?: string }) => void = () => {};
     signOut.mockReturnValueOnce(
       new Promise((resolve) => {
@@ -74,7 +106,7 @@ describe('sign-out link', () => {
     expect(button()?.disabled).toBe(true);
 
     await act(async () => finish({}));
-    expect(button()?.disabled).toBe(false);
+    expect(button()?.disabled).toBe(true);
     expect(signOut).toHaveBeenCalledTimes(1);
   });
 });

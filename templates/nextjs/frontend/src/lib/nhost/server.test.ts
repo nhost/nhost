@@ -573,6 +573,7 @@ describe('session cookies from server actions', () => {
 
     expect(await signOut()).toEqual({
       error: 'Could not reach the server. You are still signed in.',
+      stillSignedIn: true,
     });
     expect(written.response?.headers.getSetCookie()).toEqual([]);
   });

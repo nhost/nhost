@@ -4,6 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SessionList from '@/app/account/SessionList';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
+import ToastProvider from '@/components/Toast';
+import { signOutFinished } from '@/components/useSignOut';
 
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 const signOutSession = vi.hoisted(() => vi.fn());
@@ -47,9 +49,17 @@ describe('session list', () => {
     router.refresh.mockReset();
     signOutSession.mockReset();
     signOut.mockReset();
+    // Shared by the whole tab, and the nav that would end it is not here.
+    signOutFinished();
     container = document.body.appendChild(document.createElement('ul'));
     root = createRoot(container);
-    await act(async () => root.render(<SessionList sessions={sessions} />));
+    await act(async () =>
+      root.render(
+        <ToastProvider>
+          <SessionList sessions={sessions} />
+        </ToastProvider>,
+      ),
+    );
   });
 
   afterEach(() => {
@@ -107,11 +117,12 @@ describe('session list', () => {
   it('says why when this device could not be signed out', async () => {
     signOut.mockResolvedValueOnce({
       error: 'Could not reach the server. You are still signed in.',
+      stillSignedIn: true,
     });
 
     await act(async () => button(0).click());
 
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
+    expect(container.querySelector('[role="status"]')?.textContent).toBe(
       'Could not reach the server. You are still signed in.',
     );
     expect(router.push).not.toHaveBeenCalled();
