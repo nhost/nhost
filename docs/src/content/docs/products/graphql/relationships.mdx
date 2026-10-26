@@ -1,6 +1,6 @@
 ---
-title: Table relationships
-description: "Connect tables in your GraphQL API with object and array relationships: from foreign keys, from suggestions, by column mapping, or to a remote schema or another database."
+title: Table Relationships
+description: "Add object and array relationships to query across tables in your GraphQL API, including relationships to remote schemas and other databases."
 keywords: ["relationships", "GraphQL", "foreign keys", "object relationship", "array relationship", "remote relationships", "metadata"]
 head:
   - tag: title
@@ -11,14 +11,18 @@ sidebar:
 import { Icon, Steps } from '@astrojs/starlight/components';
 import { Pencil, SquarePen, Trash2 } from '@lucide/astro';
 
-A relationship is a field on a table's GraphQL type that returns the related rows of another table. An object relationship returns one row, and an array relationship returns a list. Relationships live in your project's metadata, not in the database, so adding one never changes your tables. This page is for developers who have tracked tables in their project and want to query across them.
+A relationship is a field on a table's GraphQL type that returns the related rows of another table. An object relationship returns one row, and an array relationship returns a list. Relationships live in your project's metadata, not in the database, so adding one never changes your tables.
 
 :::caution[Requirements]
-- A project on Nhost Cloud or a local project run with `nhost up`, with `communities` and `community_members` tracked.
-- For the remote schema section, a [remote schema](/products/graphql/remote-schemas) added to the project.
+- A project on Nhost Cloud or a local project run with `nhost up`.
+- The tables you want to relate, tracked in your GraphQL API.
+- To relate a table to a remote schema, a [remote schema](/products/graphql/remote-schemas) added to the project.
+- To relate a table to another database, that database declared in your project's metadata.
 :::
 
-The examples use two tables from the <a href="https://github.com/nhost/nhost/tree/main/examples/demos/backend" target="_blank" rel="noopener noreferrer">demo backend</a>: `communities`, and `community_members`, which references it through `community_id`:
+## Example tables
+
+The steps on this page use two tables from the <a href="https://github.com/nhost/nhost/tree/main/examples/demos/backend" target="_blank" rel="noopener noreferrer">demo backend</a>. `communities` holds the communities, and `community_members` records which users belong to each one, pointing back to `communities` through the `community_id` foreign key:
 
 ```sql
 CREATE TABLE public.communities (
@@ -37,15 +41,17 @@ CREATE TABLE public.community_members (
 );
 ```
 
-By the end, `community_members.community` returns a member's community, and `communities.members` returns a community's members.
+The examples relate these tables in both directions: an object relationship `community` on `community_members` returns a member's community, and an array relationship `members` on `communities` returns a community's members. To follow along, create and track these tables in your project, or apply the same steps to your own tables.
 
 ## Open a table's relationships
 
-Open <a href="https://app.nhost.io/orgs/_/projects/_/database/browser/default" target="_blank" rel="noopener noreferrer"><strong>Database → Table editor & Browser</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a>, open the **⋯** menu next to `communities`, and select **Edit Relationships**. The **Schema Navigator** tab offers the same item in each table's menu.
+![Edit relationships nav](/images/products/graphql/relationships/edit-relationships-nav.png)
+
+Open <a href="https://app.nhost.io/orgs/_/projects/_/database/browser/default" target="_blank" rel="noopener noreferrer"><strong>Database → Table editor & Browser</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a>, open the **⋯** menu next to `communities`, and select **Edit Relationships**.
+
+![Edit relationships drawer](/images/products/graphql/relationships/edit-relationships-drawer.png)
 
 The drawer has two lists. **Relationships** lists the table's relationships. Each row shows the type and the joined columns. **Suggested Relationships** holds the ones the dashboard can create from the table's foreign keys.
-
-{/* SCREENSHOT: /images/products/graphql/relationships/edit-relationships.png — Edit Relationships drawer for public.communities: Relationships lists members (Array, public.communities / id → public.community_members / community_id); Suggested Relationships below */}
 
 ## Create relationships with a foreign key
 
