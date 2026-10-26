@@ -202,7 +202,7 @@ export default function SystemEnvironmentVariableSettings() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+                className="text-primary hover:bg-primary-highlight hover:text-primary"
                 onClick={showViewJwtSecretModal}
               >
                 Show JWT Secret

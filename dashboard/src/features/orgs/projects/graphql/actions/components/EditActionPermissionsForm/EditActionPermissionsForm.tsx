@@ -152,8 +152,8 @@ export default function EditActionPermissionsForm({
             isMutating={isMutating}
           />
 
-          <Alert className="border-none bg-primary/10 text-left">
-            <AlertDescription className="text-sm+">
+          <Alert className="text-left">
+            <AlertDescription>
               <p>
                 Go to the{' '}
                 <NavLink

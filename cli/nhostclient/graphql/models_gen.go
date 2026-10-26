@@ -1901,7 +1901,6 @@ type Apps struct {
 	ID                         string         `json:"id"`
 	CreatedAt                  time.Time      `json:"createdAt"`
 	UpdatedAt                  time.Time      `json:"updatedAt"`
-	WorkspaceID                *string        `json:"workspaceId,omitempty"`
 	Name                       string         `json:"name"`
 	Slug                       string         `json:"slug"`
 	GithubRepositoryID         *string        `json:"githubRepositoryId,omitempty"`
@@ -1913,20 +1912,18 @@ type Apps struct {
 	NhostBaseFolder            string         `json:"nhostBaseFolder"`
 	IsLocked                   *bool          `json:"isLocked,omitempty"`
 	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
-	OrganizationID             *string        `json:"organizationID,omitempty"`
+	OrganizationID             string         `json:"organizationID"`
 	AutomaticDeploys           bool           `json:"automaticDeploys"`
+	// An object relationship
+	BillingDedicatedCompute *BillingDedicatedCompute `json:"billingDedicatedCompute,omitempty"`
 	// An object relationship
 	Creator *Users `json:"creator,omitempty"`
 	// An object relationship
 	GithubRepository *GithubRepositories `json:"githubRepository,omitempty"`
 	// An object relationship
-	LegacyPlan *Plans `json:"legacyPlan,omitempty"`
-	// An object relationship
-	Organization *Organizations `json:"organization,omitempty"`
+	Organization *Organizations `json:"organization"`
 	// An object relationship
 	Region *Regions `json:"region"`
-	// An object relationship
-	Workspace *Workspaces `json:"workspace,omitempty"`
 	// An array relationship
 	AppStates []*AppStateHistory `json:"appStates"`
 	// An array relationship
@@ -1961,13 +1958,6 @@ type AppsAggregateOrderBy struct {
 	Variance   *AppsVarianceOrderBy   `json:"variance,omitempty"`
 }
 
-// input type for inserting array relation for remote table "apps"
-type AppsArrRelInsertInput struct {
-	Data []*AppsInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *AppsOnConflict `json:"on_conflict,omitempty"`
-}
-
 // order by avg() on columns of table "apps"
 type AppsAvgOrderBy struct {
 	DesiredState *OrderBy `json:"desiredState,omitempty"`
@@ -1975,39 +1965,37 @@ type AppsAvgOrderBy struct {
 
 // Boolean expression to filter rows from the table "apps". All fields are combined with a logical 'AND'.
 type AppsBoolExp struct {
-	And                        []*AppsBoolExp              `json:"_and,omitempty"`
-	Not                        *AppsBoolExp                `json:"_not,omitempty"`
-	Or                         []*AppsBoolExp              `json:"_or,omitempty"`
-	ID                         *UUIDComparisonExp          `json:"id,omitempty"`
-	CreatedAt                  *TimestamptzComparisonExp   `json:"createdAt,omitempty"`
-	UpdatedAt                  *TimestamptzComparisonExp   `json:"updatedAt,omitempty"`
-	WorkspaceID                *UUIDComparisonExp          `json:"workspaceId,omitempty"`
-	Name                       *StringComparisonExp        `json:"name,omitempty"`
-	Slug                       *StringComparisonExp        `json:"slug,omitempty"`
-	GithubRepositoryID         *UUIDComparisonExp          `json:"githubRepositoryId,omitempty"`
-	Subdomain                  *StringComparisonExp        `json:"subdomain,omitempty"`
-	RepositoryProductionBranch *StringComparisonExp        `json:"repositoryProductionBranch,omitempty"`
-	MetadataFunctions          *JsonbComparisonExp         `json:"metadataFunctions,omitempty"`
-	DesiredState               *IntComparisonExp           `json:"desiredState,omitempty"`
-	CreatorUserID              *UUIDComparisonExp          `json:"creatorUserId,omitempty"`
-	NhostBaseFolder            *StringComparisonExp        `json:"nhostBaseFolder,omitempty"`
-	IsLocked                   *BooleanComparisonExp       `json:"isLocked,omitempty"`
-	IsLockedReason             *StringComparisonExp        `json:"isLockedReason,omitempty"`
-	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
-	AutomaticDeploys           *BooleanComparisonExp       `json:"automaticDeploys,omitempty"`
-	Creator                    *UsersBoolExp               `json:"creator,omitempty"`
-	GithubRepository           *GithubRepositoriesBoolExp  `json:"githubRepository,omitempty"`
-	LegacyPlan                 *PlansBoolExp               `json:"legacyPlan,omitempty"`
-	Organization               *OrganizationsBoolExp       `json:"organization,omitempty"`
-	Region                     *RegionsBoolExp             `json:"region,omitempty"`
-	Workspace                  *WorkspacesBoolExp          `json:"workspace,omitempty"`
-	AppStates                  *AppStateHistoryBoolExp     `json:"appStates,omitempty"`
-	Backups                    *BackupsBoolExp             `json:"backups,omitempty"`
-	Deployments                *DeploymentsBoolExp         `json:"deployments,omitempty"`
-	FeatureFlags               *FeatureFlagsBoolExp        `json:"featureFlags,omitempty"`
-	PipelineRuns               *PipelineRunsBoolExp        `json:"pipelineRuns,omitempty"`
-	RunServices                *RunServiceBoolExp          `json:"runServices,omitempty"`
-	RunServicesAggregate       *RunServiceAggregateBoolExp `json:"runServices_aggregate,omitempty"`
+	And                        []*AppsBoolExp                  `json:"_and,omitempty"`
+	Not                        *AppsBoolExp                    `json:"_not,omitempty"`
+	Or                         []*AppsBoolExp                  `json:"_or,omitempty"`
+	ID                         *UUIDComparisonExp              `json:"id,omitempty"`
+	CreatedAt                  *TimestamptzComparisonExp       `json:"createdAt,omitempty"`
+	UpdatedAt                  *TimestamptzComparisonExp       `json:"updatedAt,omitempty"`
+	Name                       *StringComparisonExp            `json:"name,omitempty"`
+	Slug                       *StringComparisonExp            `json:"slug,omitempty"`
+	GithubRepositoryID         *UUIDComparisonExp              `json:"githubRepositoryId,omitempty"`
+	Subdomain                  *StringComparisonExp            `json:"subdomain,omitempty"`
+	RepositoryProductionBranch *StringComparisonExp            `json:"repositoryProductionBranch,omitempty"`
+	MetadataFunctions          *JsonbComparisonExp             `json:"metadataFunctions,omitempty"`
+	DesiredState               *IntComparisonExp               `json:"desiredState,omitempty"`
+	CreatorUserID              *UUIDComparisonExp              `json:"creatorUserId,omitempty"`
+	NhostBaseFolder            *StringComparisonExp            `json:"nhostBaseFolder,omitempty"`
+	IsLocked                   *BooleanComparisonExp           `json:"isLocked,omitempty"`
+	IsLockedReason             *StringComparisonExp            `json:"isLockedReason,omitempty"`
+	OrganizationID             *UUIDComparisonExp              `json:"organizationID,omitempty"`
+	AutomaticDeploys           *BooleanComparisonExp           `json:"automaticDeploys,omitempty"`
+	BillingDedicatedCompute    *BillingDedicatedComputeBoolExp `json:"billingDedicatedCompute,omitempty"`
+	Creator                    *UsersBoolExp                   `json:"creator,omitempty"`
+	GithubRepository           *GithubRepositoriesBoolExp      `json:"githubRepository,omitempty"`
+	Organization               *OrganizationsBoolExp           `json:"organization,omitempty"`
+	Region                     *RegionsBoolExp                 `json:"region,omitempty"`
+	AppStates                  *AppStateHistoryBoolExp         `json:"appStates,omitempty"`
+	Backups                    *BackupsBoolExp                 `json:"backups,omitempty"`
+	Deployments                *DeploymentsBoolExp             `json:"deployments,omitempty"`
+	FeatureFlags               *FeatureFlagsBoolExp            `json:"featureFlags,omitempty"`
+	PipelineRuns               *PipelineRunsBoolExp            `json:"pipelineRuns,omitempty"`
+	RunServices                *RunServiceBoolExp              `json:"runServices,omitempty"`
+	RunServicesAggregate       *RunServiceAggregateBoolExp     `json:"runServices_aggregate,omitempty"`
 }
 
 // input type for incrementing numeric columns in table "apps"
@@ -2021,7 +2009,6 @@ type AppsInsertInput struct {
 	Slug           *string                        `json:"slug,omitempty"`
 	RegionID       *string                        `json:"regionId,omitempty"`
 	OrganizationID *string                        `json:"organizationID,omitempty"`
-	Workspace      *WorkspacesObjRelInsertInput   `json:"workspace,omitempty"`
 	FeatureFlags   *FeatureFlagsArrRelInsertInput `json:"featureFlags,omitempty"`
 	PipelineRuns   *PipelineRunsArrRelInsertInput `json:"pipelineRuns,omitempty"`
 }
@@ -2031,7 +2018,6 @@ type AppsMaxOrderBy struct {
 	ID                         *OrderBy `json:"id,omitempty"`
 	CreatedAt                  *OrderBy `json:"createdAt,omitempty"`
 	UpdatedAt                  *OrderBy `json:"updatedAt,omitempty"`
-	WorkspaceID                *OrderBy `json:"workspaceId,omitempty"`
 	Name                       *OrderBy `json:"name,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
 	GithubRepositoryID         *OrderBy `json:"githubRepositoryId,omitempty"`
@@ -2052,7 +2038,6 @@ type AppsMinOrderBy struct {
 	ID                         *OrderBy `json:"id,omitempty"`
 	CreatedAt                  *OrderBy `json:"createdAt,omitempty"`
 	UpdatedAt                  *OrderBy `json:"updatedAt,omitempty"`
-	WorkspaceID                *OrderBy `json:"workspaceId,omitempty"`
 	Name                       *OrderBy `json:"name,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
 	GithubRepositoryID         *OrderBy `json:"githubRepositoryId,omitempty"`
@@ -2095,7 +2080,6 @@ type AppsOrderBy struct {
 	ID                         *OrderBy                         `json:"id,omitempty"`
 	CreatedAt                  *OrderBy                         `json:"createdAt,omitempty"`
 	UpdatedAt                  *OrderBy                         `json:"updatedAt,omitempty"`
-	WorkspaceID                *OrderBy                         `json:"workspaceId,omitempty"`
 	Name                       *OrderBy                         `json:"name,omitempty"`
 	Slug                       *OrderBy                         `json:"slug,omitempty"`
 	GithubRepositoryID         *OrderBy                         `json:"githubRepositoryId,omitempty"`
@@ -2109,12 +2093,11 @@ type AppsOrderBy struct {
 	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
+	BillingDedicatedCompute    *BillingDedicatedComputeOrderBy  `json:"billingDedicatedCompute,omitempty"`
 	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesOrderBy       `json:"githubRepository,omitempty"`
-	LegacyPlan                 *PlansOrderBy                    `json:"legacyPlan,omitempty"`
 	Organization               *OrganizationsOrderBy            `json:"organization,omitempty"`
 	Region                     *RegionsOrderBy                  `json:"region,omitempty"`
-	Workspace                  *WorkspacesOrderBy               `json:"workspace,omitempty"`
 	AppStatesAggregate         *AppStateHistoryAggregateOrderBy `json:"appStates_aggregate,omitempty"`
 	BackupsAggregate           *BackupsAggregateOrderBy         `json:"backups_aggregate,omitempty"`
 	DeploymentsAggregate       *DeploymentsAggregateOrderBy     `json:"deployments_aggregate,omitempty"`
@@ -2167,7 +2150,6 @@ type AppsStreamCursorValueInput struct {
 	ID                         *string        `json:"id,omitempty"`
 	CreatedAt                  *time.Time     `json:"createdAt,omitempty"`
 	UpdatedAt                  *time.Time     `json:"updatedAt,omitempty"`
-	WorkspaceID                *string        `json:"workspaceId,omitempty"`
 	Name                       *string        `json:"name,omitempty"`
 	Slug                       *string        `json:"slug,omitempty"`
 	GithubRepositoryID         *string        `json:"githubRepositoryId,omitempty"`
@@ -2584,6 +2566,168 @@ type BigintComparisonExp struct {
 	Nin    []int64 `json:"_nin,omitempty"`
 }
 
+// columns and relationships of "billing.dedicated_compute"
+type BillingDedicatedCompute struct {
+	AppID           string  `json:"appID"`
+	TotalMillicores int64   `json:"totalMillicores"`
+	OrganizationID  *string `json:"organizationID,omitempty"`
+	// An object relationship
+	App *Apps `json:"app,omitempty"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.dedicated_compute". All fields are combined with a logical 'AND'.
+type BillingDedicatedComputeBoolExp struct {
+	And             []*BillingDedicatedComputeBoolExp `json:"_and,omitempty"`
+	Not             *BillingDedicatedComputeBoolExp   `json:"_not,omitempty"`
+	Or              []*BillingDedicatedComputeBoolExp `json:"_or,omitempty"`
+	AppID           *UUIDComparisonExp                `json:"appID,omitempty"`
+	TotalMillicores *IntComparisonExp                 `json:"totalMillicores,omitempty"`
+	OrganizationID  *UUIDComparisonExp                `json:"organizationID,omitempty"`
+	App             *AppsBoolExp                      `json:"app,omitempty"`
+	Organization    *OrganizationsBoolExp             `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.dedicated_compute".
+type BillingDedicatedComputeOrderBy struct {
+	AppID           *OrderBy              `json:"appID,omitempty"`
+	TotalMillicores *OrderBy              `json:"totalMillicores,omitempty"`
+	OrganizationID  *OrderBy              `json:"organizationID,omitempty"`
+	App             *AppsOrderBy          `json:"app,omitempty"`
+	Organization    *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_dedicated_compute"
+type BillingDedicatedComputeStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingDedicatedComputeStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingDedicatedComputeStreamCursorValueInput struct {
+	AppID           *string `json:"appID,omitempty"`
+	TotalMillicores *int64  `json:"totalMillicores,omitempty"`
+	OrganizationID  *string `json:"organizationID,omitempty"`
+}
+
+// Boolean expression to compare columns of type "billing_report_type_enum". All fields are combined with logical 'AND'.
+type BillingReportTypeEnumComparisonExp struct {
+	Eq     *BillingReportTypeEnum  `json:"_eq,omitempty"`
+	In     []BillingReportTypeEnum `json:"_in,omitempty"`
+	IsNull *bool                   `json:"_is_null,omitempty"`
+	Neq    *BillingReportTypeEnum  `json:"_neq,omitempty"`
+	Nin    []BillingReportTypeEnum `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "billing.reports"
+type BillingReports struct {
+	AppID          string                `json:"appID"`
+	ReportEnds     time.Time             `json:"reportEnds"`
+	Value          int64                 `json:"value"`
+	Type           BillingReportTypeEnum `json:"type"`
+	OrganizationID *string               `json:"organizationID,omitempty"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.reports". All fields are combined with a logical 'AND'.
+type BillingReportsBoolExp struct {
+	And            []*BillingReportsBoolExp            `json:"_and,omitempty"`
+	Not            *BillingReportsBoolExp              `json:"_not,omitempty"`
+	Or             []*BillingReportsBoolExp            `json:"_or,omitempty"`
+	AppID          *UUIDComparisonExp                  `json:"appID,omitempty"`
+	ReportEnds     *TimestamptzComparisonExp           `json:"reportEnds,omitempty"`
+	Value          *IntComparisonExp                   `json:"value,omitempty"`
+	Type           *BillingReportTypeEnumComparisonExp `json:"type,omitempty"`
+	OrganizationID *UUIDComparisonExp                  `json:"organizationID,omitempty"`
+	Organization   *OrganizationsBoolExp               `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.reports".
+type BillingReportsOrderBy struct {
+	AppID          *OrderBy              `json:"appID,omitempty"`
+	ReportEnds     *OrderBy              `json:"reportEnds,omitempty"`
+	Value          *OrderBy              `json:"value,omitempty"`
+	Type           *OrderBy              `json:"type,omitempty"`
+	OrganizationID *OrderBy              `json:"organizationID,omitempty"`
+	Organization   *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_reports"
+type BillingReportsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingReportsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingReportsStreamCursorValueInput struct {
+	AppID          *string                `json:"appID,omitempty"`
+	ReportEnds     *time.Time             `json:"reportEnds,omitempty"`
+	Value          *int64                 `json:"value,omitempty"`
+	Type           *BillingReportTypeEnum `json:"type,omitempty"`
+	OrganizationID *string                `json:"organizationID,omitempty"`
+}
+
+// columns and relationships of "billing.resources"
+type BillingResources struct {
+	AppID            string  `json:"appID"`
+	FunctionsAmount  int64   `json:"functionsAmount"`
+	CustomDomains    int64   `json:"customDomains"`
+	PersistentVolume int64   `json:"persistentVolume"`
+	OrganizationID   *string `json:"organizationID,omitempty"`
+	Pitr             int64   `json:"pitr"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.resources". All fields are combined with a logical 'AND'.
+type BillingResourcesBoolExp struct {
+	And              []*BillingResourcesBoolExp `json:"_and,omitempty"`
+	Not              *BillingResourcesBoolExp   `json:"_not,omitempty"`
+	Or               []*BillingResourcesBoolExp `json:"_or,omitempty"`
+	AppID            *UUIDComparisonExp         `json:"appID,omitempty"`
+	FunctionsAmount  *IntComparisonExp          `json:"functionsAmount,omitempty"`
+	CustomDomains    *IntComparisonExp          `json:"customDomains,omitempty"`
+	PersistentVolume *IntComparisonExp          `json:"persistentVolume,omitempty"`
+	OrganizationID   *UUIDComparisonExp         `json:"organizationID,omitempty"`
+	Pitr             *IntComparisonExp          `json:"pitr,omitempty"`
+	Organization     *OrganizationsBoolExp      `json:"organization,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.resources".
+type BillingResourcesOrderBy struct {
+	AppID            *OrderBy              `json:"appID,omitempty"`
+	FunctionsAmount  *OrderBy              `json:"functionsAmount,omitempty"`
+	CustomDomains    *OrderBy              `json:"customDomains,omitempty"`
+	PersistentVolume *OrderBy              `json:"persistentVolume,omitempty"`
+	OrganizationID   *OrderBy              `json:"organizationID,omitempty"`
+	Pitr             *OrderBy              `json:"pitr,omitempty"`
+	Organization     *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Streaming cursor of the table "billing_resources"
+type BillingResourcesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingResourcesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingResourcesStreamCursorValueInput struct {
+	AppID            *string `json:"appID,omitempty"`
+	FunctionsAmount  *int64  `json:"functionsAmount,omitempty"`
+	CustomDomains    *int64  `json:"customDomains,omitempty"`
+	PersistentVolume *int64  `json:"persistentVolume,omitempty"`
+	OrganizationID   *string `json:"organizationID,omitempty"`
+	Pitr             *int64  `json:"pitr,omitempty"`
+}
+
 // Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'.
 type BpcharComparisonExp struct {
 	Eq  *string `json:"_eq,omitempty"`
@@ -2781,8 +2925,6 @@ type Countries struct {
 	Continent *Continents `json:"continent"`
 	// An array relationship
 	Locations []*Regions `json:"locations"`
-	// An array relationship
-	Workspaces []*Workspaces `json:"workspaces"`
 }
 
 // order by aggregate values of table "countries"
@@ -2805,7 +2947,6 @@ type CountriesBoolExp struct {
 	EmojiFlag     *StringComparisonExp `json:"emojiFlag,omitempty"`
 	Continent     *ContinentsBoolExp   `json:"continent,omitempty"`
 	Locations     *RegionsBoolExp      `json:"locations,omitempty"`
-	Workspaces    *WorkspacesBoolExp   `json:"workspaces,omitempty"`
 }
 
 // order by max() on columns of table "countries"
@@ -2833,12 +2974,11 @@ type CountriesOrderBy struct {
 	// Two-letter country code (ISO 3166-1 alpha-2)
 	Code *OrderBy `json:"code,omitempty"`
 	// English country name
-	Name                *OrderBy                    `json:"name,omitempty"`
-	ContinentCode       *OrderBy                    `json:"continentCode,omitempty"`
-	EmojiFlag           *OrderBy                    `json:"emojiFlag,omitempty"`
-	Continent           *ContinentsOrderBy          `json:"continent,omitempty"`
-	LocationsAggregate  *RegionsAggregateOrderBy    `json:"locations_aggregate,omitempty"`
-	WorkspacesAggregate *WorkspacesAggregateOrderBy `json:"workspaces_aggregate,omitempty"`
+	Name               *OrderBy                 `json:"name,omitempty"`
+	ContinentCode      *OrderBy                 `json:"continentCode,omitempty"`
+	EmojiFlag          *OrderBy                 `json:"emojiFlag,omitempty"`
+	Continent          *ContinentsOrderBy       `json:"continent,omitempty"`
+	LocationsAggregate *RegionsAggregateOrderBy `json:"locations_aggregate,omitempty"`
 }
 
 // Streaming cursor of the table "countries"
@@ -4016,230 +4156,6 @@ type OrganizationsVarianceOrderBy struct {
 	Threshold *OrderBy `json:"threshold,omitempty"`
 }
 
-// columns and relationships of "payment_methods"
-type PaymentMethods struct {
-	ID                    string    `json:"id"`
-	CreatedAt             time.Time `json:"createdAt"`
-	StripePaymentMethodID string    `json:"stripePaymentMethodId"`
-	WorkspaceID           string    `json:"workspaceId"`
-	AddedByUserID         string    `json:"addedByUserId"`
-	CardLast4             string    `json:"cardLast4"`
-	CardBrand             string    `json:"cardBrand"`
-	CardExpMonth          int64     `json:"cardExpMonth"`
-	CardExpYear           int64     `json:"cardExpYear"`
-	IsDefault             bool      `json:"isDefault"`
-	// An object relationship
-	User *Users `json:"user"`
-	// An object relationship
-	Workspace *Workspaces `json:"workspace"`
-}
-
-// order by aggregate values of table "payment_methods"
-type PaymentMethodsAggregateOrderBy struct {
-	Count      *OrderBy                         `json:"count,omitempty"`
-	Max        *PaymentMethodsMaxOrderBy        `json:"max,omitempty"`
-	Min        *PaymentMethodsMinOrderBy        `json:"min,omitempty"`
-	Avg        *PaymentMethodsAvgOrderBy        `json:"avg,omitempty"`
-	Stddev     *PaymentMethodsStddevOrderBy     `json:"stddev,omitempty"`
-	StddevPop  *PaymentMethodsStddevPopOrderBy  `json:"stddev_pop,omitempty"`
-	StddevSamp *PaymentMethodsStddevSampOrderBy `json:"stddev_samp,omitempty"`
-	Sum        *PaymentMethodsSumOrderBy        `json:"sum,omitempty"`
-	VarPop     *PaymentMethodsVarPopOrderBy     `json:"var_pop,omitempty"`
-	VarSamp    *PaymentMethodsVarSampOrderBy    `json:"var_samp,omitempty"`
-	Variance   *PaymentMethodsVarianceOrderBy   `json:"variance,omitempty"`
-}
-
-// input type for inserting array relation for remote table "payment_methods"
-type PaymentMethodsArrRelInsertInput struct {
-	Data []*PaymentMethodsInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *PaymentMethodsOnConflict `json:"on_conflict,omitempty"`
-}
-
-// order by avg() on columns of table "payment_methods"
-type PaymentMethodsAvgOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "payment_methods". All fields are combined with a logical 'AND'.
-type PaymentMethodsBoolExp struct {
-	And                   []*PaymentMethodsBoolExp  `json:"_and,omitempty"`
-	Not                   *PaymentMethodsBoolExp    `json:"_not,omitempty"`
-	Or                    []*PaymentMethodsBoolExp  `json:"_or,omitempty"`
-	ID                    *UUIDComparisonExp        `json:"id,omitempty"`
-	CreatedAt             *TimestamptzComparisonExp `json:"createdAt,omitempty"`
-	StripePaymentMethodID *StringComparisonExp      `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *UUIDComparisonExp        `json:"workspaceId,omitempty"`
-	AddedByUserID         *UUIDComparisonExp        `json:"addedByUserId,omitempty"`
-	CardLast4             *StringComparisonExp      `json:"cardLast4,omitempty"`
-	CardBrand             *StringComparisonExp      `json:"cardBrand,omitempty"`
-	CardExpMonth          *IntComparisonExp         `json:"cardExpMonth,omitempty"`
-	CardExpYear           *IntComparisonExp         `json:"cardExpYear,omitempty"`
-	IsDefault             *BooleanComparisonExp     `json:"isDefault,omitempty"`
-	User                  *UsersBoolExp             `json:"user,omitempty"`
-	Workspace             *WorkspacesBoolExp        `json:"workspace,omitempty"`
-}
-
-// input type for inserting data into table "payment_methods"
-type PaymentMethodsInsertInput struct {
-	StripePaymentMethodID *string                      `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *string                      `json:"workspaceId,omitempty"`
-	CardLast4             *string                      `json:"cardLast4,omitempty"`
-	CardBrand             *string                      `json:"cardBrand,omitempty"`
-	CardExpMonth          *int64                       `json:"cardExpMonth,omitempty"`
-	CardExpYear           *int64                       `json:"cardExpYear,omitempty"`
-	IsDefault             *bool                        `json:"isDefault,omitempty"`
-	Workspace             *WorkspacesObjRelInsertInput `json:"workspace,omitempty"`
-}
-
-// order by max() on columns of table "payment_methods"
-type PaymentMethodsMaxOrderBy struct {
-	ID                    *OrderBy `json:"id,omitempty"`
-	CreatedAt             *OrderBy `json:"createdAt,omitempty"`
-	StripePaymentMethodID *OrderBy `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *OrderBy `json:"workspaceId,omitempty"`
-	AddedByUserID         *OrderBy `json:"addedByUserId,omitempty"`
-	CardLast4             *OrderBy `json:"cardLast4,omitempty"`
-	CardBrand             *OrderBy `json:"cardBrand,omitempty"`
-	CardExpMonth          *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear           *OrderBy `json:"cardExpYear,omitempty"`
-	IsDefault             *OrderBy `json:"isDefault,omitempty"`
-}
-
-// order by min() on columns of table "payment_methods"
-type PaymentMethodsMinOrderBy struct {
-	ID                    *OrderBy `json:"id,omitempty"`
-	CreatedAt             *OrderBy `json:"createdAt,omitempty"`
-	StripePaymentMethodID *OrderBy `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *OrderBy `json:"workspaceId,omitempty"`
-	AddedByUserID         *OrderBy `json:"addedByUserId,omitempty"`
-	CardLast4             *OrderBy `json:"cardLast4,omitempty"`
-	CardBrand             *OrderBy `json:"cardBrand,omitempty"`
-	CardExpMonth          *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear           *OrderBy `json:"cardExpYear,omitempty"`
-	IsDefault             *OrderBy `json:"isDefault,omitempty"`
-}
-
-// response of any mutation on the table "payment_methods"
-type PaymentMethodsMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*PaymentMethods `json:"returning"`
-}
-
-// input type for inserting object relation for remote table "payment_methods"
-type PaymentMethodsObjRelInsertInput struct {
-	Data *PaymentMethodsInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *PaymentMethodsOnConflict `json:"on_conflict,omitempty"`
-}
-
-// on_conflict condition type for table "payment_methods"
-type PaymentMethodsOnConflict struct {
-	Constraint    PaymentMethodsConstraint     `json:"constraint"`
-	UpdateColumns []PaymentMethodsUpdateColumn `json:"update_columns"`
-	Where         *PaymentMethodsBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "payment_methods".
-type PaymentMethodsOrderBy struct {
-	ID                    *OrderBy           `json:"id,omitempty"`
-	CreatedAt             *OrderBy           `json:"createdAt,omitempty"`
-	StripePaymentMethodID *OrderBy           `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *OrderBy           `json:"workspaceId,omitempty"`
-	AddedByUserID         *OrderBy           `json:"addedByUserId,omitempty"`
-	CardLast4             *OrderBy           `json:"cardLast4,omitempty"`
-	CardBrand             *OrderBy           `json:"cardBrand,omitempty"`
-	CardExpMonth          *OrderBy           `json:"cardExpMonth,omitempty"`
-	CardExpYear           *OrderBy           `json:"cardExpYear,omitempty"`
-	IsDefault             *OrderBy           `json:"isDefault,omitempty"`
-	User                  *UsersOrderBy      `json:"user,omitempty"`
-	Workspace             *WorkspacesOrderBy `json:"workspace,omitempty"`
-}
-
-// primary key columns input for table: payment_methods
-type PaymentMethodsPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "payment_methods"
-type PaymentMethodsSetInput struct {
-	IsDefault *bool `json:"isDefault,omitempty"`
-}
-
-// order by stddev() on columns of table "payment_methods"
-type PaymentMethodsStddevOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// order by stddev_pop() on columns of table "payment_methods"
-type PaymentMethodsStddevPopOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// order by stddev_samp() on columns of table "payment_methods"
-type PaymentMethodsStddevSampOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// Streaming cursor of the table "paymentMethods"
-type PaymentMethodsStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *PaymentMethodsStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type PaymentMethodsStreamCursorValueInput struct {
-	ID                    *string    `json:"id,omitempty"`
-	CreatedAt             *time.Time `json:"createdAt,omitempty"`
-	StripePaymentMethodID *string    `json:"stripePaymentMethodId,omitempty"`
-	WorkspaceID           *string    `json:"workspaceId,omitempty"`
-	AddedByUserID         *string    `json:"addedByUserId,omitempty"`
-	CardLast4             *string    `json:"cardLast4,omitempty"`
-	CardBrand             *string    `json:"cardBrand,omitempty"`
-	CardExpMonth          *int64     `json:"cardExpMonth,omitempty"`
-	CardExpYear           *int64     `json:"cardExpYear,omitempty"`
-	IsDefault             *bool      `json:"isDefault,omitempty"`
-}
-
-// order by sum() on columns of table "payment_methods"
-type PaymentMethodsSumOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-type PaymentMethodsUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *PaymentMethodsSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *PaymentMethodsBoolExp `json:"where"`
-}
-
-// order by var_pop() on columns of table "payment_methods"
-type PaymentMethodsVarPopOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// order by var_samp() on columns of table "payment_methods"
-type PaymentMethodsVarSampOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
-// order by variance() on columns of table "payment_methods"
-type PaymentMethodsVarianceOrderBy struct {
-	CardExpMonth *OrderBy `json:"cardExpMonth,omitempty"`
-	CardExpYear  *OrderBy `json:"cardExpYear,omitempty"`
-}
-
 // Boolean expression to compare columns of type "pipelineRunStatus_enum". All fields are combined with logical 'AND'.
 type PipelineRunStatusEnumComparisonExp struct {
 	Eq     *PipelineRunStatusEnum  `json:"_eq,omitempty"`
@@ -4403,10 +4319,7 @@ type Plans struct {
 	IsDefault                          bool         `json:"isDefault"`
 	IsPublic                           bool         `json:"isPublic"`
 	Deprecated                         bool         `json:"deprecated"`
-	Individual                         bool         `json:"individual"`
 	SLALevel                           SLALevelEnum `json:"slaLevel"`
-	// An array relationship
-	Apps []*Apps `json:"apps"`
 	// An array relationship
 	Organizations []*Organizations `json:"organizations"`
 }
@@ -4430,9 +4343,7 @@ type PlansBoolExp struct {
 	IsDefault                          *BooleanComparisonExp      `json:"isDefault,omitempty"`
 	IsPublic                           *BooleanComparisonExp      `json:"isPublic,omitempty"`
 	Deprecated                         *BooleanComparisonExp      `json:"deprecated,omitempty"`
-	Individual                         *BooleanComparisonExp      `json:"individual,omitempty"`
 	SLALevel                           *SLALevelEnumComparisonExp `json:"slaLevel,omitempty"`
-	Apps                               *AppsBoolExp               `json:"apps,omitempty"`
 	Organizations                      *OrganizationsBoolExp      `json:"organizations,omitempty"`
 }
 
@@ -4452,9 +4363,7 @@ type PlansOrderBy struct {
 	IsDefault                          *OrderBy                       `json:"isDefault,omitempty"`
 	IsPublic                           *OrderBy                       `json:"isPublic,omitempty"`
 	Deprecated                         *OrderBy                       `json:"deprecated,omitempty"`
-	Individual                         *OrderBy                       `json:"individual,omitempty"`
 	SLALevel                           *OrderBy                       `json:"slaLevel,omitempty"`
-	AppsAggregate                      *AppsAggregateOrderBy          `json:"apps_aggregate,omitempty"`
 	OrganizationsAggregate             *OrganizationsAggregateOrderBy `json:"organizations_aggregate,omitempty"`
 }
 
@@ -4482,7 +4391,6 @@ type PlansStreamCursorValueInput struct {
 	IsDefault                          *bool         `json:"isDefault,omitempty"`
 	IsPublic                           *bool         `json:"isPublic,omitempty"`
 	Deprecated                         *bool         `json:"deprecated,omitempty"`
-	Individual                         *bool         `json:"individual,omitempty"`
 	SLALevel                           *SLALevelEnum `json:"slaLevel,omitempty"`
 }
 
@@ -4511,15 +4419,11 @@ type Regions struct {
 	Domain          string         `json:"domain"`
 	Name            string         `json:"name"`
 	// An object relationship
-	AllowedWorkspaces *RegionsAllowedWorkspace `json:"allowedWorkspaces,omitempty"`
-	// An object relationship
 	Country *Countries `json:"country"`
 	// An array relationship
 	AllowedOrganizations []*RegionsAllowedOrganization `json:"allowedOrganizations"`
 	// An array relationship
 	Apps []*Apps `json:"apps"`
-	// An array relationship
-	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
 }
 
 // order by aggregate values of table "regions"
@@ -4615,112 +4519,24 @@ type RegionsAllowedOrganizationStreamCursorValueInput struct {
 	OrganizationID *string    `json:"organizationID,omitempty"`
 }
 
-// columns and relationships of "regions_allowed_workspace"
-type RegionsAllowedWorkspace struct {
-	ID          string    `json:"id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Description string    `json:"description"`
-	RegionID    string    `json:"region_id"`
-	WorkspaceID string    `json:"workspace_id"`
-	// An object relationship
-	Region *Regions `json:"region,omitempty"`
-	// An object relationship
-	Workspace *Workspaces `json:"workspace,omitempty"`
-}
-
-// order by aggregate values of table "regions_allowed_workspace"
-type RegionsAllowedWorkspaceAggregateOrderBy struct {
-	Count *OrderBy                           `json:"count,omitempty"`
-	Max   *RegionsAllowedWorkspaceMaxOrderBy `json:"max,omitempty"`
-	Min   *RegionsAllowedWorkspaceMinOrderBy `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "regions_allowed_workspace". All fields are combined with a logical 'AND'.
-type RegionsAllowedWorkspaceBoolExp struct {
-	And         []*RegionsAllowedWorkspaceBoolExp `json:"_and,omitempty"`
-	Not         *RegionsAllowedWorkspaceBoolExp   `json:"_not,omitempty"`
-	Or          []*RegionsAllowedWorkspaceBoolExp `json:"_or,omitempty"`
-	ID          *UUIDComparisonExp                `json:"id,omitempty"`
-	CreatedAt   *TimestamptzComparisonExp         `json:"created_at,omitempty"`
-	UpdatedAt   *TimestamptzComparisonExp         `json:"updated_at,omitempty"`
-	Description *StringComparisonExp              `json:"description,omitempty"`
-	RegionID    *UUIDComparisonExp                `json:"region_id,omitempty"`
-	WorkspaceID *UUIDComparisonExp                `json:"workspace_id,omitempty"`
-	Region      *RegionsBoolExp                   `json:"region,omitempty"`
-	Workspace   *WorkspacesBoolExp                `json:"workspace,omitempty"`
-}
-
-// order by max() on columns of table "regions_allowed_workspace"
-type RegionsAllowedWorkspaceMaxOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"created_at,omitempty"`
-	UpdatedAt   *OrderBy `json:"updated_at,omitempty"`
-	Description *OrderBy `json:"description,omitempty"`
-	RegionID    *OrderBy `json:"region_id,omitempty"`
-	WorkspaceID *OrderBy `json:"workspace_id,omitempty"`
-}
-
-// order by min() on columns of table "regions_allowed_workspace"
-type RegionsAllowedWorkspaceMinOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"created_at,omitempty"`
-	UpdatedAt   *OrderBy `json:"updated_at,omitempty"`
-	Description *OrderBy `json:"description,omitempty"`
-	RegionID    *OrderBy `json:"region_id,omitempty"`
-	WorkspaceID *OrderBy `json:"workspace_id,omitempty"`
-}
-
-// Ordering options when selecting data from "regions_allowed_workspace".
-type RegionsAllowedWorkspaceOrderBy struct {
-	ID          *OrderBy           `json:"id,omitempty"`
-	CreatedAt   *OrderBy           `json:"created_at,omitempty"`
-	UpdatedAt   *OrderBy           `json:"updated_at,omitempty"`
-	Description *OrderBy           `json:"description,omitempty"`
-	RegionID    *OrderBy           `json:"region_id,omitempty"`
-	WorkspaceID *OrderBy           `json:"workspace_id,omitempty"`
-	Region      *RegionsOrderBy    `json:"region,omitempty"`
-	Workspace   *WorkspacesOrderBy `json:"workspace,omitempty"`
-}
-
-// Streaming cursor of the table "regions_allowed_workspace"
-type RegionsAllowedWorkspaceStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *RegionsAllowedWorkspaceStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type RegionsAllowedWorkspaceStreamCursorValueInput struct {
-	ID          *string    `json:"id,omitempty"`
-	CreatedAt   *time.Time `json:"created_at,omitempty"`
-	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
-	Description *string    `json:"description,omitempty"`
-	RegionID    *string    `json:"region_id,omitempty"`
-	WorkspaceID *string    `json:"workspace_id,omitempty"`
-}
-
 // Boolean expression to filter rows from the table "regions". All fields are combined with a logical 'AND'.
 type RegionsBoolExp struct {
-	And                      []*RegionsBoolExp                  `json:"_and,omitempty"`
-	Not                      *RegionsBoolExp                    `json:"_not,omitempty"`
-	Or                       []*RegionsBoolExp                  `json:"_or,omitempty"`
-	ID                       *UUIDComparisonExp                 `json:"id,omitempty"`
-	City                     *StringComparisonExp               `json:"city,omitempty"`
-	CountryCode              *StringComparisonExp               `json:"countryCode,omitempty"`
-	IsGdprCompliant          *BooleanComparisonExp              `json:"isGdprCompliant,omitempty"`
-	AWSName                  *StringComparisonExp               `json:"awsName,omitempty"`
-	Active                   *BooleanComparisonExp              `json:"active,omitempty"`
-	Type                     *RegionTypeEnumComparisonExp       `json:"type,omitempty"`
-	Description              *StringComparisonExp               `json:"description,omitempty"`
-	Domain                   *StringComparisonExp               `json:"domain,omitempty"`
-	Name                     *StringComparisonExp               `json:"name,omitempty"`
-	AllowedWorkspaces        *RegionsAllowedWorkspaceBoolExp    `json:"allowedWorkspaces,omitempty"`
-	Country                  *CountriesBoolExp                  `json:"country,omitempty"`
-	AllowedOrganizations     *RegionsAllowedOrganizationBoolExp `json:"allowedOrganizations,omitempty"`
-	Apps                     *AppsBoolExp                       `json:"apps,omitempty"`
-	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceBoolExp    `json:"regions_allowed_workspaces,omitempty"`
+	And                  []*RegionsBoolExp                  `json:"_and,omitempty"`
+	Not                  *RegionsBoolExp                    `json:"_not,omitempty"`
+	Or                   []*RegionsBoolExp                  `json:"_or,omitempty"`
+	ID                   *UUIDComparisonExp                 `json:"id,omitempty"`
+	City                 *StringComparisonExp               `json:"city,omitempty"`
+	CountryCode          *StringComparisonExp               `json:"countryCode,omitempty"`
+	IsGdprCompliant      *BooleanComparisonExp              `json:"isGdprCompliant,omitempty"`
+	AWSName              *StringComparisonExp               `json:"awsName,omitempty"`
+	Active               *BooleanComparisonExp              `json:"active,omitempty"`
+	Type                 *RegionTypeEnumComparisonExp       `json:"type,omitempty"`
+	Description          *StringComparisonExp               `json:"description,omitempty"`
+	Domain               *StringComparisonExp               `json:"domain,omitempty"`
+	Name                 *StringComparisonExp               `json:"name,omitempty"`
+	Country              *CountriesBoolExp                  `json:"country,omitempty"`
+	AllowedOrganizations *RegionsAllowedOrganizationBoolExp `json:"allowedOrganizations,omitempty"`
+	Apps                 *AppsBoolExp                       `json:"apps,omitempty"`
 }
 
 // order by max() on columns of table "regions"
@@ -4751,21 +4567,19 @@ type RegionsMinOrderBy struct {
 
 // Ordering options when selecting data from "regions".
 type RegionsOrderBy struct {
-	ID                                *OrderBy                                    `json:"id,omitempty"`
-	City                              *OrderBy                                    `json:"city,omitempty"`
-	CountryCode                       *OrderBy                                    `json:"countryCode,omitempty"`
-	IsGdprCompliant                   *OrderBy                                    `json:"isGdprCompliant,omitempty"`
-	AWSName                           *OrderBy                                    `json:"awsName,omitempty"`
-	Active                            *OrderBy                                    `json:"active,omitempty"`
-	Type                              *OrderBy                                    `json:"type,omitempty"`
-	Description                       *OrderBy                                    `json:"description,omitempty"`
-	Domain                            *OrderBy                                    `json:"domain,omitempty"`
-	Name                              *OrderBy                                    `json:"name,omitempty"`
-	AllowedWorkspaces                 *RegionsAllowedWorkspaceOrderBy             `json:"allowedWorkspaces,omitempty"`
-	Country                           *CountriesOrderBy                           `json:"country,omitempty"`
-	AllowedOrganizationsAggregate     *RegionsAllowedOrganizationAggregateOrderBy `json:"allowedOrganizations_aggregate,omitempty"`
-	AppsAggregate                     *AppsAggregateOrderBy                       `json:"apps_aggregate,omitempty"`
-	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy    `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	ID                            *OrderBy                                    `json:"id,omitempty"`
+	City                          *OrderBy                                    `json:"city,omitempty"`
+	CountryCode                   *OrderBy                                    `json:"countryCode,omitempty"`
+	IsGdprCompliant               *OrderBy                                    `json:"isGdprCompliant,omitempty"`
+	AWSName                       *OrderBy                                    `json:"awsName,omitempty"`
+	Active                        *OrderBy                                    `json:"active,omitempty"`
+	Type                          *OrderBy                                    `json:"type,omitempty"`
+	Description                   *OrderBy                                    `json:"description,omitempty"`
+	Domain                        *OrderBy                                    `json:"domain,omitempty"`
+	Name                          *OrderBy                                    `json:"name,omitempty"`
+	Country                       *CountriesOrderBy                           `json:"country,omitempty"`
+	AllowedOrganizationsAggregate *RegionsAllowedOrganizationAggregateOrderBy `json:"allowedOrganizations_aggregate,omitempty"`
+	AppsAggregate                 *AppsAggregateOrderBy                       `json:"apps_aggregate,omitempty"`
 }
 
 // Streaming cursor of the table "regions"
@@ -4999,6 +4813,18 @@ type SubscriptionRoot struct {
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table in a streaming manner: "auth.users"
 	UsersStream []*Users `json:"users_stream"`
+	// fetch data from the table: "billing.dedicated_compute"
+	BillingDedicatedComputes []*BillingDedicatedCompute `json:"billingDedicatedComputes"`
+	// fetch data from the table in a streaming manner: "billing.dedicated_compute"
+	BillingDedicatedComputeStream []*BillingDedicatedCompute `json:"billing_dedicated_compute_stream"`
+	// fetch data from the table: "billing.reports"
+	BillingReports []*BillingReports `json:"billingReports"`
+	// fetch data from the table in a streaming manner: "billing.reports"
+	BillingReportsStream []*BillingReports `json:"billingReportsStream"`
+	// fetch data from the table: "billing.resources"
+	BillingResources []*BillingResources `json:"billingResources"`
+	// fetch data from the table in a streaming manner: "billing.resources"
+	BillingResourcesStream []*BillingResources `json:"billingResourcesStream"`
 	// fetch data from the table: "announcements"
 	Announcements []*Announcements `json:"announcements"`
 	// fetch data from the table: "announcements" using primary key columns
@@ -5101,12 +4927,6 @@ type SubscriptionRoot struct {
 	Organization *Organizations `json:"organization,omitempty"`
 	// fetch data from the table in a streaming manner: "organizations"
 	OrganizationsSteam []*Organizations `json:"organizationsSteam"`
-	// fetch data from the table: "payment_methods"
-	PaymentMethods []*PaymentMethods `json:"paymentMethods"`
-	// fetch data from the table: "payment_methods" using primary key columns
-	PaymentMethod *PaymentMethods `json:"paymentMethod,omitempty"`
-	// fetch data from the table in a streaming manner: "payment_methods"
-	PaymentMethodsStream []*PaymentMethods `json:"paymentMethods_stream"`
 	// fetch data from the table: "pipeline_runs"
 	PipelineRuns []*PipelineRuns `json:"pipelineRuns"`
 	// fetch data from the table: "pipeline_runs" using primary key columns
@@ -5131,12 +4951,6 @@ type SubscriptionRoot struct {
 	RegionsAllowedOrganization *RegionsAllowedOrganization `json:"regionsAllowedOrganization,omitempty"`
 	// fetch data from the table in a streaming manner: "regions_allowed_organization"
 	RegionsAllowedOrganizationsStream []*RegionsAllowedOrganization `json:"regionsAllowedOrganizationsStream"`
-	// fetch data from the table: "regions_allowed_workspace"
-	SelectRegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"selectRegionsAllowedWorkspaces"`
-	// fetch data from the table: "regions_allowed_workspace" using primary key columns
-	SelectRegionsAllowedWorkspace *RegionsAllowedWorkspace `json:"selectRegionsAllowedWorkspace,omitempty"`
-	// fetch data from the table in a streaming manner: "regions_allowed_workspace"
-	RegionsAllowedWorkspaceStream []*RegionsAllowedWorkspace `json:"regions_allowed_workspace_stream"`
 	// fetch data from the table: "run_service"
 	RunServices []*RunService `json:"runServices"`
 	// fetch data from the table: "run_service" using primary key columns
@@ -5155,24 +4969,6 @@ type SubscriptionRoot struct {
 	UnifiedDeployments []*UnifiedDeployments `json:"unifiedDeployments"`
 	// fetch data from the table in a streaming manner: "unified_deployments"
 	UnifiedDeploymentsStream []*UnifiedDeployments `json:"unifiedDeployments_stream"`
-	// fetch data from the table: "workspace_member_invites"
-	WorkspaceMemberInvites []*WorkspaceMemberInvites `json:"workspaceMemberInvites"`
-	// fetch data from the table: "workspace_member_invites" using primary key columns
-	WorkspaceMemberInvite *WorkspaceMemberInvites `json:"workspaceMemberInvite,omitempty"`
-	// fetch data from the table in a streaming manner: "workspace_member_invites"
-	WorkspaceMemberInvitesStream []*WorkspaceMemberInvites `json:"workspaceMemberInvites_stream"`
-	// fetch data from the table: "workspace_members"
-	WorkspaceMembers []*WorkspaceMembers `json:"workspaceMembers"`
-	// fetch data from the table: "workspace_members" using primary key columns
-	WorkspaceMember *WorkspaceMembers `json:"workspaceMember,omitempty"`
-	// fetch data from the table in a streaming manner: "workspace_members"
-	WorkspaceMembersStream []*WorkspaceMembers `json:"workspaceMembers_stream"`
-	// fetch data from the table: "workspaces"
-	Workspaces []*Workspaces `json:"workspaces"`
-	// fetch data from the table: "workspaces" using primary key columns
-	Workspace *Workspaces `json:"workspace,omitempty"`
-	// fetch data from the table in a streaming manner: "workspaces"
-	WorkspacesStream []*Workspaces `json:"workspaces_stream"`
 	// fetch data from the table: "storage.files"
 	Files []*Files `json:"files"`
 	// fetch data from the table: "storage.files" using primary key columns
@@ -5281,49 +5077,34 @@ type Users struct {
 	// An array relationship
 	CliTokens []*CliTokens `json:"cliTokens"`
 	// An array relationship
-	CreatorOfWorkspaces []*Workspaces `json:"creatorOfWorkspaces"`
-	// An array relationship
 	GithubAppInstallations []*GithubAppInstallations `json:"github_app_installations"`
 	// An array relationship
 	OrganizationMembership []*OrganizationMembers `json:"organizationMembership"`
-	// An array relationship
-	PaymentMethods []*PaymentMethods `json:"payment_methods"`
 	// An array relationship
 	RefreshTokens []*AuthRefreshTokens `json:"refreshTokens"`
 	// An array relationship
 	SecurityKeys []*AuthUserSecurityKeys `json:"securityKeys"`
 	// An array relationship
 	UserProviders []*AuthUserProviders `json:"userProviders"`
-	// An array relationship
-	WorkspaceMemberInvitesByInvitedByUserID []*WorkspaceMemberInvites `json:"workspaceMemberInvitesByInvitedByUserId"`
-	// An array relationship
-	WorkspaceMembers []*WorkspaceMembers `json:"workspaceMembers"`
-	// An array relationship
-	WorkspaceMemberInvites []*WorkspaceMemberInvites `json:"workspace_member_invites"`
 }
 
 // Boolean expression to filter rows from the table "auth.users". All fields are combined with a logical 'AND'.
 type UsersBoolExp struct {
-	And                                     []*UsersBoolExp                `json:"_and,omitempty"`
-	Not                                     *UsersBoolExp                  `json:"_not,omitempty"`
-	Or                                      []*UsersBoolExp                `json:"_or,omitempty"`
-	ID                                      *UUIDComparisonExp             `json:"id,omitempty"`
-	DisplayName                             *StringComparisonExp           `json:"displayName,omitempty"`
-	AvatarURL                               *StringComparisonExp           `json:"avatarUrl,omitempty"`
-	Email                                   *CitextComparisonExp           `json:"email,omitempty"`
-	ActiveMfaType                           *StringComparisonExp           `json:"activeMfaType,omitempty"`
-	Apps                                    *AppsBoolExp                   `json:"apps,omitempty"`
-	CliTokens                               *CliTokensBoolExp              `json:"cliTokens,omitempty"`
-	CreatorOfWorkspaces                     *WorkspacesBoolExp             `json:"creatorOfWorkspaces,omitempty"`
-	GithubAppInstallations                  *GithubAppInstallationsBoolExp `json:"github_app_installations,omitempty"`
-	OrganizationMembership                  *OrganizationMembersBoolExp    `json:"organizationMembership,omitempty"`
-	PaymentMethods                          *PaymentMethodsBoolExp         `json:"payment_methods,omitempty"`
-	RefreshTokens                           *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
-	SecurityKeys                            *AuthUserSecurityKeysBoolExp   `json:"securityKeys,omitempty"`
-	UserProviders                           *AuthUserProvidersBoolExp      `json:"userProviders,omitempty"`
-	WorkspaceMemberInvitesByInvitedByUserID *WorkspaceMemberInvitesBoolExp `json:"workspaceMemberInvitesByInvitedByUserId,omitempty"`
-	WorkspaceMembers                        *WorkspaceMembersBoolExp       `json:"workspaceMembers,omitempty"`
-	WorkspaceMemberInvites                  *WorkspaceMemberInvitesBoolExp `json:"workspace_member_invites,omitempty"`
+	And                    []*UsersBoolExp                `json:"_and,omitempty"`
+	Not                    *UsersBoolExp                  `json:"_not,omitempty"`
+	Or                     []*UsersBoolExp                `json:"_or,omitempty"`
+	ID                     *UUIDComparisonExp             `json:"id,omitempty"`
+	DisplayName            *StringComparisonExp           `json:"displayName,omitempty"`
+	AvatarURL              *StringComparisonExp           `json:"avatarUrl,omitempty"`
+	Email                  *CitextComparisonExp           `json:"email,omitempty"`
+	ActiveMfaType          *StringComparisonExp           `json:"activeMfaType,omitempty"`
+	Apps                   *AppsBoolExp                   `json:"apps,omitempty"`
+	CliTokens              *CliTokensBoolExp              `json:"cliTokens,omitempty"`
+	GithubAppInstallations *GithubAppInstallationsBoolExp `json:"github_app_installations,omitempty"`
+	OrganizationMembership *OrganizationMembersBoolExp    `json:"organizationMembership,omitempty"`
+	RefreshTokens          *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
+	SecurityKeys           *AuthUserSecurityKeysBoolExp   `json:"securityKeys,omitempty"`
+	UserProviders          *AuthUserProvidersBoolExp      `json:"userProviders,omitempty"`
 }
 
 // response of any mutation on the table "auth.users"
@@ -5336,23 +5117,18 @@ type UsersMutationResponse struct {
 
 // Ordering options when selecting data from "auth.users".
 type UsersOrderBy struct {
-	ID                                               *OrderBy                                `json:"id,omitempty"`
-	DisplayName                                      *OrderBy                                `json:"displayName,omitempty"`
-	AvatarURL                                        *OrderBy                                `json:"avatarUrl,omitempty"`
-	Email                                            *OrderBy                                `json:"email,omitempty"`
-	ActiveMfaType                                    *OrderBy                                `json:"activeMfaType,omitempty"`
-	AppsAggregate                                    *AppsAggregateOrderBy                   `json:"apps_aggregate,omitempty"`
-	CliTokensAggregate                               *CliTokensAggregateOrderBy              `json:"cliTokens_aggregate,omitempty"`
-	CreatorOfWorkspacesAggregate                     *WorkspacesAggregateOrderBy             `json:"creatorOfWorkspaces_aggregate,omitempty"`
-	GithubAppInstallationsAggregate                  *GithubAppInstallationsAggregateOrderBy `json:"github_app_installations_aggregate,omitempty"`
-	OrganizationMembershipAggregate                  *OrganizationMembersAggregateOrderBy    `json:"organizationMembership_aggregate,omitempty"`
-	PaymentMethodsAggregate                          *PaymentMethodsAggregateOrderBy         `json:"payment_methods_aggregate,omitempty"`
-	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
-	SecurityKeysAggregate                            *AuthUserSecurityKeysAggregateOrderBy   `json:"securityKeys_aggregate,omitempty"`
-	UserProvidersAggregate                           *AuthUserProvidersAggregateOrderBy      `json:"userProviders_aggregate,omitempty"`
-	WorkspaceMemberInvitesByInvitedByUserIDAggregate *WorkspaceMemberInvitesAggregateOrderBy `json:"workspaceMemberInvitesByInvitedByUserId_aggregate,omitempty"`
-	WorkspaceMembersAggregate                        *WorkspaceMembersAggregateOrderBy       `json:"workspaceMembers_aggregate,omitempty"`
-	WorkspaceMemberInvitesAggregate                  *WorkspaceMemberInvitesAggregateOrderBy `json:"workspace_member_invites_aggregate,omitempty"`
+	ID                              *OrderBy                                `json:"id,omitempty"`
+	DisplayName                     *OrderBy                                `json:"displayName,omitempty"`
+	AvatarURL                       *OrderBy                                `json:"avatarUrl,omitempty"`
+	Email                           *OrderBy                                `json:"email,omitempty"`
+	ActiveMfaType                   *OrderBy                                `json:"activeMfaType,omitempty"`
+	AppsAggregate                   *AppsAggregateOrderBy                   `json:"apps_aggregate,omitempty"`
+	CliTokensAggregate              *CliTokensAggregateOrderBy              `json:"cliTokens_aggregate,omitempty"`
+	GithubAppInstallationsAggregate *GithubAppInstallationsAggregateOrderBy `json:"github_app_installations_aggregate,omitempty"`
+	OrganizationMembershipAggregate *OrganizationMembersAggregateOrderBy    `json:"organizationMembership_aggregate,omitempty"`
+	RefreshTokensAggregate          *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
+	SecurityKeysAggregate           *AuthUserSecurityKeysAggregateOrderBy   `json:"securityKeys_aggregate,omitempty"`
+	UserProvidersAggregate          *AuthUserProvidersAggregateOrderBy      `json:"userProviders_aggregate,omitempty"`
 }
 
 // primary key columns input for table: auth.users
@@ -5400,577 +5176,6 @@ type UUIDComparisonExp struct {
 	Lte    *string  `json:"_lte,omitempty"`
 	Neq    *string  `json:"_neq,omitempty"`
 	Nin    []string `json:"_nin,omitempty"`
-}
-
-// columns and relationships of "workspace_member_invites"
-type WorkspaceMemberInvites struct {
-	ID          string    `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	WorkspaceID string    `json:"workspaceId"`
-	Email       string    `json:"email"`
-	// owner or member
-	MemberType      string `json:"memberType"`
-	InvitedByUserID string `json:"invitedByUserId"`
-	// An object relationship
-	InvitedByUser *Users `json:"invitedByUser"`
-	// An object relationship
-	UserByEmail *Users `json:"userByEmail,omitempty"`
-	// An object relationship
-	Workspace *Workspaces `json:"workspace"`
-}
-
-// order by aggregate values of table "workspace_member_invites"
-type WorkspaceMemberInvitesAggregateOrderBy struct {
-	Count *OrderBy                          `json:"count,omitempty"`
-	Max   *WorkspaceMemberInvitesMaxOrderBy `json:"max,omitempty"`
-	Min   *WorkspaceMemberInvitesMinOrderBy `json:"min,omitempty"`
-}
-
-// input type for inserting array relation for remote table "workspace_member_invites"
-type WorkspaceMemberInvitesArrRelInsertInput struct {
-	Data []*WorkspaceMemberInvitesInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *WorkspaceMemberInvitesOnConflict `json:"on_conflict,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "workspace_member_invites". All fields are combined with a logical 'AND'.
-type WorkspaceMemberInvitesBoolExp struct {
-	And         []*WorkspaceMemberInvitesBoolExp `json:"_and,omitempty"`
-	Not         *WorkspaceMemberInvitesBoolExp   `json:"_not,omitempty"`
-	Or          []*WorkspaceMemberInvitesBoolExp `json:"_or,omitempty"`
-	ID          *UUIDComparisonExp               `json:"id,omitempty"`
-	CreatedAt   *TimestamptzComparisonExp        `json:"createdAt,omitempty"`
-	UpdatedAt   *TimestamptzComparisonExp        `json:"updatedAt,omitempty"`
-	WorkspaceID *UUIDComparisonExp               `json:"workspaceId,omitempty"`
-	Email       *CitextComparisonExp             `json:"email,omitempty"`
-	// owner or member
-	MemberType      *StringComparisonExp `json:"memberType,omitempty"`
-	InvitedByUserID *UUIDComparisonExp   `json:"invitedByUserId,omitempty"`
-	InvitedByUser   *UsersBoolExp        `json:"invitedByUser,omitempty"`
-	UserByEmail     *UsersBoolExp        `json:"userByEmail,omitempty"`
-	Workspace       *WorkspacesBoolExp   `json:"workspace,omitempty"`
-}
-
-// input type for inserting data into table "workspace_member_invites"
-type WorkspaceMemberInvitesInsertInput struct {
-	WorkspaceID *string `json:"workspaceId,omitempty"`
-	Email       *string `json:"email,omitempty"`
-	// owner or member
-	MemberType *string                      `json:"memberType,omitempty"`
-	Workspace  *WorkspacesObjRelInsertInput `json:"workspace,omitempty"`
-}
-
-// order by max() on columns of table "workspace_member_invites"
-type WorkspaceMemberInvitesMaxOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	Email       *OrderBy `json:"email,omitempty"`
-	// owner or member
-	MemberType      *OrderBy `json:"memberType,omitempty"`
-	InvitedByUserID *OrderBy `json:"invitedByUserId,omitempty"`
-}
-
-// order by min() on columns of table "workspace_member_invites"
-type WorkspaceMemberInvitesMinOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	Email       *OrderBy `json:"email,omitempty"`
-	// owner or member
-	MemberType      *OrderBy `json:"memberType,omitempty"`
-	InvitedByUserID *OrderBy `json:"invitedByUserId,omitempty"`
-}
-
-// response of any mutation on the table "workspace_member_invites"
-type WorkspaceMemberInvitesMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*WorkspaceMemberInvites `json:"returning"`
-}
-
-// on_conflict condition type for table "workspace_member_invites"
-type WorkspaceMemberInvitesOnConflict struct {
-	Constraint    WorkspaceMemberInvitesConstraint     `json:"constraint"`
-	UpdateColumns []WorkspaceMemberInvitesUpdateColumn `json:"update_columns"`
-	Where         *WorkspaceMemberInvitesBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "workspace_member_invites".
-type WorkspaceMemberInvitesOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	Email       *OrderBy `json:"email,omitempty"`
-	// owner or member
-	MemberType      *OrderBy           `json:"memberType,omitempty"`
-	InvitedByUserID *OrderBy           `json:"invitedByUserId,omitempty"`
-	InvitedByUser   *UsersOrderBy      `json:"invitedByUser,omitempty"`
-	UserByEmail     *UsersOrderBy      `json:"userByEmail,omitempty"`
-	Workspace       *WorkspacesOrderBy `json:"workspace,omitempty"`
-}
-
-// primary key columns input for table: workspace_member_invites
-type WorkspaceMemberInvitesPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "workspace_member_invites"
-type WorkspaceMemberInvitesSetInput struct {
-	// owner or member
-	MemberType *string `json:"memberType,omitempty"`
-}
-
-// Streaming cursor of the table "workspaceMemberInvites"
-type WorkspaceMemberInvitesStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *WorkspaceMemberInvitesStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type WorkspaceMemberInvitesStreamCursorValueInput struct {
-	ID          *string    `json:"id,omitempty"`
-	CreatedAt   *time.Time `json:"createdAt,omitempty"`
-	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
-	WorkspaceID *string    `json:"workspaceId,omitempty"`
-	Email       *string    `json:"email,omitempty"`
-	// owner or member
-	MemberType      *string `json:"memberType,omitempty"`
-	InvitedByUserID *string `json:"invitedByUserId,omitempty"`
-}
-
-type WorkspaceMemberInvitesUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *WorkspaceMemberInvitesSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *WorkspaceMemberInvitesBoolExp `json:"where"`
-}
-
-// columns and relationships of "workspace_members"
-type WorkspaceMembers struct {
-	ID          string    `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	UserID      string    `json:"userId"`
-	WorkspaceID string    `json:"workspaceId"`
-	// owner or member
-	Type string `json:"type"`
-	// An object relationship
-	User *Users `json:"user"`
-	// An object relationship
-	Workspace *Workspaces `json:"workspace"`
-}
-
-// order by aggregate values of table "workspace_members"
-type WorkspaceMembersAggregateOrderBy struct {
-	Count *OrderBy                    `json:"count,omitempty"`
-	Max   *WorkspaceMembersMaxOrderBy `json:"max,omitempty"`
-	Min   *WorkspaceMembersMinOrderBy `json:"min,omitempty"`
-}
-
-// input type for inserting array relation for remote table "workspace_members"
-type WorkspaceMembersArrRelInsertInput struct {
-	Data []*WorkspaceMembersInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *WorkspaceMembersOnConflict `json:"on_conflict,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "workspace_members". All fields are combined with a logical 'AND'.
-type WorkspaceMembersBoolExp struct {
-	And         []*WorkspaceMembersBoolExp `json:"_and,omitempty"`
-	Not         *WorkspaceMembersBoolExp   `json:"_not,omitempty"`
-	Or          []*WorkspaceMembersBoolExp `json:"_or,omitempty"`
-	ID          *UUIDComparisonExp         `json:"id,omitempty"`
-	CreatedAt   *TimestamptzComparisonExp  `json:"createdAt,omitempty"`
-	UpdatedAt   *TimestamptzComparisonExp  `json:"updatedAt,omitempty"`
-	UserID      *UUIDComparisonExp         `json:"userId,omitempty"`
-	WorkspaceID *UUIDComparisonExp         `json:"workspaceId,omitempty"`
-	// owner or member
-	Type      *StringComparisonExp `json:"type,omitempty"`
-	User      *UsersBoolExp        `json:"user,omitempty"`
-	Workspace *WorkspacesBoolExp   `json:"workspace,omitempty"`
-}
-
-// input type for inserting data into table "workspace_members"
-type WorkspaceMembersInsertInput struct {
-	UserID *string `json:"userId,omitempty"`
-	// owner or member
-	Type      *string                      `json:"type,omitempty"`
-	Workspace *WorkspacesObjRelInsertInput `json:"workspace,omitempty"`
-}
-
-// order by max() on columns of table "workspace_members"
-type WorkspaceMembersMaxOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	UserID      *OrderBy `json:"userId,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	// owner or member
-	Type *OrderBy `json:"type,omitempty"`
-}
-
-// order by min() on columns of table "workspace_members"
-type WorkspaceMembersMinOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	UserID      *OrderBy `json:"userId,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	// owner or member
-	Type *OrderBy `json:"type,omitempty"`
-}
-
-// response of any mutation on the table "workspace_members"
-type WorkspaceMembersMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*WorkspaceMembers `json:"returning"`
-}
-
-// on_conflict condition type for table "workspace_members"
-type WorkspaceMembersOnConflict struct {
-	Constraint    WorkspaceMembersConstraint     `json:"constraint"`
-	UpdateColumns []WorkspaceMembersUpdateColumn `json:"update_columns"`
-	Where         *WorkspaceMembersBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "workspace_members".
-type WorkspaceMembersOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
-	UserID      *OrderBy `json:"userId,omitempty"`
-	WorkspaceID *OrderBy `json:"workspaceId,omitempty"`
-	// owner or member
-	Type      *OrderBy           `json:"type,omitempty"`
-	User      *UsersOrderBy      `json:"user,omitempty"`
-	Workspace *WorkspacesOrderBy `json:"workspace,omitempty"`
-}
-
-// primary key columns input for table: workspace_members
-type WorkspaceMembersPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "workspace_members"
-type WorkspaceMembersSetInput struct {
-	// owner or member
-	Type *string `json:"type,omitempty"`
-}
-
-// Streaming cursor of the table "workspaceMembers"
-type WorkspaceMembersStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *WorkspaceMembersStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type WorkspaceMembersStreamCursorValueInput struct {
-	ID          *string    `json:"id,omitempty"`
-	CreatedAt   *time.Time `json:"createdAt,omitempty"`
-	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
-	UserID      *string    `json:"userId,omitempty"`
-	WorkspaceID *string    `json:"workspaceId,omitempty"`
-	// owner or member
-	Type *string `json:"type,omitempty"`
-}
-
-type WorkspaceMembersUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *WorkspaceMembersSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *WorkspaceMembersBoolExp `json:"where"`
-}
-
-// columns and relationships of "workspaces"
-type Workspaces struct {
-	ID            string  `json:"id"`
-	Name          string  `json:"name"`
-	Slug          string  `json:"slug"`
-	Email         string  `json:"email"`
-	CreatorUserID *string `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 string `json:"addressLine1"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 string `json:"addressLine2"`
-	// City, district, suburb, town, or village.
-	AddressCity string `json:"addressCity"`
-	// ZIP or postal code.
-	AddressPostalCode string `json:"addressPostalCode"`
-	// State, county, province, or region.
-	AddressState string `json:"addressState"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode *string   `json:"addressCountryCode,omitempty"`
-	TaxIDType          string    `json:"taxIdType"`
-	TaxIDValue         string    `json:"taxIdValue"`
-	CompanyName        string    `json:"companyName"`
-	CreatedAt          time.Time `json:"createdAt"`
-	UpdatedAt          time.Time `json:"updatedAt"`
-	// An object relationship
-	AddressCountry *Countries `json:"addressCountry,omitempty"`
-	// An object relationship
-	AllowedPrivateRegions *RegionsAllowedWorkspace `json:"allowedPrivateRegions,omitempty"`
-	// An object relationship
-	CreatorUser *Users `json:"creatorUser,omitempty"`
-	// An object relationship
-	PaymentMethod *PaymentMethods `json:"paymentMethod,omitempty"`
-	// An array relationship
-	Apps []*Apps `json:"apps"`
-	// An array relationship
-	PaymentMethods []*PaymentMethods `json:"paymentMethods"`
-	// An array relationship
-	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
-	// An array relationship
-	WorkspaceMemberInvites []*WorkspaceMemberInvites `json:"workspaceMemberInvites"`
-	// An array relationship
-	WorkspaceMembers []*WorkspaceMembers `json:"workspaceMembers"`
-}
-
-// order by aggregate values of table "workspaces"
-type WorkspacesAggregateOrderBy struct {
-	Count *OrderBy              `json:"count,omitempty"`
-	Max   *WorkspacesMaxOrderBy `json:"max,omitempty"`
-	Min   *WorkspacesMinOrderBy `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "workspaces". All fields are combined with a logical 'AND'.
-type WorkspacesBoolExp struct {
-	And           []*WorkspacesBoolExp `json:"_and,omitempty"`
-	Not           *WorkspacesBoolExp   `json:"_not,omitempty"`
-	Or            []*WorkspacesBoolExp `json:"_or,omitempty"`
-	ID            *UUIDComparisonExp   `json:"id,omitempty"`
-	Name          *StringComparisonExp `json:"name,omitempty"`
-	Slug          *StringComparisonExp `json:"slug,omitempty"`
-	Email         *StringComparisonExp `json:"email,omitempty"`
-	CreatorUserID *UUIDComparisonExp   `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *StringComparisonExp `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *StringComparisonExp `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *StringComparisonExp `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *StringComparisonExp `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *StringComparisonExp `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode       *StringComparisonExp            `json:"addressCountryCode,omitempty"`
-	TaxIDType                *StringComparisonExp            `json:"taxIdType,omitempty"`
-	TaxIDValue               *StringComparisonExp            `json:"taxIdValue,omitempty"`
-	CompanyName              *StringComparisonExp            `json:"companyName,omitempty"`
-	CreatedAt                *TimestamptzComparisonExp       `json:"createdAt,omitempty"`
-	UpdatedAt                *TimestamptzComparisonExp       `json:"updatedAt,omitempty"`
-	AddressCountry           *CountriesBoolExp               `json:"addressCountry,omitempty"`
-	AllowedPrivateRegions    *RegionsAllowedWorkspaceBoolExp `json:"allowedPrivateRegions,omitempty"`
-	CreatorUser              *UsersBoolExp                   `json:"creatorUser,omitempty"`
-	PaymentMethod            *PaymentMethodsBoolExp          `json:"paymentMethod,omitempty"`
-	Apps                     *AppsBoolExp                    `json:"apps,omitempty"`
-	PaymentMethods           *PaymentMethodsBoolExp          `json:"paymentMethods,omitempty"`
-	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceBoolExp `json:"regions_allowed_workspaces,omitempty"`
-	WorkspaceMemberInvites   *WorkspaceMemberInvitesBoolExp  `json:"workspaceMemberInvites,omitempty"`
-	WorkspaceMembers         *WorkspaceMembersBoolExp        `json:"workspaceMembers,omitempty"`
-}
-
-// input type for inserting data into table "workspaces"
-type WorkspacesInsertInput struct {
-	ID                     *string                                  `json:"id,omitempty"`
-	Name                   *string                                  `json:"name,omitempty"`
-	Slug                   *string                                  `json:"slug,omitempty"`
-	Email                  *string                                  `json:"email,omitempty"`
-	CompanyName            *string                                  `json:"companyName,omitempty"`
-	PaymentMethod          *PaymentMethodsObjRelInsertInput         `json:"paymentMethod,omitempty"`
-	Apps                   *AppsArrRelInsertInput                   `json:"apps,omitempty"`
-	PaymentMethods         *PaymentMethodsArrRelInsertInput         `json:"paymentMethods,omitempty"`
-	WorkspaceMemberInvites *WorkspaceMemberInvitesArrRelInsertInput `json:"workspaceMemberInvites,omitempty"`
-	WorkspaceMembers       *WorkspaceMembersArrRelInsertInput       `json:"workspaceMembers,omitempty"`
-}
-
-// order by max() on columns of table "workspaces"
-type WorkspacesMaxOrderBy struct {
-	ID            *OrderBy `json:"id,omitempty"`
-	Name          *OrderBy `json:"name,omitempty"`
-	Slug          *OrderBy `json:"slug,omitempty"`
-	Email         *OrderBy `json:"email,omitempty"`
-	CreatorUserID *OrderBy `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *OrderBy `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *OrderBy `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *OrderBy `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *OrderBy `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *OrderBy `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode *OrderBy `json:"addressCountryCode,omitempty"`
-	TaxIDType          *OrderBy `json:"taxIdType,omitempty"`
-	TaxIDValue         *OrderBy `json:"taxIdValue,omitempty"`
-	CompanyName        *OrderBy `json:"companyName,omitempty"`
-	CreatedAt          *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt          *OrderBy `json:"updatedAt,omitempty"`
-}
-
-// order by min() on columns of table "workspaces"
-type WorkspacesMinOrderBy struct {
-	ID            *OrderBy `json:"id,omitempty"`
-	Name          *OrderBy `json:"name,omitempty"`
-	Slug          *OrderBy `json:"slug,omitempty"`
-	Email         *OrderBy `json:"email,omitempty"`
-	CreatorUserID *OrderBy `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *OrderBy `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *OrderBy `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *OrderBy `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *OrderBy `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *OrderBy `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode *OrderBy `json:"addressCountryCode,omitempty"`
-	TaxIDType          *OrderBy `json:"taxIdType,omitempty"`
-	TaxIDValue         *OrderBy `json:"taxIdValue,omitempty"`
-	CompanyName        *OrderBy `json:"companyName,omitempty"`
-	CreatedAt          *OrderBy `json:"createdAt,omitempty"`
-	UpdatedAt          *OrderBy `json:"updatedAt,omitempty"`
-}
-
-// response of any mutation on the table "workspaces"
-type WorkspacesMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*Workspaces `json:"returning"`
-}
-
-// input type for inserting object relation for remote table "workspaces"
-type WorkspacesObjRelInsertInput struct {
-	Data *WorkspacesInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *WorkspacesOnConflict `json:"on_conflict,omitempty"`
-}
-
-// on_conflict condition type for table "workspaces"
-type WorkspacesOnConflict struct {
-	Constraint    WorkspacesConstraint     `json:"constraint"`
-	UpdateColumns []WorkspacesUpdateColumn `json:"update_columns"`
-	Where         *WorkspacesBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "workspaces".
-type WorkspacesOrderBy struct {
-	ID            *OrderBy `json:"id,omitempty"`
-	Name          *OrderBy `json:"name,omitempty"`
-	Slug          *OrderBy `json:"slug,omitempty"`
-	Email         *OrderBy `json:"email,omitempty"`
-	CreatorUserID *OrderBy `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *OrderBy `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *OrderBy `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *OrderBy `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *OrderBy `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *OrderBy `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode                *OrderBy                                 `json:"addressCountryCode,omitempty"`
-	TaxIDType                         *OrderBy                                 `json:"taxIdType,omitempty"`
-	TaxIDValue                        *OrderBy                                 `json:"taxIdValue,omitempty"`
-	CompanyName                       *OrderBy                                 `json:"companyName,omitempty"`
-	CreatedAt                         *OrderBy                                 `json:"createdAt,omitempty"`
-	UpdatedAt                         *OrderBy                                 `json:"updatedAt,omitempty"`
-	AddressCountry                    *CountriesOrderBy                        `json:"addressCountry,omitempty"`
-	AllowedPrivateRegions             *RegionsAllowedWorkspaceOrderBy          `json:"allowedPrivateRegions,omitempty"`
-	CreatorUser                       *UsersOrderBy                            `json:"creatorUser,omitempty"`
-	PaymentMethod                     *PaymentMethodsOrderBy                   `json:"paymentMethod,omitempty"`
-	AppsAggregate                     *AppsAggregateOrderBy                    `json:"apps_aggregate,omitempty"`
-	PaymentMethodsAggregate           *PaymentMethodsAggregateOrderBy          `json:"paymentMethods_aggregate,omitempty"`
-	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy `json:"regions_allowed_workspaces_aggregate,omitempty"`
-	WorkspaceMemberInvitesAggregate   *WorkspaceMemberInvitesAggregateOrderBy  `json:"workspaceMemberInvites_aggregate,omitempty"`
-	WorkspaceMembersAggregate         *WorkspaceMembersAggregateOrderBy        `json:"workspaceMembers_aggregate,omitempty"`
-}
-
-// primary key columns input for table: workspaces
-type WorkspacesPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "workspaces"
-type WorkspacesSetInput struct {
-	Name  *string `json:"name,omitempty"`
-	Slug  *string `json:"slug,omitempty"`
-	Email *string `json:"email,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *string `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *string `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *string `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *string `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *string `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode *string `json:"addressCountryCode,omitempty"`
-	TaxIDType          *string `json:"taxIdType,omitempty"`
-	TaxIDValue         *string `json:"taxIdValue,omitempty"`
-	CompanyName        *string `json:"companyName,omitempty"`
-}
-
-// Streaming cursor of the table "workspaces"
-type WorkspacesStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *WorkspacesStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type WorkspacesStreamCursorValueInput struct {
-	ID            *string `json:"id,omitempty"`
-	Name          *string `json:"name,omitempty"`
-	Slug          *string `json:"slug,omitempty"`
-	Email         *string `json:"email,omitempty"`
-	CreatorUserID *string `json:"creatorUserId,omitempty"`
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 *string `json:"addressLine1,omitempty"`
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 *string `json:"addressLine2,omitempty"`
-	// City, district, suburb, town, or village.
-	AddressCity *string `json:"addressCity,omitempty"`
-	// ZIP or postal code.
-	AddressPostalCode *string `json:"addressPostalCode,omitempty"`
-	// State, county, province, or region.
-	AddressState *string `json:"addressState,omitempty"`
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode *string    `json:"addressCountryCode,omitempty"`
-	TaxIDType          *string    `json:"taxIdType,omitempty"`
-	TaxIDValue         *string    `json:"taxIdValue,omitempty"`
-	CompanyName        *string    `json:"companyName,omitempty"`
-	CreatedAt          *time.Time `json:"createdAt,omitempty"`
-	UpdatedAt          *time.Time `json:"updatedAt,omitempty"`
-}
-
-type WorkspacesUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *WorkspacesSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *WorkspacesBoolExp `json:"where"`
 }
 
 type CheckoutStatus string
@@ -6639,19 +5844,16 @@ const (
 	AppsConstraintAppsPkey AppsConstraint = "apps_pkey"
 	// unique or primary key constraint on columns "subdomain"
 	AppsConstraintAppsSubdomainKey AppsConstraint = "apps_subdomain_key"
-	// unique or primary key constraint on columns "workspace_id", "slug"
-	AppsConstraintAppsWorkspaceIDSlugKey AppsConstraint = "apps_workspace_id_slug_key"
 )
 
 var AllAppsConstraint = []AppsConstraint{
 	AppsConstraintAppsPkey,
 	AppsConstraintAppsSubdomainKey,
-	AppsConstraintAppsWorkspaceIDSlugKey,
 }
 
 func (e AppsConstraint) IsValid() bool {
 	switch e {
-	case AppsConstraintAppsPkey, AppsConstraintAppsSubdomainKey, AppsConstraintAppsWorkspaceIDSlugKey:
+	case AppsConstraintAppsPkey, AppsConstraintAppsSubdomainKey:
 		return true
 	}
 	return false
@@ -6703,8 +5905,6 @@ const (
 	// column name
 	AppsSelectColumnUpdatedAt AppsSelectColumn = "updatedAt"
 	// column name
-	AppsSelectColumnWorkspaceID AppsSelectColumn = "workspaceId"
-	// column name
 	AppsSelectColumnName AppsSelectColumn = "name"
 	// column name
 	AppsSelectColumnSlug AppsSelectColumn = "slug"
@@ -6736,7 +5936,6 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnID,
 	AppsSelectColumnCreatedAt,
 	AppsSelectColumnUpdatedAt,
-	AppsSelectColumnWorkspaceID,
 	AppsSelectColumnName,
 	AppsSelectColumnSlug,
 	AppsSelectColumnGithubRepositoryID,
@@ -6754,7 +5953,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys:
+	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys:
 		return true
 	}
 	return false
@@ -7176,6 +6375,264 @@ func (e *BackupsSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e BackupsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.dedicated_compute"
+type BillingDedicatedComputeSelectColumn string
+
+const (
+	// column name
+	BillingDedicatedComputeSelectColumnAppID BillingDedicatedComputeSelectColumn = "appID"
+	// column name
+	BillingDedicatedComputeSelectColumnTotalMillicores BillingDedicatedComputeSelectColumn = "totalMillicores"
+	// column name
+	BillingDedicatedComputeSelectColumnOrganizationID BillingDedicatedComputeSelectColumn = "organizationID"
+)
+
+var AllBillingDedicatedComputeSelectColumn = []BillingDedicatedComputeSelectColumn{
+	BillingDedicatedComputeSelectColumnAppID,
+	BillingDedicatedComputeSelectColumnTotalMillicores,
+	BillingDedicatedComputeSelectColumnOrganizationID,
+}
+
+func (e BillingDedicatedComputeSelectColumn) IsValid() bool {
+	switch e {
+	case BillingDedicatedComputeSelectColumnAppID, BillingDedicatedComputeSelectColumnTotalMillicores, BillingDedicatedComputeSelectColumnOrganizationID:
+		return true
+	}
+	return false
+}
+
+func (e BillingDedicatedComputeSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingDedicatedComputeSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingDedicatedComputeSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_dedicated_compute_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingDedicatedComputeSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingDedicatedComputeSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingDedicatedComputeSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type BillingReportTypeEnum string
+
+const (
+	// Dedicated compute
+	BillingReportTypeEnumDedicatedCompute BillingReportTypeEnum = "dedicated_compute"
+	// Egress usage in MB
+	BillingReportTypeEnumEgress BillingReportTypeEnum = "egress"
+	// Functions usage in seconds
+	BillingReportTypeEnumFunctions BillingReportTypeEnum = "functions"
+)
+
+var AllBillingReportTypeEnum = []BillingReportTypeEnum{
+	BillingReportTypeEnumDedicatedCompute,
+	BillingReportTypeEnumEgress,
+	BillingReportTypeEnumFunctions,
+}
+
+func (e BillingReportTypeEnum) IsValid() bool {
+	switch e {
+	case BillingReportTypeEnumDedicatedCompute, BillingReportTypeEnumEgress, BillingReportTypeEnumFunctions:
+		return true
+	}
+	return false
+}
+
+func (e BillingReportTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *BillingReportTypeEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingReportTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_report_type_enum", str)
+	}
+	return nil
+}
+
+func (e BillingReportTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingReportTypeEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingReportTypeEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.reports"
+type BillingReportsSelectColumn string
+
+const (
+	// column name
+	BillingReportsSelectColumnAppID BillingReportsSelectColumn = "appID"
+	// column name
+	BillingReportsSelectColumnReportEnds BillingReportsSelectColumn = "reportEnds"
+	// column name
+	BillingReportsSelectColumnValue BillingReportsSelectColumn = "value"
+	// column name
+	BillingReportsSelectColumnType BillingReportsSelectColumn = "type"
+	// column name
+	BillingReportsSelectColumnOrganizationID BillingReportsSelectColumn = "organizationID"
+)
+
+var AllBillingReportsSelectColumn = []BillingReportsSelectColumn{
+	BillingReportsSelectColumnAppID,
+	BillingReportsSelectColumnReportEnds,
+	BillingReportsSelectColumnValue,
+	BillingReportsSelectColumnType,
+	BillingReportsSelectColumnOrganizationID,
+}
+
+func (e BillingReportsSelectColumn) IsValid() bool {
+	switch e {
+	case BillingReportsSelectColumnAppID, BillingReportsSelectColumnReportEnds, BillingReportsSelectColumnValue, BillingReportsSelectColumnType, BillingReportsSelectColumnOrganizationID:
+		return true
+	}
+	return false
+}
+
+func (e BillingReportsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingReportsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingReportsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_reports_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingReportsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingReportsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingReportsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.resources"
+type BillingResourcesSelectColumn string
+
+const (
+	// column name
+	BillingResourcesSelectColumnAppID BillingResourcesSelectColumn = "appID"
+	// column name
+	BillingResourcesSelectColumnFunctionsAmount BillingResourcesSelectColumn = "functionsAmount"
+	// column name
+	BillingResourcesSelectColumnCustomDomains BillingResourcesSelectColumn = "customDomains"
+	// column name
+	BillingResourcesSelectColumnPersistentVolume BillingResourcesSelectColumn = "persistentVolume"
+	// column name
+	BillingResourcesSelectColumnOrganizationID BillingResourcesSelectColumn = "organizationID"
+	// column name
+	BillingResourcesSelectColumnPitr BillingResourcesSelectColumn = "pitr"
+)
+
+var AllBillingResourcesSelectColumn = []BillingResourcesSelectColumn{
+	BillingResourcesSelectColumnAppID,
+	BillingResourcesSelectColumnFunctionsAmount,
+	BillingResourcesSelectColumnCustomDomains,
+	BillingResourcesSelectColumnPersistentVolume,
+	BillingResourcesSelectColumnOrganizationID,
+	BillingResourcesSelectColumnPitr,
+}
+
+func (e BillingResourcesSelectColumn) IsValid() bool {
+	switch e {
+	case BillingResourcesSelectColumnAppID, BillingResourcesSelectColumnFunctionsAmount, BillingResourcesSelectColumnCustomDomains, BillingResourcesSelectColumnPersistentVolume, BillingResourcesSelectColumnOrganizationID, BillingResourcesSelectColumnPitr:
+		return true
+	}
+	return false
+}
+
+func (e BillingResourcesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingResourcesSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingResourcesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_resources_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingResourcesSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingResourcesSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingResourcesSelectColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -8768,198 +8225,6 @@ func (e OrganizationsSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "payment_methods"
-type PaymentMethodsConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	PaymentMethodsConstraintPaymentMethodsPkey PaymentMethodsConstraint = "payment_methods_pkey"
-)
-
-var AllPaymentMethodsConstraint = []PaymentMethodsConstraint{
-	PaymentMethodsConstraintPaymentMethodsPkey,
-}
-
-func (e PaymentMethodsConstraint) IsValid() bool {
-	switch e {
-	case PaymentMethodsConstraintPaymentMethodsPkey:
-		return true
-	}
-	return false
-}
-
-func (e PaymentMethodsConstraint) String() string {
-	return string(e)
-}
-
-func (e *PaymentMethodsConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PaymentMethodsConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid paymentMethods_constraint", str)
-	}
-	return nil
-}
-
-func (e PaymentMethodsConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *PaymentMethodsConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e PaymentMethodsConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "payment_methods"
-type PaymentMethodsSelectColumn string
-
-const (
-	// column name
-	PaymentMethodsSelectColumnID PaymentMethodsSelectColumn = "id"
-	// column name
-	PaymentMethodsSelectColumnCreatedAt PaymentMethodsSelectColumn = "createdAt"
-	// column name
-	PaymentMethodsSelectColumnStripePaymentMethodID PaymentMethodsSelectColumn = "stripePaymentMethodId"
-	// column name
-	PaymentMethodsSelectColumnWorkspaceID PaymentMethodsSelectColumn = "workspaceId"
-	// column name
-	PaymentMethodsSelectColumnAddedByUserID PaymentMethodsSelectColumn = "addedByUserId"
-	// column name
-	PaymentMethodsSelectColumnCardLast4 PaymentMethodsSelectColumn = "cardLast4"
-	// column name
-	PaymentMethodsSelectColumnCardBrand PaymentMethodsSelectColumn = "cardBrand"
-	// column name
-	PaymentMethodsSelectColumnCardExpMonth PaymentMethodsSelectColumn = "cardExpMonth"
-	// column name
-	PaymentMethodsSelectColumnCardExpYear PaymentMethodsSelectColumn = "cardExpYear"
-	// column name
-	PaymentMethodsSelectColumnIsDefault PaymentMethodsSelectColumn = "isDefault"
-)
-
-var AllPaymentMethodsSelectColumn = []PaymentMethodsSelectColumn{
-	PaymentMethodsSelectColumnID,
-	PaymentMethodsSelectColumnCreatedAt,
-	PaymentMethodsSelectColumnStripePaymentMethodID,
-	PaymentMethodsSelectColumnWorkspaceID,
-	PaymentMethodsSelectColumnAddedByUserID,
-	PaymentMethodsSelectColumnCardLast4,
-	PaymentMethodsSelectColumnCardBrand,
-	PaymentMethodsSelectColumnCardExpMonth,
-	PaymentMethodsSelectColumnCardExpYear,
-	PaymentMethodsSelectColumnIsDefault,
-}
-
-func (e PaymentMethodsSelectColumn) IsValid() bool {
-	switch e {
-	case PaymentMethodsSelectColumnID, PaymentMethodsSelectColumnCreatedAt, PaymentMethodsSelectColumnStripePaymentMethodID, PaymentMethodsSelectColumnWorkspaceID, PaymentMethodsSelectColumnAddedByUserID, PaymentMethodsSelectColumnCardLast4, PaymentMethodsSelectColumnCardBrand, PaymentMethodsSelectColumnCardExpMonth, PaymentMethodsSelectColumnCardExpYear, PaymentMethodsSelectColumnIsDefault:
-		return true
-	}
-	return false
-}
-
-func (e PaymentMethodsSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *PaymentMethodsSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PaymentMethodsSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid paymentMethods_select_column", str)
-	}
-	return nil
-}
-
-func (e PaymentMethodsSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *PaymentMethodsSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e PaymentMethodsSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "payment_methods"
-type PaymentMethodsUpdateColumn string
-
-const (
-	// column name
-	PaymentMethodsUpdateColumnIsDefault PaymentMethodsUpdateColumn = "isDefault"
-)
-
-var AllPaymentMethodsUpdateColumn = []PaymentMethodsUpdateColumn{
-	PaymentMethodsUpdateColumnIsDefault,
-}
-
-func (e PaymentMethodsUpdateColumn) IsValid() bool {
-	switch e {
-	case PaymentMethodsUpdateColumnIsDefault:
-		return true
-	}
-	return false
-}
-
-func (e PaymentMethodsUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *PaymentMethodsUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PaymentMethodsUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid paymentMethods_update_column", str)
-	}
-	return nil
-}
-
-func (e PaymentMethodsUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *PaymentMethodsUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e PaymentMethodsUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
 type PipelineRunStatusEnum string
 
 const (
@@ -9254,8 +8519,6 @@ const (
 	// column name
 	PlansSelectColumnDeprecated PlansSelectColumn = "deprecated"
 	// column name
-	PlansSelectColumnIndividual PlansSelectColumn = "individual"
-	// column name
 	PlansSelectColumnSLALevel PlansSelectColumn = "slaLevel"
 )
 
@@ -9274,13 +8537,12 @@ var AllPlansSelectColumn = []PlansSelectColumn{
 	PlansSelectColumnIsDefault,
 	PlansSelectColumnIsPublic,
 	PlansSelectColumnDeprecated,
-	PlansSelectColumnIndividual,
 	PlansSelectColumnSLALevel,
 }
 
 func (e PlansSelectColumn) IsValid() bool {
 	switch e {
-	case PlansSelectColumnID, PlansSelectColumnCreatedAt, PlansSelectColumnUpatedAt, PlansSelectColumnName, PlansSelectColumnIsFree, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnIsDefault, PlansSelectColumnIsPublic, PlansSelectColumnDeprecated, PlansSelectColumnIndividual, PlansSelectColumnSLALevel:
+	case PlansSelectColumnID, PlansSelectColumnCreatedAt, PlansSelectColumnUpatedAt, PlansSelectColumnName, PlansSelectColumnIsFree, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnIsDefault, PlansSelectColumnIsPublic, PlansSelectColumnDeprecated, PlansSelectColumnSLALevel:
 		return true
 	}
 	return false
@@ -9324,7 +8586,7 @@ func (e PlansSelectColumn) MarshalJSON() ([]byte, error) {
 type RegionTypeEnum string
 
 const (
-	// Private region available to selected workspaces
+	// Private region available to selected organizations
 	RegionTypeEnumPrivate RegionTypeEnum = "private"
 	// Public region available to all Nhost projects
 	RegionTypeEnumPublic RegionTypeEnum = "public"
@@ -9443,76 +8705,6 @@ func (e *RegionsAllowedOrganizationSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e RegionsAllowedOrganizationSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "regions_allowed_workspace"
-type RegionsAllowedWorkspaceSelectColumn string
-
-const (
-	// column name
-	RegionsAllowedWorkspaceSelectColumnID RegionsAllowedWorkspaceSelectColumn = "id"
-	// column name
-	RegionsAllowedWorkspaceSelectColumnCreatedAt RegionsAllowedWorkspaceSelectColumn = "created_at"
-	// column name
-	RegionsAllowedWorkspaceSelectColumnUpdatedAt RegionsAllowedWorkspaceSelectColumn = "updated_at"
-	// column name
-	RegionsAllowedWorkspaceSelectColumnDescription RegionsAllowedWorkspaceSelectColumn = "description"
-	// column name
-	RegionsAllowedWorkspaceSelectColumnRegionID RegionsAllowedWorkspaceSelectColumn = "region_id"
-	// column name
-	RegionsAllowedWorkspaceSelectColumnWorkspaceID RegionsAllowedWorkspaceSelectColumn = "workspace_id"
-)
-
-var AllRegionsAllowedWorkspaceSelectColumn = []RegionsAllowedWorkspaceSelectColumn{
-	RegionsAllowedWorkspaceSelectColumnID,
-	RegionsAllowedWorkspaceSelectColumnCreatedAt,
-	RegionsAllowedWorkspaceSelectColumnUpdatedAt,
-	RegionsAllowedWorkspaceSelectColumnDescription,
-	RegionsAllowedWorkspaceSelectColumnRegionID,
-	RegionsAllowedWorkspaceSelectColumnWorkspaceID,
-}
-
-func (e RegionsAllowedWorkspaceSelectColumn) IsValid() bool {
-	switch e {
-	case RegionsAllowedWorkspaceSelectColumnID, RegionsAllowedWorkspaceSelectColumnCreatedAt, RegionsAllowedWorkspaceSelectColumnUpdatedAt, RegionsAllowedWorkspaceSelectColumnDescription, RegionsAllowedWorkspaceSelectColumnRegionID, RegionsAllowedWorkspaceSelectColumnWorkspaceID:
-		return true
-	}
-	return false
-}
-
-func (e RegionsAllowedWorkspaceSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *RegionsAllowedWorkspaceSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = RegionsAllowedWorkspaceSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid regions_allowed_workspace_select_column", str)
-	}
-	return nil
-}
-
-func (e RegionsAllowedWorkspaceSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *RegionsAllowedWorkspaceSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e RegionsAllowedWorkspaceSelectColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
@@ -10001,621 +9193,6 @@ func (e *UsersSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e UsersSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "workspace_member_invites"
-type WorkspaceMemberInvitesConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesPkey WorkspaceMemberInvitesConstraint = "workspace_member_invites_pkey"
-	// unique or primary key constraint on columns "email", "workspace_id"
-	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesEmailWorkspaceIDKey WorkspaceMemberInvitesConstraint = "workspace_member_invites_email_workspace_id_key"
-)
-
-var AllWorkspaceMemberInvitesConstraint = []WorkspaceMemberInvitesConstraint{
-	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesPkey,
-	WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesEmailWorkspaceIDKey,
-}
-
-func (e WorkspaceMemberInvitesConstraint) IsValid() bool {
-	switch e {
-	case WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesPkey, WorkspaceMemberInvitesConstraintWorkspaceMemberInvitesEmailWorkspaceIDKey:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMemberInvitesConstraint) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMemberInvitesConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMemberInvitesConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMemberInvites_constraint", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMemberInvitesConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMemberInvitesConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMemberInvitesConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "workspace_member_invites"
-type WorkspaceMemberInvitesSelectColumn string
-
-const (
-	// column name
-	WorkspaceMemberInvitesSelectColumnID WorkspaceMemberInvitesSelectColumn = "id"
-	// column name
-	WorkspaceMemberInvitesSelectColumnCreatedAt WorkspaceMemberInvitesSelectColumn = "createdAt"
-	// column name
-	WorkspaceMemberInvitesSelectColumnUpdatedAt WorkspaceMemberInvitesSelectColumn = "updatedAt"
-	// column name
-	WorkspaceMemberInvitesSelectColumnWorkspaceID WorkspaceMemberInvitesSelectColumn = "workspaceId"
-	// column name
-	WorkspaceMemberInvitesSelectColumnEmail WorkspaceMemberInvitesSelectColumn = "email"
-	// owner or member
-	WorkspaceMemberInvitesSelectColumnMemberType WorkspaceMemberInvitesSelectColumn = "memberType"
-	// column name
-	WorkspaceMemberInvitesSelectColumnInvitedByUserID WorkspaceMemberInvitesSelectColumn = "invitedByUserId"
-)
-
-var AllWorkspaceMemberInvitesSelectColumn = []WorkspaceMemberInvitesSelectColumn{
-	WorkspaceMemberInvitesSelectColumnID,
-	WorkspaceMemberInvitesSelectColumnCreatedAt,
-	WorkspaceMemberInvitesSelectColumnUpdatedAt,
-	WorkspaceMemberInvitesSelectColumnWorkspaceID,
-	WorkspaceMemberInvitesSelectColumnEmail,
-	WorkspaceMemberInvitesSelectColumnMemberType,
-	WorkspaceMemberInvitesSelectColumnInvitedByUserID,
-}
-
-func (e WorkspaceMemberInvitesSelectColumn) IsValid() bool {
-	switch e {
-	case WorkspaceMemberInvitesSelectColumnID, WorkspaceMemberInvitesSelectColumnCreatedAt, WorkspaceMemberInvitesSelectColumnUpdatedAt, WorkspaceMemberInvitesSelectColumnWorkspaceID, WorkspaceMemberInvitesSelectColumnEmail, WorkspaceMemberInvitesSelectColumnMemberType, WorkspaceMemberInvitesSelectColumnInvitedByUserID:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMemberInvitesSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMemberInvitesSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMemberInvitesSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMemberInvites_select_column", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMemberInvitesSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMemberInvitesSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMemberInvitesSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "workspace_member_invites"
-type WorkspaceMemberInvitesUpdateColumn string
-
-const (
-	// owner or member
-	WorkspaceMemberInvitesUpdateColumnMemberType WorkspaceMemberInvitesUpdateColumn = "memberType"
-)
-
-var AllWorkspaceMemberInvitesUpdateColumn = []WorkspaceMemberInvitesUpdateColumn{
-	WorkspaceMemberInvitesUpdateColumnMemberType,
-}
-
-func (e WorkspaceMemberInvitesUpdateColumn) IsValid() bool {
-	switch e {
-	case WorkspaceMemberInvitesUpdateColumnMemberType:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMemberInvitesUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMemberInvitesUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMemberInvitesUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMemberInvites_update_column", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMemberInvitesUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMemberInvitesUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMemberInvitesUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "workspace_members"
-type WorkspaceMembersConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	WorkspaceMembersConstraintWorkspaceMembersPkey WorkspaceMembersConstraint = "workspace_members_pkey"
-	// unique or primary key constraint on columns "user_id", "workspace_id"
-	WorkspaceMembersConstraintWorkspaceMembersUserIDWorkspaceIDKey WorkspaceMembersConstraint = "workspace_members_user_id_workspace_id_key"
-)
-
-var AllWorkspaceMembersConstraint = []WorkspaceMembersConstraint{
-	WorkspaceMembersConstraintWorkspaceMembersPkey,
-	WorkspaceMembersConstraintWorkspaceMembersUserIDWorkspaceIDKey,
-}
-
-func (e WorkspaceMembersConstraint) IsValid() bool {
-	switch e {
-	case WorkspaceMembersConstraintWorkspaceMembersPkey, WorkspaceMembersConstraintWorkspaceMembersUserIDWorkspaceIDKey:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMembersConstraint) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMembersConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMembersConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMembers_constraint", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMembersConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMembersConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMembersConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "workspace_members"
-type WorkspaceMembersSelectColumn string
-
-const (
-	// column name
-	WorkspaceMembersSelectColumnID WorkspaceMembersSelectColumn = "id"
-	// column name
-	WorkspaceMembersSelectColumnCreatedAt WorkspaceMembersSelectColumn = "createdAt"
-	// column name
-	WorkspaceMembersSelectColumnUpdatedAt WorkspaceMembersSelectColumn = "updatedAt"
-	// column name
-	WorkspaceMembersSelectColumnUserID WorkspaceMembersSelectColumn = "userId"
-	// column name
-	WorkspaceMembersSelectColumnWorkspaceID WorkspaceMembersSelectColumn = "workspaceId"
-	// owner or member
-	WorkspaceMembersSelectColumnType WorkspaceMembersSelectColumn = "type"
-)
-
-var AllWorkspaceMembersSelectColumn = []WorkspaceMembersSelectColumn{
-	WorkspaceMembersSelectColumnID,
-	WorkspaceMembersSelectColumnCreatedAt,
-	WorkspaceMembersSelectColumnUpdatedAt,
-	WorkspaceMembersSelectColumnUserID,
-	WorkspaceMembersSelectColumnWorkspaceID,
-	WorkspaceMembersSelectColumnType,
-}
-
-func (e WorkspaceMembersSelectColumn) IsValid() bool {
-	switch e {
-	case WorkspaceMembersSelectColumnID, WorkspaceMembersSelectColumnCreatedAt, WorkspaceMembersSelectColumnUpdatedAt, WorkspaceMembersSelectColumnUserID, WorkspaceMembersSelectColumnWorkspaceID, WorkspaceMembersSelectColumnType:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMembersSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMembersSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMembersSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMembers_select_column", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMembersSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMembersSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMembersSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "workspace_members"
-type WorkspaceMembersUpdateColumn string
-
-const (
-	// owner or member
-	WorkspaceMembersUpdateColumnType WorkspaceMembersUpdateColumn = "type"
-)
-
-var AllWorkspaceMembersUpdateColumn = []WorkspaceMembersUpdateColumn{
-	WorkspaceMembersUpdateColumnType,
-}
-
-func (e WorkspaceMembersUpdateColumn) IsValid() bool {
-	switch e {
-	case WorkspaceMembersUpdateColumnType:
-		return true
-	}
-	return false
-}
-
-func (e WorkspaceMembersUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspaceMembersUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspaceMembersUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaceMembers_update_column", str)
-	}
-	return nil
-}
-
-func (e WorkspaceMembersUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspaceMembersUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspaceMembersUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "workspaces"
-type WorkspacesConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	WorkspacesConstraintWorkspacesPkey WorkspacesConstraint = "workspaces_pkey"
-	// unique or primary key constraint on columns "slug"
-	WorkspacesConstraintWorkspacesSlugKey WorkspacesConstraint = "workspaces_slug_key"
-)
-
-var AllWorkspacesConstraint = []WorkspacesConstraint{
-	WorkspacesConstraintWorkspacesPkey,
-	WorkspacesConstraintWorkspacesSlugKey,
-}
-
-func (e WorkspacesConstraint) IsValid() bool {
-	switch e {
-	case WorkspacesConstraintWorkspacesPkey, WorkspacesConstraintWorkspacesSlugKey:
-		return true
-	}
-	return false
-}
-
-func (e WorkspacesConstraint) String() string {
-	return string(e)
-}
-
-func (e *WorkspacesConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspacesConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaces_constraint", str)
-	}
-	return nil
-}
-
-func (e WorkspacesConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspacesConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspacesConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "workspaces"
-type WorkspacesSelectColumn string
-
-const (
-	// column name
-	WorkspacesSelectColumnID WorkspacesSelectColumn = "id"
-	// column name
-	WorkspacesSelectColumnName WorkspacesSelectColumn = "name"
-	// column name
-	WorkspacesSelectColumnSlug WorkspacesSelectColumn = "slug"
-	// column name
-	WorkspacesSelectColumnEmail WorkspacesSelectColumn = "email"
-	// column name
-	WorkspacesSelectColumnCreatorUserID WorkspacesSelectColumn = "creatorUserId"
-	// Address line 1 (e.g., street, PO Box, or company name).
-	WorkspacesSelectColumnAddressLine1 WorkspacesSelectColumn = "addressLine1"
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	WorkspacesSelectColumnAddressLine2 WorkspacesSelectColumn = "addressLine2"
-	// City, district, suburb, town, or village.
-	WorkspacesSelectColumnAddressCity WorkspacesSelectColumn = "addressCity"
-	// ZIP or postal code.
-	WorkspacesSelectColumnAddressPostalCode WorkspacesSelectColumn = "addressPostalCode"
-	// State, county, province, or region.
-	WorkspacesSelectColumnAddressState WorkspacesSelectColumn = "addressState"
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	WorkspacesSelectColumnAddressCountryCode WorkspacesSelectColumn = "addressCountryCode"
-	// column name
-	WorkspacesSelectColumnTaxIDType WorkspacesSelectColumn = "taxIdType"
-	// column name
-	WorkspacesSelectColumnTaxIDValue WorkspacesSelectColumn = "taxIdValue"
-	// column name
-	WorkspacesSelectColumnCompanyName WorkspacesSelectColumn = "companyName"
-	// column name
-	WorkspacesSelectColumnCreatedAt WorkspacesSelectColumn = "createdAt"
-	// column name
-	WorkspacesSelectColumnUpdatedAt WorkspacesSelectColumn = "updatedAt"
-)
-
-var AllWorkspacesSelectColumn = []WorkspacesSelectColumn{
-	WorkspacesSelectColumnID,
-	WorkspacesSelectColumnName,
-	WorkspacesSelectColumnSlug,
-	WorkspacesSelectColumnEmail,
-	WorkspacesSelectColumnCreatorUserID,
-	WorkspacesSelectColumnAddressLine1,
-	WorkspacesSelectColumnAddressLine2,
-	WorkspacesSelectColumnAddressCity,
-	WorkspacesSelectColumnAddressPostalCode,
-	WorkspacesSelectColumnAddressState,
-	WorkspacesSelectColumnAddressCountryCode,
-	WorkspacesSelectColumnTaxIDType,
-	WorkspacesSelectColumnTaxIDValue,
-	WorkspacesSelectColumnCompanyName,
-	WorkspacesSelectColumnCreatedAt,
-	WorkspacesSelectColumnUpdatedAt,
-}
-
-func (e WorkspacesSelectColumn) IsValid() bool {
-	switch e {
-	case WorkspacesSelectColumnID, WorkspacesSelectColumnName, WorkspacesSelectColumnSlug, WorkspacesSelectColumnEmail, WorkspacesSelectColumnCreatorUserID, WorkspacesSelectColumnAddressLine1, WorkspacesSelectColumnAddressLine2, WorkspacesSelectColumnAddressCity, WorkspacesSelectColumnAddressPostalCode, WorkspacesSelectColumnAddressState, WorkspacesSelectColumnAddressCountryCode, WorkspacesSelectColumnTaxIDType, WorkspacesSelectColumnTaxIDValue, WorkspacesSelectColumnCompanyName, WorkspacesSelectColumnCreatedAt, WorkspacesSelectColumnUpdatedAt:
-		return true
-	}
-	return false
-}
-
-func (e WorkspacesSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspacesSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspacesSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaces_select_column", str)
-	}
-	return nil
-}
-
-func (e WorkspacesSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspacesSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspacesSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "workspaces"
-type WorkspacesUpdateColumn string
-
-const (
-	// column name
-	WorkspacesUpdateColumnName WorkspacesUpdateColumn = "name"
-	// column name
-	WorkspacesUpdateColumnSlug WorkspacesUpdateColumn = "slug"
-	// column name
-	WorkspacesUpdateColumnEmail WorkspacesUpdateColumn = "email"
-	// Address line 1 (e.g., street, PO Box, or company name).
-	WorkspacesUpdateColumnAddressLine1 WorkspacesUpdateColumn = "addressLine1"
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	WorkspacesUpdateColumnAddressLine2 WorkspacesUpdateColumn = "addressLine2"
-	// City, district, suburb, town, or village.
-	WorkspacesUpdateColumnAddressCity WorkspacesUpdateColumn = "addressCity"
-	// ZIP or postal code.
-	WorkspacesUpdateColumnAddressPostalCode WorkspacesUpdateColumn = "addressPostalCode"
-	// State, county, province, or region.
-	WorkspacesUpdateColumnAddressState WorkspacesUpdateColumn = "addressState"
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	WorkspacesUpdateColumnAddressCountryCode WorkspacesUpdateColumn = "addressCountryCode"
-	// column name
-	WorkspacesUpdateColumnTaxIDType WorkspacesUpdateColumn = "taxIdType"
-	// column name
-	WorkspacesUpdateColumnTaxIDValue WorkspacesUpdateColumn = "taxIdValue"
-	// column name
-	WorkspacesUpdateColumnCompanyName WorkspacesUpdateColumn = "companyName"
-)
-
-var AllWorkspacesUpdateColumn = []WorkspacesUpdateColumn{
-	WorkspacesUpdateColumnName,
-	WorkspacesUpdateColumnSlug,
-	WorkspacesUpdateColumnEmail,
-	WorkspacesUpdateColumnAddressLine1,
-	WorkspacesUpdateColumnAddressLine2,
-	WorkspacesUpdateColumnAddressCity,
-	WorkspacesUpdateColumnAddressPostalCode,
-	WorkspacesUpdateColumnAddressState,
-	WorkspacesUpdateColumnAddressCountryCode,
-	WorkspacesUpdateColumnTaxIDType,
-	WorkspacesUpdateColumnTaxIDValue,
-	WorkspacesUpdateColumnCompanyName,
-}
-
-func (e WorkspacesUpdateColumn) IsValid() bool {
-	switch e {
-	case WorkspacesUpdateColumnName, WorkspacesUpdateColumnSlug, WorkspacesUpdateColumnEmail, WorkspacesUpdateColumnAddressLine1, WorkspacesUpdateColumnAddressLine2, WorkspacesUpdateColumnAddressCity, WorkspacesUpdateColumnAddressPostalCode, WorkspacesUpdateColumnAddressState, WorkspacesUpdateColumnAddressCountryCode, WorkspacesUpdateColumnTaxIDType, WorkspacesUpdateColumnTaxIDValue, WorkspacesUpdateColumnCompanyName:
-		return true
-	}
-	return false
-}
-
-func (e WorkspacesUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *WorkspacesUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkspacesUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid workspaces_update_column", str)
-	}
-	return nil
-}
-
-func (e WorkspacesUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *WorkspacesUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e WorkspacesUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

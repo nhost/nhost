@@ -38,8 +38,8 @@ export interface EditOAuth2ClientFormProps extends DialogFormProps {
 }
 
 const validationSchema = z.object({
-  description: z.string().default(''),
-  redirectUris: z.string().default(''),
+  description: z.string(),
+  redirectUris: z.string(),
 });
 
 type EditOAuth2ClientFormValues = z.infer<typeof validationSchema>;

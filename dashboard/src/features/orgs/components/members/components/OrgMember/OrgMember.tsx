@@ -177,7 +177,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 {member.user.displayName}
               </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
+                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary dark:bg-primary">
                   Me
                 </Badge>
               )}

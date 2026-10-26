@@ -25,7 +25,7 @@ const baseButtonVariants = cva(
         // see `defaultSizeByVariant`. At rest a softened foreground: quieter
         // than text, still clearly clickable (muted-foreground reads disabled).
         subtle:
-          'text-[hsl(var(--foreground)/0.58)] hover:text-primary-main dark:text-[hsl(var(--foreground)/0.72)] dark:hover:text-primary-main',
+          'text-[hsl(var(--foreground)/0.58)] hover:text-primary dark:text-[hsl(var(--foreground)/0.72)] dark:hover:text-primary',
         link: 'text-primary underline-offset-4 hover:underline',
         // Rows inside a menu, like the account menu. No border or fill until
         // hover; menu-destructive is the same row in the danger color.

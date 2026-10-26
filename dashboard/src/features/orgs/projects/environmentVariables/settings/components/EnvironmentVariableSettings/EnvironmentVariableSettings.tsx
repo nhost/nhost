@@ -197,12 +197,12 @@ export default function EnvironmentVariableSettings() {
                           </Button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem
                             onClick={() =>
                               handleOpenEditor(environmentVariable)
                             }
-                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2"
                           >
                             <span>Edit</span>
                           </DropdownMenuItem>
@@ -211,7 +211,7 @@ export default function EnvironmentVariableSettings() {
                             onClick={() =>
                               handleConfirmDelete(environmentVariable)
                             }
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                           >
                             <span>Delete</span>
                           </DropdownMenuItem>

@@ -2,7 +2,7 @@ import {
   Check,
   ChevronsUpDown,
   InfoIcon,
-  SquarePen as PencilIcon,
+  Pencil as PencilIcon,
   PlusIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';

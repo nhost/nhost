@@ -147,10 +147,10 @@ export default function OAuth2ClientsList({
                   </Button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent align="end" className="w-52 p-0">
+                <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem
                     onClick={() => handleEdit(client)}
-                    className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                    className="cursor-pointer gap-2"
                   >
                     <UserIcon className="h-4 w-4" />
                     <span>Edit Client</span>
@@ -158,7 +158,7 @@ export default function OAuth2ClientsList({
 
                   <DropdownMenuItem
                     onClick={() => handleDelete(client)}
-                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                    className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                   >
                     <TrashIcon className="h-4 w-4" />
                     <span>Delete Client</span>

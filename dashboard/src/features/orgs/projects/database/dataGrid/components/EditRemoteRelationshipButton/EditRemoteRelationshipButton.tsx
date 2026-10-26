@@ -1,4 +1,4 @@
-import { SquarePen } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
@@ -82,7 +82,7 @@ export default function EditRemoteRelationshipButton({
         size="icon"
         onClick={() => setOpen(true)}
       >
-        <SquarePen className="size-4" />
+        <Pencil className="size-4" />
       </Button>
 
       <BaseRelationshipDialog

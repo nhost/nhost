@@ -1,4 +1,4 @@
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -29,17 +29,14 @@ export default function BucketActions({
           <Ellipsis className="h-6 w-6" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="start" className="w-44 p-0">
-        <DropdownMenuItem
-          className="flex h-9 cursor-pointer items-center gap-2 rounded-none text-sm+"
-          onClick={onEdit}
-        >
-          <SquarePen className="h-4 w-4" />
+      <DropdownMenuContent side="bottom" align="start" className="w-44">
+        <DropdownMenuItem className="cursor-pointer gap-2" onClick={onEdit}>
+          <Pencil className="h-4 w-4" />
           <span>Edit Bucket</span>
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-0" />
+        <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="!text-destructive flex h-9 cursor-pointer items-center gap-2 rounded-none text-sm+ focus:text-destructive"
+          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
           onClick={onDelete}
         >
           <Trash2 className="h-4 w-4" />
