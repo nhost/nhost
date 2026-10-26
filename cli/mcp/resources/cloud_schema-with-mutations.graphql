@@ -1539,12 +1539,14 @@ input uuid_comparison_exp {
 type Query {
   """fetch data from the table: "apps" using primary key columns"""
 app(id: uuid!): apps
-  """fetch data from the table: "apps""""
+  """fetch data from the table: "apps"
+  """
 apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
   config(appID: uuid!, resolve: Boolean!): ConfigConfig
   """fetch data from the table: "organizations" using primary key columns"""
 organization(id: uuid!): organizations
-  """fetch data from the table: "organizations""""
+  """fetch data from the table: "organizations"
+  """
 organizations(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): [organizations!]!
 }
 
