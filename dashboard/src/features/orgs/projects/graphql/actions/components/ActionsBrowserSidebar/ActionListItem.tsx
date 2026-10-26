@@ -3,7 +3,7 @@ import {
   Ellipsis,
   FilePen,
   FileSearch,
-  SquarePen,
+  Pencil,
   Trash2,
   Users,
 } from 'lucide-react';
@@ -34,8 +34,7 @@ import { EditActionRelationshipsForm } from '@/features/orgs/projects/graphql/ac
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 
-const menuItemClassName =
-  'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';
+const menuItemClassName = 'cursor-pointer gap-2';
 
 export interface ActionListItemProps {
   action: ActionItem;
@@ -177,14 +176,14 @@ export default function ActionListItem({
             <DropdownMenuContent
               align="start"
               side="bottom"
-              className="w-52 p-0"
+              className="w-52"
               forceMount
             >
               <DropdownMenuItem
                 onSelect={handleEditClick}
                 className={menuItemClassName}
               >
-                <SquarePen className="size-4" />
+                <Pencil className="size-4" />
                 Edit Action
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -205,7 +204,7 @@ export default function ActionListItem({
                 onSelect={() => onDeleteAction(action)}
                 className={cn(
                   menuItemClassName,
-                  'text-destructive focus:text-destructive',
+                  'text-destructive focus:bg-destructive-hover focus:text-destructive',
                 )}
               >
                 <Trash2 className="size-4" />
