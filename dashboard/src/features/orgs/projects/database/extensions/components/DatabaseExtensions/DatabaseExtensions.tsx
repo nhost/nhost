@@ -1,4 +1,4 @@
-import { Search, TriangleAlert } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
@@ -66,7 +66,6 @@ function MissingPreloadAlert({
 
   return (
     <Alert variant="warning">
-      <TriangleAlert className="h-4 w-4" aria-hidden />
       <AlertTitle>
         {isSingle
           ? "1 installed extension isn't preloaded"

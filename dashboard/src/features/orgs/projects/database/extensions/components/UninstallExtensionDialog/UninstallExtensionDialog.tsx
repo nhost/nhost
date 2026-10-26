@@ -1,4 +1,3 @@
-import { TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
@@ -91,7 +90,6 @@ export default function UninstallExtensionDialog({
 
         {cascadeWarning && (
           <Alert variant="warning">
-            <TriangleAlert className="size-5" aria-hidden />
             <AlertDescription>
               <p className="text-pretty">{cascadeWarning}</p>
               {isPlatform && (
