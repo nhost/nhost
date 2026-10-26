@@ -5,11 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SessionList from '@/app/account/SessionList';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
 
-const router = vi.hoisted(() => ({ refresh: vi.fn() }));
+const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 const signOutSession = vi.hoisted(() => vi.fn());
+const signOut = vi.hoisted(() => vi.fn());
 
 vi.mock('next/navigation', () => ({ useRouter: () => router }));
 vi.mock('@/app/account/actions', () => ({ signOutSession }));
+vi.mock('@/lib/nhost/actions', () => ({ signOut }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -33,14 +35,17 @@ const sessions: SessionSummary[] = [
 let container: HTMLElement;
 let root: Root;
 
-const buttons = (): HTMLButtonElement[] => [
-  ...container.querySelectorAll('button'),
-];
+const button = (row: number): HTMLButtonElement =>
+  container
+    .querySelectorAll('li')
+    [row].querySelector('button') as HTMLButtonElement;
 
 describe('session list', () => {
   beforeEach(async () => {
+    router.push.mockReset();
     router.refresh.mockReset();
     signOutSession.mockReset();
+    signOut.mockReset();
     container = document.body.appendChild(document.createElement('ul'));
     root = createRoot(container);
     await act(async () => root.render(<SessionList sessions={sessions} />));
@@ -58,18 +63,41 @@ describe('session list', () => {
     );
   });
 
-  it('marks this device and offers no way to sign it out here', () => {
-    const rows = container.querySelectorAll('li');
+  it('marks this device', () => {
+    expect(container.querySelectorAll('li')[0].textContent).toContain(
+      'This device',
+    );
+  });
 
-    expect(rows[0].textContent).toContain('This device');
-    expect(rows[0].querySelector('button')).toBeNull();
-    expect(buttons()).toHaveLength(1);
+  // Deleting its own row would leave this browser holding cookies for a
+  // session that is gone, so it signs out the way the nav does.
+  it('signs this device out the way the nav does and goes home', async () => {
+    signOut.mockResolvedValueOnce({});
+
+    await act(async () => button(0).click());
+
+    expect(signOut).toHaveBeenCalledWith();
+    expect(signOutSession).not.toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith('/');
+  });
+
+  it('says why when this device could not be signed out', async () => {
+    signOut.mockResolvedValueOnce({
+      error: 'Could not reach the server. You are still signed in.',
+    });
+
+    await act(async () => button(0).click());
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
+      'Could not reach the server. You are still signed in.',
+    );
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   it('signs out another session and reads the list again', async () => {
     signOutSession.mockResolvedValueOnce({ success: true });
 
-    await act(async () => buttons()[0].click());
+    await act(async () => button(1).click());
 
     expect(signOutSession).toHaveBeenCalledWith('phone-0000');
     expect(router.refresh).toHaveBeenCalledOnce();
@@ -80,7 +108,7 @@ describe('session list', () => {
       error: 'That session is not on this account.',
     });
 
-    await act(async () => buttons()[0].click());
+    await act(async () => button(1).click());
 
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'That session is not on this account.',

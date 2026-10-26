@@ -365,8 +365,8 @@ export async function handleNhostProxy(
     ? storage.get()
     : await nhost.refreshSession(PROXY_REFRESH_MARGIN_SECONDS);
 
-  // A session revoked from elsewhere, by signing out everywhere or from
-  // another device's account page, still holds an access token the backend
+  // A session revoked from elsewhere, by a password change or from another
+  // device's account page, still holds an access token the backend
   // accepts until it expires. Only the refresh token's row says it is over, so
   // every real navigation looks for it. Prefetches do not: nobody is looking
   // at their response yet, and the navigation that follows checks.

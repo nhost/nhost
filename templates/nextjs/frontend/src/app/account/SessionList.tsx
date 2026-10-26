@@ -6,6 +6,7 @@ import { signOutSession } from '@/app/account/actions';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
+import { useSignOut } from '@/components/useSignOut';
 
 const subscribeToNothing = () => () => undefined;
 
@@ -23,10 +24,11 @@ function useHydrated(): boolean {
 
 /**
  * One line per browser signed in to the account, each with a way to sign it
- * out but this one, which the nav signs out.
+ * out. This one signs out the way the nav does, which clears its cookies and
+ * goes home; the others have their row deleted.
  *
  * No dialog before signing one out: it reaches a single device, which can
- * sign in again, where signing out everywhere asks first.
+ * sign in again.
  */
 export default function SessionList({
   sessions,
@@ -38,6 +40,7 @@ export default function SessionList({
   const hydrated = useHydrated();
   const [pending, setPending] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
+  const here = useSignOut();
 
   const handleSignOut = async (session: SessionSummary): Promise<void> => {
     setError(undefined);
@@ -81,24 +84,28 @@ export default function SessionList({
                 </span>
               ) : null}
             </p>
-            {session.current ? null : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0"
-                disabled={Boolean(pending)}
-                onClick={() => void handleSignOut(session)}
-              >
-                {pending === session.id ? 'Signing out…' : 'Sign out'}
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              disabled={Boolean(pending) || here.isSigningOut}
+              onClick={() =>
+                void (session.current
+                  ? here.handleSignOut()
+                  : handleSignOut(session))
+              }
+            >
+              {(session.current ? here.isSigningOut : pending === session.id)
+                ? 'Signing out…'
+                : 'Sign out'}
+            </Button>
           </li>
         );
       })}
-      {error ? (
+      {(error ?? here.error) ? (
         <li role="alert" className="px-5 py-3 text-destructive text-sm">
-          {error}
+          {error ?? here.error}
         </li>
       ) : null}
     </>

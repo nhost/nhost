@@ -10,32 +10,16 @@ export type ActionResult = { error?: string };
 // more. So an error with a status means this device is signed out whatever the
 // auth service did, and only an error without one, where no answer came back,
 // leaves the session cookie in place.
-//
-// `all` revokes every refresh token the account holds, not only this
-// session's, which signs it out on every device. The auth service needs this
-// session's access token for that, so without a session nothing is revoked.
-export async function signOut({
-  all = false,
-}: {
-  all?: boolean;
-} = {}): Promise<ActionResult> {
+export async function signOut(): Promise<ActionResult> {
   try {
     const nhost = await createNhostClient();
     const session = nhost.getUserSession();
 
     if (!session) {
-      return all
-        ? {
-            error:
-              'You are not signed in here, so your other sessions could not be revoked. Sign in and try again.',
-          }
-        : {};
+      return {};
     }
 
-    await nhost.auth.signOut({
-      refreshToken: session.refreshToken,
-      all,
-    });
+    await nhost.auth.signOut({ refreshToken: session.refreshToken });
   } catch (err) {
     console.error('Error signing out:', err);
 
@@ -44,9 +28,8 @@ export async function signOut({
     }
 
     return {
-      error: all
-        ? 'You are signed out on this device, but your other sessions were not revoked. Sign in and try again.'
-        : 'You are signed out on this device, but the sign-out request failed.',
+      error:
+        'You are signed out on this device, but the sign-out request failed.',
     };
   }
 

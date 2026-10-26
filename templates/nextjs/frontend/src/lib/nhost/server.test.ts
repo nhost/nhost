@@ -544,19 +544,8 @@ describe('session cookies from server actions', () => {
     }
   });
 
-  // The flag is what the auth service acts on, so it has to reach the wire.
-  it('asks the auth service to revoke every session when signing out everywhere', async () => {
-    cookie.value = storedSession(900);
-    fetchMock.mockImplementation(async () => json('OK', 200));
-
-    await signOut({ all: true });
-
-    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string);
-    expect(body.all).toBe(true);
-  });
-
   it.each([401, 500])(
-    'reports this device as signed out when signing out everywhere gets a %i',
+    'reports this device as signed out when sign-out gets a %i',
     async (status) => {
       vi.spyOn(console, 'error').mockImplementation(() => undefined);
       cookie.value = storedSession(900);
@@ -564,9 +553,9 @@ describe('session cookies from server actions', () => {
         json({ error: 'error', message: 'Failed' }, status),
       );
 
-      expect(await signOut({ all: true })).toEqual({
+      expect(await signOut()).toEqual({
         error:
-          'You are signed out on this device, but your other sessions were not revoked. Sign in and try again.',
+          'You are signed out on this device, but the sign-out request failed.',
       });
 
       for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
@@ -582,18 +571,14 @@ describe('session cookies from server actions', () => {
     cookie.value = storedSession(900);
     fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
-    expect(await signOut({ all: true })).toEqual({
+    expect(await signOut()).toEqual({
       error: 'Could not reach the server. You are still signed in.',
     });
     expect(written.response?.headers.getSetCookie()).toEqual([]);
   });
 
-  // A retry after a failed sign-out everywhere lands here, and reporting
-  // success would leave the other sessions live.
-  it('does not report success for signing out everywhere without a session', async () => {
-    const result = await signOut({ all: true });
-
-    expect(result.error).toBeDefined();
+  it('has nothing to do without a session', async () => {
+    expect(await signOut()).toEqual({});
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -73,8 +73,7 @@ any other runtime variable rather than before the build.
 The account page lists every browser signed in to the account, one line
 each: the browser and system, then, where the host provides it, the city,
 then the address, and last when it was last used, in the visitor's time
-zone. Any session but the current one can be signed out from there, and all
-of them at once with Sign out everywhere.
+zone. Each one can be signed out from its line, this browser's included.
 
 The auth service records none of this, so the app does. The proxy writes it to
 the session's row in `auth.refresh_tokens`, in the `metadata` column the auth

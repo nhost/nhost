@@ -1,12 +1,11 @@
 import { listSessions } from '@/app/account/actions';
 import SessionList from '@/app/account/SessionList';
-import SessionsSetting from '@/app/account/SessionsSetting';
 import { summarizeSessions } from '@/app/account/sessions';
 import { SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 
 /**
- * Where the account is signed in, and the ways to end that.
+ * Where the account is signed in, each with a way to end it.
  *
  * Read when the page renders, like the passkeys: signing a session out
  * refreshes the page, which reads the list again.
@@ -27,7 +26,6 @@ export default async function SessionsCard() {
         ) : (
           <SessionList sessions={summarizeSessions(sessions ?? [])} />
         )}
-        <SessionsSetting />
       </SettingsList>
     </Card>
   );
