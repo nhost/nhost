@@ -267,9 +267,9 @@ export default function EditUserForm({
                     <ChevronDownIcon className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40 p-0">
+                <DropdownMenuContent align="end" className="w-40">
                   <DropdownMenuItem
-                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                    className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                     onClick={() => {
                       handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
@@ -278,7 +278,7 @@ export default function EditUserForm({
                     {isUserBanned ? 'Unban User' : 'Ban User'}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                    className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                     onClick={() => {
                       onDeleteUser(user);
                     }}
