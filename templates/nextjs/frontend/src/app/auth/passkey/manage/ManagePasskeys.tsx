@@ -13,6 +13,17 @@ import {
   type Passkey,
   removePasskey,
 } from '@/app/auth/passkey/manage/actions';
+import {
+  deviceName,
+  passkeyName,
+  unusedName,
+} from '@/app/auth/passkey/manage/names';
+import {
+  alreadyRegistered,
+  forgetPasskey,
+  passkeysOnThisDevice,
+  rememberPasskey,
+} from '@/app/auth/passkey/thisDevice';
 import { DialogClose, DialogFooter, useCloseDialog } from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
@@ -20,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const NETWORK_ERROR = 'The request did not reach the server. Try again.';
+const ANOTHER_DEVICE = 'To add another, use your phone or a security key.';
 
 export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   const router = useRouter();
@@ -27,7 +39,25 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   const close = useCloseDialog();
   const nicknameId = useId();
 
-  const [nickname, setNickname] = useState('');
+  const [onThisDevice, setOnThisDevice] = useState(passkeysOnThisDevice);
+
+  // The device would refuse a second passkey for this account (see
+  // `alreadyRegistered`), so the dialog says so before Add is pressed.
+  const here = keys.find((key) => onThisDevice.has(key.credentialId));
+
+  // Starts as the device it is added on, numbered past any passkey already
+  // called that, for the user to keep or change; blank when this device has
+  // one, since the next has to come from another. The dialog's contents only
+  // render in the browser, once it is opened, so `navigator` is there.
+  const [nickname, setNickname] = useState(() => {
+    const device = deviceName(navigator.userAgent);
+    return device && !here
+      ? unusedName(
+          device,
+          keys.map((key) => key.nickname),
+        )
+      : '';
+  });
   const [error, setError] = useState<string | undefined>();
   const [pending, setPending] = useState<string | undefined>();
 
@@ -56,6 +86,7 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
         setError(result.error);
         return;
       }
+      rememberPasskey(credential.id);
 
       // Adding is what the dialog was opened for, so it closes. The page
       // reads the list from the backend, so it is re-rendered rather than
@@ -69,6 +100,13 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
         return;
       }
 
+      if (alreadyRegistered(err)) {
+        setError(
+          `This device already has a passkey for your account. ${ANOTHER_DEVICE}`,
+        );
+        return;
+      }
+
       console.error('Error adding a passkey:', err);
       setError('The passkey could not be added. Try again.');
     } finally {
@@ -78,16 +116,18 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
 
   // Stays open after a removal, with the list re-read under it, in case
   // there is another to remove.
-  const handleRemove = async (id: string): Promise<void> => {
+  const handleRemove = async (key: Passkey): Promise<void> => {
     setError(undefined);
-    setPending(id);
+    setPending(key.id);
     try {
-      const result = await removePasskey(id);
+      const result = await removePasskey(key.id);
       if (result.error) {
         setError(result.error);
         return;
       }
 
+      forgetPasskey(key.credentialId);
+      setOnThisDevice(passkeysOnThisDevice());
       toast('Passkey removed');
       router.refresh();
     } catch (err) {
@@ -102,17 +142,20 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
     <form className="flex flex-col gap-5" onSubmit={handleAdd}>
       {keys.length === 0 ? null : (
         <ul className="divide-y rounded-lg border">
-          {keys.map((key) => (
+          {keys.map((key, index) => (
             <li
               key={key.id}
               className="flex items-center justify-between gap-4 py-2 pr-2 pl-3 text-sm"
             >
-              <span className="min-w-0 truncate">
-                {key.nickname || (
-                  <span className="font-mono text-xs">
-                    {key.credentialId.slice(0, 16)}…
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="min-w-0 truncate">
+                  {passkeyName(key, index)}
+                </span>
+                {key === here ? (
+                  <span className="shrink-0 whitespace-nowrap rounded-full border bg-secondary px-2 text-xs">
+                    This device
                   </span>
-                )}
+                ) : null}
               </span>
               <Button
                 type="button"
@@ -120,7 +163,7 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
                 size="sm"
                 className="text-destructive hover:text-destructive"
                 disabled={Boolean(pending)}
-                onClick={() => void handleRemove(key.id)}
+                onClick={() => void handleRemove(key)}
               >
                 {pending === key.id ? 'Removing…' : 'Remove'}
               </Button>
@@ -128,6 +171,12 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
           ))}
         </ul>
       )}
+
+      {here ? (
+        <p className="text-muted-foreground text-sm">
+          This browser already has a passkey for your account. {ANOTHER_DEVICE}
+        </p>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor={nicknameId}>
@@ -137,7 +186,7 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
           id={nicknameId}
           type="text"
           autoComplete="off"
-          placeholder="This laptop"
+          placeholder={here ? 'My phone' : 'This laptop'}
           value={nickname}
           onChange={(event) => setNickname(event.target.value)}
           disabled={Boolean(pending)}

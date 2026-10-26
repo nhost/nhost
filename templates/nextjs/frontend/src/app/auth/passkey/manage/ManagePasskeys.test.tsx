@@ -2,7 +2,12 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Passkey } from '@/app/auth/passkey/manage/actions';
 import ManagePasskeys from '@/app/auth/passkey/manage/ManagePasskeys';
+import {
+  passkeysOnThisDevice,
+  rememberPasskey,
+} from '@/app/auth/passkey/thisDevice';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
@@ -29,6 +34,19 @@ let container: HTMLElement;
 let root: Root;
 
 const keys = [{ id: 'k1', credentialId: 'c1', nickname: 'laptop' }];
+
+const chromeOnMac =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+
+const nameField = (): HTMLInputElement | null =>
+  container.querySelector('input[type="text"]');
+
+// The dialog's state is set when it opens, so this opens it afresh.
+async function reopen(list: Passkey[]): Promise<void> {
+  act(() => root.unmount());
+  root = createRoot(container);
+  await act(async () => root.render(<ManagePasskeys keys={list} />));
+}
 
 async function click(label: string): Promise<void> {
   const button = [...container.querySelectorAll('button')].find(
@@ -58,6 +76,8 @@ describe('manage passkeys', () => {
       fn.mockReset();
     }
     webauthn.browserSupportsWebAuthn.mockReturnValue(true);
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(chromeOnMac);
+    localStorage.clear();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () => root.render(<ManagePasskeys keys={keys} />));
@@ -66,6 +86,52 @@ describe('manage passkeys', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.restoreAllMocks();
+  });
+
+  it('starts the name as the device it is added on', () => {
+    expect(nameField()?.value).toBe('Chrome - macOS');
+  });
+
+  it('numbers the name past the passkeys that already have it', async () => {
+    await reopen([
+      { id: 'k1', credentialId: 'c1', nickname: 'Chrome - macOS' },
+      { id: 'k2', credentialId: 'c2', nickname: 'Chrome - macOS 2' },
+    ]);
+
+    expect(nameField()?.value).toBe('Chrome - macOS 3');
+  });
+
+  // Added or used here before, so the device would refuse another.
+  it('marks the passkey this browser holds and says so before adding', async () => {
+    rememberPasskey('c1');
+    await reopen(keys);
+
+    const row = container.querySelector('li');
+    expect(row?.textContent).toContain('This device');
+    expect(container.textContent).toContain(
+      'This browser already has a passkey for your account. To add another, use your phone or a security key.',
+    );
+    expect(nameField()?.value).toBe('');
+  });
+
+  it('says nothing of the kind for a passkey this browser has not seen', () => {
+    expect(container.textContent).not.toContain('This device');
+    expect(container.textContent).not.toContain('already has a passkey');
+  });
+
+  it('says why when the device already holds a passkey for the account', async () => {
+    actions.beginAddPasskey.mockResolvedValueOnce({ options: {} });
+    webauthn.startRegistration.mockRejectedValueOnce(
+      Object.assign(new Error('registered'), { name: 'InvalidStateError' }),
+    );
+
+    await submit();
+
+    expect(alertText()).toBe(
+      'This device already has a passkey for your account. To add another, use your phone or a security key.',
+    );
+    expect(actions.finishAddPasskey).not.toHaveBeenCalled();
   });
 
   // Options from the first server call, credential into the second, with the
@@ -82,8 +148,12 @@ describe('manage passkeys', () => {
     expect(webauthn.startRegistration).toHaveBeenCalledWith({
       optionsJSON: options,
     });
-    expect(actions.finishAddPasskey).toHaveBeenCalledWith(credential, '');
+    expect(actions.finishAddPasskey).toHaveBeenCalledWith(
+      credential,
+      'Chrome - macOS',
+    );
     expect(router.refresh).toHaveBeenCalled();
+    expect(passkeysOnThisDevice().has('new')).toBe(true);
   });
 
   it('says so when the prompt was cancelled, and does not verify', async () => {
@@ -101,10 +171,13 @@ describe('manage passkeys', () => {
   it('removes a key and refreshes the list', async () => {
     actions.removePasskey.mockResolvedValueOnce({ success: true });
 
+    rememberPasskey('c1');
+
     await click('Remove');
 
     expect(actions.removePasskey).toHaveBeenCalledWith('k1');
     expect(router.refresh).toHaveBeenCalled();
+    expect(passkeysOnThisDevice().has('c1')).toBe(false);
   });
 
   it('shows the error when removing fails', async () => {

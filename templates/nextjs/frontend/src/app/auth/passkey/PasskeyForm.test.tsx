@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PasskeyForm from '@/app/auth/passkey/PasskeyForm';
 import Passkey from '@/app/auth/passkey/page';
+import { passkeysOnThisDevice } from '@/app/auth/passkey/thisDevice';
 
 const router = vi.hoisted(() => ({
   replace: vi.fn(),
@@ -113,6 +114,7 @@ describe('passkey form', () => {
       optionsJSON: options,
     });
     expect(actions.finishSignIn).toHaveBeenCalledWith(credential);
+    expect(passkeysOnThisDevice().has('cred')).toBe(true);
     expect(router.push).toHaveBeenCalledWith('/protected');
   });
 

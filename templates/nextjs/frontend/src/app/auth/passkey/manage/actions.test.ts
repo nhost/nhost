@@ -77,7 +77,7 @@ describe('adding a passkey', () => {
     expect(await beginAddPasskey()).toEqual({ options });
   });
 
-  it('sends the credential with the nickname, or without one', async () => {
+  it('sends the credential with the nickname it was given', async () => {
     client.auth.verifyAddSecurityKey.mockResolvedValue({ body: { id: 'k' } });
 
     expect(await finishAddPasskey(creation, 'laptop')).toEqual({
@@ -87,8 +87,14 @@ describe('adding a passkey', () => {
       credential: creation,
       nickname: 'laptop',
     });
+  });
 
-    await finishAddPasskey(creation, '');
+  // The form starts with a name, so a blank one was cleared on purpose.
+  it('leaves a passkey whose name was cleared unnamed', async () => {
+    client.auth.verifyAddSecurityKey.mockResolvedValue({ body: { id: 'k' } });
+
+    await finishAddPasskey(creation, '  ');
+
     expect(client.auth.verifyAddSecurityKey).toHaveBeenLastCalledWith({
       credential: creation,
       nickname: undefined,

@@ -89,7 +89,7 @@ export async function finishAddPasskey(
 
     await nhost.auth.verifyAddSecurityKey({
       credential,
-      nickname: nickname || undefined,
+      nickname: nickname.trim() || undefined,
     });
 
     return { success: true };

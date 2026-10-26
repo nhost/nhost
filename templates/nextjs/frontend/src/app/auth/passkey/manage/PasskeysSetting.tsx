@@ -1,5 +1,6 @@
 import { listPasskeys } from '@/app/auth/passkey/manage/actions';
 import ManagePasskeys from '@/app/auth/passkey/manage/ManagePasskeys';
+import { passkeyName } from '@/app/auth/passkey/manage/names';
 import { DialogSetting } from '@/components/Setting';
 
 // Read when the account page renders, not when the dialog opens: the names
@@ -15,9 +16,7 @@ export default async function PasskeysSetting() {
   } else if (count === 0) {
     value = 'None';
   } else {
-    value = (keys ?? [])
-      .map((key) => key.nickname || 'Unnamed passkey')
-      .join(', ');
+    value = (keys ?? []).map(passkeyName).join(', ');
   }
 
   return (

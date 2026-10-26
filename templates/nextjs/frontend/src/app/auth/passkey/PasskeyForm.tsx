@@ -14,6 +14,7 @@ import {
   finishSignUp,
 } from '@/app/auth/passkey/actions';
 import { wasCancelled } from '@/app/auth/passkey/cancelled';
+import { rememberPasskey } from '@/app/auth/passkey/thisDevice';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
 import CheckYourInbox from '@/components/CheckYourInbox';
@@ -85,6 +86,8 @@ export default function PasskeyForm({
           setError(result.error);
           return;
         }
+        // So the account page knows this device holds it.
+        rememberPasskey(credential.id);
 
         finishNavigation();
         return;
@@ -104,6 +107,7 @@ export default function PasskeyForm({
         setError(result.error);
         return;
       }
+      rememberPasskey(credential.id);
 
       if (result.signedIn) {
         finishNavigation();
