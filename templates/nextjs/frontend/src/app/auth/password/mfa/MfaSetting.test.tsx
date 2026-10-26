@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
 import { SettingsList } from '@/components/Setting';
+import ToastProvider from '@/components/Toast';
 
 const actions = vi.hoisted(() => ({
   generateMfa: vi.fn(),
@@ -30,17 +31,22 @@ let root: Root;
 async function render(active: boolean): Promise<void> {
   await act(async () =>
     root.render(
-      <SettingsList>
-        <MfaSetting
-          user={{ ...user, activeMfaType: active ? 'totp' : undefined }}
-        />
-      </SettingsList>,
+      <ToastProvider>
+        <SettingsList>
+          <MfaSetting
+            user={{ ...user, activeMfaType: active ? 'totp' : undefined }}
+          />
+        </SettingsList>
+      </ToastProvider>,
     ),
   );
 }
 
 const row = (): HTMLButtonElement | null =>
   container.querySelector('button[aria-haspopup="dialog"]');
+
+const toastText = (): string | null =>
+  container.querySelector('[role="status"]')?.textContent || null;
 
 const isOpen = (): boolean => container.querySelector('dialog')?.open ?? false;
 
@@ -107,6 +113,16 @@ describe('two-factor row', () => {
 
     expect(writeText).toHaveBeenCalledWith(key);
     expect(actions.enableMfa).not.toHaveBeenCalled();
+    expect(toastText()).toBe('Key copied');
+
+    // The toast is about a key that is no longer on screen.
+    const cancel = [...container.querySelectorAll('button')].find(
+      (candidate) => candidate.textContent === 'Cancel',
+    );
+    await act(async () => cancel?.click());
+
+    expect(isOpen()).toBe(false);
+    expect(toastText()).toBeNull();
   });
 
   it('fetches a code to scan on opening, and turns on with the code', async () => {

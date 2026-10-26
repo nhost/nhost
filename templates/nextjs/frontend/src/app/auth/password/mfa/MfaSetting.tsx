@@ -2,7 +2,7 @@
 
 import type { User } from '@nhost/nhost-js/auth';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, useId, useRef, useState } from 'react';
 import {
   disableMfa,
   enableMfa,
@@ -38,6 +38,9 @@ export default function MfaSetting({ user }: { user: User }) {
   const active = changed?.from === reported ? changed.to : reported;
   const router = useRouter();
   const toast = useToast();
+  // The copied key's toast goes when the dialog does: it is about a key
+  // that is no longer on screen.
+  const dismissCopied = useRef<VoidFunction>(undefined);
   const codeId = useId();
 
   const [open, setOpen] = useState(false);
@@ -114,7 +117,7 @@ export default function MfaSetting({ user }: { user: User }) {
   const copyKey = async (key: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(key);
-      toast('Key copied');
+      dismissCopied.current = toast('Key copied');
     } catch (err) {
       console.error('Error copying the two-factor key:', err);
       toast('Could not copy the key');
@@ -147,7 +150,12 @@ export default function MfaSetting({ user }: { user: User }) {
           : 'Asks for a code from an authenticator app when you sign in with your password. Other sign-in methods and emailed links skip it.'
       }
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => {
+        if (!next) {
+          dismissCopied.current?.();
+        }
+        setOpen(next);
+      }}
       onOpen={handleOpen}
     >
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>

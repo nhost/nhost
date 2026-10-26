@@ -9,10 +9,17 @@ import {
   useState,
 } from 'react';
 
-const ToastContext = createContext<(message: string) => void>(() => undefined);
+type ShowToast = (message: string) => VoidFunction;
 
-/** Shows `message` briefly at the foot of the window. */
-export function useToast(): (message: string) => void {
+const ToastContext = createContext<ShowToast>(() => () => undefined);
+
+/**
+ * Shows `message` briefly at the foot of the window. Returns a function that
+ * takes it down early, for a toast about something that has gone away, like
+ * a key copied from a dialog that has closed. It leaves alone any toast that
+ * has replaced it since.
+ */
+export function useToast(): ShowToast {
   return use(ToastContext);
 }
 
@@ -57,9 +64,13 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  const show = (message: string): void => {
+  const show: ShowToast = (message) => {
     count.current += 1;
-    setToast({ id: count.current, message });
+    const id = count.current;
+    setToast({ id, message });
+
+    return () =>
+      setToast((current) => (current?.id === id ? undefined : current));
   };
 
   return (
