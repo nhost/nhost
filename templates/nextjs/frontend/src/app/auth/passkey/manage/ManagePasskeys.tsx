@@ -29,15 +29,21 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useRemoved } from '@/components/useRemoved';
 
 const NETWORK_ERROR = 'The request did not reach the server. Try again.';
 const ANOTHER_DEVICE = 'To add another, use your phone or a security key.';
 
-export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
+export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
   const router = useRouter();
   const toast = useToast();
   const close = useCloseDialog();
   const nicknameId = useId();
+
+  // Gone from the list as soon as Remove is pressed, rather than once the
+  // refreshed page arrives (see `useRemoved`).
+  const { removed, remove, restore } = useRemoved();
+  const keys = listed.filter((key) => !removed.has(key.id));
 
   const [onThisDevice, setOnThisDevice] = useState(passkeysOnThisDevice);
 
@@ -115,13 +121,15 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
   };
 
   // Stays open after a removal, with the list re-read under it, in case
-  // there is another to remove.
+  // there is another to remove. The passkey leaves the list at once and comes
+  // back only if the server refused.
   const handleRemove = async (key: Passkey): Promise<void> => {
     setError(undefined);
-    setPending(key.id);
+    remove(key.id);
     try {
       const result = await removePasskey(key.id);
       if (result.error) {
+        restore(key.id);
         setError(result.error);
         return;
       }
@@ -132,9 +140,8 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
       router.refresh();
     } catch (err) {
       console.error('Error removing a passkey:', err);
+      restore(key.id);
       setError(NETWORK_ERROR);
-    } finally {
-      setPending(undefined);
     }
   };
 
@@ -162,10 +169,10 @@ export default function ManagePasskeys({ keys }: { keys: Passkey[] }) {
                 variant="ghost"
                 size="sm"
                 className="text-destructive hover:text-destructive"
-                disabled={Boolean(pending)}
+                disabled={pending === 'add'}
                 onClick={() => void handleRemove(key)}
               >
-                {pending === key.id ? 'Removing…' : 'Remove'}
+                Remove
               </Button>
             </li>
           ))}

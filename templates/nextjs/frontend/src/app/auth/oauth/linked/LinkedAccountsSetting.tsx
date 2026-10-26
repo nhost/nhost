@@ -5,7 +5,6 @@ import { listLinkedAccounts } from './actions';
 import ManageLinkedAccounts, {
   type LinkedProvider,
 } from './ManageLinkedAccounts';
-import { leavesAWayIn } from './wayIn';
 
 // Fixed locale and zone, as on the profile: this renders on the server.
 const day = new Intl.DateTimeFormat('en-US', {
@@ -61,7 +60,8 @@ export default async function LinkedAccountsSetting({ user }: { user: User }) {
       ) : (
         <ManageLinkedAccounts
           providers={providers}
-          canUnlink={leavesAWayIn(user.email, all.length)}
+          email={user.email}
+          links={all.length}
         />
       )}
     </DialogSetting>

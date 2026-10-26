@@ -126,7 +126,18 @@ describe('session list', () => {
     expect(router.refresh).toHaveBeenCalledOnce();
   });
 
-  it('says why when the session could not be signed out', async () => {
+  // Before the server answers, so it cannot be pressed again while the page
+  // is read again.
+  it('takes another session off the list as soon as it is signed out', async () => {
+    signOutSession.mockReturnValueOnce(new Promise(() => undefined));
+
+    await act(async () => button(1).click());
+
+    expect(container.querySelectorAll('li')).toHaveLength(1);
+    expect(container.textContent).not.toContain('Safari - iOS');
+  });
+
+  it('puts the session back and says why when it could not be signed out', async () => {
     signOutSession.mockResolvedValueOnce({
       error: 'That session is not on this account.',
     });
@@ -136,6 +147,7 @@ describe('session list', () => {
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'That session is not on this account.',
     );
+    expect(container.textContent).toContain('Safari - iOS');
     expect(router.refresh).not.toHaveBeenCalled();
   });
 });

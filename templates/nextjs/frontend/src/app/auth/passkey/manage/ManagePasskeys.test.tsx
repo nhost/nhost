@@ -180,12 +180,23 @@ describe('manage passkeys', () => {
     expect(passkeysOnThisDevice().has('c1')).toBe(false);
   });
 
-  it('shows the error when removing fails', async () => {
+  // Before the server answers, so it cannot be pressed again while the page
+  // is read again.
+  it('takes the passkey off the list as soon as Remove is pressed', async () => {
+    actions.removePasskey.mockReturnValueOnce(new Promise(() => undefined));
+
+    await click('Remove');
+
+    expect(container.querySelector('li')).toBeNull();
+  });
+
+  it('puts the passkey back and shows the error when removing fails', async () => {
     actions.removePasskey.mockResolvedValueOnce({ error: 'not yours' });
 
     await click('Remove');
 
     expect(alertText()).toBe('not yours');
+    expect(container.querySelector('li')?.textContent).toContain('laptop');
     expect(router.refresh).not.toHaveBeenCalled();
   });
 });

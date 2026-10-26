@@ -29,7 +29,13 @@ const NETWORK_ERROR = 'The request did not reach the server. Try again.';
  * there is to do.
  */
 export default function MfaSetting({ user }: { user: User }) {
-  const active = user.activeMfaType === 'totp';
+  // What a change here made it, until the refreshed page agrees: reopening
+  // the dialog before then would otherwise offer the change just made.
+  // Kept with the state it changed from, so a page that has moved on since
+  // wins over it.
+  const reported = user.activeMfaType === 'totp';
+  const [changed, setChanged] = useState<{ from: boolean; to: boolean }>();
+  const active = changed?.from === reported ? changed.to : reported;
   const router = useRouter();
   const toast = useToast();
   const codeId = useId();
@@ -90,6 +96,7 @@ export default function MfaSetting({ user }: { user: User }) {
       // The page reads the account's state from the auth service, so the
       // row changes when it is rendered again rather than being guessed at
       // here.
+      setChanged({ from: reported, to: !turningOff });
       setOpen(false);
       setCode('');
       toast(turningOff ? 'Two-factor is off' : 'Two-factor is on');

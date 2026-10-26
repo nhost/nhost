@@ -33,18 +33,27 @@ const providers: LinkedProvider[] = [
 let container: HTMLElement;
 let root: Root;
 
-const render = async (canUnlink = true): Promise<void> => {
+const render = async ({
+  email = 'user@example.com',
+  list = providers,
+} = {}): Promise<void> => {
   await act(async () =>
     root.render(
-      <ManageLinkedAccounts providers={providers} canUnlink={canUnlink} />,
+      <ManageLinkedAccounts
+        providers={list}
+        email={email}
+        links={list.filter(({ link }) => link).length}
+      />,
     ),
   );
 };
 
-const unlinkButton = (): HTMLButtonElement | undefined =>
-  [...container.querySelectorAll('button')].find(
+const unlinkButtons = (): HTMLButtonElement[] =>
+  [...container.querySelectorAll('button')].filter(
     (button) => button.textContent === 'Unlink',
   );
+
+const unlinkButton = (): HTMLButtonElement | undefined => unlinkButtons()[0];
 
 describe('manage linked accounts', () => {
   beforeEach(() => {
@@ -79,7 +88,21 @@ describe('manage linked accounts', () => {
     expect(router.refresh).toHaveBeenCalledOnce();
   });
 
-  it('says why when the provider stays linked', async () => {
+  // Before the server answers, so it cannot be pressed again while the page
+  // is read again.
+  it('shows the provider as not linked as soon as it is unlinked', async () => {
+    unlinkProvider.mockReturnValueOnce(new Promise(() => undefined));
+    await render();
+
+    await act(async () => unlinkButton()?.click());
+
+    expect(unlinkButton()).toBeUndefined();
+    expect(
+      container.querySelector('a[href="/auth/oauth/github/connect"]'),
+    ).not.toBeNull();
+  });
+
+  it('puts the link back and says why when the provider stays linked', async () => {
     unlinkProvider.mockResolvedValueOnce({ error: 'stays linked' });
     await render();
 
@@ -88,11 +111,30 @@ describe('manage linked accounts', () => {
     expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'stays linked',
     );
+    expect(unlinkButton()).toBeDefined();
     expect(router.refresh).not.toHaveBeenCalled();
   });
 
+  // No email, two links: unlinking one leaves the other as the only way in.
+  it('holds the last link once the other is unlinked', async () => {
+    unlinkProvider.mockReturnValueOnce(new Promise(() => undefined));
+    await render({
+      email: '',
+      list: [
+        providers[0],
+        { ...providers[1], link: { id: 'link-2', since: 'Oct 2, 2026' } },
+      ],
+    });
+    expect(unlinkButtons().every((button) => !button.disabled)).toBe(true);
+
+    await act(async () => unlinkButtons()[0]?.click());
+
+    expect(unlinkButtons()).toHaveLength(1);
+    expect(unlinkButton()?.disabled).toBe(true);
+  });
+
   it('holds the last way in and says why', async () => {
-    await render(false);
+    await render({ email: '' });
 
     expect(unlinkButton()?.disabled).toBe(true);
     expect(container.textContent).toContain('no email address');

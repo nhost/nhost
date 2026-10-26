@@ -6,7 +6,9 @@ import ProviderIcon from '@/app/auth/oauth/ProviderIcon';
 import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
+import { useRemoved } from '@/components/useRemoved';
 import { unlinkProvider } from './actions';
+import { leavesAWayIn } from './wayIn';
 
 export type LinkedProvider = {
   id: string;
@@ -21,31 +23,46 @@ const NETWORK_ERROR = 'The request did not reach the server. Try again.';
  * A line per provider: Link account leaves for the provider and comes back to the
  * account page, Unlink stays here with the list read again under it.
  *
- * `canUnlink` is false when the one link is the only way in, which the action
- * checks again: the button only saves a round trip to be told no.
+ * Unlinking is off when the one link left is the only way in, which the
+ * action checks again: the button only saves a round trip to be told no.
+ * `links` counts every provider linked to the account, the ones this
+ * deployment does not offer included, as the action does.
  */
 export default function ManageLinkedAccounts({
-  providers,
-  canUnlink,
+  providers: listed,
+  email,
+  links,
 }: {
   providers: LinkedProvider[];
-  canUnlink: boolean;
+  email: string | undefined;
+  links: number;
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [pending, setPending] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
+
+  // Shown as not linked as soon as Unlink is pressed, rather than once the
+  // refreshed page arrives (see `useRemoved`).
+  const { removed, remove, restore } = useRemoved();
+  const providers = listed.map((provider) =>
+    provider.link && removed.has(provider.link.id)
+      ? { ...provider, link: undefined }
+      : provider,
+  );
+  const canUnlink = leavesAWayIn(email, links - removed.size);
 
   const handleUnlink = async (provider: LinkedProvider) => {
     if (!provider.link) {
       return;
     }
 
+    const { id } = provider.link;
     setError(undefined);
-    setPending(provider.id);
+    remove(id);
     try {
-      const result = await unlinkProvider(provider.link.id);
+      const result = await unlinkProvider(id);
       if (result.error) {
+        restore(id);
         setError(result.error);
         return;
       }
@@ -54,9 +71,8 @@ export default function ManageLinkedAccounts({
       router.refresh();
     } catch (err) {
       console.error('Error unlinking a provider:', err);
+      restore(id);
       setError(NETWORK_ERROR);
-    } finally {
-      setPending(undefined);
     }
   };
 
@@ -83,10 +99,10 @@ export default function ManageLinkedAccounts({
                 variant="ghost"
                 size="sm"
                 className="text-destructive hover:text-destructive"
-                disabled={Boolean(pending) || !canUnlink}
+                disabled={!canUnlink}
                 onClick={() => void handleUnlink(provider)}
               >
-                {pending === provider.id ? 'Unlinking…' : 'Unlink'}
+                Unlink
               </Button>
             ) : (
               // A plain anchor: the route redirects to the provider, on
@@ -113,7 +129,7 @@ export default function ManageLinkedAccounts({
       ) : null}
 
       <DialogFooter>
-        <DialogClose disabled={Boolean(pending)}>Done</DialogClose>
+        <DialogClose>Done</DialogClose>
       </DialogFooter>
     </div>
   );

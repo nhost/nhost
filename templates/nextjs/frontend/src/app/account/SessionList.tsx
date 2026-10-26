@@ -6,6 +6,7 @@ import { signOutSession } from '@/app/account/actions';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
+import { useRemoved } from '@/components/useRemoved';
 import { useSignOut } from '@/components/useSignOut';
 
 const subscribeToNothing = () => () => undefined;
@@ -31,23 +32,29 @@ function useHydrated(): boolean {
  * sign in again.
  */
 export default function SessionList({
-  sessions,
+  sessions: listed,
 }: {
   sessions: SessionSummary[];
 }) {
   const router = useRouter();
   const toast = useToast();
   const hydrated = useHydrated();
-  const [pending, setPending] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const here = useSignOut();
 
+  // Another session leaves the list as soon as it is signed out, rather than
+  // once the refreshed page arrives (see `useRemoved`), and comes back only
+  // if the server refused.
+  const { removed, remove, restore } = useRemoved();
+  const sessions = listed.filter((session) => !removed.has(session.id));
+
   const handleSignOut = async (session: SessionSummary): Promise<void> => {
     setError(undefined);
-    setPending(session.id);
+    remove(session.id);
     try {
       const result = await signOutSession(session.id);
       if (result.error) {
+        restore(session.id);
         setError(result.error);
         return;
       }
@@ -56,9 +63,8 @@ export default function SessionList({
       router.refresh();
     } catch (err) {
       console.error('Error signing out a session:', err);
+      restore(session.id);
       setError('The request did not reach the server. Try again.');
-    } finally {
-      setPending(undefined);
     }
   };
 
@@ -103,14 +109,14 @@ export default function SessionList({
               variant="outline"
               size="sm"
               className="shrink-0"
-              disabled={Boolean(pending) || here.isSigningOut}
+              disabled={here.isSigningOut}
               onClick={() =>
                 void (session.current
                   ? here.handleSignOut()
                   : handleSignOut(session))
               }
             >
-              {(session.current ? here.isSigningOut : pending === session.id)
+              {session.current && here.isSigningOut
                 ? 'Signing out…'
                 : 'Sign out'}
             </Button>

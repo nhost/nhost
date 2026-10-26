@@ -142,6 +142,11 @@ describe('two-factor row', () => {
     expect(actions.enableMfa).toHaveBeenCalledWith('123456');
     expect(refresh).toHaveBeenCalledTimes(1);
     expect(isOpen()).toBe(false);
+
+    // Before the refreshed page arrives, so opening it again offers the way
+    // back rather than another setup.
+    expect(container.querySelector('li')?.textContent).toContain('On');
+    expect(row()?.textContent).toBe('Turn off');
   });
 
   it('asks for a current code to turn it off, without a new secret', async () => {
