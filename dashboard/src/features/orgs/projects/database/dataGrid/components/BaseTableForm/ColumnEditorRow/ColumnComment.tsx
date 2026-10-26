@@ -36,7 +36,7 @@ function ColumnComment({ index }: ColumnCommentProps) {
           size="icon"
           title={title}
           data-testid={`columns.${index}.comment`}
-          className="h-8 w-8 hover:bg-accent"
+          className="h-8 w-8"
         >
           <CommentIcon strokeWidth={1} className="h-5 w-5" />
         </Button>

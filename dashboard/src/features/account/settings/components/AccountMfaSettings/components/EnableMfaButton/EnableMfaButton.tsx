@@ -1,3 +1,4 @@
+import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -24,11 +25,8 @@ function EnableMfaButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={buttonDisabled}
-          className="h-9 gap-2 border-green-600 px-2 py-1.5 text-green-600 hover:bg-green-600 hover:text-white"
-        >
+        <Button variant="outline" disabled={buttonDisabled}>
+          <ShieldCheck className="mr-2 h-4 w-4" />
           Enable multi-factor authentication
         </Button>
       </DialogTrigger>

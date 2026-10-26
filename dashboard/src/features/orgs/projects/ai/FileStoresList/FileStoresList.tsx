@@ -119,16 +119,16 @@ export default function FileStoresList({
                 <DotsHorizontalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto p-0">
+            <DropdownMenuContent align="end" className="w-auto">
               <DropdownMenuItem
                 onClick={() => viewFileStore(fileStore)}
-                className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                className="cursor-pointer gap-2"
               >
                 <EyeIcon className="h-4 w-4" />
                 <span>View {fileStore.name}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                 onClick={() => deleteFileStore(fileStore)}
               >
                 <TrashIcon className="h-4 w-4" />

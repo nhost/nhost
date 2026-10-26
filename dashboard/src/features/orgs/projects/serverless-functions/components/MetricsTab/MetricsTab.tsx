@@ -1,5 +1,5 @@
 import { useMeasure } from '@uidotdev/usehooks';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useCallback } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
@@ -148,7 +148,6 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-6">
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
               <AlertTitle>Couldn't load metrics</AlertTitle>
               <AlertDescription className="mt-2 flex flex-col gap-3">
                 <span>

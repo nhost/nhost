@@ -1,4 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { Unlink } from 'lucide-react';
 import { useState } from 'react';
 import {
   SettingsCardContent,
@@ -157,7 +158,7 @@ export default function SocialProvidersSettings() {
         ) : (
           <Button
             variant="outline"
-            className="flex w-fit flex-row gap-2 text-sm+"
+            className="flex w-fit flex-row gap-2"
             onClick={handleConnectGithub}
           >
             <GitHubIcon />
@@ -173,11 +174,8 @@ export default function SocialProvidersSettings() {
             onOpenChange={setDisconnectDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-9 gap-2 border-destructive px-2 text-destructive hover:bg-destructive hover:text-white"
-                disabled={deletingGitHubUserProvider}
-              >
+              <Button variant="outline" disabled={deletingGitHubUserProvider}>
+                <Unlink className="mr-2 h-4 w-4" />
                 Disconnect GitHub
               </Button>
             </DialogTrigger>

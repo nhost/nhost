@@ -187,7 +187,7 @@ export default function DeleteOrg() {
                     requiredOrganizationConfirmation ? (
                       <>
                         Type{' '}
-                        <InlineCode className="max-w-full select-none whitespace-pre-wrap break-words text-sm">
+                        <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
                           {requiredOrganizationConfirmation}
                         </InlineCode>{' '}
                         to confirm

@@ -310,10 +310,7 @@ export default function ServiceForm({
         <CommandFormSection />
 
         {isPlatform ? (
-          <Alert
-            variant="info"
-            className="flex items-center justify-between space-x-2"
-          >
+          <Alert className="flex items-center justify-between space-x-2">
             <span>{pricingExplanation()}</span>
             <b>
               $

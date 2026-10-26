@@ -11,7 +11,7 @@ export default function CreatedPATAlert({
   personalAccessToken,
 }: CreatedPATAlertProps) {
   return (
-    <Alert variant="info" className="grid grid-flow-row gap-2">
+    <Alert className="grid grid-flow-row gap-2">
       <AlertDescription className="col-start-1">
         <p className="text-sm">
           This token will not be shown again. Make sure to copy it now.
