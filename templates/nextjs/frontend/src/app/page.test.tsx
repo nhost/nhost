@@ -9,7 +9,7 @@ const getUserSession = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ getUserSession }),
 }));
-vi.mock('@/lib/nhost/actions', () => ({ signOut: vi.fn() }));
+vi.mock('@/lib/nhost/actions', () => ({ signOutAndGoHome: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({}) }));
 
 function hrefOf(html: string, label: string): string | undefined {

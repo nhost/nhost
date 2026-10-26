@@ -3,14 +3,10 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SignOutLink from '@/components/SignOutLink';
-import ToastProvider from '@/components/Toast';
-import { signOutFinished } from '@/components/useSignOut';
 
-const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
-const signOut = vi.hoisted(() => vi.fn());
+const signOutAndGoHome = vi.hoisted(() => vi.fn());
 
-vi.mock('next/navigation', () => ({ useRouter: () => router }));
-vi.mock('@/lib/nhost/actions', () => ({ signOut }));
+vi.mock('@/lib/nhost/actions', () => ({ signOutAndGoHome }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -22,8 +18,13 @@ let root: Root;
 const button = (): HTMLButtonElement | null =>
   container.querySelector('button');
 
-const toast = (): string | null =>
-  container.querySelector('[role="status"]')?.textContent || null;
+// React holds every async action in a page together, so one left pending
+// would hold back the next test's. Each test's is let go when it ends.
+let release: VoidFunction = () => undefined;
+const held = (): Promise<object> =>
+  new Promise((resolve) => {
+    release = () => resolve({});
+  });
 
 async function click(): Promise<void> {
   await act(async () => button()?.click());
@@ -31,82 +32,41 @@ async function click(): Promise<void> {
 
 describe('sign-out link', () => {
   beforeEach(async () => {
-    router.push.mockReset();
-    router.refresh.mockReset();
-    signOut.mockReset();
-    // The sign-out under way is shared by the whole tab, and the nav that
-    // would end it is not rendered here.
-    signOutFinished();
+    signOutAndGoHome.mockReset();
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
-    await act(async () =>
-      root.render(
-        <ToastProvider>
-          <SignOutLink>sign out</SignOutLink>
-        </ToastProvider>,
-      ),
-    );
+    await act(async () => root.render(<SignOutLink>sign out</SignOutLink>));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await act(async () => release());
     act(() => root.unmount());
     container.remove();
   });
 
-  it('signs out of this browser and goes home', async () => {
-    signOut.mockResolvedValueOnce({});
+  // The action answers with the home page, so nothing comes back here on
+  // success: the link stays pressed until that page replaces this one.
+  it('signs out and holds until the home page arrives', async () => {
+    signOutAndGoHome.mockReturnValueOnce(held());
 
     await click();
-
-    expect(signOut).toHaveBeenCalledWith();
-    expect(router.push).toHaveBeenCalledWith('/');
-    expect(router.refresh).toHaveBeenCalled();
-    expect(toast()).toBeNull();
-  });
-
-  // The cookies are gone whatever the auth service said, so it goes home
-  // and says what went wrong on the way.
-  it('goes home and says so when the auth service refused', async () => {
-    signOut.mockResolvedValueOnce({
-      error:
-        'You are signed out on this device, but the sign-out request failed.',
-    });
-
     await click();
 
-    expect(router.push).toHaveBeenCalledWith('/');
-    expect(toast()).toContain('the sign-out request failed');
+    expect(signOutAndGoHome).toHaveBeenCalledTimes(1);
+    expect(button()?.disabled).toBe(true);
+    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 
   it('stays put and says why when this browser is still signed in', async () => {
-    signOut.mockResolvedValueOnce({
+    signOutAndGoHome.mockResolvedValueOnce({
       error: 'Could not reach the server. You are still signed in.',
-      stillSignedIn: true,
     });
 
     await click();
 
-    expect(toast()).toBe(
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
       'Could not reach the server. You are still signed in.',
     );
-    expect(router.push).not.toHaveBeenCalled();
     expect(button()?.disabled).toBe(false);
-  });
-
-  // Until the nav is rendered signed out, the way home included.
-  it('cannot be pressed again once signing out', async () => {
-    let finish: (result: { error?: string }) => void = () => {};
-    signOut.mockReturnValueOnce(
-      new Promise((resolve) => {
-        finish = resolve;
-      }),
-    );
-
-    await click();
-    expect(button()?.disabled).toBe(true);
-
-    await act(async () => finish({}));
-    expect(button()?.disabled).toBe(true);
-    expect(signOut).toHaveBeenCalledTimes(1);
   });
 });

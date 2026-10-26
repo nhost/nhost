@@ -123,9 +123,9 @@ export default function SessionList({
           </li>
         );
       })}
-      {error ? (
+      {(error ?? here.error) ? (
         <li role="alert" className="px-5 py-3 text-destructive text-sm">
-          {error}
+          {error ?? here.error}
         </li>
       ) : null}
     </>

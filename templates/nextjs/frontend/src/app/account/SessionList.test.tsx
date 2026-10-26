@@ -5,15 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SessionList from '@/app/account/SessionList';
 import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
 import ToastProvider from '@/components/Toast';
-import { signOutFinished } from '@/components/useSignOut';
 
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 const signOutSession = vi.hoisted(() => vi.fn());
-const signOut = vi.hoisted(() => vi.fn());
+const signOutAndGoHome = vi.hoisted(() => vi.fn());
 
 vi.mock('next/navigation', () => ({ useRouter: () => router }));
 vi.mock('@/app/account/actions', () => ({ signOutSession }));
-vi.mock('@/lib/nhost/actions', () => ({ signOut }));
+vi.mock('@/lib/nhost/actions', () => ({ signOutAndGoHome }));
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -43,14 +42,20 @@ const button = (row: number): HTMLButtonElement =>
     .querySelectorAll('li')
     [row].querySelector('button') as HTMLButtonElement;
 
+// React holds every async action in a page together, so one left pending
+// would hold back the next test's. Each test's is let go when it ends.
+let release: VoidFunction = () => undefined;
+const held = (): Promise<object> =>
+  new Promise((resolve) => {
+    release = () => resolve({});
+  });
+
 describe('session list', () => {
   beforeEach(async () => {
     router.push.mockReset();
     router.refresh.mockReset();
     signOutSession.mockReset();
-    signOut.mockReset();
-    // Shared by the whole tab, and the nav that would end it is not here.
-    signOutFinished();
+    signOutAndGoHome.mockReset();
     container = document.body.appendChild(document.createElement('ul'));
     root = createRoot(container);
     await act(async () =>
@@ -62,7 +67,8 @@ describe('session list', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await act(async () => release());
     act(() => root.unmount());
     container.remove();
   });
@@ -105,27 +111,25 @@ describe('session list', () => {
   // Deleting its own row would leave this browser holding cookies for a
   // session that is gone, so it signs out the way the nav does.
   it('signs this device out the way the nav does and goes home', async () => {
-    signOut.mockResolvedValueOnce({});
+    signOutAndGoHome.mockReturnValueOnce(held());
 
     await act(async () => button(0).click());
 
-    expect(signOut).toHaveBeenCalledWith();
+    expect(signOutAndGoHome).toHaveBeenCalledOnce();
     expect(signOutSession).not.toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith('/');
+    expect(button(0).textContent).toBe('Signing out…');
   });
 
   it('says why when this device could not be signed out', async () => {
-    signOut.mockResolvedValueOnce({
+    signOutAndGoHome.mockResolvedValueOnce({
       error: 'Could not reach the server. You are still signed in.',
-      stillSignedIn: true,
     });
 
     await act(async () => button(0).click());
 
-    expect(container.querySelector('[role="status"]')?.textContent).toBe(
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
       'Could not reach the server. You are still signed in.',
     );
-    expect(router.push).not.toHaveBeenCalled();
   });
 
   it('signs out another session and reads the list again', async () => {
