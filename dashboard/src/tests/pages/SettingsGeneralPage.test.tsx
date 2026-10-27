@@ -218,15 +218,15 @@ describe('SettingsGeneralPage', () => {
   it('selects the lifecycle card from actual state', () => {
     const { rerender } = render(<SettingsGeneralPage />);
 
-    expect(screen.getByText('Pause Project')).toBeInTheDocument();
-    expect(screen.queryByText('Wake up Project')).not.toBeInTheDocument();
+    expect(screen.getByText('Pause project')).toBeInTheDocument();
+    expect(screen.queryByText('Wake up project')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pause' })).toBeEnabled();
 
     mocks.snapshot = { ...stablePausedSnapshot };
     rerender(<SettingsGeneralPage />);
 
-    expect(screen.getByText('Wake up Project')).toBeInTheDocument();
-    expect(screen.queryByText('Pause Project')).not.toBeInTheDocument();
+    expect(screen.getByText('Wake up project')).toBeInTheDocument();
+    expect(screen.queryByText('Pause project')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wake up' })).toBeEnabled();
   });
 
@@ -251,28 +251,28 @@ describe('SettingsGeneralPage', () => {
       label: 'Live -> Paused, a pause request is already submitted',
       state: ApplicationStatus.Live,
       desiredState: ApplicationStatus.Paused,
-      title: 'Pause Project',
+      title: 'Pause project',
       name: 'Pausing...',
     },
     {
       label: 'Pausing -> Paused',
       state: ApplicationStatus.Pausing,
       desiredState: ApplicationStatus.Paused,
-      title: 'Pause Project',
+      title: 'Pause project',
       name: 'Pausing...',
     },
     {
       label: 'Paused -> Live, a wake request is already submitted',
       state: ApplicationStatus.Paused,
       desiredState: ApplicationStatus.Live,
-      title: 'Wake up Project',
+      title: 'Wake up project',
       name: 'Waking up...',
     },
     {
       label: 'Unpausing -> Live',
       state: ApplicationStatus.Unpausing,
       desiredState: ApplicationStatus.Live,
-      title: 'Wake up Project',
+      title: 'Wake up project',
       name: 'Waking up...',
     },
   ])(

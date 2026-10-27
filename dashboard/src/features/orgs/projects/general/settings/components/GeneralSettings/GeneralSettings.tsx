@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Lock } from 'lucide-react';
+import { Lock, Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo } from 'react';
@@ -11,8 +11,8 @@ import { FormInput } from '@/components/form/FormInput';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
+  SettingsRow,
 } from '@/components/layout/SettingsCard';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
@@ -174,158 +174,159 @@ export default function GeneralSettings() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-8">
+    <div className="grid grid-flow-row gap-6">
       <FormProvider {...form}>
         <Form onSubmit={handleProjectNameChange}>
           <SettingsCard>
             <SettingsCardHeader
-              title="Project Name"
-              description="The name of the project."
-            />
-
-            <SettingsCardContent className="lg:grid-cols-4">
+              size="lg"
+              title="Project name"
+              control={
+                <ButtonWithLoading
+                  type="submit"
+                  disabled={!formState.isDirty || !isPlatform}
+                  loading={formState.isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  Save
+                </ButtonWithLoading>
+              }
+            >
               <FormInput
                 control={form.control}
                 name="name"
-                label="Project Name"
-                containerClassName="col-span-2"
+                aria-label="Project name"
+                containerClassName="w-full sm:w-96"
               />
-            </SettingsCardContent>
-
-            <SettingsCardFooter>
-              <ButtonWithLoading
-                type="submit"
-                disabled={!formState.isDirty || !isPlatform}
-                loading={formState.isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                Save
-              </ButtonWithLoading>
-            </SettingsCardFooter>
+            </SettingsCardHeader>
           </SettingsCard>
         </Form>
       </FormProvider>
 
-      {showWakeUpCard ? (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Wake up Project"
-            description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-          />
+      <SettingsCard>
+        <SettingsCardHeader size="lg" title="Availability" />
 
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={isUnpauseDisabled}
-              loading={unpauseLoading || isUnpausing}
-              onClick={onUnpause}
-              className="w-full sm:w-auto"
-            >
-              {isUnpausing ? 'Waking up...' : 'Wake up'}
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      ) : null}
+        <SettingsCardContent>
+          {showWakeUpCard ? (
+            <SettingsRow
+              title="Wake up project"
+              description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
+              action={
+                <ButtonWithLoading
+                  type="button"
+                  variant="outline"
+                  disabled={isUnpauseDisabled}
+                  loading={unpauseLoading || isUnpausing}
+                  onClick={onUnpause}
+                  className="w-full gap-2 sm:w-auto"
+                >
+                  <Play />
+                  {isUnpausing ? 'Waking up...' : 'Wake up'}
+                </ButtonWithLoading>
+              }
+            />
+          ) : (
+            <SettingsRow
+              title="Pause project"
+              description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+              action={
+                <ButtonWithLoading
+                  type="button"
+                  variant="outline"
+                  disabled={isPauseDisabled}
+                  loading={pauseLoading || isPausing}
+                  onClick={() => {
+                    openAlertDialog({
+                      title: 'Pause Project?',
+                      payload: (
+                        <div className="flex flex-col gap-2">
+                          {showWarning ? (
+                            <Alert
+                              variant="warning"
+                              className="flex flex-col gap-3 text-left"
+                            >
+                              <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                                <p className="flex items-start gap-1 font-semibold">
+                                  Warning: This action will delete all volume
+                                  data for your Run services.
+                                </p>
+                              </div>
+                              <div className="flex flex-col gap-4">
+                                <p>
+                                  Pausing this project will delete all
+                                  persistent volume data for your Run services.
+                                  No automatic backups are made. Please backup
+                                  your data manually to prevent loss. Contact{' '}
+                                  <Link
+                                    href="/support"
+                                    target="_blank"
+                                    className="text-primary-text underline"
+                                    rel="noopener noreferrer"
+                                  >
+                                    support
+                                  </Link>{' '}
+                                  with any questions.
+                                </p>
+                              </div>
+                            </Alert>
+                          ) : null}
+                          <p className="text-pretty">
+                            Are you sure you want to pause this project? It will
+                            not be accessible until you unpause it.
+                          </p>
+                        </div>
+                      ),
+                      props: {
+                        maxWidth: 'sm',
+                        onPrimaryAction: onPause,
+                      },
+                    });
+                  }}
+                  className="w-full gap-2 sm:w-auto"
+                >
+                  <Pause />
+                  {isPausing ? 'Pausing...' : 'Pause'}
+                </ButtonWithLoading>
+              }
+            />
+          )}
 
-      {!showWakeUpCard && (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Pause Project"
-            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-          />
-
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={isPauseDisabled}
-              loading={pauseLoading || isPausing}
-              onClick={() => {
-                openAlertDialog({
-                  title: 'Pause Project?',
-                  payload: (
-                    <div className="flex flex-col gap-2">
-                      {showWarning ? (
-                        <Alert
-                          variant="warning"
-                          className="flex flex-col gap-3 text-left"
-                        >
-                          <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                            <p className="flex items-start gap-1 font-semibold">
-                              Warning: This action will delete all volume data
-                              for your Run services.
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-4">
-                            <p>
-                              Pausing this project will delete all persistent
-                              volume data for your Run services. No automatic
-                              backups are made. Please backup your data manually
-                              to prevent loss. Contact{' '}
-                              <Link
-                                href="/support"
-                                target="_blank"
-                                className="text-primary-text underline"
-                                rel="noopener noreferrer"
-                              >
-                                support
-                              </Link>{' '}
-                              with any questions.
-                            </p>
-                          </div>
-                        </Alert>
-                      ) : null}
-                      <p className="text-pretty">
-                        Are you sure you want to pause this project? It will not
-                        be accessible until you unpause it.
-                      </p>
-                    </div>
-                  ),
-                  props: {
-                    maxWidth: 'sm',
-                    onPrimaryAction: onPause,
-                  },
-                });
-              }}
-              className="w-full sm:w-auto"
-            >
-              {isPausing ? 'Pausing...' : 'Pause'}
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
-
-      <TransferProject />
+          <TransferProject />
+        </SettingsCardContent>
+      </SettingsCard>
 
       {isPlatform && (
-        <SettingsCard className="border-destructive">
+        <SettingsCard>
           <SettingsCardHeader
-            title="Delete Project"
+            size="lg"
+            title="Delete project"
             description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+            control={
+              <>
+                {!isOwner && (
+                  <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Lock className="h-4 w-4 shrink-0" />
+                    Only organization admins can delete this project.
+                  </p>
+                )}
+                <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+                  <RemoveApplicationDialog
+                    handler={handleDeleteApplication}
+                    trigger={
+                      <ButtonWithLoading
+                        type="button"
+                        disabled={!isOwner}
+                        variant="destructive"
+                        className="w-full sm:w-auto"
+                      >
+                        Delete
+                      </ButtonWithLoading>
+                    }
+                  />
+                </span>
+              </>
+            }
           />
-
-          <SettingsCardFooter>
-            {!isOwner && (
-              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
-                <Lock className="h-4 w-4 shrink-0" />
-                Only organization admins can delete this project.
-              </p>
-            )}
-            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-              <RemoveApplicationDialog
-                handler={handleDeleteApplication}
-                trigger={
-                  <ButtonWithLoading
-                    type="button"
-                    disabled={!isOwner}
-                    variant="destructive"
-                    className="w-full sm:w-auto"
-                  >
-                    Delete
-                  </ButtonWithLoading>
-                }
-              />
-            </span>
-          </SettingsCardFooter>
         </SettingsCard>
       )}
     </div>
