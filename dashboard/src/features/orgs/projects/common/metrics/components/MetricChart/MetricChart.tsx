@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   CartesianGrid,
-  type DefaultLegendContentProps,
   Line,
   LineChart,
   ReferenceArea,
@@ -20,6 +19,7 @@ import {
   PinnedTooltip,
 } from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
 import { ScaleCapture } from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
+import { TOOLTIP_WRAPPER_STYLE } from '@/features/orgs/projects/common/metrics/constants';
 import { useDragToZoom } from '@/features/orgs/projects/common/metrics/hooks/useDragToZoom';
 import { usePinnedTooltip } from '@/features/orgs/projects/common/metrics/hooks/usePinnedTooltip';
 import { useSeriesVisibility } from '@/features/orgs/projects/common/metrics/hooks/useSeriesVisibility';
@@ -145,6 +145,17 @@ export default function MetricChart({
     setFocusedKey(null);
   };
 
+  // A pinned tooltip is a snapshot of the series visible when it was pinned,
+  // so it is closed rather than left out of sync with the legend.
+  const { clearPinned } = pin;
+  const handleLegendItemClick = useCallback<typeof handleLegendClick>(
+    (key, modifiers) => {
+      clearPinned();
+      handleLegendClick(key, modifiers);
+    },
+    [clearPinned, handleLegendClick],
+  );
+
   const handleClick = (e: ChartMouseEvent) => {
     if (!zoom.consumeDragClick()) {
       pin.togglePinAt(e);
@@ -171,16 +182,14 @@ export default function MetricChart({
     <HoverTooltipContent config={config} valueFormatter={valueFormatter} />
   );
 
-  const renderLegend = ({ payload }: DefaultLegendContentProps) =>
-    payload?.length ? (
-      <InteractiveChartLegend
-        payload={payload}
-        config={config}
-        hiddenSet={hiddenSet}
-        onItemClick={handleLegendClick}
-        onItemHover={setLegendHover}
-      />
-    ) : null;
+  const legendContent = (
+    <InteractiveChartLegend
+      config={config}
+      hiddenSet={hiddenSet}
+      onItemClick={handleLegendItemClick}
+      onItemHover={setLegendHover}
+    />
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -224,9 +233,10 @@ export default function MetricChart({
               <ChartTooltip
                 cursor={!pin.pinned}
                 active={pin.pinned ? false : undefined}
+                wrapperStyle={TOOLTIP_WRAPPER_STYLE}
                 content={tooltipContent}
               />
-              <ChartLegend content={renderLegend} />
+              <ChartLegend content={legendContent} />
               <ScaleCapture xScaleRef={xScaleRef} yScaleRef={yScaleRef} />
               {keys.map((key) => (
                 <Line
