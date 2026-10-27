@@ -113,7 +113,8 @@ export default function GeneralSettings() {
                   onClick={copySlugToClipboard}
                   className="absolute top-0 right-0"
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
+                  size="sm"
                 >
                   <CopyIcon className="h-4 w-4" />
                 </Button>

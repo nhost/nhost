@@ -231,7 +231,7 @@ export default function NativeQueryRelationships({
                     <TooltipTrigger asChild>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
                         aria-label={`Edit relationship ${relationship.name}`}
                         disabled={
@@ -251,9 +251,8 @@ export default function NativeQueryRelationships({
                     <TooltipTrigger asChild>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
-                        className="text-destructive hover:text-destructive"
                         aria-label={`Delete relationship ${relationship.name}`}
                         onClick={() => {
                           setSelected({ relationship, kind });

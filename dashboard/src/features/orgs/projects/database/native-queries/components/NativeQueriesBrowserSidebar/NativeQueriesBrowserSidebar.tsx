@@ -113,7 +113,7 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="subtle"
                       size="icon"
                       className="h-6 w-6 text-primary"
                       aria-label="New native query"
@@ -167,7 +167,7 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="subtle"
                       size="icon"
                       className="h-6 w-6 text-primary"
                       aria-label="New logical model"

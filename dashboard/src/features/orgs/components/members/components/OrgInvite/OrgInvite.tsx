@@ -154,7 +154,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" disabled={!isAdmin}>
+              <Button variant="subtle" size="sm" disabled={!isAdmin}>
                 <Ellipsis />
               </Button>
             </DropdownMenuTrigger>

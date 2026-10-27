@@ -492,7 +492,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     <div className="relative w-full p-12">
       {close && (
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Close"
           className="absolute top-4 right-4"

@@ -5,6 +5,7 @@ import {
 } from '@/components/layout/SettingsCard';
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
@@ -112,14 +113,9 @@ export default function DeleteAccount() {
             </div>
 
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-                disabled={loadingRemove}
-              >
+              <AlertDialogCancel disabled={loadingRemove}>
                 Cancel
-              </Button>
+              </AlertDialogCancel>
 
               <ButtonWithLoading
                 type="button"

@@ -90,9 +90,8 @@ export default function DeleteRelationshipDialog({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         onClick={() => setOpen(true)}
         data-testid={`delete-rel-${relationshipToDelete}`}
       >

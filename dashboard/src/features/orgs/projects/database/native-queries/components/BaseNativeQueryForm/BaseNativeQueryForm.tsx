@@ -223,11 +223,11 @@ export default function BaseNativeQueryForm({
                       <DialogTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           title="Expand SQL editor"
                           aria-label="Expand SQL editor"
-                          className="absolute top-1 right-2 z-10 h-6 w-6 bg-background/90 hover:bg-accent"
+                          className="absolute top-1 right-2 z-10 h-6 w-6 bg-background/90"
                         >
                           <ExpandIcon className="h-4 w-4" strokeWidth={1} />
                         </Button>

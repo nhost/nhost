@@ -197,7 +197,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               asChild
               className="h-fit"
             >
-              <Button variant="ghost" className="h-8 p-2">
+              <Button variant="subtle" size="sm" className="h-8 p-2">
                 <Ellipsis />
               </Button>
             </DropdownMenuTrigger>
