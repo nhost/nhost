@@ -119,7 +119,7 @@ export default function PermissionVariableSettings() {
       component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -135,7 +135,7 @@ export default function PermissionVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }

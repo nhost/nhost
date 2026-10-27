@@ -48,9 +48,11 @@ function DisableMfaButton() {
           Disable multi-factor authentication
         </Button>
       </DialogTrigger>
-      <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+      <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Disable multi-factor authentication</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Disable multi-factor authentication
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
           Disable multi-factor authentication

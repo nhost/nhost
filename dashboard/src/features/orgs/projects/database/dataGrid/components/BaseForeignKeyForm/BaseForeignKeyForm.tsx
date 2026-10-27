@@ -120,10 +120,10 @@ export default function BaseForeignKeyForm({
           ),
         })
       }
-      className="flex flex-auto flex-col content-between overflow-hidden pb-4"
+      className="flex flex-auto flex-col content-between overflow-hidden pb-12"
     >
       <div className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
-        <section className="grid grid-flow-row gap-4 px-6">
+        <section className="grid grid-flow-row gap-4 px-12">
           <h3 className="font-semibold text-foreground text-lg leading-6">
             References
           </h3>
@@ -136,7 +136,7 @@ export default function BaseForeignKeyForm({
         {referencedColumns.length > 0 && (
           <>
             <hr className="border-t-1" />
-            <section className="grid grid-flow-row gap-2 px-6 py-2">
+            <section className="grid grid-flow-row gap-2 px-12 py-2">
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <span className="font-medium text-foreground text-sm">
                   Column
@@ -190,7 +190,7 @@ export default function BaseForeignKeyForm({
 
         <hr className="border-t-1" />
 
-        <section className="grid grid-cols-2 gap-4 px-6">
+        <section className="grid grid-cols-2 gap-4 px-12">
           <FormSelect
             control={control}
             name="updateAction"
@@ -223,7 +223,11 @@ export default function BaseForeignKeyForm({
         </section>
       </div>
 
-      <div className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
+      <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t-1 px-12 pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+
         <ButtonWithLoading
           loading={isSubmitting}
           disabled={isSubmitting}
@@ -232,10 +236,6 @@ export default function BaseForeignKeyForm({
         >
           {submitButtonText}
         </ButtonWithLoading>
-
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
       </div>
     </Form>
   );
