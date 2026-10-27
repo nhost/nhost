@@ -1,13 +1,22 @@
 package ratelimit
 
 import (
+	"math"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// abortTooManyRequests responds 429 with Retry-After in whole seconds (at least 1).
+func abortTooManyRequests(ctx *gin.Context, retryAfter time.Duration) {
+	seconds := max(int(math.Ceil(retryAfter.Seconds())), 1)
+	ctx.Header("Retry-After", strconv.Itoa(seconds))
+	ctx.AbortWithStatus(http.StatusTooManyRequests)
+}
 
 // endpints that send emails.
 func sendsEmail(path string, verifyEmailEnabled bool) bool {
@@ -62,7 +71,7 @@ func isOAuth2Server(path string) bool {
 		path == "/oauth2/introspect"
 }
 
-func RateLimit( //nolint:cyclop,funlen,cyclop,gocognit
+func RateLimit( //nolint:funlen,gocognit
 	ignorePrefix string,
 	globalLimit int,
 	globalInterval time.Duration,
@@ -82,15 +91,9 @@ func RateLimit( //nolint:cyclop,funlen,cyclop,gocognit
 ) gin.HandlerFunc {
 	perUserRL := NewSlidingWindow("user-global", globalLimit, globalInterval, store)
 
-	var (
-		globalEmailRL  *SlidingWindow
-		perUserEmailRL *SlidingWindow
-	)
-
+	emailRL := NewSlidingWindow("user-email", emailLimit, emailInterval, store)
 	if emailIsGlobal {
-		globalEmailRL = NewSlidingWindow("global-email", emailLimit, emailInterval, store)
-	} else {
-		perUserEmailRL = NewSlidingWindow("user-email", emailLimit, emailInterval, store)
+		emailRL = NewSlidingWindow("global-email", emailLimit, emailInterval, store)
 	}
 
 	globalSMSRL := NewSlidingWindow("user-sms", smsLimit, smsInterval, store)
@@ -104,49 +107,49 @@ func RateLimit( //nolint:cyclop,funlen,cyclop,gocognit
 
 	return func(ctx *gin.Context) {
 		clientIP := ctx.ClientIP()
-		if !perUserRL.Allow(ctx, clientIP) {
-			ctx.AbortWithStatus(http.StatusTooManyRequests)
+		if ok, retryAfter := perUserRL.Allow(ctx, clientIP); !ok {
+			abortTooManyRequests(ctx, retryAfter)
 			return
 		}
 
 		path := strings.TrimPrefix(ctx.Request.URL.Path, ignorePrefix)
 
 		if sendsEmail(path, emailVerifyEnabled) {
-			if globalEmailRL != nil && !globalEmailRL.Allow(ctx, "global") {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
-				return
+			emailKey := clientIP
+			if emailIsGlobal {
+				emailKey = "global"
 			}
 
-			if perUserEmailRL != nil && !perUserEmailRL.Allow(ctx, clientIP) {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			if ok, retryAfter := emailRL.Allow(ctx, emailKey); !ok {
+				abortTooManyRequests(ctx, retryAfter)
 				return
 			}
 		}
 
 		if sendsSMS(path) {
-			if !globalSMSRL.Allow(ctx, clientIP) {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			if ok, retryAfter := globalSMSRL.Allow(ctx, clientIP); !ok {
+				abortTooManyRequests(ctx, retryAfter)
 				return
 			}
 		}
 
 		if bruteForceProtected(path) {
-			if !perUserBruteForceRL.Allow(ctx, clientIP) {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			if ok, retryAfter := perUserBruteForceRL.Allow(ctx, clientIP); !ok {
+				abortTooManyRequests(ctx, retryAfter)
 				return
 			}
 		}
 
 		if isSignup(path) {
-			if !perUserSignupsRL.Allow(ctx, clientIP) {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			if ok, retryAfter := perUserSignupsRL.Allow(ctx, clientIP); !ok {
+				abortTooManyRequests(ctx, retryAfter)
 				return
 			}
 		}
 
 		if isOAuth2Server(path) {
-			if !perUserOAuth2ServerRL.Allow(ctx, clientIP) {
-				ctx.AbortWithStatus(http.StatusTooManyRequests)
+			if ok, retryAfter := perUserOAuth2ServerRL.Allow(ctx, clientIP); !ok {
+				abortTooManyRequests(ctx, retryAfter)
 				return
 			}
 		}

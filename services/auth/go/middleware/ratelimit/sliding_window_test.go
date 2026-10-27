@@ -13,7 +13,7 @@ func count(
 	t.Helper()
 
 	count := 0
-	if rl.Allow(t.Context(), key) {
+	if ok, _ := rl.Allow(t.Context(), key); ok {
 		count++
 	}
 

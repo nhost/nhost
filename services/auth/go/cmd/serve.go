@@ -1442,7 +1442,9 @@ func getCORSOptions() oapimw.CORSOptions {
 		AllowedMethods:   []string{"POST", "GET"},
 		AllowHeadersFunc: nil,
 		AllowedHeaders:   nil,
-		ExposedHeaders:   []string{},
+		// Retry-After is not CORS-safelisted, so browsers hide it from clients
+		// reading rate limit 429 responses unless it is exposed.
+		ExposedHeaders:   []string{"Retry-After"},
 		AllowCredentials: true,
 		// Required: the shared CORS middleware is fail-closed and rejects
 		// allow-all origins combined with credentials, so without this flag
