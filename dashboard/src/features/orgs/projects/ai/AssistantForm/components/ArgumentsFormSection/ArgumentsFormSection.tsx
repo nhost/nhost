@@ -46,7 +46,7 @@ export default function ArgumentsFormSection({
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add argument"
           onClick={() => append({})}
@@ -113,9 +113,9 @@ export default function ArgumentsFormSection({
 
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="h-10 text-destructive hover:text-destructive"
+                    className="h-10"
                     aria-label="Remove argument"
                     onClick={() => remove(index)}
                   >

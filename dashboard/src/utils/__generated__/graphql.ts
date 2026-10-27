@@ -3762,7 +3762,6 @@ export type UsageSummary = {
 
 export type VerifySubscriptionsResponse = {
   __typename?: 'VerifySubscriptionsResponse';
-  AppsWithInvalidSubscriptions: Array<Scalars['uuid']>;
   OrganizationsWithInvalidSubscriptions: Array<Scalars['uuid']>;
   SubscriptionsWithoutCustomer: Array<Scalars['String']>;
 };
@@ -4789,8 +4788,6 @@ export type Apps = {
   backups_aggregate: Backups_Aggregate;
   /** An object relationship */
   billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
-  /** An object relationship */
-  billingSubscriptions?: Maybe<Billing_Subscriptions>;
   /** main entrypoint to the configuration */
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
@@ -4815,10 +4812,6 @@ export type Apps = {
   id: Scalars['uuid'];
   isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
-  /** An object relationship */
-  legacyPlan?: Maybe<Plans>;
-  legacyPlanID?: Maybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   metadataFunctions: Scalars['jsonb'];
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
@@ -4826,8 +4819,8 @@ export type Apps = {
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
   /** An object relationship */
-  organization?: Maybe<Organizations>;
-  organizationID?: Maybe<Scalars['uuid']>;
+  organization: Organizations;
+  organizationID: Scalars['uuid'];
   /** An array relationship */
   pipelineRuns: Array<PipelineRuns>;
   /** An aggregate relationship */
@@ -4845,9 +4838,6 @@ export type Apps = {
   subdomain: Scalars['String'];
   systemConfig?: Maybe<ConfigSystemConfig>;
   updatedAt: Scalars['timestamptz'];
-  /** An object relationship */
-  workspace?: Maybe<Workspaces>;
-  workspaceId?: Maybe<Scalars['uuid']>;
 };
 
 
@@ -5090,7 +5080,6 @@ export type Apps_Bool_Exp = {
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
-  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
   creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -5106,9 +5095,6 @@ export type Apps_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isLocked?: InputMaybe<Boolean_Comparison_Exp>;
   isLockedReason?: InputMaybe<String_Comparison_Exp>;
-  legacyPlan?: InputMaybe<Plans_Bool_Exp>;
-  legacyPlanID?: InputMaybe<Uuid_Comparison_Exp>;
-  legacyStripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
   mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
@@ -5128,8 +5114,6 @@ export type Apps_Bool_Exp = {
   stateMatch?: InputMaybe<Boolean_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  workspace?: InputMaybe<Workspaces_Bool_Exp>;
-  workspaceId?: InputMaybe<Uuid_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "apps" */
@@ -5137,9 +5121,7 @@ export enum Apps_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppsPkey = 'apps_pkey',
   /** unique or primary key constraint on columns "subdomain" */
-  AppsSubdomainKey = 'apps_subdomain_key',
-  /** unique or primary key constraint on columns "workspace_id", "slug" */
-  AppsWorkspaceIdSlugKey = 'apps_workspace_id_slug_key'
+  AppsSubdomainKey = 'apps_subdomain_key'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -5169,7 +5151,6 @@ export type Apps_Insert_Input = {
   automaticDeploys?: InputMaybe<Scalars['Boolean']>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
-  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Obj_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
@@ -5183,9 +5164,6 @@ export type Apps_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
-  legacyPlan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
-  legacyPlanID?: InputMaybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
@@ -5202,8 +5180,6 @@ export type Apps_Insert_Input = {
   slug?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate max on columns */
@@ -5218,8 +5194,6 @@ export type Apps_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
-  legacyPlanID?: Maybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
@@ -5233,7 +5207,6 @@ export type Apps_Max_Fields = {
   stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
 };
 
 /** order by max() on columns of table "apps" */
@@ -5247,8 +5220,6 @@ export type Apps_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
-  legacyPlanID?: InputMaybe<Order_By>;
-  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
@@ -5262,7 +5233,6 @@ export type Apps_Max_Order_By = {
   stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -5277,8 +5247,6 @@ export type Apps_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
-  legacyPlanID?: Maybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: Maybe<Scalars['String']>;
   metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
@@ -5292,7 +5260,6 @@ export type Apps_Min_Fields = {
   stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
 };
 
 /** order by min() on columns of table "apps" */
@@ -5306,8 +5273,6 @@ export type Apps_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
-  legacyPlanID?: InputMaybe<Order_By>;
-  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
@@ -5321,7 +5286,6 @@ export type Apps_Min_Order_By = {
   stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "apps" */
@@ -5353,7 +5317,6 @@ export type Apps_Order_By = {
   automaticDeploys?: InputMaybe<Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
-  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
@@ -5367,9 +5330,6 @@ export type Apps_Order_By = {
   id?: InputMaybe<Order_By>;
   isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
-  legacyPlan?: InputMaybe<Plans_Order_By>;
-  legacyPlanID?: InputMaybe<Order_By>;
-  legacyStripeSubscriptionId?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
@@ -5387,8 +5347,6 @@ export type Apps_Order_By = {
   stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
-  workspace?: InputMaybe<Workspaces_Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: apps */
@@ -5422,10 +5380,6 @@ export enum Apps_Select_Column {
   /** column name */
   IsLockedReason = 'isLockedReason',
   /** column name */
-  LegacyPlanId = 'legacyPlanID',
-  /** column name */
-  LegacyStripeSubscriptionId = 'legacyStripeSubscriptionId',
-  /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
   MimirConfigEnc = 'mimirConfigEnc',
@@ -5450,9 +5404,7 @@ export enum Apps_Select_Column {
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  WorkspaceId = 'workspaceId'
+  UpdatedAt = 'updatedAt'
 }
 
 /** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
@@ -5486,8 +5438,6 @@ export type Apps_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
-  legacyPlanID?: InputMaybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
@@ -5500,7 +5450,6 @@ export type Apps_Set_Input = {
   slug?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate stddev on columns */
@@ -5561,8 +5510,6 @@ export type Apps_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   isLocked?: InputMaybe<Scalars['Boolean']>;
   isLockedReason?: InputMaybe<Scalars['String']>;
-  legacyPlanID?: InputMaybe<Scalars['uuid']>;
-  legacyStripeSubscriptionId?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
@@ -5576,7 +5523,6 @@ export type Apps_Stream_Cursor_Value_Input = {
   stateMatch?: InputMaybe<Scalars['Boolean']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate sum on columns */
@@ -5613,10 +5559,6 @@ export enum Apps_Update_Column {
   /** column name */
   IsLockedReason = 'isLockedReason',
   /** column name */
-  LegacyPlanId = 'legacyPlanID',
-  /** column name */
-  LegacyStripeSubscriptionId = 'legacyStripeSubscriptionId',
-  /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
   MimirConfigEnc = 'mimirConfigEnc',
@@ -5639,9 +5581,7 @@ export enum Apps_Update_Column {
   /** column name */
   Subdomain = 'subdomain',
   /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  WorkspaceId = 'workspaceId'
+  UpdatedAt = 'updatedAt'
 }
 
 export type Apps_Updates = {
@@ -9736,33 +9676,6 @@ export type Billing_Reports_Aggregate = {
   nodes: Array<Billing_Reports>;
 };
 
-export type Billing_Reports_Aggregate_Bool_Exp = {
-  bool_and?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Bool_And>;
-  bool_or?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Bool_Or>;
-  count?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Count>;
-};
-
-export type Billing_Reports_Aggregate_Bool_Exp_Bool_And = {
-  arguments: Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type Billing_Reports_Aggregate_Bool_Exp_Bool_Or = {
-  arguments: Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type Billing_Reports_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Billing_Reports_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
 /** aggregate fields of "billing.reports" */
 export type Billing_Reports_Aggregate_Fields = {
   __typename?: 'billing_reports_aggregate_fields';
@@ -9786,37 +9699,10 @@ export type Billing_Reports_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
-/** order by aggregate values of table "billing.reports" */
-export type Billing_Reports_Aggregate_Order_By = {
-  avg?: InputMaybe<Billing_Reports_Avg_Order_By>;
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Billing_Reports_Max_Order_By>;
-  min?: InputMaybe<Billing_Reports_Min_Order_By>;
-  stddev?: InputMaybe<Billing_Reports_Stddev_Order_By>;
-  stddev_pop?: InputMaybe<Billing_Reports_Stddev_Pop_Order_By>;
-  stddev_samp?: InputMaybe<Billing_Reports_Stddev_Samp_Order_By>;
-  sum?: InputMaybe<Billing_Reports_Sum_Order_By>;
-  var_pop?: InputMaybe<Billing_Reports_Var_Pop_Order_By>;
-  var_samp?: InputMaybe<Billing_Reports_Var_Samp_Order_By>;
-  variance?: InputMaybe<Billing_Reports_Variance_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "billing.reports" */
-export type Billing_Reports_Arr_Rel_Insert_Input = {
-  data: Array<Billing_Reports_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
-};
-
 /** aggregate avg on columns */
 export type Billing_Reports_Avg_Fields = {
   __typename?: 'billing_reports_avg_fields';
   value?: Maybe<Scalars['Float']>;
-};
-
-/** order by avg() on columns of table "billing.reports" */
-export type Billing_Reports_Avg_Order_By = {
-  value?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "billing.reports". All fields are combined with a logical 'AND'. */
@@ -9878,20 +9764,6 @@ export type Billing_Reports_Max_Fields = {
   value?: Maybe<Scalars['Int']>;
 };
 
-/** order by max() on columns of table "billing.reports" */
-export type Billing_Reports_Max_Order_By = {
-  appID?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  organizationID?: InputMaybe<Order_By>;
-  pending?: InputMaybe<Order_By>;
-  reportEnds?: InputMaybe<Order_By>;
-  reportStarts?: InputMaybe<Order_By>;
-  stripeSubscriptionID?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  value?: InputMaybe<Order_By>;
-};
-
 /** aggregate min on columns */
 export type Billing_Reports_Min_Fields = {
   __typename?: 'billing_reports_min_fields';
@@ -9905,20 +9777,6 @@ export type Billing_Reports_Min_Fields = {
   stripeSubscriptionID?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   value?: Maybe<Scalars['Int']>;
-};
-
-/** order by min() on columns of table "billing.reports" */
-export type Billing_Reports_Min_Order_By = {
-  appID?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  organizationID?: InputMaybe<Order_By>;
-  pending?: InputMaybe<Order_By>;
-  reportEnds?: InputMaybe<Order_By>;
-  reportStarts?: InputMaybe<Order_By>;
-  stripeSubscriptionID?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  value?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "billing.reports" */
@@ -10284,18 +10142,6 @@ export enum Billing_Reports_Select_Column {
   Value = 'value'
 }
 
-/** select "billing_reports_aggregate_bool_exp_bool_and_arguments_columns" columns of table "billing.reports" */
-export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
-  /** column name */
-  Pending = 'pending'
-}
-
-/** select "billing_reports_aggregate_bool_exp_bool_or_arguments_columns" columns of table "billing.reports" */
-export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
-  /** column name */
-  Pending = 'pending'
-}
-
 /** input type for updating data in table "billing.reports" */
 export type Billing_Reports_Set_Input = {
   appID?: InputMaybe<Scalars['uuid']>;
@@ -10317,31 +10163,16 @@ export type Billing_Reports_Stddev_Fields = {
   value?: Maybe<Scalars['Float']>;
 };
 
-/** order by stddev() on columns of table "billing.reports" */
-export type Billing_Reports_Stddev_Order_By = {
-  value?: InputMaybe<Order_By>;
-};
-
 /** aggregate stddev_pop on columns */
 export type Billing_Reports_Stddev_Pop_Fields = {
   __typename?: 'billing_reports_stddev_pop_fields';
   value?: Maybe<Scalars['Float']>;
 };
 
-/** order by stddev_pop() on columns of table "billing.reports" */
-export type Billing_Reports_Stddev_Pop_Order_By = {
-  value?: InputMaybe<Order_By>;
-};
-
 /** aggregate stddev_samp on columns */
 export type Billing_Reports_Stddev_Samp_Fields = {
   __typename?: 'billing_reports_stddev_samp_fields';
   value?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev_samp() on columns of table "billing.reports" */
-export type Billing_Reports_Stddev_Samp_Order_By = {
-  value?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "billing_reports" */
@@ -10371,11 +10202,6 @@ export type Billing_Reports_Stream_Cursor_Value_Input = {
 export type Billing_Reports_Sum_Fields = {
   __typename?: 'billing_reports_sum_fields';
   value?: Maybe<Scalars['Int']>;
-};
-
-/** order by sum() on columns of table "billing.reports" */
-export type Billing_Reports_Sum_Order_By = {
-  value?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "billing.reports" */
@@ -10419,31 +10245,16 @@ export type Billing_Reports_Var_Pop_Fields = {
   value?: Maybe<Scalars['Float']>;
 };
 
-/** order by var_pop() on columns of table "billing.reports" */
-export type Billing_Reports_Var_Pop_Order_By = {
-  value?: InputMaybe<Order_By>;
-};
-
 /** aggregate var_samp on columns */
 export type Billing_Reports_Var_Samp_Fields = {
   __typename?: 'billing_reports_var_samp_fields';
   value?: Maybe<Scalars['Float']>;
 };
 
-/** order by var_samp() on columns of table "billing.reports" */
-export type Billing_Reports_Var_Samp_Order_By = {
-  value?: InputMaybe<Order_By>;
-};
-
 /** aggregate variance on columns */
 export type Billing_Reports_Variance_Fields = {
   __typename?: 'billing_reports_variance_fields';
   value?: Maybe<Scalars['Float']>;
-};
-
-/** order by variance() on columns of table "billing.reports" */
-export type Billing_Reports_Variance_Order_By = {
-  value?: InputMaybe<Order_By>;
 };
 
 /** columns and relationships of "billing.resources" */
@@ -10579,13 +10390,6 @@ export type Billing_Resources_Mutation_Response = {
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
   returning: Array<Billing_Resources>;
-};
-
-/** input type for inserting object relation for remote table "billing.resources" */
-export type Billing_Resources_Obj_Rel_Insert_Input = {
-  data: Billing_Resources_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
 };
 
 /** on_conflict condition type for table "billing.resources" */
@@ -11003,295 +10807,6 @@ export type Billing_Subscription_Items_Updates = {
   _set?: InputMaybe<Billing_Subscription_Items_Set_Input>;
   /** filter the rows which have to be updated */
   where: Billing_Subscription_Items_Bool_Exp;
-};
-
-/** columns and relationships of "billing.subscriptions" */
-export type Billing_Subscriptions = {
-  __typename?: 'billing_subscriptions';
-  /** An object relationship */
-  app?: Maybe<Apps>;
-  appID: Scalars['uuid'];
-  createdAt: Scalars['timestamptz'];
-  customDomains?: Maybe<Scalars['String']>;
-  dedicatedCompute?: Maybe<Scalars['String']>;
-  egress?: Maybe<Scalars['String']>;
-  functions?: Maybe<Scalars['String']>;
-  functionsAmount?: Maybe<Scalars['String']>;
-  id: Scalars['uuid'];
-  persistentVolume?: Maybe<Scalars['String']>;
-  /** An array relationship */
-  reports: Array<Billing_Reports>;
-  /** An aggregate relationship */
-  reports_aggregate: Billing_Reports_Aggregate;
-  /** An object relationship */
-  resources?: Maybe<Billing_Resources>;
-  updatedAt: Scalars['timestamptz'];
-};
-
-
-/** columns and relationships of "billing.subscriptions" */
-export type Billing_SubscriptionsReportsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Reports_Bool_Exp>;
-};
-
-
-/** columns and relationships of "billing.subscriptions" */
-export type Billing_SubscriptionsReports_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
-  where?: InputMaybe<Billing_Reports_Bool_Exp>;
-};
-
-/** aggregated selection of "billing.subscriptions" */
-export type Billing_Subscriptions_Aggregate = {
-  __typename?: 'billing_subscriptions_aggregate';
-  aggregate?: Maybe<Billing_Subscriptions_Aggregate_Fields>;
-  nodes: Array<Billing_Subscriptions>;
-};
-
-/** aggregate fields of "billing.subscriptions" */
-export type Billing_Subscriptions_Aggregate_Fields = {
-  __typename?: 'billing_subscriptions_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Billing_Subscriptions_Max_Fields>;
-  min?: Maybe<Billing_Subscriptions_Min_Fields>;
-};
-
-
-/** aggregate fields of "billing.subscriptions" */
-export type Billing_Subscriptions_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "billing.subscriptions". All fields are combined with a logical 'AND'. */
-export type Billing_Subscriptions_Bool_Exp = {
-  _and?: InputMaybe<Array<Billing_Subscriptions_Bool_Exp>>;
-  _not?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
-  _or?: InputMaybe<Array<Billing_Subscriptions_Bool_Exp>>;
-  app?: InputMaybe<Apps_Bool_Exp>;
-  appID?: InputMaybe<Uuid_Comparison_Exp>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  customDomains?: InputMaybe<String_Comparison_Exp>;
-  dedicatedCompute?: InputMaybe<String_Comparison_Exp>;
-  egress?: InputMaybe<String_Comparison_Exp>;
-  functions?: InputMaybe<String_Comparison_Exp>;
-  functionsAmount?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  persistentVolume?: InputMaybe<String_Comparison_Exp>;
-  reports?: InputMaybe<Billing_Reports_Bool_Exp>;
-  reports_aggregate?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp>;
-  resources?: InputMaybe<Billing_Resources_Bool_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "billing.subscriptions" */
-export enum Billing_Subscriptions_Constraint {
-  /** unique or primary key constraint on columns "app_id" */
-  SubscriptionsAppIdKey = 'subscriptions_app_id_key',
-  /** unique or primary key constraint on columns "custom_domains" */
-  SubscriptionsCustomDomainsKey = 'subscriptions_custom_domains_key',
-  /** unique or primary key constraint on columns "dedicated_compute" */
-  SubscriptionsDedicatedComputeKey = 'subscriptions_dedicated_compute_key',
-  /** unique or primary key constraint on columns "egress" */
-  SubscriptionsEgressKey = 'subscriptions_egress_key',
-  /** unique or primary key constraint on columns "functions_amount" */
-  SubscriptionsFunctionsAmountKey = 'subscriptions_functions_amount_key',
-  /** unique or primary key constraint on columns "functions" */
-  SubscriptionsFunctionsKey = 'subscriptions_functions_key',
-  /** unique or primary key constraint on columns "persistent_volume" */
-  SubscriptionsPersistentVolumeKey = 'subscriptions_persistent_volume_key',
-  /** unique or primary key constraint on columns "id" */
-  SubscriptionsPkey = 'subscriptions_pkey'
-}
-
-/** input type for inserting data into table "billing.subscriptions" */
-export type Billing_Subscriptions_Insert_Input = {
-  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
-  appID?: InputMaybe<Scalars['uuid']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  customDomains?: InputMaybe<Scalars['String']>;
-  dedicatedCompute?: InputMaybe<Scalars['String']>;
-  egress?: InputMaybe<Scalars['String']>;
-  functions?: InputMaybe<Scalars['String']>;
-  functionsAmount?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  persistentVolume?: InputMaybe<Scalars['String']>;
-  reports?: InputMaybe<Billing_Reports_Arr_Rel_Insert_Input>;
-  resources?: InputMaybe<Billing_Resources_Obj_Rel_Insert_Input>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Billing_Subscriptions_Max_Fields = {
-  __typename?: 'billing_subscriptions_max_fields';
-  appID?: Maybe<Scalars['uuid']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  customDomains?: Maybe<Scalars['String']>;
-  dedicatedCompute?: Maybe<Scalars['String']>;
-  egress?: Maybe<Scalars['String']>;
-  functions?: Maybe<Scalars['String']>;
-  functionsAmount?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  persistentVolume?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Billing_Subscriptions_Min_Fields = {
-  __typename?: 'billing_subscriptions_min_fields';
-  appID?: Maybe<Scalars['uuid']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  customDomains?: Maybe<Scalars['String']>;
-  dedicatedCompute?: Maybe<Scalars['String']>;
-  egress?: Maybe<Scalars['String']>;
-  functions?: Maybe<Scalars['String']>;
-  functionsAmount?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  persistentVolume?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "billing.subscriptions" */
-export type Billing_Subscriptions_Mutation_Response = {
-  __typename?: 'billing_subscriptions_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Billing_Subscriptions>;
-};
-
-/** input type for inserting object relation for remote table "billing.subscriptions" */
-export type Billing_Subscriptions_Obj_Rel_Insert_Input = {
-  data: Billing_Subscriptions_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
-};
-
-/** on_conflict condition type for table "billing.subscriptions" */
-export type Billing_Subscriptions_On_Conflict = {
-  constraint: Billing_Subscriptions_Constraint;
-  update_columns?: Array<Billing_Subscriptions_Update_Column>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "billing.subscriptions". */
-export type Billing_Subscriptions_Order_By = {
-  app?: InputMaybe<Apps_Order_By>;
-  appID?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  customDomains?: InputMaybe<Order_By>;
-  dedicatedCompute?: InputMaybe<Order_By>;
-  egress?: InputMaybe<Order_By>;
-  functions?: InputMaybe<Order_By>;
-  functionsAmount?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  persistentVolume?: InputMaybe<Order_By>;
-  reports_aggregate?: InputMaybe<Billing_Reports_Aggregate_Order_By>;
-  resources?: InputMaybe<Billing_Resources_Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: billing.subscriptions */
-export type Billing_Subscriptions_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "billing.subscriptions" */
-export enum Billing_Subscriptions_Select_Column {
-  /** column name */
-  AppId = 'appID',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  CustomDomains = 'customDomains',
-  /** column name */
-  DedicatedCompute = 'dedicatedCompute',
-  /** column name */
-  Egress = 'egress',
-  /** column name */
-  Functions = 'functions',
-  /** column name */
-  FunctionsAmount = 'functionsAmount',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  PersistentVolume = 'persistentVolume',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-/** input type for updating data in table "billing.subscriptions" */
-export type Billing_Subscriptions_Set_Input = {
-  appID?: InputMaybe<Scalars['uuid']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  customDomains?: InputMaybe<Scalars['String']>;
-  dedicatedCompute?: InputMaybe<Scalars['String']>;
-  egress?: InputMaybe<Scalars['String']>;
-  functions?: InputMaybe<Scalars['String']>;
-  functionsAmount?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  persistentVolume?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** Streaming cursor of the table "billing_subscriptions" */
-export type Billing_Subscriptions_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Billing_Subscriptions_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Billing_Subscriptions_Stream_Cursor_Value_Input = {
-  appID?: InputMaybe<Scalars['uuid']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  customDomains?: InputMaybe<Scalars['String']>;
-  dedicatedCompute?: InputMaybe<Scalars['String']>;
-  egress?: InputMaybe<Scalars['String']>;
-  functions?: InputMaybe<Scalars['String']>;
-  functionsAmount?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  persistentVolume?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** update columns of table "billing.subscriptions" */
-export enum Billing_Subscriptions_Update_Column {
-  /** column name */
-  AppId = 'appID',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  CustomDomains = 'customDomains',
-  /** column name */
-  DedicatedCompute = 'dedicatedCompute',
-  /** column name */
-  Egress = 'egress',
-  /** column name */
-  Functions = 'functions',
-  /** column name */
-  FunctionsAmount = 'functionsAmount',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  PersistentVolume = 'persistentVolume',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-export type Billing_Subscriptions_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Billing_Subscriptions_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'. */
@@ -12120,10 +11635,6 @@ export type Countries = {
   locations_aggregate: Regions_Aggregate;
   /** English country name */
   name: Scalars['String'];
-  /** An array relationship */
-  workspaces: Array<Workspaces>;
-  /** An aggregate relationship */
-  workspaces_aggregate: Workspaces_Aggregate;
 };
 
 
@@ -12146,25 +11657,6 @@ export type CountriesLocations_AggregateArgs = {
   where?: InputMaybe<Regions_Bool_Exp>;
 };
 
-
-/** columns and relationships of "countries" */
-export type CountriesWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-
-/** columns and relationships of "countries" */
-export type CountriesWorkspaces_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
 
 /** aggregated selection of "countries" */
 export type Countries_Aggregate = {
@@ -12262,8 +11754,6 @@ export type Countries_Bool_Exp = {
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
   /** English country name */
   name?: InputMaybe<String_Comparison_Exp>;
-  workspaces?: InputMaybe<Workspaces_Bool_Exp>;
-  workspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "countries" */
@@ -12294,7 +11784,6 @@ export type Countries_Insert_Input = {
   locations?: InputMaybe<Regions_Arr_Rel_Insert_Input>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
-  workspaces?: InputMaybe<Workspaces_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
@@ -12402,7 +11891,6 @@ export type Countries_Order_By = {
   locations_aggregate?: InputMaybe<Regions_Aggregate_Order_By>;
   /** English country name */
   name?: InputMaybe<Order_By>;
-  workspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: countries */
@@ -14795,11 +14283,8 @@ export type Mutation_Root = {
   billingCreateOrganizationRequest: Scalars['String'];
   billingDeleteApp: Scalars['Boolean'];
   billingDeleteOrganization: Scalars['Boolean'];
-  billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptionItems: Scalars['Boolean'];
-  billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
-  billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
   billingTransferApp: Scalars['Boolean'];
   billingUpdateCustomDomains: Scalars['Boolean'];
@@ -14893,10 +14378,6 @@ export type Mutation_Root = {
   deleteBillingResource?: Maybe<Billing_Resources>;
   /** delete data from the table: "billing.resources" */
   deleteBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
-  /** delete data from the table: "billing.subscriptions" */
-  deleteBillingSubscription?: Maybe<Billing_Subscriptions_Mutation_Response>;
-  /** delete single row from the table: "billing.subscriptions" */
-  deleteBillingSubscriptions?: Maybe<Billing_Subscriptions>;
   /** delete single row from the table: "storage.buckets" */
   deleteBucket?: Maybe<Buckets>;
   /** delete data from the table: "storage.buckets" */
@@ -14946,10 +14427,6 @@ export type Mutation_Root = {
   deleteOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** delete data from the table: "organizations" */
   deleteOrganizations?: Maybe<Organizations_Mutation_Response>;
-  /** delete single row from the table: "payment_methods" */
-  deletePaymentMethod?: Maybe<PaymentMethods>;
-  /** delete data from the table: "payment_methods" */
-  deletePaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
   /** delete single row from the table: "pipeline_runs" */
   deletePipelineRun?: Maybe<PipelineRuns>;
   /** delete data from the table: "pipeline_runs" */
@@ -14962,10 +14439,6 @@ export type Mutation_Root = {
   deleteRegionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
   /** delete data from the table: "regions_allowed_organization" */
   deleteRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
-  /** delete single row from the table: "regions_allowed_workspace" */
-  deleteRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
-  /** delete data from the table: "regions_allowed_workspace" */
-  deleteRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   /** delete single row from the table: "run_service" */
   deleteRunService?: Maybe<Run_Service>;
   deleteRunServiceConfig?: Maybe<ConfigRunServiceConfig>;
@@ -14988,18 +14461,6 @@ export type Mutation_Root = {
   deleteVirus?: Maybe<Virus>;
   /** delete data from the table: "storage.virus" */
   deleteViruses?: Maybe<Virus_Mutation_Response>;
-  /** delete single row from the table: "workspaces" */
-  deleteWorkspace?: Maybe<Workspaces>;
-  /** delete single row from the table: "workspace_members" */
-  deleteWorkspaceMember?: Maybe<WorkspaceMembers>;
-  /** delete single row from the table: "workspace_member_invites" */
-  deleteWorkspaceMemberInvite?: Maybe<WorkspaceMemberInvites>;
-  /** delete data from the table: "workspace_member_invites" */
-  deleteWorkspaceMemberInvites?: Maybe<WorkspaceMemberInvites_Mutation_Response>;
-  /** delete data from the table: "workspace_members" */
-  deleteWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
-  /** delete data from the table: "workspaces" */
-  deleteWorkspaces?: Maybe<Workspaces_Mutation_Response>;
   /** delete data from the table: "announcements" */
   delete_announcements?: Maybe<Announcements_Mutation_Response>;
   /** delete single row from the table: "announcements" */
@@ -15136,10 +14597,6 @@ export type Mutation_Root = {
   insertBillingResource?: Maybe<Billing_Resources>;
   /** insert data into the table: "billing.resources" */
   insertBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
-  /** insert data into the table: "billing.subscriptions" */
-  insertBillingSubscription?: Maybe<Billing_Subscriptions_Mutation_Response>;
-  /** insert a single row into the table: "billing.subscriptions" */
-  insertBillingSubscriptions?: Maybe<Billing_Subscriptions>;
   /** insert a single row into the table: "storage.buckets" */
   insertBucket?: Maybe<Buckets>;
   /** insert data into the table: "storage.buckets" */
@@ -15189,10 +14646,6 @@ export type Mutation_Root = {
   insertOrganizationNewRequests?: Maybe<Organization_New_Request_Mutation_Response>;
   /** insert data into the table: "organizations" */
   insertOrganizations?: Maybe<Organizations_Mutation_Response>;
-  /** insert a single row into the table: "payment_methods" */
-  insertPaymentMethod?: Maybe<PaymentMethods>;
-  /** insert data into the table: "payment_methods" */
-  insertPaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
   /** insert a single row into the table: "pipeline_runs" */
   insertPipelineRun?: Maybe<PipelineRuns>;
   /** insert data into the table: "pipeline_runs" */
@@ -15205,10 +14658,6 @@ export type Mutation_Root = {
   insertRegionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
   /** insert data into the table: "regions_allowed_organization" */
   insertRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
-  /** insert a single row into the table: "regions_allowed_workspace" */
-  insertRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
-  /** insert data into the table: "regions_allowed_workspace" */
-  insertRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   /** insert a single row into the table: "run_service" */
   insertRunService?: Maybe<Run_Service>;
   insertRunServiceConfig: InsertRunServiceConfigResponse;
@@ -15231,18 +14680,6 @@ export type Mutation_Root = {
   insertVirus?: Maybe<Virus>;
   /** insert data into the table: "storage.virus" */
   insertViruses?: Maybe<Virus_Mutation_Response>;
-  /** insert a single row into the table: "workspaces" */
-  insertWorkspace?: Maybe<Workspaces>;
-  /** insert a single row into the table: "workspace_members" */
-  insertWorkspaceMember?: Maybe<WorkspaceMembers>;
-  /** insert a single row into the table: "workspace_member_invites" */
-  insertWorkspaceMemberInvite?: Maybe<WorkspaceMemberInvites>;
-  /** insert data into the table: "workspace_member_invites" */
-  insertWorkspaceMemberInvites?: Maybe<WorkspaceMemberInvites_Mutation_Response>;
-  /** insert data into the table: "workspace_members" */
-  insertWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
-  /** insert data into the table: "workspaces" */
-  insertWorkspaces?: Maybe<Workspaces_Mutation_Response>;
   /** insert data into the table: "announcements" */
   insert_announcements?: Maybe<Announcements_Mutation_Response>;
   /** insert a single row into the table: "announcements" */
@@ -15400,10 +14837,6 @@ export type Mutation_Root = {
   updateBillingResource?: Maybe<Billing_Resources>;
   /** update data of the table: "billing.resources" */
   updateBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
-  /** update single row of the table: "billing.subscriptions" */
-  updateBillingSubscription?: Maybe<Billing_Subscriptions>;
-  /** update data of the table: "billing.subscriptions" */
-  updateBillingSubscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
   /** update single row of the table: "storage.buckets" */
   updateBucket?: Maybe<Buckets>;
   /** update data of the table: "storage.buckets" */
@@ -15469,10 +14902,6 @@ export type Mutation_Root = {
   updateOrganizations?: Maybe<Organizations_Mutation_Response>;
   /** update multiples rows of table: "organizations" */
   updateOrganizationsMany?: Maybe<Array<Maybe<Organizations_Mutation_Response>>>;
-  /** update single row of the table: "payment_methods" */
-  updatePaymentMethod?: Maybe<PaymentMethods>;
-  /** update data of the table: "payment_methods" */
-  updatePaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
   /** update single row of the table: "pipeline_runs" */
   updatePipelineRun?: Maybe<PipelineRuns>;
   /** update data of the table: "pipeline_runs" */
@@ -15487,10 +14916,6 @@ export type Mutation_Root = {
   updateRegionsAllowedOrganizations?: Maybe<Regions_Allowed_Organization_Mutation_Response>;
   /** update multiples rows of table: "regions_allowed_organization" */
   updateRegionsAllowedOrganizationsMany?: Maybe<Array<Maybe<Regions_Allowed_Organization_Mutation_Response>>>;
-  /** update single row of the table: "regions_allowed_workspace" */
-  updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
-  /** update data of the table: "regions_allowed_workspace" */
-  updateRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   /** update single row of the table: "run_service" */
   updateRunService?: Maybe<Run_Service>;
   updateRunServiceConfig: ConfigRunServiceConfig;
@@ -15514,18 +14939,6 @@ export type Mutation_Root = {
   updateVirus?: Maybe<Virus>;
   /** update data of the table: "storage.virus" */
   updateViruses?: Maybe<Virus_Mutation_Response>;
-  /** update single row of the table: "workspaces" */
-  updateWorkspace?: Maybe<Workspaces>;
-  /** update single row of the table: "workspace_members" */
-  updateWorkspaceMember?: Maybe<WorkspaceMembers>;
-  /** update single row of the table: "workspace_member_invites" */
-  updateWorkspaceMemberInvite?: Maybe<WorkspaceMemberInvites>;
-  /** update data of the table: "workspace_member_invites" */
-  updateWorkspaceMemberInvites?: Maybe<WorkspaceMemberInvites_Mutation_Response>;
-  /** update data of the table: "workspace_members" */
-  updateWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
-  /** update data of the table: "workspaces" */
-  updateWorkspaces?: Maybe<Workspaces_Mutation_Response>;
   /** update data of the table: "announcements" */
   update_announcements?: Maybe<Announcements_Mutation_Response>;
   /** update single row of the table: "announcements" */
@@ -15618,8 +15031,6 @@ export type Mutation_Root = {
   update_githubAppInstallations_many?: Maybe<Array<Maybe<GithubAppInstallations_Mutation_Response>>>;
   /** update multiples rows of table: "github_repositories" */
   update_githubRepositories_many?: Maybe<Array<Maybe<GithubRepositories_Mutation_Response>>>;
-  /** update multiples rows of table: "billing.subscriptions" */
-  update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
   /** update data of the table: "organization_costs_thresholds" */
   update_organization_costs_thresholds?: Maybe<Organization_Costs_Thresholds_Mutation_Response>;
   /** update single row of the table: "organization_costs_thresholds" */
@@ -15638,8 +15049,6 @@ export type Mutation_Root = {
   update_organization_status_by_pk?: Maybe<Organization_Status>;
   /** update multiples rows of table: "organization_status" */
   update_organization_status_many?: Maybe<Array<Maybe<Organization_Status_Mutation_Response>>>;
-  /** update multiples rows of table: "payment_methods" */
-  update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update data of the table: "pipeline_run_status" */
   update_pipelineRunStatus?: Maybe<PipelineRunStatus_Mutation_Response>;
   /** update single row of the table: "pipeline_run_status" */
@@ -15658,8 +15067,6 @@ export type Mutation_Root = {
   update_region_type_many?: Maybe<Array<Maybe<Region_Type_Mutation_Response>>>;
   /** update data of the table: "regions" */
   update_regions?: Maybe<Regions_Mutation_Response>;
-  /** update multiples rows of table: "regions_allowed_workspace" */
-  update_regions_allowed_workspace_many?: Maybe<Array<Maybe<Regions_Allowed_Workspace_Mutation_Response>>>;
   /** update single row of the table: "regions" */
   update_regions_by_pk?: Maybe<Regions>;
   /** update multiples rows of table: "regions" */
@@ -15676,12 +15083,6 @@ export type Mutation_Root = {
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
   update_virus_many?: Maybe<Array<Maybe<Virus_Mutation_Response>>>;
-  /** update multiples rows of table: "workspace_member_invites" */
-  update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
-  /** update multiples rows of table: "workspace_members" */
-  update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
-  /** update multiples rows of table: "workspaces" */
-  update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
 };
 
 
@@ -15721,24 +15122,6 @@ export type Mutation_RootBillingDeleteAppArgs = {
 
 /** mutation root */
 export type Mutation_RootBillingDeleteOrganizationArgs = {
-  organizationID: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootBillingFinishSubscriptionArgs = {
-  appID: Scalars['uuid'];
-  appName: Scalars['String'];
-  organizationID?: InputMaybe<Scalars['uuid']>;
-  planID: Scalars['uuid'];
-  subdomain: Scalars['String'];
-  subscriptionID: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
-  appID: Scalars['uuid'];
   organizationID: Scalars['uuid'];
 };
 
@@ -16062,18 +15445,6 @@ export type Mutation_RootDeleteBillingResourcesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeleteBillingSubscriptionArgs = {
-  where: Billing_Subscriptions_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteBillingSubscriptionsArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
 export type Mutation_RootDeleteBucketArgs = {
   id: Scalars['String'];
 };
@@ -16224,18 +15595,6 @@ export type Mutation_RootDeleteOrganizationsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeletePaymentMethodArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeletePaymentMethodsArgs = {
-  where: PaymentMethods_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootDeletePipelineRunArgs = {
   id: Scalars['uuid'];
 };
@@ -16268,18 +15627,6 @@ export type Mutation_RootDeleteRegionsAllowedOrganizationArgs = {
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedOrganizationsArgs = {
   where: Regions_Allowed_Organization_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteRegionsAllowedWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteRegionsAllowedWorkspacesArgs = {
-  where: Regions_Allowed_Workspace_Bool_Exp;
 };
 
 
@@ -16354,42 +15701,6 @@ export type Mutation_RootDeleteVirusArgs = {
 /** mutation root */
 export type Mutation_RootDeleteVirusesArgs = {
   where: Virus_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspaceMemberArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspaceMemberInviteArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspaceMemberInvitesArgs = {
-  where: WorkspaceMemberInvites_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspaceMembersArgs = {
-  where: WorkspaceMembers_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteWorkspacesArgs = {
-  where: Workspaces_Bool_Exp;
 };
 
 
@@ -16842,20 +16153,6 @@ export type Mutation_RootInsertBillingResourcesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertBillingSubscriptionArgs = {
-  objects: Array<Billing_Subscriptions_Insert_Input>;
-  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertBillingSubscriptionsArgs = {
-  object: Billing_Subscriptions_Insert_Input;
-  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertBucketArgs = {
   object: Buckets_Insert_Input;
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
@@ -17033,20 +16330,6 @@ export type Mutation_RootInsertOrganizationsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertPaymentMethodArgs = {
-  object: PaymentMethods_Insert_Input;
-  on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertPaymentMethodsArgs = {
-  objects: Array<PaymentMethods_Insert_Input>;
-  on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertPipelineRunArgs = {
   object: PipelineRuns_Insert_Input;
   on_conflict?: InputMaybe<PipelineRuns_On_Conflict>;
@@ -17085,20 +16368,6 @@ export type Mutation_RootInsertRegionsAllowedOrganizationArgs = {
 export type Mutation_RootInsertRegionsAllowedOrganizationsArgs = {
   objects: Array<Regions_Allowed_Organization_Insert_Input>;
   on_conflict?: InputMaybe<Regions_Allowed_Organization_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertRegionsAllowedWorkspaceArgs = {
-  object: Regions_Allowed_Workspace_Insert_Input;
-  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
-  objects: Array<Regions_Allowed_Workspace_Insert_Input>;
-  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
 };
 
 
@@ -17183,48 +16452,6 @@ export type Mutation_RootInsertVirusArgs = {
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspaceArgs = {
-  object: Workspaces_Insert_Input;
-  on_conflict?: InputMaybe<Workspaces_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspaceMemberArgs = {
-  object: WorkspaceMembers_Insert_Input;
-  on_conflict?: InputMaybe<WorkspaceMembers_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspaceMemberInviteArgs = {
-  object: WorkspaceMemberInvites_Insert_Input;
-  on_conflict?: InputMaybe<WorkspaceMemberInvites_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspaceMemberInvitesArgs = {
-  objects: Array<WorkspaceMemberInvites_Insert_Input>;
-  on_conflict?: InputMaybe<WorkspaceMemberInvites_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspaceMembersArgs = {
-  objects: Array<WorkspaceMembers_Insert_Input>;
-  on_conflict?: InputMaybe<WorkspaceMembers_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertWorkspacesArgs = {
-  objects: Array<Workspaces_Insert_Input>;
-  on_conflict?: InputMaybe<Workspaces_On_Conflict>;
 };
 
 
@@ -17854,20 +17081,6 @@ export type Mutation_RootUpdateBillingResourcesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdateBillingSubscriptionArgs = {
-  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
-  pk_columns: Billing_Subscriptions_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateBillingSubscriptionsArgs = {
-  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
-  where: Billing_Subscriptions_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateBucketArgs = {
   _inc?: InputMaybe<Buckets_Inc_Input>;
   _set?: InputMaybe<Buckets_Set_Input>;
@@ -18119,22 +17332,6 @@ export type Mutation_RootUpdateOrganizationsManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdatePaymentMethodArgs = {
-  _inc?: InputMaybe<PaymentMethods_Inc_Input>;
-  _set?: InputMaybe<PaymentMethods_Set_Input>;
-  pk_columns: PaymentMethods_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdatePaymentMethodsArgs = {
-  _inc?: InputMaybe<PaymentMethods_Inc_Input>;
-  _set?: InputMaybe<PaymentMethods_Set_Input>;
-  where: PaymentMethods_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdatePipelineRunArgs = {
   _append?: InputMaybe<PipelineRuns_Append_Input>;
   _delete_at_path?: InputMaybe<PipelineRuns_Delete_At_Path_Input>;
@@ -18191,20 +17388,6 @@ export type Mutation_RootUpdateRegionsAllowedOrganizationsArgs = {
 /** mutation root */
 export type Mutation_RootUpdateRegionsAllowedOrganizationsManyArgs = {
   updates: Array<Regions_Allowed_Organization_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateRegionsAllowedWorkspaceArgs = {
-  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
-  pk_columns: Regions_Allowed_Workspace_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateRegionsAllowedWorkspacesArgs = {
-  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
-  where: Regions_Allowed_Workspace_Bool_Exp;
 };
 
 
@@ -18317,48 +17500,6 @@ export type Mutation_RootUpdateVirusesArgs = {
   _prepend?: InputMaybe<Virus_Prepend_Input>;
   _set?: InputMaybe<Virus_Set_Input>;
   where: Virus_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspaceArgs = {
-  _set?: InputMaybe<Workspaces_Set_Input>;
-  pk_columns: Workspaces_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspaceMemberArgs = {
-  _set?: InputMaybe<WorkspaceMembers_Set_Input>;
-  pk_columns: WorkspaceMembers_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspaceMemberInviteArgs = {
-  _set?: InputMaybe<WorkspaceMemberInvites_Set_Input>;
-  pk_columns: WorkspaceMemberInvites_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspaceMemberInvitesArgs = {
-  _set?: InputMaybe<WorkspaceMemberInvites_Set_Input>;
-  where: WorkspaceMemberInvites_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspaceMembersArgs = {
-  _set?: InputMaybe<WorkspaceMembers_Set_Input>;
-  where: WorkspaceMembers_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateWorkspacesArgs = {
-  _set?: InputMaybe<Workspaces_Set_Input>;
-  where: Workspaces_Bool_Exp;
 };
 
 
@@ -18657,12 +17798,6 @@ export type Mutation_RootUpdate_GithubRepositories_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
-  updates: Array<Billing_Subscriptions_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_Organization_Costs_ThresholdsArgs = {
   _set?: InputMaybe<Organization_Costs_Thresholds_Set_Input>;
   where: Organization_Costs_Thresholds_Bool_Exp;
@@ -18719,12 +17854,6 @@ export type Mutation_RootUpdate_Organization_Status_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Organization_Status_ManyArgs = {
   updates: Array<Organization_Status_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_PaymentMethods_ManyArgs = {
-  updates: Array<PaymentMethods_Updates>;
 };
 
 
@@ -18788,12 +17917,6 @@ export type Mutation_RootUpdate_RegionsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Regions_Allowed_Workspace_ManyArgs = {
-  updates: Array<Regions_Allowed_Workspace_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_Regions_By_PkArgs = {
   _set?: InputMaybe<Regions_Set_Input>;
   pk_columns: Regions_Pk_Columns_Input;
@@ -18843,23 +17966,6 @@ export type Mutation_RootUpdate_Virus_ManyArgs = {
   updates: Array<Virus_Updates>;
 };
 
-
-/** mutation root */
-export type Mutation_RootUpdate_WorkspaceMemberInvites_ManyArgs = {
-  updates: Array<WorkspaceMemberInvites_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_WorkspaceMembers_ManyArgs = {
-  updates: Array<WorkspaceMembers_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Workspaces_ManyArgs = {
-  updates: Array<Workspaces_Updates>;
-};
 
 /** column ordering options */
 export enum Order_By {
@@ -20557,462 +19663,6 @@ export type Organizations_Variance_Order_By = {
   threshold?: InputMaybe<Order_By>;
 };
 
-/** columns and relationships of "payment_methods" */
-export type PaymentMethods = {
-  __typename?: 'paymentMethods';
-  addedByUserId: Scalars['uuid'];
-  cardBrand: Scalars['String'];
-  cardExpMonth: Scalars['Int'];
-  cardExpYear: Scalars['Int'];
-  cardLast4: Scalars['String'];
-  createdAt: Scalars['timestamptz'];
-  id: Scalars['uuid'];
-  isDefault: Scalars['Boolean'];
-  stripePaymentMethodId: Scalars['String'];
-  /** An object relationship */
-  user: Users;
-  /** An object relationship */
-  workspace: Workspaces;
-  workspaceId: Scalars['uuid'];
-};
-
-/** aggregated selection of "payment_methods" */
-export type PaymentMethods_Aggregate = {
-  __typename?: 'paymentMethods_aggregate';
-  aggregate?: Maybe<PaymentMethods_Aggregate_Fields>;
-  nodes: Array<PaymentMethods>;
-};
-
-export type PaymentMethods_Aggregate_Bool_Exp = {
-  bool_and?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Bool_And>;
-  bool_or?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Bool_Or>;
-  count?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Count>;
-};
-
-export type PaymentMethods_Aggregate_Bool_Exp_Bool_And = {
-  arguments: PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type PaymentMethods_Aggregate_Bool_Exp_Bool_Or = {
-  arguments: PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type PaymentMethods_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "payment_methods" */
-export type PaymentMethods_Aggregate_Fields = {
-  __typename?: 'paymentMethods_aggregate_fields';
-  avg?: Maybe<PaymentMethods_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<PaymentMethods_Max_Fields>;
-  min?: Maybe<PaymentMethods_Min_Fields>;
-  stddev?: Maybe<PaymentMethods_Stddev_Fields>;
-  stddev_pop?: Maybe<PaymentMethods_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<PaymentMethods_Stddev_Samp_Fields>;
-  sum?: Maybe<PaymentMethods_Sum_Fields>;
-  var_pop?: Maybe<PaymentMethods_Var_Pop_Fields>;
-  var_samp?: Maybe<PaymentMethods_Var_Samp_Fields>;
-  variance?: Maybe<PaymentMethods_Variance_Fields>;
-};
-
-
-/** aggregate fields of "payment_methods" */
-export type PaymentMethods_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "payment_methods" */
-export type PaymentMethods_Aggregate_Order_By = {
-  avg?: InputMaybe<PaymentMethods_Avg_Order_By>;
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<PaymentMethods_Max_Order_By>;
-  min?: InputMaybe<PaymentMethods_Min_Order_By>;
-  stddev?: InputMaybe<PaymentMethods_Stddev_Order_By>;
-  stddev_pop?: InputMaybe<PaymentMethods_Stddev_Pop_Order_By>;
-  stddev_samp?: InputMaybe<PaymentMethods_Stddev_Samp_Order_By>;
-  sum?: InputMaybe<PaymentMethods_Sum_Order_By>;
-  var_pop?: InputMaybe<PaymentMethods_Var_Pop_Order_By>;
-  var_samp?: InputMaybe<PaymentMethods_Var_Samp_Order_By>;
-  variance?: InputMaybe<PaymentMethods_Variance_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "payment_methods" */
-export type PaymentMethods_Arr_Rel_Insert_Input = {
-  data: Array<PaymentMethods_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
-};
-
-/** aggregate avg on columns */
-export type PaymentMethods_Avg_Fields = {
-  __typename?: 'paymentMethods_avg_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by avg() on columns of table "payment_methods" */
-export type PaymentMethods_Avg_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** Boolean expression to filter rows from the table "payment_methods". All fields are combined with a logical 'AND'. */
-export type PaymentMethods_Bool_Exp = {
-  _and?: InputMaybe<Array<PaymentMethods_Bool_Exp>>;
-  _not?: InputMaybe<PaymentMethods_Bool_Exp>;
-  _or?: InputMaybe<Array<PaymentMethods_Bool_Exp>>;
-  addedByUserId?: InputMaybe<Uuid_Comparison_Exp>;
-  cardBrand?: InputMaybe<String_Comparison_Exp>;
-  cardExpMonth?: InputMaybe<Int_Comparison_Exp>;
-  cardExpYear?: InputMaybe<Int_Comparison_Exp>;
-  cardLast4?: InputMaybe<String_Comparison_Exp>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  isDefault?: InputMaybe<Boolean_Comparison_Exp>;
-  stripePaymentMethodId?: InputMaybe<String_Comparison_Exp>;
-  user?: InputMaybe<Users_Bool_Exp>;
-  workspace?: InputMaybe<Workspaces_Bool_Exp>;
-  workspaceId?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "payment_methods" */
-export enum PaymentMethods_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  PaymentMethodsPkey = 'payment_methods_pkey'
-}
-
-/** input type for incrementing numeric columns in table "payment_methods" */
-export type PaymentMethods_Inc_Input = {
-  cardExpMonth?: InputMaybe<Scalars['Int']>;
-  cardExpYear?: InputMaybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "payment_methods" */
-export type PaymentMethods_Insert_Input = {
-  addedByUserId?: InputMaybe<Scalars['uuid']>;
-  cardBrand?: InputMaybe<Scalars['String']>;
-  cardExpMonth?: InputMaybe<Scalars['Int']>;
-  cardExpYear?: InputMaybe<Scalars['Int']>;
-  cardLast4?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  isDefault?: InputMaybe<Scalars['Boolean']>;
-  stripePaymentMethodId?: InputMaybe<Scalars['String']>;
-  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type PaymentMethods_Max_Fields = {
-  __typename?: 'paymentMethods_max_fields';
-  addedByUserId?: Maybe<Scalars['uuid']>;
-  cardBrand?: Maybe<Scalars['String']>;
-  cardExpMonth?: Maybe<Scalars['Int']>;
-  cardExpYear?: Maybe<Scalars['Int']>;
-  cardLast4?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  isDefault?: Maybe<Scalars['Boolean']>;
-  stripePaymentMethodId?: Maybe<Scalars['String']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "payment_methods" */
-export type PaymentMethods_Max_Order_By = {
-  addedByUserId?: InputMaybe<Order_By>;
-  cardBrand?: InputMaybe<Order_By>;
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-  cardLast4?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  isDefault?: InputMaybe<Order_By>;
-  stripePaymentMethodId?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type PaymentMethods_Min_Fields = {
-  __typename?: 'paymentMethods_min_fields';
-  addedByUserId?: Maybe<Scalars['uuid']>;
-  cardBrand?: Maybe<Scalars['String']>;
-  cardExpMonth?: Maybe<Scalars['Int']>;
-  cardExpYear?: Maybe<Scalars['Int']>;
-  cardLast4?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  isDefault?: Maybe<Scalars['Boolean']>;
-  stripePaymentMethodId?: Maybe<Scalars['String']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "payment_methods" */
-export type PaymentMethods_Min_Order_By = {
-  addedByUserId?: InputMaybe<Order_By>;
-  cardBrand?: InputMaybe<Order_By>;
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-  cardLast4?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  isDefault?: InputMaybe<Order_By>;
-  stripePaymentMethodId?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "payment_methods" */
-export type PaymentMethods_Mutation_Response = {
-  __typename?: 'paymentMethods_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<PaymentMethods>;
-};
-
-/** input type for inserting object relation for remote table "payment_methods" */
-export type PaymentMethods_Obj_Rel_Insert_Input = {
-  data: PaymentMethods_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<PaymentMethods_On_Conflict>;
-};
-
-/** on_conflict condition type for table "payment_methods" */
-export type PaymentMethods_On_Conflict = {
-  constraint: PaymentMethods_Constraint;
-  update_columns?: Array<PaymentMethods_Update_Column>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "payment_methods". */
-export type PaymentMethods_Order_By = {
-  addedByUserId?: InputMaybe<Order_By>;
-  cardBrand?: InputMaybe<Order_By>;
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-  cardLast4?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  isDefault?: InputMaybe<Order_By>;
-  stripePaymentMethodId?: InputMaybe<Order_By>;
-  user?: InputMaybe<Users_Order_By>;
-  workspace?: InputMaybe<Workspaces_Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: payment_methods */
-export type PaymentMethods_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "payment_methods" */
-export enum PaymentMethods_Select_Column {
-  /** column name */
-  AddedByUserId = 'addedByUserId',
-  /** column name */
-  CardBrand = 'cardBrand',
-  /** column name */
-  CardExpMonth = 'cardExpMonth',
-  /** column name */
-  CardExpYear = 'cardExpYear',
-  /** column name */
-  CardLast4 = 'cardLast4',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  IsDefault = 'isDefault',
-  /** column name */
-  StripePaymentMethodId = 'stripePaymentMethodId',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-/** select "paymentMethods_aggregate_bool_exp_bool_and_arguments_columns" columns of table "payment_methods" */
-export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
-  /** column name */
-  IsDefault = 'isDefault'
-}
-
-/** select "paymentMethods_aggregate_bool_exp_bool_or_arguments_columns" columns of table "payment_methods" */
-export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
-  /** column name */
-  IsDefault = 'isDefault'
-}
-
-/** input type for updating data in table "payment_methods" */
-export type PaymentMethods_Set_Input = {
-  addedByUserId?: InputMaybe<Scalars['uuid']>;
-  cardBrand?: InputMaybe<Scalars['String']>;
-  cardExpMonth?: InputMaybe<Scalars['Int']>;
-  cardExpYear?: InputMaybe<Scalars['Int']>;
-  cardLast4?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  isDefault?: InputMaybe<Scalars['Boolean']>;
-  stripePaymentMethodId?: InputMaybe<Scalars['String']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate stddev on columns */
-export type PaymentMethods_Stddev_Fields = {
-  __typename?: 'paymentMethods_stddev_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev() on columns of table "payment_methods" */
-export type PaymentMethods_Stddev_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** aggregate stddev_pop on columns */
-export type PaymentMethods_Stddev_Pop_Fields = {
-  __typename?: 'paymentMethods_stddev_pop_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev_pop() on columns of table "payment_methods" */
-export type PaymentMethods_Stddev_Pop_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** aggregate stddev_samp on columns */
-export type PaymentMethods_Stddev_Samp_Fields = {
-  __typename?: 'paymentMethods_stddev_samp_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev_samp() on columns of table "payment_methods" */
-export type PaymentMethods_Stddev_Samp_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** Streaming cursor of the table "paymentMethods" */
-export type PaymentMethods_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: PaymentMethods_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type PaymentMethods_Stream_Cursor_Value_Input = {
-  addedByUserId?: InputMaybe<Scalars['uuid']>;
-  cardBrand?: InputMaybe<Scalars['String']>;
-  cardExpMonth?: InputMaybe<Scalars['Int']>;
-  cardExpYear?: InputMaybe<Scalars['Int']>;
-  cardLast4?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  isDefault?: InputMaybe<Scalars['Boolean']>;
-  stripePaymentMethodId?: InputMaybe<Scalars['String']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate sum on columns */
-export type PaymentMethods_Sum_Fields = {
-  __typename?: 'paymentMethods_sum_fields';
-  cardExpMonth?: Maybe<Scalars['Int']>;
-  cardExpYear?: Maybe<Scalars['Int']>;
-};
-
-/** order by sum() on columns of table "payment_methods" */
-export type PaymentMethods_Sum_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** update columns of table "payment_methods" */
-export enum PaymentMethods_Update_Column {
-  /** column name */
-  AddedByUserId = 'addedByUserId',
-  /** column name */
-  CardBrand = 'cardBrand',
-  /** column name */
-  CardExpMonth = 'cardExpMonth',
-  /** column name */
-  CardExpYear = 'cardExpYear',
-  /** column name */
-  CardLast4 = 'cardLast4',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  IsDefault = 'isDefault',
-  /** column name */
-  StripePaymentMethodId = 'stripePaymentMethodId',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-export type PaymentMethods_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<PaymentMethods_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<PaymentMethods_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: PaymentMethods_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type PaymentMethods_Var_Pop_Fields = {
-  __typename?: 'paymentMethods_var_pop_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by var_pop() on columns of table "payment_methods" */
-export type PaymentMethods_Var_Pop_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** aggregate var_samp on columns */
-export type PaymentMethods_Var_Samp_Fields = {
-  __typename?: 'paymentMethods_var_samp_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by var_samp() on columns of table "payment_methods" */
-export type PaymentMethods_Var_Samp_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
-/** aggregate variance on columns */
-export type PaymentMethods_Variance_Fields = {
-  __typename?: 'paymentMethods_variance_fields';
-  cardExpMonth?: Maybe<Scalars['Float']>;
-  cardExpYear?: Maybe<Scalars['Float']>;
-};
-
-/** order by variance() on columns of table "payment_methods" */
-export type PaymentMethods_Variance_Order_By = {
-  cardExpMonth?: InputMaybe<Order_By>;
-  cardExpYear?: InputMaybe<Order_By>;
-};
-
 /** columns and relationships of "pipeline_run_status" */
 export type PipelineRunStatus = {
   __typename?: 'pipelineRunStatus';
@@ -21525,10 +20175,6 @@ export type PipelineRuns_Updates = {
 /** columns and relationships of "plans" */
 export type Plans = {
   __typename?: 'plans';
-  /** An array relationship */
-  apps: Array<Apps>;
-  /** An aggregate relationship */
-  apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
   deprecated: Scalars['Boolean'];
   featureAdvancedGraphql: Scalars['Boolean'];
@@ -21546,7 +20192,6 @@ export type Plans = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment: Scalars['Int'];
   id: Scalars['uuid'];
-  individual: Scalars['Boolean'];
   isDefault: Scalars['Boolean'];
   isFree: Scalars['Boolean'];
   isPublic: Scalars['Boolean'];
@@ -21567,26 +20212,6 @@ export type Plans = {
   stripePriceId: Scalars['String'];
   stripe_price_id_pitr: Scalars['String'];
   upatedAt: Scalars['timestamptz'];
-};
-
-
-/** columns and relationships of "plans" */
-export type PlansAppsArgs = {
-  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Apps_Order_By>>;
-  where?: InputMaybe<Apps_Bool_Exp>;
-};
-
-
-/** columns and relationships of "plans" */
-export type PlansApps_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Apps_Order_By>>;
-  where?: InputMaybe<Apps_Bool_Exp>;
 };
 
 
@@ -21658,8 +20283,6 @@ export type Plans_Bool_Exp = {
   _and?: InputMaybe<Array<Plans_Bool_Exp>>;
   _not?: InputMaybe<Plans_Bool_Exp>;
   _or?: InputMaybe<Array<Plans_Bool_Exp>>;
-  apps?: InputMaybe<Apps_Bool_Exp>;
-  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deprecated?: InputMaybe<Boolean_Comparison_Exp>;
   featureAdvancedGraphql?: InputMaybe<Boolean_Comparison_Exp>;
@@ -21677,7 +20300,6 @@ export type Plans_Bool_Exp = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  individual?: InputMaybe<Boolean_Comparison_Exp>;
   isDefault?: InputMaybe<Boolean_Comparison_Exp>;
   isFree?: InputMaybe<Boolean_Comparison_Exp>;
   isPublic?: InputMaybe<Boolean_Comparison_Exp>;
@@ -21719,7 +20341,6 @@ export type Plans_Inc_Input = {
 
 /** input type for inserting data into table "plans" */
 export type Plans_Insert_Input = {
-  apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
   featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
@@ -21737,7 +20358,6 @@ export type Plans_Insert_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
-  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -21777,7 +20397,6 @@ export type Plans_Max_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
-  individual?: Maybe<Scalars['Boolean']>;
   isDefault?: Maybe<Scalars['Boolean']>;
   isFree?: Maybe<Scalars['Boolean']>;
   isPublic?: Maybe<Scalars['Boolean']>;
@@ -21815,7 +20434,6 @@ export type Plans_Min_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
-  individual?: Maybe<Scalars['Boolean']>;
   isDefault?: Maybe<Scalars['Boolean']>;
   isFree?: Maybe<Scalars['Boolean']>;
   isPublic?: Maybe<Scalars['Boolean']>;
@@ -21858,7 +20476,6 @@ export type Plans_On_Conflict = {
 
 /** Ordering options when selecting data from "plans". */
 export type Plans_Order_By = {
-  apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   deprecated?: InputMaybe<Order_By>;
   featureAdvancedGraphql?: InputMaybe<Order_By>;
@@ -21876,7 +20493,6 @@ export type Plans_Order_By = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  individual?: InputMaybe<Order_By>;
   isDefault?: InputMaybe<Order_By>;
   isFree?: InputMaybe<Order_By>;
   isPublic?: InputMaybe<Order_By>;
@@ -21932,8 +20548,6 @@ export enum Plans_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Individual = 'individual',
-  /** column name */
   IsDefault = 'isDefault',
   /** column name */
   IsFree = 'isFree',
@@ -21986,7 +20600,6 @@ export type Plans_Set_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
-  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -22074,7 +20687,6 @@ export type Plans_Stream_Cursor_Value_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
-  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -22137,8 +20749,6 @@ export enum Plans_Update_Column {
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
-  /** column name */
-  Individual = 'individual',
   /** column name */
   IsDefault = 'isDefault',
   /** column name */
@@ -22356,12 +20966,6 @@ export type Query_Root = {
   billingResources: Array<Billing_Resources>;
   /** fetch aggregated fields from the table: "billing.resources" */
   billingResourcesAggregate: Billing_Resources_Aggregate;
-  /** fetch data from the table: "billing.subscriptions" using primary key columns */
-  billingSubscription?: Maybe<Billing_Subscriptions>;
-  /** fetch data from the table: "billing.subscriptions" */
-  billingSubscriptions: Array<Billing_Subscriptions>;
-  /** fetch aggregated fields from the table: "billing.subscriptions" */
-  billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
   billingVerifySubscriptions: VerifySubscriptionsResponse;
   /** fetch data from the table: "billing.report_resource_type" */
   billing_report_resource_type: Array<Billing_Report_Resource_Type>;
@@ -22574,12 +21178,6 @@ export type Query_Root = {
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
   organizationsAggregate: Organizations_Aggregate;
-  /** fetch data from the table: "payment_methods" using primary key columns */
-  paymentMethod?: Maybe<PaymentMethods>;
-  /** fetch data from the table: "payment_methods" */
-  paymentMethods: Array<PaymentMethods>;
-  /** fetch aggregated fields from the table: "payment_methods" */
-  paymentMethodsAggregate: PaymentMethods_Aggregate;
   /** fetch data from the table: "pipeline_runs" using primary key columns */
   pipelineRun?: Maybe<PipelineRuns>;
   /** fetch data from the table: "pipeline_run_status" */
@@ -22626,12 +21224,6 @@ export type Query_Root = {
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
   runServicesAggregate: Run_Service_Aggregate;
-  /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
-  selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
-  /** fetch data from the table: "regions_allowed_workspace" */
-  selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
-  /** fetch aggregated fields from the table: "regions_allowed_workspace" */
-  selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
   /** fetch data from the table: "sla_level" */
   sla_level: Array<Sla_Level>;
   /** fetch aggregated fields from the table: "sla_level" */
@@ -22677,24 +21269,6 @@ export type Query_Root = {
   viruses: Array<Virus>;
   /** fetch aggregated fields from the table: "storage.virus" */
   virusesAggregate: Virus_Aggregate;
-  /** fetch data from the table: "workspaces" using primary key columns */
-  workspace?: Maybe<Workspaces>;
-  /** fetch data from the table: "workspace_members" using primary key columns */
-  workspaceMember?: Maybe<WorkspaceMembers>;
-  /** fetch data from the table: "workspace_member_invites" using primary key columns */
-  workspaceMemberInvite?: Maybe<WorkspaceMemberInvites>;
-  /** fetch data from the table: "workspace_member_invites" */
-  workspaceMemberInvites: Array<WorkspaceMemberInvites>;
-  /** fetch aggregated fields from the table: "workspace_member_invites" */
-  workspaceMemberInvitesAggregate: WorkspaceMemberInvites_Aggregate;
-  /** fetch data from the table: "workspace_members" */
-  workspaceMembers: Array<WorkspaceMembers>;
-  /** fetch aggregated fields from the table: "workspace_members" */
-  workspaceMembersAggregate: WorkspaceMembers_Aggregate;
-  /** fetch data from the table: "workspaces" */
-  workspaces: Array<Workspaces>;
-  /** fetch aggregated fields from the table: "workspaces" */
-  workspacesAggregate: Workspaces_Aggregate;
 };
 
 
@@ -23193,29 +21767,6 @@ export type Query_RootBillingResourcesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Billing_Resources_Order_By>>;
   where?: InputMaybe<Billing_Resources_Bool_Exp>;
-};
-
-
-export type Query_RootBillingSubscriptionArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootBillingSubscriptionsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
-};
-
-
-export type Query_RootBillingSubscriptionsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
 
@@ -23881,29 +22432,6 @@ export type Query_RootOrganizationsAggregateArgs = {
 };
 
 
-export type Query_RootPaymentMethodArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootPaymentMethodsArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-export type Query_RootPaymentMethodsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
 export type Query_RootPipelineRunArgs = {
   id: Scalars['uuid'];
 };
@@ -24091,29 +22619,6 @@ export type Query_RootRunServicesAggregateArgs = {
 };
 
 
-export type Query_RootSelectRegionsAllowedWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootSelectRegionsAllowedWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
-export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
 export type Query_RootSla_LevelArgs = {
   distinct_on?: InputMaybe<Array<Sla_Level_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -24270,74 +22775,6 @@ export type Query_RootVirusesAggregateArgs = {
   where?: InputMaybe<Virus_Bool_Exp>;
 };
 
-
-export type Query_RootWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootWorkspaceMemberArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootWorkspaceMemberInviteArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Query_RootWorkspaceMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-export type Query_RootWorkspaceMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-export type Query_RootWorkspaceMembersArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-export type Query_RootWorkspaceMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-export type Query_RootWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-
-export type Query_RootWorkspacesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
 
 /** columns and relationships of "region_type" */
 export type Region_Type = {
@@ -24532,8 +22969,6 @@ export type Regions = {
   allowedOrganizations: Array<Regions_Allowed_Organization>;
   /** An aggregate relationship */
   allowedOrganizations_aggregate: Regions_Allowed_Organization_Aggregate;
-  /** An object relationship */
-  allowedWorkspaces?: Maybe<Regions_Allowed_Workspace>;
   /** An array relationship */
   apps: Array<Apps>;
   /** An aggregate relationship */
@@ -24551,10 +22986,6 @@ export type Regions = {
   name: Scalars['String'];
   /** An object relationship */
   region_type: Region_Type;
-  /** An array relationship */
-  regions_allowed_workspaces: Array<Regions_Allowed_Workspace>;
-  /** An aggregate relationship */
-  regions_allowed_workspaces_aggregate: Regions_Allowed_Workspace_Aggregate;
   type: Region_Type_Enum;
   updatedAt: Scalars['timestamptz'];
 };
@@ -24599,25 +23030,6 @@ export type RegionsApps_AggregateArgs = {
   where?: InputMaybe<Apps_Bool_Exp>;
 };
 
-
-/** columns and relationships of "regions" */
-export type RegionsRegions_Allowed_WorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
-/** columns and relationships of "regions" */
-export type RegionsRegions_Allowed_Workspaces_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
 
 /** aggregated selection of "regions" */
 export type Regions_Aggregate = {
@@ -24914,252 +23326,6 @@ export type Regions_Allowed_Organization_Updates = {
   where: Regions_Allowed_Organization_Bool_Exp;
 };
 
-/** columns and relationships of "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace = {
-  __typename?: 'regions_allowed_workspace';
-  created_at: Scalars['timestamptz'];
-  description: Scalars['String'];
-  id: Scalars['uuid'];
-  /** An object relationship */
-  region?: Maybe<Regions>;
-  region_id: Scalars['uuid'];
-  updated_at: Scalars['timestamptz'];
-  /** An object relationship */
-  workspace?: Maybe<Workspaces>;
-  workspace_id: Scalars['uuid'];
-};
-
-/** aggregated selection of "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Aggregate = {
-  __typename?: 'regions_allowed_workspace_aggregate';
-  aggregate?: Maybe<Regions_Allowed_Workspace_Aggregate_Fields>;
-  nodes: Array<Regions_Allowed_Workspace>;
-};
-
-export type Regions_Allowed_Workspace_Aggregate_Bool_Exp = {
-  count?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp_Count>;
-};
-
-export type Regions_Allowed_Workspace_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Aggregate_Fields = {
-  __typename?: 'regions_allowed_workspace_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Regions_Allowed_Workspace_Max_Fields>;
-  min?: Maybe<Regions_Allowed_Workspace_Min_Fields>;
-};
-
-
-/** aggregate fields of "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Aggregate_Order_By = {
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Regions_Allowed_Workspace_Max_Order_By>;
-  min?: InputMaybe<Regions_Allowed_Workspace_Min_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Arr_Rel_Insert_Input = {
-  data: Array<Regions_Allowed_Workspace_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
-};
-
-/** Boolean expression to filter rows from the table "regions_allowed_workspace". All fields are combined with a logical 'AND'. */
-export type Regions_Allowed_Workspace_Bool_Exp = {
-  _and?: InputMaybe<Array<Regions_Allowed_Workspace_Bool_Exp>>;
-  _not?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-  _or?: InputMaybe<Array<Regions_Allowed_Workspace_Bool_Exp>>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  description?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  region?: InputMaybe<Regions_Bool_Exp>;
-  region_id?: InputMaybe<Uuid_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  workspace?: InputMaybe<Workspaces_Bool_Exp>;
-  workspace_id?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "regions_allowed_workspace" */
-export enum Regions_Allowed_Workspace_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  RegionsAllowedWorkspacePkey = 'regions_allowed_workspace_pkey',
-  /** unique or primary key constraint on columns "region_id", "workspace_id" */
-  RegionsAllowedWorkspaceRegionIdWorkspaceIdKey = 'regions_allowed_workspace_region_id_workspace_id_key'
-}
-
-/** input type for inserting data into table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Insert_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  description?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
-  region_id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
-  workspace_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type Regions_Allowed_Workspace_Max_Fields = {
-  __typename?: 'regions_allowed_workspace_max_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  description?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  region_id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  workspace_id?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Max_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  description?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  region_id?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  workspace_id?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type Regions_Allowed_Workspace_Min_Fields = {
-  __typename?: 'regions_allowed_workspace_min_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  description?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  region_id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  workspace_id?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Min_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  description?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  region_id?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  workspace_id?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Mutation_Response = {
-  __typename?: 'regions_allowed_workspace_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Regions_Allowed_Workspace>;
-};
-
-/** input type for inserting object relation for remote table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Obj_Rel_Insert_Input = {
-  data: Regions_Allowed_Workspace_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
-};
-
-/** on_conflict condition type for table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_On_Conflict = {
-  constraint: Regions_Allowed_Workspace_Constraint;
-  update_columns?: Array<Regions_Allowed_Workspace_Update_Column>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "regions_allowed_workspace". */
-export type Regions_Allowed_Workspace_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  description?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  region?: InputMaybe<Regions_Order_By>;
-  region_id?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  workspace?: InputMaybe<Workspaces_Order_By>;
-  workspace_id?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: regions_allowed_workspace */
-export type Regions_Allowed_Workspace_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "regions_allowed_workspace" */
-export enum Regions_Allowed_Workspace_Select_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Description = 'description',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  RegionId = 'region_id',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  WorkspaceId = 'workspace_id'
-}
-
-/** input type for updating data in table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Set_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  description?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  region_id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  workspace_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "regions_allowed_workspace" */
-export type Regions_Allowed_Workspace_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Regions_Allowed_Workspace_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Regions_Allowed_Workspace_Stream_Cursor_Value_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  description?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  region_id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  workspace_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "regions_allowed_workspace" */
-export enum Regions_Allowed_Workspace_Update_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Description = 'description',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  RegionId = 'region_id',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  WorkspaceId = 'workspace_id'
-}
-
-export type Regions_Allowed_Workspace_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Regions_Allowed_Workspace_Bool_Exp;
-};
-
 /** input type for inserting array relation for remote table "regions" */
 export type Regions_Arr_Rel_Insert_Input = {
   data: Array<Regions_Insert_Input>;
@@ -25175,7 +23341,6 @@ export type Regions_Bool_Exp = {
   active?: InputMaybe<Boolean_Comparison_Exp>;
   allowedOrganizations?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
   allowedOrganizations_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Bool_Exp>;
-  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   awsName?: InputMaybe<String_Comparison_Exp>;
@@ -25189,8 +23354,6 @@ export type Regions_Bool_Exp = {
   isGdprCompliant?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   region_type?: InputMaybe<Region_Type_Bool_Exp>;
-  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp>;
   type?: InputMaybe<Region_Type_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -25205,7 +23368,6 @@ export enum Regions_Constraint {
 export type Regions_Insert_Input = {
   active?: InputMaybe<Scalars['Boolean']>;
   allowedOrganizations?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
-  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Obj_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   awsName?: InputMaybe<Scalars['String']>;
   city?: InputMaybe<Scalars['String']>;
@@ -25218,7 +23380,6 @@ export type Regions_Insert_Input = {
   isGdprCompliant?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   region_type?: InputMaybe<Region_Type_Obj_Rel_Insert_Input>;
-  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Arr_Rel_Insert_Input>;
   type?: InputMaybe<Region_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -25312,7 +23473,6 @@ export type Regions_On_Conflict = {
 export type Regions_Order_By = {
   active?: InputMaybe<Order_By>;
   allowedOrganizations_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
-  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
@@ -25325,7 +23485,6 @@ export type Regions_Order_By = {
   isGdprCompliant?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   region_type?: InputMaybe<Region_Type_Order_By>;
-  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Order_By>;
   type?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -26405,12 +24564,6 @@ export type Subscription_Root = {
   billingResourcesAggregate: Billing_Resources_Aggregate;
   /** fetch data from the table in a streaming manner: "billing.resources" */
   billingResourcesStream: Array<Billing_Resources>;
-  /** fetch data from the table: "billing.subscriptions" using primary key columns */
-  billingSubscription?: Maybe<Billing_Subscriptions>;
-  /** fetch data from the table: "billing.subscriptions" */
-  billingSubscriptions: Array<Billing_Subscriptions>;
-  /** fetch aggregated fields from the table: "billing.subscriptions" */
-  billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
   /** fetch data from the table in a streaming manner: "billing.dedicated_compute" */
   billing_dedicated_compute_stream: Array<Billing_Dedicated_Compute>;
   /** fetch data from the table: "billing.report_resource_type" */
@@ -26445,8 +24598,6 @@ export type Subscription_Root = {
   billing_subscription_items_by_pk?: Maybe<Billing_Subscription_Items>;
   /** fetch data from the table in a streaming manner: "billing.subscription_items" */
   billing_subscription_items_stream: Array<Billing_Subscription_Items>;
-  /** fetch data from the table in a streaming manner: "billing.subscriptions" */
-  billing_subscriptions_stream: Array<Billing_Subscriptions>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -26598,14 +24749,6 @@ export type Subscription_Root = {
   organizationsAggregate: Organizations_Aggregate;
   /** fetch data from the table in a streaming manner: "organizations" */
   organizationsSteam: Array<Organizations>;
-  /** fetch data from the table: "payment_methods" using primary key columns */
-  paymentMethod?: Maybe<PaymentMethods>;
-  /** fetch data from the table: "payment_methods" */
-  paymentMethods: Array<PaymentMethods>;
-  /** fetch aggregated fields from the table: "payment_methods" */
-  paymentMethodsAggregate: PaymentMethods_Aggregate;
-  /** fetch data from the table in a streaming manner: "payment_methods" */
-  paymentMethods_stream: Array<PaymentMethods>;
   /** fetch data from the table: "pipeline_runs" using primary key columns */
   pipelineRun?: Maybe<PipelineRuns>;
   /** fetch data from the table: "pipeline_run_status" */
@@ -26650,8 +24793,6 @@ export type Subscription_Root = {
   regionsAllowedOrganizationsStream: Array<Regions_Allowed_Organization>;
   /** fetch aggregated fields from the table: "regions" */
   regions_aggregate: Regions_Aggregate;
-  /** fetch data from the table in a streaming manner: "regions_allowed_workspace" */
-  regions_allowed_workspace_stream: Array<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
   /** fetch data from the table in a streaming manner: "regions" */
@@ -26664,12 +24805,6 @@ export type Subscription_Root = {
   runServicesAggregate: Run_Service_Aggregate;
   /** fetch data from the table in a streaming manner: "run_service" */
   run_service_stream: Array<Run_Service>;
-  /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
-  selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
-  /** fetch data from the table: "regions_allowed_workspace" */
-  selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
-  /** fetch aggregated fields from the table: "regions_allowed_workspace" */
-  selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
   /** fetch data from the table: "sla_level" */
   sla_level: Array<Sla_Level>;
   /** fetch aggregated fields from the table: "sla_level" */
@@ -26716,30 +24851,6 @@ export type Subscription_Root = {
   viruses: Array<Virus>;
   /** fetch aggregated fields from the table: "storage.virus" */
   virusesAggregate: Virus_Aggregate;
-  /** fetch data from the table: "workspaces" using primary key columns */
-  workspace?: Maybe<Workspaces>;
-  /** fetch data from the table: "workspace_members" using primary key columns */
-  workspaceMember?: Maybe<WorkspaceMembers>;
-  /** fetch data from the table: "workspace_member_invites" using primary key columns */
-  workspaceMemberInvite?: Maybe<WorkspaceMemberInvites>;
-  /** fetch data from the table: "workspace_member_invites" */
-  workspaceMemberInvites: Array<WorkspaceMemberInvites>;
-  /** fetch aggregated fields from the table: "workspace_member_invites" */
-  workspaceMemberInvitesAggregate: WorkspaceMemberInvites_Aggregate;
-  /** fetch data from the table in a streaming manner: "workspace_member_invites" */
-  workspaceMemberInvites_stream: Array<WorkspaceMemberInvites>;
-  /** fetch data from the table: "workspace_members" */
-  workspaceMembers: Array<WorkspaceMembers>;
-  /** fetch aggregated fields from the table: "workspace_members" */
-  workspaceMembersAggregate: WorkspaceMembers_Aggregate;
-  /** fetch data from the table in a streaming manner: "workspace_members" */
-  workspaceMembers_stream: Array<WorkspaceMembers>;
-  /** fetch data from the table: "workspaces" */
-  workspaces: Array<Workspaces>;
-  /** fetch aggregated fields from the table: "workspaces" */
-  workspacesAggregate: Workspaces_Aggregate;
-  /** fetch data from the table in a streaming manner: "workspaces" */
-  workspaces_stream: Array<Workspaces>;
 };
 
 
@@ -27366,29 +25477,6 @@ export type Subscription_RootBillingResourcesStreamArgs = {
 };
 
 
-export type Subscription_RootBillingSubscriptionArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootBillingSubscriptionsArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
-};
-
-
-export type Subscription_RootBillingSubscriptionsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
-};
-
-
 export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
@@ -27513,13 +25601,6 @@ export type Subscription_RootBilling_Subscription_Items_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Subscription_Items_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Subscription_Items_Bool_Exp>;
-};
-
-
-export type Subscription_RootBilling_Subscriptions_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Billing_Subscriptions_Stream_Cursor_Input>>;
-  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
 
@@ -28056,36 +26137,6 @@ export type Subscription_RootOrganizationsSteamArgs = {
 };
 
 
-export type Subscription_RootPaymentMethodArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootPaymentMethodsArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-export type Subscription_RootPaymentMethodsAggregateArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-export type Subscription_RootPaymentMethods_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<PaymentMethods_Stream_Cursor_Input>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
 export type Subscription_RootPipelineRunArgs = {
   id: Scalars['uuid'];
 };
@@ -28254,13 +26305,6 @@ export type Subscription_RootRegions_AggregateArgs = {
 };
 
 
-export type Subscription_RootRegions_Allowed_Workspace_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Regions_Allowed_Workspace_Stream_Cursor_Input>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
 export type Subscription_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
 };
@@ -28300,29 +26344,6 @@ export type Subscription_RootRun_Service_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Run_Service_Stream_Cursor_Input>>;
   where?: InputMaybe<Run_Service_Bool_Exp>;
-};
-
-
-export type Subscription_RootSelectRegionsAllowedWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootSelectRegionsAllowedWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
-export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
 
@@ -28500,95 +26521,6 @@ export type Subscription_RootVirusesAggregateArgs = {
   where?: InputMaybe<Virus_Bool_Exp>;
 };
 
-
-export type Subscription_RootWorkspaceArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootWorkspaceMemberArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootWorkspaceMemberInviteArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootWorkspaceMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaceMemberInvitesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaceMemberInvites_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<WorkspaceMemberInvites_Stream_Cursor_Input>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaceMembersArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaceMembersAggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaceMembers_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<WorkspaceMembers_Stream_Cursor_Input>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspacesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-
-export type Subscription_RootWorkspaces_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Workspaces_Stream_Cursor_Input>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type Timestamptz_Comparison_Exp = {
@@ -28773,10 +26705,6 @@ export type Users = {
   /** An aggregate relationship */
   cliTokens_aggregate: CliTokens_Aggregate;
   createdAt: Scalars['timestamptz'];
-  /** An array relationship */
-  creatorOfWorkspaces: Array<Workspaces>;
-  /** An aggregate relationship */
-  creatorOfWorkspaces_aggregate: Workspaces_Aggregate;
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole: Scalars['String'];
   /** An object relationship */
@@ -28811,10 +26739,6 @@ export type Users = {
   otpHashExpiresAt: Scalars['timestamptz'];
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
-  /** An array relationship */
-  payment_methods: Array<PaymentMethods>;
-  /** An aggregate relationship */
-  payment_methods_aggregate: PaymentMethods_Aggregate;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified: Scalars['Boolean'];
   /** An array relationship */
@@ -28839,18 +26763,6 @@ export type Users = {
   userProviders: Array<AuthUserProviders>;
   /** An aggregate relationship */
   userProviders_aggregate: AuthUserProviders_Aggregate;
-  /** An array relationship */
-  workspaceMemberInvitesByInvitedByUserId: Array<WorkspaceMemberInvites>;
-  /** An aggregate relationship */
-  workspaceMemberInvitesByInvitedByUserId_aggregate: WorkspaceMemberInvites_Aggregate;
-  /** An array relationship */
-  workspaceMembers: Array<WorkspaceMembers>;
-  /** An aggregate relationship */
-  workspaceMembers_aggregate: WorkspaceMembers_Aggregate;
-  /** An array relationship */
-  workspace_member_invites: Array<WorkspaceMemberInvites>;
-  /** An aggregate relationship */
-  workspace_member_invites_aggregate: WorkspaceMemberInvites_Aggregate;
 };
 
 
@@ -28891,26 +26803,6 @@ export type UsersCliTokens_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<CliTokens_Order_By>>;
   where?: InputMaybe<CliTokens_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersCreatorOfWorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersCreatorOfWorkspaces_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Workspaces_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Workspaces_Order_By>>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
 };
 
 
@@ -29001,26 +26893,6 @@ export type UsersOrganizationMembership_AggregateArgs = {
 
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersPayment_MethodsArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersPayment_Methods_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -29099,65 +26971,6 @@ export type UsersUserProviders_AggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspaceMemberInvitesByInvitedByUserIdArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspaceMemberInvitesByInvitedByUserId_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspaceMembersArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspaceMembers_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspace_Member_InvitesArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersWorkspace_Member_Invites_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
 
 /** aggregated selection of "auth.users" */
 export type Users_Aggregate = {
@@ -29239,8 +27052,6 @@ export type Users_Bool_Exp = {
   cliTokens?: InputMaybe<CliTokens_Bool_Exp>;
   cliTokens_aggregate?: InputMaybe<CliTokens_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  creatorOfWorkspaces?: InputMaybe<Workspaces_Bool_Exp>;
-  creatorOfWorkspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Bool_Exp>;
   currentChallenge?: InputMaybe<String_Comparison_Exp>;
   defaultRole?: InputMaybe<String_Comparison_Exp>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Bool_Exp>;
@@ -29266,8 +27077,6 @@ export type Users_Bool_Exp = {
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
   passwordHash?: InputMaybe<String_Comparison_Exp>;
-  payment_methods?: InputMaybe<PaymentMethods_Bool_Exp>;
-  payment_methods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp>;
   phoneNumber?: InputMaybe<String_Comparison_Exp>;
   phoneNumberVerified?: InputMaybe<Boolean_Comparison_Exp>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
@@ -29283,12 +27092,6 @@ export type Users_Bool_Exp = {
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   userProviders?: InputMaybe<AuthUserProviders_Bool_Exp>;
   userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp>;
-  workspaceMemberInvitesByInvitedByUserId?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  workspaceMemberInvitesByInvitedByUserId_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
-  workspaceMembers?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp>;
-  workspace_member_invites?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  workspace_member_invites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.users" */
@@ -29323,7 +27126,6 @@ export type Users_Insert_Input = {
   avatarUrl?: InputMaybe<Scalars['String']>;
   cliTokens?: InputMaybe<CliTokens_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorOfWorkspaces?: InputMaybe<Workspaces_Arr_Rel_Insert_Input>;
   currentChallenge?: InputMaybe<Scalars['String']>;
   defaultRole?: InputMaybe<Scalars['String']>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
@@ -29345,7 +27147,6 @@ export type Users_Insert_Input = {
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
   otpMethodLastUsed?: InputMaybe<Scalars['String']>;
   passwordHash?: InputMaybe<Scalars['String']>;
-  payment_methods?: InputMaybe<PaymentMethods_Arr_Rel_Insert_Input>;
   phoneNumber?: InputMaybe<Scalars['String']>;
   phoneNumberVerified?: InputMaybe<Scalars['Boolean']>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
@@ -29357,9 +27158,6 @@ export type Users_Insert_Input = {
   totpSecret?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   userProviders?: InputMaybe<AuthUserProviders_Arr_Rel_Insert_Input>;
-  workspaceMemberInvitesByInvitedByUserId?: InputMaybe<WorkspaceMemberInvites_Arr_Rel_Insert_Input>;
-  workspaceMembers?: InputMaybe<WorkspaceMembers_Arr_Rel_Insert_Input>;
-  workspace_member_invites?: InputMaybe<WorkspaceMemberInvites_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
@@ -29510,7 +27308,6 @@ export type Users_Order_By = {
   avatarUrl?: InputMaybe<Order_By>;
   cliTokens_aggregate?: InputMaybe<CliTokens_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  creatorOfWorkspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Order_By>;
@@ -29532,7 +27329,6 @@ export type Users_Order_By = {
   otpHashExpiresAt?: InputMaybe<Order_By>;
   otpMethodLastUsed?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
-  payment_methods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
   phoneNumberVerified?: InputMaybe<Order_By>;
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
@@ -29544,9 +27340,6 @@ export type Users_Order_By = {
   totpSecret?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Order_By>;
-  workspaceMemberInvitesByInvitedByUserId_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Order_By>;
-  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Order_By>;
-  workspace_member_invites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: auth.users */
@@ -30042,1175 +27835,6 @@ export type Virus_Updates = {
   _set?: InputMaybe<Virus_Set_Input>;
   /** filter the rows which have to be updated */
   where: Virus_Bool_Exp;
-};
-
-/** columns and relationships of "workspace_member_invites" */
-export type WorkspaceMemberInvites = {
-  __typename?: 'workspaceMemberInvites';
-  createdAt: Scalars['timestamptz'];
-  email: Scalars['citext'];
-  id: Scalars['uuid'];
-  /** An object relationship */
-  invitedByUser: Users;
-  invitedByUserId: Scalars['uuid'];
-  isAccepted?: Maybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType: Scalars['String'];
-  updatedAt: Scalars['timestamptz'];
-  /** An object relationship */
-  userByEmail?: Maybe<Users>;
-  /** An object relationship */
-  workspace: Workspaces;
-  workspaceId: Scalars['uuid'];
-};
-
-/** aggregated selection of "workspace_member_invites" */
-export type WorkspaceMemberInvites_Aggregate = {
-  __typename?: 'workspaceMemberInvites_aggregate';
-  aggregate?: Maybe<WorkspaceMemberInvites_Aggregate_Fields>;
-  nodes: Array<WorkspaceMemberInvites>;
-};
-
-export type WorkspaceMemberInvites_Aggregate_Bool_Exp = {
-  bool_and?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And>;
-  bool_or?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or>;
-  count?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Count>;
-};
-
-export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And = {
-  arguments: WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or = {
-  arguments: WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "workspace_member_invites" */
-export type WorkspaceMemberInvites_Aggregate_Fields = {
-  __typename?: 'workspaceMemberInvites_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<WorkspaceMemberInvites_Max_Fields>;
-  min?: Maybe<WorkspaceMemberInvites_Min_Fields>;
-};
-
-
-/** aggregate fields of "workspace_member_invites" */
-export type WorkspaceMemberInvites_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Aggregate_Order_By = {
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<WorkspaceMemberInvites_Max_Order_By>;
-  min?: InputMaybe<WorkspaceMemberInvites_Min_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Arr_Rel_Insert_Input = {
-  data: Array<WorkspaceMemberInvites_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<WorkspaceMemberInvites_On_Conflict>;
-};
-
-/** Boolean expression to filter rows from the table "workspace_member_invites". All fields are combined with a logical 'AND'. */
-export type WorkspaceMemberInvites_Bool_Exp = {
-  _and?: InputMaybe<Array<WorkspaceMemberInvites_Bool_Exp>>;
-  _not?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  _or?: InputMaybe<Array<WorkspaceMemberInvites_Bool_Exp>>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  email?: InputMaybe<Citext_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  invitedByUser?: InputMaybe<Users_Bool_Exp>;
-  invitedByUserId?: InputMaybe<Uuid_Comparison_Exp>;
-  isAccepted?: InputMaybe<Boolean_Comparison_Exp>;
-  /** owner or member */
-  memberType?: InputMaybe<String_Comparison_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  userByEmail?: InputMaybe<Users_Bool_Exp>;
-  workspace?: InputMaybe<Workspaces_Bool_Exp>;
-  workspaceId?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "workspace_member_invites" */
-export enum WorkspaceMemberInvites_Constraint {
-  /** unique or primary key constraint on columns "email", "workspace_id" */
-  WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
-  /** unique or primary key constraint on columns "id" */
-  WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
-}
-
-/** input type for inserting data into table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Insert_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  email?: InputMaybe<Scalars['citext']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  invitedByUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  invitedByUserId?: InputMaybe<Scalars['uuid']>;
-  isAccepted?: InputMaybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  userByEmail?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type WorkspaceMemberInvites_Max_Fields = {
-  __typename?: 'workspaceMemberInvites_max_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  email?: Maybe<Scalars['citext']>;
-  id?: Maybe<Scalars['uuid']>;
-  invitedByUserId?: Maybe<Scalars['uuid']>;
-  isAccepted?: Maybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Max_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  invitedByUserId?: InputMaybe<Order_By>;
-  isAccepted?: InputMaybe<Order_By>;
-  /** owner or member */
-  memberType?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type WorkspaceMemberInvites_Min_Fields = {
-  __typename?: 'workspaceMemberInvites_min_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  email?: Maybe<Scalars['citext']>;
-  id?: Maybe<Scalars['uuid']>;
-  invitedByUserId?: Maybe<Scalars['uuid']>;
-  isAccepted?: Maybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Min_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  invitedByUserId?: InputMaybe<Order_By>;
-  isAccepted?: InputMaybe<Order_By>;
-  /** owner or member */
-  memberType?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Mutation_Response = {
-  __typename?: 'workspaceMemberInvites_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<WorkspaceMemberInvites>;
-};
-
-/** on_conflict condition type for table "workspace_member_invites" */
-export type WorkspaceMemberInvites_On_Conflict = {
-  constraint: WorkspaceMemberInvites_Constraint;
-  update_columns?: Array<WorkspaceMemberInvites_Update_Column>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "workspace_member_invites". */
-export type WorkspaceMemberInvites_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  invitedByUser?: InputMaybe<Users_Order_By>;
-  invitedByUserId?: InputMaybe<Order_By>;
-  isAccepted?: InputMaybe<Order_By>;
-  /** owner or member */
-  memberType?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  userByEmail?: InputMaybe<Users_Order_By>;
-  workspace?: InputMaybe<Workspaces_Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: workspace_member_invites */
-export type WorkspaceMemberInvites_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "workspace_member_invites" */
-export enum WorkspaceMemberInvites_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Email = 'email',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  InvitedByUserId = 'invitedByUserId',
-  /** column name */
-  IsAccepted = 'isAccepted',
-  /** owner or member */
-  MemberType = 'memberType',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-/** select "workspaceMemberInvites_aggregate_bool_exp_bool_and_arguments_columns" columns of table "workspace_member_invites" */
-export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
-  /** column name */
-  IsAccepted = 'isAccepted'
-}
-
-/** select "workspaceMemberInvites_aggregate_bool_exp_bool_or_arguments_columns" columns of table "workspace_member_invites" */
-export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
-  /** column name */
-  IsAccepted = 'isAccepted'
-}
-
-/** input type for updating data in table "workspace_member_invites" */
-export type WorkspaceMemberInvites_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  email?: InputMaybe<Scalars['citext']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  invitedByUserId?: InputMaybe<Scalars['uuid']>;
-  isAccepted?: InputMaybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "workspaceMemberInvites" */
-export type WorkspaceMemberInvites_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: WorkspaceMemberInvites_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type WorkspaceMemberInvites_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  email?: InputMaybe<Scalars['citext']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  invitedByUserId?: InputMaybe<Scalars['uuid']>;
-  isAccepted?: InputMaybe<Scalars['Boolean']>;
-  /** owner or member */
-  memberType?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "workspace_member_invites" */
-export enum WorkspaceMemberInvites_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Email = 'email',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  InvitedByUserId = 'invitedByUserId',
-  /** column name */
-  IsAccepted = 'isAccepted',
-  /** owner or member */
-  MemberType = 'memberType',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-export type WorkspaceMemberInvites_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<WorkspaceMemberInvites_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: WorkspaceMemberInvites_Bool_Exp;
-};
-
-/** columns and relationships of "workspace_members" */
-export type WorkspaceMembers = {
-  __typename?: 'workspaceMembers';
-  createdAt: Scalars['timestamptz'];
-  id: Scalars['uuid'];
-  /** owner or member */
-  type: Scalars['String'];
-  updatedAt: Scalars['timestamptz'];
-  /** An object relationship */
-  user: Users;
-  userId: Scalars['uuid'];
-  /** An object relationship */
-  workspace: Workspaces;
-  workspaceId: Scalars['uuid'];
-};
-
-/** aggregated selection of "workspace_members" */
-export type WorkspaceMembers_Aggregate = {
-  __typename?: 'workspaceMembers_aggregate';
-  aggregate?: Maybe<WorkspaceMembers_Aggregate_Fields>;
-  nodes: Array<WorkspaceMembers>;
-};
-
-export type WorkspaceMembers_Aggregate_Bool_Exp = {
-  count?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp_Count>;
-};
-
-export type WorkspaceMembers_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "workspace_members" */
-export type WorkspaceMembers_Aggregate_Fields = {
-  __typename?: 'workspaceMembers_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<WorkspaceMembers_Max_Fields>;
-  min?: Maybe<WorkspaceMembers_Min_Fields>;
-};
-
-
-/** aggregate fields of "workspace_members" */
-export type WorkspaceMembers_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "workspace_members" */
-export type WorkspaceMembers_Aggregate_Order_By = {
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<WorkspaceMembers_Max_Order_By>;
-  min?: InputMaybe<WorkspaceMembers_Min_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "workspace_members" */
-export type WorkspaceMembers_Arr_Rel_Insert_Input = {
-  data: Array<WorkspaceMembers_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<WorkspaceMembers_On_Conflict>;
-};
-
-/** Boolean expression to filter rows from the table "workspace_members". All fields are combined with a logical 'AND'. */
-export type WorkspaceMembers_Bool_Exp = {
-  _and?: InputMaybe<Array<WorkspaceMembers_Bool_Exp>>;
-  _not?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-  _or?: InputMaybe<Array<WorkspaceMembers_Bool_Exp>>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  /** owner or member */
-  type?: InputMaybe<String_Comparison_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  user?: InputMaybe<Users_Bool_Exp>;
-  userId?: InputMaybe<Uuid_Comparison_Exp>;
-  workspace?: InputMaybe<Workspaces_Bool_Exp>;
-  workspaceId?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "workspace_members" */
-export enum WorkspaceMembers_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  WorkspaceMembersPkey = 'workspace_members_pkey',
-  /** unique or primary key constraint on columns "user_id", "workspace_id" */
-  WorkspaceMembersUserIdWorkspaceIdKey = 'workspace_members_user_id_workspace_id_key'
-}
-
-/** input type for inserting data into table "workspace_members" */
-export type WorkspaceMembers_Insert_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  /** owner or member */
-  type?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  userId?: InputMaybe<Scalars['uuid']>;
-  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type WorkspaceMembers_Max_Fields = {
-  __typename?: 'workspaceMembers_max_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  /** owner or member */
-  type?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  userId?: Maybe<Scalars['uuid']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "workspace_members" */
-export type WorkspaceMembers_Max_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  /** owner or member */
-  type?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  userId?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type WorkspaceMembers_Min_Fields = {
-  __typename?: 'workspaceMembers_min_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  /** owner or member */
-  type?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  userId?: Maybe<Scalars['uuid']>;
-  workspaceId?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "workspace_members" */
-export type WorkspaceMembers_Min_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  /** owner or member */
-  type?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  userId?: InputMaybe<Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "workspace_members" */
-export type WorkspaceMembers_Mutation_Response = {
-  __typename?: 'workspaceMembers_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<WorkspaceMembers>;
-};
-
-/** on_conflict condition type for table "workspace_members" */
-export type WorkspaceMembers_On_Conflict = {
-  constraint: WorkspaceMembers_Constraint;
-  update_columns?: Array<WorkspaceMembers_Update_Column>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "workspace_members". */
-export type WorkspaceMembers_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  /** owner or member */
-  type?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  user?: InputMaybe<Users_Order_By>;
-  userId?: InputMaybe<Order_By>;
-  workspace?: InputMaybe<Workspaces_Order_By>;
-  workspaceId?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: workspace_members */
-export type WorkspaceMembers_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "workspace_members" */
-export enum WorkspaceMembers_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Id = 'id',
-  /** owner or member */
-  Type = 'type',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  UserId = 'userId',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-/** input type for updating data in table "workspace_members" */
-export type WorkspaceMembers_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  /** owner or member */
-  type?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  userId?: InputMaybe<Scalars['uuid']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "workspaceMembers" */
-export type WorkspaceMembers_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: WorkspaceMembers_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type WorkspaceMembers_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  /** owner or member */
-  type?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  userId?: InputMaybe<Scalars['uuid']>;
-  workspaceId?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "workspace_members" */
-export enum WorkspaceMembers_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Id = 'id',
-  /** owner or member */
-  Type = 'type',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  UserId = 'userId',
-  /** column name */
-  WorkspaceId = 'workspaceId'
-}
-
-export type WorkspaceMembers_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<WorkspaceMembers_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: WorkspaceMembers_Bool_Exp;
-};
-
-/** columns and relationships of "workspaces" */
-export type Workspaces = {
-  __typename?: 'workspaces';
-  /** City, district, suburb, town, or village. */
-  addressCity: Scalars['String'];
-  /** An object relationship */
-  addressCountry?: Maybe<Countries>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: Maybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1: Scalars['String'];
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2: Scalars['String'];
-  /** ZIP or postal code. */
-  addressPostalCode: Scalars['String'];
-  /** State, county, province, or region. */
-  addressState: Scalars['String'];
-  /** An object relationship */
-  allowedPrivateRegions?: Maybe<Regions_Allowed_Workspace>;
-  /** An array relationship */
-  apps: Array<Apps>;
-  /** An aggregate relationship */
-  apps_aggregate: Apps_Aggregate;
-  companyName: Scalars['String'];
-  createdAt: Scalars['timestamptz'];
-  /** An object relationship */
-  creatorUser?: Maybe<Users>;
-  creatorUserId?: Maybe<Scalars['uuid']>;
-  email: Scalars['String'];
-  id: Scalars['uuid'];
-  name: Scalars['String'];
-  /** An object relationship */
-  paymentMethod?: Maybe<PaymentMethods>;
-  /** An array relationship */
-  paymentMethods: Array<PaymentMethods>;
-  /** An aggregate relationship */
-  paymentMethods_aggregate: PaymentMethods_Aggregate;
-  /** An array relationship */
-  regions_allowed_workspaces: Array<Regions_Allowed_Workspace>;
-  /** An aggregate relationship */
-  regions_allowed_workspaces_aggregate: Regions_Allowed_Workspace_Aggregate;
-  slug: Scalars['String'];
-  stripeCustomerId?: Maybe<Scalars['String']>;
-  taxIdType: Scalars['String'];
-  taxIdValue: Scalars['String'];
-  updatedAt: Scalars['timestamptz'];
-  /** An array relationship */
-  workspaceMemberInvites: Array<WorkspaceMemberInvites>;
-  /** An aggregate relationship */
-  workspaceMemberInvites_aggregate: WorkspaceMemberInvites_Aggregate;
-  /** An array relationship */
-  workspaceMembers: Array<WorkspaceMembers>;
-  /** An aggregate relationship */
-  workspaceMembers_aggregate: WorkspaceMembers_Aggregate;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesAppsArgs = {
-  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Apps_Order_By>>;
-  where?: InputMaybe<Apps_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesApps_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Apps_Order_By>>;
-  where?: InputMaybe<Apps_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesPaymentMethodsArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesPaymentMethods_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<PaymentMethods_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
-  where?: InputMaybe<PaymentMethods_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesRegions_Allowed_WorkspacesArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesRegions_Allowed_Workspaces_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
-  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesWorkspaceMemberInvitesArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesWorkspaceMemberInvites_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMemberInvites_Order_By>>;
-  where?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesWorkspaceMembersArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-
-/** columns and relationships of "workspaces" */
-export type WorkspacesWorkspaceMembers_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<WorkspaceMembers_Order_By>>;
-  where?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-};
-
-/** aggregated selection of "workspaces" */
-export type Workspaces_Aggregate = {
-  __typename?: 'workspaces_aggregate';
-  aggregate?: Maybe<Workspaces_Aggregate_Fields>;
-  nodes: Array<Workspaces>;
-};
-
-export type Workspaces_Aggregate_Bool_Exp = {
-  count?: InputMaybe<Workspaces_Aggregate_Bool_Exp_Count>;
-};
-
-export type Workspaces_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Workspaces_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Workspaces_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "workspaces" */
-export type Workspaces_Aggregate_Fields = {
-  __typename?: 'workspaces_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Workspaces_Max_Fields>;
-  min?: Maybe<Workspaces_Min_Fields>;
-};
-
-
-/** aggregate fields of "workspaces" */
-export type Workspaces_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Workspaces_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "workspaces" */
-export type Workspaces_Aggregate_Order_By = {
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Workspaces_Max_Order_By>;
-  min?: InputMaybe<Workspaces_Min_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "workspaces" */
-export type Workspaces_Arr_Rel_Insert_Input = {
-  data: Array<Workspaces_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Workspaces_On_Conflict>;
-};
-
-/** Boolean expression to filter rows from the table "workspaces". All fields are combined with a logical 'AND'. */
-export type Workspaces_Bool_Exp = {
-  _and?: InputMaybe<Array<Workspaces_Bool_Exp>>;
-  _not?: InputMaybe<Workspaces_Bool_Exp>;
-  _or?: InputMaybe<Array<Workspaces_Bool_Exp>>;
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<String_Comparison_Exp>;
-  addressCountry?: InputMaybe<Countries_Bool_Exp>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<String_Comparison_Exp>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<String_Comparison_Exp>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<String_Comparison_Exp>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<String_Comparison_Exp>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<String_Comparison_Exp>;
-  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-  apps?: InputMaybe<Apps_Bool_Exp>;
-  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
-  companyName?: InputMaybe<String_Comparison_Exp>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  creatorUser?: InputMaybe<Users_Bool_Exp>;
-  creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
-  email?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  name?: InputMaybe<String_Comparison_Exp>;
-  paymentMethod?: InputMaybe<PaymentMethods_Bool_Exp>;
-  paymentMethods?: InputMaybe<PaymentMethods_Bool_Exp>;
-  paymentMethods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp>;
-  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
-  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp>;
-  slug?: InputMaybe<String_Comparison_Exp>;
-  stripeCustomerId?: InputMaybe<String_Comparison_Exp>;
-  taxIdType?: InputMaybe<String_Comparison_Exp>;
-  taxIdValue?: InputMaybe<String_Comparison_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  workspaceMemberInvites?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
-  workspaceMemberInvites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
-  workspaceMembers?: InputMaybe<WorkspaceMembers_Bool_Exp>;
-  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp>;
-};
-
-/** unique or primary key constraints on table "workspaces" */
-export enum Workspaces_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  WorkspacesPkey = 'workspaces_pkey',
-  /** unique or primary key constraint on columns "slug" */
-  WorkspacesSlugKey = 'workspaces_slug_key'
-}
-
-/** input type for inserting data into table "workspaces" */
-export type Workspaces_Insert_Input = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Scalars['String']>;
-  addressCountry?: InputMaybe<Countries_Obj_Rel_Insert_Input>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Scalars['String']>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Scalars['String']>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Scalars['String']>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Scalars['String']>;
-  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Obj_Rel_Insert_Input>;
-  apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
-  companyName?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
-  email?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  paymentMethod?: InputMaybe<PaymentMethods_Obj_Rel_Insert_Input>;
-  paymentMethods?: InputMaybe<PaymentMethods_Arr_Rel_Insert_Input>;
-  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Arr_Rel_Insert_Input>;
-  slug?: InputMaybe<Scalars['String']>;
-  stripeCustomerId?: InputMaybe<Scalars['String']>;
-  taxIdType?: InputMaybe<Scalars['String']>;
-  taxIdValue?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  workspaceMemberInvites?: InputMaybe<WorkspaceMemberInvites_Arr_Rel_Insert_Input>;
-  workspaceMembers?: InputMaybe<WorkspaceMembers_Arr_Rel_Insert_Input>;
-};
-
-/** aggregate max on columns */
-export type Workspaces_Max_Fields = {
-  __typename?: 'workspaces_max_fields';
-  /** City, district, suburb, town, or village. */
-  addressCity?: Maybe<Scalars['String']>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: Maybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: Maybe<Scalars['String']>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: Maybe<Scalars['String']>;
-  /** ZIP or postal code. */
-  addressPostalCode?: Maybe<Scalars['String']>;
-  /** State, county, province, or region. */
-  addressState?: Maybe<Scalars['String']>;
-  companyName?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  creatorUserId?: Maybe<Scalars['uuid']>;
-  email?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  name?: Maybe<Scalars['String']>;
-  slug?: Maybe<Scalars['String']>;
-  stripeCustomerId?: Maybe<Scalars['String']>;
-  taxIdType?: Maybe<Scalars['String']>;
-  taxIdValue?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** order by max() on columns of table "workspaces" */
-export type Workspaces_Max_Order_By = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Order_By>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Order_By>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Order_By>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Order_By>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Order_By>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Order_By>;
-  companyName?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
-  slug?: InputMaybe<Order_By>;
-  stripeCustomerId?: InputMaybe<Order_By>;
-  taxIdType?: InputMaybe<Order_By>;
-  taxIdValue?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type Workspaces_Min_Fields = {
-  __typename?: 'workspaces_min_fields';
-  /** City, district, suburb, town, or village. */
-  addressCity?: Maybe<Scalars['String']>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: Maybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: Maybe<Scalars['String']>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: Maybe<Scalars['String']>;
-  /** ZIP or postal code. */
-  addressPostalCode?: Maybe<Scalars['String']>;
-  /** State, county, province, or region. */
-  addressState?: Maybe<Scalars['String']>;
-  companyName?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  creatorUserId?: Maybe<Scalars['uuid']>;
-  email?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  name?: Maybe<Scalars['String']>;
-  slug?: Maybe<Scalars['String']>;
-  stripeCustomerId?: Maybe<Scalars['String']>;
-  taxIdType?: Maybe<Scalars['String']>;
-  taxIdValue?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** order by min() on columns of table "workspaces" */
-export type Workspaces_Min_Order_By = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Order_By>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Order_By>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Order_By>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Order_By>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Order_By>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Order_By>;
-  companyName?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
-  slug?: InputMaybe<Order_By>;
-  stripeCustomerId?: InputMaybe<Order_By>;
-  taxIdType?: InputMaybe<Order_By>;
-  taxIdValue?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "workspaces" */
-export type Workspaces_Mutation_Response = {
-  __typename?: 'workspaces_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Workspaces>;
-};
-
-/** input type for inserting object relation for remote table "workspaces" */
-export type Workspaces_Obj_Rel_Insert_Input = {
-  data: Workspaces_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Workspaces_On_Conflict>;
-};
-
-/** on_conflict condition type for table "workspaces" */
-export type Workspaces_On_Conflict = {
-  constraint: Workspaces_Constraint;
-  update_columns?: Array<Workspaces_Update_Column>;
-  where?: InputMaybe<Workspaces_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "workspaces". */
-export type Workspaces_Order_By = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Order_By>;
-  addressCountry?: InputMaybe<Countries_Order_By>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Order_By>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Order_By>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Order_By>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Order_By>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Order_By>;
-  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Order_By>;
-  apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
-  companyName?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  creatorUser?: InputMaybe<Users_Order_By>;
-  creatorUserId?: InputMaybe<Order_By>;
-  email?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
-  paymentMethod?: InputMaybe<PaymentMethods_Order_By>;
-  paymentMethods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Order_By>;
-  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Order_By>;
-  slug?: InputMaybe<Order_By>;
-  stripeCustomerId?: InputMaybe<Order_By>;
-  taxIdType?: InputMaybe<Order_By>;
-  taxIdValue?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  workspaceMemberInvites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Order_By>;
-  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Order_By>;
-};
-
-/** primary key columns input for table: workspaces */
-export type Workspaces_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "workspaces" */
-export enum Workspaces_Select_Column {
-  /** City, district, suburb, town, or village. */
-  AddressCity = 'addressCity',
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  AddressCountryCode = 'addressCountryCode',
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  AddressLine1 = 'addressLine1',
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  AddressLine2 = 'addressLine2',
-  /** ZIP or postal code. */
-  AddressPostalCode = 'addressPostalCode',
-  /** State, county, province, or region. */
-  AddressState = 'addressState',
-  /** column name */
-  CompanyName = 'companyName',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  CreatorUserId = 'creatorUserId',
-  /** column name */
-  Email = 'email',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name',
-  /** column name */
-  Slug = 'slug',
-  /** column name */
-  StripeCustomerId = 'stripeCustomerId',
-  /** column name */
-  TaxIdType = 'taxIdType',
-  /** column name */
-  TaxIdValue = 'taxIdValue',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-/** input type for updating data in table "workspaces" */
-export type Workspaces_Set_Input = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Scalars['String']>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Scalars['String']>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Scalars['String']>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Scalars['String']>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Scalars['String']>;
-  companyName?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
-  email?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  slug?: InputMaybe<Scalars['String']>;
-  stripeCustomerId?: InputMaybe<Scalars['String']>;
-  taxIdType?: InputMaybe<Scalars['String']>;
-  taxIdValue?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** Streaming cursor of the table "workspaces" */
-export type Workspaces_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Workspaces_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Workspaces_Stream_Cursor_Value_Input = {
-  /** City, district, suburb, town, or village. */
-  addressCity?: InputMaybe<Scalars['String']>;
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  addressCountryCode?: InputMaybe<Scalars['String']>;
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  addressLine1?: InputMaybe<Scalars['String']>;
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  addressLine2?: InputMaybe<Scalars['String']>;
-  /** ZIP or postal code. */
-  addressPostalCode?: InputMaybe<Scalars['String']>;
-  /** State, county, province, or region. */
-  addressState?: InputMaybe<Scalars['String']>;
-  companyName?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  creatorUserId?: InputMaybe<Scalars['uuid']>;
-  email?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  slug?: InputMaybe<Scalars['String']>;
-  stripeCustomerId?: InputMaybe<Scalars['String']>;
-  taxIdType?: InputMaybe<Scalars['String']>;
-  taxIdValue?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** update columns of table "workspaces" */
-export enum Workspaces_Update_Column {
-  /** City, district, suburb, town, or village. */
-  AddressCity = 'addressCity',
-  /** Two-letter country code (ISO 3166-1 alpha-2). */
-  AddressCountryCode = 'addressCountryCode',
-  /** Address line 1 (e.g., street, PO Box, or company name). */
-  AddressLine1 = 'addressLine1',
-  /** Address line 2 (e.g., apartment, suite, unit, or building). */
-  AddressLine2 = 'addressLine2',
-  /** ZIP or postal code. */
-  AddressPostalCode = 'addressPostalCode',
-  /** State, county, province, or region. */
-  AddressState = 'addressState',
-  /** column name */
-  CompanyName = 'companyName',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  CreatorUserId = 'creatorUserId',
-  /** column name */
-  Email = 'email',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name',
-  /** column name */
-  Slug = 'slug',
-  /** column name */
-  StripeCustomerId = 'stripeCustomerId',
-  /** column name */
-  TaxIdType = 'taxIdType',
-  /** column name */
-  TaxIdValue = 'taxIdValue',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-export type Workspaces_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Workspaces_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Workspaces_Bool_Exp;
 };
 
 export type DeleteAuthUserProviderMutationVariables = Exact<{
@@ -31814,9 +28438,9 @@ export type UpdateBucketMutation = { __typename?: 'mutation_root', updateBucket?
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type ProjectBaseFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectBaseFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
 export type GetFunctionsMetricsDashboardQueryVariables = Exact<{
   appID: Scalars['String'];
@@ -31918,14 +28542,6 @@ export type BillingGetNextInvoiceQueryVariables = Exact<{
 
 export type BillingGetNextInvoiceQuery = { __typename?: 'query_root', billingGetNextInvoice?: { __typename?: 'InvoiceSummary', AmountDue: any, PeriodEnd: any, items: Array<{ __typename?: 'InvoiceItem', Description: string, Amount: any }> } | null };
 
-export type BillingMigrateProjectToOrganizationMutationVariables = Exact<{
-  appID: Scalars['uuid'];
-  organizationID: Scalars['uuid'];
-}>;
-
-
-export type BillingMigrateProjectToOrganizationMutation = { __typename?: 'mutation_root', billingMigrateProjectToOrganization: boolean };
-
 export type BillingOrganizationCustomePortalQueryVariables = Exact<{
   organizationID: Scalars['uuid'];
 }>;
@@ -31985,7 +28601,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number }, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }>, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -32013,7 +28629,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -32025,7 +28641,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetProjectQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GetProjectStateQueryVariables = Exact<{
   subdomain: Scalars['String'];
@@ -32629,13 +29245,6 @@ export const ProjectBaseFragmentDoc = gql`
     name
     domain
     city
-  }
-  legacyPlan {
-    id
-    name
-    price
-    isFree
-    featureMaxDbSize
   }
   githubRepository {
     fullName
@@ -36916,41 +33525,6 @@ export type BillingGetNextInvoiceQueryResult = Apollo.QueryResult<BillingGetNext
 export function refetchBillingGetNextInvoiceQuery(variables: BillingGetNextInvoiceQueryVariables) {
       return { query: BillingGetNextInvoiceDocument, variables: variables }
     }
-export const BillingMigrateProjectToOrganizationDocument = gql`
-    mutation billingMigrateProjectToOrganization($appID: uuid!, $organizationID: uuid!) {
-  billingMigrateProjectToOrganization(
-    appID: $appID
-    organizationID: $organizationID
-  )
-}
-    `;
-export type BillingMigrateProjectToOrganizationMutationFn = Apollo.MutationFunction<BillingMigrateProjectToOrganizationMutation, BillingMigrateProjectToOrganizationMutationVariables>;
-
-/**
- * __useBillingMigrateProjectToOrganizationMutation__
- *
- * To run a mutation, you first call `useBillingMigrateProjectToOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useBillingMigrateProjectToOrganizationMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [billingMigrateProjectToOrganizationMutation, { data, loading, error }] = useBillingMigrateProjectToOrganizationMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      organizationID: // value for 'organizationID'
- *   },
- * });
- */
-export function useBillingMigrateProjectToOrganizationMutation(baseOptions?: Apollo.MutationHookOptions<BillingMigrateProjectToOrganizationMutation, BillingMigrateProjectToOrganizationMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<BillingMigrateProjectToOrganizationMutation, BillingMigrateProjectToOrganizationMutationVariables>(BillingMigrateProjectToOrganizationDocument, options);
-      }
-export type BillingMigrateProjectToOrganizationMutationHookResult = ReturnType<typeof useBillingMigrateProjectToOrganizationMutation>;
-export type BillingMigrateProjectToOrganizationMutationResult = Apollo.MutationResult<BillingMigrateProjectToOrganizationMutation>;
-export type BillingMigrateProjectToOrganizationMutationOptions = Apollo.BaseMutationOptions<BillingMigrateProjectToOrganizationMutation, BillingMigrateProjectToOrganizationMutationVariables>;
 export const BillingOrganizationCustomePortalDocument = gql`
     query billingOrganizationCustomePortal($organizationID: uuid!) {
   billingOrganizationCustomePortal(organizationID: $organizationID)
@@ -37202,7 +33776,6 @@ export const GetOrganizationDocument = gql`
       name
       price
       deprecated
-      individual
       isFree
       featureMaxDbSize
     }
@@ -37390,7 +33963,6 @@ export const GetOrganizationsDocument = gql`
       name
       price
       deprecated
-      individual
       isFree
       featureMaxDbSize
       slaLevel
@@ -39414,7 +35986,7 @@ export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<U
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(
-    where: {creatorUserId: {_eq: $userId}, legacyPlan: {isFree: {_eq: true}}, desiredState: {_eq: 5}}
+    where: {creatorUserId: {_eq: $userId}, organization: {plan: {isFree: {_eq: true}}}, desiredState: {_eq: 5}}
   ) {
     id
   }

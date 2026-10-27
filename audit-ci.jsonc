@@ -3,6 +3,11 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
   "allowlist": [
+    // Expo CLI still requires Zod 3, which has no patched release for this
+    // collection-validation DoS. Scope the exception to Expo's local dev CLI;
+    // other Zod consumers must use patched v4. Remove when Expo migrates to v4
+    // or Zod publishes a v3 fix.
+    "GHSA-mrhx-c7xc-m3w5|*>@expo/cli>zod",
     // image-size DoS (infinite loop) advisories. No fixed release exists yet:
     // every published version (<=2.0.2) is affected. Only pulled in transitively
     // by the React Native example dev/build tooling (metro), not shipped to prod.

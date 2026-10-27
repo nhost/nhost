@@ -86,17 +86,12 @@ export default function ExpandedMetricPanel({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <CopyToClipboardButton
-              textToCopy={shareUrl}
-              title="Link"
-              aria-label="Copy link"
-              className="px-3 py-2.5 text-sm"
-            >
+            <CopyToClipboardButton textToCopy={shareUrl} title="Link">
               Copy link
             </CopyToClipboardButton>
             <Button
               type="button"
-              variant="ghost"
+              variant="subtle"
               size="icon"
               onClick={onClose}
               aria-label="Close expanded panel"

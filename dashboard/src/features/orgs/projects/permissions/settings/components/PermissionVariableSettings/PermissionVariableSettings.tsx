@@ -119,7 +119,7 @@ export default function PermissionVariableSettings() {
       component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -135,7 +135,7 @@ export default function PermissionVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -185,7 +185,7 @@ export default function PermissionVariableSettings() {
                         <span className="absolute top-1/2 right-4 inline-flex -translate-y-1/2">
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             disabled
                           >
@@ -202,7 +202,7 @@ export default function PermissionVariableSettings() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
@@ -210,10 +210,10 @@ export default function PermissionVariableSettings() {
                         </Button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-32 p-0">
+                      <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                           onClick={() => handleOpenEditor(permissionVariable)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Edit</span>
                         </DropdownMenuItem>
@@ -222,7 +222,7 @@ export default function PermissionVariableSettings() {
                           onClick={() =>
                             handleConfirmDelete(permissionVariable)
                           }
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         >
                           <span>Delete</span>
                         </DropdownMenuItem>

@@ -41,7 +41,7 @@ export default function PasswordSettings() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="submit"
-              variant="outline"
+              disabled={!form.formState.isDirty}
               loading={form.formState.isSubmitting}
               className="w-full sm:w-auto"
             >

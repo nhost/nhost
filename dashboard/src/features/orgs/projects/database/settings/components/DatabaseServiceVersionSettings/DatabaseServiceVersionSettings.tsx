@@ -221,7 +221,7 @@ export default function DatabaseServiceVersionSettings() {
         ),
         props: {
           PaperProps: {
-            className: 'max-w-2xl',
+            className: 'max-w-lg',
           },
         },
       });
