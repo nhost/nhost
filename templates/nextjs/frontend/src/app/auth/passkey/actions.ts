@@ -47,11 +47,13 @@ export async function beginSignUp(
 export async function finishSignUp(
   credential: CredentialCreationResponse,
   next: string,
+  nickname?: string,
 ): Promise<ActionResult & { signedIn?: boolean }> {
   try {
     const nhost = await createNhostClient();
     const { body } = await nhost.auth.verifySignUpWebauthn({
       credential,
+      nickname: nickname?.trim() || undefined,
       options: { redirectTo: redirectTo(next) },
     });
 

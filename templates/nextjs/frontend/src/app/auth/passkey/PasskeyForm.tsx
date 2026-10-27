@@ -14,6 +14,7 @@ import {
   finishSignUp,
 } from '@/app/auth/passkey/actions';
 import { wasCancelled } from '@/app/auth/passkey/cancelled';
+import { deviceName } from '@/app/auth/passkey/manage/names';
 import { rememberPasskey } from '@/app/auth/passkey/thisDevice';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
@@ -102,7 +103,11 @@ export default function PasskeyForm({
       const credential = await startRegistration({
         optionsJSON: begun.options,
       });
-      const result = await finishSignUp(credential, next);
+      const result = await finishSignUp(
+        credential,
+        next,
+        deviceName(navigator.userAgent),
+      );
       if (result.error) {
         setError(result.error);
         return;

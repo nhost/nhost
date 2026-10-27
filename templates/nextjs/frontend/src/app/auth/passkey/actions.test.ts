@@ -50,6 +50,18 @@ describe('sign-up keeps the verification link on this origin', () => {
   });
 });
 
+describe('finishSignUp', () => {
+  it('names the first passkey', async () => {
+    auth.verifySignUpWebauthn.mockResolvedValueOnce({ body: {} });
+
+    await finishSignUp(creation, '/', ' Chrome - macOS ');
+
+    expect(auth.verifySignUpWebauthn.mock.calls[0][0].nickname).toBe(
+      'Chrome - macOS',
+    );
+  });
+});
+
 describe('finishSignIn', () => {
   it('succeeds when a session came back', async () => {
     auth.verifySignInWebauthn.mockResolvedValueOnce({
