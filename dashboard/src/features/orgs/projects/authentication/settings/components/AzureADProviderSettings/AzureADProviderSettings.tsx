@@ -153,7 +153,6 @@ export default function AzureADProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Azure AD"
             description="⚠️ Azure AD is deprecated in favor of Entra ID. Please use Entra ID for new configurations."
             icon="/assets/brands/azuread.svg"

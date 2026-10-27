@@ -120,7 +120,6 @@ export default function WebAuthnSettings() {
       <Form onSubmit={handleWebAuthnSettingsUpdate}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Security Keys"
             description="Allow users to sign in with security keys using WebAuthn."
             control={

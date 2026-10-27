@@ -112,7 +112,6 @@ export default function HasuraDevModeSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Dev Mode"
             description="Enable or disable dev mode."
             control={

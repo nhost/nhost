@@ -132,7 +132,6 @@ export default function EmailAndPasswordSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Email and Password"
             description="Email and password sign-in is always available. Set its rules below."
           />

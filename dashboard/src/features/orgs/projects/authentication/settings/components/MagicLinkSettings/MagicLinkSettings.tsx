@@ -116,7 +116,6 @@ export default function MagicLinkSettings() {
       <Form onSubmit={handleMagicLinkSettingsUpdate}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Magic Link"
             description="Allow users to sign in with a Magic Link."
             control={

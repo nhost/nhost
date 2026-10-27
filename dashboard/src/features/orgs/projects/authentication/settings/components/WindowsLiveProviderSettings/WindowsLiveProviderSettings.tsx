@@ -129,7 +129,6 @@ export default function WindowsLiveProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Windows Live"
             description="Allow users to sign in with Windows Live."
             icon="/assets/brands/windowslive.svg"

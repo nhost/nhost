@@ -142,7 +142,6 @@ export default function RateLimitingForm({
           <SettingsCardHeader
             title="Rate limiting"
             description={description}
-            contentClassName="sm:max-w-lg"
             control={
               <FormSwitch
                 control={form.control}

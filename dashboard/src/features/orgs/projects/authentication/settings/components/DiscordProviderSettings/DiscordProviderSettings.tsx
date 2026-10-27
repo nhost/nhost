@@ -131,7 +131,6 @@ export default function DiscordProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Discord"
             description="Allow users to sign in with Discord."
             icon="/assets/brands/discord.svg"

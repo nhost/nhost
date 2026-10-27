@@ -166,7 +166,6 @@ export default function SMSSettings() {
       <Form onSubmit={handleSMSSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Phone Number (SMS)"
             description="Allow users to sign in with Phone Number (SMS)."
             control={

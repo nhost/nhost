@@ -131,7 +131,6 @@ export default function FacebookProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Facebook"
             description="Allow users to sign in with Facebook."
             icon="/assets/brands/facebook.svg"

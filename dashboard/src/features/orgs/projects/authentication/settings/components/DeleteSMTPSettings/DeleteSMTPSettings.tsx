@@ -129,7 +129,6 @@ export default function DeleteSMTPSettings() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        contentClassName="sm:max-w-lg"
         title="Delete SMTP Settings"
         description="Delete SMTP settings and revert to default values"
         control={

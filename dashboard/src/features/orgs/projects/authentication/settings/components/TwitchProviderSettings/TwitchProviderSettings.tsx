@@ -133,7 +133,6 @@ export default function TwitchProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Twitch"
             description="Allow users to sign in with Twitch."
             icon={

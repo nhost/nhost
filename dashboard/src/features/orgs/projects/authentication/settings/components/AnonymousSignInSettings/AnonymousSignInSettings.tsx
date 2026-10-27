@@ -116,7 +116,6 @@ export default function AnonymousSignInSettings() {
       <Form onSubmit={handlePasswordProtectionSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            contentClassName="sm:max-w-lg"
             title="Anonymous Users"
             description="Allow users to sign in anonymously."
             control={
