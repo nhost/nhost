@@ -466,7 +466,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               </DialogTitle>
               {dialogProps?.titleProps?.onClose && (
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label="Close"
                   onClick={dialogProps.titleProps.onClose}
@@ -557,7 +557,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {drawerTitle}
             </SheetTitle>
             <Button
-              variant="ghost"
+              variant="subtle"
               size="icon"
               aria-label="Close"
               onClick={closeDrawerWithDirtyGuard}

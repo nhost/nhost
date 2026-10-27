@@ -117,7 +117,7 @@ function MetricsPageContent() {
                 {adminPassword && (
                   <Button
                     onClick={() => copy(adminPassword, 'Grafana password')}
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
                     aria-label="Copy password"
                   >

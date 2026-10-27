@@ -13,7 +13,7 @@ export default function EventTriggerEventsLogActionsCell({
   return (
     <div className="inline-flex w-fit items-center gap-0.5">
       <Button
-        variant="ghost"
+        variant="subtle"
         size="sm"
         onClick={row.getToggleExpandedHandler()}
         className="h-7 w-7 p-0"
