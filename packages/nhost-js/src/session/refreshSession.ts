@@ -29,6 +29,34 @@ const lock: Lock =
     ? navigator.locks
     : new DummyLock();
 
+// When auth rejects a refresh with 429/503 and a Retry-After header, the
+// time (ms since epoch) before which we don't call it again, per storage.
+const retryNotBefore = new WeakMap<SessionStorage, number>();
+
+/**
+ * Returns how long the server asked us to wait, in milliseconds, if the error
+ * is a 429/503 response with a Retry-After header (seconds or HTTP date).
+ */
+const retryAfterMs = (error: unknown): number | undefined => {
+  const response = error as Partial<FetchResponse<unknown>> | undefined;
+  if (response?.status !== 429 && response?.status !== 503) {
+    return undefined;
+  }
+
+  const header = response.headers?.get('Retry-After');
+  if (!header) {
+    return undefined;
+  }
+
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) {
+    return Math.max(0, seconds * 1000);
+  }
+
+  const date = Date.parse(header);
+  return Number.isNaN(date) ? undefined : Math.max(0, date - Date.now());
+};
+
 /**
  * Refreshes the authentication session if needed
  *
@@ -49,6 +77,11 @@ export const refreshSession = async (
   try {
     return await _refreshSession(auth, storage, marginSeconds);
   } catch (error) {
+    if (retryAfterMs(error) !== undefined) {
+      // auth told us when to come back, so retrying right away would fail too
+      return null;
+    }
+
     try {
       // we retry the refresh token in case of transient error
       // or race conditions
@@ -113,6 +146,10 @@ const _refreshSession = async (
         return session; // No need to refresh
       }
 
+      if (Date.now() < (retryNotBefore.get(storage) ?? 0)) {
+        return sessionExpired ? null : session; // Still waiting for Retry-After
+      }
+
       try {
         const response = await auth.refreshToken({
           refreshToken: session.refreshToken,
@@ -121,6 +158,11 @@ const _refreshSession = async (
 
         return response.body;
       } catch (error) {
+        const wait = retryAfterMs(error);
+        if (wait !== undefined) {
+          retryNotBefore.set(storage, Date.now() + wait);
+        }
+
         if (!sessionExpired) {
           return session;
         }
