@@ -1,20 +1,14 @@
 import isCommitSHA from './isCommitSHA';
 
-it.each([
-  { name: 'a full commit SHA', ref: 'a1b2c3d4e5'.repeat(4), expected: true },
-  {
-    name: 'an uppercase full commit SHA',
-    ref: 'A1B2C3D4E5'.repeat(4),
-    expected: true,
-  },
-  { name: 'a short commit SHA', ref: 'a1b2c3d', expected: false },
-  {
-    name: 'a 40-character branch',
-    ref: 'feat/'.padEnd(40, 'x'),
-    expected: false,
-  },
-  { name: 'a tag', ref: 'v1.2.3', expected: false },
-  { name: 'no ref', ref: null, expected: false },
-])('returns $expected for $name', ({ ref, expected }) => {
-  expect(isCommitSHA(ref)).toBe(expected);
+it('accepts a full commit SHA in any case', () => {
+  expect(isCommitSHA('a1b2c3d4e5'.repeat(4))).toBe(true);
+  expect(isCommitSHA('A1B2C3D4E5'.repeat(4))).toBe(true);
+});
+
+it('rejects a short SHA, a branch, a tag and no ref', () => {
+  expect(isCommitSHA('a1b2c3d')).toBe(false);
+  // As long as a full SHA, but not hexadecimal.
+  expect(isCommitSHA('feat/'.padEnd(40, 'x'))).toBe(false);
+  expect(isCommitSHA('v1.2.3')).toBe(false);
+  expect(isCommitSHA(null)).toBe(false);
 });
