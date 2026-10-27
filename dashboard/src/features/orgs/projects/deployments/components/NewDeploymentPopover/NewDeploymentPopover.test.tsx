@@ -63,13 +63,7 @@ function serve({
         };
         switch (operationName) {
           case 'getProject':
-            return HttpResponse.json({
-              data: {
-                apps: [
-                  { ...mockApplication, repositoryProductionBranch: 'main' },
-                ],
-              },
-            });
+            return HttpResponse.json({ data: { apps: [mockApplication] } });
           case 'getOrganization':
             return HttpResponse.json({
               data: { organizations: [mockOrganization] },
@@ -139,10 +133,6 @@ it('warns about migrations and deploys the ref as the signed-in user', async () 
   expect(
     screen.getByText('Database migrations are not rolled back.'),
   ).toBeVisible();
-  expect(screen.getByRole('textbox', { name: refLabel })).toHaveAttribute(
-    'placeholder',
-    'main',
-  );
   await user.type(
     screen.getByRole('textbox', { name: refLabel }),
     ' feat/comments ',

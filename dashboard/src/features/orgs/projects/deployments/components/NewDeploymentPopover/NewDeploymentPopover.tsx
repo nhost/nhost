@@ -65,7 +65,9 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(deploy)} className="grid gap-4">
         <div className="grid gap-0.5">
-          <p className="font-medium text-sm">Deploy a branch, tag or commit</p>
+          <p className="font-semibold text-base">
+            Deploy a branch, tag or commit
+          </p>
           <p className="text-muted-foreground text-xs">
             From {project?.githubRepository?.fullName}
           </p>
@@ -74,7 +76,7 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
           control={form.control}
           name="ref"
           label="Branch, tag or commit SHA"
-          placeholder={project?.repositoryProductionBranch || 'main'}
+          placeholder="git_ref"
           helperText="Use the full 40-character SHA for a commit."
           autoComplete="off"
           spellCheck={false}
