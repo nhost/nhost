@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import type { LegendPayload } from 'recharts';
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,9 @@ interface InteractiveChartLegendProps {
     opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void;
   onItemHover?: (key: string | null) => void;
+  // Rendered next to (not inside) the item's toggle button, so it can hold its
+  // own interactive content such as an info tooltip.
+  renderItemAddon?: (key: string) => ReactNode;
   // Filled in by Recharts when it clones the legend passed as `content`.
   payload?: readonly LegendPayload[];
 }
@@ -29,6 +32,7 @@ export default function InteractiveChartLegend({
   hiddenSet,
   onItemClick,
   onItemHover,
+  renderItemAddon,
   payload,
 }: InteractiveChartLegendProps) {
   if (!payload?.length) {
@@ -43,7 +47,8 @@ export default function InteractiveChartLegend({
           const key = String(item.dataKey ?? '');
           const isHidden = hiddenSet.has(key);
           const label = config[key]?.label ?? key;
-          return (
+          const addon = renderItemAddon?.(key);
+          const button = (
             <button
               key={key}
               type="button"
@@ -80,6 +85,23 @@ export default function InteractiveChartLegend({
               />
               <span>{label}</span>
             </button>
+          );
+          // The addon is inside the chart as well, so its clicks must not
+          // reach the chart's handlers either.
+          return addon ? (
+            <span
+              key={key}
+              role="none"
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              onKeyDown={stopChartTooltipKey}
+              className="flex items-center gap-1"
+            >
+              {button}
+              {addon}
+            </span>
+          ) : (
+            button
           );
         })}
     </div>
