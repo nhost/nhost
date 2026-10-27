@@ -153,15 +153,9 @@ export default function RateLimitingForm({
             }
           />
 
-          {/* The fields only show while the toggle is on. Hidden values stay
-              in the form, and saving already ignores them when it's off. They
-              also show while they have an error, so a failed save is never
-              caused by a field you can't see. */}
-          {(enabled || formState.errors.rateLimit) && (
-            <SettingsCardContent className="flex flex-col px-0">
-              <RateLimitField disabled={!enabled} id="rateLimit" />
-            </SettingsCardContent>
-          )}
+          <SettingsCardContent className="flex flex-col px-0">
+            <RateLimitField disabled={!enabled} id="rateLimit" />
+          </SettingsCardContent>
 
           <SettingsCardFooter>
             <ButtonWithLoading
