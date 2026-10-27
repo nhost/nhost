@@ -301,7 +301,7 @@ export default function BaseNativeQueryForm({
         }}
       >
         <DialogContent
-          className="flex max-h-[90vh] min-h-0 w-[calc(100vw-2rem)] max-w-5xl flex-col overflow-hidden text-foreground"
+          className="flex max-h-[90vh] min-h-0 w-[calc(100vw-2rem)] max-w-5xl flex-col overflow-hidden p-12 text-foreground"
           onCloseAutoFocus={(event) => {
             event.preventDefault();
             returnsTriggerRef.current?.focus();
@@ -309,7 +309,9 @@ export default function BaseNativeQueryForm({
           onEscapeKeyDown={(event) => event.stopPropagation()}
         >
           <DialogHeader className="shrink-0">
-            <DialogTitle>Create logical model</DialogTitle>
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              Create logical model
+            </DialogTitle>
             <DialogDescription>
               Create the return type for this native query.
             </DialogDescription>
