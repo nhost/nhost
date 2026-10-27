@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v3/avatar';
@@ -21,27 +20,7 @@ import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hook
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
-
-function CommitRef({ commitRef }: { commitRef: string | null | undefined }) {
-  const isCommitSHA = /^[\da-f]{40}$/i.test(commitRef ?? '');
-
-  return (
-    <div className="group hidden w-24 items-center justify-end gap-1 sm:flex">
-      <span
-        title={commitRef ?? undefined}
-        className="max-w-16 truncate font-medium font-mono text-foreground text-sm-"
-      >
-        {isCommitSHA ? commitRef?.substring(0, 7) : commitRef}
-      </span>
-      <CopyToClipboardButton
-        textToCopy={commitRef}
-        title={isCommitSHA ? 'Commit SHA' : 'Ref'}
-        aria-label={isCommitSHA ? 'Copy commit SHA' : 'Copy ref'}
-        className="opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
-      />
-    </div>
-  );
-}
+import CommitRef from './CommitRef';
 
 export interface DeploymentListItemProps {
   deployment: UnifiedDeploymentRowFragment;

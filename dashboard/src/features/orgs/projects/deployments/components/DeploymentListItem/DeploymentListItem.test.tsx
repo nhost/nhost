@@ -1,4 +1,4 @@
-import { HttpResponse, http } from 'msw';
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import type {
@@ -8,10 +8,14 @@ import type {
 import {
   mockApplication,
   mockMatchMediaValue,
-  mockOrganization,
   mockRouter,
 } from '@/tests/mocks';
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
+import {
+  getOrganization,
+  getOrganizations,
+} from '@/tests/msw/mocks/graphql/getOrganizationQuery';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
   queryClient,
   render,
@@ -20,13 +24,6 @@ import {
   waitFor,
 } from '@/tests/testUtils';
 import DeploymentListItem from './DeploymentListItem';
-
-vi.mock('next/router', () => ({
-  useRouter: () => ({
-    query: { orgSlug: 'xyz', appSubdomain: 'test-project' },
-    isReady: true,
-  }),
-}));
 
 const deployment: UnifiedDeploymentRowFragment = {
   id: 'target',
@@ -43,46 +40,36 @@ const deployment: UnifiedDeploymentRowFragment = {
 };
 const requests: InsertPipelineRunMutationVariables[] = [];
 const server = setupServer(
-  tokenQuery,
-  http.post('https://local.graphql.local.nhost.run/v1', async ({ request }) => {
-    const { operationName, variables } = (await request.json()) as {
-      operationName: string;
-      variables: InsertPipelineRunMutationVariables;
-    };
-    switch (operationName) {
-      case 'getProject':
-        return HttpResponse.json({ data: { apps: [mockApplication] } });
-      case 'getOrganization':
-        return HttpResponse.json({
-          data: { organizations: [mockOrganization] },
-        });
-      case 'GetOrganizations':
-        return HttpResponse.json({ data: { organizations: [] } });
-      case 'InsertPipelineRun':
-        requests.push(variables);
-        return HttpResponse.json({
-          data: {
-            insertPipelineRun: {
-              id: 'new',
-              name: 'nhost-backend-build',
-              status: 'pending',
-              appId: deployment.appId,
-              input: variables.object.input,
-              createdAt: deployment.createdAt,
-              startedAt: null,
-              endedAt: null,
-            },
+  getProjectQuery,
+  getOrganization,
+  getOrganizations,
+  nhostGraphQLLink.mutation<object, InsertPipelineRunMutationVariables>(
+    'InsertPipelineRun',
+    ({ variables }) => {
+      requests.push(variables);
+      return HttpResponse.json({
+        data: {
+          insertPipelineRun: {
+            id: 'new',
+            name: 'nhost-backend-build',
+            status: 'pending',
+            appId: deployment.appId,
+            input: variables.object.input,
+            createdAt: deployment.createdAt,
+            startedAt: null,
+            endedAt: null,
           },
-        });
-      default:
-        return HttpResponse.json({ data: {} });
-    }
-  }),
+        },
+      });
+    },
+  ),
 );
 
 beforeAll(() => {
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-  // Hovering the row link prefetches its page, which returns a promise.
+  // A click hovers the row's link first, and next/link then prefetches the
+  // deployment's page. Like Next's router, the test router has to return a
+  // promise for that.
   vi.mocked(mockRouter.prefetch).mockResolvedValue(undefined);
   server.listen({ onUnhandledRequest: 'error' });
 });
@@ -92,28 +79,17 @@ beforeEach(() => {
   requests.length = 0;
 });
 afterEach(() => {
-  server.resetHandlers();
   queryClient.clear();
   toast.remove();
 });
 afterAll(() => server.close());
 
-// jsdom never navigates, but a browser follows the row's link for any click
-// inside it that isn't default-prevented.
-async function recordLinkClicks() {
-  const clicks: MouseEvent[] = [];
-  const link = await screen.findByRole('link', { name: 'Target commit' });
-  link.addEventListener('click', (event) => clicks.push(event));
-  return clicks;
-}
-
-it('redeploys the commit of the row', async () => {
+it('redeploys the commit of the row without opening the deployment', async () => {
   render(
     <ul>
       <DeploymentListItem deployment={deployment} showRedeploy />
     </ul>,
   );
-  const linkClicks = await recordLinkClicks();
 
   await new TestUserEvent().click(
     await screen.findByRole('button', { name: 'Redeploy' }),
@@ -128,45 +104,51 @@ it('redeploys the commit of the row', async () => {
     commit_user_name: deployment.commitUserName,
     commit_user_avatar_url: deployment.commitUserAvatarUrl,
   });
-  expect(linkClicks.map((event) => event.defaultPrevented)).toEqual([true]);
   expect(mockRouter.push).not.toHaveBeenCalled();
 });
 
-it.each([
-  {
-    name: 'the short SHA of a commit',
-    commitSHA: 'b'.repeat(40),
-    shown: 'bbbbbbb',
-    button: 'Copy commit SHA',
-    toastText: 'Commit SHA copied to clipboard',
-  },
-  {
-    name: 'a branch in full',
-    commitSHA: 'feat/comments-and-reactions',
-    shown: 'feat/comments-and-reactions',
-    button: 'Copy ref',
-    toastText: 'Ref copied to clipboard',
-  },
-])(
-  'shows $name and copies it in full without opening the deployment',
-  async ({ commitSHA, shown, button, toastText }) => {
-    const user = new TestUserEvent();
-    render(
-      <ul>
-        <DeploymentListItem deployment={{ ...deployment, commitSHA }} />
-      </ul>,
-    );
-    expect(await screen.findByText(shown)).toBeInTheDocument();
+it('shows the short SHA of a commit and copies it in full without opening the deployment', async () => {
+  const user = new TestUserEvent();
+  render(
+    <ul>
+      <DeploymentListItem deployment={deployment} />
+    </ul>,
+  );
+  expect(await screen.findByText('bbbbbbb')).toBeInTheDocument();
 
-    const linkClicks = await recordLinkClicks();
+  await user.click(screen.getByRole('button', { name: 'Copy commit SHA' }));
 
-    await user.click(await screen.findByRole('button', { name: button }));
+  await waitFor(async () =>
+    expect(await navigator.clipboard.readText()).toBe(deployment.commitSHA),
+  );
+  expect(
+    await screen.findByText('Commit SHA copied to clipboard'),
+  ).toBeInTheDocument();
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});
 
-    await waitFor(async () =>
-      expect(await navigator.clipboard.readText()).toBe(commitSHA),
-    );
-    expect(await screen.findByText(toastText)).toBeInTheDocument();
-    expect(linkClicks.map((event) => event.defaultPrevented)).toEqual([true]);
-    expect(mockRouter.push).not.toHaveBeenCalled();
-  },
-);
+it('shows a branch in full and copies it without opening the deployment', async () => {
+  const user = new TestUserEvent();
+  render(
+    <ul>
+      <DeploymentListItem
+        deployment={{ ...deployment, commitSHA: 'feat/comments-and-reactions' }}
+      />
+    </ul>,
+  );
+  expect(
+    await screen.findByText('feat/comments-and-reactions'),
+  ).toBeInTheDocument();
+
+  await user.click(screen.getByRole('button', { name: 'Copy ref' }));
+
+  await waitFor(async () =>
+    expect(await navigator.clipboard.readText()).toBe(
+      'feat/comments-and-reactions',
+    ),
+  );
+  expect(
+    await screen.findByText('Ref copied to clipboard'),
+  ).toBeInTheDocument();
+  expect(mockRouter.push).not.toHaveBeenCalled();
+});

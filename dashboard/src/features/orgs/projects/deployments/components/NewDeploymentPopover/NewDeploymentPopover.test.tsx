@@ -1,5 +1,5 @@
 import userEvent from '@testing-library/user-event';
-import { HttpResponse, http } from 'msw';
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import type {
@@ -9,10 +9,14 @@ import type {
 import {
   mockApplication,
   mockMatchMediaValue,
-  mockOrganization,
   mockSession,
 } from '@/tests/mocks';
-import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
+import {
+  getOrganization,
+  getOrganizations,
+} from '@/tests/msw/mocks/graphql/getOrganizationQuery';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
   queryClient,
   render,
@@ -21,13 +25,6 @@ import {
   waitFor,
 } from '@/tests/testUtils';
 import NewDeploymentPopover from './NewDeploymentPopover';
-
-vi.mock('next/router', () => ({
-  useRouter: () => ({
-    query: { orgSlug: 'xyz', appSubdomain: 'test-project' },
-    isReady: true,
-  }),
-}));
 
 const running: UnifiedDeploymentRowFragment = {
   id: 'running',
@@ -44,64 +41,45 @@ const running: UnifiedDeploymentRowFragment = {
 };
 const refLabel = 'Branch, tag or commit SHA';
 const requests: InsertPipelineRunMutationVariables[] = [];
-const server = setupServer(tokenQuery);
 
-function serve({
-  pending = [],
-  insertFails = false,
-}: {
-  pending?: UnifiedDeploymentRowFragment[];
-  insertFails?: boolean;
-} = {}) {
-  server.use(
-    http.post(
-      'https://local.graphql.local.nhost.run/v1',
-      async ({ request }) => {
-        const { operationName, variables } = (await request.json()) as {
-          operationName: string;
-          variables: InsertPipelineRunMutationVariables;
-        };
-        switch (operationName) {
-          case 'getProject':
-            return HttpResponse.json({ data: { apps: [mockApplication] } });
-          case 'getOrganization':
-            return HttpResponse.json({
-              data: { organizations: [mockOrganization] },
-            });
-          case 'GetOrganizations':
-            return HttpResponse.json({ data: { organizations: [] } });
-          case 'PendingOrRunningUnifiedDeploymentsSub':
-            return HttpResponse.json({
-              data: { unifiedDeployments: pending },
-            });
-          case 'InsertPipelineRun':
-            if (insertFails) {
-              return HttpResponse.json({
-                errors: [{ message: 'Scheduling failed' }],
-              });
-            }
-            requests.push(variables);
-            return HttpResponse.json({
-              data: {
-                insertPipelineRun: {
-                  id: 'new',
-                  name: 'nhost-backend-build',
-                  status: 'pending',
-                  appId: mockApplication.id,
-                  input: variables.object.input,
-                  createdAt: running.createdAt,
-                  startedAt: null,
-                  endedAt: null,
-                },
-              },
-            });
-          default:
-            return HttpResponse.json({ data: {} });
-        }
-      },
-    ),
-  );
+// MSW has no handler for subscriptions, so this one picks it out by name and
+// leaves every other operation to the next handlers.
+function pendingDeployments(
+  unifiedDeployments: UnifiedDeploymentRowFragment[],
+) {
+  return nhostGraphQLLink.operation(({ operationName }) => {
+    if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
+      return HttpResponse.json({ data: { unifiedDeployments } });
+    }
+  });
 }
+
+const server = setupServer(
+  getProjectQuery,
+  getOrganization,
+  getOrganizations,
+  pendingDeployments([]),
+  nhostGraphQLLink.mutation<object, InsertPipelineRunMutationVariables>(
+    'InsertPipelineRun',
+    ({ variables }) => {
+      requests.push(variables);
+      return HttpResponse.json({
+        data: {
+          insertPipelineRun: {
+            id: 'new',
+            name: 'nhost-backend-build',
+            status: 'pending',
+            appId: mockApplication.id,
+            input: variables.object.input,
+            createdAt: running.createdAt,
+            startedAt: null,
+            endedAt: null,
+          },
+        },
+      });
+    },
+  ),
+);
 
 async function openPopover() {
   const user = new TestUserEvent();
@@ -126,7 +104,6 @@ afterEach(() => {
 afterAll(() => server.close());
 
 it('warns about migrations and deploys the ref as the signed-in user', async () => {
-  serve();
   render(<NewDeploymentPopover />);
   const user = await openPopover();
 
@@ -157,44 +134,58 @@ it('warns about migrations and deploys the ref as the signed-in user', async () 
   );
 });
 
-it.each([
-  {
-    name: 'without a ref',
-    fields: [['Commit message', 'Fix comments']],
-    error: 'Enter a branch, tag or commit SHA.',
-  },
-  {
-    name: 'with spaces in the ref',
-    fields: [
-      [refLabel, 'two words'],
-      ['Commit message', 'Fix comments'],
-    ],
-    error: "A ref can't contain spaces.",
-  },
-  {
-    name: 'with a blank commit message',
-    fields: [
-      [refLabel, 'main'],
-      ['Commit message', '   '],
-    ],
-    error: 'Enter a commit message.',
-  },
-])('does not deploy $name', async ({ fields, error }) => {
-  serve();
+it('does not deploy without a ref', async () => {
   render(<NewDeploymentPopover />);
   const user = await openPopover();
 
-  for (const [label, value] of fields) {
-    await user.type(screen.getByRole('textbox', { name: label }), value);
-  }
+  await user.type(
+    screen.getByRole('textbox', { name: 'Commit message' }),
+    'Fix comments',
+  );
   await user.click(screen.getByRole('button', { name: 'Deploy' }));
 
-  expect(await screen.findByText(error)).toBeVisible();
+  expect(
+    await screen.findByText('Enter a branch, tag or commit SHA.'),
+  ).toBeVisible();
+  expect(requests).toEqual([]);
+});
+
+it('does not deploy a ref with spaces', async () => {
+  render(<NewDeploymentPopover />);
+  const user = await openPopover();
+
+  await user.type(screen.getByRole('textbox', { name: refLabel }), 'two words');
+  await user.type(
+    screen.getByRole('textbox', { name: 'Commit message' }),
+    'Fix comments',
+  );
+  await user.click(screen.getByRole('button', { name: 'Deploy' }));
+
+  expect(await screen.findByText("A ref can't contain spaces.")).toBeVisible();
+  expect(requests).toEqual([]);
+});
+
+it('does not deploy with a blank commit message', async () => {
+  render(<NewDeploymentPopover />);
+  const user = await openPopover();
+
+  await user.type(screen.getByRole('textbox', { name: refLabel }), 'main');
+  await user.type(
+    screen.getByRole('textbox', { name: 'Commit message' }),
+    '   ',
+  );
+  await user.click(screen.getByRole('button', { name: 'Deploy' }));
+
+  expect(await screen.findByText('Enter a commit message.')).toBeVisible();
   expect(requests).toEqual([]);
 });
 
 it('stays open with the values entered when scheduling fails', async () => {
-  serve({ insertFails: true });
+  server.use(
+    nhostGraphQLLink.mutation('InsertPipelineRun', () =>
+      HttpResponse.json({ errors: [{ message: 'Scheduling failed' }] }),
+    ),
+  );
   render(<NewDeploymentPopover />);
   const user = await openPopover();
 
@@ -214,7 +205,7 @@ it('stays open with the values entered when scheduling fails', async () => {
 });
 
 it('disables Deploy while a deployment is in progress', async () => {
-  serve({ pending: [running] });
+  server.use(pendingDeployments([running]));
   render(<NewDeploymentPopover />);
   await openPopover();
 
