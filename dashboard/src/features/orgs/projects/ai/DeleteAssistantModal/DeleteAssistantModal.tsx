@@ -53,9 +53,9 @@ export default function DeleteAssistantModal({
   }
 
   return (
-    <div className="w-full rounded-lg p-6 text-left">
+    <div className="w-full rounded-lg p-12 text-left">
       <div className="grid grid-flow-row gap-1">
-        <h2 className="font-semibold text-lg">
+        <h2 className="font-semibold text-xl">
           Delete Assistant {assistant.name}
         </h2>
 
@@ -67,7 +67,7 @@ export default function DeleteAssistantModal({
           This cannot be undone.
         </p>
 
-        <div className="my-4">
+        <div className="mt-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
               id="accept-delete-assistant"
@@ -84,7 +84,11 @@ export default function DeleteAssistantModal({
           </div>
         </div>
 
-        <div className="grid grid-flow-row gap-2">
+        <div className="mt-11 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={close}>
+            Cancel
+          </Button>
+
           <ButtonWithLoading
             variant="destructive"
             onClick={handleClick}
@@ -93,10 +97,6 @@ export default function DeleteAssistantModal({
           >
             Delete Assistant
           </ButtonWithLoading>
-
-          <Button variant="outline" onClick={close}>
-            Cancel
-          </Button>
         </div>
       </div>
     </div>

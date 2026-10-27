@@ -60,7 +60,9 @@ function ConfirmDisconnectGithubModal({
   return (
     <div className="text-foreground">
       <DialogHeader>
-        <DialogTitle>Disconnect GitHub</DialogTitle>
+        <DialogTitle className="text-xl leading-7 tracking-normal">
+          Disconnect GitHub
+        </DialogTitle>
       </DialogHeader>
       <DialogDescription className="mt-2 text-muted-foreground text-sm">
         You can connect a different GitHub account afterwards. If you use GitHub
@@ -79,7 +81,7 @@ function ConfirmDisconnectGithubModal({
         </Label>
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-2">
+      <div className="mt-12 flex items-center justify-end gap-2">
         <Button variant="outline" onClick={close}>
           Cancel
         </Button>
@@ -177,7 +179,7 @@ export default function SocialProvidersSettings() {
                 Disconnect GitHub
               </Button>
             </DialogTrigger>
-            <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+            <DialogContent className="z-[9999] p-12 text-foreground">
               <ConfirmDisconnectGithubModal
                 close={() => setDisconnectDialogOpen(false)}
                 onDisconnect={handleDisconnectGithub}
