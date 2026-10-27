@@ -20,7 +20,7 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import NewDeploymentDialog from './NewDeploymentDialog';
+import NewDeploymentPopover from './NewDeploymentPopover';
 
 vi.mock('next/router', () => ({
   useRouter: () => ({
@@ -103,10 +103,10 @@ function serve({
   );
 }
 
-async function openDialog() {
+async function openPopover() {
   const user = new TestUserEvent();
-  await user.click(screen.getByRole('button', { name: 'New deployment' }));
-  await screen.findByRole('dialog', { name: 'Deploy a branch, tag or commit' });
+  await user.click(screen.getByRole('button', { name: /New deployment/ }));
+  await screen.findByRole('dialog');
   return user;
 }
 
@@ -127,8 +127,8 @@ afterAll(() => server.close());
 
 it('warns about migrations and deploys the ref as the signed-in user', async () => {
   serve();
-  render(<NewDeploymentDialog />);
-  const user = await openDialog();
+  render(<NewDeploymentPopover />);
+  const user = await openPopover();
 
   expect(
     screen.getByText('Database migrations are not rolled back.'),
@@ -181,8 +181,8 @@ it.each([
   },
 ])('does not deploy $name', async ({ fields, error }) => {
   serve();
-  render(<NewDeploymentDialog />);
-  const user = await openDialog();
+  render(<NewDeploymentPopover />);
+  const user = await openPopover();
 
   for (const [label, value] of fields) {
     await user.type(screen.getByRole('textbox', { name: label }), value);
@@ -195,8 +195,8 @@ it.each([
 
 it('stays open with the values entered when scheduling fails', async () => {
   serve({ insertFails: true });
-  render(<NewDeploymentDialog />);
-  const user = await openDialog();
+  render(<NewDeploymentPopover />);
+  const user = await openPopover();
 
   await user.type(screen.getByRole('textbox', { name: refLabel }), 'main');
   await user.type(
@@ -215,8 +215,8 @@ it('stays open with the values entered when scheduling fails', async () => {
 
 it('disables Deploy while a deployment is in progress', async () => {
   serve({ pending: [running] });
-  render(<NewDeploymentDialog />);
-  await openDialog();
+  render(<NewDeploymentPopover />);
+  await openPopover();
 
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Deploy' })).toBeDisabled(),

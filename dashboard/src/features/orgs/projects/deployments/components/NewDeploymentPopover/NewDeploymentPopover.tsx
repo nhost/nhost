@@ -1,21 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import {
   Tooltip,
   TooltipContent,
@@ -68,12 +64,14 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(deploy)} className="grid gap-4">
-        <DialogHeader>
-          <DialogTitle>Deploy a branch, tag or commit</DialogTitle>
-          <DialogDescription>
+        <div className="grid gap-0.5">
+          <p className="font-semibold text-base">
+            Deploy a branch, tag or commit
+          </p>
+          <p className="text-muted-foreground text-xs">
             From {project?.githubRepository?.fullName}
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
         <FormInput<NewDeploymentFormValues>
           control={form.control}
           name="ref"
@@ -95,12 +93,7 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
             ones. <strong>Database migrations are not rolled back.</strong>
           </AlertDescription>
         </Alert>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-              Cancel
-            </Button>
-          </DialogClose>
+        <div className="flex justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
@@ -120,25 +113,26 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
               </TooltipContent>
             )}
           </Tooltip>
-        </DialogFooter>
+        </div>
       </form>
     </Form>
   );
 }
 
-export default function NewDeploymentDialog() {
+export default function NewDeploymentPopover() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
           New deployment
+          <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
         </Button>
-      </DialogTrigger>
-      <DialogContent>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-96">
         <NewDeploymentForm onScheduled={() => setOpen(false)} />
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 }
