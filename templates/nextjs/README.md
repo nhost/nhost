@@ -1,29 +1,16 @@
 # Nhost + Next.js starter
 
-Two halves, laid out the way an Nhost project is:
+Next.js app with server-side Nhost auth: five sign-in methods and an account
+page. The backend config runs locally and deploys to Nhost Cloud unchanged; the
+frontend deploys to Vercel.
 
-- `nhost/` is the backend configuration `nhost up` runs. It is what
-  `nhost init` writes, with the sign-in methods this app offers switched on
-  except OAuth, which needs credentials first (see [OAuth](#oauth)), plus
-  `nhost/metadata/`: the Hasura permissions the account page needs. The auth
-  service tracks its own tables but grants nothing, so without these a
-  signed-in user could register a passkey and never see it listed. `nhost up`
-  applies them, restarts the auth and storage services so they re-add what
-  they manage themselves, then exports Hasura's full metadata back into
-  `nhost/metadata/`. That export is what is committed, as in the example
-  backends under `examples/`, so there is a file for every table the two
-  services track. The exported files carry no comments, so the reasons
-  behind the permissions are in [Permissions](#permissions) below.
-  `nhost/emails/` holds only the `en` email templates `nhost init` writes,
-  because the config allows only `en` and auth swaps any other locale for the
-  default at sign-up. One template is changed: the `signin-otp` body links
-  `${redirectTo}`, which the app points at the code page (`/auth/otp`), and
-  its subject is a fixed line instead of that URL. Adding a locale to
-  `allowed` means adding its templates too; `nhost init` also writes `bg`,
-  `cs`, `es` and `fr`, and their `signin-otp` needs the same two changes.
-- `frontend/` is the Next.js app. See its README for the commands.
+| Path | Contents |
+| --- | --- |
+| `nhost/` | Backend for `nhost up`: `nhost.toml`, Hasura metadata, `en` email templates |
+| `frontend/` | Next.js 16 (App Router), Tailwind 4, shadcn, Biome, Vitest |
+| `.secrets.example` | Local secrets: the fixed set `nhost init` writes, plus `APP_ORIGIN`, `WEBAUTHN_RP_ID` and the four OAuth `fixme` values |
 
-## Running it
+## Run locally
 
 ```sh
 cp .secrets.example .secrets
@@ -31,316 +18,192 @@ nhost up
 cd frontend && pnpm install && pnpm dev
 ```
 
-`.secrets` holds the local development secrets, including the JWT keypair the
-auth service signs sessions with. The example file is the fixed set `nhost init`
-writes for every local project, plus the frontend's address (see
-[Deploying](#deploying)), so copying it is all a local stack needs. It is
-gitignored, and it must stay that way once it holds anything real.
+In `frontend/`: `pnpm lint` (Biome), `pnpm format`, `pnpm test` (Vitest),
+`pnpm build`.
 
-`nhost up` prints the local URLs. The frontend targets the local stack by
-default, so nothing in `frontend/.env.example` needs setting until the app
-points at a real project.
+- The frontend targets the local stack by default; `frontend/.env.example` only
+  matters for a real project.
+- Open `http://localhost:3000`, not `127.0.0.1`: passkeys are bound to
+  `WEBAUTHN_RP_ID=localhost`.
+- `.secrets` is gitignored. Keep it that way once it holds anything real.
 
 ## Sign-in methods
 
-`frontend/src/app/signin/methods.ts` lists them. Four work as soon as the
-backend is up: email and password is always on, and `nhost/nhost.toml` turns
-on magic link, the email code and passkeys. Passkeys are bound to the
-`WEBAUTHN_RP_ID` secret, `localhost` locally, so open the app at
-`http://localhost:3000`, not `127.0.0.1`. The fifth, OAuth, needs you.
+Registered in `frontend/src/app/signin/methods.ts`, one directory each under
+`frontend/src/app/auth/`. To remove one, delete its directory and its entry;
+`isolation.test.ts` checks that no method imports another.
 
-### OAuth
+| Method | Default |
+| --- | --- |
+| Email + password (TOTP, reset) | on |
+| Magic link | on |
+| Email code | on |
+| Passkeys | on |
+| OAuth: GitHub, Google | off |
 
-Both providers ship switched off. A provider only works once an app is
-registered with it and the backend knows the app's credentials. The config is
-already wired to `.secrets`, so turning one on is four steps:
+### Enabling OAuth
 
-1. Register an OAuth app with GitHub or Google. The callback URL for the local
-   stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`,
-   with `google` in place of `github` for Google.
-2. Put the client id and secret in `.secrets`, replacing the `fixme` values.
-3. Set `enabled = true` on that provider in `nhost/nhost.toml`, then restart
+1. Register an OAuth app with the provider. Callback URL:
+   `https://local.auth.local.nhost.run/v1/signin/provider/<github|google>/callback`
+   locally, `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/<github|google>/callback`
+   in the cloud.
+2. Set its client id and secret: in `.secrets` locally, with
+   `nhost secrets update` in the cloud.
+3. Set `enabled = true` on the provider in `nhost/nhost.toml` and restart
    `nhost up`.
-4. List it in `NHOST_OAUTH_PROVIDERS` for the frontend, for example
-   `NHOST_OAUTH_PROVIDERS=github,google` in `frontend/.env.local`, then
-   restart `pnpm dev`.
+4. Add it to `NHOST_OAUTH_PROVIDERS` (e.g. `github,google`): in
+   `frontend/.env.local` locally, as a project env var on Vercel. Restart or
+   redeploy.
 
-The frontend cannot read the backend's config, so the fourth step is how it
-knows. Until a provider is listed it offers no button for it, and with none
-listed the sign-in page leaves the method out. The variable is only read on
-the server, at request time, so a host that deploys the frontend sets it like
-any other runtime variable rather than before the build.
+`NHOST_OAUTH_PROVIDERS` is how the frontend knows which buttons work; it can't
+read the backend config. It is server-only and read per request. It also adds
+the Linked accounts row to the account page; linking reuses the sign-in
+callback URL. A provider can't be unlinked when it is the account's only way
+in.
 
-The same list puts a Linked accounts row on the account page, where a
-signed-in user can link a provider to their account or unlink one. Linking is
-the sign-in round trip with the session's access token passed as `connect`,
-so the provider callback URL above covers it. That token travels through the
-browser, an exception to
-[the session staying on the server](#the-session-lives-on-the-server). A
-provider is not unlinked when it is the only way into the account, which is
-only possible for an account with no email address.
+## Deploy
 
-## Sessions
-
-The account page lists every browser signed in to the account, two lines
-each: the start of the session's id and the browser and system, then, where
-the host provides it, the city, then the address and when it was last used,
-in the visitor's time zone. Each one can be signed out from its line, this browser's included.
-
-The auth service records none of this, so the app does. The proxy writes it to
-the session's row in `auth.refresh_tokens`, in the `metadata` column the auth
-service leaves empty for a browser session, when it changes and at most every
-five minutes otherwise. The address comes from `x-real-ip` or
-`x-forwarded-for`, and the location from the headers Vercel
-(`x-vercel-ip-country`, `x-vercel-ip-country-region`, `x-vercel-ip-city`) or
-Cloudflare (`cf-ipcountry`, plus `cf-ipcity` and `cf-region` with its visitor
-location headers on) set. Elsewhere there is no location, and a server that
-takes requests directly records whatever address the browser claims. The user
-role may write the column, so this is the user's own record of their
-sessions, not an audit log.
-
-Signing a session out deletes its row, but an access token stays valid until
-it expires, 15 minutes with this config. So on every page load the proxy also
-looks for the session's row, and signs the browser out when it is gone. A tab
-left open checks again when it is next looked at, at most every five minutes.
-
-## Deploying
-
-The config takes the frontend's address from two secrets rather than from
-`nhost.toml`, so the same file deploys anywhere and no overlay is needed:
-`APP_ORIGIN` is where auth may redirect, and `WEBAUTHN_RP_ID` is the bare
-hostname passkeys are bound to. A cloud project sets both, for example:
+| Where | Variable | Notes |
+| --- | --- | --- |
+| Backend secrets | `APP_ORIGIN` | Frontend origin; auth only redirects here |
+| | `WEBAUTHN_RP_ID` | Frontend hostname; passkeys are bound to it |
+| | `GITHUB_*`, `GOOGLE_*` | Must exist because `nhost.toml` references them; `fixme` until enabled |
+| Frontend, build time | `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` | Unset means the local stack |
+| | `NEXT_PUBLIC_APP_ORIGIN` | Must equal `APP_ORIGIN`. Optional on Vercel, which falls back to the production domain |
+| | `NEXT_PUBLIC_NHOST_ORG_SLUG` | Optional. The part after `/orgs/` in the dashboard URL; makes the footer link open the project directly |
+| Frontend, runtime | `NHOST_OAUTH_PROVIDERS` | See [Enabling OAuth](#enabling-oauth) |
 
 ```sh
 nhost secrets create APP_ORIGIN https://myapp.example.com
 nhost secrets create WEBAUTHN_RP_ID myapp.example.com
 ```
 
-The four OAuth secrets need to exist too, even while the providers are off,
-because the config references them. `fixme` is fine until a provider is
-enabled. Turning one on in the cloud follows the [OAuth](#oauth) steps, with
-the callback URL
-`https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/github/callback`
-and the credentials set with `nhost secrets update` instead of `.secrets`.
-`NHOST_OAUTH_PROVIDERS` goes on the frontend's host, on Vercel as a project
-environment variable, and the next deployment picks it up.
+`NEXT_PUBLIC_*` values are inlined at build time and are public. They can live in
+a committed `frontend/.env.production` once `frontend/.gitignore` stops ignoring
+it; nothing secret goes there.
 
-The frontend needs the same origin as `NEXT_PUBLIC_APP_ORIGIN`, next to the
-project's subdomain and region; `frontend/.env.example` has all three. They
-are read when `next build` runs, so set them before building. On Vercel the
-origin can be left out, because the build falls back to the project's
-production domain, the one `APP_ORIGIN` has to match. None of the three is a
-secret, as all of them end up in the browser bundle, so they can also be
-committed in a `frontend/.env.production` once `frontend/.gitignore` stops
-ignoring it. Nothing secret belongs in that file.
+## Backend config
 
-`NEXT_PUBLIC_NHOST_ORG_SLUG` is optional. The footer links the backend's
-dashboard, and a cloud project's page there is addressed by its organization
-as well as its subdomain, which the app cannot look up. Set it to the part
-after `/orgs/` in the project's dashboard URL, for example `acme` in
-`https://app.nhost.io/orgs/acme/projects/abcdefgh`, and the link opens the
-project directly. Without it the dashboard asks which organization first.
-`nhost list` shows the organization's name, which helps pick the right one,
-but the slug is only in the dashboard URL.
+- `nhost/metadata/` is the full Hasura export `nhost up` writes, as in the
+  example backends under `examples/`. Exports carry no comments, so
+  [Permissions](#permissions) is the record of why.
+- `nhost/emails/` has only `en`, the one allowed locale. `signin-otp` differs
+  from the `nhost init` default: its body links `${redirectTo}` (the code page)
+  and its subject is fixed. A new locale needs its templates and the same two
+  changes.
 
 ## Permissions
 
-Five of the files in `nhost/metadata/databases/default/tables/`,
-`auth_users.yaml`, `auth_user_security_keys.yaml`, `auth_refresh_tokens.yaml`,
-`auth_user_providers.yaml` and `storage_files.yaml`, grant the `user` role
-what the account page needs and nothing more. The rest
-are the services' own tables with no permissions. Hasura's export keeps no
-comments, so this section is the record of why.
+The `user` role gets only what the account page needs, always scoped to its own
+rows. Every other tracked table grants nothing.
 
-`auth.users`: the auth API has no endpoint for writing a profile field or for
-closing an account, so both go through GraphQL. Select, update and delete are
-all scoped to the user's own row, and update is limited to `display_name` and
-`avatar_url`. Widening it is the thing to be careful with: an unrestricted
-update would let a user rewrite their own roles and email. Delete takes the
-account with it, and the rest of the auth schema is wired to the row with
-`ON DELETE CASCADE`, so refresh tokens, security keys and provider links go
-at the same time. A storage file does not cascade, which is why the
-account-deletion action in `frontend/src/app/account/actions.ts` deletes the
-avatar through the storage API before it deletes the user.
-
-`auth.user_security_keys`: select and delete, scoped to the user's own rows.
-The auth service writes the row itself when a passkey is registered, so
-without these a signed-in user could add one but never list or remove it.
-
-`auth.refresh_tokens`: one row per session. Select, update and delete are
-scoped to the user's own `regular` rows, which leaves out personal access
-tokens. Select is `id`, `created_at`, `expires_at` and `metadata`, never
-`refresh_token_hash`, and update is `metadata` alone (see
-[Sessions](#sessions)). The proxy reads a session's row on every page load to
-find out whether it was revoked, so without the select permission a session
-signed out from another device lasts until its access token expires.
-
-`auth.user_providers`: select and delete, scoped to the user's own rows.
-Select is `id`, `provider_id` and `created_at`. The row also holds the
-provider's access and refresh tokens, which must stay out of it. The auth
-service writes the row when a provider is connected.
-
-`storage.files`: the storage service inserts the row for an upload through
-Hasura as the uploading user, so the insert permission decides who may upload
-and where, pinned to the `default` bucket. The service finishes the row as
-admin, which is why there is no update permission. Select and delete are the
-user's own files. The service also reads a file back as the user before
-serving it and asks for every column in its `FileMetadataFragment`, so the
-select columns must stay exactly that set: dropping one breaks downloads.
-
-## The avatar
-
-An uploaded avatar is a private file in storage, and the account's
-`avatar_url` points at this app's own route, `/api/avatar/<file id>`, rather
-than at storage. The storage service reads the session from a header an
-`<img>` cannot send, so the route handler reads the file with the session
-token and streams it back with storage's `Cache-Control` and `ETag` intact,
-marked `private` because the response is gated by the cookie. The browser
-caches it for the hour storage sets and revalidates by ETag after that.
-
-The route serves PNG, JPEG, WebP and AVIF and answers 415 for anything
-else, SVG included: it serves on this app's origin, where an HTML or SVG file
-could run script with the visitor's session, and a file can reach storage
-without going through the upload form. Behind that check, `next.config.ts`
-gives the route a sandboxing `Content-Security-Policy`, as storage does for
-HTML and SVG on its own origin. It is set there rather than in the handler
-because Next keeps a config header over a handler's header of the same name.
-GIF is left out because every avatar is rendered resized, and storage cannot
-resize a GIF.
-
-The select permission is the user's own files, which covers everywhere this
-app shows an avatar: it only ever shows you yours. Showing other users'
-avatars means widening that permission, and that is the first thing to
-change if the app grows a page that lists people.
+| Table | `user` may | Why, and what not to widen |
+| --- | --- | --- |
+| `auth.users` | select, delete; update `display_name`, `avatar_url` | Auth has no API for profile edits or account deletion. Don't add auth-managed columns to update: `default_role` and `email` are on this row. Delete cascades through the auth schema; the avatar is deleted through storage first, since files don't cascade |
+| `auth.user_security_keys` | select, delete | List and remove passkeys; auth inserts the rows |
+| `auth.refresh_tokens` | select `id`, `created_at`, `expires_at`, `metadata`; update `metadata`; delete; `regular` rows only | Sessions list and the proxy's revocation check. Never `refresh_token_hash`; personal access tokens are excluded |
+| `auth.user_providers` | select `id`, `provider_id`, `created_at`; delete | Linked accounts. The row also holds provider tokens; keep them out |
+| `storage.files` | insert (bucket `default`), select, delete | Storage inserts as the user and finishes as admin, so no update. Select columns must match storage's `FileMetadataFragment` exactly or downloads break |
 
 ## Design notes
 
-The code's comments say what each piece does. This is the why behind the
-parts that are easy to break by tidying them.
+What the code relies on. Read before refactoring.
 
-### The session lives on the server
+### Session
 
-The session, refresh token included, is in an httpOnly cookie that only the
-proxy and server code read. A second cookie, `nhostSignedIn`, is readable by
-JavaScript and carries nothing but the fact that a session is there; the nav
-uses it to notice a session that ended in another tab. Page script never sees
-a token, so an XSS cannot act as the user. Signing in and out go through
-server actions, which write the cookies, and every page reads the session on
-the server.
+- The session, refresh token included, is in an httpOnly cookie read only by
+  the proxy and server code. `nhostSignedIn` is a readable flag with no token,
+  used to notice sign-outs in other tabs. Page script never sees a token.
+- Sign-in and sign-out are server actions. Pages read the session on the
+  server.
+- Only the proxy (`frontend/src/proxy.ts`, `lib/nhost/server.ts`) refreshes:
+  60 s before expiry, on real navigations. Prefetches never refresh, because
+  refresh tokens are single-use and a concurrent refresh makes the SDK clear
+  the session. Don't set `prefetch={true}` or enable the SDK's browser
+  auto-refresh.
+- Two real requests can still race after expiry (tab refocus plus a click,
+  restored tabs). The first rejection renders signed out and sets
+  `nhostRefreshRejected` (60 s, names the refresh token id); only a second
+  rejection for the same id clears the cookies. The first rejection must leave
+  the cookies in the browser: `RefreshOnSessionChange` sees `nhostSignedIn` on
+  the signed-out render and refreshes, which picks up the winner's session or,
+  for a dead token, clears the cookies. Remaining gap: the winner's response
+  landing during that retry still signs out.
+- Exceptions to "no token in the browser":
+  - Sign-in links (below).
+  - OAuth linking: auth only links when given the access token as `connect`,
+    so `connect/route.ts` puts it in the redirect URL. It travels in the
+    OAuth `state` (signed, not encrypted), can land in browser history and
+    provider logs, and is valid for `[auth.session.accessToken] expiresIn`
+    (900 s). Page script can't read a cross-origin redirect, so XSS still
+    can't get it. Fixing that needs an auth-service change.
 
-Linking a provider is an exception, as are
-[the links that sign in](#links-that-sign-in). The auth service's provider
-redirect links an account only when it is handed the session's access token as
-`connect`, so the Link account route
-(`frontend/src/app/auth/oauth/[provider]/connect/route.ts`) redirects the
-browser to it with the token in the URL. The auth service puts the token in
-the OAuth `state`, a signed but not encrypted JWT, which goes through the
-provider's page and back to the callback. Along the way it can end up in
-browser history and the provider's request logs, and it stays valid for the
-access token's lifetime, `expiresIn` under `[auth.session.accessToken]`, 900
-seconds in `nhost/nhost.toml`. Page script cannot read a cross-origin redirect,
-so the XSS argument still holds. Keeping the token out of the URL needs a
-different handoff from the auth service.
+### Sign-in links
 
-The proxy (`frontend/src/proxy.ts`, `lib/nhost/server.ts`) is the only thing
-that refreshes the access token, and it does so a minute before expiry on
-every real navigation. Refresh tokens are single-use, so two refreshes at
-once mean one of them fails with a token the backend has already replaced,
-and the SDK answers that by clearing the session. Next prefetches every link
-in view through the same proxy, concurrently with the real request, which is
-exactly that race. So a prefetch reads the stored session and never refreshes,
-and the browser never gets a refresh token to try with. Turning
-`prefetch={true}` on a link, or giving the browser client the SDK's own
-auto-refresh, reopens the race.
+- Auth emails and the OAuth callback return `?refreshToken=`. The proxy redeems
+  it only for a signed-out visitor; redeeming for a signed-in one would let a
+  crafted link swap their session for the sender's.
+- For a signed-in visitor it revokes the token with `/signout`, since auth
+  already minted a 30-day session for it. It uses a bare auth client because
+  the proxy's client clears the session on any `/signout`.
+- The token is always stripped with a redirect. The proxy's second matcher
+  entry covers any path, because `redirectTo` can name one.
 
-Two real requests can still race once the access token has expired: a click
-on a tab that just regained focus, which `RefreshOnSessionChange` answers with
-a refresh of its own, or several tabs restored at once. The loser's 401 looks
-the same as a revoked token's, so the proxy does not delete the cookies the
-first time. It renders that request signed out and sets `nhostRefreshRejected`,
-a one-minute cookie naming the refresh token's ID. Only a second rejection
-while the marker names that ID deletes them. `RefreshOnSessionChange` notices
-the signed-out render with `nhostSignedIn` still set and refreshes, which
-either picks up the winner's new session or, for a token that really is dead,
-clears the cookies. The browser still ends up signed out if the winner's
-response lands while that second request is in flight.
+### Redirects
 
-### Links that sign in
+- `?next=` is kept only if it resolves, browser-style, to a canonical path on
+  this origin. `//evil.example`, `/\evil.example` and `/..//evil.example` all
+  look like paths and aren't.
+- Raw spaces and non-ASCII are refused; auth re-encodes them and the browser
+  lands elsewhere.
+- Every server action that builds a `redirectTo` checks `next` again; actions
+  are public endpoints.
 
-Auth emails and the OAuth callback send the browser back with a refresh token
-in the query string. The proxy redeems it, but only for a signed-out visitor:
-redeeming on sight would let a crafted link swap a signed-in visitor's session
-for the sender's. The auth service minted a session to hand that token out,
-so when the proxy declines it, it revokes it with `/signout`. Otherwise every
-email-change or verification link opened where the user is signed in would
-leave a 30-day credential behind and an unknown device in the sessions list.
-The revocation goes through a bare auth client, because the proxy's own client
-clears the stored session on any `/signout` response. The token is then
-stripped from the URL with a redirect, whether it was redeemed or not, since
-query strings leak through history, bookmarks and the referer header. The
-proxy's matcher has a second entry so it runs on every path a link token lands
-on, because `redirectTo` can name any path on this origin.
+### Sessions list
 
-### Where sign-in lands
+- Auth records nothing about a session's device, so the proxy writes
+  `metadata` on change or every 5 minutes:
+  - IP from `x-real-ip` / `x-forwarded-for`
+  - device from the user agent
+  - location from the geo headers Vercel or Cloudflare add (none elsewhere;
+    Cloudflare sends city and region only with visitor location headers on)
+  - `seenAt`
+- Users can write their own `metadata`, so it is a record, not an audit log.
+  On a host without a trusted proxy the IP is whatever the client claims.
+- Sign-out deletes the row, but its access token lives 15 minutes. The proxy
+  checks the row on each navigation, and idle tabs recheck on focus, at most
+  every 5 minutes.
 
-`?next=` is attacker-controlled. `signInDestination` keeps it only if it is a
-path on this site in canonical form, decided by resolving it the way a browser
-does rather than by matching its shape: `//evil.example`, `/\evil.example`, a
-tab after the slash and `/..//evil.example` all pass a "starts with one slash"
-check and leave the site. A path with a raw space or a non-ASCII character is
-refused because the auth service re-encodes it on the way back and the browser
-then reads a different path. Every server action that puts `next` into a
-`redirectTo` checks it again, because an action is a public endpoint that can
-be called with any arguments.
+### Account
 
-### Changing the password
+- Password change: auth revokes every session. The action signs this browser
+  back in (new password, plus TOTP if on). Accounts without an email get a
+  replacement card instead (`ReplacePageLayout`).
+- Sign-out: one request, a server action that redirects home via
+  `useActionState`.
+- Passkeys: a device refuses a second passkey for the same account. Local
+  storage remembers passkeys used in this browser to warn before Add.
+- Avatar:
+  - A private storage file served at `/api/avatar/<id>` with the session token
+    (`<img>` can't send it), keeping storage's `Cache-Control` and `ETag`,
+    marked `private`.
+  - PNG, JPEG, WebP and AVIF only, 415 otherwise: SVG and HTML could run
+    script on this origin, and GIF can't be resized. The route checks the
+    type itself because files can reach storage without the upload form. The
+    sandboxing CSP is set in `next.config.ts`, since Next prefers a config
+    header over a handler's.
+  - 4 MB cap, to stay under Vercel's 4.5 MB request limit.
+  - Only your own avatar is readable. Widen `storage.files` select before
+    showing other users'.
 
-The auth service revokes every session when the password changes, this one
-included. The change action signs this browser straight back in with the new
-password, and with two-factor on, the code the form asked for, so the visitor
-keeps their place while every other device is signed out. An account with no
-email address has nothing to sign back in with and gets the old behaviour: the
-page is replaced by a card saying so, which a layout holds while Next renders
-the page again without a session (`ReplacePageLayout`).
+### UI
 
-### Signing out
-
-Sign-out is one request: a server action that signs out and redirects home,
-called through `useActionState`, so Next sends the signed-out home page back
-with the action's answer and the control stays pressed until it is on screen.
-Pushing home and refreshing after the action was three requests, with the
-button briefly back to "Sign out" between them.
-
-### Sessions and passkeys on this device
-
-The sessions list is the user's own record, written by the proxy into the
-`metadata` column of their refresh token row (see [Sessions](#sessions)); the
-`user` role may write it, so it is not an audit log. A revoked session keeps
-a valid access token for up to fifteen minutes, so the proxy looks the row up
-on every real navigation and signs the browser out when it is gone, and a tab
-left open checks again when it is next looked at.
-
-A device refuses to add a second passkey for the same account, because the
-auth service lists the existing ones as excluded. A browser does not say which
-passkeys its device holds without a prompt, so the account page remembers the
-passkeys added or used in this browser (local storage) to warn before Add,
-and reads the browser's refusal to explain after.
-
-### The small things
-
-- The "Last used" badge on the sign-in list comes from two cookies: a method's
-  page opened signed out records an attempt, and the first response with a
-  session keeps it, so a way in that was opened and abandoned changes nothing.
-- Every page is dynamic, so `staleTimes.dynamic` keeps a recently visited page
-  in the browser for 30 seconds. Nothing goes stale that matters: signing in
-  or out clears that cache, and every change on the account page refreshes it.
-- Toasts render in a popover so they sit in the browser's top layer, above a
-  modal `<dialog>`, which no z-index reaches. An open modal makes everything
-  outside it inert, the popover included, so `Dialog` repeats the toast in a
-  hidden status region of its own for screen readers.
-- Items removed from a list on the account page leave it before the refreshed
-  page arrives (`useRemoved`), because on a deployed backend the refresh takes
-  long enough to press the same button twice.
-- The `frontend/src/app/signin/methods.ts` registry is how a sign-in method is
-  deleted: remove its directory and its entry there. `isolation.test.ts`
-  checks that no method imports another and shared code imports no method.
+- "Last used" badge: a method's page records an attempt; the first signed-in
+  response keeps it.
+- `staleTimes.dynamic` is 30 s. Signing in or out clears it, and account
+  changes refresh.
+- Toasts render in a top-layer popover to sit above modal dialogs. A modal
+  makes the popover inert, so `Dialog` repeats the toast in a hidden status
+  region for screen readers.
+- `useRemoved` drops removed items before the refresh lands, so slow backends
+  can't double-submit.
