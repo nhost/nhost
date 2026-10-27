@@ -27,7 +27,7 @@ const key = DEFAULT_SESSION_KEY;
 export const PROXY_REFRESH_MARGIN_SECONDS = 60;
 
 // Every session write sets two cookies: the httpOnly session, and a flag
-// JavaScript can read that says one is there. See the README's design notes.
+// JavaScript can read that says one is there. See "How it works" in the README.
 const sharedCookieOptions = {
   path: '/',
   sameSite: 'lax',
@@ -45,8 +45,8 @@ export const cookieOptions = {
 export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
 const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
 
-// Names a refresh token the proxy has seen rejected once. See the README's
-// design notes.
+// Names a refresh token the proxy has seen rejected once. See "How it works"
+// in the README.
 const REFRESH_REJECTED_KEY = 'nhostRefreshRejected';
 
 const sessionCookieNames = [
@@ -163,7 +163,7 @@ export const LINK_TYPE_PARAM = 'type';
 // Next fires prefetches for every <Link> in view, through this same proxy and
 // concurrently with the document request. Refresh tokens are single-use, so
 // a prefetch reads the stored session and never rotates; this proxy is the
-// only rotator. See the README's design notes.
+// only rotator. See "How it works" in the README.
 export function isPrefetch(request: NextRequest): boolean {
   // In a production build every default <Link> in view prefetches, sending
   // `next-router-prefetch: 1`, some with `next-router-segment-prefetch`; the

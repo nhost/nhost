@@ -17,8 +17,9 @@ const CANONICAL_PATH =
 
 /**
  * Where to go after signing in, from an untrusted `?next=`: a path on this
- * site in canonical form, or the default. The README's design notes say why
- * the shape of the value is not enough to decide that.
+ * site in canonical form, or the default. It is resolved the way a browser
+ * would, because `//evil.example`, `/\evil.example` and `/..//evil.example`
+ * all start with a slash and still leave the site.
  */
 export function signInDestination(
   value: string | string[] | undefined,
