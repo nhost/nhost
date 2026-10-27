@@ -8,6 +8,7 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
@@ -92,7 +93,12 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
             ones. <strong>Database migrations are not rolled back.</strong>
           </AlertDescription>
         </Alert>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <PopoverClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </PopoverClose>
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
