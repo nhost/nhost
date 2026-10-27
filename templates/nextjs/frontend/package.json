@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "^4.8.0",
-    "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@simplewebauthn/browser": "^14.0.0",
     "class-variance-authority": "^0.7.1",
