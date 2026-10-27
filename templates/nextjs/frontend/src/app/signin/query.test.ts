@@ -1,15 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { signInQuery } from '@/app/signin/query';
 
-const size = Object.getOwnPropertyDescriptor(URLSearchParams.prototype, 'size');
-
 describe('signInQuery', () => {
-  afterEach(() => {
-    if (size) {
-      Object.defineProperty(URLSearchParams.prototype, 'size', size);
-    }
-  });
-
   it('carries next and intent together, next encoded', () => {
     const query = signInQuery('/account/settings?tab=1&q=a b', 'sign-in');
 
