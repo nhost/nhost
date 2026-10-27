@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -128,6 +127,10 @@ export default function HasuraLogLevelSettings() {
                 </HighlightedText>
               </>
             }
+            docsLink={{
+              href: 'https://hasura.io/docs/latest/deployment/logging/#logging-levels',
+              title: 'Log Levels',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
@@ -146,11 +149,6 @@ export default function HasuraLogLevelSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/logging/#logging-levels"
-              title="Log Levels"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

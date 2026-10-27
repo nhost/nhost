@@ -6,9 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 
 import { Button } from '@/components/ui/v3/button';
@@ -164,6 +162,10 @@ export default function EnvironmentVariableSettings() {
       <SettingsCardHeader
         title="Project Environment Variables"
         description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables',
+          title: 'Environment Variables',
+        }}
       />
 
       <SettingsCardContent
@@ -243,13 +245,6 @@ export default function EnvironmentVariableSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/environment-variables"
-          title="Environment Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

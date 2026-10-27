@@ -15,7 +15,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -190,6 +189,10 @@ export default function AppleProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-apple',
+              title: 'how to sign in users with Apple',
+            }}
           />
 
           <SettingsCardContent
@@ -246,11 +249,6 @@ export default function AppleProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
-              title="how to sign in users with Apple"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

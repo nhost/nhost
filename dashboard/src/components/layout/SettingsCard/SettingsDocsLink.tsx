@@ -1,39 +1,45 @@
-import * as React from 'react';
-import { TextLink } from '@/components/ui/v3/text-link';
-import { cn } from '@/lib/utils';
+import { CircleHelp } from 'lucide-react';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 
-export interface SettingsDocsLinkProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface SettingsDocsLinkProps {
   /**
    * Documentation URL.
    */
   href: string;
   /**
-   * Label rendered after "Learn more about". Defaults to `children`.
+   * What the docs explain, read after "Learn more about" in the tooltip and
+   * the accessible name.
    */
-  title?: React.ReactNode;
+  title: string;
 }
 
-const SettingsDocsLink = React.forwardRef<
-  HTMLDivElement,
-  SettingsDocsLinkProps
->(({ className, href, title, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'flex w-full justify-start gap-x-1 align-middle sm:mr-auto sm:w-auto sm:self-center',
-      className,
-    )}
-    {...props}
-  >
-    <p>
-      Learn more about{' '}
-      <TextLink href={href} external className="font-medium">
-        {title ?? children}
-      </TextLink>
-    </p>
-  </div>
-));
-SettingsDocsLink.displayName = 'SettingsDocsLink';
+/**
+ * The help icon next to a settings card title: opens the docs in a new tab,
+ * with "Learn more about …" on hover and focus.
+ */
+export function SettingsDocsLink({ href, title }: SettingsDocsLinkProps) {
+  const label = `Learn more about ${title}`;
 
-export { SettingsDocsLink };
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="subtle" size="icon-xs" asChild>
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={label}
+          >
+            <CircleHelp className="size-4" />
+          </a>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+}

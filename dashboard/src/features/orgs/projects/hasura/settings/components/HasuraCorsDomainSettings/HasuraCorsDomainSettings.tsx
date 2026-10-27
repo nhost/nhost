@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -143,6 +142,10 @@ export default function HasuraCorsDomainSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors',
+              title: 'CORS configuration',
+            }}
           />
 
           {enabled && (
@@ -158,11 +161,6 @@ export default function HasuraCorsDomainSettings() {
           )}
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors"
-              title="CORS configuration"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

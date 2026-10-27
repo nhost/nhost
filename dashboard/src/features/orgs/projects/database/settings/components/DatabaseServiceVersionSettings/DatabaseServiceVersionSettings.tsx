@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -303,6 +302,10 @@ export default function DatabaseServiceVersionSettings() {
                 </Button>
               ) : null
             }
+            docsLink={{
+              href: 'https://hub.docker.com/r/nhost/postgres/tags',
+              title: 'the latest releases',
+            }}
           />
 
           <SettingsCardContent className="flex flex-col">
@@ -356,11 +359,6 @@ export default function DatabaseServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hub.docker.com/r/nhost/postgres/tags"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

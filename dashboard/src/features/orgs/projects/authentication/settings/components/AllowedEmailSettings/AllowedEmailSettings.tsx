@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -168,6 +167,10 @@ export default function AllowedEmailDomainsSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains',
+              title: 'Allowed Emails and Domains',
+            }}
           />
 
           <SettingsCardContent
@@ -193,11 +196,6 @@ export default function AllowedEmailDomainsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains"
-              title="Allowed Emails and Domains"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -133,14 +132,13 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/',
+              title: 'enabling or disabling Remote Schema Permissions',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/"
-              title="enabling or disabling Remote Schema Permissions"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

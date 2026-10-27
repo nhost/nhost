@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -122,6 +121,10 @@ export default function AllowedRedirectURLsSettings() {
           <SettingsCardHeader
             title="Allowed Redirect URLs"
             description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls',
+              title: 'Allowed Redirect URLs',
+            }}
           />
 
           <SettingsCardContent className="lg:grid-cols-5">
@@ -135,11 +138,6 @@ export default function AllowedRedirectURLsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
-              title="Allowed Redirect URLs"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

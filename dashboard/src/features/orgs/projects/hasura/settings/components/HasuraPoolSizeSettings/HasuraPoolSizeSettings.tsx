@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -110,6 +109,10 @@ export default function HasuraPoolSizeSettings() {
           <SettingsCardHeader
             title="HTTP Pool Size"
             description="Set the maximum number of concurrent HTTP workers for event delivery."
+            docsLink={{
+              href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size',
+              title: 'HTTP Pool Size',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
@@ -123,11 +126,6 @@ export default function HasuraPoolSizeSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
-              title="HTTP Pool Size"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

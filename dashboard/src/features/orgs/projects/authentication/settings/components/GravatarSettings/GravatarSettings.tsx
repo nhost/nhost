@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -147,6 +146,10 @@ export default function GravatarSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/gravatar',
+              title: 'Gravatar',
+            }}
           />
 
           <SettingsCardContent
@@ -184,11 +187,6 @@ export default function GravatarSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/gravatar"
-              title="Gravatar"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

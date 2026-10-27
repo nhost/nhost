@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
@@ -305,6 +304,10 @@ export default function JWTSettings() {
           <SettingsCardHeader
             title="JSON Web Token Settings"
             description="Select how JSON Web Tokens (JWTs) are signed and verified."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/jwt',
+              title: 'JSON Web Token (JWT) Settings',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2">
@@ -398,11 +401,6 @@ export default function JWTSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/jwt"
-              title="JSON Web Token (JWT) Settings"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

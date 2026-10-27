@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -128,14 +127,13 @@ export default function HasuraConsoleSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console',
+              title: 'enabling or disabling the Hasura Console',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
-              title="enabling or disabling the Hasura Console"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

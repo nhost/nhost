@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -132,14 +131,13 @@ export default function HasuraStorageAVSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/storage/antivirus#antivirus',
+              title: 'enabling or disabling Antivirus',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/storage/antivirus#antivirus"
-              title="enabling or disabling Antivirus"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

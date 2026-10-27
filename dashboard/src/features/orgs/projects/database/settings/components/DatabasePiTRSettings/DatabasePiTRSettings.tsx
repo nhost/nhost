@@ -3,7 +3,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -51,6 +50,10 @@ export default function DatabasePiTRSettings() {
             />
           ) : null
         }
+        docsLink={{
+          href: 'https://docs.nhost.io/products/database/backups#point-in-time-recovery',
+          title: 'enabling or disabling PiTR',
+        }}
       />
 
       <SettingsCardContent className="flex flex-col lg:flex-row">
@@ -70,11 +73,6 @@ export default function DatabasePiTRSettings() {
       </SettingsCardContent>
 
       <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
-          title="enabling or disabling PiTR"
-        />
-
         <ButtonWithLoading
           type="button"
           disabled={isSwitchDisabled}

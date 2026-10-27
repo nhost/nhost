@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -140,6 +139,10 @@ export default function HasuraServiceVersionSettings() {
           <SettingsCardHeader
             title="Hasura GraphQL Engine Version"
             description="The version of the Hasura GraphQL Engine to use."
+            docsLink={{
+              href: 'https://hub.docker.com/r/nhost/graphql-engine/tags',
+              title: 'the latest releases',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
@@ -154,11 +157,6 @@ export default function HasuraServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hub.docker.com/r/nhost/graphql-engine/tags"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

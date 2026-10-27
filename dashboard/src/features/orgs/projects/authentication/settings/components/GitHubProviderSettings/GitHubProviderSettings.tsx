@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -153,6 +152,10 @@ export default function GitHubProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-github',
+              title: 'how to sign in users with GitHub',
+            }}
           />
 
           <SettingsCardContent
@@ -174,11 +177,6 @@ export default function GitHubProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-github"
-              title="how to sign in users with GitHub"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

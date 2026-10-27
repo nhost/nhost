@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -137,6 +136,10 @@ export default function MFASettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth',
+              title: 'Multi-Factor Authentication',
+            }}
           />
 
           <SettingsCardContent
@@ -155,11 +158,6 @@ export default function MFASettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth"
-              title="Multi-Factor Authentication"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

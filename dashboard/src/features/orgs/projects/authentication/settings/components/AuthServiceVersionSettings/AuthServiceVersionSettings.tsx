@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -143,6 +142,10 @@ export default function AuthServiceVersionSettings() {
           <SettingsCardHeader
             title="Auth Version"
             description="The version of Auth to use."
+            docsLink={{
+              href: 'https://github.com/nhost/hasura-auth/releases',
+              title: 'the latest releases',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
@@ -157,11 +160,6 @@ export default function AuthServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://github.com/nhost/hasura-auth/releases"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

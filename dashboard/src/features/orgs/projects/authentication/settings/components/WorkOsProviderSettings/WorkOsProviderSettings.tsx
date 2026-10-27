@@ -14,7 +14,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -186,6 +185,10 @@ export default function WorkOsProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-workos',
+              title: 'how to sign in users with WorkOS',
+            }}
           />
 
           <SettingsCardContent
@@ -221,11 +224,6 @@ export default function WorkOsProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-workos"
-              title="how to sign in users with WorkOS"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

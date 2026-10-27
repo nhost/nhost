@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -128,14 +127,13 @@ export default function HasuraAllowListSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/',
+              title: 'enabling or disabling Allow Lists',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/"
-              title="enabling or disabling Allow Lists"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

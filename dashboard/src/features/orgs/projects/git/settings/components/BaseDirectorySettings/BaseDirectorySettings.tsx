@@ -7,7 +7,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -95,6 +94,10 @@ export default function BaseDirectorySettings() {
                 <InlineCode className="text-xs">nhost</InlineCode> folder.
               </>
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/deployments#base-directory',
+              title: 'Base Directory',
+            }}
           />
 
           <SettingsCardContent className="lg:grid-cols-5">
@@ -114,11 +117,6 @@ export default function BaseDirectorySettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
-              title="Base Directory"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty || !project?.automaticDeploys}

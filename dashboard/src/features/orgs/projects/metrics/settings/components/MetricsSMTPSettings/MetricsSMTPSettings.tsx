@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -130,6 +129,10 @@ export default function MetricsSMTPSettings() {
           <SettingsCardHeader
             title="SMTP Settings"
             description="Configure your SMTP settings to send emails as part of your alerting."
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/metrics#smtp',
+              title: 'SMTP Settings',
+            }}
           />
 
           <SettingsCardContent className="lg:grid-cols-9">
@@ -177,11 +180,6 @@ export default function MetricsSMTPSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/metrics#smtp"
-              title="SMTP Settings"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

@@ -1,5 +1,9 @@
 import Image from 'next/image';
 import * as React from 'react';
+import {
+  SettingsDocsLink,
+  type SettingsDocsLinkProps,
+} from '@/components/layout/SettingsCard/SettingsDocsLink';
 import { cn } from '@/lib/utils';
 
 export interface SettingsCardHeaderProps
@@ -26,6 +30,10 @@ export interface SettingsCardHeaderProps
    * owned by the surrounding form (e.g. an RHF `FormSwitch`).
    */
   control?: React.ReactNode;
+  /**
+   * Docs for this section, shown as a help icon right after the title.
+   */
+  docsLink?: SettingsDocsLinkProps;
 }
 
 const SettingsCardHeader = React.forwardRef<
@@ -33,7 +41,16 @@ const SettingsCardHeader = React.forwardRef<
   SettingsCardHeaderProps
 >(
   (
-    { className, title, description, icon, actions, control, ...props },
+    {
+      className,
+      title,
+      description,
+      icon,
+      actions,
+      control,
+      docsLink,
+      ...props
+    },
     ref,
   ) => (
     <div
@@ -61,11 +78,14 @@ const SettingsCardHeader = React.forwardRef<
         )}
 
         <div className="grid min-w-0 grid-flow-row gap-0.5">
-          {typeof title === 'string' ? (
-            <h3 className="font-semibold text-lg">{title}</h3>
-          ) : (
-            title
-          )}
+          <div className="flex items-center gap-1">
+            {typeof title === 'string' ? (
+              <h3 className="font-semibold text-lg">{title}</h3>
+            ) : (
+              title
+            )}
+            {docsLink && <SettingsDocsLink {...docsLink} />}
+          </div>
 
           {description && (
             <p className="text-muted-foreground">{description}</p>

@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -114,6 +113,10 @@ export default function ClientURLSettings() {
           <SettingsCardHeader
             title="Client URL"
             description="This should be the URL of your frontend app where users are redirected after authenticating."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url',
+              title: 'Client URL',
+            }}
           />
 
           <SettingsCardContent className="lg:grid-cols-5">
@@ -127,11 +130,6 @@ export default function ClientURLSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
-              title="Client URL"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

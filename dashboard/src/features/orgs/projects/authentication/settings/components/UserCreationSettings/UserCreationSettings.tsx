@@ -9,7 +9,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -148,6 +147,10 @@ export default function UserCreationSettings() {
           <SettingsCardHeader
             title="Controlling User Creation"
             description="Configure whether, when, and how users can register for your app."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/controlling-user-creation',
+              title: 'controlling user creation',
+            }}
           />
 
           <SettingsCardContent className="gap-0">
@@ -180,11 +183,6 @@ export default function UserCreationSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/controlling-user-creation"
-              title="controlling user creation"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

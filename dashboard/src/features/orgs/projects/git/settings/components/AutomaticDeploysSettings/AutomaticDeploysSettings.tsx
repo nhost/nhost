@@ -5,7 +5,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -82,14 +81,13 @@ export default function AutomaticDeploysSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/deployments',
+              title: 'Automatic Deploys',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments"
-              title="Automatic Deploys"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

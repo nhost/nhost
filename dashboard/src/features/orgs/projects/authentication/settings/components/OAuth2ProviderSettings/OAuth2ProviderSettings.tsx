@@ -11,7 +11,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -196,6 +195,10 @@ export default function OAuth2ProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/oauth2-provider',
+              title: 'OAuth2 Providers',
+            }}
           />
 
           <SettingsCardContent
@@ -271,11 +274,6 @@ export default function OAuth2ProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/oauth2-provider"
-              title="OAuth2 Providers"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

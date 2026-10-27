@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -133,14 +132,13 @@ export default function HasuraInferFunctionPermissionsSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions',
+              title: 'enabling or disabling Infer Function Permissions',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions"
-              title="enabling or disabling Infer Function Permissions"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

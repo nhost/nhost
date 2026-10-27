@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -131,14 +130,13 @@ export default function MagicLinkSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/sign-in-magic-link',
+              title: 'how to sign in users with Magic Link',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/sign-in-magic-link"
-              title="how to sign in users with Magic Link"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}
