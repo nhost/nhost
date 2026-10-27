@@ -189,6 +189,7 @@ parameterized SQL values.
 
 | Hasura feature | Status | Notes |
 |---|---|---|
+| Column comparison operators (`_ceq`, `_cneq`, `_cgt`, `_cgte`, `_clt`, `_clte`) | ✅ | Compare a column with another column in the same table (`"column"` or `["column"]`) or in the table the permission is defined on (`["$", "column"]`), including through relationships and `_exists`. Only available in permission filters and checks, as in Hasura. An operand naming a missing column records an inconsistency. |
 | Permission `comment` | ⚪ | Dropped. |
 | Inherited roles | ❌ | See [top-level](#top-level-metadata). |
 

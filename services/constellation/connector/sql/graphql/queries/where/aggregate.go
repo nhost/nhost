@@ -402,9 +402,8 @@ type aggregateRelationshipFilter struct {
 }
 
 // WriteCondition renders the aggregate predicate against the base target table.
-// It delegates to writeConditionSubstituted with a nil substitution map, which
-// is identical to a non-substituted render (no FROM-clause is rewritten and the
-// nested filter/predicate fall through to their plain WriteCondition). Keeping a
+// It delegates to writeConditionCtx with a nil substitution map, which is
+// identical to a non-substituted render (no FROM-clause is rewritten). Keeping a
 // single renderer means the base and insert-CTE paths can never drift.
 func (f *aggregateRelationshipFilter) WriteCondition(
 	b *strings.Builder,
@@ -412,7 +411,7 @@ func (f *aggregateRelationshipFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	return f.writeConditionSubstituted(b, source, params, paramIndex, nil)
+	return f.writeConditionCtx(b, source, params, paramIndex, newRenderContext(source, nil))
 }
 
 // writeAggregateExpr writes the scalar aggregate (count(*) / count([DISTINCT]

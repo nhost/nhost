@@ -42,6 +42,7 @@ var ErrSessionVariableNotFound = errors.New("session variable not found")
 
 var (
 	errColumnOrRelationshipNotFound   = errors.New("column or relationship not found in table")
+	errComparedColumnNotFound         = errors.New("compared column not found")
 	errExpectedListForLogicalOp       = errors.New("expected list for logical operator")
 	errExpectedMapInListForLogicalOp  = errors.New("expected map in list for logical operator")
 	errExpectedMapForNotOp            = errors.New("expected map for _not operator")
@@ -265,7 +266,7 @@ func Initialize(t Table, s *Store, md metadata.TableMetadata) error {
 func parsePermissionFilter(
 	t Table, role string, filter map[string]any, kind string,
 ) (where.Clause, error) {
-	fixed, err := fixColumns(t, filter)
+	fixed, err := fixColumns(t, t, filter)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to fix %s permission columns for role %s: %w", kind, role, err,
@@ -316,16 +317,21 @@ func isComparisonOperator(key string) bool {
 // operators (_and/_or/_not) recurse, _exists is resolved against the sibling
 // table, and "x-hasura-*" session-variable values are lowercased.
 //
+// root is the table the permission is defined on; t is the table the current
+// level of the filter applies to (it differs from root below a relationship or
+// _exists). Column-comparison operands are checked against root for the
+// ["$", column] form and against t otherwise.
+//
 // Unknown columns or relationships at any level are reported with the SQL
 // table name for context. The dispatch table here is the single place where
 // each permission-filter shape is recognised; per-shape rewriting lives in
 // the fixLogical/fixNot/fixExists/fixComparison/fixColumnKey/fixRelationship
 // helpers so each shape's type checks stay co-located with its logic.
-func fixColumns(t Table, permissions map[string]any) (map[string]any, error) {
+func fixColumns(root, t Table, permissions map[string]any) (map[string]any, error) {
 	fixed := make(map[string]any, len(permissions))
 
 	for key, value := range permissions {
-		out, err := fixEntry(t, key, value)
+		out, err := fixEntry(root, t, key, value)
 		if err != nil {
 			return nil, err
 		}
@@ -344,16 +350,16 @@ type fixedEntry struct {
 	value any
 }
 
-func fixEntry(t Table, key string, value any) (fixedEntry, error) {
+func fixEntry(root, t Table, key string, value any) (fixedEntry, error) {
 	if isLogicalConnective(key) {
-		return fixLogical(t, key, value)
+		return fixLogical(root, t, key, value)
 	}
 
 	switch key {
 	case "_not":
-		return fixNot(t, value)
+		return fixNot(root, t, value)
 	case "_exists":
-		return fixExistsEntry(t, value)
+		return fixExistsEntry(root, t, value)
 	}
 
 	if isComparisonOperator(key) {
@@ -361,11 +367,15 @@ func fixEntry(t Table, key string, value any) (fixedEntry, error) {
 	}
 
 	if column := t.ColumnFromSQLName(key); column != nil {
+		if err := checkColumnComparisons(root, t, column, value); err != nil {
+			return fixedEntry{}, err
+		}
+
 		return fixedEntry{key: column.GraphqlName, value: fixValue(value)}, nil
 	}
 
 	if rel := t.LookupRelationship(key); rel != nil {
-		return fixRelationship(rel, value)
+		return fixRelationship(root, rel, value)
 	}
 
 	return fixedEntry{}, fmt.Errorf(
@@ -375,7 +385,7 @@ func fixEntry(t Table, key string, value any) (fixedEntry, error) {
 
 // fixLogical rewrites a top-level "_and" or "_or" entry. Both share the
 // "list of sub-filter maps" shape, so they go through the same helper.
-func fixLogical(t Table, key string, value any) (fixedEntry, error) {
+func fixLogical(root, t Table, key string, value any) (fixedEntry, error) {
 	list, ok := value.([]any)
 	if !ok {
 		return fixedEntry{}, fmt.Errorf("%w: %s", errExpectedListForLogicalOp, key)
@@ -391,7 +401,7 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 			)
 		}
 
-		fixedItem, err := fixColumns(t, itemMap)
+		fixedItem, err := fixColumns(root, t, itemMap)
 		if err != nil {
 			return fixedEntry{}, fmt.Errorf(
 				"failed to fix permission columns for logical operator %s: %w", key, err,
@@ -404,13 +414,13 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 	return fixedEntry{key: key, value: fixedList}, nil
 }
 
-func fixNot(t Table, value any) (fixedEntry, error) {
+func fixNot(root, t Table, value any) (fixedEntry, error) {
 	notMap, ok := value.(map[string]any)
 	if !ok {
 		return fixedEntry{}, errExpectedMapForNotOp
 	}
 
-	fixedNot, err := fixColumns(t, notMap)
+	fixedNot, err := fixColumns(root, t, notMap)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf("failed to fix permission columns for _not: %w", err)
 	}
@@ -418,8 +428,8 @@ func fixNot(t Table, value any) (fixedEntry, error) {
 	return fixedEntry{key: "_not", value: fixedNot}, nil
 }
 
-func fixExistsEntry(t Table, value any) (fixedEntry, error) {
-	fixedExists, err := fixExists(t, value)
+func fixExistsEntry(root, t Table, value any) (fixedEntry, error) {
+	fixedExists, err := fixExists(root, t, value)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf("failed to fix _exists permission columns: %w", err)
 	}
@@ -437,7 +447,64 @@ func fixComparison(op string, value any) fixedEntry {
 	return fixedEntry{key: op, value: value}
 }
 
-func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
+// isColumnComparisonOperator is the closed set of operators whose operand
+// names another column instead of carrying a value.
+func isColumnComparisonOperator(key string) bool {
+	switch key {
+	case "_ceq", "_cneq", "_cgt", "_cgte", "_clt", "_clte":
+		return true
+	}
+
+	return false
+}
+
+// checkColumnComparisons verifies that every column-comparison operand in
+// value (the operator object of column) names an existing column: in root for
+// the ["$", column] form, in t otherwise. Operand names stay SQL names; the
+// where parser quotes them as identifiers. Malformed operands are left for the
+// where parser to reject.
+func checkColumnComparisons(root, t Table, column *core.Column, value any) error {
+	ops, ok := value.(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	for op, operand := range ops {
+		if !isColumnComparisonOperator(op) {
+			continue
+		}
+
+		table, name := t, ""
+
+		switch v := operand.(type) {
+		case string:
+			name = v
+		case []any:
+			switch {
+			case len(v) == 1:
+				name, _ = v[0].(string)
+			case len(v) == 2 && v[0] == "$":
+				table = root
+				name, _ = v[1].(string)
+			}
+		}
+
+		if name == "" {
+			continue
+		}
+
+		if table.ColumnFromSQLName(name) == nil {
+			return fmt.Errorf(
+				"%w: %s (in %s on column %s) not found in table %s",
+				errComparedColumnNotFound, name, op, column.SQLName, table.Name(),
+			)
+		}
+	}
+
+	return nil
+}
+
+func fixRelationship(root Table, rel Relationship, value any) (fixedEntry, error) {
 	relPerms, ok := value.(map[string]any)
 	if !ok {
 		return fixedEntry{}, fmt.Errorf(
@@ -452,7 +519,7 @@ func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
 		)
 	}
 
-	fixedRel, err := fixColumns(target, relPerms)
+	fixedRel, err := fixColumns(root, target, relPerms)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf(
 			"failed to fix permission columns for relationship %s: %w", rel.Name(), err,
@@ -487,7 +554,7 @@ func fixValue(value any) any {
 // fixExists rewrites the _where payload of an _exists operator against the
 // resolved sibling table. The _table reference is preserved as-is; only its
 // _where is normalised.
-func fixExists(t Table, value any) (map[string]any, error) {
+func fixExists(root, t Table, value any) (map[string]any, error) {
 	existsMap, ok := value.(map[string]any)
 	if !ok {
 		return nil, errExpectedMapForExistsOp
@@ -518,7 +585,7 @@ func fixExists(t Table, value any) (map[string]any, error) {
 		return nil, fmt.Errorf("%w: %s.%s", errTableNotFoundForExistsOp, schema, name)
 	}
 
-	fixedWhere, err := fixColumns(target, whereMap)
+	fixedWhere, err := fixColumns(root, target, whereMap)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to fix _exists _where columns for %s.%s: %w",
