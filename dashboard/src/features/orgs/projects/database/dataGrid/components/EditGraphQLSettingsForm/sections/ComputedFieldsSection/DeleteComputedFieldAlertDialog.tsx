@@ -61,9 +61,8 @@ export default function DeleteComputedFieldAlertDialog({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         onClick={() => setOpen(true)}
         disabled={disabled}
         data-testid={`delete-computed-field-${field.name}`}

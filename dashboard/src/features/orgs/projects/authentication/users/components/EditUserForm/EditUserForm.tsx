@@ -296,7 +296,7 @@ export default function EditUserForm({
             <div className="col-span-3 grid grid-flow-col items-center justify-start gap-2">
               <p className="truncate font-medium text-foreground">{user.id}</p>
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 className="h-8 w-8 text-muted-foreground"
                 aria-label="Copy User ID"

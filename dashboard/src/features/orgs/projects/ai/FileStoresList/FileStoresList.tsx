@@ -95,7 +95,7 @@ export default function FileStoresList({
 
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={(event) => {
               copy(fileStore.id, 'File Store Id');
@@ -111,7 +111,7 @@ export default function FileStoresList({
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}
