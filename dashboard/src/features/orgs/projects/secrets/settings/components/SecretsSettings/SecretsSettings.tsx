@@ -139,7 +139,7 @@ export default function SecretsSettings() {
 
   return (
     <div className="grid grid-flow-row gap-6">
-      <SettingsCard className="gap-0 pb-0">
+      <SettingsCard className="gap-0 pb-4">
         <SettingsCardHeader
           title="Secrets"
           description={
@@ -155,7 +155,7 @@ export default function SecretsSettings() {
         />
 
         <SettingsCardContent
-          className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
+          className={twMerge('mt-2 px-0', secrets.length === 0 && 'gap-2')}
         >
           <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
             <p className="font-medium">Secret Name</p>
@@ -225,7 +225,7 @@ export default function SecretsSettings() {
             <Button
               type="button"
               variant="outline"
-              className="mx-4 justify-self-start"
+              className="mx-4 mt-2 justify-self-start"
               onClick={handleOpenCreator}
             >
               <PlusIcon className="mr-2 h-4 w-4" />

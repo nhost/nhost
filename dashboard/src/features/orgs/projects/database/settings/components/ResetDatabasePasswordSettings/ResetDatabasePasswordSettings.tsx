@@ -108,10 +108,10 @@ export default function ResetDatabasePasswordSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsCard className="border-destructive">
+        <SettingsCard>
           <SettingsCardHeader
             title="Reset Password"
-            description="This password will be used for accessing your database."
+            description="The root password used to access your database. Make it strong and hard to guess."
           />
 
           <SettingsCardContent className="pb-4">
@@ -123,17 +123,13 @@ export default function ResetDatabasePasswordSettings() {
               aria-label="Database password"
               containerClassName="lg:w-1/2"
               helperText={
-                <>
-                  The root Postgres password for your database - it must be
-                  strong and hard to guess.{' '}
-                  <Button
-                    onClick={handleGenerateRandomPassword}
-                    className="h-auto px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                    variant="link"
-                  >
-                    Generate a password
-                  </Button>
-                </>
+                <Button
+                  onClick={handleGenerateRandomPassword}
+                  variant="link"
+                  className="h-auto p-0 text-xs underline underline-offset-2 hover:underline"
+                >
+                  Generate a password
+                </Button>
               }
               addonEnd={
                 <Tooltip>
@@ -169,7 +165,7 @@ export default function ResetDatabasePasswordSettings() {
               loading={isSubmitting || resetPasswordLoading}
               className="w-full sm:w-auto"
             >
-              Save
+              Reset password
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
