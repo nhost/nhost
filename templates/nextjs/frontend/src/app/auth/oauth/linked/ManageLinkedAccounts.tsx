@@ -7,6 +7,7 @@ import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { useRemoved } from '@/components/useRemoved';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { unlinkProvider } from './actions';
 import { leavesAWayIn } from './wayIn';
 
@@ -16,8 +17,6 @@ export type LinkedProvider = {
   connectHref: string;
   link?: { id: string; since: string };
 };
-
-const NETWORK_ERROR = 'The request did not reach the server. Try again.';
 
 /**
  * A line per provider: Link account leaves for the provider and comes back to the

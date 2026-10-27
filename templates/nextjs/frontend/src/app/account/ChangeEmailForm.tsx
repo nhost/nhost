@@ -7,6 +7,7 @@ import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 // What the dialog shows once a link has gone out: the next step is in the
 // inbox.
@@ -51,7 +52,7 @@ export default function ChangeEmailForm({
       setNewEmail('');
     } catch (err) {
       console.error('Error starting the email change:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }
@@ -70,7 +71,7 @@ export default function ChangeEmailForm({
       setSent({ kind: 'verification' });
     } catch (err) {
       console.error('Error resending the verification email:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }

@@ -15,6 +15,7 @@ import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 type Mode = 'sign-in' | 'sign-up';
 
@@ -101,7 +102,7 @@ export default function PasswordForm({
       setSent('verification');
     } catch (err) {
       console.error('Error submitting the form:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }
@@ -121,7 +122,7 @@ export default function PasswordForm({
       finishSignIn();
     } catch (err) {
       console.error('Error verifying the code:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }
@@ -149,7 +150,7 @@ export default function PasswordForm({
       setSent('reset');
     } catch (err) {
       console.error('Error requesting the reset link:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }

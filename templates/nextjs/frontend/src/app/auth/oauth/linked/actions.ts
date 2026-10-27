@@ -1,20 +1,13 @@
 'use server';
 
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
+import {
+  type ActionResult,
+  errorMessage,
+  SIGNED_OUT,
+} from '@/lib/nhost/errors';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
 import { leavesAWayIn } from './wayIn';
-
-// Same convention as `@/lib/nhost/actions`: return { error }, never throw to
-// the client, and never `redirect()` (see the comment there for why).
-type ActionResult = { error?: string; success?: boolean };
-
-function errorMessage(err: unknown): string {
-  return (err as FetchError<ErrorResponse>).message;
-}
-
-const SIGNED_OUT = 'You are signed out. Sign in and try again.';
 
 export type LinkedAccount = {
   id: string;

@@ -5,6 +5,7 @@ import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { sendMagicLink } from './actions';
 
 export default function MagicLinkForm({
@@ -35,7 +36,7 @@ export default function MagicLinkForm({
       setSent(true);
     } catch (err) {
       console.error('Error sending the magic link:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsSending(false);
     }

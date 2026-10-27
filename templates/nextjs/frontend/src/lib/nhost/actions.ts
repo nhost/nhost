@@ -2,9 +2,8 @@
 
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { redirect } from 'next/navigation';
+import type { ActionResult } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
-
-export type ActionResult = { error?: string };
 
 // The SDK deletes both session cookies on any answer from `/signout`, error
 // statuses included, and only then throws a `FetchError` for a status of 300 or

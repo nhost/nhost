@@ -1,8 +1,6 @@
 'use server';
 
 import type { NhostClient } from '@nhost/nhost-js';
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import {
   AVATAR_TOO_LARGE,
   avatarFileIdFrom,
@@ -12,6 +10,11 @@ import {
 } from '@/app/account/avatar';
 import { signOut } from '@/lib/nhost/actions';
 import { appOrigin } from '@/lib/nhost/env';
+import {
+  type ActionResult,
+  errorMessage,
+  SIGNED_OUT,
+} from '@/lib/nhost/errors';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import {
   createNhostClient,
@@ -19,16 +22,6 @@ import {
   updateSessionUser,
 } from '@/lib/nhost/server';
 import type { SessionMetadata } from '@/lib/nhost/session-metadata';
-
-// Same convention as `@/lib/nhost/actions`: return { error }, never throw to
-// the client, and never `redirect()` (see the comment there for why).
-export type ActionResult = { error?: string; success?: boolean };
-
-function errorMessage(err: unknown): string {
-  return (err as FetchError<ErrorResponse>).message;
-}
-
-const SIGNED_OUT = 'You are signed out. Sign in and try again.';
 
 // Where the links in the emails below land. Fixed rather than taken from the
 // caller, so nothing here can aim a link at another host.

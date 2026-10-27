@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { deleteAccount } from '@/app/account/actions';
 import ConfirmAction from '@/app/account/ConfirmAction';
 import { DialogSetting } from '@/components/Setting';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 /**
  * Closing the account for good.
@@ -29,7 +30,7 @@ export default function DeleteAccountSetting() {
       return undefined;
     } catch (err) {
       console.error('Error deleting the account:', err);
-      return 'The request did not reach the server. Try again.';
+      return NETWORK_ERROR;
     }
   };
 

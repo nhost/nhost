@@ -6,6 +6,7 @@ import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { sendCode, verifyCode } from './actions';
 
 type Step = 'email' | 'code';
@@ -45,7 +46,7 @@ export default function OtpForm({
       setStep('code');
     } catch (err) {
       console.error('Error sending the code:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }
@@ -73,7 +74,7 @@ export default function OtpForm({
       router.refresh();
     } catch (err) {
       console.error('Error verifying the code:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }

@@ -30,8 +30,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRemoved } from '@/components/useRemoved';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
-const NETWORK_ERROR = 'The request did not reach the server. Try again.';
 const ANOTHER_DEVICE = 'To add another, use your phone or a security key.';
 
 export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {

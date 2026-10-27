@@ -1,12 +1,9 @@
 'use server';
 
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import { signInDestination } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
+import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
-
-type ActionResult = { error?: string; success?: boolean };
 
 /**
  * Emails a sign-in link. Opening it signs the visitor in and lands them on
@@ -39,7 +36,6 @@ export async function sendMagicLink(
     });
     return { success: true };
   } catch (err) {
-    const error = err as FetchError<ErrorResponse>;
-    return { error: `Could not send the link: ${error.message}` };
+    return { error: `Could not send the link: ${errorMessage(err)}` };
   }
 }

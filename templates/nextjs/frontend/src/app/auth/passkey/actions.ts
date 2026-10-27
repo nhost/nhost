@@ -3,22 +3,13 @@
 import type {
   CredentialAssertionResponse,
   CredentialCreationResponse,
-  ErrorResponse,
   PublicKeyCredentialCreationOptions,
   PublicKeyCredentialRequestOptions,
 } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import { signInDestination } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
+import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
-
-// Same convention as `@/lib/nhost/actions`: return { error }, never throw to
-// the client, and never `redirect()` (see the comment there for why).
-type ActionResult = { error?: string };
-
-function errorMessage(err: unknown): string {
-  return (err as FetchError<ErrorResponse>).message;
-}
 
 // A passkey ceremony is two round trips with the browser's step in between:
 // the backend issues a challenge, the authenticator signs it, the backend

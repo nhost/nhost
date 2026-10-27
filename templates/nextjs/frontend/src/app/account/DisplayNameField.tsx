@@ -7,6 +7,7 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 /**
  * The display name as the profile shows it, editable in place.
@@ -61,7 +62,7 @@ export default function DisplayNameField({
       router.refresh();
     } catch (err) {
       console.error('Error saving the display name:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }

@@ -15,9 +15,8 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { cn } from '@/lib/utils';
-
-const NETWORK_ERROR = 'The request did not reach the server. Try again.';
 
 /**
  * Two-factor, as a row on the account page.

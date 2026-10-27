@@ -12,6 +12,7 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 /**
  * `needsCode` is for an account with two-factor on: signing this browser back
@@ -74,7 +75,7 @@ export default function ChangePasswordForm({
       replacePage(<PasswordChanged />);
     } catch (err) {
       console.error('Error changing the password:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }

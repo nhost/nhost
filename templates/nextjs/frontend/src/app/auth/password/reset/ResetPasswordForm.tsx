@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { signOut } from '@/lib/nhost/actions';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function ResetPasswordForm() {
       replacePage(<PasswordChanged />);
     } catch (err) {
       console.error('Error changing the password:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsSaving(false);
     }
@@ -65,7 +66,7 @@ export default function ResetPasswordForm() {
       router.refresh();
     } catch (err) {
       console.error('Error cancelling the reset:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsSaving(false);
     }

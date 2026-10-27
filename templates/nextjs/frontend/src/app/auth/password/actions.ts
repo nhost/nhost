@@ -1,18 +1,9 @@
 'use server';
 
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import { signInDestination } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
+import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient, endPasswordReset } from '@/lib/nhost/server';
-
-// Same convention as `@/lib/nhost/actions`: return { error }, never throw to
-// the client, and never `redirect()` (see the comment there for why).
-type ActionResult = { error?: string; success?: boolean };
-
-function errorMessage(err: unknown): string {
-  return (err as FetchError<ErrorResponse>).message;
-}
 
 // The server client's storage writes the session cookie, so a sign-in that
 // succeeds here is the sign-in. The caller only has to navigate.

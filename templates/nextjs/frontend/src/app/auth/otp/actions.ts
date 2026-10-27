@@ -1,16 +1,13 @@
 'use server';
 
-import type { ErrorResponse } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
 import { codePageURL } from '@/app/auth/otp/link';
+import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
-
-export type OtpActionResult = { error?: string; success?: boolean };
 
 export async function sendCode(
   email: string,
   next: string,
-): Promise<OtpActionResult> {
+): Promise<ActionResult> {
   if (!email) {
     return { error: 'Enter your email address.' };
   }
@@ -23,8 +20,7 @@ export async function sendCode(
     });
     return { success: true };
   } catch (err) {
-    const error = err as FetchError<ErrorResponse>;
-    return { error: `Could not send the code: ${error.message}` };
+    return { error: `Could not send the code: ${errorMessage(err)}` };
   }
 }
 
@@ -34,7 +30,7 @@ export async function sendCode(
 export async function verifyCode(
   email: string,
   otp: string,
-): Promise<OtpActionResult> {
+): Promise<ActionResult> {
   if (!email || !otp) {
     return { error: 'Enter your email address and the code.' };
   }
@@ -49,7 +45,6 @@ export async function verifyCode(
 
     return { success: true };
   } catch (err) {
-    const error = err as FetchError<ErrorResponse>;
-    return { error: `Could not verify the code: ${error.message}` };
+    return { error: `Could not verify the code: ${errorMessage(err)}` };
   }
 }

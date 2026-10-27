@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { useRemoved } from '@/components/useRemoved';
 import { useSignOut } from '@/components/useSignOut';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 const subscribeToNothing = () => () => undefined;
 
@@ -80,7 +81,7 @@ export default function SessionList({
     } catch (err) {
       console.error('Error signing out a session:', err);
       restore(session.id);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     }
   };
 

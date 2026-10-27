@@ -15,6 +15,7 @@ import {
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
 import { Button } from '@/components/ui/button';
+import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 /**
  * The controls for the avatar, wrapped around the image itself.
@@ -82,7 +83,7 @@ export default function AvatarForm({
       refresh();
     } catch (err) {
       console.error('Error uploading the avatar:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       // Cleared either way, so choosing the same file again still fires.
       event.target.value = '';
@@ -104,7 +105,7 @@ export default function AvatarForm({
       refresh();
     } catch (err) {
       console.error('Error removing the avatar:', err);
-      setError('The request did not reach the server. Try again.');
+      setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
     }
