@@ -28,10 +28,6 @@ vi.mock('@/components/RefreshOnSessionChange', () => ({
   default: () => null,
 }));
 
-function _hrefOf(html: string, label: string): string | undefined {
-  return new RegExp(`<a[^>]*href="([^"]*)"[^>]*>${label}</a>`).exec(html)?.[1];
-}
-
 describe('Nav', () => {
   beforeEach(() => {
     session.current = null;
