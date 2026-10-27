@@ -61,7 +61,7 @@ function InnerFormCheckbox<
 
         return (
           <FormItem className={cn('flex flex-col gap-2', containerClassName)}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2">
               <FormControl>
                 <Checkbox
                   checked={checked}
@@ -75,7 +75,7 @@ function InnerFormCheckbox<
                 />
               </FormControl>
               {(!!label || !!helperText) && (
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-0.5 pt-px">
                   {!!label && (
                     <FormLabel
                       className={cn('font-normal', disabled && 'opacity-50')}
