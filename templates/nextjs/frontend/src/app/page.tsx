@@ -43,8 +43,6 @@ export default async function Home() {
   const nhost = await createNhostClient();
   const user = nhost.getUserSession()?.user;
 
-  // Centred in a tall window like the sign-in pages, with room above the
-  // marks that grows with the window rather than a fixed gap under the nav.
   return (
     <CenteredLayout>
       <div className="mx-auto flex max-w-2xl flex-col gap-12 pt-[10vh] pb-6">
@@ -55,7 +53,6 @@ export default async function Home() {
           </p>
         </header>
 
-        {/* Centred as a block, read down from the left inside it. */}
         <section className="flex flex-col gap-6 self-center">
           <h2 className="font-medium text-muted-foreground text-sm uppercase tracking-wide">
             Get started

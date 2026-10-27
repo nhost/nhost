@@ -12,7 +12,7 @@ import { isBackendReachable } from '@/lib/nhost/health';
 type Status = 'checking' | 'connected' | 'offline';
 
 // Often enough that stopping `nhost up` shows within seconds of looking back
-// at the page, and only while the tab is visible. Local stack only, see below.
+// at the page, and only while the tab is visible. Local stack only.
 const POLL_MS = 10_000;
 
 const LABELS: Record<Status, string> = {
@@ -45,8 +45,6 @@ function useBackendStatus(): Status {
     };
 
     recheck();
-    // Polled only against the local stack, where it is what shows `nhost up`
-    // stopping.
     const interval = isLocalBackend()
       ? window.setInterval(recheck, POLL_MS)
       : undefined;

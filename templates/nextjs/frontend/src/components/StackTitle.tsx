@@ -52,7 +52,6 @@ export default function StackTitle() {
 
   return (
     <div className="grid w-fit grid-cols-[auto_auto_auto] items-end gap-x-3 gap-y-7">
-      {/* Over the first and last columns; the middle one is the +. */}
       <LogoLink logo={backend} className="col-start-1" />
       <LogoLink logo={framework} className="col-start-3" />
       <h1 className="col-span-3 row-start-2 grid grid-cols-subgrid font-semibold text-4xl tracking-tight">

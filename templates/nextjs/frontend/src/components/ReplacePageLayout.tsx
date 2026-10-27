@@ -14,9 +14,7 @@ export function useReplacePage(): (page: ReactNode) => void {
   return use(ReplacePageContext);
 }
 
-// A password change revokes every session the account has, so whoever held the
-// old password or a stolen refresh token is cut off, and the action deletes
-// this one's cookies too.
+/** Renders its children until a form under it swaps in a replacement page. */
 export default function ReplacePageLayout({
   children,
 }: {
