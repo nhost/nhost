@@ -45,6 +45,8 @@ function CopyToClipboardButton({
         { 'gap-3': hasChildren },
       )}
       onClick={(event) => {
+        // Inside a link, a click that isn't default-prevented also follows it.
+        event.preventDefault();
         event.stopPropagation();
 
         copy(textToCopy, title);

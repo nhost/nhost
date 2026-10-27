@@ -26,7 +26,7 @@ function CommitRef({ commitRef }: { commitRef: string | null | undefined }) {
   const isCommitSHA = /^[\da-f]{40}$/i.test(commitRef ?? '');
 
   return (
-    <div className="hidden w-24 items-center justify-end gap-1 sm:flex">
+    <div className="group hidden w-24 items-center justify-end gap-1 sm:flex">
       <span
         title={commitRef ?? undefined}
         className="max-w-16 truncate font-medium font-mono text-foreground text-sm-"
@@ -78,7 +78,7 @@ export default function DeploymentListItem({
       <NavLink
         variant="ghost"
         underline="none"
-        className="group grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
+        className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={deployment.commitMessage || 'No commit message'}
       >

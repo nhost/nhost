@@ -98,12 +98,22 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+// jsdom never navigates, but a browser follows the row's link for any click
+// inside it that isn't default-prevented.
+async function recordLinkClicks() {
+  const clicks: MouseEvent[] = [];
+  const link = await screen.findByRole('link', { name: 'Target commit' });
+  link.addEventListener('click', (event) => clicks.push(event));
+  return clicks;
+}
+
 it('redeploys the commit of the row', async () => {
   render(
     <ul>
       <DeploymentListItem deployment={deployment} showRedeploy />
     </ul>,
   );
+  const linkClicks = await recordLinkClicks();
 
   await new TestUserEvent().click(
     await screen.findByRole('button', { name: 'Redeploy' }),
@@ -118,6 +128,7 @@ it('redeploys the commit of the row', async () => {
     commit_user_name: deployment.commitUserName,
     commit_user_avatar_url: deployment.commitUserAvatarUrl,
   });
+  expect(linkClicks.map((event) => event.defaultPrevented)).toEqual([true]);
   expect(mockRouter.push).not.toHaveBeenCalled();
 });
 
@@ -147,12 +158,15 @@ it.each([
     );
     expect(await screen.findByText(shown)).toBeInTheDocument();
 
+    const linkClicks = await recordLinkClicks();
+
     await user.click(await screen.findByRole('button', { name: button }));
 
     await waitFor(async () =>
       expect(await navigator.clipboard.readText()).toBe(commitSHA),
     );
     expect(await screen.findByText(toastText)).toBeInTheDocument();
+    expect(linkClicks.map((event) => event.defaultPrevented)).toEqual([true]);
     expect(mockRouter.push).not.toHaveBeenCalled();
   },
 );
