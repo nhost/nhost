@@ -1,5 +1,9 @@
-import { createServerClient, type NhostClient } from '@nhost/nhost-js';
-import type { User } from '@nhost/nhost-js/auth';
+import {
+  createServerClient,
+  generateServiceUrl,
+  type NhostClient,
+} from '@nhost/nhost-js';
+import { createAPIClient, type User } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import {
   DEFAULT_SESSION_KEY,
@@ -233,6 +237,17 @@ export async function trackSession(
   }
 }
 
+// A bare client: the proxy's own clears the stored session on any /signout.
+async function revokeLinkToken(refreshToken: string): Promise<void> {
+  try {
+    await createAPIClient(
+      generateServiceUrl('auth', nhostSubdomain(), nhostRegion()),
+    ).signOut({ refreshToken });
+  } catch (err) {
+    console.error('Could not revoke the declined link token:', err);
+  }
+}
+
 export type NhostProxyResult = {
   session: StoredSession | null;
   // The reset page a password-reset link signed this session in on, while
@@ -294,9 +309,11 @@ export async function handleNhostProxy(
   }
 
   // A link may sign in a visitor who is signed out; it may not replace somebody
-  // who is already here.
+  // who is already here, and the session it carries is revoked instead.
   const linkToken = request.nextUrl.searchParams.get(LINK_TOKEN_PARAM);
-  if (linkToken && !storage.get()) {
+  if (linkToken && storage.get()) {
+    await revokeLinkToken(linkToken);
+  } else if (linkToken) {
     try {
       const { body } = await nhost.auth.refreshToken({
         refreshToken: linkToken,

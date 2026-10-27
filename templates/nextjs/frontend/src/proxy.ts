@@ -64,7 +64,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   // A refresh token has no business staying in the address bar: query strings
   // leak through history, bookmarks and the referer header. Stripped whether
-  // or not it was redeemed: a token the proxy declined is still live.
+  // or not it was redeemed.
   if (request.nextUrl.searchParams.has(LINK_TOKEN_PARAM)) {
     const clean = request.nextUrl.clone();
     clean.searchParams.delete(LINK_TOKEN_PARAM);

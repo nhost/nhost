@@ -222,10 +222,16 @@ describe('link redemption', () => {
     ).toContain('new-refresh-token');
   });
 
-  it('keeps a live session instead of redeeming the link', async () => {
+  it('keeps a live session and revokes the link instead', async () => {
+    fetchMock.mockResolvedValue(json('OK', 200));
+
     const response = await proxyResponse(storedSession(900), linkUrl);
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/signout$/);
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+      refreshToken: 'link-token',
+    });
     expect(response.headers.getSetCookie()).toEqual([]);
   });
 });

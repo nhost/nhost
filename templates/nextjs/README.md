@@ -239,12 +239,16 @@ auto-refresh, reopens the race.
 Auth emails and the OAuth callback send the browser back with a refresh token
 in the query string. The proxy redeems it, but only for a signed-out visitor:
 redeeming on sight would let a crafted link swap a signed-in visitor's session
-for the sender's. The token is then stripped from the URL with a redirect,
-whether it was redeemed or not, since a token the proxy declined is still a
-live credential until it expires, and query strings leak through history,
-bookmarks and the referer header. The proxy's matcher has a second entry so it
-runs on every path a link token lands on, because `redirectTo` can name any
-path on this origin.
+for the sender's. The auth service minted a session to hand that token out,
+so when the proxy declines it, it revokes it with `/signout`. Otherwise every
+email-change or verification link opened where the user is signed in would
+leave a 30-day credential behind and an unknown device in the sessions list.
+The revocation goes through a bare auth client, because the proxy's own client
+clears the stored session on any `/signout` response. The token is then
+stripped from the URL with a redirect, whether it was redeemed or not, since
+query strings leak through history, bookmarks and the referer header. The
+proxy's matcher has a second entry so it runs on every path a link token lands
+on, because `redirectTo` can name any path on this origin.
 
 ### Where sign-in lands
 
