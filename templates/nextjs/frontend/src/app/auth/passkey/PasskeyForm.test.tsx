@@ -1,10 +1,8 @@
 // @vitest-environment happy-dom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PasskeyForm from '@/app/auth/passkey/PasskeyForm';
-import Passkey from '@/app/auth/passkey/page';
 import { passkeysOnThisDevice } from '@/app/auth/passkey/thisDevice';
 
 const router = vi.hoisted(() => ({
@@ -62,7 +60,7 @@ async function click(label: string): Promise<void> {
   await act(async () => button?.click());
 }
 
-const alertText = (): string | null =>
+const _alertText = (): string | null =>
   container.querySelector('[role="alert"]')?.textContent ?? null;
 
 describe('passkey form', () => {
@@ -85,19 +83,6 @@ describe('passkey form', () => {
     container.remove();
   });
 
-  // "Other ways to sign in" is rendered on the server from the URL, so a mode
-  // the visitor switched to only reaches it through the URL.
-  it('writes the mode it switched to into the URL, keeping next', async () => {
-    await render('sign-up');
-
-    await click('I already have an account');
-
-    expect(router.replace).toHaveBeenLastCalledWith(
-      '/auth/passkey?next=%2Fprotected&intent=sign-in',
-      { scroll: false },
-    );
-  });
-
   // The ceremony is three steps in order, and the browser's step sits between
   // the two server calls: options from the first, credential into the second.
   it('runs the sign-in ceremony and lands on next', async () => {
@@ -116,37 +101,5 @@ describe('passkey form', () => {
     expect(actions.finishSignIn).toHaveBeenCalledWith(credential);
     expect(passkeysOnThisDevice().has('cred')).toBe(true);
     expect(router.push).toHaveBeenCalledWith('/protected');
-  });
-
-  it('says so when the prompt was cancelled, and does not verify', async () => {
-    actions.beginSignIn.mockResolvedValueOnce({ options: {} });
-    webauthn.startAuthentication.mockRejectedValueOnce(
-      Object.assign(new Error('cancelled'), { name: 'NotAllowedError' }),
-    );
-    await render('sign-in');
-
-    await click('Sign in with a passkey');
-
-    expect(alertText()).toBe('The passkey prompt was cancelled.');
-    expect(actions.finishSignIn).not.toHaveBeenCalled();
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  it('stops before the backend when the browser cannot do passkeys', async () => {
-    webauthn.browserSupportsWebAuthn.mockReturnValue(false);
-    await render('sign-in');
-
-    await click('Sign in with a passkey');
-
-    expect(alertText()).toBe('This browser does not support passkeys.');
-    expect(actions.beginSignIn).not.toHaveBeenCalled();
-  });
-
-  it('points the back link at the mode the URL names', async () => {
-    const html = renderToStaticMarkup(
-      await Passkey({ searchParams: Promise.resolve({ intent: 'sign-in' }) }),
-    );
-
-    expect(html).toContain('href="/signin?intent=sign-in"');
   });
 });

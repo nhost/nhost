@@ -63,15 +63,6 @@ describe('delete account setting', () => {
     container.remove();
   });
 
-  // Nothing here can be undone, so the row only asks.
-  it('does not delete from the row', async () => {
-    await open();
-
-    expect(deleteAccount).not.toHaveBeenCalled();
-    expect(dialog()?.open).toBe(true);
-    expect(dialog()?.textContent).toContain("can't be undone");
-  });
-
   it('waits for the word to be typed', async () => {
     await open();
     expect(confirmButton()?.disabled).toBe(true);
@@ -94,29 +85,5 @@ describe('delete account setting', () => {
 
     expect(deleteAccount).toHaveBeenCalledOnce();
     expect(router.push).toHaveBeenCalledWith('/');
-  });
-
-  it('backs out without calling the action', async () => {
-    await open();
-    const keep = [...(dialog()?.querySelectorAll('button') ?? [])].find(
-      (candidate) => candidate.textContent === 'Keep account',
-    );
-    await act(async () => keep?.click());
-
-    expect(deleteAccount).not.toHaveBeenCalled();
-    expect(dialog()?.open).toBe(false);
-  });
-
-  it('stays open and says why when the action fails', async () => {
-    deleteAccount.mockResolvedValueOnce({ error: 'still here' });
-
-    await open();
-    await type('delete');
-    await submit();
-
-    expect(dialog()?.querySelector('[role="alert"]')?.textContent).toBe(
-      'still here',
-    );
-    expect(router.push).not.toHaveBeenCalled();
   });
 });

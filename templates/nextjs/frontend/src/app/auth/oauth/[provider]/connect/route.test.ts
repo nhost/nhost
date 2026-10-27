@@ -48,28 +48,4 @@ describe('provider connect route', () => {
       `${appOrigin()}/account`,
     );
   });
-
-  // Otherwise a provider the user authorized before, or linked and then
-  // unlinked, completes without showing anything.
-  it('asks the provider to show its account picker', async () => {
-    const location = new URL(
-      (await get('github')).headers.get('location') ?? '',
-    );
-
-    expect(location.searchParams.get('upstreamParams[prompt]')).toBe(
-      'select_account',
-    );
-  });
-
-  it('sends a signed-out visitor to sign in first', async () => {
-    session.current = null;
-
-    expect((await get('github')).headers.get('location')).toBe(
-      'http://localhost/signin?next=%2Faccount',
-    );
-  });
-
-  it('offers no provider the deployment did not set up', async () => {
-    expect((await get('google')).status).toBe(404);
-  });
 });

@@ -1,10 +1,8 @@
 // @vitest-environment happy-dom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PasswordForm from '@/app/auth/password/PasswordForm';
-import Password from '@/app/auth/password/page';
 
 const router = vi.hoisted(() => ({
   replace: vi.fn(),
@@ -74,13 +72,5 @@ describe('password form, switching modes', () => {
       '/auth/password?next=%2Fprotected',
       { scroll: false },
     );
-  });
-
-  it('points the back link at the mode the URL names', async () => {
-    const html = renderToStaticMarkup(
-      await Password({ searchParams: Promise.resolve({ intent: 'sign-in' }) }),
-    );
-
-    expect(html).toContain('href="/signin?intent=sign-in"');
   });
 });

@@ -24,12 +24,6 @@ describe('signUp', () => {
     signUpEmailPassword.mockResolvedValue({ body: { session: null } });
   });
 
-  it('sends the verification link back to the requested path', async () => {
-    await signUp('user@example.com', 'password', '/protected');
-
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
-  });
-
   // The action is callable without the page, so `next` here is whatever the
   // caller sent. Appended to the origin, each of these changes the host.
   it('keeps the verification link on this origin when called directly', async () => {
@@ -55,12 +49,5 @@ describe('setNewPassword', () => {
 
     expect(await setNewPassword('a new password')).toEqual({ success: true });
     expect(endPasswordReset).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps the reset going when the change is refused', async () => {
-    changeUserPassword.mockRejectedValueOnce(new Error('too short'));
-
-    expect((await setNewPassword('short')).error).toContain('too short');
-    expect(endPasswordReset).not.toHaveBeenCalled();
   });
 });

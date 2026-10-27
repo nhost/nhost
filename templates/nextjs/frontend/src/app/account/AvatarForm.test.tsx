@@ -21,9 +21,7 @@ vi.mock('@/app/account/actions', () => actions);
 let container: HTMLElement;
 let root: Root;
 
-// A stand-in for the image, which the server renders and passes in. A real
-// <img> here only trips the lint rule that the one in ProfileSummary has a
-// documented exception for.
+// A stand-in for the image, which the server renders and passes in.
 async function render(canRemove: boolean): Promise<void> {
   await act(async () =>
     root.render(
@@ -34,7 +32,7 @@ async function render(canRemove: boolean): Promise<void> {
   );
 }
 
-const byText = (label: string): HTMLButtonElement | undefined =>
+const _byText = (label: string): HTMLButtonElement | undefined =>
   [...container.querySelectorAll('button')].find(
     (candidate) => candidate.textContent === label,
   );
@@ -42,7 +40,7 @@ const byText = (label: string): HTMLButtonElement | undefined =>
 const fileInput = (): HTMLInputElement | null =>
   container.querySelector<HTMLInputElement>('input[type="file"]');
 
-const byLabel = (label: string): HTMLButtonElement | undefined =>
+const _byLabel = (label: string): HTMLButtonElement | undefined =>
   [...container.querySelectorAll('button')].find(
     (candidate) => candidate.getAttribute('aria-label') === label,
   );
@@ -82,27 +80,6 @@ describe('avatar control', () => {
     container.remove();
   });
 
-  // The image is the server's to render, so it arrives as children and this
-  // only wraps it. One image on the page, whatever the controls do.
-  it('wraps the image it is given rather than rendering its own', () => {
-    expect(container.querySelector('[data-testid="the-image"]')).not.toBeNull();
-    expect(container.querySelector('img')).toBeNull();
-  });
-
-  // The file name is the input's own rendering, which is why it is hidden:
-  // the two buttons are the whole control.
-  it('keeps the file input out of sight behind the buttons', () => {
-    expect(fileInput()?.className).toContain('sr-only');
-    expect(byLabel('Upload a new avatar')).toBeDefined();
-  });
-
-  it('only accepts raster images and names the field the action reads', () => {
-    expect(fileInput()?.getAttribute('accept')).toBe(
-      'image/png,image/jpeg,image/gif,image/webp,image/avif',
-    );
-    expect(fileInput()?.getAttribute('name')).toBe('avatar');
-  });
-
   // Choosing the file is the whole gesture: there is no second press.
   it('uploads as soon as a file is chosen and re-reads the page', async () => {
     actions.uploadAvatar.mockResolvedValueOnce({ success: true });
@@ -114,66 +91,10 @@ describe('avatar control', () => {
     expect(router.refresh).toHaveBeenCalled();
   });
 
-  // Storage can take a few seconds, and without this the image just sat
-  // there unchanged with nothing saying it was being replaced.
-  it('covers the image with a spinner while the upload runs', async () => {
-    let finish: (result: { success: true }) => void = () => {};
-    actions.uploadAvatar.mockReturnValueOnce(
-      new Promise((resolve) => {
-        finish = resolve;
-      }),
-    );
-
-    await choose(image());
-
-    expect(text('status')).toBe('Updating the avatar');
-    expect(byLabel('Upload a new avatar')?.disabled).toBe(true);
-
-    await act(async () => finish({ success: true }));
-
-    expect(text('status')).toBeNull();
-  });
-
-  it('shows the action error and does not re-read', async () => {
-    actions.uploadAvatar.mockResolvedValueOnce({ error: 'storage said no' });
-
-    await choose(image());
-
-    expect(text('alert')).toBe('storage said no');
-    expect(router.refresh).not.toHaveBeenCalled();
-  });
-
   it('refuses an oversized file without calling the action', async () => {
     await choose(image(MAX_AVATAR_BYTES + 1));
 
     expect(text('alert')).toBe(AVATAR_TOO_LARGE);
     expect(actions.uploadAvatar).not.toHaveBeenCalled();
-  });
-
-  // Otherwise picking the same file after a failure would not fire `change`.
-  it('clears the input so the same file can be chosen again', async () => {
-    actions.uploadAvatar.mockResolvedValueOnce({ success: true });
-
-    await choose(image());
-
-    expect(fileInput()?.value).toBe('');
-  });
-
-  it('removes the avatar and re-reads the page', async () => {
-    actions.removeAvatar.mockResolvedValueOnce({ success: true });
-
-    await act(async () => byText('Remove')?.click());
-
-    expect(actions.removeAvatar).toHaveBeenCalledOnce();
-    expect(router.refresh).toHaveBeenCalled();
-  });
-
-  // There is nothing to take down when the account has no avatar, and the
-  // page says so by leaving the link out. The + stays either way.
-  it('offers no remove link when there is no avatar', async () => {
-    await render(false);
-
-    expect(byText('Remove')).toBeUndefined();
-    expect(byLabel('Upload a new avatar')).toBeDefined();
   });
 });

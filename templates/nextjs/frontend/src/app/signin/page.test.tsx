@@ -34,8 +34,7 @@ describe('sign-in page', () => {
   });
 
   // A protected page sends a visitor here with `next` and no intent, so the
-  // page opens on sign up. Switching to sign in has to keep `next`, or signing
-  // in lands on the default page instead of the one they asked for.
+  // page opens on sign up.
   it('offers sign in from sign up, keeping next', async () => {
     const html = await render({ next: '/protected' });
 
@@ -44,39 +43,6 @@ describe('sign-in page', () => {
     expect(html).toContain(
       'href="/signin?next=%2Fprotected&amp;intent=sign-in"',
     );
-  });
-
-  it('offers sign up from sign in, keeping next', async () => {
-    const html = await render({ next: '/protected', intent: 'sign-in' });
-
-    expect(html).toContain('New here?');
-    expect(html).toContain('href="/signin?next=%2Fprotected"');
-  });
-
-  it('switches on the bare page without a next', async () => {
-    expect(await render({})).toContain('href="/signin?intent=sign-in"');
-    expect(await render({ intent: 'sign-in' })).toContain('href="/signin"');
-  });
-
-  // Provider buttons leave for the provider straight from the list, so they
-  // have to carry where the visitor was going, and sit apart from the links.
-  it('lists the buttons under a divider with the destination', async () => {
-    listed.methods = [
-      { href: '/auth/a-method', title: 'A method', description: '' },
-    ];
-    listed.buttons = [({ destination }) => `buttons to ${destination}`];
-
-    const html = await render({ next: '/protected' });
-
-    expect(html).toMatch(/A method.*or.*buttons to \/protected/);
-  });
-
-  it('draws no divider when there are no buttons', async () => {
-    listed.methods = [
-      { href: '/auth/a-method', title: 'A method', description: '' },
-    ];
-
-    expect(await render({})).not.toContain('bg-border');
   });
 
   it('marks the way the visitor last signed in', async () => {

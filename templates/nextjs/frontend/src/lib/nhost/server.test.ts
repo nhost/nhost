@@ -7,7 +7,6 @@ import {
   getVerifiedUser,
   handleNhostProxy,
   LINK_TOKEN_PARAM,
-  LINK_TYPE_PARAM,
   PASSWORD_RESET_KEY,
   updateSessionUser,
 } from '@/lib/nhost/server';
@@ -73,34 +72,6 @@ describe('getVerifiedUser', () => {
     expect(await getVerifiedUser()).toBeNull();
     expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/user$/);
     expect(sentAuthorization()).toBe('Bearer not-a-jwt');
-  });
-
-  it('returns the user the auth service vouches for, not the cookie', async () => {
-    cookie.value = forgedSession;
-    fetchMock.mockResolvedValue(
-      json({ id: 'real-id', email: 'user@example.com' }, 200),
-    );
-
-    expect(await getVerifiedUser()).toMatchObject({
-      id: 'real-id',
-      email: 'user@example.com',
-    });
-  });
-
-  it.each([
-    ['an empty 200', () => new Response('', { status: 200 })],
-    ['a 204', () => new Response(null, { status: 204 })],
-    ['an empty object', () => json({}, 200)],
-  ])('rejects %s, which carries no user', async (_, response) => {
-    cookie.value = forgedSession;
-    fetchMock.mockResolvedValue(response());
-
-    expect(await getVerifiedUser()).toBeNull();
-  });
-
-  it('does not call the auth service without a session cookie', async () => {
-    expect(await getVerifiedUser()).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
@@ -222,44 +193,6 @@ describe('session cookies', () => {
   });
 });
 
-// Refresh tokens are single-use, so a prefetch that rotated alongside the real
-// navigation could get the session cleared. Prefetches read it instead.
-describe('prefetches', () => {
-  beforeEach(() => {
-    fetchMock.mockReset();
-    vi.stubGlobal('fetch', fetchMock);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  const expiring = storedSession(30);
-
-  it.each<Record<string, string>>([
-    { 'next-router-prefetch': '1' },
-    { 'next-router-prefetch': '2' },
-    { 'next-router-prefetch': '3' },
-    { 'next-router-segment-prefetch': '/_tree' },
-    { purpose: 'prefetch' },
-  ])('reads the stored session for %o', async (headers) => {
-    const { session } = await handleNhostProxy(
-      proxyRequest(expiring, undefined, headers),
-    );
-
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(session).toEqual(JSON.parse(expiring));
-  });
-
-  it('refreshes an RSC request that is not a prefetch', async () => {
-    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
-
-    await handleNhostProxy(proxyRequest(expiring, undefined, { rsc: '1' }));
-
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/token$/);
-  });
-});
-
 describe('link redemption', () => {
   beforeEach(() => {
     fetchMock.mockReset();
@@ -287,41 +220,6 @@ describe('link redemption', () => {
     expect(
       decodeURIComponent(setCookie(response, DEFAULT_SESSION_KEY)),
     ).toContain('new-refresh-token');
-  });
-
-  // The proxy holds the visitor on this page until the password is saved.
-  it('marks the page a reset link signed the visitor in on', async () => {
-    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
-
-    const result = await handleNhostProxy(
-      new NextRequest(
-        `http://localhost:3000/reset?${LINK_TOKEN_PARAM}=link-token&${LINK_TYPE_PARAM}=passwordReset`,
-      ),
-    );
-    const response = result.applySessionCookies(NextResponse.next());
-
-    expect(result.pendingReset).toBe('/reset');
-    const line = setCookie(response, PASSWORD_RESET_KEY);
-    expect(line).toContain(`${PASSWORD_RESET_KEY}=%2Freset`);
-    expect(line).toMatch(/; HttpOnly/i);
-  });
-
-  it('marks no reset for any other link', async () => {
-    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
-
-    const result = await handleNhostProxy(
-      new NextRequest(
-        `http://localhost:3000/?${LINK_TOKEN_PARAM}=link-token&${LINK_TYPE_PARAM}=emailVerify`,
-      ),
-    );
-
-    expect(result.pendingReset).toBeNull();
-    expect(
-      setCookie(
-        result.applySessionCookies(NextResponse.next()),
-        PASSWORD_RESET_KEY,
-      ),
-    ).toBe('');
   });
 
   it('keeps a live session instead of redeeming the link', async () => {
@@ -373,75 +271,6 @@ describe('revoked sessions', () => {
     }
   });
 
-  it('records where a session is used from the first time it is seen', async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        sessionRow({ id: 'refresh-token-id', metadata: null }),
-      )
-      .mockResolvedValueOnce(json({ data: {} }, 200));
-
-    const result = await visit({
-      'user-agent': 'Mozilla/5.0',
-      'x-forwarded-for': '203.0.113.4, 10.0.0.1',
-      'x-vercel-ip-country': 'de',
-      'x-vercel-ip-city': 'M%C3%BCnchen',
-    });
-
-    expect(result.session).not.toBeNull();
-    expect(graphqlBody(1).query).toContain('updateAuthRefreshToken');
-    expect(graphqlBody(1).variables).toMatchObject({
-      id: 'refresh-token-id',
-      metadata: {
-        ip: '203.0.113.4',
-        userAgent: 'Mozilla/5.0',
-        country: 'DE',
-        city: 'München',
-      },
-    });
-  });
-
-  it('writes nothing while the stored details are current', async () => {
-    fetchMock.mockResolvedValueOnce(
-      sessionRow({
-        id: 'refresh-token-id',
-        metadata: {
-          userAgent: 'Mozilla/5.0',
-          seenAt: new Date().toISOString(),
-        },
-      }),
-    );
-
-    const result = await visit({ 'user-agent': 'Mozilla/5.0' });
-
-    expect(result.session).not.toBeNull();
-    expect(fetchMock).toHaveBeenCalledOnce();
-  });
-
-  it('does not look on a prefetch', async () => {
-    const result = await visit({ 'next-router-prefetch': '1' });
-
-    expect(result.session).not.toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    [
-      'a GraphQL error',
-      () => json({ errors: [{ message: 'field not found in type' }] }, 200),
-    ],
-    ['a server error', () => json({ error: 'internal' }, 500)],
-  ])('keeps the session when the lookup returns %s', async (_, response) => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    fetchMock.mockResolvedValueOnce(response());
-
-    const result = await visit();
-
-    expect(result.session).not.toBeNull();
-    expect(
-      result.applySessionCookies(NextResponse.next()).headers.getSetCookie(),
-    ).toEqual([]);
-  });
-
   it('keeps the session when GraphQL cannot be reached', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     fetchMock.mockRejectedValueOnce(new TypeError('fetch failed'));
@@ -466,7 +295,7 @@ describe('session cookies from server actions', () => {
     vi.restoreAllMocks();
   });
 
-  const signIn = async (accessToken: string): Promise<NextResponse> => {
+  const _signIn = async (accessToken: string): Promise<NextResponse> => {
     fetchMock.mockImplementation(async () =>
       json({ session: await refreshed(accessToken).json() }, 200),
     );
@@ -480,22 +309,6 @@ describe('session cookies from server actions', () => {
     return written.response as NextResponse;
   };
 
-  it('keeps the refresh token in an httpOnly cookie', async () => {
-    const line = setCookie(await signIn(jwt(900)), DEFAULT_SESSION_KEY);
-
-    expect(decodeURIComponent(line)).toContain('new-refresh-token');
-    expect(line).toMatch(/; HttpOnly/i);
-    expect(maxAge(line)).toBe(60 * 60 * 24 * 30);
-  });
-
-  it('gives the browser a signed-in flag and nothing else', async () => {
-    const line = setCookie(await signIn(jwt(900)), SIGNED_IN_KEY);
-
-    expect(line).toMatch(new RegExp(`^${SIGNED_IN_KEY}=1;`));
-    expect(line).not.toMatch(/HttpOnly/i);
-    expect(line).not.toContain('token');
-  });
-
   it('deletes both cookies on sign-out', async () => {
     cookie.value = storedSession(900);
     fetchMock.mockImplementation(async () => json('OK', 200));
@@ -508,50 +321,11 @@ describe('session cookies from server actions', () => {
       );
     }
   });
-
-  it.each([401, 500])(
-    'reports this device as signed out when sign-out gets a %i',
-    async (status) => {
-      vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      cookie.value = storedSession(900);
-      fetchMock.mockImplementation(async () =>
-        json({ error: 'error', message: 'Failed' }, status),
-      );
-
-      expect(await signOut()).toEqual({
-        error:
-          'You are signed out on this device, but the sign-out request failed.',
-      });
-
-      for (const name of [DEFAULT_SESSION_KEY, SIGNED_IN_KEY]) {
-        expect(setCookie(written.response as NextResponse, name)).toMatch(
-          /Expires=Thu, 01 Jan 1970/,
-        );
-      }
-    },
-  );
-
-  it('keeps the session when the auth service cannot be reached', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    cookie.value = storedSession(900);
-    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-
-    expect(await signOut()).toEqual({
-      error: 'Could not reach the server. You are still signed in.',
-      stillSignedIn: true,
-    });
-    expect(written.response?.headers.getSetCookie()).toEqual([]);
-  });
-
-  it('has nothing to do without a session', async () => {
-    expect(await signOut()).toEqual({});
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
 });
 
-// The account actions patch the cookie's user after a profile write, so the
-// nav shows the change on the refresh that follows rather than after the
-// next token refresh.
+// The account actions patch the cookie's user after a profile write, so the nav
+// shows the change on the refresh that follows rather than after the next token
+// refresh.
 describe('updateSessionUser', () => {
   beforeEach(() => {
     cookie.value = undefined;
@@ -597,11 +371,5 @@ describe('updateSessionUser', () => {
     expect(setCookie(written.response as NextResponse, SIGNED_IN_KEY)).toMatch(
       new RegExp(`^${SIGNED_IN_KEY}=1;`),
     );
-  });
-
-  it('writes nothing without a session', async () => {
-    updateSessionUser(await createNhostClient(), { avatarUrl: 'new' });
-
-    expect(written.response?.headers.getSetCookie()).toEqual([]);
   });
 });

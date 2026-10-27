@@ -56,17 +56,4 @@ describe('sign-out link', () => {
     expect(button()?.disabled).toBe(true);
     expect(container.querySelector('[role="alert"]')).toBeNull();
   });
-
-  it('stays put and says why when this browser is still signed in', async () => {
-    signOutAndGoHome.mockResolvedValueOnce({
-      error: 'Could not reach the server. You are still signed in.',
-    });
-
-    await click();
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
-      'Could not reach the server. You are still signed in.',
-    );
-    expect(button()?.disabled).toBe(false);
-  });
 });

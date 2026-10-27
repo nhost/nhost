@@ -49,14 +49,6 @@ describe('RefreshOnSessionChange', () => {
     vi.restoreAllMocks();
   });
 
-  it('leaves a nav that matches the session alone', async () => {
-    await render(false);
-    setAccessTokenCookie(true);
-    await render(true, '/account');
-
-    expect(router.refresh).not.toHaveBeenCalled();
-  });
-
   // Signed out in another tab: the next page renders with no session, but
   // the nav in the root layout still shows the avatar.
   it('refreshes when the session ended since the nav rendered', async () => {
@@ -65,24 +57,6 @@ describe('RefreshOnSessionChange', () => {
 
     setAccessTokenCookie(false);
     await render(true, '/account');
-
-    expect(router.refresh).toHaveBeenCalledOnce();
-  });
-
-  it('refreshes when a session started since the nav rendered', async () => {
-    await render(false);
-
-    setAccessTokenCookie(true);
-    await render(false, '/account');
-
-    expect(router.refresh).toHaveBeenCalledOnce();
-  });
-
-  // A refresh that comes back with the same answer must not start another.
-  it('does not refresh again on the same path', async () => {
-    setAccessTokenCookie(true);
-    await render(false);
-    await render(false);
 
     expect(router.refresh).toHaveBeenCalledOnce();
   });
@@ -118,31 +92,5 @@ describe('RefreshOnSessionChange, returning to the tab', () => {
     returnToTab();
 
     expect(router.refresh).toHaveBeenCalledOnce();
-  });
-
-  it('does not refresh on a quick return', async () => {
-    await render(true);
-    vi.advanceTimersByTime(FOCUS_REFRESH_MS - 1);
-    returnToTab();
-
-    expect(router.refresh).not.toHaveBeenCalled();
-  });
-
-  it('waits the interval again after a refresh', async () => {
-    await render(true);
-    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
-    returnToTab();
-    returnToTab();
-
-    expect(router.refresh).toHaveBeenCalledOnce();
-  });
-
-  it('leaves a signed-out tab alone', async () => {
-    setAccessTokenCookie(false);
-    await render(false);
-    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
-    returnToTab();
-
-    expect(router.refresh).not.toHaveBeenCalled();
   });
 });

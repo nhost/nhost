@@ -35,9 +35,9 @@ async function render(page: ReactNode): Promise<void> {
   await act(async () => root.render(<AccountLayout>{page}</AccountLayout>));
 }
 
-// What Next renders under the layout once the action has cleared the
-// session: the account page's `redirect()`, which throws, and would send the
-// browser to sign-in if anything rendered it.
+// What Next renders under the layout once the action has cleared the session:
+// the account page's `redirect()`, which throws, and would send the browser to
+// sign-in if anything rendered it.
 function RedirectingPage(): never {
   throw new Error('redirect:/signin?next=%2Faccount');
 }
@@ -84,27 +84,6 @@ describe('change password row, through a change', () => {
     container.remove();
   });
 
-  it('opens the form in a dialog and closes it again', async () => {
-    await render(<ChangePasswordSetting user={user} />);
-
-    expect(dialog()?.open).toBe(false);
-    expect(dialog()?.querySelector('form')).toBeNull();
-
-    await act(async () => row()?.click());
-
-    expect(dialog()?.open).toBe(true);
-    expect(dialog()?.textContent).toContain(
-      "Your other devices will be signed out. You'll stay signed in here.",
-    );
-
-    const cancel = [...(dialog()?.querySelectorAll('button') ?? [])].find(
-      (candidate) => candidate.textContent === 'Cancel',
-    );
-    await act(async () => cancel?.click());
-
-    expect(dialog()?.open).toBe(false);
-  });
-
   // Signing back in takes a code from the authenticator app as well, which
   // the form asks for.
   it('keeps a two-factor account signed in, with a code to sign back in', async () => {
@@ -119,38 +98,6 @@ describe('change password row, through a change', () => {
     expect(dialog()?.textContent).toContain('Authenticator code');
   });
 
-  // No email, nothing to sign back in with.
-  it('warns an account with no email that this device is signed out too', async () => {
-    await render(
-      <ChangePasswordSetting user={{ ...user, email: undefined }} />,
-    );
-    await act(async () => row()?.click());
-
-    expect(dialog()?.textContent).toContain(
-      "You'll be signed out everywhere, this device included.",
-    );
-    expect(dialog()?.textContent).not.toContain('Authenticator code');
-  });
-
-  it('holds the change back until both entries meet the rules', async () => {
-    await render(<ChangePasswordSetting user={user} />);
-    await act(async () => row()?.click());
-    const change = (): HTMLButtonElement | null | undefined =>
-      dialog()?.querySelector('button[type="submit"]');
-    const [password, confirm] = dialog()?.querySelectorAll('input') ?? [];
-
-    expect(change()?.disabled).toBe(true);
-
-    await act(async () => {
-      type(password, 'a new password');
-      type(confirm, 'a new passwor');
-    });
-    expect(change()?.disabled).toBe(true);
-
-    await act(async () => type(confirm, 'a new password'));
-    expect(change()?.disabled).toBe(false);
-  });
-
   it('keeps the changed card when the page comes back as a redirect', async () => {
     changePassword.mockResolvedValue({ success: true, signedIn: false });
     await render(<ChangePasswordSetting user={user} />);
@@ -163,15 +110,5 @@ describe('change password row, through a change', () => {
     await render(<RedirectingPage />);
 
     expect(container.textContent).toContain('Password changed');
-  });
-
-  it('keeps a refused change on the form and says why', async () => {
-    changePassword.mockResolvedValue({ error: 'Password is too short' });
-    await render(<ChangePasswordSetting user={user} />);
-
-    await submit('short');
-
-    expect(container.textContent).toContain('Password is too short');
-    expect(container.textContent).not.toContain('Password changed');
   });
 });

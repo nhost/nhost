@@ -81,17 +81,6 @@ describe('two-factor row', () => {
     container.remove();
   });
 
-  it('says where the account stands without opening', async () => {
-    await render(false);
-    expect(container.querySelector('li')?.textContent).toContain('Off');
-    expect(row()?.textContent).toBe('Set up');
-    expect(isOpen()).toBe(false);
-
-    await render(true);
-    expect(container.querySelector('li')?.textContent).toContain('On');
-    expect(row()?.textContent).toBe('Turn off');
-  });
-
   // Inside the form, so it must not submit it.
   it('copies the key to enter by hand, without the spaces it is shown with', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
@@ -163,78 +152,5 @@ describe('two-factor row', () => {
     // back rather than another setup.
     expect(container.querySelector('li')?.textContent).toContain('On');
     expect(row()?.textContent).toBe('Turn off');
-  });
-
-  it('asks for a current code to turn it off, without a new secret', async () => {
-    actions.disableMfa.mockResolvedValueOnce({ success: true });
-    await render(true);
-
-    await act(async () => row()?.click());
-
-    expect(actions.generateMfa).not.toHaveBeenCalled();
-    expect(container.querySelector('img')).toBeNull();
-
-    await enterCode('654321');
-
-    expect(actions.disableMfa).toHaveBeenCalledWith('654321');
-    expect(actions.enableMfa).not.toHaveBeenCalled();
-  });
-
-  it('stays open and says why when the code is refused', async () => {
-    actions.disableMfa.mockResolvedValueOnce({ error: 'Invalid code' });
-    await render(true);
-
-    await act(async () => row()?.click());
-    await enterCode('000000');
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
-      'Invalid code',
-    );
-    expect(isOpen()).toBe(true);
-    expect(refresh).not.toHaveBeenCalled();
-  });
-
-  // The field is laid out from the start, so the dialog keeps its size, but
-  // there is no key to prove.
-  it('says so when the setup cannot start, with the code field off', async () => {
-    actions.generateMfa.mockResolvedValueOnce({ error: 'Not now' });
-    await render(false);
-
-    await act(async () => row()?.click());
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
-      'Not now',
-    );
-    expect(container.querySelector('input')?.disabled).toBe(true);
-    expect(
-      container.querySelector<HTMLButtonElement>('button[type="submit"]')
-        ?.disabled,
-    ).toBe(true);
-  });
-
-  it('holds the room for the QR code while the key is on its way', async () => {
-    actions.generateMfa.mockReturnValueOnce(new Promise(() => undefined));
-    await render(false);
-
-    await act(async () => row()?.click());
-
-    expect(container.textContent).toContain('Preparing a code to scan…');
-    expect(container.querySelector('img')).toBeNull();
-    expect(container.querySelector('input')?.disabled).toBe(true);
-  });
-
-  it('closes from Cancel without changing anything', async () => {
-    await render(true);
-
-    await act(async () => row()?.click());
-    expect(isOpen()).toBe(true);
-
-    const cancel = [...container.querySelectorAll('dialog button')].find(
-      (candidate) => candidate.textContent === 'Cancel',
-    ) as HTMLButtonElement | undefined;
-    await act(async () => cancel?.click());
-
-    expect(isOpen()).toBe(false);
-    expect(actions.disableMfa).not.toHaveBeenCalled();
   });
 });

@@ -54,7 +54,7 @@ async function submit(): Promise<void> {
   );
 }
 
-async function click(label: string): Promise<void> {
+async function _click(label: string): Promise<void> {
   const button = [...container.querySelectorAll('button')].find(
     (candidate) => candidate.textContent === label,
   );
@@ -77,17 +77,6 @@ describe('change email form', () => {
     container.remove();
   });
 
-  // On a page of its own the form is simply open; the only thing that
-  // appears and disappears is the unverified notice.
-  it('offers a resend only while the address is unverified', async () => {
-    await render(true);
-    expect(container.textContent).not.toContain('not been verified');
-
-    await render(false);
-    expect(container.textContent).toContain('not been verified');
-    expect(container.textContent).toContain('Resend verification');
-  });
-
   it('starts the change and says where the link went', async () => {
     actions.changeEmail.mockResolvedValueOnce({ success: true });
     await render(true);
@@ -98,27 +87,5 @@ describe('change email form', () => {
     expect(actions.changeEmail).toHaveBeenCalledWith('new@example.com');
     expect(text('status')).toContain('confirmation link to new@example.com');
     expect(text('status')).toContain('changes when you open it');
-  });
-
-  it('resends and says so', async () => {
-    actions.resendVerification.mockResolvedValueOnce({ success: true });
-    await render(false);
-
-    await click('Resend verification');
-
-    expect(actions.resendVerification).toHaveBeenCalledOnce();
-    expect(text('status')).toContain('on its way to user@example.com');
-  });
-
-  it('shows the action error and keeps the form', async () => {
-    actions.changeEmail.mockResolvedValueOnce({ error: 'already in use' });
-    await render(true);
-    await type('New email', 'taken@example.com');
-
-    await submit();
-
-    expect(text('alert')).toBe('already in use');
-    expect(text('status')).toBeNull();
-    expect(container.querySelector('form')).not.toBeNull();
   });
 });

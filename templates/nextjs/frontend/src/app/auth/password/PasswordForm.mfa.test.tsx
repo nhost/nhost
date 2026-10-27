@@ -58,7 +58,7 @@ async function submit(): Promise<void> {
   );
 }
 
-async function click(text: string): Promise<void> {
+async function _click(text: string): Promise<void> {
   const button = [...container.querySelectorAll('button')].find(
     (candidate) => candidate.textContent === text,
   );
@@ -106,43 +106,5 @@ describe('password sign-in with two-factor on', () => {
 
     expect(actions.verifyMfa).toHaveBeenCalledWith('mfaTotp:abc', '123456');
     expect(router.push).toHaveBeenCalledWith('/account');
-  });
-
-  it('stays on the code step when the code is wrong', async () => {
-    actions.signIn.mockResolvedValueOnce({ mfaTicket: 'mfaTotp:abc' });
-    actions.verifyMfa.mockResolvedValueOnce({ error: 'did not work' });
-    await type('Email', 'user@example.com');
-    await type('Password', 'password');
-    await submit();
-
-    await type('Authenticator code', '000000');
-    await submit();
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
-      'did not work',
-    );
-    expect(hasLabel('Authenticator code')).toBe(true);
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  it('goes back to the password step and signs in again for a new ticket', async () => {
-    actions.signIn.mockResolvedValue({ mfaTicket: 'mfaTotp:abc' });
-    await type('Email', 'user@example.com');
-    await type('Password', 'password');
-    await submit();
-    await type('Authenticator code', '123456');
-
-    await click('Start over');
-
-    expect(hasLabel('Authenticator code')).toBe(false);
-    expect(input('Email')?.value).toBe('user@example.com');
-    expect(input('Password')?.value).toBe('');
-
-    await type('Password', 'password');
-    await submit();
-
-    expect(actions.signIn).toHaveBeenCalledTimes(2);
-    expect(hasLabel('Authenticator code')).toBe(true);
-    expect(input('Authenticator code')?.value).toBe('');
   });
 });

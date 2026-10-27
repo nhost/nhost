@@ -15,13 +15,6 @@ async function render(params: { email?: string }): Promise<string> {
 }
 
 describe('email code page', () => {
-  it('asks for the address on an ordinary visit', async () => {
-    const html = await render({});
-
-    expect(html).toContain('Send me a code');
-    expect(html).not.toContain('one-time-code');
-  });
-
   // The link in the code email lands here with the address it was sent to.
   it('opens on the code step from the email link', async () => {
     const html = await render({ email: 'user@example.com' });

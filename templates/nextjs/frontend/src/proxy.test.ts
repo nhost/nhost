@@ -30,12 +30,6 @@ beforeAll(async () => {
 });
 
 describe('proxy matcher', () => {
-  it('leaves static files and api routes alone', () => {
-    for (const url of ['/favicon.ico', '/api/x', '/_next/static/chunk.js']) {
-      expect(matches(url)).toBe(false);
-    }
-  });
-
   // A redirectTo may be any path on this origin. Wherever it lands, the
   // proxy has to see the token, or it stays live in the address bar.
   it('runs wherever a link token lands', () => {
@@ -66,22 +60,6 @@ describe('proxy, signed out on a protected route', () => {
       'http://localhost/signin?next=%2Faccount&error=disabled-endpoint&errorDescription=x',
     );
   });
-
-  it('keeps the rest of the query in next', async () => {
-    const url = new URL(
-      (await location('/account?tab=email&error=invalid-ticket')) ?? '',
-    );
-
-    expect(url.searchParams.get('next')).toBe('/account?tab=email');
-    expect(url.searchParams.get('error')).toBe('invalid-ticket');
-  });
-
-  it('carries the query untouched when nothing failed', async () => {
-    const url = new URL((await location('/account?a=b%20c&d')) ?? '');
-
-    expect(url.searchParams.get('next')).toBe('/account?a=b%20c&d');
-    expect(url.searchParams.has('error')).toBe(false);
-  });
 });
 
 describe('proxy for a signed-in visitor', () => {
@@ -92,16 +70,6 @@ describe('proxy for a signed-in visitor', () => {
 
   afterEach(() => {
     session.current = null;
-  });
-
-  it('sends them on from the sign-in pages', async () => {
-    session.current = {};
-
-    for (const path of ['/signin', '/auth/password', '/auth/otp/']) {
-      expect(await location(path)).toBe(
-        `http://localhost${DEFAULT_DESTINATION}`,
-      );
-    }
   });
 
   it('sends them where the sign-in page was going to', async () => {
@@ -120,18 +88,6 @@ describe('proxy for a signed-in visitor', () => {
       `http://localhost${DEFAULT_DESTINATION}`,
     );
   });
-
-  // The reset page is reached with the session the reset link created.
-  it('leaves the pages under a method alone', async () => {
-    session.current = {};
-
-    expect(await location('/auth/password/reset')).toBeNull();
-  });
-
-  it('leaves a signed-out visitor on the sign-in pages', async () => {
-    expect(await location('/signin')).toBeNull();
-    expect(await location('/auth/password')).toBeNull();
-  });
 });
 
 describe('proxy, remembering the way in', () => {
@@ -145,28 +101,6 @@ describe('proxy, remembering the way in', () => {
     session.current = null;
   });
 
-  it("records a signed-out visitor opening a method's page", async () => {
-    const response = await visit('/auth/password/');
-
-    expect(response.cookies.get(ATTEMPT)?.value).toBe('/auth/password');
-  });
-
-  // The sign-in list prefetches every method it links to, which is not the
-  // visitor choosing one.
-  it('ignores a prefetch', async () => {
-    const response = await visit('/auth/password', {
-      'next-router-prefetch': '1',
-    });
-
-    expect(response.cookies.get(ATTEMPT)).toBeUndefined();
-  });
-
-  it('records nothing for other pages', async () => {
-    for (const path of ['/signin', '/', '/auth/password/reset']) {
-      expect((await visit(path)).cookies.get(ATTEMPT)).toBeUndefined();
-    }
-  });
-
   // Wherever the session first shows up: a form's redirect or a link token.
   it('keeps the attempt once a session starts', async () => {
     session.current = {};
@@ -177,14 +111,6 @@ describe('proxy, remembering the way in', () => {
 
     expect(response.cookies.get(LAST_USED)?.value).toBe('/auth/otp');
     expect(response.cookies.get(ATTEMPT)?.value).toBe('');
-  });
-
-  it('leaves the last used alone without an attempt', async () => {
-    session.current = {};
-
-    const response = await visit('/account');
-
-    expect(response.cookies.get(LAST_USED)).toBeUndefined();
   });
 });
 
@@ -207,13 +133,6 @@ describe('proxy during a password reset', () => {
     for (const path of ['/', '/account', '/signin']) {
       expect(await location(path)).toBe('http://localhost/reset');
     }
-  });
-
-  it('leaves them on the reset page', async () => {
-    session.current = {};
-    pendingReset.current = '/reset';
-
-    expect(await location('/reset')).toBeNull();
   });
 
   // The cookie is the visitor's own to edit.

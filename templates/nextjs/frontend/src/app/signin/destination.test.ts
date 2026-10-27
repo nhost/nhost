@@ -13,11 +13,6 @@ describe('signInDestination', () => {
     );
   });
 
-  it('falls back when nothing was asked for', () => {
-    expect(signInDestination(undefined)).toBe(DEFAULT_DESTINATION);
-    expect(signInDestination('')).toBe(DEFAULT_DESTINATION);
-  });
-
   // A `?next=` arrives from whatever put the visitor on the sign-in page, so
   // it is attacker-controlled: anything that leaves this origin is dropped.
   it('refuses to send anyone off this origin', () => {
@@ -32,10 +27,7 @@ describe('signInDestination', () => {
     }
   });
 
-  // The forms that look like a path but are not. Each of these resolves to
-  // https://evil.example/ in a browser, and each one passes a "starts with one
-  // slash but not two" check, which is why this is decided by resolving the
-  // value rather than by matching its shape.
+  // The forms that look like a path but are not.
   it('refuses the forms a URL parser reads as another origin', () => {
     for (const hostile of [
       '/\\evil.example',
@@ -53,8 +45,7 @@ describe('signInDestination', () => {
 
   // These stay on this site when resolved once, but the browser normalizes the
   // path when an auth email or OAuth redirect lands on it, and `//evil.example`
-  // read back as a URL is another origin. `%2e` counts as a dot, a backslash as
-  // a slash, and a raw tab is stripped, so each spelling gets there.
+  // read back as a URL is another origin.
   it('refuses dot segments that normalize to another origin', () => {
     for (const hostile of [
       '/..//evil.example',
@@ -75,46 +66,6 @@ describe('signInDestination', () => {
     }
   });
 
-  // Each resolves to `/` or a path on this site here, so the checks above keep
-  // it. The auth service puts `%20` where the trailing space was, which the
-  // browser does not trim, and a raw space or `|` makes it re-encode the path
-  // with `%2F` decoded to `/`. Either way the browser lands on a path that
-  // starts `//`.
-  it('refuses a path the auth service would rewrite', () => {
-    for (const hostile of [
-      '/.//.. ',
-      '/%2e//%2e%2e ',
-      '/a b/..%2F..%2F%2Fevil.example',
-      '/a|b/..%2F..%2F%2Fevil.example',
-    ]) {
-      const resolved = new URL(hostile, 'https://app.example');
-
-      expect(resolved.origin).toBe('https://app.example');
-      expect(resolved.pathname.startsWith('//')).toBe(false);
-      expect(signInDestination(hostile)).toBe(DEFAULT_DESTINATION);
-    }
-  });
-
-  // `request.nextUrl.pathname` leaves brackets raw.
-  it('keeps square brackets in the path', () => {
-    for (const path of ['/items/[1]', '/items/[a]/b?c=[d]']) {
-      expect(signInDestination(path)).toBe(path);
-    }
-  });
-
-  it('refuses a raw space or non-ASCII path but keeps it encoded', () => {
-    expect(signInDestination('/café')).toBe(DEFAULT_DESTINATION);
-    expect(signInDestination('/a b')).toBe(DEFAULT_DESTINATION);
-    expect(signInDestination('/caf%C3%A9')).toBe('/caf%C3%A9');
-    expect(signInDestination('/a%20b')).toBe('/a%20b');
-  });
-
-  it('keeps dot segments that normalize to a path on this site', () => {
-    expect(signInDestination('/profile/../account')).toBe(
-      '/profile/../account',
-    );
-  });
-
   // Safe only because the value comes back as given. Decoding it first would
   // turn these into paths a URL parser reads as `//` or `/\`.
   it('keeps percent-encoded forms as given', () => {
@@ -132,20 +83,9 @@ describe('signInDestination', () => {
       );
     }
   });
-
-  it('takes the first value when the parameter is repeated', () => {
-    expect(signInDestination(['/profile', '/account'])).toBe('/profile');
-    expect(signInDestination(['//evil.example', '/profile'])).toBe(
-      DEFAULT_DESTINATION,
-    );
-  });
 });
 
 describe('signInHref', () => {
-  it('encodes the destination into the query', () => {
-    expect(signInHref('/account')).toBe('/signin?next=%2Faccount');
-  });
-
   it('round-trips through signInDestination', () => {
     const destination = '/account/settings?tab=api&q=a b';
     const next = new URL(

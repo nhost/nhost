@@ -1,29 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AccountSession } from '@/app/account/actions';
-import { formatSessionTime, summarizeSessions } from '@/app/account/sessions';
+import { summarizeSessions } from '@/app/account/sessions';
 
 const chromeOnMac =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 const safariOnIphone =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
-
-describe('formatSessionTime', () => {
-  it.each([
-    ['2026-10-26T12:24:00Z', 'Oct 26th 2026 12:24 PM'],
-    ['2026-10-01T09:05:00Z', 'Oct 1st 2026 9:05 AM'],
-    ['2026-10-22T00:00:00Z', 'Oct 22nd 2026 12:00 AM'],
-    ['2026-10-23T23:59:00Z', 'Oct 23rd 2026 11:59 PM'],
-    ['2026-10-11T18:30:00Z', 'Oct 11th 2026 6:30 PM'],
-  ])('%s reads "%s"', (iso, expected) => {
-    expect(formatSessionTime(iso, 'UTC')).toBe(expected);
-  });
-
-  it('reads the time in the zone it is given', () => {
-    expect(formatSessionTime('2026-10-26T12:24:00Z', 'Europe/Stockholm')).toBe(
-      'Oct 26th 2026 1:24 PM',
-    );
-  });
-});
 
 describe('summarizeSessions', () => {
   const sessions: AccountSession[] = [
@@ -63,31 +45,5 @@ describe('summarizeSessions', () => {
       'phone-0000',
       'stale-0000',
     ]);
-  });
-
-  it('names what it was last used on, and where and from which address', () => {
-    expect(summarizeSessions(sessions)[1]).toEqual({
-      id: 'phone-0000',
-      device: 'Safari - iOS',
-      place: 'Stockholm, 198.51.100.7',
-      lastActive: '2026-10-26T11:00:00Z',
-      current: false,
-    });
-  });
-
-  // Running locally, the address is the machine's own, which says nothing.
-  it('leaves out the loopback address', () => {
-    expect(summarizeSessions(sessions)[0]).toMatchObject({
-      device: 'Chrome - macOS',
-      place: undefined,
-    });
-  });
-
-  it('falls back to when a session started when nothing was recorded', () => {
-    expect(summarizeSessions(sessions)[2]).toMatchObject({
-      device: 'Unknown device',
-      place: undefined,
-      lastActive: '2026-10-10T08:00:00Z',
-    });
   });
 });

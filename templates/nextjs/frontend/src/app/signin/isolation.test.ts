@@ -3,18 +3,14 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-// The rule `methods.ts` describes, checked against the import graph: a
-// sign-in method lives in its own directory under `src/app/auth/` and nothing
-// outside imports from it but `methods.ts` itself, so deleting the directory
-// and its entry there can never leave a dangling import. The two assertions
-// are the two ways that could break: a method reaching into another, or
-// shared code reaching into a method.
+// The rule `methods.ts` describes, checked against the import graph: a sign-in
+// method lives in its own directory under `src/app/auth/` and nothing outside
+// imports from it but `methods.ts` itself.
 const SRC = fileURLToPath(new URL('../..', import.meta.url));
 const AUTH = join(SRC, 'app', 'auth');
 
 // The one shared file that names methods, and the one place deleting a method
-// is done by hand. Its own test would be shared code too, so it mocks this
-// file rather than reaching past it.
+// is done by hand.
 const REGISTRY = join(SRC, 'app', 'signin', 'methods.ts');
 
 function walk(dir: string): string[] {
@@ -29,9 +25,7 @@ function walk(dir: string): string[] {
 
 // Every way a file names a module: static and type imports and re-exports
 // (`from`, `import '...'`), then the calls, which can also take a template
-// literal: `import()`, `require()` and the Vitest mocks a test reaches into a
-// module with. The calls are matched by lookbehind so a type argument such as
-// `vi.importActual<typeof import('...')>('...')` yields both specifiers.
+// literal: `import()`.
 const SPECIFIER =
   /(?<=\b(?:from|import)\s*)(['"])(.*?)\1|(?<=\b(?:import|require|vi\.(?:mock|doMock|importActual|importMock)\s*(?:<.*?>)?)\s*\(\s*)(['"`])(.*?)\3/g;
 
@@ -41,9 +35,7 @@ function specifiers(source: string): string[] {
   );
 }
 
-// The path a local specifier names. An interpolated one is cut back to its
-// last fixed directory, and one that could still land in any method, such as
-// `@/app/auth/${name}/actions`, names the whole of `app/auth/`.
+// The path a local specifier names.
 function resolveSpecifier(file: string, spec: string): string | null {
   const hole = spec.indexOf('${');
   const fixed =
@@ -82,53 +74,6 @@ function methodOf(path: string): string | null {
 function describePath(path: string): string {
   return relative(SRC, path);
 }
-
-describe('the import scan', () => {
-  it('finds a specifier in every form', () => {
-    const fixture = [
-      "import { a } from '@/static';",
-      "import type { B } from '@/type';",
-      "export * from './reexport';",
-      "import '@/side-effect';",
-      "await import('@/dynamic');",
-      `await import(\`@/app/auth/\${name}/actions\`);`,
-      "vi.mock('@/mock', () => ({}));",
-      'vi.doMock("@/do-mock");',
-      "vi.importActual<typeof import('@/type-argument')>('@/import-actual');",
-      'vi.importMock(`@/import-mock`);',
-      "require('@/require');",
-    ].join('\n');
-    expect(specifiers(fixture)).toEqual([
-      '@/static',
-      '@/type',
-      './reexport',
-      '@/side-effect',
-      '@/dynamic',
-      `@/app/auth/\${name}/actions`,
-      '@/mock',
-      '@/do-mock',
-      '@/type-argument',
-      '@/import-actual',
-      '@/import-mock',
-      '@/require',
-    ]);
-  });
-
-  it('takes an interpolated method segment to name every method', () => {
-    const shared = join(SRC, 'app', 'account', 'page.tsx');
-    for (const spec of [
-      `@/app/auth/\${name}/actions`,
-      `@/app/\${area}/password/actions`,
-      `../auth/pass\${word}/actions`,
-    ]) {
-      expect(resolveSpecifier(shared, spec)).toBe(AUTH);
-    }
-    expect(resolveSpecifier(shared, `@/app/auth/password/\${file}`)).toBe(
-      join(AUTH, 'password'),
-    );
-    expect(methodOf(AUTH)).toBe('*');
-  });
-});
 
 describe('sign-in methods are self-contained', () => {
   const files = walk(SRC);

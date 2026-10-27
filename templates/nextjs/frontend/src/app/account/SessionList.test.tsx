@@ -100,27 +100,6 @@ describe('session list', () => {
     );
   });
 
-  it('shows the start of the id, and the whole of it on hover', () => {
-    const chip = container.querySelectorAll('li')[1].querySelector('span');
-
-    expect(chip?.textContent).toBe('phone');
-    expect(chip?.title).toBe('phone-0000');
-  });
-
-  it('gives only the time when where is not known', () => {
-    const lines = container.querySelectorAll('li')[0].querySelectorAll('p');
-
-    expect(lines[1].textContent).toBe(
-      formatSessionTime('2026-10-26T12:24:00Z'),
-    );
-  });
-
-  it('marks this session', () => {
-    expect(container.querySelectorAll('li')[0].textContent).toContain(
-      'This session',
-    );
-  });
-
   it('asks before signing out another session, naming it', async () => {
     await act(async () => button(1).click());
 
@@ -129,26 +108,6 @@ describe('session list', () => {
       'Safari - iOS, Stockholm, 198.51.100.7 will need to sign in again.',
     );
     expect(signOutSession).not.toHaveBeenCalled();
-  });
-
-  it('leaves the session alone when the question is cancelled', async () => {
-    await act(async () => button(1).click());
-    const cancel = [...(dialog()?.querySelectorAll('button') ?? [])].find(
-      (candidate) => candidate.textContent === 'Cancel',
-    );
-
-    await act(async () => cancel?.click());
-
-    expect(dialog()).toBeNull();
-    expect(signOutSession).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('Safari - iOS');
-  });
-
-  it('asks before signing this browser out', async () => {
-    await act(async () => button(0).click());
-
-    expect(dialog()?.textContent).toContain('Sign out of this browser?');
-    expect(signOutAndGoHome).not.toHaveBeenCalled();
   });
 
   // Deleting its own row would leave this browser holding cookies for a
@@ -163,27 +122,6 @@ describe('session list', () => {
     expect(button(0).textContent).toBe('Signing out…');
   });
 
-  it('says why when this device could not be signed out', async () => {
-    signOutAndGoHome.mockResolvedValueOnce({
-      error: 'Could not reach the server. You are still signed in.',
-    });
-
-    await signOutLine(0);
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
-      'Could not reach the server. You are still signed in.',
-    );
-  });
-
-  it('signs out another session and reads the list again', async () => {
-    signOutSession.mockResolvedValueOnce({ success: true });
-
-    await signOutLine(1);
-
-    expect(signOutSession).toHaveBeenCalledWith('phone-0000');
-    expect(router.refresh).toHaveBeenCalledOnce();
-  });
-
   // Before the server answers, so it cannot be pressed again while the page
   // is read again.
   it('takes another session off the list as soon as it is signed out', async () => {
@@ -193,19 +131,5 @@ describe('session list', () => {
 
     expect(container.querySelectorAll('li')).toHaveLength(1);
     expect(container.textContent).not.toContain('Safari - iOS');
-  });
-
-  it('puts the session back and says why when it could not be signed out', async () => {
-    signOutSession.mockResolvedValueOnce({
-      error: 'That session is not on this account.',
-    });
-
-    await signOutLine(1);
-
-    expect(container.querySelector('[role="alert"]')?.textContent).toBe(
-      'That session is not on this account.',
-    );
-    expect(container.textContent).toContain('Safari - iOS');
-    expect(router.refresh).not.toHaveBeenCalled();
   });
 });

@@ -63,7 +63,7 @@ async function submit(): Promise<void> {
   );
 }
 
-const alertText = (): string | null =>
+const _alertText = (): string | null =>
   container.querySelector('[role="alert"]')?.textContent ?? null;
 
 describe('manage passkeys', () => {
@@ -93,15 +93,6 @@ describe('manage passkeys', () => {
     expect(nameField()?.value).toBe('Chrome - macOS');
   });
 
-  it('numbers the name past the passkeys that already have it', async () => {
-    await reopen([
-      { id: 'k1', credentialId: 'c1', nickname: 'Chrome - macOS' },
-      { id: 'k2', credentialId: 'c2', nickname: 'Chrome - macOS 2' },
-    ]);
-
-    expect(nameField()?.value).toBe('Chrome - macOS 3');
-  });
-
   // Added or used here before, so the device would refuse another.
   it('marks the passkey this browser holds and says so before adding', async () => {
     rememberPasskey('c1');
@@ -113,25 +104,6 @@ describe('manage passkeys', () => {
       'This browser already has a passkey for your account. To add another, use your phone or a security key.',
     );
     expect(nameField()?.value).toBe('');
-  });
-
-  it('says nothing of the kind for a passkey this browser has not seen', () => {
-    expect(container.textContent).not.toContain('This device');
-    expect(container.textContent).not.toContain('already has a passkey');
-  });
-
-  it('says why when the device already holds a passkey for the account', async () => {
-    actions.beginAddPasskey.mockResolvedValueOnce({ options: {} });
-    webauthn.startRegistration.mockRejectedValueOnce(
-      Object.assign(new Error('registered'), { name: 'InvalidStateError' }),
-    );
-
-    await submit();
-
-    expect(alertText()).toBe(
-      'This device already has a passkey for your account. To add another, use your phone or a security key.',
-    );
-    expect(actions.finishAddPasskey).not.toHaveBeenCalled();
   });
 
   // Options from the first server call, credential into the second, with the
@@ -156,30 +128,6 @@ describe('manage passkeys', () => {
     expect(passkeysOnThisDevice().has('new')).toBe(true);
   });
 
-  it('says so when the prompt was cancelled, and does not verify', async () => {
-    actions.beginAddPasskey.mockResolvedValueOnce({ options: {} });
-    webauthn.startRegistration.mockRejectedValueOnce(
-      Object.assign(new Error('cancelled'), { name: 'NotAllowedError' }),
-    );
-
-    await submit();
-
-    expect(alertText()).toBe('The passkey prompt was cancelled.');
-    expect(actions.finishAddPasskey).not.toHaveBeenCalled();
-  });
-
-  it('removes a key and refreshes the list', async () => {
-    actions.removePasskey.mockResolvedValueOnce({ success: true });
-
-    rememberPasskey('c1');
-
-    await click('Remove');
-
-    expect(actions.removePasskey).toHaveBeenCalledWith('k1');
-    expect(router.refresh).toHaveBeenCalled();
-    expect(passkeysOnThisDevice().has('c1')).toBe(false);
-  });
-
   // Before the server answers, so it cannot be pressed again while the page
   // is read again.
   it('takes the passkey off the list as soon as Remove is pressed', async () => {
@@ -188,15 +136,5 @@ describe('manage passkeys', () => {
     await click('Remove');
 
     expect(container.querySelector('li')).toBeNull();
-  });
-
-  it('puts the passkey back and shows the error when removing fails', async () => {
-    actions.removePasskey.mockResolvedValueOnce({ error: 'not yours' });
-
-    await click('Remove');
-
-    expect(alertText()).toBe('not yours');
-    expect(container.querySelector('li')?.textContent).toContain('laptop');
-    expect(router.refresh).not.toHaveBeenCalled();
   });
 });

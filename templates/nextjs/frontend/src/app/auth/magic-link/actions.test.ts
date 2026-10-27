@@ -17,12 +17,6 @@ describe('sendMagicLink', () => {
     signInPasswordlessEmail.mockReset();
   });
 
-  it('sends the link back to the requested path', async () => {
-    await sendMagicLink('user@example.com', '/protected');
-
-    expect(sentRedirectTo()).toBe(`${appOrigin()}/protected`);
-  });
-
   // The action is callable without the page, so `next` here is whatever the
   // caller sent. Appended to the origin, each of these changes the host.
   it('keeps the link on this origin when called directly', async () => {

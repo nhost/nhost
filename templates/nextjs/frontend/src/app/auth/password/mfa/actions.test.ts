@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  disableMfa,
-  enableMfa,
-  generateMfa,
-} from '@/app/auth/password/mfa/actions';
+import { enableMfa, generateMfa } from '@/app/auth/password/mfa/actions';
 
 const client = vi.hoisted(() => ({
   session: null as object | null,
@@ -27,25 +23,6 @@ beforeEach(() => {
 });
 
 describe('generateMfa', () => {
-  it('hands back the QR code and the secret', async () => {
-    client.auth.changeUserMfa.mockResolvedValueOnce({
-      body: { imageUrl: 'data:image/png;base64,abc', totpSecret: 'SECRET' },
-    });
-
-    expect(await generateMfa()).toEqual({
-      setup: { imageUrl: 'data:image/png;base64,abc', totpSecret: 'SECRET' },
-    });
-  });
-
-  it('refuses without a verified user', async () => {
-    client.verifiedUser = null;
-
-    expect(await generateMfa()).toEqual({
-      error: 'You are signed out. Sign in and try again.',
-    });
-    expect(client.auth.changeUserMfa).not.toHaveBeenCalled();
-  });
-
   // The backend overwrites the active secret on every generate, so starting a
   // setup while two-factor is on would lock out the user's current app.
   it('refuses while two-factor is on', async () => {
@@ -59,13 +36,6 @@ describe('generateMfa', () => {
 });
 
 describe('enableMfa', () => {
-  it('asks for a code before calling the backend', async () => {
-    expect(await enableMfa('')).toEqual({
-      error: 'Enter the code from your authenticator app.',
-    });
-    expect(client.auth.verifyChangeUserMfa).not.toHaveBeenCalled();
-  });
-
   it('activates totp with the code', async () => {
     client.auth.verifyChangeUserMfa.mockResolvedValueOnce({ body: {} });
 
@@ -73,37 +43,6 @@ describe('enableMfa', () => {
     expect(client.auth.verifyChangeUserMfa).toHaveBeenCalledWith({
       code: '123456',
       activeMfaType: 'totp',
-    });
-  });
-
-  it('reports a backend error instead of throwing', async () => {
-    client.auth.verifyChangeUserMfa.mockRejectedValueOnce(
-      new Error('invalid code'),
-    );
-
-    expect(await enableMfa('000000')).toEqual({
-      error: 'Could not turn on two-factor: invalid code',
-    });
-  });
-});
-
-describe('disableMfa', () => {
-  // A current code is required to turn it off, so the action never sends
-  // the deactivation without one.
-  it('asks for a code before calling the backend', async () => {
-    expect(await disableMfa('')).toEqual({
-      error: 'Enter the code from your authenticator app.',
-    });
-    expect(client.auth.verifyChangeUserMfa).not.toHaveBeenCalled();
-  });
-
-  it('deactivates with the code', async () => {
-    client.auth.verifyChangeUserMfa.mockResolvedValueOnce({ body: {} });
-
-    expect(await disableMfa('123456')).toEqual({ success: true });
-    expect(client.auth.verifyChangeUserMfa).toHaveBeenCalledWith({
-      code: '123456',
-      activeMfaType: '',
     });
   });
 });

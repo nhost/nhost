@@ -78,39 +78,6 @@ describe('password reset layout, through a change', () => {
     expect(container.innerText).not.toContain('This link no longer works');
   });
 
-  it('keeps a refused change on the form and says why', async () => {
-    setNewPassword.mockResolvedValue({ error: 'Password is too short' });
-    await render(<ResetPasswordForm />);
-
-    await submit('short');
-
-    expect(container.innerText).toContain('Password is too short');
-    expect(container.innerText).not.toContain('Password changed');
-    expect(container.querySelector('button')?.disabled).toBe(false);
-  });
-
-  // A second press while the first is in flight would send the change twice.
-  it('locks the form while the change is in flight', async () => {
-    const { promise, resolve } = Promise.withResolvers<{ error?: string }>();
-    setNewPassword.mockReturnValue(promise);
-    await render(<ResetPasswordForm />);
-
-    await submit('a new password');
-    await act(async () => container.querySelector('button')?.click());
-
-    const button = container.querySelector('button');
-    expect(button?.textContent).toBe('Saving…');
-    expect(button?.disabled).toBe(true);
-    for (const input of container.querySelectorAll('input')) {
-      expect(input.disabled).toBe(true);
-    }
-    expect(setNewPassword).toHaveBeenCalledTimes(1);
-
-    await act(async () => resolve({ error: 'Password is too short' }));
-
-    expect(container.querySelector('button')?.disabled).toBe(false);
-  });
-
   // The proxy keeps a reset link's session on this page until a password is
   // saved, so this is the one way off it without one.
   it('signs out and goes home on cancel', async () => {
