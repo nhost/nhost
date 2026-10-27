@@ -21,7 +21,7 @@ function TimezoneSettings({ dateTime, timezone, onTimezoneChange }: Props) {
         onTimezoneSelect={(tz) => onTimezoneChange(tz.value)}
         button={
           <Button
-            variant="ghost"
+            variant="subtle"
             size="icon"
             aria-label="Open timezone settings"
             data-testid="timezoneSettingsButton"

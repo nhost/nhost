@@ -81,7 +81,7 @@ export default function FieldToColumnMapSelector({
           <div className="col-span-1" />
           <span className="col-span-3">Reference Column</span>
           <Button
-            variant="ghost"
+            variant="subtle"
             size="icon"
             className="col-span-1"
             aria-label="Add field mapping"
@@ -101,9 +101,8 @@ export default function FieldToColumnMapSelector({
 
             <div className="col-span-1 flex h-9 items-center self-start">
               <Button
-                className="text-destructive hover:text-destructive"
                 aria-label="Remove field mapping"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 onClick={() => remove(index)}
               >

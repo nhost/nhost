@@ -5,6 +5,7 @@ import {
 } from '@/components/layout/SettingsCard';
 import {
   AlertDialog,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
@@ -123,15 +124,9 @@ export default function DeleteAccount() {
                 Delete
               </ButtonWithLoading>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-                disabled={loadingRemove}
-                className="w-full"
-              >
+              <AlertDialogCancel disabled={loadingRemove} className="w-full">
                 Cancel
-              </Button>
+              </AlertDialogCancel>
             </div>
           </AlertDialogContent>
         </AlertDialog>

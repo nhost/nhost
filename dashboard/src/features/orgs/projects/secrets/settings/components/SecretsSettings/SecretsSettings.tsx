@@ -178,7 +178,7 @@ export default function SecretsSettings() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             className="absolute top-1/2 right-4 -translate-y-1/2"
                           >
@@ -186,9 +186,9 @@ export default function SecretsSettings() {
                           </Button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem
-                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2"
                             onClick={() => {
                               setOpenActionMenuSecret(undefined);
                               handleOpenEditor(secret);
@@ -202,7 +202,7 @@ export default function SecretsSettings() {
                               setOpenActionMenuSecret(undefined);
                               handleConfirmDelete(secret);
                             }}
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                           >
                             <span>Delete</span>
                           </DropdownMenuItem>

@@ -72,7 +72,7 @@ export default function PortsFormSection() {
           </InfoTooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add port"
           onClick={() => append({ port: null, type: null, publish: false })}
@@ -145,9 +145,8 @@ export default function PortsFormSection() {
                   <Label htmlFor={`${field.id}-publish`}>Publish</Label>
                 </div>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
-                  className="text-destructive hover:text-destructive"
                   aria-label="Remove port"
                   onClick={() => remove(index)}
                 >

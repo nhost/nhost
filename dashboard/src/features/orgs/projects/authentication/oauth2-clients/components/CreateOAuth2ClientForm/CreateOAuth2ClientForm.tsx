@@ -35,8 +35,8 @@ export interface CreateOAuth2ClientFormProps extends DialogFormProps {
 const DEFAULT_SCOPES = new Set(['openid', 'profile', 'email']);
 
 const validationSchema = z.object({
-  description: z.string().default(''),
-  redirectUris: z.string().default(''),
+  description: z.string(),
+  redirectUris: z.string(),
 });
 
 type CreateOAuth2ClientFormValues = z.infer<typeof validationSchema>;

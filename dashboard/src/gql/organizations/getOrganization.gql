@@ -9,7 +9,6 @@ query getOrganization($orgSlug: String!) {
       name
       price
       deprecated
-      individual
       isFree
       featureMaxDbSize
     }
