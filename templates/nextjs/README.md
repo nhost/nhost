@@ -1,8 +1,7 @@
 # Nhost + Next.js starter
 
-Next.js app with server-side Nhost auth: five sign-in methods and an account
-page. The backend config runs locally and deploys to Nhost Cloud unchanged; the
-frontend deploys to Vercel.
+Scaffold for a Next.js app with server-side Nhost auth: five sign-in methods and
+an account page.
 
 | Path | Contents |
 | --- | --- |
@@ -21,8 +20,6 @@ cd frontend && pnpm install && pnpm dev
 In `frontend/`: `pnpm lint` (Biome), `pnpm format`, `pnpm test` (Vitest),
 `pnpm build`.
 
-- The frontend targets the local stack by default; `frontend/.env.example` only
-  matters for a real project.
 - Open `http://localhost:3000`, not `127.0.0.1`: passkeys are bound to
   `WEBAUTHN_RP_ID=localhost`.
 - `.secrets` is gitignored. Keep it that way once it holds anything real.
@@ -43,50 +40,23 @@ Registered in `frontend/src/app/signin/methods.ts`, one directory each under
 
 ### Enabling OAuth
 
-1. Register an OAuth app with the provider. Callback URL:
-   `https://local.auth.local.nhost.run/v1/signin/provider/<github|google>/callback`
-   locally, `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/<github|google>/callback`
-   in the cloud.
-2. Set its client id and secret: in `.secrets` locally, with
-   `nhost secrets update` in the cloud.
+1. Register an OAuth app with the provider, with callback URL
+   `https://local.auth.local.nhost.run/v1/signin/provider/<github|google>/callback`.
+2. Put its client id and secret in `.secrets`.
 3. Set `enabled = true` on the provider in `nhost/nhost.toml` and restart
    `nhost up`.
-4. Add it to `NHOST_OAUTH_PROVIDERS` (e.g. `github,google`): in
-   `frontend/.env.local` locally, as a project env var on Vercel. Restart or
-   redeploy.
+4. Add it to `NHOST_OAUTH_PROVIDERS` (e.g. `github,google`) in
+   `frontend/.env.local` and restart `pnpm dev`.
 
-`NHOST_OAUTH_PROVIDERS` is how the frontend knows which buttons work; it can't
-read the backend config. It is server-only and read per request. It also adds
-the Linked accounts row to the account page; linking reuses the sign-in
-callback URL. A provider can't be unlinked when it is the account's only way
-in.
-
-## Deploy
-
-| Where | Variable | Notes |
-| --- | --- | --- |
-| Backend secrets | `APP_ORIGIN` | Frontend origin; auth only redirects here |
-| | `WEBAUTHN_RP_ID` | Frontend hostname; passkeys are bound to it |
-| | `GITHUB_*`, `GOOGLE_*` | Must exist because `nhost.toml` references them; `fixme` until enabled |
-| Frontend, build time | `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` | Unset means the local stack |
-| | `NEXT_PUBLIC_APP_ORIGIN` | Must equal `APP_ORIGIN`. Optional on Vercel, which falls back to the production domain |
-| | `NEXT_PUBLIC_NHOST_ORG_SLUG` | Optional. The part after `/orgs/` in the dashboard URL; makes the footer link open the project directly |
-| Frontend, runtime | `NHOST_OAUTH_PROVIDERS` | See [Enabling OAuth](#enabling-oauth) |
-
-```sh
-nhost secrets create APP_ORIGIN https://myapp.example.com
-nhost secrets create WEBAUTHN_RP_ID myapp.example.com
-```
-
-`NEXT_PUBLIC_*` values are inlined at build time and are public. They can live in
-a committed `frontend/.env.production` once `frontend/.gitignore` stops ignoring
-it; nothing secret goes there.
+The frontend can't read the backend config, so `NHOST_OAUTH_PROVIDERS` decides
+which provider buttons and Linked accounts rows show. Linking reuses the
+sign-in callback URL. A provider can't be unlinked when it is the account's
+only way in.
 
 ## Backend config
 
-- `nhost/metadata/` is the full Hasura export `nhost up` writes, as in the
-  example backends under `examples/`. Exports carry no comments, so
-  [Permissions](#permissions) is the record of why.
+- `nhost/metadata/` is the full Hasura export `nhost up` writes. Exports carry
+  no comments, so [Permissions](#permissions) is the record of why.
 - `nhost/emails/` has only `en`, the one allowed locale. `signin-otp` differs
   from the `nhost init` default: its body links `${redirectTo}` (the code page)
   and its subject is fixed. A new locale needs its templates and the same two
@@ -161,15 +131,16 @@ What the code relies on. Read before refactoring.
 
 ### Sessions list
 
-- Auth records nothing about a session's device, so the proxy writes
-  `metadata` on change or every 5 minutes:
-  - IP from `x-real-ip` / `x-forwarded-for`
-  - device from the user agent
-  - location from the geo headers Vercel or Cloudflare add (none elsewhere;
+- The proxy writes each session's `metadata` when it changes, at most every
+  5 minutes otherwise:
+  - IP address, from `x-real-ip` or `x-forwarded-for`
+  - browser and OS, from the user agent
+  - location, from the geo headers Vercel or Cloudflare add (none elsewhere;
     Cloudflare sends city and region only with visitor location headers on)
-  - `seenAt`
+  - last seen time
 - Users can write their own `metadata`, so it is a record, not an audit log.
-  On a host without a trusted proxy the IP is whatever the client claims.
+  On a host without a trusted proxy, the IP address is whatever the client
+  claims.
 - Sign-out deletes the row, but its access token lives 15 minutes. The proxy
   checks the row on each navigation, and idle tabs recheck on focus, at most
   every 5 minutes.
@@ -179,8 +150,6 @@ What the code relies on. Read before refactoring.
 - Password change: auth revokes every session. The action signs this browser
   back in (new password, plus TOTP if on). Accounts without an email get a
   replacement card instead (`ReplacePageLayout`).
-- Sign-out: one request, a server action that redirects home via
-  `useActionState`.
 - Passkeys: a device refuses a second passkey for the same account. Local
   storage remembers passkeys used in this browser to warn before Add.
 - Avatar:
@@ -198,12 +167,22 @@ What the code relies on. Read before refactoring.
 
 ### UI
 
-- "Last used" badge: a method's page records an attempt; the first signed-in
-  response keeps it.
 - `staleTimes.dynamic` is 30 s. Signing in or out clears it, and account
   changes refresh.
 - Toasts render in a top-layer popover to sit above modal dialogs. A modal
   makes the popover inert, so `Dialog` repeats the toast in a hidden status
   region for screen readers.
-- `useRemoved` drops removed items before the refresh lands, so slow backends
-  can't double-submit.
+
+## Deploying
+
+The config deploys unchanged; only secrets and env vars differ.
+
+- Backend: set `APP_ORIGIN` (the frontend origin) and `WEBAUTHN_RP_ID` (its
+  hostname) with `nhost secrets create`. The four OAuth secrets must exist
+  (`fixme` is fine until enabled).
+- Frontend: set `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` and
+  `NEXT_PUBLIC_APP_ORIGIN` (equal to `APP_ORIGIN`) before `next build`.
+  `frontend/.env.example` documents each variable.
+- OAuth: the same steps, with callback URL
+  `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/<github|google>/callback`
+  and credentials set with `nhost secrets`.
