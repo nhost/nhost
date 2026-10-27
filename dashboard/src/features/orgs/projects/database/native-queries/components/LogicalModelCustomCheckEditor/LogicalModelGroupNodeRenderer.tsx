@@ -147,9 +147,8 @@ export default function LogicalModelGroupNodeRenderer({
                 </span>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
-                  className="text-destructive"
                   onClick={() => remove(index)}
                   aria-label="Delete nested field"
                 >

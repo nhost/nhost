@@ -438,7 +438,7 @@ export default function ResourcesForm() {
         />
       ),
       props: {
-        titleProps: { className: 'justify-center pb-1' },
+        titleProps: { className: 'pb-1' },
       },
     });
   }
@@ -446,7 +446,7 @@ export default function ResourcesForm() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleConfirm}>
-        <SettingsCard>
+        <SettingsCard className="pb-0">
           <SettingsCardHeader
             title="Compute Resources"
             description="Customize CPU and memory for the services in your project."
@@ -558,7 +558,7 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
         />
       </TabsContent>
 
-      <div className="border-t bg-muted/30">
+      <div className="border-t bg-accent/40 dark:bg-muted/30">
         <CostSummary initialCost={initialPrice} />
       </div>
 

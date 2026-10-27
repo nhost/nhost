@@ -21,9 +21,8 @@ export default function InvalidNodeRenderer({
       {onRemove && (
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
-          className="text-destructive"
           onClick={onRemove}
           aria-label="Delete invalid rule"
         >

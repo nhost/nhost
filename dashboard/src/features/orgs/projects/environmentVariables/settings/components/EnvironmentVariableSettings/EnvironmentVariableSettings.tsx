@@ -120,7 +120,7 @@ export default function EnvironmentVariableSettings() {
       component: <CreateEnvironmentVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -136,7 +136,7 @@ export default function EnvironmentVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -189,7 +189,7 @@ export default function EnvironmentVariableSettings() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             className="absolute top-1/2 right-4 -translate-y-1/2"
                           >

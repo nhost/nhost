@@ -1,19 +1,32 @@
-import { clsx } from 'clsx';
 import { Copy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/v3/button';
-import { isNotEmptyValue } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 
+// The copy button. Icon only, it is the subtle icon button (32 by 32) with a
+// "Copy <title>" tooltip. With children it is an outline Button with the copy
+// icon and the label.
 function CopyToClipboardButton({
   textToCopy,
   className,
   title,
+  children,
   ...props
 }: {
   textToCopy?: string | null;
+  /**
+   * Name of the copied value (e.g. "Handler URL"). Used in the "Copy <title>"
+   * tooltip and accessible name, and in the "<title> copied to clipboard"
+   * toast.
+   */
   title: string;
-} & ButtonProps) {
+} & Omit<ButtonProps, 'variant' | 'size'>) {
   const [disabled, setDisabled] = useState(true);
 
   useEffect(() => {
@@ -32,31 +45,40 @@ function CopyToClipboardButton({
   if (!textToCopy || disabled) {
     return null;
   }
-  const hasChildren = isNotEmptyValue(props.children);
 
-  return (
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    // Inside a link, a click that isn't default-prevented also follows it.
+    event.preventDefault();
+    event.stopPropagation();
+
+    copy(textToCopy, title);
+  };
+
+  const hasLabel = isNotEmptyValue(children);
+  const label = `Copy ${title}`;
+
+  const button = (
     <Button
-      type="button"
-      size="icon"
-      variant="outline"
-      className={clsx(
-        'group h-fit w-fit border-0 bg-transparent p-[2px] hover:brightness-75 dark:hover:bg-[#1e2942] dark:hover:brightness-100',
-        className,
-        { 'gap-3': hasChildren },
-      )}
-      onClick={(event) => {
-        // Inside a link, a click that isn't default-prevented also follows it.
-        event.preventDefault();
-        event.stopPropagation();
-
-        copy(textToCopy, title);
-      }}
-      aria-label={textToCopy}
+      variant={hasLabel ? 'outline' : 'subtle'}
+      className={cn({ 'shrink-0': !hasLabel }, className)}
+      onClick={handleClick}
+      aria-label={label}
       {...props}
     >
-      {props.children}
-      <Copy className="top-5 h-4 w-4" />
+      <Copy className={cn({ 'mr-2': hasLabel })} />
+      {children}
     </Button>
+  );
+
+  if (hasLabel) {
+    return button;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }
 export default CopyToClipboardButton;

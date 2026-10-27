@@ -39,6 +39,7 @@ export interface RateLimitingFormProps {
   defaultValues: RateLimitDefaultValues;
   serviceName: keyof ConfigConfigUpdateInput;
   title: string;
+  description?: string;
   loading: boolean;
 }
 
@@ -48,6 +49,7 @@ export default function RateLimitingForm({
   defaultValues,
   serviceName,
   title,
+  description,
   loading,
 }: RateLimitingFormProps) {
   const { project } = useProject();
@@ -138,12 +140,13 @@ export default function RateLimitingForm({
       >
         <SettingsCard>
           <SettingsCardHeader
-            title={title}
+            title="Rate limiting"
+            description={description}
             control={
               <FormSwitch
                 control={form.control}
                 name="enabled"
-                label={`Toggle ${title}`}
+                label={`Toggle ${title} rate limiting`}
                 labelClassName="sr-only"
                 containerClassName="space-y-0"
               />
@@ -151,7 +154,6 @@ export default function RateLimitingForm({
           />
 
           <SettingsCardContent className="flex flex-col px-0">
-            <div className="border-t" />
             <RateLimitField disabled={!enabled} id="rateLimit" />
           </SettingsCardContent>
 

@@ -44,7 +44,14 @@ const SettingsCardHeader = React.forwardRef<
       )}
       {...props}
     >
-      <div className="flex min-w-0 flex-1 gap-4">
+      {/* With a control or actions on the right, the description stops at a
+          readable width instead of running into them. */}
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 gap-4',
+          Boolean(control || actions) && 'sm:max-w-lg',
+        )}
+      >
         {typeof icon === 'string' ? (
           <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
             <Image src={icon} alt="" width={32} height={32} />
@@ -53,7 +60,7 @@ const SettingsCardHeader = React.forwardRef<
           icon
         )}
 
-        <div className="grid min-w-0 grid-flow-row gap-1">
+        <div className="grid min-w-0 grid-flow-row gap-0.5">
           {typeof title === 'string' ? (
             <h3 className="font-semibold text-lg">{title}</h3>
           ) : (

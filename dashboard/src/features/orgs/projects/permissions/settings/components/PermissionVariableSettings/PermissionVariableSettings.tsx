@@ -119,7 +119,7 @@ export default function PermissionVariableSettings() {
       component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -135,7 +135,7 @@ export default function PermissionVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -185,7 +185,7 @@ export default function PermissionVariableSettings() {
                         <span className="absolute top-1/2 right-4 inline-flex -translate-y-1/2">
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             disabled
                           >
@@ -202,7 +202,7 @@ export default function PermissionVariableSettings() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >

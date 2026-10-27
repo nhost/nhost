@@ -99,10 +99,10 @@ export default function HasuraDevModeSettings() {
         }
       },
       {
-        loadingMessage: 'Dev Mode settings are being updated...',
-        successMessage: 'Dev Mode settings have been updated successfully.',
+        loadingMessage: 'Dev mode settings are being updated...',
+        successMessage: 'Dev mode settings have been updated successfully.',
         errorMessage:
-          'An error occurred while trying to update Dev Mode settings.',
+          'An error occurred while trying to update dev mode settings.',
       },
     );
   }
@@ -113,7 +113,7 @@ export default function HasuraDevModeSettings() {
         <SettingsCard>
           <SettingsCardHeader
             title="Dev Mode"
-            description="Enable or disable Dev Mode."
+            description="Enable or disable dev mode."
             control={
               <FormField
                 control={form.control}
@@ -122,7 +122,7 @@ export default function HasuraDevModeSettings() {
                   <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    aria-label="Toggle Dev Mode"
+                    aria-label="Toggle dev mode"
                   />
                 )}
               />

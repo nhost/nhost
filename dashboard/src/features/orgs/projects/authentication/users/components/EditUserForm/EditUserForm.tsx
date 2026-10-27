@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
-import { ChevronDownIcon, CopyIcon } from 'lucide-react';
+import { ChevronDownIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -13,6 +13,7 @@ import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -38,7 +39,6 @@ import {
 import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
 import { useThemePreference } from '@/providers/Theme';
 import type { DialogFormProps } from '@/types/common';
-import { copy } from '@/utils/copy';
 
 export interface EditUserFormProps extends DialogFormProps {
   /**
@@ -295,18 +295,7 @@ export default function EditUserForm({
             </p>
             <div className="col-span-3 grid grid-flow-col items-center justify-start gap-2">
               <p className="truncate font-medium text-foreground">{user.id}</p>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground"
-                aria-label="Copy User ID"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  copy(user.id, 'User ID');
-                }}
-              >
-                <CopyIcon className="h-4 w-4" />
-              </Button>
+              <CopyToClipboardButton textToCopy={user.id} title="User ID" />
             </div>
 
             <p className="col-span-1 self-center font-medium text-foreground text-sm leading-none">
