@@ -104,8 +104,7 @@ export default function AssistantsList({
 
           <CopyToClipboardButton
             textToCopy={assistant.assistantID}
-            title="Assistant Id"
-            tooltip="Copy ID"
+            title="Assistant ID"
             className="hidden md:inline-flex"
           />
 

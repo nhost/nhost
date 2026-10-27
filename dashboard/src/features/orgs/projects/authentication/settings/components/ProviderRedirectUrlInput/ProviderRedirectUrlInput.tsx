@@ -24,11 +24,7 @@ export default function ProviderRedirectUrlInput({
       <InputGroup className="bg-transparent dark:bg-transparent">
         <InputGroupInput id={id} value={value} disabled readOnly />
         <InputGroupAddon align="inline-end">
-          <CopyToClipboardButton
-            textToCopy={value}
-            title="Redirect URL"
-            tooltip="Copy URL"
-          />
+          <CopyToClipboardButton textToCopy={value} title="Redirect URL" />
         </InputGroupAddon>
       </InputGroup>
     </div>

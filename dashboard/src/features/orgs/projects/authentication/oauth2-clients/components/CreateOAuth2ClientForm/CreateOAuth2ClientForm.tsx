@@ -179,7 +179,6 @@ export default function CreateOAuth2ClientForm({
                 <CopyToClipboardButton
                   textToCopy={pendingSecret}
                   title="Client secret"
-                  tooltip="Copy secret"
                 />
               </InputGroupAddon>
             )}

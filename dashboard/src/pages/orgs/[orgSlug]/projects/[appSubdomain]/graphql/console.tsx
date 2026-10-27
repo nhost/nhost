@@ -84,7 +84,6 @@ function HasuraPageContent() {
                 <CopyToClipboardButton
                   textToCopy={projectAdminSecret}
                   title="Hasura admin secret"
-                  tooltip="Copy secret"
                 />
               </div>
             </div>

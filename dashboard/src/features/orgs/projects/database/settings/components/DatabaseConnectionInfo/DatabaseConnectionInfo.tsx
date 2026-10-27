@@ -205,7 +205,6 @@ export default function DatabaseConnectionInfo() {
                           <CopyToClipboardButton
                             textToCopy={inputValue as string}
                             title={label}
-                            tooltip={`Copy ${label.toLowerCase()}`}
                           />
                         </InputGroupAddon>
                       </InputGroup>

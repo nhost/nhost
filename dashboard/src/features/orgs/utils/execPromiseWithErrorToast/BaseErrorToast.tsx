@@ -97,7 +97,6 @@ export default function BaseErrorToast({
             <CopyToClipboardButton
               textToCopy={JSON.stringify(errorDetails, null, 2)}
               title="Error details"
-              tooltip="Copy details"
               className="absolute top-2 right-2"
             />
           </div>

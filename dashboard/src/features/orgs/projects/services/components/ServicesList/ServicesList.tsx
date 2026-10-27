@@ -119,8 +119,7 @@ export default function ServicesList({
                 </span>
                 <CopyToClipboardButton
                   textToCopy={serviceID}
-                  title="Service Id"
-                  tooltip="Copy ID"
+                  title="Service ID"
                 />
               </div>
             </div>

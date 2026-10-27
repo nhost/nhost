@@ -7,7 +7,7 @@ interface Props {
 function CopyMfaTOTPSecret({ totpSecret }: Props) {
   return (
     <CopyToClipboardButton textToCopy={totpSecret} title="TOTP secret">
-      OR Copy TOTP secret
+      Copy TOTP secret
     </CopyToClipboardButton>
   );
 }

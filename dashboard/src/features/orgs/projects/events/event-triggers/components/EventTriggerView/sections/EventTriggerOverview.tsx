@@ -92,7 +92,6 @@ export default function EventTriggerOverview({
                     : eventTrigger.webhook_from_env
                 }
                 title="Webhook URL"
-                tooltip="Copy webhook"
               />
             </div>
           </div>

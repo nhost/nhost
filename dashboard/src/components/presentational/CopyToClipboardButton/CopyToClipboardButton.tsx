@@ -10,25 +10,23 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 
 // The copy button. Icon only, it is the subtle icon button (32 by 32) with a
-// short tooltip ("Copy handler"). With children it is an outline Button with
-// the copy icon and the label.
+// "Copy <title>" tooltip. With children it is an outline Button with the copy
+// icon and the label.
 function CopyToClipboardButton({
   textToCopy,
   className,
   title,
-  tooltip,
   children,
   ...props
 }: {
   textToCopy?: string | null;
-  /** Name shown in the "<title> copied to clipboard" toast. */
-  title: string;
   /**
-   * Short tooltip, one to three words (e.g. "Copy handler"). Leave it out
-   * only when a parent already wraps the button in a tooltip.
+   * Name of the copied value (e.g. "Handler URL"). Used in the "Copy <title>"
+   * tooltip and accessible name, and in the "<title> copied to clipboard"
+   * toast.
    */
-  tooltip?: string;
-} & ButtonProps) {
+  title: string;
+} & Omit<ButtonProps, 'variant' | 'size'>) {
   const [disabled, setDisabled] = useState(true);
 
   useEffect(() => {
@@ -54,43 +52,30 @@ function CopyToClipboardButton({
     copy(textToCopy, title);
   };
 
-  if (isNotEmptyValue(children)) {
-    return (
-      <Button
-        type="button"
-        variant="outline"
-        className={className}
-        onClick={handleClick}
-        {...props}
-      >
-        <Copy className="mr-2 h-4 w-4" />
-        {children}
-      </Button>
-    );
-  }
+  const hasLabel = isNotEmptyValue(children);
+  const label = `Copy ${title}`;
 
   const button = (
     <Button
-      type="button"
-      variant="subtle"
-      size="icon-sm"
-      className={cn('shrink-0', className)}
+      variant={hasLabel ? 'outline' : 'subtle'}
+      className={cn({ 'shrink-0': !hasLabel }, className)}
       onClick={handleClick}
-      aria-label={tooltip ?? `Copy ${title}`}
+      aria-label={label}
       {...props}
     >
-      <Copy className="h-4 w-4" />
+      <Copy className={cn({ 'mr-2': hasLabel })} />
+      {children}
     </Button>
   );
 
-  if (!tooltip) {
+  if (hasLabel) {
     return button;
   }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent>{tooltip}</TooltipContent>
+      <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
 }

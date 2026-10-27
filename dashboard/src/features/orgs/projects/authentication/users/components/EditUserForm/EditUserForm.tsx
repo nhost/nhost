@@ -295,11 +295,7 @@ export default function EditUserForm({
             </p>
             <div className="col-span-3 grid grid-flow-col items-center justify-start gap-2">
               <p className="truncate font-medium text-foreground">{user.id}</p>
-              <CopyToClipboardButton
-                textToCopy={user.id}
-                title="User ID"
-                tooltip="Copy ID"
-              />
+              <CopyToClipboardButton textToCopy={user.id} title="User ID" />
             </div>
 
             <p className="col-span-1 self-center font-medium text-foreground text-sm leading-none">

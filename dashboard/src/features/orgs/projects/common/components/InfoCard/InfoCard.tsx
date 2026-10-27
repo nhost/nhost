@@ -38,11 +38,7 @@ export default function InfoCard({
   ...props
 }: InfoCardProps) {
   const copyButton = !disableCopy && (
-    <CopyToClipboardButton
-      textToCopy={value}
-      title={title}
-      tooltip={`Copy ${title.toLowerCase()}`}
-    />
+    <CopyToClipboardButton textToCopy={value} title={title} />
   );
 
   if (layout === 'stacked') {

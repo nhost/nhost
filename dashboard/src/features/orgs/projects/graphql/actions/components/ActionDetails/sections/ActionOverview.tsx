@@ -70,7 +70,6 @@ export default function ActionOverview({
             <CopyToClipboardButton
               textToCopy={action.definition.handler}
               title="Handler URL"
-              tooltip="Copy handler"
             />
           </div>
         </div>

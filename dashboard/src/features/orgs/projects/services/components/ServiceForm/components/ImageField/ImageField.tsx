@@ -65,18 +65,10 @@ export default function ImageField({
               className="max-w-[70%] justify-start font-normal"
             >
               {isExistingService && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex shrink-0">
-                      <CopyToClipboardButton
-                        aria-label="Copy registry"
-                        textToCopy={privateRegistryImage}
-                        title="Nhost registry"
-                      />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy registry</TooltipContent>
-                </Tooltip>
+                <CopyToClipboardButton
+                  textToCopy={privateRegistryImage}
+                  title="Nhost registry"
+                />
               )}
               <span className="min-w-0 truncate">{privateRegistryImage}:</span>
             </InputGroupAddon>

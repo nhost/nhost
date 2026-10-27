@@ -205,7 +205,6 @@ export default function EditOAuth2ClientForm({
             <CopyToClipboardButton
               textToCopy={oauth2Client.clientId}
               title="Client ID"
-              tooltip="Copy ID"
             />
           </div>
 
@@ -265,7 +264,6 @@ export default function EditOAuth2ClientForm({
                 <CopyToClipboardButton
                   textToCopy={pendingSecret}
                   title="Client secret"
-                  tooltip="Copy secret"
                 />
               </InputGroupAddon>
             )}

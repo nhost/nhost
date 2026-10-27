@@ -186,7 +186,6 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
               <CopyToClipboardButton
                 textToCopy={endpointUrl}
                 title="Endpoint URL"
-                tooltip="Copy endpoint"
                 className="ml-auto shrink-0"
               />
             </div>

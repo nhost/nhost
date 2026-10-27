@@ -94,8 +94,7 @@ export default function FileStoresList({
 
           <CopyToClipboardButton
             textToCopy={fileStore.id}
-            title="File Store Id"
-            tooltip="Copy ID"
+            title="File store ID"
             className="hidden md:inline-flex"
           />
 

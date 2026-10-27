@@ -95,7 +95,6 @@ export function createOneOffEventsDataTableColumns({
           <CopyToClipboardButton
             textToCopy={row.original.webhook_conf}
             title="Webhook"
-            tooltip="Copy webhook"
             className="opacity-0 group-hover/cell:opacity-100"
           />
         </div>
@@ -119,7 +118,6 @@ export function createOneOffEventsDataTableColumns({
           <CopyToClipboardButton
             textToCopy={row.original.id}
             title="ID"
-            tooltip="Copy ID"
             className="opacity-0 group-hover/cell:opacity-100"
           />
         </div>

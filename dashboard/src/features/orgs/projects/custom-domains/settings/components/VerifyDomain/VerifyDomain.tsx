@@ -119,11 +119,7 @@ export default function VerifyDomain({
           {isPlatform ? (
             <>
               <p className="font-bold">{value}</p>
-              <CopyToClipboardButton
-                textToCopy={value}
-                title="CNAME Value"
-                tooltip="Copy value"
-              />
+              <CopyToClipboardButton textToCopy={value} title="CNAME value" />
             </>
           ) : null}
         </div>

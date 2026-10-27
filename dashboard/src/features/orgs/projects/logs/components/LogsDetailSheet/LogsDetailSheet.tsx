@@ -87,7 +87,6 @@ export default function LogsDetailSheet({
               <CopyToClipboardButton
                 textToCopy={formatted}
                 title="Log"
-                tooltip="Copy log"
                 className="absolute top-2 right-2 z-10"
               />
               <pre className="h-full overflow-auto whitespace-pre-wrap break-words rounded border border-divider bg-muted p-3 pr-12 font-mono text-base text-foreground">

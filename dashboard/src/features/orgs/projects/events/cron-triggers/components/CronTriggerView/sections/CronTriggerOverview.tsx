@@ -84,7 +84,6 @@ export default function CronTriggerOverview({
               <CopyToClipboardButton
                 textToCopy={cronTrigger.webhook}
                 title="Webhook URL"
-                tooltip="Copy webhook"
               />
             </div>
           </div>

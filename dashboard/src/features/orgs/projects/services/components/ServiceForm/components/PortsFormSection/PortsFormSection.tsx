@@ -160,11 +160,7 @@ export default function PortsFormSection() {
                     <p className="text-muted-foreground text-xs">URL</p>
                     <p className="truncate font-mono text-sm">{url}</p>
                   </div>
-                  <CopyToClipboardButton
-                    textToCopy={url}
-                    title="URL"
-                    tooltip="Copy URL"
-                  />
+                  <CopyToClipboardButton textToCopy={url} title="URL" />
                 </div>
               )}
             </div>

@@ -24,7 +24,6 @@ export default function CreatedPATAlert({
         <CopyToClipboardButton
           textToCopy={personalAccessToken}
           title="Personal access token"
-          tooltip="Copy token"
         />
       </div>
     </Alert>

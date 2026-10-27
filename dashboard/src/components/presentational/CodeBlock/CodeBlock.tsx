@@ -4,13 +4,14 @@ import {
   type ReactElement,
 } from 'react';
 import { getNodeText } from '@/components/presentational/CodeBlock/getNodeText';
-import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from '@/components/presentational/CopyToClipboardButton';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { cn } from '@/lib/utils';
 
 export interface CodeBlockPropsBase {
   filename?: string;
   /**
-   * Text of the toast that appears when the code is copied to the clipboard.
+   * Name of the code, used in the "Copy <name>" tooltip and the
+   * "<name> copied to clipboard" toast.
    */
   copyToClipboardToastTitle: string;
 }
@@ -41,27 +42,6 @@ function CodeTabBar({
   );
 }
 
-interface CopyToClipboardButtonProps
-  extends Partial<
-    ComponentPropsWithoutRef<typeof CopyToClipboardButtonOriginal>
-  > {
-  toastTitle: string;
-}
-
-function CopyToClipboardButton({
-  textToCopy,
-  toastTitle,
-  ...props
-}: CopyToClipboardButtonProps) {
-  return (
-    <CopyToClipboardButtonOriginal
-      textToCopy={textToCopy}
-      title={toastTitle}
-      {...props}
-    />
-  );
-}
-
 export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
   (
     { filename, children, className, copyToClipboardToastTitle, ...props },
@@ -80,16 +60,14 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(
         <CodeTabBar filename={filename}>
           <CopyToClipboardButton
             textToCopy={getNodeText(children)}
-            toastTitle={copyToClipboardToastTitle}
-            tooltip="Copy code"
+            title={copyToClipboardToastTitle}
             className="relative"
           />
         </CodeTabBar>
       ) : (
         <CopyToClipboardButton
           textToCopy={getNodeText(children)}
-          toastTitle={copyToClipboardToastTitle}
-          tooltip="Copy code"
+          title={copyToClipboardToastTitle}
           className="absolute top-3 right-3"
         />
       )}

@@ -118,7 +118,6 @@ function MetricsPageContent() {
                   <CopyToClipboardButton
                     textToCopy={adminPassword}
                     title="Grafana password"
-                    tooltip="Copy password"
                   />
                 )}
               </div>
