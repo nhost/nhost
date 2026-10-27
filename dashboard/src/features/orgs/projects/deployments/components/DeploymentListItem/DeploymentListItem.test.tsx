@@ -116,7 +116,7 @@ it('shows the short SHA of a commit and copies it in full without opening the de
   );
   expect(await screen.findByText('bbbbbbb')).toBeInTheDocument();
 
-  await user.click(screen.getByRole('button', { name: 'Copy commit SHA' }));
+  await user.click(screen.getByRole('button', { name: 'Copy Commit SHA' }));
 
   await waitFor(async () =>
     expect(await navigator.clipboard.readText()).toBe(deployment.commitSHA),
@@ -140,7 +140,7 @@ it('shows a branch in full and copies it without opening the deployment', async 
     await screen.findByText('feat/comments-and-reactions'),
   ).toBeInTheDocument();
 
-  await user.click(screen.getByRole('button', { name: 'Copy ref' }));
+  await user.click(screen.getByRole('button', { name: 'Copy Ref' }));
 
   await waitFor(async () =>
     expect(await navigator.clipboard.readText()).toBe(

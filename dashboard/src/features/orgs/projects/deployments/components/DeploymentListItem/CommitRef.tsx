@@ -19,7 +19,6 @@ export default function CommitRef({ commitRef }: CommitRefProps) {
       <CopyToClipboardButton
         textToCopy={commitRef}
         title={isSHA ? 'Commit SHA' : 'Ref'}
-        aria-label={isSHA ? 'Copy commit SHA' : 'Copy ref'}
         className="opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
       />
     </div>
