@@ -1,4 +1,4 @@
-import { FileSearch } from 'lucide-react';
+import { Database, FileSearch } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -28,6 +28,7 @@ export default function NativeQueryDetails() {
   if (!query) {
     return (
       <EmptyState
+        icon={Database}
         title="Native query not found"
         description={
           <span>

@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Database, Plus } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/v3/button';
@@ -9,6 +9,7 @@ export default function NoLogicalModelsEmptyState() {
 
   return (
     <EmptyState
+      icon={Database}
       title="Create your first logical model"
       description="Logical models define reusable field structures for native query results."
       action={

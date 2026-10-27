@@ -270,12 +270,13 @@ function UsersPageContent() {
             {dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
               ?.count === 0 &&
               usersCount !== 0 && (
-                <EmptyState
-                  className="border-x border-b"
-                  icon={UserIcon}
-                  title={<>No results for &quot;{searchString}&quot;</>}
-                  description="Try a different search"
-                />
+                <div className="border-x border-b">
+                  <EmptyState
+                    icon={UserIcon}
+                    title={<>No results for &quot;{searchString}&quot;</>}
+                    description="Try a different search"
+                  />
+                </div>
               )}
             {thereAreUsers && (
               <div className="grid grid-flow-row gap-4">

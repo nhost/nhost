@@ -1,3 +1,4 @@
+import { Database } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -23,6 +24,7 @@ function NativeQueriesIndexContent() {
   if (error instanceof Error) {
     return (
       <EmptyState
+        icon={Database}
         title="Something went wrong"
         description="Logical models could not be loaded. Please try again."
       />
@@ -35,6 +37,7 @@ function NativeQueriesIndexContent() {
 
   return (
     <EmptyState
+      icon={Database}
       title="Native queries"
       description="Select a logical model or native query from the sidebar, or create a new one."
     />
@@ -47,6 +50,7 @@ export default function NativeQueriesIndexPage() {
   if (dataSourceSlug !== 'default') {
     return (
       <EmptyState
+        icon={Database}
         title="Database not found"
         description={
           <span>

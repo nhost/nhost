@@ -1,4 +1,4 @@
-import { Shapes } from 'lucide-react';
+import { Database, Shapes } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -38,6 +38,7 @@ export default function LogicalModelDetails() {
   if (!model) {
     return (
       <EmptyState
+        icon={Database}
         title="Logical model not found"
         description={
           <span>
