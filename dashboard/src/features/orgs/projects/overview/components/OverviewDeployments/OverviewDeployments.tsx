@@ -161,8 +161,8 @@ export default function OverviewDeployments() {
           title="No Deployments"
           description={
             <span className="mx-auto block max-w-sm">
-              Connect your project with a GitHub repository to create your
-              first deployment
+              Connect your project with a GitHub repository to create your first
+              deployment
             </span>
           }
           action={
