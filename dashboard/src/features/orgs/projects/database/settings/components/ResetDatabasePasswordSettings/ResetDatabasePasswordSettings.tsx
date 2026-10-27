@@ -11,7 +11,11 @@ import {
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { InputGroupButton } from '@/components/ui/v3/input-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -132,18 +136,27 @@ export default function ResetDatabasePasswordSettings() {
                 </>
               }
               addonEnd={
-                <InputGroupButton
-                  onClick={() => {
-                    copy(
-                      getValues('databasePassword') as string,
-                      'Postgres password',
-                    );
-                  }}
-                  aria-label="Copy password"
-                  className={hasDatabasePasswordError ? 'invisible' : undefined}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </InputGroupButton>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="subtle"
+                      size="icon-sm"
+                      onClick={() => {
+                        copy(
+                          getValues('databasePassword') as string,
+                          'Postgres password',
+                        );
+                      }}
+                      aria-label="Copy password"
+                      className={
+                        hasDatabasePasswordError ? 'invisible' : undefined
+                      }
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy password</TooltipContent>
+                </Tooltip>
               }
             />
           </SettingsCardContent>
