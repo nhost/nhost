@@ -16,9 +16,9 @@ const nextConfig: NextConfig = {
     // rendered both again on the server.
     staleTimes: { dynamic: 30 },
   },
-  // frame-ancestors is the part of a CSP that costs nothing: it closes
-  // clickjacking on authenticated pages without touching script execution, so a
-  // full script-src policy.
+  // frame-ancestors closes clickjacking without touching script execution. A
+  // script-src policy would need nonce plumbing through the App Router, so the
+  // starter leaves it out.
   async headers() {
     return [
       {
