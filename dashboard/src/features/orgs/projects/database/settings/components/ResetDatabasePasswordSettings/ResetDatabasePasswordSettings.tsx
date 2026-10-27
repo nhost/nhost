@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CopyIcon, RefreshCw, WandSparkles } from 'lucide-react';
+import { CopyIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -10,13 +10,8 @@ import {
   SettingsCardFooter,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { InputGroupButton } from '@/components/ui/v3/input-group';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -49,15 +44,8 @@ export default function ResetDatabasePasswordSettings() {
   const {
     setValue,
     getValues,
-    watch,
     formState: { dirtyFields, errors, isSubmitting },
   } = form;
-
-  // Empty field: "generate". Once there's a password: "generate a new one".
-  const hasPassword = Boolean(watch('databasePassword'));
-  const generateLabel = hasPassword
-    ? 'Generate a new password'
-    : 'Generate a strong password';
 
   const isDirty = Object.keys(dirtyFields).length > 0;
   const hasDatabasePasswordError = Boolean(errors.databasePassword);
@@ -130,38 +118,28 @@ export default function ResetDatabasePasswordSettings() {
               autoComplete="new-password"
               aria-label="Database password"
               containerClassName="lg:w-1/2"
+              helperText={
+                <Button
+                  onClick={handleGenerateRandomPassword}
+                  variant="link"
+                  className="h-auto p-0 text-xs underline underline-offset-2 hover:underline"
+                >
+                  Generate a password
+                </Button>
+              }
               addonEnd={
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <InputGroupButton
-                        onClick={handleGenerateRandomPassword}
-                        aria-label={generateLabel}
-                      >
-                        {hasPassword ? (
-                          <RefreshCw className="h-4 w-4" />
-                        ) : (
-                          <WandSparkles className="h-4 w-4" />
-                        )}
-                      </InputGroupButton>
-                    </TooltipTrigger>
-                    <TooltipContent>{generateLabel}</TooltipContent>
-                  </Tooltip>
-                  <InputGroupButton
-                    onClick={() => {
-                      copy(
-                        getValues('databasePassword') as string,
-                        'Postgres password',
-                      );
-                    }}
-                    aria-label="Copy password"
-                    className={
-                      hasDatabasePasswordError ? 'invisible' : undefined
-                    }
-                  >
-                    <CopyIcon className="h-4 w-4" />
-                  </InputGroupButton>
-                </>
+                <InputGroupButton
+                  onClick={() => {
+                    copy(
+                      getValues('databasePassword') as string,
+                      'Postgres password',
+                    );
+                  }}
+                  aria-label="Copy password"
+                  className={hasDatabasePasswordError ? 'invisible' : undefined}
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </InputGroupButton>
               }
             />
           </SettingsCardContent>
