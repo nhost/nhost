@@ -23,6 +23,8 @@ const link = (): HTMLAnchorElement | null => container.querySelector('a');
 
 describe('BackendStatus', () => {
   beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_NHOST_SUBDOMAIN', '');
+    vi.stubEnv('NEXT_PUBLIC_NHOST_REGION', '');
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -37,8 +39,6 @@ describe('BackendStatus', () => {
   });
 
   it('links to the local dashboard while the stack answers', async () => {
-    vi.stubEnv('NEXT_PUBLIC_NHOST_SUBDOMAIN', '');
-    vi.stubEnv('NEXT_PUBLIC_NHOST_REGION', '');
     health.isBackendReachable.mockResolvedValue(true);
 
     await render();
