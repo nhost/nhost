@@ -55,7 +55,7 @@ export default function GitHubConnectedNotice() {
         external
         className="ml-auto"
       >
-        Learn more
+        Connect more projects to this repo
       </TextLink>
     </div>
   );
