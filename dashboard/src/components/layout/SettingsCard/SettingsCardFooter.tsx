@@ -7,8 +7,11 @@ const SettingsCardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    // Marks the footer so SettingsCard can drop its bottom padding and let
+    // this soft background run to the card's bottom edge.
+    data-settings-card-footer=""
     className={cn(
-      'flex flex-col gap-4 border-t px-4 pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-2',
+      'mt-2 flex flex-col gap-4 bg-accent/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-end sm:gap-2 dark:bg-muted/30',
       className,
     )}
     {...props}

@@ -1,11 +1,10 @@
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import type { PinnedPayloadEntry } from '@/features/orgs/projects/common/metrics/types';
-import TooltipCard from './TooltipCard';
+import TooltipCard, { type TooltipOptions } from './TooltipCard';
 import { toEntries } from './toEntries';
 
-interface HoverTooltipContentProps {
+interface HoverTooltipContentProps extends TooltipOptions {
   config: ChartConfig;
-  valueFormatter?: (v: number) => string;
   active?: boolean;
   payload?: PinnedPayloadEntry[];
   label?: number | string;
@@ -14,6 +13,10 @@ interface HoverTooltipContentProps {
 export default function HoverTooltipContent({
   config,
   valueFormatter,
+  labelFormatter,
+  matchStackOrder,
+  maxEntries,
+  renderFooter,
   active,
   payload,
   label,
@@ -21,7 +24,7 @@ export default function HoverTooltipContent({
   if (!active || !payload || payload.length === 0) {
     return null;
   }
-  const entries = toEntries(payload, config);
+  const entries = toEntries(payload, config, matchStackOrder);
   if (entries.length === 0) {
     return null;
   }
@@ -30,6 +33,9 @@ export default function HoverTooltipContent({
       label={label}
       entries={entries}
       valueFormatter={valueFormatter}
+      labelFormatter={labelFormatter}
+      maxEntries={maxEntries}
+      renderFooter={renderFooter}
     />
   );
 }

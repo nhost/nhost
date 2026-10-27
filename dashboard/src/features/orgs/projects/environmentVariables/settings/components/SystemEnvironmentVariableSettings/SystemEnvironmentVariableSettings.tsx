@@ -100,7 +100,7 @@ export default function SystemEnvironmentVariableSettings() {
         description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
       />
 
-      <SettingsCardContent className="mt-2 mb-2.5 px-0">
+      <SettingsCardContent className="mt-2 px-0">
         <div className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
           <p className="font-medium">Variable Name</p>
           <p className="font-medium lg:col-span-2">Value</p>
@@ -123,7 +123,7 @@ export default function SystemEnvironmentVariableSettings() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 className="shrink-0"
                 aria-label={
@@ -157,7 +157,7 @@ export default function SystemEnvironmentVariableSettings() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 className="shrink-0"
                 aria-label={
@@ -202,7 +202,7 @@ export default function SystemEnvironmentVariableSettings() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+                className="text-primary hover:bg-primary-highlight hover:text-primary"
                 onClick={showViewJwtSecretModal}
               >
                 Show JWT Secret

@@ -22,9 +22,9 @@ export default function AnnouncementMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
-          className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+          className="h-8 w-8 flex-shrink-0"
           aria-label="Open announcement actions"
         >
           <EllipsisVertical className="h-4 w-4" />

@@ -24,9 +24,9 @@ const validationSchema = z.object({
       message: 'Payload must be valid json',
     }),
   retryConf: z.object({
-    numRetries: z.coerce.number().min(0),
-    intervalSec: z.coerce.number().min(0),
-    timeoutSec: z.coerce.number().min(0),
+    numRetries: z.coerce.number<number>().min(0),
+    intervalSec: z.coerce.number<number>().min(0),
+    timeoutSec: z.coerce.number<number>().min(0),
   }),
   headers: z.array(
     z.object({

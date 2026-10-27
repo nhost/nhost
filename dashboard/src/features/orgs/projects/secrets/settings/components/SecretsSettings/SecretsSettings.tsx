@@ -101,7 +101,7 @@ export default function SecretsSettings() {
       component: <CreateSecretForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -112,7 +112,7 @@ export default function SecretsSettings() {
       component: <EditSecretForm originalSecret={originalSecret} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -139,7 +139,7 @@ export default function SecretsSettings() {
 
   return (
     <div className="grid grid-flow-row gap-6">
-      <SettingsCard className="gap-0 pb-0">
+      <SettingsCard className="gap-0 pb-4">
         <SettingsCardHeader
           title="Secrets"
           description={
@@ -155,7 +155,7 @@ export default function SecretsSettings() {
         />
 
         <SettingsCardContent
-          className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
+          className={twMerge('mt-2 px-0', secrets.length === 0 && 'gap-2')}
         >
           <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
             <p className="font-medium">Secret Name</p>
@@ -178,7 +178,7 @@ export default function SecretsSettings() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             className="absolute top-1/2 right-4 -translate-y-1/2"
                           >
@@ -186,9 +186,9 @@ export default function SecretsSettings() {
                           </Button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem
-                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2"
                             onClick={() => {
                               setOpenActionMenuSecret(undefined);
                               handleOpenEditor(secret);
@@ -202,7 +202,7 @@ export default function SecretsSettings() {
                               setOpenActionMenuSecret(undefined);
                               handleConfirmDelete(secret);
                             }}
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                           >
                             <span>Delete</span>
                           </DropdownMenuItem>
@@ -225,7 +225,7 @@ export default function SecretsSettings() {
             <Button
               type="button"
               variant="outline"
-              className="mx-4 justify-self-start"
+              className="mx-4 mt-2 justify-self-start"
               onClick={handleOpenCreator}
             >
               <PlusIcon className="mr-2 h-4 w-4" />
