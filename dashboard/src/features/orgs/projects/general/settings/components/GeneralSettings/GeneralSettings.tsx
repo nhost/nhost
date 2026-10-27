@@ -237,7 +237,9 @@ export default function GeneralSettings() {
                   loading={pauseLoading || isPausing}
                   onClick={() => {
                     openAlertDialog({
-                      title: 'Pause Project?',
+                      title: project?.name
+                        ? `Pause ${project.name}`
+                        : 'Pause project',
                       payload: (
                         <div className="flex flex-col gap-2">
                           {showWarning ? (
@@ -278,6 +280,12 @@ export default function GeneralSettings() {
                       ),
                       props: {
                         maxWidth: 'sm',
+                        primaryButtonText: (
+                          <>
+                            <Pause />
+                            Pause
+                          </>
+                        ),
                         onPrimaryAction: onPause,
                       },
                     });

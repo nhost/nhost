@@ -395,7 +395,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {!alertDialogProps?.hidePrimaryAction && (
                 <Button
                   ref={primaryButtonRef}
-                  className="w-full sm:w-auto"
+                  className="w-full gap-2 sm:w-auto"
                   variant={
                     alertDialogProps?.primaryButtonColor === 'error'
                       ? 'destructive'

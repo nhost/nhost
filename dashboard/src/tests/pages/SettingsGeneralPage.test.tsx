@@ -235,10 +235,11 @@ describe('SettingsGeneralPage', () => {
     render(<SettingsGeneralPage />);
 
     await user.click(screen.getByRole('button', { name: 'Pause' }));
-    expect(await screen.findByText('Pause Project?')).toBeInTheDocument();
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('Pause Test Project')).toBeInTheDocument();
     expect(mocks.pauseApplication).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Pause' }));
 
     expect(mocks.pauseApplication).toHaveBeenCalledOnce();
     expect(mocks.pauseApplication).toHaveBeenCalledWith({

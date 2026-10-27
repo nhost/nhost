@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
+import { ArrowLeftRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -204,7 +204,9 @@ function TransferProjectForm({
             type="submit"
             disabled={form.formState.isSubmitting || !form.formState.isDirty}
             loading={form.formState.isSubmitting}
+            className="gap-2"
           >
+            {!createNewFormSelected && <ArrowLeftRight />}
             {submitButtonText}
           </Button>
         </div>
