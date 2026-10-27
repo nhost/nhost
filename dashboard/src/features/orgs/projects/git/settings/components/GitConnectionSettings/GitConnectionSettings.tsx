@@ -97,9 +97,11 @@ export default function GitConnectionSettings() {
         open={isDisconnectDialogOpen}
         onOpenChange={setIsDisconnectDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="p-12">
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect GitHub Repository</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Disconnect GitHub Repository
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to disconnect{' '}
               <span className="font-semibold text-foreground">
@@ -108,7 +110,7 @@ export default function GitConnectionSettings() {
               ?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel disabled={isDisconnecting}>
               Cancel
             </AlertDialogCancel>

@@ -145,9 +145,9 @@ export default function DatabaseAllowedCIDRs() {
                 />
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="sm"
-                  className="h-10 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="h-10"
                   onClick={() => remove(index)}
                 >
                   <Trash className="size-4" />

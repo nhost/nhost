@@ -29,16 +29,16 @@ export default function InconsistentObjectDefinitionDialog({
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="subtle" size="icon" className="h-8 w-8">
               <Eye className="h-4 w-4" />
             </Button>
           </DialogTrigger>
         </TooltipTrigger>
         <TooltipContent>View definition</TooltipContent>
       </Tooltip>
-      <DialogContent className="max-h-[80vh] max-w-xl overflow-y-auto text-foreground">
+      <DialogContent className="max-h-[80vh] max-w-xl overflow-y-auto p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-foreground">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Inconsistent Object Definition
           </DialogTitle>
         </DialogHeader>

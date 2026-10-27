@@ -101,7 +101,7 @@ export default function SecretsSettings() {
       component: <CreateSecretForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -112,7 +112,7 @@ export default function SecretsSettings() {
       component: <EditSecretForm originalSecret={originalSecret} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -178,7 +178,7 @@ export default function SecretsSettings() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             className="absolute top-1/2 right-4 -translate-y-1/2"
                           >
