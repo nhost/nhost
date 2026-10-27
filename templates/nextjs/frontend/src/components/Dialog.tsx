@@ -8,6 +8,7 @@ import {
   useId,
   useRef,
 } from 'react';
+import { ToastStatus } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 
 const CloseDialog = createContext<VoidFunction>(() => undefined);
@@ -80,6 +81,7 @@ export default function Dialog({
             ) : null}
           </div>
           <CloseDialog value={close}>{children}</CloseDialog>
+          <ToastStatus />
         </div>
       ) : null}
     </dialog>

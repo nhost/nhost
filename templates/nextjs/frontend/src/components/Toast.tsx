@@ -10,12 +10,28 @@ import {
 } from 'react';
 
 type ShowToast = (message: string) => VoidFunction;
+type Toast = { id: number; message: string };
 
 const ToastContext = createContext<ShowToast>(() => () => undefined);
+const CurrentToast = createContext<Toast | undefined>(undefined);
 
 /** Shows `message` briefly at the foot of the window. */
 export function useToast(): ShowToast {
   return use(ToastContext);
+}
+
+/**
+ * Repeats the toast for screen readers from inside an open modal dialog,
+ * which makes the toast itself inert.
+ */
+export function ToastStatus() {
+  const toast = use(CurrentToast);
+
+  return (
+    <div role="status" aria-live="polite" className="sr-only">
+      {toast ? <span key={toast.id}>{toast.message}</span> : null}
+    </div>
+  );
 }
 
 /**
@@ -26,9 +42,7 @@ export function useToast(): ShowToast {
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const count = useRef(0);
   const region = useRef<HTMLDivElement>(null);
-  const [toast, setToast] = useState<
-    { id: number; message: string } | undefined
-  >();
+  const [toast, setToast] = useState<Toast | undefined>();
 
   useEffect(() => {
     region.current?.showPopover?.();
@@ -60,7 +74,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext value={show}>
-      {children}
+      <CurrentToast value={toast}>{children}</CurrentToast>
       {/* Clear of the footer, which is pinned to the bottom of the window. */}
       <div
         ref={region}

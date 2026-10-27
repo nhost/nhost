@@ -46,7 +46,7 @@ const row = (): HTMLButtonElement | null =>
   container.querySelector('button[aria-haspopup="dialog"]');
 
 const toastText = (): string | null =>
-  container.querySelector('[role="status"]')?.textContent || null;
+  container.querySelector('[popover][role="status"]')?.textContent || null;
 
 const isOpen = (): boolean => container.querySelector('dialog')?.open ?? false;
 
@@ -103,6 +103,10 @@ describe('two-factor row', () => {
     expect(writeText).toHaveBeenCalledWith(key);
     expect(actions.enableMfa).not.toHaveBeenCalled();
     expect(toastText()).toBe('Key copied');
+    // The open modal makes the toast inert, so it is announced from inside.
+    expect(
+      container.querySelector('dialog[open] [role="status"]')?.textContent,
+    ).toBe('Key copied');
 
     // The toast is about a key that is no longer on screen.
     const cancel = [...container.querySelectorAll('button')].find(

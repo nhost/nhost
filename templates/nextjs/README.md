@@ -335,7 +335,9 @@ and reads the browser's refusal to explain after.
   in the browser for 30 seconds. Nothing goes stale that matters: signing in
   or out clears that cache, and every change on the account page refreshes it.
 - Toasts render in a popover so they sit in the browser's top layer, above a
-  modal `<dialog>`, which no z-index reaches.
+  modal `<dialog>`, which no z-index reaches. An open modal makes everything
+  outside it inert, the popover included, so `Dialog` repeats the toast in a
+  hidden status region of its own for screen readers.
 - Items removed from a list on the account page leave it before the refreshed
   page arrives (`useRemoved`), because on a deployed backend the refresh takes
   long enough to press the same button twice.
