@@ -7,7 +7,6 @@ import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
 
-/** The sign-in methods this app offers, one entry each. */
 export type AccountSetting = (props: {
   user: User;
 }) => ReactNode | Promise<ReactNode>;
@@ -41,6 +40,7 @@ export const buttons: SignInButtons[] =
 export const buttonSettings: AccountSetting[] =
   configuredProviders().length > 0 ? [LinkedAccountsSetting] : [];
 
+/** The sign-in methods this app offers, one entry each. */
 export const methods: SignInMethod[] = [
   {
     href: '/auth/password',
