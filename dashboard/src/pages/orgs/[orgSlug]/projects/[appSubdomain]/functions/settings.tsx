@@ -86,6 +86,7 @@ function FunctionsRateLimitingSettings() {
       loading={loading}
       serviceName="functions"
       title="Functions"
+      description="Limit how many requests each IP address can send to Functions. Used requests come back gradually over the interval."
     />
   );
 }

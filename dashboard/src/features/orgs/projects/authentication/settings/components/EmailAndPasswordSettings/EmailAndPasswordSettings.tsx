@@ -15,7 +15,6 @@ import {
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -134,14 +133,7 @@ export default function EmailAndPasswordSettings() {
         <SettingsCard>
           <SettingsCardHeader
             title="Email and Password"
-            description="Allow users to sign in with email and password."
-            control={
-              <Switch
-                checked={true}
-                aria-label="Toggle Email and Password"
-                disabled={true}
-              />
-            }
+            description="Email and password sign-in is always available. Set its rules below."
           />
 
           <SettingsCardContent>

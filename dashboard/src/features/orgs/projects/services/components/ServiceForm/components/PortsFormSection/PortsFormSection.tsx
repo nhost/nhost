@@ -1,5 +1,6 @@
-import { CopyIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
+import { PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -21,7 +22,6 @@ import {
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import type { ConfigRunServicePort } from '@/generated/graphql';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { copy } from '@/utils/copy';
 import { getRunServicePortURL } from '@/utils/helpers';
 
 export default function PortsFormSection() {
@@ -160,15 +160,7 @@ export default function PortsFormSection() {
                     <p className="text-muted-foreground text-xs">URL</p>
                     <p className="truncate font-mono text-sm">{url}</p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="icon"
-                    aria-label="Copy URL"
-                    onClick={() => copy(url, 'URL')}
-                  >
-                    <CopyIcon className="h-4 w-4" />
-                  </Button>
+                  <CopyToClipboardButton textToCopy={url} title="URL" />
                 </div>
               )}
             </div>

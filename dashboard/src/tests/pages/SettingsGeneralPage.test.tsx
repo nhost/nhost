@@ -365,7 +365,7 @@ describe('SettingsGeneralPage', () => {
     expect(
       within(navigation).getByRole('link', { name: 'General' }),
     ).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText('GitHub repository connected')).toBeVisible();
+    expect(screen.getByText('nhost config pull')).toBeVisible();
   });
 
   it('renders the editor without the settings area notice', async () => {
@@ -376,9 +376,7 @@ describe('SettingsGeneralPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Configuration Editor' }),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText('GitHub repository connected'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('nhost config pull')).not.toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
