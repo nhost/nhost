@@ -96,6 +96,7 @@ function GraphQLRateLimitingSettings() {
       loading={loading}
       serviceName="hasura"
       title="GraphQL"
+      description="Limit how many requests each IP address can send to the GraphQL API. Used requests come back gradually over the interval."
     />
   );
 }

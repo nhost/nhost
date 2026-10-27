@@ -74,7 +74,7 @@ export default function CommandFormSection() {
           <CommandTooltip />
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add command argument"
           onClick={() => append({ argument: '' })}
@@ -106,9 +106,8 @@ export default function CommandFormSection() {
                 )}
               </div>
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="text-destructive hover:text-destructive"
                 aria-label="Remove command argument"
                 onClick={() => remove(index)}
               >

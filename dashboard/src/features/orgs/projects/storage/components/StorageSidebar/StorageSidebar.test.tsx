@@ -175,7 +175,7 @@ describe('StorageSidebar', () => {
 
     await waitFor(() => {
       const defaultLink = screen.getByRole('link', { name: /default/i });
-      expect(defaultLink).toHaveClass('text-primary-main');
+      expect(defaultLink).toHaveClass('text-primary');
     });
   });
 

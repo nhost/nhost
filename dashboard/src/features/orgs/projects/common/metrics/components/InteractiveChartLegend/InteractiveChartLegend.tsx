@@ -1,3 +1,4 @@
+import type { KeyboardEvent, ReactNode } from 'react';
 import type { LegendPayload } from 'recharts';
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,20 @@ interface InteractiveChartLegendProps {
     opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void;
   onItemHover?: (key: string | null) => void;
-  payload: readonly LegendPayload[];
+  // Rendered next to (not inside) the item's toggle button, so it can hold its
+  // own interactive content such as an info tooltip.
+  renderItemAddon?: (key: string) => ReactNode;
+  // Filled in by Recharts when it clones the legend passed as `content`.
+  payload?: readonly LegendPayload[];
+}
+
+// The keys Recharts uses to move and toggle the chart's keyboard tooltip.
+const CHART_TOOLTIP_KEYS = new Set(['Enter', 'ArrowLeft', 'ArrowRight']);
+
+function stopChartTooltipKey(e: KeyboardEvent) {
+  if (CHART_TOOLTIP_KEYS.has(e.key)) {
+    e.stopPropagation();
+  }
 }
 
 export default function InteractiveChartLegend({
@@ -18,8 +32,13 @@ export default function InteractiveChartLegend({
   hiddenSet,
   onItemClick,
   onItemHover,
+  renderItemAddon,
   payload,
 }: InteractiveChartLegendProps) {
+  if (!payload?.length) {
+    return null;
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
       {payload
@@ -28,18 +47,26 @@ export default function InteractiveChartLegend({
           const key = String(item.dataKey ?? '');
           const isHidden = hiddenSet.has(key);
           const label = config[key]?.label ?? key;
-          return (
+          const addon = renderItemAddon?.(key);
+          const button = (
             <button
               key={key}
               type="button"
-              onClick={(e) =>
+              // Recharts renders the legend inside the chart, so the click
+              // must not also reach the chart's pin and zoom-out handlers.
+              onClick={(e) => {
+                e.stopPropagation();
                 onItemClick(key, {
                   metaKey: e.metaKey,
                   ctrlKey: e.ctrlKey,
                   shiftKey: e.shiftKey,
-                })
-              }
+                });
+              }}
               onDoubleClick={(e) => e.stopPropagation()}
+              // Focus and the tooltip keys would open the chart's keyboard
+              // tooltip. Escape still bubbles so it can close the pinned one.
+              onFocus={(e) => e.stopPropagation()}
+              onKeyDown={stopChartTooltipKey}
               onMouseEnter={() => onItemHover?.(key)}
               onMouseLeave={() => onItemHover?.(null)}
               className={cn(
@@ -58,6 +85,23 @@ export default function InteractiveChartLegend({
               />
               <span>{label}</span>
             </button>
+          );
+          // The addon is inside the chart as well, so its clicks must not
+          // reach the chart's handlers either.
+          return addon ? (
+            <span
+              key={key}
+              role="none"
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              onKeyDown={stopChartTooltipKey}
+              className="flex items-center gap-1"
+            >
+              {button}
+              {addon}
+            </span>
+          ) : (
+            button
           );
         })}
     </div>

@@ -72,6 +72,7 @@ function StorageRateLimitingSettings() {
       loading={loading}
       serviceName="storage"
       title="Storage"
+      description="Limit how many requests each IP address can send to Storage. Used requests come back gradually over the interval."
     />
   );
 }

@@ -35,7 +35,7 @@ export default function EmailsFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add email"
           onClick={() => append({ email: '' })}
@@ -62,8 +62,9 @@ export default function EmailsFormSection() {
                 </Label>
                 <div className="flex">
                   <Button
-                    variant="ghost"
-                    className="h-10 text-destructive hover:text-destructive"
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
                     aria-label="Remove email"
                     onClick={() => remove(index)}
                   >
