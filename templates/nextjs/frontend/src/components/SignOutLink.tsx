@@ -2,11 +2,7 @@
 
 import { useSignOut } from '@/components/useSignOut';
 
-/**
- * Sign out as a link in running text. A button underneath, since it acts
- * rather than goes anywhere, and inline throughout, error included, because
- * it sits inside a paragraph.
- */
+/** Sign out as a link in running text. */
 export default function SignOutLink({ children }: { children: string }) {
   const { error, isSigningOut, handleSignOut } = useSignOut();
 

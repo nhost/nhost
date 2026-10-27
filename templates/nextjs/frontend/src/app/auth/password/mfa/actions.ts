@@ -10,8 +10,7 @@ import { createNhostClient, getVerifiedUser } from '@/lib/nhost/server';
 export type MfaSetup = { imageUrl: string; totpSecret: string };
 
 // Asks the backend for a fresh secret, which it stores on the account right
-// away. Refused while two-factor is on: a page left open from before it was
-// turned on would otherwise replace the secret the user's app holds.
+// away.
 export async function generateMfa(): Promise<
   ActionResult & { setup?: MfaSetup }
 > {

@@ -1,16 +1,4 @@
-/**
- * What this app writes into a session's row in `auth.refresh_tokens`.
- *
- * The auth service records nothing about where a session is used from, but
- * the row has a `metadata` column it leaves empty for a browser session, and
- * rotation updates the row in place, so it lives as long as the session does.
- * The proxy writes it (see `trackSession` in `server.ts`) and the account page
- * lists it.
- *
- * The user role may write this column, so it is the visitor's own account of
- * their sessions, not an audit log: anyone can rewrite their own rows through
- * GraphQL.
- */
+/** What this app writes into a session's row in `auth.refresh_tokens`. */
 export type SessionMetadata = {
   ip?: string;
   userAgent?: string;
@@ -22,9 +10,7 @@ export type SessionMetadata = {
 
 export type RequestDetails = Omit<SessionMetadata, 'seenAt'>;
 
-// How stale `seenAt` may get before a navigation writes it again. Without
-// this every page load would be a write; with it the account page's "active"
-// time is at most this far behind.
+// How stale `seenAt` may get before a navigation writes it again.
 export const SEEN_AT_INTERVAL_MS = 5 * 60 * 1000;
 
 const MAX_USER_AGENT_LENGTH = 512;
@@ -45,15 +31,7 @@ function decoded(value: string | null): string | undefined {
 // Cloudflare's placeholders for a country it could not place, and for Tor.
 const UNKNOWN_COUNTRIES = new Set(['XX', 'T1']);
 
-/**
- * Where a request came from, as far as its headers say.
- *
- * The address and the location are only as good as whatever sits in front of
- * the app. Vercel and Cloudflare set these headers themselves and overwrite
- * what the browser sent; a server that takes requests directly gets whatever
- * the browser chose to put in them. With neither host there is no location at
- * all, and the address is the one Next saw.
- */
+/** Where a request came from, as far as its headers say. */
 export function requestDetails(headers: Headers): RequestDetails {
   const ip =
     headers.get('x-real-ip') ??
@@ -77,8 +55,8 @@ export function requestDetails(headers: Headers): RequestDetails {
 }
 
 /**
- * Whether the stored metadata no longer describes this request: a new
- * address or browser, or a `seenAt` older than the interval.
+ * Whether the stored metadata no longer describes this request: a new address
+ * or browser, or a `seenAt` older than the interval.
  */
 export function needsUpdate(
   stored: SessionMetadata | null | undefined,
@@ -96,9 +74,9 @@ export function needsUpdate(
   return changed || !(now - Date.parse(stored.seenAt) < SEEN_AT_INTERVAL_MS);
 }
 
-// Checked in order, so the browsers that put another's name in their user
-// agent come before the one they name: Edge and Opera say Chrome, and every
-// iOS browser says Safari.
+// Checked in order, so the browsers that put another's name in their user agent
+// come before the one they name: Edge and Opera say Chrome, and every iOS
+// browser says Safari.
 const BROWSERS: Array<[RegExp, string]> = [
   [/\bEdg(e|A|iOS)?\//, 'Edge'],
   [/\b(OPR|OPiOS)\//, 'Opera'],
@@ -118,11 +96,7 @@ const SYSTEMS: Array<[RegExp, string]> = [
   [/\bLinux\b/, 'Linux'],
 ];
 
-/**
- * "Chrome - macOS", from a user agent. A guess, and good enough to tell a
- * phone from a laptop: a browser can claim to be anything. No versions: the
- * browsers freeze the system's in the user agent, so it would be wrong.
- */
+/** "Chrome - macOS", from a user agent. */
 export function describeUserAgent(userAgent: string | undefined): string {
   if (!userAgent) {
     return 'Unknown device';
@@ -148,9 +122,7 @@ function countryName(code: string): string {
   }
 }
 
-/**
- * The city, or the country when the host did not name one.
- */
+/** The city, or the country when the host did not name one. */
 export function describeLocation(
   metadata: Pick<SessionMetadata, 'city' | 'country'>,
 ): string | undefined {
@@ -164,9 +136,8 @@ const LOOPBACK = new Set(['::1', '127.0.0.1']);
 
 /**
  * The address as someone would read it, or nothing for the loopback one:
- * running locally, the browser and Next are on the same machine, and `::1`
- * says nothing about where a session is. An IPv4 address that arrives in its
- * IPv6 form loses the prefix.
+ * running locally, the browser and Next are on the same machine, and `::1` says
+ * nothing about where a session is.
  */
 export function describeAddress(ip: string | undefined): string | undefined {
   const address = ip?.replace(/^::ffff:/i, '');

@@ -1,14 +1,4 @@
-/**
- * The provider's own mark, for the button that goes to it.
- *
- * Inline SVG rather than a package or an `<img>`: it is two shapes, and a
- * request that has to finish before the button is recognisable is a worse
- * trade than the markup. A provider with no mark here renders nothing and
- * its button is the label alone, so adding a provider never breaks this.
- *
- * GitHub's mark is monochrome and takes the button's colour. Google's is
- * four fixed colours by their brand terms, so it does not.
- */
+/** The provider's own mark, for the button that goes to it. */
 export default function ProviderIcon({ id }: { id: string }) {
   if (id === 'github') {
     return (

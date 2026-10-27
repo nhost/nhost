@@ -22,10 +22,8 @@ const key = DEFAULT_SESSION_KEY;
 // usable for the time between two navigations.
 export const PROXY_REFRESH_MARGIN_SECONDS = 60;
 
-// Every session write sets two cookies. The session cookie holds the whole
-// session, refresh token included, and is httpOnly: only the proxy and server
-// code read it. The second is a flag JavaScript can read, saying a session is
-// there at all, for `RefreshOnSessionChange`. No token reaches the browser.
+// Every session write sets two cookies: the httpOnly session, and a flag
+// JavaScript can read that says one is there. See the README's design notes.
 const sharedCookieOptions = {
   path: '/',
   sameSite: 'lax',
@@ -39,9 +37,7 @@ export const cookieOptions = {
 } as const;
 
 // Set when a password-reset link signs the visitor in, and holds the page the
-// link landed on. The link signs them in only so the new password can be
-// saved, so until it is the proxy keeps them on that page (see `proxy.ts`).
-// httpOnly like the session, and removed with it, so signing out ends it too.
+// link landed on.
 export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
 const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
 
@@ -61,8 +57,7 @@ function sessionCookies(value: StoredSession) {
 }
 
 // Next's cookie APIs percent-encode on write and decode on read, so these two
-// only deal in JSON. Adding an encodeURIComponent here would put a
-// double-encoded value on the wire.
+// only deal in JSON.
 export function parseSessionCookie(raw: string | null): StoredSession | null {
   if (!raw) {
     return null;
@@ -79,13 +74,7 @@ export function serializeSessionCookie(value: StoredSession): string {
   return JSON.stringify(value);
 }
 
-/**
- * Creates an Nhost client for use in server components and server actions.
- *
- * It wires the SDK's session storage to Next.js cookies so the session can be
- * read on the server. Refreshing the session happens in the proxy (see
- * `proxy.ts`), where both the request and response cookies are available.
- */
+/** Creates an Nhost client for use in server components and server actions. */
 export async function createNhostClient(): Promise<NhostClient> {
   const cookieStore = await cookies();
 
@@ -109,16 +98,7 @@ export async function createNhostClient(): Promise<NhostClient> {
   });
 }
 
-/**
- * Returns the signed-in user as the auth service sees them, or null.
- *
- * `getUserSession()` only parses the session cookie: nothing checks its
- * signature, so anyone can write one claiming any user and any expiry. That is
- * fine for UI hints, not for access decisions. This sends the access token to
- * the auth service, which validates it, and returns the user from its response
- * rather than the one in the cookie. Use it wherever a page or action acts on
- * who the visitor is.
- */
+/** Returns the signed-in user as the auth service sees them, or null. */
 export async function getVerifiedUser(): Promise<User | null> {
   const nhost = await createNhostClient();
 
@@ -140,22 +120,12 @@ export async function getVerifiedUser(): Promise<User | null> {
   }
 }
 
-/**
- * Lets the visitor leave the reset page, once the new password is saved.
- */
+/** Lets the visitor leave the reset page, once the new password is saved. */
 export async function endPasswordReset(): Promise<void> {
   (await cookies()).delete(PASSWORD_RESET_KEY);
 }
 
-/**
- * Rewrites the stored session's user after a profile write has succeeded.
- *
- * The nav and the home page render the user from the session cookie, and the
- * cookie's copy is otherwise replaced only when the proxy refreshes the token,
- * which with a 900 s token can be a quarter of an hour after the change. This
- * patches it in place, keeping the tokens as they are: a refresh here would
- * make the action a second rotator next to the proxy, see `handleNhostProxy`.
- */
+/** Rewrites the stored session's user after a profile write has succeeded. */
 export function updateSessionUser(
   nhost: NhostClient,
   patch: Partial<User>,
@@ -174,32 +144,17 @@ export function updateSessionUser(
 
 // Auth emails and the OAuth callback send the user to the auth service, which
 // signs them in and redirects back with a refresh token in the query string.
-// Nothing else in the app picks that up, so without the proxy redeeming it the
-// whole link would land on a page with no session.
 export const LINK_TOKEN_PARAM = 'refreshToken';
 export const LINK_TYPE_PARAM = 'type';
 
 // Next fires prefetches for every <Link> in view, through this same proxy and
-// concurrently with the document request. Refresh tokens rotate server-side,
-// so only one of those can win; the losers retry with a token the backend has
-// already replaced, and once the access token has genuinely expired the SDK
-// reacts to that failure by clearing the session. That presents as being
-// randomly signed out after leaving a tab idle. A prefetch reads the stored
-// session instead, which is enough to pick a redirect for a response nobody is
-// looking at yet, and leaves rotation to the request that is really happening.
-// It is never an access check: pages that need one call `getVerifiedUser`.
-//
-// This proxy is the *only* rotator, by design: no token reaches the browser,
-// so nothing there can refresh. Handing it the refresh token would reopen
-// exactly this race, with the browser as the second rotator instead of a
-// prefetch.
+// concurrently with the document request. Refresh tokens are single-use, so
+// a prefetch reads the stored session and never rotates; this proxy is the
+// only rotator. See the README's design notes.
 export function isPrefetch(request: NextRequest): boolean {
   // In a production build every default <Link> in view prefetches, sending
   // `next-router-prefetch: 1`, some with `next-router-segment-prefetch`; the
-  // runtime prefetches of Cache Components send `2` and `3`. Any value counts,
-  // since the values are Next internals. `prefetch={true}` is the gap: that
-  // request carries no prefetch header and looks like a navigation, so it
-  // rotates, and a project that turns it on reopens the race.
+  // runtime prefetches of Cache Components send `2` and `3`.
   return (
     !!request.headers.get('next-router-prefetch') ||
     !!request.headers.get('next-router-segment-prefetch') ||
@@ -210,14 +165,8 @@ export function isPrefetch(request: NextRequest): boolean {
 export type TrackedSession = 'live' | 'revoked' | 'unknown';
 
 /**
- * Looks up the session's row in `auth.refresh_tokens`, and records where it
- * is being used from while there (see `session-metadata.ts`).
- *
- * Rotation keeps the row's id and revocation deletes the row, so no row means
- * the session is over. Any failure to ask, including the permissions in
- * nhost/metadata not being applied, answers `unknown` and the session stays:
- * a check that signs people out whenever GraphQL is unreachable would be worse
- * than the minutes it saves.
+ * Looks up the session's row in `auth.refresh_tokens`, and records where it is
+ * being used from while there (see `session-metadata.ts`).
  */
 export async function trackSession(
   nhost: NhostClient,
@@ -292,19 +241,7 @@ export type NhostProxyResult = {
   applySessionCookies: (response: NextResponse) => NextResponse;
 };
 
-/**
- * Refreshes the Nhost session from the Next.js proxy.
- *
- * Refreshing must happen in the proxy because it is the only place that can
- * update the session for both the current request and the browser. Session
- * writes go onto `request.cookies` right away, so Server Components rendering
- * this same request already see the refreshed token, and are recorded so the
- * proxy can replay them onto the response it returns via `applySessionCookies`.
- *
- * Call `applySessionCookies` on every response, including redirects: skipping
- * it leaves the browser on a stale session, or on a refresh token the SDK has
- * already rejected and asked to delete.
- */
+/** Refreshes the Nhost session from the Next.js proxy. */
 export async function handleNhostProxy(
   request: NextRequest,
 ): Promise<NhostProxyResult> {
@@ -347,10 +284,8 @@ export async function handleNhostProxy(
     : await nhost.refreshSession(PROXY_REFRESH_MARGIN_SECONDS);
 
   // A session revoked from elsewhere, by a password change or from another
-  // device's account page, still holds an access token the backend
-  // accepts until it expires. Only the refresh token's row says it is over, so
-  // every real navigation looks for it. Prefetches do not: nobody is looking
-  // at their response yet, and the navigation that follows checks.
+  // device's account page, still holds an access token the backend accepts
+  // until it expires.
   if (session && !isPrefetch(request)) {
     if ((await trackSession(nhost, session, request.headers)) === 'revoked') {
       nhost.clearSession();
@@ -359,11 +294,7 @@ export async function handleNhostProxy(
   }
 
   // A link may sign in a visitor who is signed out; it may not replace somebody
-  // who is already here. Redeeming on sight would let a crafted link swap a
-  // signed-in visitor's session for the sender's, and everything they wrote
-  // next would land in the sender's account. Checked after the refresh, which
-  // deletes a cookie the auth service rejects, so a dead session does not
-  // cost the visitor a link that still works.
+  // who is already here.
   const linkToken = request.nextUrl.searchParams.get(LINK_TOKEN_PARAM);
   if (linkToken && !storage.get()) {
     try {

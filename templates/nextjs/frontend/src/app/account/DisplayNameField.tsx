@@ -9,12 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
-/**
- * The display name as the profile shows it, editable in place.
- *
- * The one setting not behind a dialog: it is a single field, and the name it
- * changes is right there, so editing happens where it is read.
- */
+/** The display name as the profile shows it, editable in place. */
 export default function DisplayNameField({
   displayName,
 }: {
@@ -70,9 +65,7 @@ export default function DisplayNameField({
 
   if (!editing) {
     return (
-      // Wraps rather than truncates: the name is what the card is for. It is
-      // often the address, which has no spaces, so it may break anywhere.
-      // Inline, so the pencil follows the last word rather than the edge.
+      // Wraps rather than truncates: the name is what the card is for.
       <p className="min-w-0 font-semibold text-xl leading-tight [overflow-wrap:anywhere]">
         {displayName}
         {/* Always shown rather than on hover: a phone has no hover, and a

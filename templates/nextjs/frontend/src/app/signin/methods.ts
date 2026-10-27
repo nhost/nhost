@@ -7,24 +7,7 @@ import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
 
-/**
- * The sign-in methods this app offers, one entry each.
- *
- * Every method is its own directory under `src/app/auth/`, and nothing
- * outside that directory imports from it except this file. To drop a method:
- * delete its directory, then delete its entry here and the imports it used.
- * That is the whole procedure.
- *
- * `account` is how a method puts something on the account page: the rows it
- * renders there, by name, each in the method's own directory. This file is the one
- * place shared code reaches them, so the account page renders whatever is
- * listed and names no method itself. A method with nothing to configure
- * leaves it out and the account page lists it as needing no setup.
- *
- * `signedOutPaths` are the method's pages that hold a session only to finish
- * something the visitor started signed out, like setting a new password from
- * a reset link. The nav shows them as signed out there, see `NavAccount`.
- */
+/** The sign-in methods this app offers, one entry each. */
 export type AccountSetting = (props: {
   user: User;
 }) => ReactNode | Promise<ReactNode>;
@@ -39,9 +22,7 @@ export type SignInMethod = {
 
 /**
  * A method that signs in from the sign-in list itself rather than from a page
- * of its own, because it has nothing to type first. The list shows these under
- * the links, past a divider, and passes on where the visitor was going, and
- * the href of the way they last signed in, for a button to mark as its own.
+ * of its own, because it has nothing to type first.
  */
 export type SignInButtons = (props: {
   destination: string;
@@ -55,8 +36,7 @@ export const buttons: SignInButtons[] =
 
 /**
  * The account-page rows of the methods in `buttons`, which have no entry in
- * `methods` to carry an `account`. The account page puts them after the
- * methods' own rows.
+ * `methods` to carry an `account`.
  */
 export const buttonSettings: AccountSetting[] =
   configuredProviders().length > 0 ? [LinkedAccountsSetting] : [];

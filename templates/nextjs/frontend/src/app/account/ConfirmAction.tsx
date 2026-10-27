@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-/**
- * The answers to a dialog that asks before it acts.
- *
- * Cancel comes first, which is where the dialog puts focus on opening, so an
- * Enter pressed out of habit backs out rather than acts. With `typeToConfirm`
- * the action also waits for that word to be typed, for the one that cannot
- * be undone.
- */
+/** The answers to a dialog that asks before it acts. */
 export default function ConfirmAction({
   confirm,
   pending: pendingLabel,

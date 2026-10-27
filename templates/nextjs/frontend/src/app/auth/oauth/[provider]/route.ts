@@ -9,15 +9,7 @@ import {
   providerHref,
 } from '../providers';
 
-/**
- * Where a provider button goes before the provider. Linking straight to the
- * auth service would leave this app without a request of its own, and this
- * one is what notes the attempt, the way the proxy does when a method's page
- * is opened, so the sign-in list can mark the provider as last used.
- *
- * Only the providers the deployment set up: any other would only lead to the
- * auth service refusing it.
- */
+/** Where a provider button goes before the provider. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> },

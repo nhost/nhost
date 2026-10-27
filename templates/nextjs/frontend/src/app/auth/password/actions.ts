@@ -6,11 +6,7 @@ import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient, endPasswordReset } from '@/lib/nhost/server';
 
 // The server client's storage writes the session cookie, so a sign-in that
-// succeeds here is the sign-in. The caller only has to navigate.
-//
-// An account with two-factor on gets no session yet: the backend accepts the
-// password and answers with a ticket, and `verifyMfa` trades the ticket and a
-// code from the authenticator app for the session.
+// succeeds here is the sign-in.
 export async function signIn(
   email: string,
   password: string,
@@ -61,13 +57,6 @@ export async function verifyMfa(
 }
 
 // Returns `signedIn: true` only when the backend has email verification off.
-// By default it is on, no session comes back, and the verification email's link
-// is what signs the user in: the proxy redeems it and lands them on `next`.
-//
-// `next` is checked again here even though the page already did: a server
-// action is a public endpoint anyone can call with any arguments, and `next`
-// is appended to the origin, so a value that is not a path could change the
-// host the verification link sends its token to.
 export async function signUp(
   email: string,
   password: string,
@@ -93,9 +82,9 @@ export async function signUp(
   }
 }
 
-// The reset link signs the user in (the proxy redeems it) and lands them on
-// the reset page, which is why that page can set a password without asking
-// for the current one.
+// The reset link signs the user in (the proxy redeems it) and lands them on the
+// reset page, which is why that page can set a password without asking for the
+// current one.
 export async function requestPasswordReset(
   email: string,
 ): Promise<ActionResult> {

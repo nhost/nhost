@@ -38,8 +38,8 @@ export default function PasskeyForm({
   const emailId = useId();
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
-  // unless it said otherwise: a fresh local backend has no accounts in it, so
-  // a sign-in form would be a dead end.
+  // unless it said otherwise: a fresh local backend has no accounts in it, so a
+  // sign-in form would be a dead end.
   const [mode, setMode] = useState<Mode>(intent);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);

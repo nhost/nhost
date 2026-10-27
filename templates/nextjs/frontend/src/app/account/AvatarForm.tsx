@@ -17,18 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
-/**
- * The controls for the avatar, wrapped around the image itself.
- *
- * The image is passed in rather than rendered here: it comes from the auth
- * service on the server, and this is a client component. What this adds is
- * the round + in its bottom corner, and a remove link underneath.
- *
- * No file name and no separate upload step. The file input is the only way
- * to open a file picker, so it stays in the DOM for a screen reader and the
- * round button clicks it; choosing a file is the whole gesture, so the
- * upload starts there rather than waiting for a second press.
- */
+/** The controls for the avatar, wrapped around the image itself. */
 export default function AvatarForm({
   canRemove,
   children,
@@ -40,9 +29,8 @@ export default function AvatarForm({
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
-  // The request finishing is not the new image showing: the page still has
-  // to render again with its URL. Refreshing in a transition keeps the
-  // spinner up until that render is in.
+  // The request finishing is not the new image showing: the page still has to
+  // render again with its URL.
   const [isRefreshing, startRefresh] = useTransition();
   const isBusy = isPending || isRefreshing;
 
@@ -137,9 +125,8 @@ export default function AvatarForm({
           aria-label="New avatar image"
           onChange={(event) => void handleChange(event)}
         />
-        {/* Sat on the image's bottom corner rather than under it, where a
-            row of buttons competed with the name beside it. The ring is the
-            card colour, so the button reads as cut out of the image. */}
+        {/* Sat on the image's bottom corner rather than under it, where a row
+            of buttons competed with the name beside it. */}
         <Button
           type="button"
           variant="secondary"

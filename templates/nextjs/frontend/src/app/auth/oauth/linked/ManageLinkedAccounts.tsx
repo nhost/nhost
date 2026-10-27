@@ -19,13 +19,8 @@ export type LinkedProvider = {
 };
 
 /**
- * A line per provider: Link account leaves for the provider and comes back to the
- * account page, Unlink stays here with the list read again under it.
- *
- * Unlinking is off when the one link left is the only way in, which the
- * action checks again: the button only saves a round trip to be told no.
- * `links` counts every provider linked to the account, the ones this
- * deployment does not offer included, as the action does.
+ * A line per provider: Link account leaves for the provider and comes back to
+ * the account page, Unlink stays here with the list read again under it.
  */
 export default function ManageLinkedAccounts({
   providers: listed,

@@ -1,79 +1,24 @@
-/**
- * Where signing in lands when nothing asked for somewhere else.
- *
- * The account page: it is the one page a session opens, so it is where
- * someone who just signed in can see that it worked and what came with it.
- * Landing back on home showed them the page they started from. Somewhere
- * else only happens when the link that started it said so, which is what
- * `signInHref` is for.
- */
+/** Where signing in lands when nothing asked for somewhere else. */
 export const DEFAULT_DESTINATION = '/account';
 
-/**
- * Link to sign-in that comes back to `destination` afterwards.
- *
- * Anything that would otherwise send a signed-out visitor to a protected page
- * should point here instead. The proxy and a protected page's own redirect
- * both use it, so whichever sends them to sign in, they still end up where
- * they were going.
- */
+/** Link to sign-in that comes back to `destination` afterwards. */
 export function signInHref(destination: string): string {
   return `/signin?next=${encodeURIComponent(destination)}`;
 }
 
 // Any absolute URL will do: resolving `next` against it is what says whether
-// `next` stays on this site. `.invalid` is reserved by RFC 2606 and can never
-// be a real origin, so no `next` can be crafted to match it.
+// `next` stays on this site.
 const RESOLUTION_BASE = 'https://placeholder.invalid';
 
 // A path written the way RFC 3986 says one is sent: unreserved characters,
-// sub-delims, `:`, `@`, `/` and complete percent escapes, nothing else. Plus
-// `[` and `]`, which RFC 3986 only allows in a host: `request.nextUrl.pathname`
-// leaves them raw, so without them the proxy's `signInHref` would lose `next`
-// for any path containing one, and neither the auth service nor the browser
-// rewrites them.
+// sub-delims, `:`, `@`, `/` and complete percent escapes, nothing else.
 const CANONICAL_PATH =
   /^(?:[A-Za-z0-9\-._~!$&'()*+,;=:@/[\]]|%[0-9A-Fa-f]{2})*$/;
 
 /**
- * Where to go after signing in, from an untrusted `?next=`.
- *
- * Anything that is not a path on this site falls back to the default. Deciding
- * that takes the URL parser rather than a pattern, because the browser is what
- * ultimately resolves this value and it reads more things as another origin
- * than they look. `//evil.example` is the familiar one, but `/\evil.example`
- * parses to the same URL, and a raw tab or newline is stripped before parsing,
- * so the two characters `/` and a literal tab ahead of `/evil.example` do too.
- * Percent-encoded they do not: `/%09/evil.example` stays a path on this site.
- * Each of the reachable ones passes a "starts with one slash but not two"
- * check and leaves the site.
- *
- * So resolve it the way the browser will, and keep it only if it landed back
- * here with a path that would land here again. That second part is for dot
- * segments: `/..//evil.example` resolves to this site, but with the path
- * `//evil.example`, and that is where an auth email or OAuth redirect sends
- * the browser. Read back as a URL of its own, which is how anything rebuilding
- * the address uses it, that path names another origin. Next.js redirects a
- * doubled slash away before the proxy runs, but that is the framework's
- * choice, and this does not lean on it.
- *
- * The path is resolved here once, but on the way back it is parsed again by
- * the auth service and then by the browser, and the check only says anything
- * if they all read the same path. A path in canonical form is one none of them
- * rewrites, so anything else is refused. Without that, a trailing space is
- * trimmed when it is resolved here, but the auth service encodes it to `%20`
- * first, so `/.//.. ` resolves to `/` and lands on `//..%20`. And a raw space or
- * `|` anywhere in the path makes the auth service re-encode it from its
- * decoded form, which turns `%2F` into `/`, so `/a b/..%2F..%2F%2Fevil.example`
- * lands on `//evil.example`. The query is not held to this: it never changes
- * the path, and `signInHref` round-trips it unencoded. So a `next` whose path
- * has a raw space, a non-ASCII character or anything else outside that set is
- * dropped for home; percent-encoded, as `request.nextUrl.pathname` has it, it
- * is kept.
- *
- * What is returned is the original string rather than the parsed form:
- * re-serializing would percent-encode a query string that callers round-trip
- * through `signInHref`.
+ * Where to go after signing in, from an untrusted `?next=`: a path on this
+ * site in canonical form, or the default. The README's design notes say why
+ * the shape of the value is not enough to decide that.
  */
 export function signInDestination(
   value: string | string[] | undefined,

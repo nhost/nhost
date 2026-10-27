@@ -1,10 +1,6 @@
 import type * as React from 'react';
 
-/**
- * The Next.js mark, from Simple Icons (CC0). Like `NhostLogo` it fills with
- * `currentColor` and is hidden from assistive technology, since whatever
- * holds it names it.
- */
+/** The Next.js mark, from Simple Icons (CC0). */
 export default function NextjsLogo(props: React.ComponentProps<'svg'>) {
   return (
     <svg

@@ -4,8 +4,7 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 // Tailwind v4's preflight gives buttons `cursor: default`, so the pointer has
-// to be asked for. It belongs here rather than on each button: every one of
-// them is clickable, and the disabled ones take no pointer events at all.
+// to be asked for.
 const buttonVariants = cva(
   "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {

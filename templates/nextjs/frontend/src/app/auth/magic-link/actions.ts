@@ -5,19 +5,7 @@ import { appOrigin } from '@/lib/nhost/env';
 import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
 
-/**
- * Emails a sign-in link. Opening it signs the visitor in and lands them on
- * `next`; the proxy redeems the token the link carries, so there is nothing
- * for this method to do after the email is out.
- *
- * `next` is checked again here even though the page already did: a server
- * action is a public endpoint anyone can call with any arguments, and `next`
- * is appended to the origin, so a value that is not a path could change the
- * host the link sends its token to.
- *
- * No redirect here: the action resolves with a result and the form decides
- * what to show. See `@/lib/nhost/actions` for why.
- */
+/** Emails a sign-in link. */
 export async function sendMagicLink(
   email: string,
   next: string,

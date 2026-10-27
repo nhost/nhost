@@ -25,8 +25,7 @@ export async function sendCode(
 }
 
 // A successful verify is the sign-in: the client's storage writes the session
-// cookie, so the caller only has to navigate. No redirect here, see
-// `@/lib/nhost/actions` for why.
+// cookie, so the caller only has to navigate.
 export async function verifyCode(
   email: string,
   otp: string,

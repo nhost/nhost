@@ -2,13 +2,7 @@
 
 import { useToast } from '@/components/Toast';
 
-/**
- * The account's id as a chip that copies it.
- *
- * Whole, as far as the room beside the name allows: the name comes first, so
- * the id is the one cut short, at its end. It is always whole in the tooltip
- * and on the clipboard, which is where it gets used.
- */
+/** The account's id as a chip that copies it. */
 export default function CopyUserId({ id }: { id: string }) {
   const toast = useToast();
 

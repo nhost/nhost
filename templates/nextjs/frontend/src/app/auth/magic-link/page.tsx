@@ -14,11 +14,7 @@ import MagicLinkForm from './MagicLinkForm';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Magic link sign-in. The page only sends the email: the link in it goes to
- * the auth service, which signs the visitor in and redirects back to `next`
- * with a refresh token the proxy redeems on arrival.
- */
+/** Magic link sign-in. */
 export default async function MagicLink({
   searchParams,
 }: {

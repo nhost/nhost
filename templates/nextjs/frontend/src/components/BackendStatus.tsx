@@ -46,8 +46,7 @@ function useBackendStatus(): Status {
 
     recheck();
     // Polled only against the local stack, where it is what shows `nhost up`
-    // stopping. A cloud project is asked again when the tab comes back or
-    // the network changes, not every few seconds from every open tab.
+    // stopping.
     const interval = isLocalBackend()
       ? window.setInterval(recheck, POLL_MS)
       : undefined;
@@ -70,17 +69,6 @@ function useBackendStatus(): Status {
 /**
  * Which backend this build talks to and whether it is answering, linking to
  * where it is managed.
- *
- * Which backend was fixed when `next build` ran (see `env.ts`), so a deploy
- * that forgot its NEXT_PUBLIC_NHOST_* variables shows up here as local rather
- * than as sign-ins that fail for no visible reason. Whether it answers is
- * checked from the browser and kept current while the page is open.
- *
- * It reads state first, then the backend's name, which is the link. An
- * offline local stack takes its dashboard down with it, so the link goes
- * too. The cloud dashboard stays up when a project does not, and is where a
- * paused project is woken, so that link stays, but only a connected backend
- * gets the arrow: it is what says the link opens something that is up.
  */
 export default function BackendStatus() {
   const local = isLocalBackend();

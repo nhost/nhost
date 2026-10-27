@@ -9,14 +9,7 @@ export type OAuthLink = {
   lastUsed?: boolean;
 };
 
-/**
- * One button per provider. Plain anchors rather than `next/link`: the href is
- * a route handler that redirects to the auth service, another origin, and the
- * whole point is to leave this app for it.
- *
- * Drawn like the method links above them rather than as shadcn's outline
- * button, whose own fill and border would set them apart from the list.
- */
+/** One button per provider. */
 export default function OAuthButtons({ links }: { links: OAuthLink[] }) {
   return (
     <div className="flex flex-col gap-3">

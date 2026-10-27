@@ -50,12 +50,8 @@ export default function ProfileSummary({ user }: { user: User }) {
         />
       </AvatarForm>
 
-      {/* The id, role and locale are what a developer reads and the
-          account's owner mostly does not, so they are small. The id goes
-          under the name rather than beside it: beside it, a long name and a
-          whole id took the room from each other. The joined date, with the
-          role and locale close under it, sits at the right of both, except on
-          a phone, where the name needs that room and they go under the id. */}
+      {/* The id, role and locale are what a developer reads and the account's
+          owner mostly does not, so they are small. */}
       <div className="grid min-w-0 flex-1 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3">
         <div className="min-w-0">
           <DisplayNameField displayName={user.displayName} />

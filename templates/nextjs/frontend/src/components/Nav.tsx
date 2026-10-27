@@ -37,10 +37,9 @@ export default async function Nav() {
             user ? (
               <div className="flex items-center gap-3">
                 <SignOutButton />
-                {/* The picture rather than the address: the address is
-                    already on the account page this leads to, and at nav
-                    width a long one crowded the sign-out beside it. The link
-                    needs a name of its own, since the avatar is decorative. */}
+                {/* The picture rather than the address: the address is already
+                    on the account page this leads to, and at nav width a long
+                    one crowded the sign-out beside it. */}
                 <Link
                   href="/account"
                   className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"

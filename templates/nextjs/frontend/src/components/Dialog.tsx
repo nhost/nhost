@@ -17,17 +17,7 @@ export function useCloseDialog(): VoidFunction {
   return use(CloseDialog);
 }
 
-/**
- * A modal on the browser's own `<dialog>`.
- *
- * `showModal()` does the work a dialog library would: the page under it goes
- * inert, focus moves in and stays there, and Escape closes it. So there is
- * nothing to add to the dependencies for it, and nothing here to trap focus
- * by hand.
- *
- * The contents only render while it is open, so a form inside starts fresh
- * every time rather than holding whatever was abandoned in it last.
- */
+/** A modal on the browser's own `<dialog>`. */
 export default function Dialog({
   open,
   onOpenChange,
@@ -66,8 +56,7 @@ export default function Dialog({
       // Escape closes the element by itself; this keeps the state in step.
       onClose={close}
       // The contents fill the dialog, so a press that lands on the element
-      // itself is on the backdrop. It has to start there too, or selecting
-      // text in a field and letting go past the edge would close it.
+      // itself is on the backdrop.
       onPointerDown={(event) => {
         pressedBackdrop.current = event.target === event.currentTarget;
       }}

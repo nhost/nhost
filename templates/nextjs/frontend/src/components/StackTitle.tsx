@@ -43,18 +43,9 @@ function LogoLink({
 }
 
 /**
- * The home page's title, with each mark centred over its own name and
- * linking to its project, glowing in its own colour on hover the way the Vite
- * starters do.
- *
- * The heading is a subgrid of the row the marks sit in, so each name's column
- * is what centres the mark above it, and the heading still reads as one line,
- * "Nhost + Next.js". The spaces between its spans are dropped by the grid but
- * kept in the text a screen reader reads.
- *
- * Every Nhost starter has one: the Nhost mark first, then the framework's,
- * so a template for another framework swaps the second entry and keeps the
- * rest.
+ * The home page's title, with each mark centred over its own name and linking
+ * to its project, glowing in its own colour on hover the way the Vite starters
+ * do.
  */
 export default function StackTitle() {
   const [backend, framework] = logos;

@@ -51,19 +51,7 @@ const messages = new Map([
   ['user-already-exists', 'An account with this email address already exists.'],
 ]);
 
-/**
- * Says why an auth redirect failed.
- *
- * Auth emails and the OAuth buttons send the browser to the auth service, and
- * when that fails it redirects back to `redirectTo` with an `error` code in the
- * query. An expired link, a provider that is not enabled in `nhost.toml`, a
- * callback the provider refused: all land on the page the flow would have
- * landed on anyway, and without this nothing would say what went wrong.
- *
- * The message is looked up from the code, and an unknown code is not echoed.
- * The `errorDescription` that comes with it is ignored: anyone can write one
- * into a link, and this would show it as the app's own words.
- */
+/** Says why an auth redirect failed. */
 export default function AuthErrorNotice({ error }: { error: Param }) {
   const code = first(error);
   if (!code) {

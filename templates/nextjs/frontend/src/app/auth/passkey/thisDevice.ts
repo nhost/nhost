@@ -1,9 +1,4 @@
-// The passkeys this browser has seen: the ones added or used here. A browser
-// does not tell a site which passkeys its device holds without showing a
-// passkey prompt, so this is the only way to warn before the device refuses
-// a second passkey for the same account. It misses a passkey synced from
-// another device, one shared with another browser on this one, and any used
-// before the site's data was cleared; `alreadyRegistered` covers those.
+// The passkeys this browser has seen: the ones added or used here.
 const KEY = 'nhostPasskeys';
 const MAX = 20;
 
@@ -40,8 +35,8 @@ export function passkeysOnThisDevice(): Set<string> {
 }
 
 /**
- * Whether the device refused to add a passkey because it already holds one
- * of the account's: the auth service lists them as excluded, and the browser
+ * Whether the device refused to add a passkey because it already holds one of
+ * the account's: the auth service lists them as excluded, and the browser
  * answers with InvalidStateError, a name @simplewebauthn/browser keeps.
  */
 export function alreadyRegistered(err: unknown): boolean {

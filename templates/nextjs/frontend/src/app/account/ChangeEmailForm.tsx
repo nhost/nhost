@@ -13,14 +13,7 @@ import { NETWORK_ERROR } from '@/lib/nhost/errors';
 // inbox.
 type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
 
-/**
- * Changing the address, and chasing the verification of the current one.
- *
- * A change is not applied here: the auth service sends a confirmation link
- * to the new address, and the account only moves when that link is opened.
- * So the dialog ends on where the link went rather than closing on a toast,
- * since nothing on the page will have changed yet.
- */
+/** Changing the address, and chasing the verification of the current one. */
 export default function ChangeEmailForm({
   email,
   verified,

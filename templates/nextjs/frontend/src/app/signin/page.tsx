@@ -15,10 +15,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-// What the page says depends on why the visitor is here. Neither heading names
-// a method, so both survive any selection. Each also offers the other intent,
-// since a protected page sends a visitor here without one and the page then
-// opens on sign up, whether or not they have an account.
+// What the page says depends on why the visitor is here.
 const copy: Record<
   Intent,
   {
@@ -47,18 +44,7 @@ const copy: Record<
   },
 };
 
-/**
- * Lists the ways to sign in. Each method is a page of its own under
- * `/auth/<method>`; this page only links to them, from the data in
- * `methods.ts`, so deleting a method never breaks it. The exception is a
- * provider account, which needs nothing typed first: its buttons are listed
- * here, under the links, rather than a click away on a page of their own.
- *
- * `next` is where the visitor was going when a protected page sent them here,
- * and `intent` is whether they came to sign up or to sign in. Both are passed
- * along to whichever method they pick: one so that page can finish the trip,
- * the other so a form opens on the right mode.
- */
+/** Lists the ways to sign in. */
 export default async function SignIn({
   searchParams,
 }: {

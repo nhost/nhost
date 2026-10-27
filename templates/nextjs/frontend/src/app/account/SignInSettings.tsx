@@ -5,22 +5,7 @@ import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
 
-/**
- * Every sign-in method, as the account page shows it.
- *
- * Reads the registry rather than importing a method: a method that has
- * settings of its own, like two-factor or the password itself, renders its
- * rows from its own directory, and `methods.ts` is the only shared file that
- * points at them. Deleting the method deletes its entry there, and this
- * section changes with it.
- *
- * A method with nothing to configure still gets named, so the page answers
- * "how else can I sign in?" rather than only listing what has a setting.
- *
- * The address leads, and is not in the registry: no single method owns it.
- * Magic link, the email code and the password all sign in with it, which is
- * why it belongs to the account rather than to any one of them.
- */
+/** Every sign-in method, as the account page shows it. */
 
 // "a", "a and b", "a, b and c".
 function sentenceList(items: string[]): string {

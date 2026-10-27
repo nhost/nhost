@@ -38,17 +38,7 @@ function Step({
   );
 }
 
-/**
- * The starter's front page: what this is and what to try first.
- *
- * Auth is what the template is for, so the first step is signing up and the
- * rest point at where to take it from there. The nav already carries sign in
- * and sign out, so nothing here repeats the session beyond the first step
- * saying it is done.
- *
- * No method is named here: `methods.ts` decides which exist, and the sign-in
- * page this links to is what lists them.
- */
+/** The starter's front page: what this is and what to try first. */
 export default async function Home() {
   const nhost = await createNhostClient();
   const user = nhost.getUserSession()?.user;
@@ -87,9 +77,9 @@ export default async function Home() {
             </Step>
 
             <Step n={2} title="Explore your account">
-              {/* The link is whichever half the visitor can do now: signed
-                  in, signing out; signed out, the sign-in page, which a
-                  session would only send on to the account. */}
+              {/* The link is whichever half the visitor can do now: signed in,
+                  signing out; signed out, the sign-in page, which a session
+                  would only send on to the account. */}
               {user ? (
                 <p>
                   Edit your profile and how you sign in, then{' '}

@@ -3,7 +3,7 @@ import BackendStatus from '@/components/BackendStatus';
 /**
  * On every page and pinned to the bottom of the window, so which backend the
  * app is connected to is never more than a glance away, even halfway down a
- * long page. `CenteredLayout` leaves room for its height.
+ * long page.
  */
 export default function Footer() {
   return (

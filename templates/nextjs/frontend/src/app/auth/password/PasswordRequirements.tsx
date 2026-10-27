@@ -1,15 +1,7 @@
 import { passwordRequirements } from '@/app/auth/password/requirements';
 import { cn } from '@/lib/utils';
 
-/**
- * The rules a new password has to meet, ticked off as it is typed.
- *
- * Every form that sets a password shows this, so what is asked for is the
- * same wherever you arrive from. The fields point at it with
- * `aria-describedby`, which is what reads the list out on focus; the ticks
- * themselves are not announced as they change, since a live region firing on
- * every keystroke is worse than silence.
- */
+/** The rules a new password has to meet, ticked off as it is typed. */
 export default function PasswordRequirements({
   id,
   password,
@@ -22,9 +14,8 @@ export default function PasswordRequirements({
   className?: string;
 }) {
   return (
-    // items-center so each rule centres as a unit, tick and all, under a
-    // card whose heading and button are centred too. A form laid out
-    // differently passes its own.
+    // items-center so each rule centres as a unit, tick and all, under a card
+    // whose heading and button are centred too.
     <ul
       id={id}
       className={cn('flex flex-col items-center gap-1 text-sm', className)}

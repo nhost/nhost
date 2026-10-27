@@ -15,9 +15,7 @@ export const dynamic = 'force-dynamic';
 
 // The reset email's link goes through the auth service, which sends the user
 // back here with a refresh token the proxy redeems only for a signed-out
-// visitor. So a session means the visitor is signed in, usually through the
-// link, and no session means the link was expired, already used, or opened in
-// another browser.
+// visitor.
 export default async function ResetPassword() {
   const session = (await createNhostClient()).getUserSession();
 

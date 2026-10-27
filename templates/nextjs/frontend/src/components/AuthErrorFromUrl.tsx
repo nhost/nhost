@@ -3,14 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import AuthErrorNotice from '@/components/AuthErrorNotice';
 
-/**
- * Shows `AuthErrorNotice` for the current URL, on any page.
- *
- * A failed flow comes back to whatever `redirectTo` it was given: the page the
- * visitor was headed for, `/account` for an email change, the reset page for a
- * password link. The root layout mounts this once so each of those says what
- * went wrong without every page reading the query itself.
- */
+/** Shows `AuthErrorNotice` for the current URL, on any page. */
 export default function AuthErrorFromUrl() {
   const params = useSearchParams();
   const error = params.get('error');

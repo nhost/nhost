@@ -15,10 +15,9 @@ export type LinkedAccount = {
   createdAt: string;
 };
 
-// Linking goes through the auth service (see `[provider]/connect`); listing
-// and unlinking go through GraphQL and the permissions on
-// `auth.user_providers` in nhost/metadata, which leave out the provider's
-// tokens.
+// Linking goes through the auth service (see `[provider]/connect`); listing and
+// unlinking go through GraphQL and the permissions on `auth.user_providers` in
+// nhost/metadata, which leave out the provider's tokens.
 export async function listLinkedAccounts(): Promise<
   ActionResult & { links?: LinkedAccount[] }
 > {
@@ -50,8 +49,7 @@ export async function listLinkedAccounts(): Promise<
 }
 
 // The account and its links come from the backend, not the caller, so the
-// caller cannot talk its way past `leavesAWayIn`. The permission filters by
-// user, so someone else's link deletes nothing.
+// caller cannot talk its way past `leavesAWayIn`.
 export async function unlinkProvider(id: string): Promise<ActionResult> {
   if (!id) {
     return { error: 'Which account?' };

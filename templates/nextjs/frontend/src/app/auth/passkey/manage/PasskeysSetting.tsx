@@ -3,9 +3,9 @@ import ManagePasskeys from '@/app/auth/passkey/manage/ManagePasskeys';
 import { passkeyName } from '@/app/auth/passkey/manage/names';
 import { DialogSetting } from '@/components/Setting';
 
-// Read when the account page renders, not when the dialog opens: the names
-// are the row's value, and adding or removing one refreshes the page, which
-// reads them again.
+// Read when the account page renders, not when the dialog opens: the names are
+// the row's value, and adding or removing one refreshes the page, which reads
+// them again.
 export default async function PasskeysSetting() {
   const { keys, error } = await listPasskeys();
   const count = keys?.length ?? 0;

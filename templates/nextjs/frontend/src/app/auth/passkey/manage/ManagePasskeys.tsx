@@ -53,8 +53,7 @@ export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
 
   // Starts as the device it is added on, numbered past any passkey already
   // called that, for the user to keep or change; blank when this device has
-  // one, since the next has to come from another. The dialog's contents only
-  // render in the browser, once it is opened, so `navigator` is there.
+  // one, since the next has to come from another.
   const [nickname, setNickname] = useState(() => {
     const device = deviceName(navigator.userAgent);
     return device && !here
@@ -94,9 +93,7 @@ export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
       }
       rememberPasskey(credential.id);
 
-      // Adding is what the dialog was opened for, so it closes. The page
-      // reads the list from the backend, so it is re-rendered rather than
-      // patched here.
+      // Adding is what the dialog was opened for, so it closes.
       close();
       toast('Passkey added');
       router.refresh();
@@ -120,9 +117,8 @@ export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
     }
   };
 
-  // Stays open after a removal, with the list re-read under it, in case
-  // there is another to remove. The passkey leaves the list at once and comes
-  // back only if the server refused.
+  // Stays open after a removal, with the list re-read under it, in case there
+  // is another to remove.
   const handleRemove = async (key: Passkey): Promise<void> => {
     setError(undefined);
     remove(key.id);

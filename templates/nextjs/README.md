@@ -205,3 +205,103 @@ The select permission is the user's own files, which covers everywhere this
 app shows an avatar: it only ever shows you yours. Showing other users'
 avatars means widening that permission, and that is the first thing to
 change if the app grows a page that lists people.
+
+## Design notes
+
+The code's comments say what each piece does. This is the why behind the
+parts that are easy to break by tidying them.
+
+### The session lives on the server
+
+The session, refresh token included, is in an httpOnly cookie that only the
+proxy and server code read. A second cookie, `nhostSignedIn`, is readable by
+JavaScript and carries nothing but the fact that a session is there; the nav
+uses it to notice a session that ended in another tab. No token reaches the
+browser, so an XSS cannot act as the user. Signing in and out go through
+server actions, which write the cookies, and every page reads the session on
+the server.
+
+The proxy (`frontend/src/proxy.ts`, `lib/nhost/server.ts`) is the only thing
+that refreshes the access token, and it does so a minute before expiry on
+every real navigation. Refresh tokens are single-use, so two refreshes at
+once mean one of them fails with a token the backend has already replaced,
+and the SDK answers that by clearing the session. Next prefetches every link
+in view through the same proxy, concurrently with the real request, which is
+exactly that race. So a prefetch reads the stored session and never refreshes,
+and the browser never gets a refresh token to try with. Turning
+`prefetch={true}` on a link, or giving the browser client the SDK's own
+auto-refresh, reopens the race.
+
+### Links that sign in
+
+Auth emails and the OAuth callback send the browser back with a refresh token
+in the query string. The proxy redeems it, but only for a signed-out visitor:
+redeeming on sight would let a crafted link swap a signed-in visitor's session
+for the sender's. The token is then stripped from the URL with a redirect,
+whether it was redeemed or not, since a token the proxy declined is still a
+live credential until it expires, and query strings leak through history,
+bookmarks and the referer header. The proxy's matcher has a second entry so it
+runs on every path a link token lands on, because `redirectTo` can name any
+path on this origin.
+
+### Where sign-in lands
+
+`?next=` is attacker-controlled. `signInDestination` keeps it only if it is a
+path on this site in canonical form, decided by resolving it the way a browser
+does rather than by matching its shape: `//evil.example`, `/\evil.example`, a
+tab after the slash and `/..//evil.example` all pass a "starts with one slash"
+check and leave the site. A path with a raw space or a non-ASCII character is
+refused because the auth service re-encodes it on the way back and the browser
+then reads a different path. Every server action that puts `next` into a
+`redirectTo` checks it again, because an action is a public endpoint that can
+be called with any arguments.
+
+### Changing the password
+
+The auth service revokes every session when the password changes, this one
+included. The change action signs this browser straight back in with the new
+password, and with two-factor on, the code the form asked for, so the visitor
+keeps their place while every other device is signed out. An account with no
+email address has nothing to sign back in with and gets the old behaviour: the
+page is replaced by a card saying so, which a layout holds while Next renders
+the page again without a session (`ReplacePageLayout`).
+
+### Signing out
+
+Sign-out is one request: a server action that signs out and redirects home,
+called through `useActionState`, so Next sends the signed-out home page back
+with the action's answer and the control stays pressed until it is on screen.
+Pushing home and refreshing after the action was three requests, with the
+button briefly back to "Sign out" between them.
+
+### Sessions and passkeys on this device
+
+The sessions list is the user's own record, written by the proxy into the
+`metadata` column of their refresh token row (see [Sessions](#sessions)); the
+`user` role may write it, so it is not an audit log. A revoked session keeps
+a valid access token for up to fifteen minutes, so the proxy looks the row up
+on every real navigation and signs the browser out when it is gone, and a tab
+left open checks again when it is next looked at.
+
+A device refuses to add a second passkey for the same account, because the
+auth service lists the existing ones as excluded. A browser does not say which
+passkeys its device holds without a prompt, so the account page remembers the
+passkeys added or used in this browser (local storage) to warn before Add,
+and reads the browser's refusal to explain after.
+
+### The small things
+
+- The "Last used" badge on the sign-in list comes from two cookies: a method's
+  page opened signed out records an attempt, and the first response with a
+  session keeps it, so a way in that was opened and abandoned changes nothing.
+- Every page is dynamic, so `staleTimes.dynamic` keeps a recently visited page
+  in the browser for 30 seconds. Nothing goes stale that matters: signing in
+  or out clears that cache, and every change on the account page refreshes it.
+- Toasts render in a popover so they sit in the browser's top layer, above a
+  modal `<dialog>`, which no z-index reaches.
+- Items removed from a list on the account page leave it before the refreshed
+  page arrives (`useRemoved`), because on a deployed backend the refresh takes
+  long enough to press the same button twice.
+- The `frontend/src/app/signin/methods.ts` registry is how a sign-in method is
+  deleted: remove its directory and its entry there. `isolation.test.ts`
+  checks that no method imports another and shared code imports no method.

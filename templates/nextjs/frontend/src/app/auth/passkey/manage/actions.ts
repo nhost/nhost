@@ -91,9 +91,8 @@ export async function finishAddPasskey(
   }
 }
 
-// The permission filters by the signed-in user, so an id belonging to
-// someone else deletes nothing rather than failing loudly. The count of
-// affected rows is what says whether it was this user's to remove.
+// The permission filters by the signed-in user, so an id belonging to someone
+// else deletes nothing rather than failing loudly.
 export async function removePasskey(id: string): Promise<ActionResult> {
   if (!id) {
     return { error: 'Which passkey?' };

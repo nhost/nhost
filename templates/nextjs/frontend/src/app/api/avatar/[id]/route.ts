@@ -2,15 +2,8 @@ import type { NextRequest } from 'next/server';
 import { isAvatarType, isAvatarWidth, isFileId } from '@/app/account/avatar';
 import { createNhostClient } from '@/lib/nhost/server';
 
-// The storage service reads the session from an Authorization header, which
-// an <img> cannot send, and it has no query-parameter token. So the avatar is
-// read here, server-side, with the session cookie's token, and streamed back.
-// The caching headers come through intact, so the browser caches the image
-// and revalidates it by ETag the same as it would against storage directly.
-//
-// `?w=` asks storage to resize on the way out, which is what keeps a 5 MB
-// photo from crossing the wire to fill a 96px circle. Only the widths in
-// `AVATAR_WIDTHS` are passed on; see there for why the list is closed.
+// The storage service reads the session from an Authorization header, which an
+// <img> cannot send, and it has no query-parameter token.
 
 // Quality for a resized image, fixed rather than taken from the caller: one
 // value per size means one cached variant per size. 80 is the usual place to
@@ -32,9 +25,7 @@ const CONDITIONAL = ['if-none-match', 'if-modified-since'];
 
 // `f=auto` picks AVIF, then WebP, then JPEG from what the browser said it
 // takes, so a modern one gets the smaller format without this app deciding
-// which. It reads the Accept header to do it, so that has to go upstream,
-// and the answer varies by it, so the response has to say so or a cache will
-// hand an AVIF to something that cannot read one.
+// which.
 const NEGOTIATED = 'accept';
 
 export async function GET(
@@ -78,9 +69,6 @@ export async function GET(
   // Built as a string, the way it always was: `id` is a UUID by here and the
   // transform values are this file's own, so there is nothing to escape and
   // nothing a parser would catch.
-  //
-  // Without a width the original is served byte for byte, so the plain URL
-  // in `avatar_url` still answers with the file as it was uploaded.
   let query = '';
   if (width !== undefined) {
     query = `?${new URLSearchParams({
@@ -114,12 +102,8 @@ export async function GET(
     }
   }
 
-  // This response is gated by the session cookie, so a shared cache between
-  // the browser and this app must not hand it to another visitor. The
-  // browser's own cache still keeps it for the max-age storage set. Should
-  // storage send no max-age at all, the response still says `private`, or a
-  // shared cache could keep it on the strength of Last-Modified alone; the
-  // browser then revalidates by ETag on every use.
+  // This response is gated by the session cookie, so a shared cache between the
+  // browser and this app must not hand it to another visitor.
   const cacheControl = response.get('cache-control');
   if (!cacheControl) {
     response.set('cache-control', 'private, no-cache');

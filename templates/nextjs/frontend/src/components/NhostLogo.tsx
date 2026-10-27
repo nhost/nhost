@@ -1,10 +1,6 @@
 import type * as React from 'react';
 
-/**
- * The Nhost mark. It fills with `currentColor` so it follows the text beside it
- * into dark mode, and it is hidden from assistive technology because the word
- * "Nhost" is already next to it.
- */
+/** The Nhost mark. */
 export default function NhostLogo(props: React.ComponentProps<'svg'>) {
   return (
     <svg

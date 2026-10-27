@@ -29,17 +29,7 @@ const ACCOUNT_URL = () => `${appOrigin()}/account`;
 
 // The auth service takes the new password and nothing else: no current
 // password, and no check that one was ever set, so this works for an account
-// created by magic link as much as one created with a password. A signed-in
-// session is what authorises the change, which is why the form says so
-// rather than asking for something it would not use.
-//
-// The auth service revokes every session with the old password, this one
-// included, so every other device is signed out. This browser then signs
-// straight back in with the new password, which is already here, so changing
-// it does not cost the visitor their place. That takes an email address, and
-// with two-factor on, `otp`, a current code from the authenticator app, which
-// the form asks for alongside the password. Without them, or if the sign-in
-// fails, `signedIn` is false and the page asks for a fresh sign-in.
+// created by magic link as much as one created with a password.
 export async function changePassword(
   newPassword: string,
   otp?: string,
@@ -114,11 +104,8 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
   }
 }
 
-// The auth API has no write endpoint for a profile field, so this goes
-// through GraphQL and the update permission in nhost/metadata. The id comes
-// from the session cookie, which anyone can write, but the permission filters
-// by the user in the token, so a forged id updates nothing rather than
-// someone else.
+// The auth API has no write endpoint for a profile field, so this goes through
+// GraphQL and the update permission in nhost/metadata.
 export async function updateDisplayName(
   displayName: string,
 ): Promise<ActionResult> {
@@ -163,8 +150,7 @@ export async function updateDisplayName(
 }
 
 // Returns why the account's avatar could not be set to `avatarUrl`, or
-// undefined once it is. An empty string is how the account is left with no
-// avatar at all.
+// undefined once it is.
 async function setAvatarUrl(
   nhost: NhostClient,
   userId: string,
@@ -196,14 +182,8 @@ async function setAvatarUrl(
   }
 }
 
-// Three steps: the file goes to storage, which inserts its row as this user
-// under the insert permission in nhost/metadata; the account's avatar_url is
-// pointed at the route handler that serves it; and the file the previous
-// avatar pointed at, if this app wrote it, is deleted so storage does not
-// collect one per change. The previous avatar comes from the auth service, not
-// the session cookie: the cookie is patched by this app's own actions and
-// otherwise rewritten on refresh, so a change made in another browser can be
-// missing from it for an access token's life, and anyone can write one anyway.
+// The file goes to storage, the account's avatar_url is pointed at the route
+// that serves it, and the file the previous avatar named is deleted.
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const file = formData.get('avatar');
 
@@ -265,14 +245,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 }
 
-// The account stops pointing at an avatar first, then the file goes. That way
-// round a failure leaves the account showing an avatar that still exists,
-// where deleting first would leave it pointing at nothing.
-//
-// Clearing `avatar_url` works whatever it held, so the gravatar a fresh
-// account starts with can be taken down too. Deleting the file behind it only
-// happens for one this app wrote: `avatar_url` is the user's to set, so
-// anything else there names nothing of ours.
+// The account stops pointing at an avatar first, then the file goes.
 export async function removeAvatar(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
@@ -309,14 +282,8 @@ export async function removeAvatar(): Promise<ActionResult> {
   }
 }
 
-// Closing the account for good. The avatar goes first, because deleting the
-// row cascades through the auth schema but leaves a storage file behind, and
-// once the row is gone there is no session left to delete the file with.
-//
-// The sign-out at the end is only there to clear this browser's cookies. The
-// refresh tokens went with the row, so the session they describe is already
-// dead; a cookie pointing at a deleted account would otherwise sit here until
-// the next navigation noticed.
+// Closing the account for good. The avatar goes first: deleting the row
+// leaves a storage file behind, and no session to delete it with.
 export async function deleteAccount(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
@@ -362,8 +329,7 @@ export async function deleteAccount(): Promise<ActionResult> {
 }
 
 // For an address that was never verified: sign-up sent one link, this sends
-// another. The address comes from the auth service's own answer about who is
-// signed in, not from the caller, so this cannot be pointed at someone else.
+// another.
 export async function resendVerification(): Promise<ActionResult> {
   try {
     const user = await getVerifiedUser();
@@ -393,12 +359,8 @@ export type AccountSession = {
   current: boolean;
 };
 
-// Every browser signed in to the account, from the refresh tokens' rows and
-// the permission on them in nhost/metadata. `metadata` is what the proxy wrote
-// on the session's visits (see `trackSession` in `@/lib/nhost/server`), so a
-// session that has not made a request since this app started recording has
-// none. An expired row lingers until the auth service cleans it up, and can
-// no longer sign anyone in, so it is left out.
+// Every browser signed in to the account, from the refresh tokens' rows and the
+// permission on them in nhost/metadata.
 export async function listSessions(): Promise<
   ActionResult & { sessions?: AccountSession[] }
 > {
@@ -436,12 +398,8 @@ export async function listSessions(): Promise<
   }
 }
 
-// Revokes one other session. Its access token keeps working until the proxy
-// on that device next looks for the row, which is its next page load.
-//
-// Not this one: deleting the row under the session in use would leave this
-// browser holding cookies for a session that is gone, and the nav already
-// signs out here properly.
+// Revokes one other session. Not this one: the nav signs this browser out
+// properly, cookies included.
 export async function signOutSession(id: string): Promise<ActionResult> {
   if (!id) {
     return { error: 'Which session?' };

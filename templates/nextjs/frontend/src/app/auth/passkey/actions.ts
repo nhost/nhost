@@ -11,14 +11,13 @@ import { appOrigin } from '@/lib/nhost/env';
 import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
 import { createNhostClient } from '@/lib/nhost/server';
 
-// A passkey ceremony is two round trips with the browser's step in between:
-// the backend issues a challenge, the authenticator signs it, the backend
-// checks the signature. The auth service holds the challenge between the two,
-// so neither half here carries state for the other.
+// A passkey ceremony is two round trips with the browser's step in between: the
+// backend issues a challenge, the authenticator signs it, the backend checks
+// the signature.
 
 // `next` is checked again here even though the page already did: a server
-// action is a public endpoint anyone can call with any arguments, and `next`
-// is appended to the origin the verification email points at.
+// action is a public endpoint anyone can call with any arguments, and `next` is
+// appended to the origin the verification email points at.
 function redirectTo(next: string): string {
   return `${appOrigin()}${signInDestination(next)}`;
 }
@@ -45,9 +44,6 @@ export async function beginSignUp(
 }
 
 // Returns `signedIn: true` only when the backend has email verification off.
-// By default it is on, no session comes back, and the verification email's
-// link is what signs the user in: the proxy redeems it and lands them on
-// `next`. Same rule as a password sign-up.
 export async function finishSignUp(
   credential: CredentialCreationResponse,
   next: string,

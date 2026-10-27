@@ -5,14 +5,7 @@ import Dialog from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-/**
- * The rows of the account page's settings.
- *
- * Each row is what is set now and a button to change it. The button is always
- * there, not revealed on hover, which a phone has no way to do. It opens the
- * change in a dialog, so the row stays a one-line summary and every setting,
- * from a new address to deleting the account, is changed the same way.
- */
+/** The rows of the account page's settings. */
 export function SettingsList({ children }: { children: ReactNode }) {
   return <ul className="divide-y">{children}</ul>;
 }
@@ -39,13 +32,7 @@ export function SettingRow({
   );
 }
 
-/**
- * A row whose button opens a dialog with `children` in it.
- *
- * The dialog keeps its own open state unless `open` and `onOpenChange` are
- * passed, for a row whose form has to close it, such as two-factor once the
- * code is accepted.
- */
+/** A row whose button opens a dialog with `children` in it. */
 export function DialogSetting({
   label,
   value,

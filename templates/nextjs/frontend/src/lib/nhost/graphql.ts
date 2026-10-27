@@ -1,9 +1,8 @@
 import type { GraphQLError } from '@nhost/nhost-js/graphql';
 
 // Everything the app does over GraphQL depends on the permissions in
-// nhost/metadata, and the symptom of those not having been applied is a
-// schema without the field. That reads as a bug in the app unless the message
-// names the cause.
+// nhost/metadata, and the symptom of those not having been applied is a schema
+// without the field.
 const NOT_APPLIED =
   'The backend has no permission for this yet: nhost/metadata is applied by nhost up.';
 

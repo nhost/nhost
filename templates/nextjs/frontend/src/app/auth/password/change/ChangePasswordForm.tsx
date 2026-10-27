@@ -16,8 +16,8 @@ import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 /**
  * `needsCode` is for an account with two-factor on: signing this browser back
- * in with the new password takes a current code from the authenticator app
- * too, so the form asks for one alongside it.
+ * in with the new password takes a current code from the authenticator app too,
+ * so the form asks for one alongside it.
  */
 export default function ChangePasswordForm({
   needsCode = false,

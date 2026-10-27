@@ -7,9 +7,7 @@ const TIMEOUT_MS = 5000;
 
 /**
  * Whether the backend answers right now, asked of the auth service's health
- * endpoint. Auth is the service every page here depends on, and it accepts a
- * GET from any origin, so the browser can ask it directly. A paused cloud
- * project or a stopped `nhost up` both come back false.
+ * endpoint.
  */
 export const isBackendReachable = async (): Promise<boolean> => {
   const url = `${generateServiceUrl('auth', nhostSubdomain(), nhostRegion())}/healthz`;

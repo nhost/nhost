@@ -18,20 +18,10 @@ import { Label } from '@/components/ui/label';
 import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { cn } from '@/lib/utils';
 
-/**
- * Two-factor, as a row on the account page.
- *
- * The auth service turns it on only once a code from the app proves the app
- * holds the secret, and turns it off only with a current code, so opening
- * the dialog is the first step either way. Opened while it is off, it asks
- * for a secret straight away, since showing the QR code is the only thing
- * there is to do.
- */
+/** Two-factor, as a row on the account page. */
 export default function MfaSetting({ user }: { user: User }) {
-  // What a change here made it, until the refreshed page agrees: reopening
-  // the dialog before then would otherwise offer the change just made.
-  // Kept with the state it changed from, so a page that has moved on since
-  // wins over it.
+  // What a change here made it, until the refreshed page agrees: reopening the
+  // dialog before then would otherwise offer the change just made.
   const reported = user.activeMfaType === 'totp';
   const [changed, setChanged] = useState<{ from: boolean; to: boolean }>();
   const active = changed?.from === reported ? changed.to : reported;
@@ -43,9 +33,7 @@ export default function MfaSetting({ user }: { user: User }) {
   const codeId = useId();
 
   const [open, setOpen] = useState(false);
-  // Which way the dialog was opened. Kept apart from `active` so the form
-  // stays as it was while the page comes back with the new state, rather
-  // than flipping to the other one under the visitor.
+  // Which way the dialog was opened.
   const [turningOff, setTurningOff] = useState(active);
   const [setup, setSetup] = useState<MfaSetup | undefined>();
   const [code, setCode] = useState('');
@@ -95,9 +83,8 @@ export default function MfaSetting({ user }: { user: User }) {
         return;
       }
 
-      // The page reads the account's state from the auth service, so the
-      // row changes when it is rendered again rather than being guessed at
-      // here.
+      // The page reads the account's state from the auth service, so the row
+      // changes when it is rendered again rather than being guessed at here.
       setChanged({ from: reported, to: !turningOff });
       setOpen(false);
       setCode('');
@@ -158,11 +145,8 @@ export default function MfaSetting({ user }: { user: User }) {
       onOpen={handleOpen}
     >
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-        {/* Setting up is two steps, numbered so the dialog reads top to
-            bottom: get the key into the app, then prove it with a code.
-            Both are laid out from the moment it opens, with the room for
-            the QR code and the key held while the auth service makes them,
-            so the dialog does not grow when they arrive. */}
+        {/* Setting up is two steps, numbered so the dialog reads top to bottom:
+            get the key into the app, then prove it with a code. */}
         {turningOff ? null : (
           <div className="flex flex-col gap-3">
             <p className="font-medium text-sm">
@@ -188,8 +172,7 @@ export default function MfaSetting({ user }: { user: User }) {
               </p>
               {/* In groups of four, the way authenticator apps show a key, so
                   it reads in chunks and wraps between them into even lines,
-                  with the copy button after the last. It copies the key
-                  without the spaces. Two lines' room either way. */}
+                  with the copy button after the last. */}
               <p className="min-h-10 max-w-xs text-balance text-muted-foreground text-xs">
                 {setup ? (
                   <>

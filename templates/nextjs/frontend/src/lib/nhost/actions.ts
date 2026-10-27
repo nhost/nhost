@@ -7,10 +7,7 @@ import { createNhostClient } from '@/lib/nhost/server';
 
 // The SDK deletes both session cookies on any answer from `/signout`, error
 // statuses included, and only then throws a `FetchError` for a status of 300 or
-// more. So an error with a status means this device is signed out whatever the
-// auth service did, and only an error without one, where no answer came back,
-// leaves the session cookie in place, and only that one says
-// `stillSignedIn`.
+// more.
 export async function signOut(): Promise<
   ActionResult & { stillSignedIn?: boolean }
 > {
@@ -39,23 +36,16 @@ export async function signOut(): Promise<
     };
   }
 
-  // No redirect here: awaited directly, a Server Action's `redirect()`
-  // rejects the client-side promise instead of resolving it (Next.js turns it
-  // into a thrown `NEXT_REDIRECT`), which would send every successful sign-out
-  // into the caller's `catch` block. `signOutAndGoHome` is the one that
-  // redirects, for the controls that only ever go home.
+  // No redirect here: awaited directly, a Server Action's `redirect()` rejects
+  // the client-side promise instead of resolving it (Next.js turns it into a
+  // thrown `NEXT_REDIRECT`).
   return {};
 }
 
 /**
  * Signs out and answers with the home page, in one round trip: called through
  * `useActionState`, Next renders the page `redirect()` names and sends it back
- * with the action's answer, where navigating afterwards would be another
- * request, and another render of the old page in between.
- *
- * Only a server that did not answer leaves this browser signed in, and that
- * is the one answer that stays put to say so. Every other one has deleted the
- * session cookies, so it goes home.
+ * with the action's answer.
  */
 export async function signOutAndGoHome(): Promise<ActionResult> {
   const result = await signOut();

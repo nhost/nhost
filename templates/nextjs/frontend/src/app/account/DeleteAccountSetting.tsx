@@ -6,13 +6,7 @@ import ConfirmAction from '@/app/account/ConfirmAction';
 import { DialogSetting } from '@/components/Setting';
 import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
-/**
- * Closing the account for good.
- *
- * The row only opens the question. Nothing here can be undone and there is
- * no confirmation email, so the button that acts waits for "delete" to be
- * typed, which a stray click or a habitual Enter cannot do.
- */
+/** Closing the account for good. */
 export default function DeleteAccountSetting() {
   const router = useRouter();
 

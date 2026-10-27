@@ -40,8 +40,8 @@ export default function PasswordForm({
   const rulesId = useId();
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
-  // unless it said otherwise: a fresh local backend has no accounts in it, so
-  // a sign-in form would be a dead end.
+  // unless it said otherwise: a fresh local backend has no accounts in it, so a
+  // sign-in form would be a dead end.
   const [mode, setMode] = useState<Mode>(intent);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -274,8 +274,7 @@ export default function PasswordForm({
 
       {/* Centred, not spread: signing up there is only one link here, and
           justify-between left it hard against the left edge of a card whose
-          heading and button are both centred. Signing in, the two sit
-          together in the middle instead of at opposite ends. */}
+          heading and button are both centred. */}
       <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
         <Button
           type="button"

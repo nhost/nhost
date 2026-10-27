@@ -1,16 +1,6 @@
 const LOCAL = 'local';
 
-/**
- * Backend coordinates shared by the browser client and the server client.
- *
- * Only the `NEXT_PUBLIC_*` pair exists so the two halves of the app can never
- * point at different backends. A subdomain and a region are not secrets: they
- * appear in every request URL the browser makes.
- *
- * Next.js inlines `NEXT_PUBLIC_*` at build time, so these resolve to whatever
- * was set when `next build` ran. Setting them on the running host, or on a
- * container started from an image built without them, has no effect.
- */
+/** Backend coordinates shared by the browser client and the server client. */
 export const nhostSubdomain = (): string =>
   process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || LOCAL;
 
@@ -21,22 +11,7 @@ export const nhostRegion = (): string =>
 // local project works with nothing configured.
 const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
 
-/**
- * Where this app is deployed, for links that have to point back at it.
- *
- * Auth emails are the reason this exists. Their `redirectTo` cannot be taken
- * from the request's own `Host` / `X-Forwarded-Host`, because those are set by
- * whoever made the request: anyone who can reach the app can ask it to send
- * somebody else a password-reset link pointing at a host they control. The
- * auth service's `allowedUrls` is the backstop that rejects it, but relying on
- * it means the day that list is widened for preview deployments, the leak
- * opens. Configuration cannot be spoofed, so this is configuration.
- *
- * Same build-time rule as the pair above: set `NEXT_PUBLIC_APP_ORIGIN` before
- * `next build`, not on the running host. On Vercel it can be left unset: Vercel
- * sets the project's production domain on every build, previews included, and
- * that comes from the project's settings rather than from a request.
- */
+/** Where this app is deployed, for links that have to point back at it. */
 export const appOrigin = (): string =>
   process.env.NEXT_PUBLIC_APP_ORIGIN || vercelOrigin() || DEFAULT_APP_ORIGIN;
 
@@ -54,9 +29,7 @@ export const localServiceURL = (service: string): string =>
 
 /**
  * URL of the local mailbox that captures every email the backend sends, or null
- * when the app targets a real project and the emails go out for real. The
- * region is what decides: a production build pointed at a local stack still
- * has its emails captured.
+ * when the app targets a real project and the emails go out for real.
  */
 export const localMailboxURL = (): string | null =>
   isLocalBackend() ? localServiceURL('mailhog') : null;
@@ -66,11 +39,7 @@ export const isLocalBackend = (): boolean => nhostRegion() === LOCAL;
 
 /**
  * Where to manage the backend: the local stack's own dashboard, or the cloud
- * project's page on the Nhost dashboard. That page's URL needs the slug of the
- * organization the project belongs to, which the backend does not know, so it
- * is configured in `NEXT_PUBLIC_NHOST_ORG_SLUG`. Without it the link keeps the
- * subdomain and leaves the organization as `_`: the dashboard asks which
- * organization, then opens the project in it.
+ * project's page on the Nhost dashboard.
  */
 export const dashboardURL = (): string => {
   if (isLocalBackend()) {

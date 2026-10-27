@@ -21,8 +21,8 @@ function lastActive(session: AccountSession): string {
 }
 
 /**
- * The sessions as the account page lists them: this one first, then the
- * most recently used.
+ * The sessions as the account page lists them: this one first, then the most
+ * recently used.
  */
 export function summarizeSessions(
   sessions: AccountSession[],
@@ -61,8 +61,8 @@ const SUFFIXES: Record<string, string> = {
 };
 
 /**
- * "Oct 26th 2026 12:24 PM", in `timeZone`, or the runtime's own zone
- * without one.
+ * "Oct 26th 2026 12:24 PM", in `timeZone`, or the runtime's own zone without
+ * one.
  */
 export function formatSessionTime(iso: string, timeZone?: string): string {
   const parts = Object.fromEntries(

@@ -14,10 +14,7 @@ import { NETWORK_ERROR } from '@/lib/nhost/errors';
 
 const subscribeToNothing = () => () => undefined;
 
-// False while the server renders and while React hydrates, true after. The
-// server does not know the visitor's time zone, so it renders UTC, and the
-// browser swaps in its own zone once hydration is done rather than during it,
-// where a different time would be a mismatch.
+// False while the server renders and while React hydrates, true after.
 function useHydrated(): boolean {
   return useSyncExternalStore(
     subscribeToNothing,
@@ -28,12 +25,7 @@ function useHydrated(): boolean {
 
 /**
  * One line per browser signed in to the account, each with a way to sign it
- * out. This one signs out the way the nav does, which clears its cookies and
- * goes home; the others have their row deleted.
- *
- * Asked first: the lines look alike, and the session a stray click ends is
- * on a device that may not be at hand to sign in again. Each line holds its
- * own dialog, since a list can only hold lines.
+ * out.
  */
 export default function SessionList({
   sessions: listed,
@@ -48,8 +40,8 @@ export default function SessionList({
   const here = useSignOut();
 
   // Another session leaves the list as soon as it is signed out, rather than
-  // once the refreshed page arrives (see `useRemoved`), and comes back only
-  // if the server refused.
+  // once the refreshed page arrives (see `useRemoved`), and comes back only if
+  // the server refused.
   const { removed, remove, restore } = useRemoved();
   const sessions = listed.filter((session) => !removed.has(session.id));
 
@@ -97,9 +89,8 @@ export default function SessionList({
             key={session.id}
             className="flex min-h-12 items-center gap-3 px-5 py-2 text-sm"
           >
-            {/* Two lines that are each cut short rather than wrapped, so
-                every session takes the same room: what it is, then where
-                and when. */}
+            {/* Two lines that are each cut short rather than wrapped, so every
+                session takes the same room: what it is, then where and when. */}
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <p className="flex min-w-0 items-center gap-2">
                 {/* Enough of the id to tell two alike sessions apart. */}

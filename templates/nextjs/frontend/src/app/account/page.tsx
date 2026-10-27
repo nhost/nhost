@@ -13,8 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Account() {
   // The proxy only reads the session cookie, which anyone can write, so it
-  // redirects the signed-out but proves nothing. This asks the auth service,
-  // and what it answers is what the page shows.
+  // redirects the signed-out but proves nothing.
   const user = await getVerifiedUser();
 
   if (!user) {

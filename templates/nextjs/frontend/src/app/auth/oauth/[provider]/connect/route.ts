@@ -11,14 +11,8 @@ const ACCOUNT_PATH = '/account';
 
 /**
  * Where a Link account button goes: the same provider round trip as signing in,
- * with the session's access token as `connect`, which tells the auth service
- * to add the provider to that account rather than sign anyone in. It comes
- * back to the account page with no token on the URL, or with an `error` the
- * page shows when the provider account already belongs to someone.
- *
- * The token comes from the session cookie on the server, which the proxy has
- * just refreshed, so the browser never handles it. The auth service checks
- * it, so a forged cookie links nothing.
+ * with the session's access token as `connect`, which tells the auth service to
+ * add the provider to that account rather than sign anyone in.
  */
 export async function GET(
   request: NextRequest,

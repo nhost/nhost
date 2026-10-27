@@ -13,9 +13,8 @@ const day = new Intl.DateTimeFormat('en-US', {
 });
 
 /**
- * The providers the deployment set up, and which of them this account can
- * sign in with. Read when the page renders, like the passkeys: linking comes
- * back to the page and unlinking refreshes it.
+ * The providers the deployment set up, and which of them this account can sign
+ * in with.
  */
 export default async function LinkedAccountsSetting({ user }: { user: User }) {
   const { links, error } = await listLinkedAccounts();

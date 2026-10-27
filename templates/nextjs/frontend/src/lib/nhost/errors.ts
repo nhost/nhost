@@ -1,9 +1,8 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 
-// What every server action answers with: an error as a value, never thrown
-// to the client. No action calls `redirect()` except `signOutAndGoHome`;
-// `lib/nhost/actions.ts` says why.
+// What every server action answers with: an error as a value, never thrown to
+// the client.
 export type ActionResult = { error?: string; success?: boolean };
 
 export function errorMessage(err: unknown): string {
