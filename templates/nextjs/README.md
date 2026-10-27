@@ -71,9 +71,11 @@ any other runtime variable rather than before the build.
 The same list puts a Linked accounts row on the account page, where a
 signed-in user can link a provider to their account or unlink one. Linking is
 the sign-in round trip with the session's access token passed as `connect`,
-so the provider callback URL above covers it. A provider is not unlinked when
-it is the only way into the account, which is only possible for an account
-with no email address.
+so the provider callback URL above covers it. That token travels through the
+browser, an exception to
+[the session staying on the server](#the-session-lives-on-the-server). A
+provider is not unlinked when it is the only way into the account, which is
+only possible for an account with no email address.
 
 ## Sessions
 
@@ -218,10 +220,24 @@ parts that are easy to break by tidying them.
 The session, refresh token included, is in an httpOnly cookie that only the
 proxy and server code read. A second cookie, `nhostSignedIn`, is readable by
 JavaScript and carries nothing but the fact that a session is there; the nav
-uses it to notice a session that ended in another tab. No token reaches the
-browser, so an XSS cannot act as the user. Signing in and out go through
+uses it to notice a session that ended in another tab. Page script never sees
+a token, so an XSS cannot act as the user. Signing in and out go through
 server actions, which write the cookies, and every page reads the session on
 the server.
+
+Linking a provider is an exception, as are
+[the links that sign in](#links-that-sign-in). The auth service's provider
+redirect links an account only when it is handed the session's access token as
+`connect`, so the Link account route
+(`frontend/src/app/auth/oauth/[provider]/connect/route.ts`) redirects the
+browser to it with the token in the URL. The auth service puts the token in
+the OAuth `state`, a signed but not encrypted JWT, which goes through the
+provider's page and back to the callback. Along the way it can end up in
+browser history and the provider's request logs, and it stays valid for the
+access token's lifetime, `expiresIn` under `[auth.session.accessToken]`, 900
+seconds in `nhost/nhost.toml`. Page script cannot read a cross-origin redirect,
+so the XSS argument still holds. Keeping the token out of the URL needs a
+different handoff from the auth service.
 
 The proxy (`frontend/src/proxy.ts`, `lib/nhost/server.ts`) is the only thing
 that refreshes the access token, and it does so a minute before expiry on
