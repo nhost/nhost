@@ -50,13 +50,15 @@ export default function GitHubConnectedNotice() {
         </Tooltip>
       </span>
       <span>after changes to keep your repo in sync.</span>
-      <TextLink
-        href="https://docs.nhost.io/platform/cli/configuration-overlays"
-        external
-        className="ml-auto"
-      >
-        Connect more projects to this repo
-      </TextLink>
+      <span>
+        Multiple projects on one repo?{' '}
+        <TextLink
+          href="https://docs.nhost.io/platform/cli/configuration-overlays"
+          external
+        >
+          Learn about configuration overlays
+        </TextLink>
+      </span>
     </div>
   );
 }
