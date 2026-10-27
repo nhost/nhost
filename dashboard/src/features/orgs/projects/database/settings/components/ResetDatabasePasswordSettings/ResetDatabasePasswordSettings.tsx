@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CopyIcon } from 'lucide-react';
+import { CopyIcon, RefreshCw, WandSparkles } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -10,8 +10,13 @@ import {
   SettingsCardFooter,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { InputGroupButton } from '@/components/ui/v3/input-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -44,8 +49,15 @@ export default function ResetDatabasePasswordSettings() {
   const {
     setValue,
     getValues,
+    watch,
     formState: { dirtyFields, errors, isSubmitting },
   } = form;
+
+  // Empty field: "generate". Once there's a password: "generate a new one".
+  const hasPassword = Boolean(watch('databasePassword'));
+  const generateLabel = hasPassword
+    ? 'Generate a new password'
+    : 'Generate a strong password';
 
   const isDirty = Object.keys(dirtyFields).length > 0;
   const hasDatabasePasswordError = Boolean(errors.databasePassword);
@@ -107,7 +119,7 @@ export default function ResetDatabasePasswordSettings() {
         <SettingsCard>
           <SettingsCardHeader
             title="Reset Password"
-            description="This password will be used for accessing your database."
+            description="The root password used to access your database. Make it strong and hard to guess."
           />
 
           <SettingsCardContent className="pb-4">
@@ -118,32 +130,38 @@ export default function ResetDatabasePasswordSettings() {
               autoComplete="new-password"
               aria-label="Database password"
               containerClassName="lg:w-1/2"
-              helperText={
-                <>
-                  The root Postgres password for your database - it must be
-                  strong and hard to guess.{' '}
-                  <Button
-                    onClick={handleGenerateRandomPassword}
-                    className="h-auto px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                    variant="link"
-                  >
-                    Generate a password
-                  </Button>
-                </>
-              }
               addonEnd={
-                <InputGroupButton
-                  onClick={() => {
-                    copy(
-                      getValues('databasePassword') as string,
-                      'Postgres password',
-                    );
-                  }}
-                  aria-label="Copy password"
-                  className={hasDatabasePasswordError ? 'invisible' : undefined}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </InputGroupButton>
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <InputGroupButton
+                        onClick={handleGenerateRandomPassword}
+                        aria-label={generateLabel}
+                      >
+                        {hasPassword ? (
+                          <RefreshCw className="h-4 w-4" />
+                        ) : (
+                          <WandSparkles className="h-4 w-4" />
+                        )}
+                      </InputGroupButton>
+                    </TooltipTrigger>
+                    <TooltipContent>{generateLabel}</TooltipContent>
+                  </Tooltip>
+                  <InputGroupButton
+                    onClick={() => {
+                      copy(
+                        getValues('databasePassword') as string,
+                        'Postgres password',
+                      );
+                    }}
+                    aria-label="Copy password"
+                    className={
+                      hasDatabasePasswordError ? 'invisible' : undefined
+                    }
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                  </InputGroupButton>
+                </>
               }
             />
           </SettingsCardContent>
