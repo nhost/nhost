@@ -343,7 +343,6 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
                   tableActions.actions.setSidebarMenuObject(undefined)
                 }
                 className="ml-1"
-                triggerClassName="hover:bg-accent hover:text-accent-foreground"
                 isSelectedNotSchemaLocked={!isLocked}
                 onEdit={() =>
                   isView

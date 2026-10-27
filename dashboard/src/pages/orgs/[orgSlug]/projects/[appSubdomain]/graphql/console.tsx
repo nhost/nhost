@@ -85,7 +85,7 @@ function HasuraPageContent() {
                   onClick={() =>
                     copy(projectAdminSecret, 'Hasura admin secret')
                   }
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label="Copy admin secret"
                 >
