@@ -14,9 +14,8 @@ export const postgresTypeOptions = postgresTypeGroups.map(
   }),
 );
 
-const typeSchema: z.ZodType<LogicalModelTypeNode> = z.discriminatedUnion(
-  'kind',
-  [
+const typeSchema: z.ZodType<LogicalModelTypeNode, LogicalModelTypeNode> =
+  z.discriminatedUnion('kind', [
     z.object({
       kind: z.literal('scalar'),
       scalar: z.string().trim().min(1, 'Select or enter a scalar type.'),
@@ -32,8 +31,7 @@ const typeSchema: z.ZodType<LogicalModelTypeNode> = z.discriminatedUnion(
       item: z.lazy(() => typeSchema),
       nullable: z.boolean(),
     }),
-  ],
-);
+  ]);
 
 function createLogicalModelBaseSchema() {
   return z.object({

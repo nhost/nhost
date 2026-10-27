@@ -1,7 +1,7 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { ChevronDown, ChevronRight, Database, Info, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, Pencil } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -182,7 +182,6 @@ export default function FunctionDefinitionView() {
           )}
           {!isTrackable && (
             <Alert>
-              <Info className="h-4 w-4" />
               <AlertTitle>Not exposable in GraphQL</AlertTitle>
               <AlertDescription>{nonTrackableReason}</AlertDescription>
             </Alert>

@@ -16,8 +16,7 @@ import {
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 
-const menuItemClassName =
-  'flex h-9 cursor-pointer items-center gap-2 rounded-none border border-b-1 !text-sm+ font-medium leading-4';
+const menuItemClassName = 'cursor-pointer gap-2';
 
 export interface SidebarListItemAction {
   icon: ReactNode;
@@ -61,7 +60,7 @@ export default function NativeQueriesSidebarListItem({
             href={href}
             className={cn(
               'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
-              isSelected && 'text-primary-main',
+              isSelected && 'text-primary',
             )}
           >
             <Tooltip>
@@ -72,10 +71,7 @@ export default function NativeQueriesSidebarListItem({
             </Tooltip>
             <TextWithTooltip
               containerClassName="w-full"
-              className={cn(
-                '!truncate text-sm+',
-                isSelected && 'text-primary-main',
-              )}
+              className={cn('!truncate text-sm+', isSelected && 'text-primary')}
               text={name}
             />
           </Link>
@@ -105,7 +101,7 @@ export default function NativeQueriesSidebarListItem({
             <DropdownMenuContent
               align="start"
               side="bottom"
-              className="w-52 p-0 text-foreground"
+              className="w-52 text-foreground"
               forceMount
             >
               {actions.map((action) => (
@@ -115,7 +111,7 @@ export default function NativeQueriesSidebarListItem({
                   className={cn(
                     menuItemClassName,
                     action.destructive &&
-                      'text-destructive focus:text-destructive',
+                      'text-destructive focus:bg-destructive-hover focus:text-destructive',
                   )}
                 >
                   {action.icon}
