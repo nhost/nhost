@@ -193,13 +193,15 @@ token and streams it back with storage's `Cache-Control` and `ETag` intact,
 marked `private` because the response is gated by the cookie. The browser
 caches it for the hour storage sets and revalidates by ETag after that.
 
-The route serves PNG, JPEG, GIF, WebP and AVIF and answers 415 for anything
+The route serves PNG, JPEG, WebP and AVIF and answers 415 for anything
 else, SVG included: it serves on this app's origin, where an HTML or SVG file
 could run script with the visitor's session, and a file can reach storage
 without going through the upload form. Behind that check, `next.config.ts`
 gives the route a sandboxing `Content-Security-Policy`, as storage does for
 HTML and SVG on its own origin. It is set there rather than in the handler
 because Next keeps a config header over a handler's header of the same name.
+GIF is left out because every avatar is rendered resized, and storage cannot
+resize a GIF.
 
 The select permission is the user's own files, which covers everywhere this
 app shows an avatar: it only ever shows you yours. Showing other users'

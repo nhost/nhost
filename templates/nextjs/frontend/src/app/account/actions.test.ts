@@ -150,7 +150,15 @@ describe('uploadAvatar', () => {
   // app's origin.
   it('refuses an SVG before uploading', async () => {
     expect((await uploadAvatar(image(10, 'image/svg+xml'))).error).toBe(
-      'Use a PNG, JPEG, GIF, WebP or AVIF image.',
+      'Use a PNG, JPEG, WebP or AVIF image.',
+    );
+    expect(client.storage.uploadFiles).not.toHaveBeenCalled();
+  });
+
+  // Storage cannot resize a GIF, so it would upload and never display.
+  it('refuses a GIF before uploading', async () => {
+    expect((await uploadAvatar(image(10, 'image/gif'))).error).toBe(
+      'Use a PNG, JPEG, WebP or AVIF image.',
     );
     expect(client.storage.uploadFiles).not.toHaveBeenCalled();
   });

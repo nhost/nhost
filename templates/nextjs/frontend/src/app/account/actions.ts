@@ -192,7 +192,7 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 
   if (!isAvatarType(file.type)) {
-    return { error: 'Use a PNG, JPEG, GIF, WebP or AVIF image.' };
+    return { error: 'Use a PNG, JPEG, WebP or AVIF image.' };
   }
 
   if (file.size > MAX_AVATAR_BYTES) {

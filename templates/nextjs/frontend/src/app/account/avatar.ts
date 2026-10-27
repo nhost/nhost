@@ -25,11 +25,10 @@ export const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
 
 export const AVATAR_TOO_LARGE = 'That image is over 4 MB.';
 
-// The types an avatar may be: raster images only.
+// The types an avatar may be: raster images storage can resize.
 export const AVATAR_TYPES = [
   'image/png',
   'image/jpeg',
-  'image/gif',
   'image/webp',
   'image/avif',
 ];
