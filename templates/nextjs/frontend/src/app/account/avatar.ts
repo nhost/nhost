@@ -19,10 +19,11 @@ export const avatarFileIdFrom = (
   return id && isFileId(id) ? id : undefined;
 };
 
-// The largest avatar this app takes.
-export const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+// The largest avatar this app takes. It has to fit, with the multipart
+// framing, in the 4.5 MB request body a Vercel Function accepts.
+export const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
 
-export const AVATAR_TOO_LARGE = 'That image is over 5 MB.';
+export const AVATAR_TOO_LARGE = 'That image is over 4 MB.';
 
 // The types an avatar may be: raster images only.
 export const AVATAR_TYPES = [

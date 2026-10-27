@@ -120,7 +120,7 @@ describe('avatar route', () => {
     expect(response.headers.get('etag')).toBe('"abc"');
   });
 
-  // Storage resizes on the way out, so the 5 MB a visitor may have uploaded
+  // Storage resizes on the way out, so the 4 MB a visitor may have uploaded
   // never has to cross the wire to fill a 96px circle.
   describe('resizing', () => {
     it('asks storage for the width, a fixed quality and a negotiated format', async () => {

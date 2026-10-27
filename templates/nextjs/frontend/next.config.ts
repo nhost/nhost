@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
     root: import.meta.dirname,
   },
   experimental: {
-    // Next refuses an action body over 1 MB by default. 6 MB rather than 5
-    // leaves room for the multipart framing around a file at MAX_AVATAR_BYTES
-    // (src/app/account/avatar.ts).
-    serverActions: { bodySizeLimit: '6mb' },
+    // Next refuses an action body over 1 MB by default. 5 MB leaves room for
+    // the multipart framing around a file at MAX_AVATAR_BYTES
+    // (src/app/account/avatar.ts). Vercel rejects a request body over 4.5 MB
+    // before Next sees it, so raising this does not raise the cap there.
+    serverActions: { bodySizeLimit: '5mb' },
     // Every page reads the session, so every page is dynamic, and by default
     // the browser keeps none of them: going home and back to the account
     // rendered both again on the server.
