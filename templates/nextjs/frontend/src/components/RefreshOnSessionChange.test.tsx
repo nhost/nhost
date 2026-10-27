@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import RefreshOnSessionChange, {
   FOCUS_REFRESH_MS,
 } from '@/components/RefreshOnSessionChange';
-import { ACCESS_TOKEN_KEY } from '@/lib/nhost/access-token';
+import { SIGNED_IN_KEY } from '@/lib/nhost/signed-in';
 
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 const pathname = vi.hoisted(() => ({ current: '/' }));
@@ -19,13 +19,9 @@ vi.mock('next/navigation', () => ({
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-const accessTokenCookie = `${ACCESS_TOKEN_KEY}=${encodeURIComponent(
-  JSON.stringify({ accessToken: 'token', decodedToken: { exp: 0 } }),
-)}`;
-
 function setAccessTokenCookie(present: boolean): void {
   vi.spyOn(document, 'cookie', 'get').mockReturnValue(
-    present ? accessTokenCookie : '',
+    present ? `${SIGNED_IN_KEY}=1` : '',
   );
 }
 

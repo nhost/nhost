@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { readAccessTokenCookie } from '@/lib/nhost/access-token';
+import { isSignedIn } from '@/lib/nhost/signed-in';
 
 /**
  * Renders the whole tree again when the session changed somewhere the nav
@@ -16,7 +16,7 @@ import { readAccessTokenCookie } from '@/lib/nhost/access-token';
  * signed in. Signing in from another tab leaves it stale the other way.
  *
  * After each navigation the proxy has either refreshed the session or deleted
- * it, and it writes or deletes the access-token cookie with it, so whether
+ * it, and it writes or deletes the signed-in cookie with it, so whether
  * that cookie is there says what the page just rendered with. When that
  * disagrees with what the nav was rendered with, a refresh renders the layout
  * too. It runs again only when the path or the nav's answer changes, so a
@@ -29,7 +29,7 @@ import { readAccessTokenCookie } from '@/lib/nhost/access-token';
  * `FOCUS_REFRESH_MS`, so moving between windows does not re-render the page
  * every time.
  */
-export const FOCUS_REFRESH_MS = 30_000;
+export const FOCUS_REFRESH_MS = 5 * 60 * 1000;
 
 export default function RefreshOnSessionChange({
   signedIn,
@@ -41,7 +41,7 @@ export default function RefreshOnSessionChange({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the path is the trigger, not an input
   useEffect(() => {
-    if ((readAccessTokenCookie(document.cookie) !== null) !== signedIn) {
+    if (isSignedIn(document.cookie) !== signedIn) {
       router.refresh();
     }
   }, [pathname, signedIn, router]);

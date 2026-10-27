@@ -97,7 +97,7 @@ sessions, not an audit log.
 Signing a session out deletes its row, but an access token stays valid until
 it expires, 15 minutes with this config. So on every page load the proxy also
 looks for the session's row, and signs the browser out when it is gone. A tab
-left open checks again when it is next looked at, at most every 30 seconds.
+left open checks again when it is next looked at, at most every five minutes.
 
 ## Deploying
 

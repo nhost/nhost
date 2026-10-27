@@ -18,12 +18,10 @@ const nextConfig: NextConfig = {
     // cache, and each change on the account page refreshes it.
     staleTimes: { dynamic: 30 },
   },
-  // The access token is readable by JS (see accessTokenCookieOptions in
-  // src/lib/nhost/server.ts), so an XSS here can act as the user until that
-  // token expires. frame-ancestors is the part of a CSP that costs
-  // nothing: it closes clickjacking on authenticated pages without touching
-  // script execution, so a full script-src policy - which would need nonce
-  // plumbing through the App Router - stays out of scope for a starter.
+  // frame-ancestors is the part of a CSP that costs nothing: it closes
+  // clickjacking on authenticated pages without touching script execution,
+  // so a full script-src policy, which would need nonce plumbing through the
+  // App Router, stays out of scope for a starter.
   async headers() {
     return [
       {

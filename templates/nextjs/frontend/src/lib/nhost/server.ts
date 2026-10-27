@@ -7,11 +7,6 @@ import {
 } from '@nhost/nhost-js/session';
 import { cookies } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
-import {
-  ACCESS_TOKEN_KEY,
-  secondsUntilExpiry,
-  serializeAccessTokenCookie,
-} from './access-token';
 import { nhostRegion, nhostSubdomain } from './env';
 import { graphqlErrorMessage } from './graphql';
 import {
@@ -19,20 +14,18 @@ import {
   requestDetails,
   type SessionMetadata,
 } from './session-metadata';
+import { SIGNED_IN_KEY } from './signed-in';
 
 const key = DEFAULT_SESSION_KEY;
 
-// How close to expiry the proxy refreshes the access token. The browser client
-// (`client.ts`) never refreshes on its own, so this margin is what keeps the
-// token usable for the time between two navigations.
+// How close to expiry the proxy refreshes the access token, so it stays
+// usable for the time between two navigations.
 export const PROXY_REFRESH_MARGIN_SECONDS = 60;
 
 // Every session write sets two cookies. The session cookie holds the whole
 // session, refresh token included, and is httpOnly: only the proxy and server
-// code read it. The browser client (`client.ts`) never refreshes, so all it
-// needs is the access token, which goes into a second cookie JavaScript can
-// read (see `access-token.ts`). An XSS can still lift that token, but it stops
-// working when the token expires instead of holding the session for 30 days.
+// code read it. The second is a flag JavaScript can read, saying a session is
+// there at all, for `RefreshOnSessionChange`. No token reaches the browser.
 const sharedCookieOptions = {
   path: '/',
   sameSite: 'lax',
@@ -45,17 +38,6 @@ export const cookieOptions = {
   maxAge: 60 * 60 * 24 * 30,
 } as const;
 
-// The access-token cookie lives exactly as long as the token in it. The proxy
-// refreshes ahead of that and rewrites it, so a browser only goes without one
-// after sitting idle past the token's expiry.
-function accessTokenCookieOptions(session: StoredSession) {
-  return {
-    ...sharedCookieOptions,
-    httpOnly: false,
-    maxAge: secondsUntilExpiry(session.decodedToken),
-  };
-}
-
 // Set when a password-reset link signs the visitor in, and holds the page the
 // link landed on. The link signs them in only so the new password can be
 // saved, so until it is the proxy keeps them on that page (see `proxy.ts`).
@@ -63,23 +45,24 @@ function accessTokenCookieOptions(session: StoredSession) {
 export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
 const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
 
-const sessionCookieNames = [key, ACCESS_TOKEN_KEY, PASSWORD_RESET_KEY];
+const sessionCookieNames = [key, SIGNED_IN_KEY, PASSWORD_RESET_KEY];
 
 function sessionCookies(value: StoredSession) {
   return [
     { name: key, value: serializeSessionCookie(value), ...cookieOptions },
     {
-      name: ACCESS_TOKEN_KEY,
-      value: serializeAccessTokenCookie(value),
-      ...accessTokenCookieOptions(value),
+      name: SIGNED_IN_KEY,
+      value: '1',
+      ...sharedCookieOptions,
+      httpOnly: false,
+      maxAge: cookieOptions.maxAge,
     },
   ];
 }
 
 // Next's cookie APIs percent-encode on write and decode on read, so these two
-// only deal in JSON. Adding an encodeURIComponent here, or in
-// `serializeAccessTokenCookie`, would put a double-encoded value on the wire,
-// and the browser's reader, which decodes once, would find no session in it.
+// only deal in JSON. Adding an encodeURIComponent here would put a
+// double-encoded value on the wire.
 export function parseSessionCookie(raw: string | null): StoredSession | null {
   if (!raw) {
     return null;
@@ -206,12 +189,10 @@ export const LINK_TYPE_PARAM = 'type';
 // looking at yet, and leaves rotation to the request that is really happening.
 // It is never an access check: pages that need one call `getVerifiedUser`.
 //
-// This proxy is the *only* rotator, by design: the browser `nhost` client
-// (`@/lib/nhost/client`) is built without the SDK's own auto-refresh
-// middleware and only ever sees the access token, never the refresh token in
-// the httpOnly session cookie. Handing the browser that token so it could
-// refresh reopens exactly the race this function guards against, just with the
-// browser as the second rotator instead of a prefetch.
+// This proxy is the *only* rotator, by design: no token reaches the browser,
+// so nothing there can refresh. Handing it the refresh token would reopen
+// exactly this race, with the browser as the second rotator instead of a
+// prefetch.
 export function isPrefetch(request: NextRequest): boolean {
   // In a production build every default <Link> in view prefetches, sending
   // `next-router-prefetch: 1`, some with `next-router-segment-prefetch`; the

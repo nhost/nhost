@@ -1,10 +1,6 @@
 import { DEFAULT_SESSION_KEY } from '@nhost/nhost-js/session';
 import { NextRequest, NextResponse } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  ACCESS_TOKEN_KEY,
-  readAccessTokenCookie,
-} from '@/lib/nhost/access-token';
 import { signOut } from '@/lib/nhost/actions';
 import {
   createNhostClient,
@@ -15,6 +11,7 @@ import {
   PASSWORD_RESET_KEY,
   updateSessionUser,
 } from '@/lib/nhost/server';
+import { SIGNED_IN_KEY } from '@/lib/nhost/signed-in';
 
 const cookie = vi.hoisted(() => ({ value: undefined as string | undefined }));
 
@@ -196,33 +193,15 @@ describe('session cookies', () => {
     expect(maxAge(line)).toBe(60 * 60 * 24 * 30);
   });
 
-  it('gives the browser the access token and nothing else', async () => {
-    const accessToken = jwt(900);
-    fetchMock.mockImplementation(async () => refreshed(accessToken));
+  it('gives the browser a signed-in flag and nothing else', async () => {
+    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
 
-    const line = setCookie(await proxyResponse(expiring), ACCESS_TOKEN_KEY);
+    const line = setCookie(await proxyResponse(expiring), SIGNED_IN_KEY);
 
+    expect(line).toMatch(new RegExp(`^${SIGNED_IN_KEY}=1;`));
     expect(line).not.toMatch(/HttpOnly/i);
-    expect(decodeURIComponent(line)).not.toContain('refresh-token');
-
-    // What the browser client's storage makes of it, read back the way
-    // `document.cookie` presents it.
-    const session = readAccessTokenCookie(`other=1; ${line.split(';')[0]}`);
-    expect(session?.accessToken).toBe(accessToken);
-    expect(session?.refreshToken).toBe('');
+    expect(line).not.toContain('token');
   });
-
-  it.each([900, 300])(
-    'expires the access-token cookie with a %is token',
-    async (lifetime) => {
-      fetchMock.mockImplementation(async () => refreshed(jwt(lifetime)));
-
-      const line = setCookie(await proxyResponse(expiring), ACCESS_TOKEN_KEY);
-
-      expect(maxAge(line)).toBeGreaterThan(lifetime - 5);
-      expect(maxAge(line)).toBeLessThanOrEqual(lifetime);
-    },
-  );
 
   it('deletes the session cookies when the session is rejected', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -235,7 +214,7 @@ describe('session cookies', () => {
 
     for (const name of [
       DEFAULT_SESSION_KEY,
-      ACCESS_TOKEN_KEY,
+      SIGNED_IN_KEY,
       PASSWORD_RESET_KEY,
     ]) {
       expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
@@ -389,7 +368,7 @@ describe('revoked sessions', () => {
 
     expect(result.session).toBeNull();
     expect(graphqlBody(0).variables).toEqual({ id: 'refresh-token-id' });
-    for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
+    for (const name of [DEFAULT_SESSION_KEY, SIGNED_IN_KEY]) {
       expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
     }
   });
@@ -509,27 +488,13 @@ describe('session cookies from server actions', () => {
     expect(maxAge(line)).toBe(60 * 60 * 24 * 30);
   });
 
-  it('gives the browser the access token and nothing else', async () => {
-    const accessToken = jwt(900);
-    const line = setCookie(await signIn(accessToken), ACCESS_TOKEN_KEY);
+  it('gives the browser a signed-in flag and nothing else', async () => {
+    const line = setCookie(await signIn(jwt(900)), SIGNED_IN_KEY);
 
+    expect(line).toMatch(new RegExp(`^${SIGNED_IN_KEY}=1;`));
     expect(line).not.toMatch(/HttpOnly/i);
-    expect(decodeURIComponent(line)).not.toContain('refresh-token');
-
-    const session = readAccessTokenCookie(`other=1; ${line.split(';')[0]}`);
-    expect(session?.accessToken).toBe(accessToken);
-    expect(session?.refreshToken).toBe('');
+    expect(line).not.toContain('token');
   });
-
-  it.each([900, 300])(
-    'expires the access-token cookie with a %is token',
-    async (lifetime) => {
-      const line = setCookie(await signIn(jwt(lifetime)), ACCESS_TOKEN_KEY);
-
-      expect(maxAge(line)).toBeGreaterThan(lifetime - 5);
-      expect(maxAge(line)).toBeLessThanOrEqual(lifetime);
-    },
-  );
 
   it('deletes both cookies on sign-out', async () => {
     cookie.value = storedSession(900);
@@ -537,7 +502,7 @@ describe('session cookies from server actions', () => {
 
     expect(await signOut()).toEqual({});
 
-    for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
+    for (const name of [DEFAULT_SESSION_KEY, SIGNED_IN_KEY]) {
       expect(setCookie(written.response as NextResponse, name)).toMatch(
         /Expires=Thu, 01 Jan 1970/,
       );
@@ -558,7 +523,7 @@ describe('session cookies from server actions', () => {
           'You are signed out on this device, but the sign-out request failed.',
       });
 
-      for (const name of [DEFAULT_SESSION_KEY, ACCESS_TOKEN_KEY]) {
+      for (const name of [DEFAULT_SESSION_KEY, SIGNED_IN_KEY]) {
         expect(setCookie(written.response as NextResponse, name)).toMatch(
           /Expires=Thu, 01 Jan 1970/,
         );
@@ -629,9 +594,8 @@ describe('updateSessionUser', () => {
       setCookie(written.response as NextResponse, DEFAULT_SESSION_KEY),
     ).toMatch(/; HttpOnly/i);
 
-    const line = setCookie(written.response as NextResponse, ACCESS_TOKEN_KEY);
-    expect(readAccessTokenCookie(line.split(';')[0])?.accessToken).toBe(
-      accessToken,
+    expect(setCookie(written.response as NextResponse, SIGNED_IN_KEY)).toMatch(
+      new RegExp(`^${SIGNED_IN_KEY}=1;`),
     );
   });
 
