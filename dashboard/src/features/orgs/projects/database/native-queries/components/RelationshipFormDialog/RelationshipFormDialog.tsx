@@ -310,9 +310,9 @@ function RelationshipForm({
 
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="col-span-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    className="col-span-1"
                     aria-label={`Remove mapping ${index + 1}`}
                     onClick={() => remove(index)}
                   >

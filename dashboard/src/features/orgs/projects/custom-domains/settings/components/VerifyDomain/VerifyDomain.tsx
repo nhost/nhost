@@ -122,7 +122,7 @@ export default function VerifyDomain({
               <p className="font-bold">{value}</p>
               <Button
                 aria-label="Copy CNAME value"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 onClick={() => copy(value, 'CNAME Value')}
               >

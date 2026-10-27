@@ -42,7 +42,7 @@ export default function InfoCard({
   const copyButton = !disableCopy && (
     <Button
       type="button"
-      variant="ghost"
+      variant="subtle"
       size="icon"
       className="h-7 w-7 text-muted-foreground"
       onClick={(event) => {

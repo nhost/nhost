@@ -123,7 +123,7 @@ export default function SystemEnvironmentVariableSettings() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 className="shrink-0"
                 aria-label={
@@ -157,7 +157,7 @@ export default function SystemEnvironmentVariableSettings() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 className="shrink-0"
                 aria-label={
