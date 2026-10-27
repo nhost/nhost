@@ -438,7 +438,7 @@ export default function ResourcesForm() {
         />
       ),
       props: {
-        titleProps: { className: 'justify-center pb-1' },
+        titleProps: { className: 'pb-1' },
       },
     });
   }

@@ -72,12 +72,14 @@ export default function DeleteComputedFieldAlertDialog({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="text-foreground"
+          className="p-12 text-foreground"
           hideCloseButton
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle>Delete Computed Field</DialogTitle>
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              Delete Computed Field
+            </DialogTitle>
             <DialogDescription>
               Are you sure you want to delete the{' '}
               <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
@@ -86,7 +88,7 @@ export default function DeleteComputedFieldAlertDialog({
               computed field? This cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="mt-8">
             <DialogClose asChild>
               <Button
                 variant="outline"
@@ -101,7 +103,6 @@ export default function DeleteComputedFieldAlertDialog({
               onClick={handleConfirm}
               disabled={isDeleting}
               loading={isDeleting}
-              className="text-white"
             >
               Delete
             </ButtonWithLoading>
