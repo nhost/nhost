@@ -12,7 +12,7 @@ import { isBackendReachable } from '@/lib/nhost/health';
 type Status = 'checking' | 'connected' | 'offline';
 
 // Often enough that stopping `nhost up` shows within seconds of looking back
-// at the page, and only while the tab is visible.
+// at the page, and only while the tab is visible. Local stack only, see below.
 const POLL_MS = 10_000;
 
 const LABELS: Record<Status, string> = {
@@ -45,7 +45,12 @@ function useBackendStatus(): Status {
     };
 
     recheck();
-    const interval = window.setInterval(recheck, POLL_MS);
+    // Polled only against the local stack, where it is what shows `nhost up`
+    // stopping. A cloud project is asked again when the tab comes back or
+    // the network changes, not every few seconds from every open tab.
+    const interval = isLocalBackend()
+      ? window.setInterval(recheck, POLL_MS)
+      : undefined;
     document.addEventListener('visibilitychange', recheck);
     window.addEventListener('online', recheck);
     window.addEventListener('offline', recheck);
