@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
-import { Alert } from '@/components/ui/v3/alert';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -232,18 +231,6 @@ export default function RemoveApplicationDialog({
                   />
                 )}
               </div>
-
-              {/* Deleting the project only removes the connection. Info, not a
-                  warning: it reassures, there's no extra risk here. */}
-              {project?.githubRepository && (
-                <Alert className="text-muted-foreground text-sm">
-                  Your GitHub repo{' '}
-                  <span className="font-medium text-foreground">
-                    {project.githubRepository.fullName}
-                  </span>{' '}
-                  isn't touched, it's only disconnected.
-                </Alert>
-              )}
 
               <FormInput
                 control={form.control}
