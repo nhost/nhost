@@ -48,7 +48,7 @@ DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <DeploymentsArea>
           <SettingsGuard>
-            <SettingsArea>{page}</SettingsArea>
+            <SettingsArea title="Settings">{page}</SettingsArea>
           </SettingsGuard>
         </DeploymentsArea>
       </ProjectScope>

@@ -23,6 +23,12 @@ import { FunctionsArea } from '@/features/orgs/projects/serverless-functions/lay
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const FUNCTIONS_SETTINGS_TITLES: Record<string, string> = {
+  'custom-domain': 'Custom Domain',
+  'rate-limiting': 'Rate Limiting',
+};
+
 function FunctionsCustomDomainSettings() {
   const { org } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
@@ -168,7 +174,10 @@ FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <FunctionsArea>
-          <AreaSettingsLayout sidebar={<FunctionsSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<FunctionsSettingsSidebar />}
+            titles={FUNCTIONS_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </FunctionsArea>

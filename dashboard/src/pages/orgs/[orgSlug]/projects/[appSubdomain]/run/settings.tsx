@@ -28,6 +28,12 @@ import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiti
 import { RunArea } from '@/features/orgs/projects/run/layout';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const RUN_SETTINGS_TITLES: Record<string, string> = {
+  'custom-domain': 'Custom Domain',
+  'rate-limiting': 'Rate Limiting',
+};
+
 interface NoRunServicesProps {
   title?: string;
   description?: string;
@@ -227,7 +233,10 @@ RunSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <RunArea>
-          <AreaSettingsLayout sidebar={<RunSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<RunSettingsSidebar />}
+            titles={RUN_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </RunArea>

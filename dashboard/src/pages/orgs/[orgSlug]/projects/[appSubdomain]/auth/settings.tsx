@@ -82,6 +82,18 @@ import {
 import { isVersionGte } from '@/utils/compareVersions';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const AUTH_SETTINGS_TITLES: Record<string, string> = {
+  'sign-in-methods': 'Sign-In Methods',
+  'oauth2-provider': 'OAuth2 Provider',
+  smtp: 'SMTP',
+  authentication: 'Authentication',
+  'roles-and-permissions': 'Roles and Permissions',
+  jwt: 'JWT',
+  'custom-domain': 'Custom Domain',
+  'rate-limiting': 'Rate Limiting',
+};
+
 function SignInMethodsSettings() {
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
@@ -555,7 +567,10 @@ AuthSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <AuthArea>
-          <AreaSettingsLayout sidebar={<AuthSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<AuthSettingsSidebar />}
+            titles={AUTH_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </AuthArea>

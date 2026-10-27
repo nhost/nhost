@@ -21,6 +21,12 @@ import { StorageServiceVersionSettings } from '@/features/orgs/projects/storage/
 import { useGetStorageSettingsQuery } from '@/generated/graphql';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const STORAGE_SETTINGS_TITLES: Record<string, string> = {
+  storage: 'Storage',
+  'rate-limiting': 'Rate Limiting',
+};
+
 function StorageGeneralSettings() {
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
@@ -148,7 +154,10 @@ StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <StorageArea>
-          <AreaSettingsLayout sidebar={<StorageSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<StorageSettingsSidebar />}
+            titles={STORAGE_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </StorageArea>

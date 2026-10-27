@@ -21,6 +21,16 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 
+/** The page title of each tab, the same as its sidebar link. */
+const DATABASE_SETTINGS_TITLES: Record<string, string> = {
+  version: 'Postgres version',
+  capacity: 'Capacity',
+  'point-in-time': 'Point-in-Time Recovery',
+  access: 'Access',
+  'custom-domain': 'Custom Domain',
+  'reset-password': 'Reset password',
+};
+
 function DatabaseCustomDomainSettings() {
   const { org } = useCurrentOrg();
 
@@ -127,7 +137,10 @@ DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <DatabaseArea>
-          <AreaSettingsLayout sidebar={<DatabaseSettingsNavigation />}>
+          <AreaSettingsLayout
+            sidebar={<DatabaseSettingsNavigation />}
+            titles={DATABASE_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </DatabaseArea>

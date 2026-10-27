@@ -19,6 +19,15 @@ import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/set
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const PROJECT_SETTINGS_TITLES: Record<string, string> = {
+  general: 'General',
+  'compute-resources': 'Compute Resources',
+  'environment-variables': 'Environment Variables',
+  secrets: 'Secrets',
+  editor: 'Configuration Editor',
+};
+
 function RedirectToGeneralTab() {
   const router = useRouter();
 
@@ -130,7 +139,9 @@ function ProjectSettingsSidebar() {
 function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
   const router = useRouter();
 
-  if (getSingleQueryParam(router.query.tab) === 'editor') {
+  const tab = getSingleQueryParam(router.query.tab);
+
+  if (tab === 'editor') {
     return (
       <RetryableErrorBoundary resetKeys={[router.asPath]}>
         {children}
@@ -138,7 +149,11 @@ function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
     );
   }
 
-  return <SettingsArea>{children}</SettingsArea>;
+  return (
+    <SettingsArea title={tab ? PROJECT_SETTINGS_TITLES[tab] : undefined}>
+      {children}
+    </SettingsArea>
+  );
 }
 
 export default function SettingsGeneralPage() {

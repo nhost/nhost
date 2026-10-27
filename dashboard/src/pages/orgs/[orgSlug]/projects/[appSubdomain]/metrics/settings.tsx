@@ -49,7 +49,7 @@ MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <MetricsArea>
           <SettingsGuard>
-            <SettingsArea>{page}</SettingsArea>
+            <SettingsArea title="Settings">{page}</SettingsArea>
           </SettingsGuard>
         </MetricsArea>
       </ProjectScope>

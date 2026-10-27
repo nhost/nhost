@@ -78,7 +78,7 @@ AISettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <AIArea>
           <SettingsGuard>
-            <SettingsArea>{page}</SettingsArea>
+            <SettingsArea title="Settings">{page}</SettingsArea>
           </SettingsGuard>
         </AIArea>
       </ProjectScope>

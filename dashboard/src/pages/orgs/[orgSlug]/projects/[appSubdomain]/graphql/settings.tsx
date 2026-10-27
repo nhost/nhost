@@ -33,6 +33,14 @@ import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/setting
 import { useGetHasuraSettingsQuery } from '@/generated/graphql';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
+/** The page title of each tab, the same as its sidebar link. */
+const GRAPHQL_SETTINGS_TITLES: Record<string, string> = {
+  engine: 'Engine',
+  'access-and-tooling': 'Access and tooling',
+  'custom-domain': 'Custom Domain',
+  'rate-limiting': 'Rate Limiting',
+};
+
 function GraphQLEngineSettings() {
   return (
     <div className="grid grid-flow-row gap-y-6">
@@ -210,7 +218,10 @@ GraphQLSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <GraphQLArea>
-          <AreaSettingsLayout sidebar={<GraphQLSettingsSidebar />}>
+          <AreaSettingsLayout
+            sidebar={<GraphQLSettingsSidebar />}
+            titles={GRAPHQL_SETTINGS_TITLES}
+          >
             {page}
           </AreaSettingsLayout>
         </GraphQLArea>
