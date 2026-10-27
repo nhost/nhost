@@ -173,20 +173,58 @@ describe('session cookies', () => {
     expect(line).not.toMatch(/HttpOnly/i);
     expect(line).not.toContain('token');
   });
+});
 
-  it('deletes the session cookies when the session is rejected', async () => {
+// A request that loses a race to rotate the refresh token is rejected like a
+// revoked one, so only a second rejection of the same token signs out.
+describe('rejected refresh', () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     fetchMock.mockImplementation(async () =>
       json({ error: 'invalid-refresh-token', message: 'Invalid' }, 401),
     );
+  });
 
-    const response = await proxyResponse(storedSession(-60));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  const expired = JSON.stringify({
+    ...JSON.parse(storedSession(-60)),
+    refreshTokenId: 'refresh-token-id',
+  });
+
+  it('keeps the cookies and marks the token the first time', async () => {
+    const result = await handleNhostProxy(proxyRequest(expired));
+    const response = result.applySessionCookies(NextResponse.next());
+
+    expect(result.session).toBeNull();
+    expect(setCookie(response, DEFAULT_SESSION_KEY)).toBe('');
+    expect(setCookie(response, SIGNED_IN_KEY)).toBe('');
+    expect(setCookie(response, 'nhostRefreshRejected')).toMatch(
+      /^nhostRefreshRejected=refresh-token-id;.*HttpOnly/i,
+    );
+  });
+
+  it('deletes the cookies when the marked token is rejected again', async () => {
+    const { applySessionCookies } = await handleNhostProxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: {
+          cookie: `${DEFAULT_SESSION_KEY}=${encodeURIComponent(expired)}; nhostRefreshRejected=refresh-token-id`,
+        },
+      }),
+    );
+    const response = applySessionCookies(NextResponse.next());
 
     for (const name of [
       DEFAULT_SESSION_KEY,
       SIGNED_IN_KEY,
       PASSWORD_RESET_KEY,
+      'nhostRefreshRejected',
     ]) {
       expect(setCookie(response, name)).toMatch(/Expires=Thu, 01 Jan 1970/);
     }

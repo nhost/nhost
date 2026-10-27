@@ -250,6 +250,18 @@ and the browser never gets a refresh token to try with. Turning
 `prefetch={true}` on a link, or giving the browser client the SDK's own
 auto-refresh, reopens the race.
 
+Two real requests can still race once the access token has expired: a click
+on a tab that just regained focus, which `RefreshOnSessionChange` answers with
+a refresh of its own, or several tabs restored at once. The loser's 401 looks
+the same as a revoked token's, so the proxy does not delete the cookies the
+first time. It renders that request signed out and sets `nhostRefreshRejected`,
+a one-minute cookie naming the refresh token's ID. Only a second rejection
+while the marker names that ID deletes them. `RefreshOnSessionChange` notices
+the signed-out render with `nhostSignedIn` still set and refreshes, which
+either picks up the winner's new session or, for a token that really is dead,
+clears the cookies. The browser still ends up signed out if the winner's
+response lands while that second request is in flight.
+
 ### Links that sign in
 
 Auth emails and the OAuth callback send the browser back with a refresh token

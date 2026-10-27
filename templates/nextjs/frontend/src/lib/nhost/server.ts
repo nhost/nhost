@@ -45,7 +45,16 @@ export const cookieOptions = {
 export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
 const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
 
-const sessionCookieNames = [key, SIGNED_IN_KEY, PASSWORD_RESET_KEY];
+// Names a refresh token the proxy has seen rejected once. See the README's
+// design notes.
+const REFRESH_REJECTED_KEY = 'nhostRefreshRejected';
+
+const sessionCookieNames = [
+  key,
+  SIGNED_IN_KEY,
+  PASSWORD_RESET_KEY,
+  REFRESH_REJECTED_KEY,
+];
 
 function sessionCookies(value: StoredSession) {
   return [
@@ -262,6 +271,17 @@ export async function handleNhostProxy(
 ): Promise<NhostProxyResult> {
   const mutations: Array<(response: NextResponse) => void> = [];
 
+  const clearSessionCookies = () => {
+    for (const name of sessionCookieNames) {
+      request.cookies.delete(name);
+    }
+    mutations.push((response) => {
+      for (const name of sessionCookieNames) {
+        response.cookies.delete(name);
+      }
+    });
+  };
+
   const storage = {
     get: (): StoredSession | null =>
       parseSessionCookie(request.cookies.get(key)?.value || null),
@@ -276,14 +296,26 @@ export async function handleNhostProxy(
         }
       });
     },
+    // Only a rejected refresh gets here. A request that lost a race to rotate
+    // the same token is rejected too, so the first time only signs this
+    // request out, and a second time for the same token clears the cookies.
     remove: () => {
+      const id = storage.get()?.refreshTokenId;
+      if (!id || request.cookies.get(REFRESH_REJECTED_KEY)?.value === id) {
+        clearSessionCookies();
+        return;
+      }
+
       for (const name of sessionCookieNames) {
         request.cookies.delete(name);
       }
       mutations.push((response) => {
-        for (const name of sessionCookieNames) {
-          response.cookies.delete(name);
-        }
+        response.cookies.set({
+          name: REFRESH_REJECTED_KEY,
+          value: id,
+          ...cookieOptions,
+          maxAge: 60,
+        });
       });
     },
   };
@@ -303,7 +335,7 @@ export async function handleNhostProxy(
   // until it expires.
   if (session && !isPrefetch(request)) {
     if ((await trackSession(nhost, session, request.headers)) === 'revoked') {
-      nhost.clearSession();
+      clearSessionCookies();
       session = null;
     }
   }
