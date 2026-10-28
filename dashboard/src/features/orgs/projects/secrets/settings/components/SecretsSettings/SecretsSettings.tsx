@@ -157,7 +157,7 @@ export default function SecretsSettings() {
         <SettingsCardContent
           className={twMerge('mt-2 px-0', secrets.length === 0 && 'gap-2')}
         >
-          <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
+          <div className="grid grid-cols-2 gap-2 border-b-1 px-6 py-3">
             <p className="font-medium">Secret Name</p>
           </div>
 
@@ -166,7 +166,7 @@ export default function SecretsSettings() {
               <div>
                 {secrets.map((secret, index) => (
                   <Fragment key={secret.name}>
-                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12">
+                    <div className="relative grid grid-cols-2 gap-2 px-6 pr-12">
                       <DropdownMenu
                         open={openActionMenuSecret === secret.name}
                         onOpenChange={(open) =>

@@ -178,7 +178,7 @@ export default function BlockedEmailSettings() {
 
           <SettingsCardContent
             className={twMerge(
-              'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
+              'row-span-2 grid grid-flow-row gap-4 lg:grid-cols-3',
               !enabled && 'hidden',
             )}
           >
