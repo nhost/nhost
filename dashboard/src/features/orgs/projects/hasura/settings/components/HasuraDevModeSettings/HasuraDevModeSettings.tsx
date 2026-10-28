@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -127,14 +126,13 @@ export default function HasuraDevModeSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/',
+              topic: 'enabling or disabling Dev Mode',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
-              title="enabling or disabling Dev Mode"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}
