@@ -30,7 +30,7 @@ export default function PagerdutyFormSection() {
     setValue(`pagerduty.${index}.severity`, value as EventSeverity);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">PagerDuty</h3>

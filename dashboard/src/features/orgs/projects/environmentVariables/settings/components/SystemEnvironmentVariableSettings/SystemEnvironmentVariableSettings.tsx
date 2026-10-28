@@ -103,13 +103,13 @@ export default function SystemEnvironmentVariableSettings() {
       />
 
       <SettingsCardContent className="mt-2 px-0">
-        <div className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
+        <div className="grid grid-cols-3 gap-2 border-b-1 px-6 py-3">
           <p className="font-medium">Variable Name</p>
           <p className="font-medium lg:col-span-2">Value</p>
         </div>
 
         <div>
-          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
             <p>NHOST_ADMIN_SECRET</p>
 
             <div className="flex items-center gap-2 lg:col-span-2">
@@ -143,7 +143,7 @@ export default function SystemEnvironmentVariableSettings() {
           </div>
           <div className="!my-4 border-t" />
 
-          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
             <p>NHOST_WEBHOOK_SECRET</p>
 
             <div className="flex items-center gap-2 lg:col-span-2">
@@ -181,7 +181,7 @@ export default function SystemEnvironmentVariableSettings() {
 
           {systemEnvironmentVariables.map((environmentVariable, index) => (
             <Fragment key={environmentVariable.key}>
-              <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
                 <p>{environmentVariable.key}</p>
 
                 <p className="truncate lg:col-span-2">
@@ -196,7 +196,7 @@ export default function SystemEnvironmentVariableSettings() {
           ))}
           <div className="!mb-2.5 !mt-4 border-t" />
 
-          <div className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
+          <div className="grid grid-cols-2 justify-start px-6 lg:grid-cols-3">
             <p>NHOST_JWT_SECRET</p>
 
             <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">

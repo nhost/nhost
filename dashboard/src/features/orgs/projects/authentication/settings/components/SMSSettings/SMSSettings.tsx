@@ -188,7 +188,7 @@ export default function SMSSettings() {
 
           <SettingsCardContent
             className={twMerge(
-              'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-3 gap-y-4 px-4 py-2',
+              'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-3 gap-y-4 py-2',
               !authSmsPasswordlessEnabled && 'hidden',
             )}
           >

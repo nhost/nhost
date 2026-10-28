@@ -206,7 +206,7 @@ export default function RoleSettings() {
           availableAllowedRoles.length === 0 && 'gap-2',
         )}
       >
-        <div className="border-b-1 px-4 py-3">
+        <div className="border-b-1 px-6 py-3">
           <p className="font-medium">Name</p>
         </div>
 
@@ -215,7 +215,7 @@ export default function RoleSettings() {
             <div>
               {availableAllowedRoles.map((role, index) => (
                 <Fragment key={role.name}>
-                  <div className="relative px-4 pr-12">
+                  <div className="relative px-6 pr-12">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
