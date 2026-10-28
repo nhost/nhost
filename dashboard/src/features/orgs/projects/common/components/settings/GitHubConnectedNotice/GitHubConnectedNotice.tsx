@@ -23,7 +23,7 @@ export default function GitHubConnectedNotice() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-4 py-1.5 text-muted-foreground text-sm">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-6 py-1.5 text-muted-foreground text-sm">
       <SiGithub
         aria-hidden="true"
         className="h-4 w-4 shrink-0 text-foreground"

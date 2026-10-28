@@ -169,7 +169,7 @@ export default function PermissionVariableSettings() {
       />
 
       <SettingsCardContent className="my-2 px-0">
-        <div className="grid grid-cols-2 border-b-1 px-4 py-3">
+        <div className="grid grid-cols-2 border-b-1 px-6 py-3">
           <p className="font-medium">Field name</p>
           <p className="font-medium">Path</p>
         </div>
@@ -178,7 +178,7 @@ export default function PermissionVariableSettings() {
           <div>
             {availablePermissionVariables.map((permissionVariable, index) => (
               <Fragment key={permissionVariable.id}>
-                <div className="relative grid grid-cols-2 px-4 pr-12">
+                <div className="relative grid grid-cols-2 px-6 pr-12">
                   {permissionVariable.isSystemVariable ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
