@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { GitHubConnectedNotice } from '@/features/orgs/projects/common/components/settings/GitHubConnectedNotice';
 import { cn } from '@/lib/utils';
 
 /**
@@ -20,20 +19,15 @@ interface SettingsAreaProps {
 
 export default function SettingsArea({
   children,
-  title,
   className,
 }: SettingsAreaProps) {
   const router = useRouter();
 
   return (
     <div className={cn('mx-auto w-full max-w-5xl px-5 py-8', className)}>
-      <div className="grid grid-flow-row gap-6">
-        {title && <h1 className="font-semibold text-2.5xl">{title}</h1>}
-        <GitHubConnectedNotice />
-        <RetryableErrorBoundary resetKeys={[router.asPath]}>
-          {children}
-        </RetryableErrorBoundary>
-      </div>
+      <RetryableErrorBoundary resetKeys={[router.asPath]}>
+        {children}
+      </RetryableErrorBoundary>
     </div>
   );
 }

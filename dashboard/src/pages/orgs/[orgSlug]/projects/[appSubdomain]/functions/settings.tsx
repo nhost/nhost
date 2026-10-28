@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
@@ -10,6 +10,10 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -22,12 +26,6 @@ import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/setting
 import { FunctionsArea } from '@/features/orgs/projects/serverless-functions/layout';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
-
-/** The page title of each tab, the same as its sidebar link. */
-const FUNCTIONS_SETTINGS_TITLES: Record<string, string> = {
-  'custom-domain': 'Custom Domain',
-  'rate-limiting': 'Rate Limiting',
-};
 
 function FunctionsCustomDomainSettings() {
   const { org } = useCurrentOrg();
@@ -134,40 +132,21 @@ function FunctionsSettingsSidebar() {
   );
 }
 
+const FUNCTIONS_SETTINGS_TABS = {
+  'custom-domain': {
+    title: 'Custom Domain',
+    Component: FunctionsCustomDomainSettings,
+  },
+  'rate-limiting': {
+    title: 'Rate Limiting',
+    Component: FunctionsRateLimitingSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function FunctionsSettingsPage() {
-  const router = useRouter();
-  const tab = getSingleQueryParam(router.query.tab);
-  const isValidTab = tab === 'rate-limiting' || tab === 'custom-domain';
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'custom-domain' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  switch (tab) {
-    case 'rate-limiting':
-      return <FunctionsRateLimitingSettings />;
-    default:
-      return <FunctionsCustomDomainSettings />;
-  }
+  return (
+    <SettingsTabs tabs={FUNCTIONS_SETTINGS_TABS} defaultTab="custom-domain" />
+  );
 }
 
 FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
@@ -175,10 +154,7 @@ FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <FunctionsArea>
-          <AreaSettingsLayout
-            sidebar={<FunctionsSettingsSidebar />}
-            titles={FUNCTIONS_SETTINGS_TITLES}
-          >
+          <AreaSettingsLayout sidebar={<FunctionsSettingsSidebar />}>
             {page}
           </AreaSettingsLayout>
         </FunctionsArea>

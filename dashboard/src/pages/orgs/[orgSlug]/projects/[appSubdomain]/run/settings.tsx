@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
@@ -16,6 +16,10 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
@@ -27,12 +31,6 @@ import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/s
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 import { RunArea } from '@/features/orgs/projects/run/layout';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
-
-/** The page title of each tab, the same as its sidebar link. */
-const RUN_SETTINGS_TITLES: Record<string, string> = {
-  'custom-domain': 'Custom Domain',
-  'rate-limiting': 'Rate Limiting',
-};
 
 interface NoRunServicesProps {
   title?: string;
@@ -192,40 +190,19 @@ function RunSettingsSidebar() {
   );
 }
 
+const RUN_SETTINGS_TABS = {
+  'custom-domain': {
+    title: 'Custom Domain',
+    Component: RunCustomDomainSettings,
+  },
+  'rate-limiting': {
+    title: 'Rate Limiting',
+    Component: RunRateLimitingSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function RunSettingsPage() {
-  const router = useRouter();
-  const tab = getSingleQueryParam(router.query.tab);
-  const isValidTab = tab === 'custom-domain' || tab === 'rate-limiting';
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'custom-domain' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  switch (tab) {
-    case 'rate-limiting':
-      return <RunRateLimitingSettings />;
-    default:
-      return <RunCustomDomainSettings />;
-  }
+  return <SettingsTabs tabs={RUN_SETTINGS_TABS} defaultTab="custom-domain" />;
 }
 
 RunSettingsPage.getLayout = function getLayout(page: ReactElement) {
@@ -233,10 +210,7 @@ RunSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <RunArea>
-          <AreaSettingsLayout
-            sidebar={<RunSettingsSidebar />}
-            titles={RUN_SETTINGS_TITLES}
-          >
+          <AreaSettingsLayout sidebar={<RunSettingsSidebar />}>
             {page}
           </AreaSettingsLayout>
         </RunArea>

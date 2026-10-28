@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { SettingsPage } from '@/features/orgs/projects/common/components/settings/SettingsPage';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -49,7 +50,9 @@ MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <MetricsArea>
           <SettingsGuard>
-            <SettingsArea title="Settings">{page}</SettingsArea>
+            <SettingsArea>
+              <SettingsPage title="Settings">{page}</SettingsPage>
+            </SettingsArea>
           </SettingsGuard>
         </MetricsArea>
       </ProjectScope>
