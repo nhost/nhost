@@ -75,7 +75,7 @@ The dashboard then creates two relationships:
 | `community_members` | `community` | Object | the referenced table's name, in the singular |
 | `communities` | `community_members` | Array | this table's name, in the plural |
 
-When the foreign key columns contain a unique key of `community_members`, so at most one member can point at a community, the second relationship is an object relationship named in the singular. When a name is already taken, the dashboard appends the foreign key's column names, as in `community_community_id`.
+When the foreign key columns contain a unique key of `community_members`, so at most one member can point at a community, the second relationship is an object relationship named in the singular. When another foreign key relationship already uses the name, the dashboard appends the foreign key's column names, as in `community_community_id`. If the name belongs to a relationship created with **Relationship +** or a remote relationship, the dashboard does not rename the new one, and the save fails. Rename or delete that relationship first.
 
 ## Add a suggested relationship
 
@@ -237,7 +237,7 @@ remote_relationships:
           id: community_id
 ```
 
-Run `nhost up` to apply the files to your local project.
+The `activity` and `page_views` entries work only if the `rs` remote schema and the `analytics` database exist, so leave them out if you skipped those sections. Add these keys to the table's existing file rather than replacing it, then run `nhost up` to apply the files to your local project.
 
 In a local project, the dashboard writes to these files only when it saves a change as a migration, as the table form does when you add a foreign key. Relationships you add from a suggestion or with **Relationship +**, and any you edit, rename, or delete, change only the running project. Export the metadata to keep them before you commit:
 
@@ -249,7 +249,7 @@ nhost dev hasura metadata export \
 
 ## Query across a relationship
 
-A relationship is a field like any column. This query returns each community with its members, its member count and its activity:
+A relationship is a field like any column. This query returns each community with its members and its member count:
 
 ```graphql
 query CommunitiesWithMembers {
@@ -262,12 +262,11 @@ query CommunitiesWithMembers {
       user_id
       joined_at
     }
-    activity {
-      uploadsThisWeek
-    }
   }
 }
 ```
+
+If you created the remote schema relationship, select `activity { uploadsThisWeek }` the same way.
 
 A relationship in the same database also filters rows. This query returns the members of a community named `Engineering`:
 
