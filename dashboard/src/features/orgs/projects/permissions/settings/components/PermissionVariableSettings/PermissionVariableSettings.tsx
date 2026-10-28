@@ -10,9 +10,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 
 import { Button } from '@/components/ui/v3/button';
@@ -166,6 +164,10 @@ export default function PermissionVariableSettings() {
       <SettingsCardHeader
         title="Permission Variables"
         description="Permission variables are used to define permission rules in the GraphQL API."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/graphql/permissions#permission-variables',
+          topic: 'Permission Variables',
+        }}
       />
 
       <SettingsCardContent className="my-2 px-0">
@@ -262,13 +264,6 @@ export default function PermissionVariableSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/graphql/permissions#permission-variables"
-          title="Permission Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

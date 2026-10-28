@@ -4,9 +4,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
@@ -98,6 +96,10 @@ export default function SystemEnvironmentVariableSettings() {
       <SettingsCardHeader
         title="System Environment Variables"
         description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables',
+          topic: 'System Environment Variables',
+        }}
       />
 
       <SettingsCardContent className="mt-2 px-0">
@@ -211,13 +213,6 @@ export default function SystemEnvironmentVariableSettings() {
           </div>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
-          title="System Environment Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

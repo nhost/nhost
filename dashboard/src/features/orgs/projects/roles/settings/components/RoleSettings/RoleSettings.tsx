@@ -10,9 +10,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -196,6 +194,10 @@ export default function RoleSettings() {
       <SettingsCardHeader
         title="Default Allowed Roles"
         description="Default Allowed Roles are roles users get automatically when they sign up."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/auth/users#allowed-roles',
+          topic: 'Default Allowed Roles',
+        }}
       />
 
       <SettingsCardContent
@@ -286,13 +288,6 @@ export default function RoleSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/auth/users#allowed-roles"
-          title="Default Allowed Roles"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }
