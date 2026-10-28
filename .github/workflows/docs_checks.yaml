@@ -3,6 +3,7 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/setup-nix/**"
       - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/docs_checks.yaml"
       - ".github/actions/cache-nix/**"
@@ -51,6 +52,7 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/actions/setup-nix/**
         .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/docs_checks.yaml
         .github/actions/cache-nix/**
@@ -88,8 +90,9 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'
       NAME: docs
-      PATH: docs
+      PROJECT: docs
       GIT_REF: >-
         ${{ github.event_name == 'pull_request_target' &&
         github.event.pull_request.head.sha || github.sha }}
