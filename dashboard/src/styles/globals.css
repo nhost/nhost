@@ -72,18 +72,6 @@ html.dark .graphiql-themed .graphiql-container {
   @apply h-full overflow-y-auto border-l-0 px-3 py-3 !important;
 }
 
-/* Docs inside the side panel: the tab already says Docs, so the big title
-   only shows once you open a type, and smaller. */
-.playground-docs .graphiql-doc-explorer-title {
-  @apply font-semibold text-base !important;
-}
-
-.playground-docs
-  .graphiql-doc-explorer-header-content:not(:has(.graphiql-doc-explorer-back))
-  .graphiql-doc-explorer-title {
-  @apply hidden !important;
-}
-
 /* Docs search: always an open field on top, styled like our inputs, with the
    results floating under it. GraphiQL shows it as a small box that only opens
    on focus. */
@@ -91,15 +79,59 @@ html.dark .graphiql-themed .graphiql-container {
   @apply flex-col-reverse gap-0 !important;
 }
 
-/* 16px from the search to the content. The back link and type name only
-   show once you open a type, so they bring their own space. */
+/* Our header (DocsHeader) replaces GraphiQL's back link, title and, on
+   opened pages, the description. A line under it, full width, like the one
+   under the search. */
+.playground-docs .graphiql-doc-explorer-back,
+.playground-docs .graphiql-doc-explorer-title,
 .playground-docs
-.graphiql-doc-explorer-header-content:has(.graphiql-doc-explorer-back) {
-  @apply pt-3 !important;
+  > :not(.playground-docs-start)
+  .graphiql-doc-explorer-content
+  > .graphiql-markdown-description:first-child {
+  @apply hidden !important;
+}
+
+.playground-docs .graphiql-doc-explorer-header-content {
+  @apply block p-0 !important;
+}
+
+.playground-docs .playground-header-slot:not(:empty) {
+  @apply -mx-4 border-b px-4 py-4;
 }
 
 .playground-docs .graphiql-doc-explorer-content {
   @apply mt-4 !important;
+}
+
+/* The start page lists root types and types in our own groups, so only
+   GraphiQL's description stays. */
+.playground-docs-start
+  .graphiql-doc-explorer-content
+  > div:not(.graphiql-markdown-description) {
+  @apply hidden !important;
+}
+
+.playground-docs-start .graphiql-doc-explorer-content {
+  @apply mb-6 !important;
+}
+
+/* Every list starts at the same left edge as its section title. */
+.playground-docs .graphiql-doc-explorer-section-content {
+  @apply ml-0 !important;
+}
+
+/* A description sits right under its name (GraphiQL leaves 12px, almost
+   the gap to the next item), so each pair reads as one. */
+.playground-docs
+  .graphiql-doc-explorer-item
+  > :not(:first-child):not(.playground-copy-slot) {
+  @apply mt-1 !important;
+}
+
+/* Section titles get their count, set from the rows ("Fields 6"). */
+.playground-docs .graphiql-doc-explorer-section-title[data-count]::after {
+  content: attr(data-count);
+  @apply ml-1.5 font-normal tracking-normal;
 }
 
 .playground-docs .graphiql-doc-explorer-content > :first-child {
@@ -110,14 +142,6 @@ html.dark .graphiql-themed .graphiql-container {
    list below them), not the docs on their own. */
 .playground-docs .graphiql-doc-explorer {
   @apply h-auto overflow-visible px-0 py-0 !important;
-}
-
-/* The start page lists types in our own groups (Tables, Other types), so
-   GraphiQL's single list of every type is hidden. */
-.playground-docs
-  .graphiql-doc-explorer-content:has(.graphiql-doc-explorer-root-type)
-  > div:nth-child(3) {
-  @apply hidden !important;
 }
 
 /* Section titles (Root types, Fields, Arguments…) match the panel's own
@@ -137,14 +161,10 @@ html.dark .graphiql-themed .graphiql-container {
   color: hsl(var(--chart-2)) !important;
 }
 
-.playground-docs
-  .graphiql-doc-explorer-header:focus-within
-  .graphiql-doc-explorer-title {
-  @apply visible !important;
-}
-
+/* The search sits in its own band, with a full width line under it. */
 .playground-docs .graphiql-doc-explorer-search {
-  @apply relative inset-auto w-full rounded-md border-0 shadow-none !important;
+  @apply relative inset-auto -mx-4 w-auto rounded-none border-0 border-b px-4 pb-4 shadow-none !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
 }
 
 .playground-docs .graphiql-doc-explorer-search-input {
@@ -161,12 +181,38 @@ html.dark .graphiql-themed .graphiql-container {
   @apply ml-2 h-full w-full border-0 text-foreground text-sm shadow-none outline-none ring-0 placeholder:text-muted-foreground !important;
 }
 
-.playground-docs .graphiql-doc-explorer-search [role="listbox"] {
-  @apply absolute inset-x-0 top-full z-10 mt-1 rounded-md border bg-popover shadow-md !important;
+/* Each field is a small card with a copy button in its top right corner,
+   shown on hover, like code blocks in docs. */
+.playground-docs .graphiql-doc-explorer-item:has(> .playground-copy-slot) {
+  @apply relative rounded-md border bg-background p-4 pr-12 !important;
 }
 
-.graphiql-container .graphiql-plugin {
-  @apply max-w-[initial] border-none py-2 pl-2 pr-0 !important;
+/* Centred on the first line of the card, its icon 16px from the edge.
+   GraphiQL gives every row child a top margin, not this one. */
+.playground-docs .playground-copy-slot {
+  @apply absolute top-3.5 right-2.5 mt-0 flex opacity-0 transition-opacity !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-item:is(:hover, :focus-within)
+  > .playground-copy-slot {
+  @apply opacity-100 !important;
+}
+
+/* GraphiQL draws a white or yellow outline on every link it focuses, also
+   on a mouse click. Only keyboard focus gets a ring, in our blue. */
+.playground-docs a:focus {
+  outline: none !important;
+}
+
+.playground-docs a:focus-visible {
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px;
+  @apply rounded-sm;
+}
+
+.playground-docs .graphiql-doc-explorer-search [role="listbox"] {
+  @apply absolute inset-x-4 top-[calc(100%-0.75rem)] z-10 rounded-md border bg-popover shadow-md !important;
 }
 
 .graphiql-container .graphiql-logo {
@@ -222,31 +268,17 @@ html.dark .graphiql-themed .graphiql-container {
   @apply px-4 pb-4 !important;
 }
 
-/* Side panel (History and Docs): reference material, so it sits on the
-   right of Query and Response at a fixed width. GraphiQL's drag handle only
-   works with the panel on the left, so it's hidden. The pane lines up with
-   Query and Response: below the tab bar, 16px from the bottom and right. */
-.graphiql-themed .graphiql-container .graphiql-main {
-  flex-direction: row-reverse;
-}
-
+/* History and Docs are tabs of the response pane, so GraphiQL's own plugin
+   column and its drag handle never show. */
 .graphiql-themed
   .graphiql-container
   .graphiql-main
-  > div:has(> .graphiql-plugin) {
-  flex: 0 0 22.5rem !important;
-}
-
+  > div:has(> .graphiql-plugin),
 .graphiql-themed
   .graphiql-container
   .graphiql-main
   > .graphiql-horizontal-drag-bar {
   @apply hidden !important;
-}
-
-.graphiql-themed .graphiql-container .graphiql-plugin {
-  padding-top: var(--session-header-height) !important;
-  @apply pb-4 pl-0 pr-4 !important;
 }
 
 .graphiql-themed .graphiql-container .graphiql-session-header .graphiql-tabs {
@@ -487,6 +519,23 @@ html.dark .graphiql-themed .graphiql-container {
   background:
     linear-gradient(hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.5)),
     hsl(var(--background));
+}
+
+/* Same 16px inset as the History and Docs tabs: the fold arrows start
+   16px from the pane's edges, the first line 16px under the tabs. */
+.graphiql-themed .graphiql-container .graphiql-response .result-window {
+  @apply ml-4 !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-response .CodeMirror-lines {
+  @apply pt-4 !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-response
+  :is(.CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded)::after {
+  @apply pl-0 !important;
 }
 
 .graphiql-themed .graphiql-container .graphiql-response .CodeMirror-gutters {
@@ -1156,4 +1205,24 @@ html.dark .graphiql-themed .graphiql-container {
     hsl(var(--destructive-gradient-disabled-from)) 0%,
     hsl(var(--destructive-gradient-disabled-to)) 100%
   );
+}
+
+/* Phones: one pane at a time, picked in the bar above (MobilePlaygroundBar).
+   The query with Variables and Headers, or the response pane. */
+@media (max-width: 767px) {
+  [data-mobile-view="query"]
+    .graphiql-themed
+    .graphiql-container
+    .graphiql-response,
+  [data-mobile-view="query"] .graphiql-container .graphiql-response,
+  [data-mobile-view="panel"] .graphiql-container .graphiql-editors,
+  .graphiql-container .graphiql-session > .graphiql-horizontal-drag-bar {
+    @apply hidden !important;
+  }
+
+  .graphiql-container
+    .graphiql-session
+    > :is(.graphiql-editors, .graphiql-response) {
+    flex: 1 1 auto !important;
+  }
 }

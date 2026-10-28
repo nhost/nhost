@@ -1,5 +1,4 @@
 import {
-  type GraphiQLPlugin,
   GraphiQLProvider,
   PlusIcon,
   Tab,
@@ -8,16 +7,13 @@ import {
   useCopyQuery,
   useEditorContext,
   useExecutionContext,
-  usePluginContext,
   usePrettifyEditors,
   useTheme,
 } from '@graphiql/react';
 import {
-  BookOpen,
   Braces,
   ChevronDown,
   Copy,
-  History,
   PlayIcon,
   WandSparkles,
 } from 'lucide-react';
@@ -42,8 +38,17 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import {
   DOCS_PANEL_PLUGIN,
   HISTORY_PANEL_PLUGIN,
-} from '@/features/orgs/projects/graphql/common/components/PlaygroundSidePanel';
-import { useHistoryCount } from '@/features/orgs/projects/graphql/common/components/QueryHistory';
+  MobileQueryViewProvider,
+  PanelTabButton,
+  PlaygroundPanels,
+  type PlaygroundPanelTab,
+  useMobileQueryView,
+  usePlaygroundPanelTab,
+} from '@/features/orgs/projects/graphql/common/components/PlaygroundPanels';
+import {
+  ClearRecentButton,
+  useHistoryCount,
+} from '@/features/orgs/projects/graphql/common/components/QueryHistory';
 import {
   ResponseStatus,
   ResponseStatusContext,
@@ -89,11 +94,6 @@ import type { ReactElement } from 'react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-// The open half of the History | Docs control: our blue, like the active
-// query tab, so it's clearly different from a hover. Only this control.
-const ACTIVE_PANEL_BUTTON_CLASSES =
-  'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary';
-
 function trackGraphQLResponse(
   track: (event: string, properties?: Record<string, unknown>) => void,
   payload: unknown,
@@ -135,15 +135,6 @@ interface PlaygroundRequest {
 
 function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
   const { theme, setTheme } = useTheme();
-  const pluginContext = usePluginContext();
-  const historyCount = useHistoryCount();
-
-  const visiblePlugin = isNotEmptyValue(pluginContext)
-    ? pluginContext.visiblePlugin
-    : null;
-  const setVisiblePlugin = isNotEmptyValue(pluginContext)
-    ? pluginContext.setVisiblePlugin
-    : () => {};
 
   useEffect(() => {
     if (theme !== 'light') {
@@ -151,109 +142,9 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
     }
   }, [setTheme, theme]);
 
-  const isHistoryOpen = visiblePlugin?.title === HISTORY_PANEL_PLUGIN.title;
-  const isDocsOpen = visiblePlugin?.title === DOCS_PANEL_PLUGIN.title;
-
-  // This is a very hacky way to toggle the plugin visibility. Although
-  // GraphiQL exposes a way to manage plugins via the `PluginContext`, it
-  // does not expose a way to manage the layout of the plugins. This means
-  // that we have to manually manipulate the DOM to make the side panel
-  // (documentation explorer or history) pretty.
-  function togglePlugin(plugin: GraphiQLPlugin) {
-    const PLUGIN_VISIBLE_CLASS = 'graphiql-plugin-visible';
-    const [mainGraphiQLContainer] =
-      document.getElementsByClassName('graphiql-main');
-    const pluginContainer = mainGraphiQLContainer.firstChild as HTMLElement;
-
-    const editor = mainGraphiQLContainer.lastChild as HTMLElement;
-
-    if (visiblePlugin?.title === plugin.title) {
-      setVisiblePlugin(null);
-
-      if (pluginContainer) {
-        pluginContainer.style.left = '-1000px';
-        pluginContainer.style.position = 'absolute';
-        pluginContainer.style.opacity = '0';
-        pluginContainer.style.height = '500px';
-        pluginContainer.style.width = '500px';
-      }
-
-      if (editor) {
-        editor.classList.remove(PLUGIN_VISIBLE_CLASS);
-      }
-
-      return;
-    }
-
-    if (pluginContainer) {
-      pluginContainer.style.width = '';
-      pluginContainer.style.height = '';
-      pluginContainer.style.opacity = '';
-      pluginContainer.style.position = '';
-      pluginContainer.style.left = '';
-    }
-
-    if (editor) {
-      editor.classList.add(PLUGIN_VISIBLE_CLASS);
-    }
-
-    setVisiblePlugin(plugin.title);
-  }
-
   return (
-    <header className="grid grid-flow-row items-end gap-2 px-4 pt-4 pb-2 md:grid-flow-col md:justify-between">
+    <header className="px-4 pt-4 pb-2">
       <UserAndRoleSelect onSelectionChange={onSelectionChange} />
-
-      {/* History and Docs open the same side panel, so they are one joined
-          control: each half opens its tab, the open one is highlighted, and
-          clicking it again closes the panel. History shows a count so it's
-          clear when there's something in it. On the right, like the panel. */}
-      <div className="inline-flex h-10 items-stretch overflow-hidden rounded-md border border-input">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => togglePlugin(HISTORY_PANEL_PLUGIN)}
-          aria-pressed={isHistoryOpen}
-          aria-label={
-            historyCount > 0 ? `History, ${historyCount} queries` : 'History'
-          }
-          className={cn(
-            'h-full gap-2 rounded-none px-3 font-normal',
-            isHistoryOpen && ACTIVE_PANEL_BUTTON_CLASSES,
-          )}
-        >
-          <History
-            className={cn(
-              'size-4',
-              isHistoryOpen ? 'text-primary' : 'text-muted-foreground',
-            )}
-          />
-          History
-          {historyCount > 0 && (
-            <span className="rounded-full bg-primary/10 px-1.5 font-medium text-primary text-xs leading-5">
-              {historyCount}
-            </span>
-          )}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => togglePlugin(DOCS_PANEL_PLUGIN)}
-          aria-pressed={isDocsOpen}
-          className={cn(
-            'h-full gap-2 rounded-none border-input border-l px-3 font-normal',
-            isDocsOpen && ACTIVE_PANEL_BUTTON_CLASSES,
-          )}
-        >
-          <BookOpen
-            className={cn(
-              'size-4',
-              isDocsOpen ? 'text-primary' : 'text-muted-foreground',
-            )}
-          />
-          Docs
-        </Button>
-      </div>
     </header>
   );
 }
@@ -477,7 +368,9 @@ function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
   }
 
   return createPortal(
-    <div className="flex h-12 shrink-0 items-center justify-between border-b pr-2 pl-4">
+    // Phones use the bar above instead (MobilePlaygroundBar): its Query tab
+    // and Run. Prettify and the copy menu are desktop extras.
+    <div className="hidden h-12 shrink-0 items-center justify-between border-b pr-2 pl-4 md:flex">
       <span className="font-medium text-foreground text-sm">Query</span>
       <div className="flex items-center">
         <Tooltip>
@@ -580,11 +473,16 @@ function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
   );
 }
 
-// Title bar and empty state for the response pane, rendered through
-// GraphiQL's footer slot (moved to the top of the pane with CSS).
+// Tabs and empty state for the response pane, rendered through GraphiQL's
+// footer slot (moved to the top of the pane with CSS). Response, History and
+// Docs share the pane: History and Docs cover the response while open.
 function ResponsePaneExtras() {
   const editorContext = useEditorContext({ nonNull: true });
   const executionContext = useExecutionContext({ nonNull: true });
+  const [tab, setTab] = usePlaygroundPanelTab();
+  const { setShowQuery } = useMobileQueryView();
+  const historyCount = useHistoryCount();
+  const { isFetching } = executionContext;
   const { responseEditor } = editorContext;
   const [response, setResponse] = useState('');
   const responseStatusStore = useContext(ResponseStatusContext);
@@ -597,6 +495,15 @@ function ResponsePaneExtras() {
       responseStatusStore?.reset();
     }
   }, [activeTabId, responseStatusStore]);
+
+  // A run shows its response, whichever tab was open.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only on a new run
+  useEffect(() => {
+    if (isFetching) {
+      setTab('response');
+      setShowQuery(false);
+    }
+  }, [isFetching]);
 
   useEffect(() => {
     if (!responseEditor) {
@@ -615,31 +522,71 @@ function ResponsePaneExtras() {
 
   return (
     <>
-      <div className="flex h-12 shrink-0 items-center justify-between border-b pr-2 pl-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="font-medium text-foreground text-sm">Response</span>
-          <ResponseStatus />
+      <div className="flex h-12 shrink-0 items-stretch justify-between border-b pr-2 pl-4">
+        {/* On phones these tabs are in the bar above the panes. */}
+        <div
+          role="tablist"
+          className="hidden min-w-0 items-stretch gap-6 md:flex"
+        >
+          <PanelTabButton
+            active={tab === 'response'}
+            onClick={() => setTab('response')}
+          >
+            Response
+          </PanelTabButton>
+          <PanelTabButton
+            active={tab === 'history'}
+            onClick={() => setTab('history')}
+          >
+            History
+            {historyCount > 0 && (
+              <span className="rounded-full bg-primary/10 px-1.5 font-medium text-primary text-xs leading-5">
+                {historyCount}
+              </span>
+            )}
+          </PanelTabButton>
+          <PanelTabButton
+            active={tab === 'docs'}
+            onClick={() => setTab('docs')}
+          >
+            Docs
+          </PanelTabButton>
         </div>
 
-        {response && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <CopyToClipboardButton
-                textToCopy={response}
-                title="Response"
-                aria-label="Copy response"
-                className={cn(
-                  ICON_BUTTON_CLASSES,
-                  'h-8 w-8 p-0 hover:bg-transparent dark:hover:bg-transparent',
-                )}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="top">Copy response</TooltipContent>
-          </Tooltip>
+        {tab === 'history' && (
+          <div className="flex items-center">
+            <ClearRecentButton />
+          </div>
+        )}
+
+        {tab === 'response' && (
+          <div className="flex items-center gap-2">
+            <ResponseStatus />
+            {response && (
+              <span className="hidden md:inline-flex">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CopyToClipboardButton
+                      textToCopy={response}
+                      title="Response"
+                      aria-label="Copy response"
+                      className={cn(
+                        ICON_BUTTON_CLASSES,
+                        'h-8 w-8 p-0 hover:bg-transparent dark:hover:bg-transparent',
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Copy response</TooltipContent>
+                </Tooltip>
+              </span>
+            )}
+          </div>
         )}
       </div>
 
-      {!response && !executionContext.isFetching && (
+      <PlaygroundPanels tab={tab} />
+
+      {tab === 'response' && !response && !isFetching && (
         <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0">
           <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
             <span aria-hidden="true" className="flex shrink-0 text-disabled">
@@ -657,6 +604,64 @@ function ResponsePaneExtras() {
         </div>
       )}
     </>
+  );
+}
+
+// Phones only: one pane at a time, so Query joins Response, History and Docs
+// as a tab, with Run always in reach at the end.
+function MobilePlaygroundBar() {
+  const executionContext = useExecutionContext({ nonNull: true });
+  const [tab, setTab] = usePlaygroundPanelTab();
+  const { showQuery, setShowQuery } = useMobileQueryView();
+
+  // No History count here: a phone has no room for it.
+  function showPanel(next: PlaygroundPanelTab) {
+    setTab(next);
+    setShowQuery(false);
+  }
+
+  return (
+    <div className="flex h-12 shrink-0 items-stretch justify-between gap-3 border-b px-4 md:hidden">
+      <div role="tablist" className="flex min-w-0 items-stretch gap-5">
+        <PanelTabButton active={showQuery} onClick={() => setShowQuery(true)}>
+          Query
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'response'}
+          onClick={() => showPanel('response')}
+        >
+          Response
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'history'}
+          onClick={() => showPanel('history')}
+        >
+          History
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'docs'}
+          onClick={() => showPanel('docs')}
+        >
+          Docs
+        </PanelTabButton>
+      </div>
+
+      <Button
+        size="xs"
+        onClick={() => {
+          if (executionContext.isFetching) {
+            executionContext.stop();
+          }
+
+          executionContext.run();
+        }}
+        aria-label="Execute GraphQL query"
+        className="gap-1.5 self-center px-2.5"
+      >
+        <PlayIcon className="h-3.5 w-3.5" />
+        Run
+      </Button>
+    </div>
   );
 }
 
@@ -831,17 +836,21 @@ const GraphQLPageContent = dynamic(
             storage={storage}
             plugins={[HISTORY_PANEL_PLUGIN, DOCS_PANEL_PLUGIN]}
           >
-            <GraphiQLHeader onSelectionChange={handleSelectionChange} />
+            <MobileQueryViewProvider>
+              <GraphiQLHeader onSelectionChange={handleSelectionChange} />
 
-            <GraphiQLEditor
-              onHeaderChange={setHeadersTabOverrides}
-              request={{
-                endpoint: appUrl,
-                adminSecret,
-                selection,
-                headersTabOverrides,
-              }}
-            />
+              <MobilePlaygroundBar />
+
+              <GraphiQLEditor
+                onHeaderChange={setHeadersTabOverrides}
+                request={{
+                  endpoint: appUrl,
+                  adminSecret,
+                  selection,
+                  headersTabOverrides,
+                }}
+              />
+            </MobileQueryViewProvider>
           </GraphiQLProvider>
         </ResponseStatusContext.Provider>
       );

@@ -26,12 +26,8 @@ import {
   groupHistory,
   type HistoryEntry,
 } from '@/features/orgs/projects/graphql/common/utils/groupHistory';
+import { openQueryInTab } from '@/features/orgs/projects/graphql/common/utils/openQueryInTab';
 import { cn } from '@/lib/utils';
-
-const sameQuery = (
-  a: string | null | undefined,
-  b: string | null | undefined,
-) => (a ?? '').trim() === (b ?? '').trim();
 
 function HistoryRow({ entry }: { entry: HistoryEntry }) {
   const { item, copies } = entry;
@@ -42,29 +38,14 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
   // name can lag behind the editor.
   const label = item.label || getQueryLabel(item.query);
 
-  // Opens the query without touching the tab you're on: an open tab with the
-  // same query becomes active, otherwise it opens in a new tab. Headers are
-  // never restored, history doesn't keep them.
-  function openItem() {
-    const openTabIndex = editorContext.tabs.findIndex((tab) =>
-      sameQuery(tab.query, item.query),
+  // Headers are never restored, history doesn't keep them.
+  const openItem = () =>
+    openQueryInTab(
+      editorContext,
+      executionContext,
+      item.query ?? '',
+      item.variables,
     );
-
-    executionContext.stop();
-
-    if (openTabIndex !== -1) {
-      editorContext.changeTab(openTabIndex);
-      return;
-    }
-
-    editorContext.addTab();
-
-    // The new tab clears the editors first, so fill them right after.
-    setTimeout(() => {
-      editorContext.queryEditor?.setValue(item.query ?? '');
-      editorContext.variableEditor?.setValue(item.variables ?? '');
-    }, 0);
-  }
 
   return (
     <li className="group flex items-center gap-1 rounded-md pr-1 hover:bg-accent">
@@ -149,17 +130,18 @@ function HistorySection({
   }
 
   return (
-    <section className="flex flex-col gap-1">
+    <section className="flex flex-col gap-2">
       <h2
         className={cn(
-          'flex items-center gap-1.5 px-2',
+          'flex items-center gap-1.5',
           PLAYGROUND_SECTION_TITLE_CLASSES,
         )}
       >
         <Icon aria-hidden="true" className="size-3.5" />
         {title}
       </h2>
-      <ul className="flex flex-col">
+      {/* A card like the fields in Docs. Row text sits 16px from its edge. */}
+      <ul className="flex flex-col rounded-md border bg-background p-2">
         {entries.map((entry) => (
           <HistoryRow
             key={`${entry.item.favorite ? 'starred' : 'recent'}-${entry.item.query}-${entry.item.variables}`}
