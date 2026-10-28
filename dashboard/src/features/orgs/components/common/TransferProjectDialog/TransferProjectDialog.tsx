@@ -76,7 +76,7 @@ export default function TransferProjectDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
-        <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
+        <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
           <TransferProjectDialogContent
             onFinishOrgCreationCompleted={handleFinishOrgCreationCompleted}
             onFinishOrgError={() => setPreventClose(false)}

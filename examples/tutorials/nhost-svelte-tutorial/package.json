@@ -23,10 +23,10 @@
     "@sveltejs/adapter-auto": "^6.1.1",
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
-    "@types/node": "^25.9.8",
-    "svelte": "^5.57.1",
-    "svelte-check": "^4.7.6",
+    "@types/node": "^25.9.9",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.7",
     "typescript": "catalog:",
-    "vite": "^8.3.3"
+    "vite": "^8.3.5"
   }
 }

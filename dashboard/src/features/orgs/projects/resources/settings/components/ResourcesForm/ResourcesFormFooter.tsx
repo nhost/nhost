@@ -1,4 +1,3 @@
-import { ExternalLink } from 'lucide-react';
 import { useFormState, useWatch } from 'react-hook-form';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
@@ -50,20 +49,7 @@ export default function ResourcesFormFooter() {
   const disabled = !isDirty || hasFieldErrors || !!aggregateError;
 
   return (
-    <div className="flex flex-col items-stretch gap-3 border-t px-4 pt-3.5 sm:flex-row sm:items-center sm:justify-between">
-      <p>
-        Learn more about{' '}
-        <a
-          href="https://docs.nhost.io/platform/cloud/compute-resources"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-        >
-          Compute Resources
-          <ExternalLink className="h-4 w-4" />
-        </a>
-      </p>
-
+    <div className="flex flex-col items-stretch gap-3 bg-accent/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-end dark:bg-muted/30">
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
         {aggregateError && (
           <p
