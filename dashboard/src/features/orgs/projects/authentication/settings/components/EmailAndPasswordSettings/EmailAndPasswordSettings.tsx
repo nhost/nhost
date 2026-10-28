@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -134,6 +133,10 @@ export default function EmailAndPasswordSettings() {
           <SettingsCardHeader
             title="Email and Password"
             description="Email and password sign-in is always available. Set its rules below."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/sign-in-email-password',
+              topic: 'how to sign in users with email and password',
+            }}
           />
 
           <SettingsCardContent>
@@ -161,11 +164,6 @@ export default function EmailAndPasswordSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/sign-in-email-password"
-              title="how to sign in users with email and password"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

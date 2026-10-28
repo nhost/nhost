@@ -3,7 +3,9 @@ package activity
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -26,6 +28,7 @@ func windowParams() Params {
 		Since:         since,
 		Until:         until,
 		ReadyStatus:   "Ready for review",
+		MergeStatus:   "Ready to merge",
 		WaitingStatus: "Waiting",
 	}
 }
@@ -45,6 +48,7 @@ func outOfWindowTS(p Params) string {
 func authoredPR() searchNode {
 	return searchNode{
 		Typename: "PullRequest",
+		State:    "OPEN",
 		Number:   1,
 		Title:    "Authored PR",
 		URL:      "https://github.com/nhost/example/pull/1",
@@ -78,6 +82,20 @@ func authoredIssue() searchNode {
 	}
 }
 
+func statusItem(name, updatedAt string) projectItem {
+	return projectItem{
+		Project: struct {
+			Title  string `json:"title"`
+			Number int    `json:"number"`
+		}{Title: "Eng", Number: 1},
+		FieldValueByName: &struct {
+			Typename  string `json:"__typename"`
+			Name      string `json:"name"`
+			UpdatedAt string `json:"updatedAt"`
+		}{Typename: "ProjectV2ItemFieldSingleSelectValue", Name: name, UpdatedAt: updatedAt},
+	}
+}
+
 // onlyItem returns the single Item from whichever bucket holds it, plus the
 // bucket name. Fails the test if zero or more than one bucket has entries.
 func onlyItem(t *testing.T, r *Report) (string, Item) {
@@ -86,6 +104,7 @@ func onlyItem(t *testing.T, r *Report) (string, Item) {
 	buckets := map[string][]Item{
 		"InProgress":     r.InProgress,
 		"ReadyForReview": r.ReadyForReview,
+		"ReadyToMerge":   r.ReadyToMerge,
 		"Blocked":        r.Blocked,
 		"ClosedOrMerged": r.ClosedOrMerged,
 		"Reviewed":       r.Reviewed,
@@ -117,6 +136,7 @@ func bucketCounts(r *Report) map[string]int {
 	return map[string]int{
 		"InProgress":     len(r.InProgress),
 		"ReadyForReview": len(r.ReadyForReview),
+		"ReadyToMerge":   len(r.ReadyToMerge),
 		"Blocked":        len(r.Blocked),
 		"ClosedOrMerged": len(r.ClosedOrMerged),
 		"Reviewed":       len(r.Reviewed),
@@ -133,8 +153,8 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 	in := inWindowTS(p)
 
 	// Build a PR that satisfies every bucket's signal. Priority order
-	// (top wins): ClosedOrMerged > Blocked > ReadyForReview > InProgress >
-	// Reviewed > Uncategorized. We then peel signals off the top and check the
+	// (top wins): ClosedOrMerged > Blocked > ReadyToMerge > ReadyForReview >
+	// InProgress > Reviewed > Uncategorized. We then peel signals off the top and check the
 	// next bucket fires.
 
 	full := authoredPR()
@@ -165,8 +185,8 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 			}{Typename: "ProjectV2ItemFieldSingleSelectValue", Name: p.ReadyStatus, UpdatedAt: in},
 		},
 	}
+	full.ProjectItems.Nodes = append(full.ProjectItems.Nodes, statusItem(p.MergeStatus, in))
 	full.TimelineItems.Nodes = []timelineItem{
-		{Typename: "ReadyForReviewEvent", CreatedAt: in, Actor: &actor{Login: testUser}},
 		{Typename: "IssueComment", CreatedAt: in, Author: &actor{Login: testUser}},
 	}
 
@@ -189,12 +209,20 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 			want: "Blocked",
 		},
 		{
-			name: "ReadyForReview wins when ClosedOrMerged and Blocked signals are gone",
+			name: "ReadyToMerge wins over ReadyForReview",
 			mut: func(n *searchNode) {
 				n.MergedAt = ""
 				n.ClosedAt = ""
-				// Drop the Waiting project entry.
 				n.ProjectItems.Nodes = n.ProjectItems.Nodes[1:]
+			},
+			want: "ReadyToMerge",
+		},
+		{
+			name: "ReadyForReview wins when higher-priority signals are gone",
+			mut: func(n *searchNode) {
+				n.MergedAt = ""
+				n.ClosedAt = ""
+				n.ProjectItems.Nodes = n.ProjectItems.Nodes[1:2]
 			},
 			want: "ReadyForReview",
 		},
@@ -352,8 +380,130 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			r := &Report{}
 			classifyPR(tt.node(), p, r)
 
+			tt.wantCount["ReadyToMerge"] = 0
 			if got := bucketCounts(r); !reflect.DeepEqual(got, tt.wantCount) {
 				t.Fatalf("bucket counts = %v, want %v", got, tt.wantCount)
+			}
+		})
+	}
+}
+
+func TestClassifyPR_ProjectReadiness(t *testing.T) {
+	t.Parallel()
+
+	p := windowParams()
+	p.ReadyStatus = "Review queue"
+	p.MergeStatus = "Ship it"
+
+	queues := []struct {
+		name   string
+		status string
+	}{
+		{name: "ReadyForReview", status: "REVIEW QUEUE"},
+		{name: "ReadyToMerge", status: "SHIP IT"},
+	}
+	for _, queue := range queues {
+		t.Run(queue.name, func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name string
+				mut  func(*searchNode)
+				want bool
+			}{
+				{
+					name: "status set before window is included",
+					mut:  func(_ *searchNode) {},
+					want: true,
+				},
+				{
+					name: "status set after window is included as current state",
+					mut: func(n *searchNode) {
+						n.ProjectItems.Nodes = []projectItem{
+							statusItem(queue.status, ts(p, 48*time.Hour)),
+						}
+					},
+					want: true,
+				},
+				{
+					name: "status without timestamp is included",
+					mut: func(n *searchNode) {
+						n.ProjectItems.Nodes = []projectItem{statusItem(queue.status, "")}
+					},
+					want: true,
+				},
+				{
+					name: "closed PR with stale status is excluded",
+					mut: func(n *searchNode) {
+						n.State = "CLOSED"
+						n.ClosedAt = outOfWindowTS(p)
+					},
+					want: false,
+				},
+				{
+					name: "merged PR with stale status is excluded",
+					mut: func(n *searchNode) {
+						n.State = "MERGED"
+						n.MergedAt = outOfWindowTS(p)
+					},
+					want: false,
+				},
+				{
+					name: "another author's PR is excluded",
+					mut:  func(n *searchNode) { n.Author = &actor{Login: testOtherUsr} },
+					want: false,
+				},
+				{
+					name: "missing status is excluded",
+					mut:  func(n *searchNode) { n.ProjectItems.Nodes = []projectItem{{}} },
+					want: false,
+				},
+				{
+					name: "different status is excluded",
+					mut: func(n *searchNode) {
+						n.ProjectItems.Nodes = []projectItem{
+							statusItem("In progress", outOfWindowTS(p)),
+						}
+					},
+					want: false,
+				},
+				{
+					name: "draft transition without project status is excluded",
+					mut: func(n *searchNode) {
+						n.ProjectItems.Nodes = nil
+						n.TimelineItems.Nodes = []timelineItem{
+							{Typename: "ReadyForReviewEvent", CreatedAt: inWindowTS(p)},
+						}
+					},
+					want: false,
+				},
+			}
+			for _, tt := range tests {
+				t.Run(tt.name, func(t *testing.T) {
+					t.Parallel()
+
+					n := authoredPR()
+					n.Author.Login = "ALICE"
+					n.ProjectItems.Nodes = []projectItem{statusItem(queue.status, outOfWindowTS(p))}
+					tt.mut(&n)
+
+					r := &Report{}
+					classifyPR(n, p, r)
+
+					if !tt.want {
+						for bucket, count := range bucketCounts(r) {
+							if count != 0 {
+								t.Fatalf("unexpected %s item: %+v", bucket, r)
+							}
+						}
+
+						return
+					}
+
+					if bucket, _ := onlyItem(t, r); bucket != queue.name {
+						t.Fatalf("bucket = %q, want %q", bucket, queue.name)
+					}
+				})
 			}
 		})
 	}
@@ -398,7 +548,7 @@ func TestClassifyPR_EmptyProjectAndTimelineDoNotPanic(t *testing.T) {
 	r := &Report{}
 	classifyPR(authoredPR(), p, r)
 
-	if got := bucketCounts(r); got["InProgress"]+got["ReadyForReview"]+
+	if got := bucketCounts(r); got["InProgress"]+got["ReadyForReview"]+got["ReadyToMerge"]+
 		got["Blocked"]+got["ClosedOrMerged"]+got["Reviewed"]+
 		got["Uncategorized"] != 0 {
 		t.Fatalf("expected no buckets to fire for empty PR, got %v", got)
@@ -589,28 +739,32 @@ func TestCategorise_DispatchesByTypename(t *testing.T) {
 // mock/ package (import cycle), so we hand-roll the minimum stub here.
 type stubGHClient struct {
 	nodes          []searchNode
-	calls          int
+	openPRNodes    []searchNode
+	queries        []string
+	graphqlQueries []string
 	gotStatusField string
 }
 
 func (s *stubGHClient) GraphQL(
 	_ context.Context,
-	_ string,
+	query string,
 	vars map[string]any,
 	out any,
 ) error {
-	s.calls++
+	s.graphqlQueries = append(s.graphqlQueries, query)
 
 	if v, ok := vars["statusField"].(string); ok {
 		s.gotStatusField = v
 	}
 
-	// Build sends the same query three times (involves / reviewed-by /
-	// review-requested). Return the canned payload on the first call and
-	// empty on later calls so the dedupe path is exercised once.
-	var nodes []searchNode
-	if s.calls == 1 {
-		nodes = s.nodes
+	q, _ := vars["q"].(string)
+	s.queries = append(s.queries, q)
+
+	// Repeated activity results exercise deduplication. Stale open PRs are
+	// only discoverable through the search without an activity-date filter.
+	nodes := append([]searchNode(nil), s.nodes...)
+	if !strings.Contains(q, "updated:") {
+		nodes = append(nodes, s.openPRNodes...)
 	}
 
 	resp := searchResponse{}
@@ -635,15 +789,51 @@ func TestBuild_DedupesAndClassifies(t *testing.T) {
 	pr := authoredPR()
 	pr.MergedAt = in
 
-	stub := &stubGHClient{nodes: []searchNode{pr}}
+	reviewPR := authoredPR()
+	reviewPR.Number = 2
+	reviewPR.URL = "https://github.com/nhost/example/pull/2"
+	reviewPR.ProjectItems.Nodes = []projectItem{statusItem(p.ReadyStatus, outOfWindowTS(p))}
+
+	mergePR := authoredPR()
+	mergePR.Number = 3
+	mergePR.URL = "https://github.com/nhost/example/pull/3"
+	mergePR.ProjectItems.Nodes = []projectItem{statusItem(p.MergeStatus, outOfWindowTS(p))}
+
+	stub := &stubGHClient{
+		nodes:       []searchNode{pr},
+		openPRNodes: []searchNode{reviewPR, mergePR},
+	}
 
 	got, err := Build(context.Background(), stub, p)
 	if err != nil {
 		t.Fatalf("Build returned error: %v", err)
 	}
 
-	if stub.calls != 3 {
-		t.Fatalf("Build issued %d GraphQL calls, want 3", stub.calls)
+	since := p.Since.Format(time.RFC3339)
+	until := p.Until.Format(time.RFC3339)
+
+	wantQueries := []string{
+		fmt.Sprintf("org:nhost involves:alice updated:%s..%s", since, until),
+		fmt.Sprintf("org:nhost reviewed-by:alice updated:%s..%s", since, until),
+		fmt.Sprintf("org:nhost review-requested:alice updated:%s..%s", since, until),
+		"org:nhost is:pr is:open author:alice",
+	}
+	if !reflect.DeepEqual(stub.queries, wantQueries) {
+		t.Fatalf("Build queries = %v, want %v", stub.queries, wantQueries)
+	}
+
+	for i, query := range stub.graphqlQueries {
+		if !strings.Contains(query, "projectItems(first: 10, includeArchived: false)") {
+			t.Fatalf("GraphQL query %d must exclude archived project items", i)
+		}
+	}
+
+	if len(got.ReadyForReview) != 1 || got.ReadyForReview[0].URL != reviewPR.URL {
+		t.Fatalf("expected stale review-ready PR, got %+v", got.ReadyForReview)
+	}
+
+	if len(got.ReadyToMerge) != 1 || got.ReadyToMerge[0].URL != mergePR.URL {
+		t.Fatalf("expected stale merge-ready PR, got %+v", got.ReadyToMerge)
 	}
 
 	if len(got.ClosedOrMerged) != 1 {
