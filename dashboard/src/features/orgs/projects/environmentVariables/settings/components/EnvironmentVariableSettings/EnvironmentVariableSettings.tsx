@@ -172,7 +172,7 @@ export default function EnvironmentVariableSettings() {
           availableEnvironmentVariables.length === 0 && 'gap-2',
         )}
       >
-        <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 border-b-1 px-6 py-3 lg:grid-cols-3">
           <p className="font-medium">Variable Name</p>
         </div>
 
@@ -182,7 +182,7 @@ export default function EnvironmentVariableSettings() {
               {availableEnvironmentVariables.map(
                 (environmentVariable, index) => (
                   <Fragment key={environmentVariable.id}>
-                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12 lg:grid-cols-3">
+                    <div className="relative grid grid-cols-2 gap-2 px-6 pr-12 lg:grid-cols-3">
                       <p className="truncate">{environmentVariable.name}</p>
 
                       <DropdownMenu>

@@ -60,7 +60,7 @@ const SettingsCardHeader = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-3 px-6 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}

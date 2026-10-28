@@ -31,7 +31,7 @@ export default function WebhookFormSection() {
     setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">Webhook</h3>
