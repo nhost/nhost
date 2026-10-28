@@ -44,6 +44,7 @@ type Report struct {
 
 	InProgress     []Item
 	ReadyForReview []Item
+	ReadyToMerge   []Item
 	Blocked        []Item
 	ClosedOrMerged []Item
 	Reviewed       []Item
@@ -58,6 +59,7 @@ type Params struct {
 	Until         time.Time
 	StatusField   string // Projects v2 single-select field name (defaults to "Status")
 	ReadyStatus   string // project column name treated as "ready for review"
+	MergeStatus   string // project column name treated as "ready to merge"
 	WaitingStatus string // project column name treated as "blocked / waiting"
 }
 
@@ -81,6 +83,7 @@ func Build(ctx context.Context, c ghClient, p Params) (*Report, error) {
 		fmt.Sprintf("org:%s involves:%s updated:%s..%s", p.Org, p.User, since, until),
 		fmt.Sprintf("org:%s reviewed-by:%s updated:%s..%s", p.Org, p.User, since, until),
 		fmt.Sprintf("org:%s review-requested:%s updated:%s..%s", p.Org, p.User, since, until),
+		fmt.Sprintf("org:%s is:pr is:open author:%s", p.Org, p.User),
 	}
 
 	seen := make(map[string]struct{})
@@ -119,13 +122,11 @@ const searchQuery = `query($q: String!, $cursor: String, $statusField: String!) 
           nodes { commit { committedDate author { user { login } } } }
         }
         timelineItems(last: 100, itemTypes: [
-          READY_FOR_REVIEW_EVENT,
           PULL_REQUEST_REVIEW,
           ISSUE_COMMENT,
         ]) {
           nodes {
             __typename
-            ... on ReadyForReviewEvent { createdAt actor { login } }
             ... on PullRequestReview { submittedAt state author { login } }
             ... on IssueComment { createdAt author { login } }
           }
@@ -207,7 +208,6 @@ type timelineItem struct {
 	CreatedAt   string `json:"createdAt"`
 	SubmittedAt string `json:"submittedAt"`
 	State       string `json:"state"`
-	Actor       *actor `json:"actor"`
 	Author      *actor `json:"author"`
 }
 
@@ -263,6 +263,7 @@ func categorise(nodes []searchNode, p Params) *Report {
 		Until:          p.Until,
 		InProgress:     nil,
 		ReadyForReview: nil,
+		ReadyToMerge:   nil,
 		Blocked:        nil,
 		ClosedOrMerged: nil,
 		Reviewed:       nil,
@@ -303,21 +304,26 @@ func classifyPR(n searchNode, p Params, r *Report) {
 		return
 	}
 
-	// 3. Project status set to "Ready for review" in window,
-	// or PullRequest converted from draft to ready in window.
-	if isAuthor && (hasStatusInWindow(n.ProjectItems.Nodes, p.ReadyStatus, p) ||
-		hasReadyForReviewEvent(n.TimelineItems.Nodes, p)) {
-		r.ReadyForReview = append(r.ReadyForReview, item)
-		return
+	// 3–4. Current project status for the user's open PRs, regardless of activity.
+	if isAuthor && n.State == "OPEN" {
+		if hasStatus(n.ProjectItems.Nodes, p.MergeStatus) {
+			r.ReadyToMerge = append(r.ReadyToMerge, item)
+			return
+		}
+
+		if hasStatus(n.ProjectItems.Nodes, p.ReadyStatus) {
+			r.ReadyForReview = append(r.ReadyForReview, item)
+			return
+		}
 	}
 
-	// 4. In progress: authored by user, opened or pushed-to in window.
+	// 5. In progress: authored by user, opened or pushed-to in window.
 	if isAuthor && (inWindow(n.CreatedAt, p) || hasUserCommitInWindow(n, p)) {
 		r.InProgress = append(r.InProgress, item)
 		return
 	}
 
-	// 5. Reviewed: any other in-window PR activity by the user (reviews
+	// 6. Reviewed: any other in-window PR activity by the user (reviews
 	// or comments). The search uses `updated:Since..Until`, which matches
 	// third-party updates too, so we require an actual user signal — being
 	// non-authored is not enough on its own.
@@ -341,16 +347,6 @@ func classifyIssue(n searchNode, p Params, r *Report) {
 		hasUserTimelineActivity(n.TimelineItems.Nodes, p) {
 		r.Uncategorized = append(r.Uncategorized, item)
 	}
-}
-
-func hasReadyForReviewEvent(items []timelineItem, p Params) bool {
-	for _, it := range items {
-		if it.Typename == "ReadyForReviewEvent" && inWindow(it.CreatedAt, p) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func hasUserCommitInWindow(n searchNode, p Params) bool {
@@ -389,6 +385,20 @@ func hasUserTimelineActivity(items []timelineItem, p Params) bool {
 		}
 
 		if inWindow(ts, p) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasStatus(items []projectItem, target string) bool {
+	if target == "" {
+		return false
+	}
+
+	for _, pi := range items {
+		if pi.FieldValueByName != nil && strings.EqualFold(pi.FieldValueByName.Name, target) {
 			return true
 		}
 	}

@@ -22,7 +22,8 @@ func TestMarkdownEmpty(t *testing.T) {
 
 	wantHeadings := []string{
 		"### 🟢 In progress",
-		"### 👀 Moved to waiting for review",
+		"### 👀 Ready for review",
+		"### 🚀 Ready to merge",
 		"### ⏸️ Blocked / waiting on something else",
 		"### ✅ Closed / merged",
 		"### 🔍 Reviewed / commented",
@@ -30,10 +31,15 @@ func TestMarkdownEmpty(t *testing.T) {
 		"### 📝 Other",
 		"### Uncategorized",
 	}
+
+	previous := -1
 	for _, h := range wantHeadings {
-		if !strings.Contains(got, h) {
-			t.Errorf("missing heading %q in output:\n%s", h, got)
+		index := strings.Index(got, h)
+		if index <= previous {
+			t.Fatalf("missing or out-of-order heading %q in output:\n%s", h, got)
 		}
+
+		previous = index
 	}
 }
 
@@ -68,6 +74,69 @@ func TestMarkdownIncludesDateRangeHeader(t *testing.T) {
 
 	if !strings.HasPrefix(buf.String(), "## 2026-04-25 to 2026-06-04 - meh\n\n") {
 		t.Fatalf("expected report date range header, got:\n%s", buf.String())
+	}
+}
+
+func TestMarkdownReadinessSections(t *testing.T) {
+	t.Parallel()
+
+	items := []activity.Item{
+		{
+			Kind:       activity.KindPR,
+			Number:     3,
+			Title:      "third",
+			URL:        "https://example.com/3",
+			Repository: "nhost/z",
+		},
+		{
+			Kind:       activity.KindPR,
+			Number:     2,
+			Title:      "second",
+			URL:        "https://example.com/2",
+			Repository: "nhost/a",
+		},
+		{
+			Kind:       activity.KindPR,
+			Number:     1,
+			Title:      "first",
+			URL:        "https://example.com/1",
+			Repository: "nhost/a",
+		},
+	}
+
+	tests := []struct {
+		name    string
+		heading string
+		report  *activity.Report
+	}{
+		{
+			name:    "ready for review",
+			heading: "### 👀 Ready for review",
+			report:  &activity.Report{ReadyForReview: items},
+		},
+		{
+			name:    "ready to merge",
+			heading: "### 🚀 Ready to merge",
+			report:  &activity.Report{ReadyToMerge: items},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var buf bytes.Buffer
+			if err := render.Markdown(&buf, tt.report); err != nil {
+				t.Fatalf("render: %v", err)
+			}
+
+			want := tt.heading + "\n\n" +
+				"- [PR #1](<https://example.com/1>) first\n" +
+				"- [PR #2](<https://example.com/2>) second\n" +
+				"- [PR #3](<https://example.com/3>) third\n"
+			if !strings.Contains(buf.String(), want) {
+				t.Fatalf("expected sorted readiness section:\n%s\ngot:\n%s", want, buf.String())
+			}
+		})
 	}
 }
 
