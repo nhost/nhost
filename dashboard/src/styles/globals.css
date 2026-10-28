@@ -68,12 +68,101 @@ html.dark .graphiql-themed .graphiql-container {
   @apply m-0 rounded-none !important;
 }
 
-.graphiql-container .graphiql-plugin-visible .graphiql-session {
-  @apply pl-0 !important;
-}
-
 .graphiql-container .graphiql-doc-explorer {
   @apply h-full overflow-y-auto border-l-0 px-3 py-3 !important;
+}
+
+/* Docs inside the side panel: the tab already says Docs, so the big title
+   only shows once you open a type, and smaller. */
+.playground-docs .graphiql-doc-explorer-title {
+  @apply font-semibold text-base !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-header-content:not(:has(.graphiql-doc-explorer-back))
+  .graphiql-doc-explorer-title {
+  @apply hidden !important;
+}
+
+/* Docs search: always an open field on top, styled like our inputs, with the
+   results floating under it. GraphiQL shows it as a small box that only opens
+   on focus. */
+.playground-docs .graphiql-doc-explorer-header {
+  @apply flex-col-reverse gap-0 !important;
+}
+
+/* 16px from the search to the content. The back link and type name only
+   show once you open a type, so they bring their own space. */
+.playground-docs
+.graphiql-doc-explorer-header-content:has(.graphiql-doc-explorer-back) {
+  @apply pt-3 !important;
+}
+
+.playground-docs .graphiql-doc-explorer-content {
+  @apply mt-4 !important;
+}
+
+.playground-docs .graphiql-doc-explorer-content > :first-child {
+  @apply mt-0 !important;
+}
+
+/* In the side panel the whole tab scrolls (the docs and our grouped type
+   list below them), not the docs on their own. */
+.playground-docs .graphiql-doc-explorer {
+  @apply h-auto overflow-visible px-0 py-0 !important;
+}
+
+/* The start page lists types in our own groups (Tables, Other types), so
+   GraphiQL's single list of every type is hidden. */
+.playground-docs
+  .graphiql-doc-explorer-content:has(.graphiql-doc-explorer-root-type)
+  > div:nth-child(3) {
+  @apply hidden !important;
+}
+
+/* Section titles (Root types, Fields, Arguments…) match the panel's own
+   section titles (PLAYGROUND_SECTION_TITLE_CLASSES), like Tables and Other
+   types. */
+.playground-docs .graphiql-doc-explorer-section-title {
+  @apply font-semibold text-muted-foreground text-xs uppercase leading-normal tracking-[0.06em] !important;
+}
+
+.playground-docs .graphiql-doc-explorer-section-title > svg {
+  @apply hidden !important;
+}
+
+/* Type names in teal (an existing chart token) instead of GraphiQL's orange
+   warning color, so they stand apart from the blue field names. */
+.playground-docs .graphiql-doc-explorer-type-name {
+  color: hsl(var(--chart-2)) !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-header:focus-within
+  .graphiql-doc-explorer-title {
+  @apply visible !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search {
+  @apply relative inset-auto w-full rounded-md border-0 shadow-none !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search-input {
+  @apply h-9 rounded-md border border-input bg-transparent px-3 py-0 text-muted-foreground !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-search:focus-within
+  .graphiql-doc-explorer-search-input {
+  @apply border-primary bg-transparent !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search [role="combobox"] {
+  @apply ml-2 h-full w-full border-0 text-foreground text-sm shadow-none outline-none ring-0 placeholder:text-muted-foreground !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search [role="listbox"] {
+  @apply absolute inset-x-0 top-full z-10 mt-1 rounded-md border bg-popover shadow-md !important;
 }
 
 .graphiql-container .graphiql-plugin {
@@ -133,11 +222,31 @@ html.dark .graphiql-themed .graphiql-container {
   @apply px-4 pb-4 !important;
 }
 
+/* Side panel (History and Docs): reference material, so it sits on the
+   right of Query and Response at a fixed width. GraphiQL's drag handle only
+   works with the panel on the left, so it's hidden. The pane lines up with
+   Query and Response: below the tab bar, 16px from the bottom and right. */
+.graphiql-themed .graphiql-container .graphiql-main {
+  flex-direction: row-reverse;
+}
+
 .graphiql-themed
   .graphiql-container
-  .graphiql-plugin-visible
-  .graphiql-session {
-  @apply pl-0 !important;
+  .graphiql-main
+  > div:has(> .graphiql-plugin) {
+  flex: 0 0 22.5rem !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-main
+  > .graphiql-horizontal-drag-bar {
+  @apply hidden !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-plugin {
+  padding-top: var(--session-header-height) !important;
+  @apply pb-4 pl-0 pr-4 !important;
 }
 
 .graphiql-themed .graphiql-container .graphiql-session-header .graphiql-tabs {
@@ -444,6 +553,26 @@ html.dark .graphiql-themed .graphiql-container {
   .graphiql-container
   .graphiql-tab.graphiql-tab-active
   > button {
+  color: hsl(var(--primary));
+}
+
+/* Hovering a query tab highlights the whole tab, name and close button
+   together, in the same light grey as the plus button. GraphiQL highlights each button on its own, so they lose their
+   own background and only the close icon turns blue on its hover. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-tab:not(.graphiql-tab-active):hover {
+  background-color: hsla(var(--color-neutral), var(--alpha-background-light));
+}
+
+.graphiql-themed .graphiql-container .graphiql-tab > button:hover {
+  background-color: transparent !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-tab
+  > button.graphiql-tab-close:hover {
   color: hsl(var(--primary));
 }
 

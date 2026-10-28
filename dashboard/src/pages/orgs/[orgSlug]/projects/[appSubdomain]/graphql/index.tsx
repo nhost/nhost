@@ -1,5 +1,5 @@
 import {
-  DOC_EXPLORER_PLUGIN,
+  type GraphiQLPlugin,
   GraphiQLProvider,
   PlusIcon,
   Tab,
@@ -17,6 +17,7 @@ import {
   Braces,
   ChevronDown,
   Copy,
+  History,
   PlayIcon,
   WandSparkles,
 } from 'lucide-react';
@@ -39,10 +40,16 @@ import {
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import {
+  DOCS_PANEL_PLUGIN,
+  HISTORY_PANEL_PLUGIN,
+} from '@/features/orgs/projects/graphql/common/components/PlaygroundSidePanel';
+import { useHistoryCount } from '@/features/orgs/projects/graphql/common/components/QueryHistory';
+import {
   ResponseStatus,
   ResponseStatusContext,
 } from '@/features/orgs/projects/graphql/common/components/ResponseStatus';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
+import { PLAYGROUND_ICON_BUTTON_CLASSES as ICON_BUTTON_CLASSES } from '@/features/orgs/projects/graphql/common/constants/playground';
 import {
   buildCurlSnippet,
   buildFetchSnippet,
@@ -54,9 +61,17 @@ import {
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import {
+  getQueryLabel,
+  UNNAMED_QUERY_TITLE,
+} from '@/features/orgs/projects/graphql/common/utils/getQueryLabel';
+import {
   createResponseMeter,
   createResponseStatusStore,
 } from '@/features/orgs/projects/graphql/common/utils/measureResponse';
+import {
+  createPlaygroundStorage,
+  removeSharedPlaygroundStorage,
+} from '@/features/orgs/projects/graphql/common/utils/playgroundStorage';
 import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
@@ -67,7 +82,6 @@ import '@graphiql/react/dist/style.css';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { GraphiQL, GraphiQLInterface } from 'graphiql';
 import 'graphiql/graphiql.min.css';
-import { Kind, parse } from 'graphql';
 import { createClient } from 'graphql-ws';
 import debounce from 'lodash.debounce';
 import dynamic from 'next/dynamic';
@@ -75,11 +89,10 @@ import type { ReactElement } from 'react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-// Icon only buttons: muted icon that turns primary on hover. GraphiQL's
-// legacy stylesheet colors every button inside it, so the color is set on the
-// icon instead of the button.
-const ICON_BUTTON_CLASSES =
-  'h-10 w-10 [&_svg]:text-muted-foreground [&_svg]:transition-colors [&:hover_svg]:text-primary';
+// The open half of the History | Docs control: our blue, like the active
+// query tab, so it's clearly different from a hover. Only this control.
+const ACTIVE_PANEL_BUTTON_CLASSES =
+  'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary';
 
 function trackGraphQLResponse(
   track: (event: string, properties?: Record<string, unknown>) => void,
@@ -123,6 +136,7 @@ interface PlaygroundRequest {
 function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
   const { theme, setTheme } = useTheme();
   const pluginContext = usePluginContext();
+  const historyCount = useHistoryCount();
 
   const visiblePlugin = isNotEmptyValue(pluginContext)
     ? pluginContext.visiblePlugin
@@ -137,12 +151,15 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
     }
   }, [setTheme, theme]);
 
+  const isHistoryOpen = visiblePlugin?.title === HISTORY_PANEL_PLUGIN.title;
+  const isDocsOpen = visiblePlugin?.title === DOCS_PANEL_PLUGIN.title;
+
   // This is a very hacky way to toggle the plugin visibility. Although
   // GraphiQL exposes a way to manage plugins via the `PluginContext`, it
   // does not expose a way to manage the layout of the plugins. This means
-  // that we have to manually manipulate the DOM to make the documentation
-  // explorer plugin pretty.
-  function toggleDocumentationExplorer() {
+  // that we have to manually manipulate the DOM to make the side panel
+  // (documentation explorer or history) pretty.
+  function togglePlugin(plugin: GraphiQLPlugin) {
     const PLUGIN_VISIBLE_CLASS = 'graphiql-plugin-visible';
     const [mainGraphiQLContainer] =
       document.getElementsByClassName('graphiql-main');
@@ -150,7 +167,7 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
 
     const editor = mainGraphiQLContainer.lastChild as HTMLElement;
 
-    if (visiblePlugin?.title === DOC_EXPLORER_PLUGIN.title) {
+    if (visiblePlugin?.title === plugin.title) {
       setVisiblePlugin(null);
 
       if (pluginContainer) {
@@ -180,77 +197,73 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
       editor.classList.add(PLUGIN_VISIBLE_CLASS);
     }
 
-    setVisiblePlugin(DOC_EXPLORER_PLUGIN.title);
+    setVisiblePlugin(plugin.title);
   }
 
   return (
     <header className="grid grid-flow-row items-end gap-2 px-4 pt-4 pb-2 md:grid-flow-col md:justify-between">
-      <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
-        <UserAndRoleSelect onSelectionChange={onSelectionChange} />
-      </div>
+      <UserAndRoleSelect onSelectionChange={onSelectionChange} />
 
-      <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="subtle"
-              size="icon"
-              onClick={toggleDocumentationExplorer}
-              aria-label="Toggle documentation"
-              className={cn(ICON_BUTTON_CLASSES, 'h-9 w-9')}
-            >
-              <BookOpen className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">Docs</TooltipContent>
-        </Tooltip>
+      {/* History and Docs open the same side panel, so they are one joined
+          control: each half opens its tab, the open one is highlighted, and
+          clicking it again closes the panel. History shows a count so it's
+          clear when there's something in it. On the right, like the panel. */}
+      <div className="inline-flex h-10 items-stretch overflow-hidden rounded-md border border-input">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => togglePlugin(HISTORY_PANEL_PLUGIN)}
+          aria-pressed={isHistoryOpen}
+          aria-label={
+            historyCount > 0 ? `History, ${historyCount} queries` : 'History'
+          }
+          className={cn(
+            'h-full gap-2 rounded-none px-3 font-normal',
+            isHistoryOpen && ACTIVE_PANEL_BUTTON_CLASSES,
+          )}
+        >
+          <History
+            className={cn(
+              'size-4',
+              isHistoryOpen ? 'text-primary' : 'text-muted-foreground',
+            )}
+          />
+          History
+          {historyCount > 0 && (
+            <span className="rounded-full bg-primary/10 px-1.5 font-medium text-primary text-xs leading-5">
+              {historyCount}
+            </span>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => togglePlugin(DOCS_PANEL_PLUGIN)}
+          aria-pressed={isDocsOpen}
+          className={cn(
+            'h-full gap-2 rounded-none border-input border-l px-3 font-normal',
+            isDocsOpen && ACTIVE_PANEL_BUTTON_CLASSES,
+          )}
+        >
+          <BookOpen
+            className={cn(
+              'size-4',
+              isDocsOpen ? 'text-primary' : 'text-muted-foreground',
+            )}
+          />
+          Docs
+        </Button>
       </div>
     </header>
   );
 }
 
-// GraphiQL's title for a query without an operation name.
-const UNNAMED_TAB_TITLE = '<untitled>';
-
-// Label shown on a tab. A named operation keeps its name. An unnamed one
-// shows the first field it asks for (e.g. "users"), and an empty tab shows
-// "New query". Display only, GraphiQL's own tab state is not changed.
+// Label shown on a tab: GraphiQL's title for a named operation, otherwise a
+// name taken from the query. Display only, GraphiQL's tab state is not changed.
 function getTabLabel(tab: { title: string; query: string | null }) {
-  if (tab.title !== UNNAMED_TAB_TITLE) {
-    return tab.title;
-  }
-
-  const query = tab.query?.trim();
-
-  if (!query) {
-    return 'New query';
-  }
-
-  try {
-    const document = parse(query);
-    const operation = document.definitions.find(
-      (definition) => definition.kind === Kind.OPERATION_DEFINITION,
-    );
-    const firstField =
-      operation?.kind === Kind.OPERATION_DEFINITION
-        ? operation.selectionSet.selections.find(
-            (selection) => selection.kind === Kind.FIELD,
-          )
-        : undefined;
-
-    if (firstField?.kind === Kind.FIELD) {
-      return firstField.name.value;
-    }
-  } catch {
-    // The query is not valid yet (e.g. while typing). Fall back to a simple
-    // match on the first field after the opening brace.
-  }
-
-  const match = query
-    .replace(/#.*$/gm, '')
-    .match(/\{\s*(?:[_A-Za-z][_0-9A-Za-z]*\s*:\s*)?([_A-Za-z][_0-9A-Za-z]*)/);
-
-  return match?.[1] ?? 'New query';
+  return tab.title !== UNNAMED_QUERY_TITLE
+    ? tab.title
+    : getQueryLabel(tab.query);
 }
 
 // GraphiQL hides its tab bar while there is only one tab and shows a
@@ -717,6 +730,18 @@ const GraphQLPageContent = dynamic(
       // Kept outside React state: a new fetcher makes GraphiQL fetch the
       // schema again, so a run must not re-render this component.
       const [responseStatusStore] = useState(createResponseStatusStore);
+      // Tabs, history and starred queries are kept per project, without
+      // request headers.
+      const projectId = project?.id;
+      const storage = useMemo(
+        () => (projectId ? createPlaygroundStorage(projectId) : undefined),
+        [projectId],
+      );
+
+      useEffect(() => {
+        removeSharedPlaygroundStorage();
+      }, []);
+
       const handleSelectionChange = useCallback(
         (nextSelection: GraphQLPlaygroundSelection) => {
           setSelection(nextSelection);
@@ -800,7 +825,12 @@ const GraphQLPageContent = dynamic(
 
       return (
         <ResponseStatusContext.Provider value={responseStatusStore}>
-          <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
+          <GraphiQLProvider
+            key={projectId}
+            fetcher={fetcher}
+            storage={storage}
+            plugins={[HISTORY_PANEL_PLUGIN, DOCS_PANEL_PLUGIN]}
+          >
             <GraphiQLHeader onSelectionChange={handleSelectionChange} />
 
             <GraphiQLEditor
