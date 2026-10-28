@@ -83,23 +83,23 @@ func TestMarkdownReadinessSections(t *testing.T) {
 	items := []activity.Item{
 		{
 			Kind:       activity.KindPR,
+			Number:     1,
+			Title:      "first",
+			URL:        "https://example.com/1",
+			Repository: "nhost/z",
+		},
+		{
+			Kind:       activity.KindPR,
 			Number:     3,
 			Title:      "third",
 			URL:        "https://example.com/3",
-			Repository: "nhost/z",
+			Repository: "nhost/a",
 		},
 		{
 			Kind:       activity.KindPR,
 			Number:     2,
 			Title:      "second",
 			URL:        "https://example.com/2",
-			Repository: "nhost/a",
-		},
-		{
-			Kind:       activity.KindPR,
-			Number:     1,
-			Title:      "first",
-			URL:        "https://example.com/1",
 			Repository: "nhost/a",
 		},
 	}
@@ -130,9 +130,9 @@ func TestMarkdownReadinessSections(t *testing.T) {
 			}
 
 			want := tt.heading + "\n\n" +
-				"- [PR #1](<https://example.com/1>) first\n" +
 				"- [PR #2](<https://example.com/2>) second\n" +
-				"- [PR #3](<https://example.com/3>) third\n"
+				"- [PR #3](<https://example.com/3>) third\n" +
+				"- [PR #1](<https://example.com/1>) first\n"
 			if !strings.Contains(buf.String(), want) {
 				t.Fatalf("expected sorted readiness section:\n%s\ngot:\n%s", want, buf.String())
 			}
