@@ -148,7 +148,7 @@ export default function DiscordProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-discord',
-              title: 'how to sign in users with Discord',
+              topic: 'how to sign in users with Discord',
             }}
           />
 

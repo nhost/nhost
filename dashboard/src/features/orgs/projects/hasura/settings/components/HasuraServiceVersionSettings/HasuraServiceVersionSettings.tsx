@@ -141,7 +141,7 @@ export default function HasuraServiceVersionSettings() {
             description="The version of the Hasura GraphQL Engine to use."
             docsLink={{
               href: 'https://hub.docker.com/r/nhost/graphql-engine/tags',
-              title: 'the latest releases',
+              topic: 'the latest releases',
             }}
           />
 

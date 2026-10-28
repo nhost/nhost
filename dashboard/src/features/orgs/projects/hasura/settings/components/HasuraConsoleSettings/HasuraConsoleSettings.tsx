@@ -129,7 +129,7 @@ export default function HasuraConsoleSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console',
-              title: 'enabling or disabling the Hasura Console',
+              topic: 'enabling or disabling the Hasura Console',
             }}
           />
 

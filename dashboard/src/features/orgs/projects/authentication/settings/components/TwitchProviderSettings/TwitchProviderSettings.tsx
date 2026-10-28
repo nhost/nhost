@@ -154,7 +154,7 @@ export default function TwitchProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-twitch',
-              title: 'how to sign in users with Twitch',
+              topic: 'how to sign in users with Twitch',
             }}
           />
 

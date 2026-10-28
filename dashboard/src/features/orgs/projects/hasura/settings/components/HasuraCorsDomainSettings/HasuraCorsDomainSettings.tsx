@@ -144,7 +144,7 @@ export default function HasuraCorsDomainSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors',
-              title: 'CORS configuration',
+              topic: 'CORS configuration',
             }}
           />
 

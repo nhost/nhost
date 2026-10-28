@@ -148,7 +148,7 @@ export default function GravatarSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/gravatar',
-              title: 'Gravatar',
+              topic: 'Gravatar',
             }}
           />
 

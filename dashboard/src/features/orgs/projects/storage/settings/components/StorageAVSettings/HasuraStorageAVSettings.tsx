@@ -133,7 +133,7 @@ export default function HasuraStorageAVSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/storage/antivirus#antivirus',
-              title: 'enabling or disabling Antivirus',
+              topic: 'enabling or disabling Antivirus',
             }}
           />
 

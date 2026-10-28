@@ -144,7 +144,7 @@ export default function AuthServiceVersionSettings() {
             description="The version of Auth to use."
             docsLink={{
               href: 'https://github.com/nhost/hasura-auth/releases',
-              title: 'the latest releases',
+              topic: 'the latest releases',
             }}
           />
 

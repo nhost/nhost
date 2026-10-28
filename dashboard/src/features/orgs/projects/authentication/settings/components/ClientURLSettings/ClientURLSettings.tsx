@@ -115,7 +115,7 @@ export default function ClientURLSettings() {
             description="This should be the URL of your frontend app where users are redirected after authenticating."
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url',
-              title: 'Client URL',
+              topic: 'Client URL',
             }}
           />
 

@@ -96,7 +96,7 @@ export default function BaseDirectorySettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/platform/cloud/deployments#base-directory',
-              title: 'Base Directory',
+              topic: 'Base Directory',
             }}
           />
 

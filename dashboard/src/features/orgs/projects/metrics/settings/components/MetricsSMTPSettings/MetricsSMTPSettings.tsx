@@ -131,7 +131,7 @@ export default function MetricsSMTPSettings() {
             description="Configure your SMTP settings to send emails as part of your alerting."
             docsLink={{
               href: 'https://docs.nhost.io/platform/cloud/metrics#smtp',
-              title: 'SMTP Settings',
+              topic: 'SMTP Settings',
             }}
           />
 

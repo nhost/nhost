@@ -98,7 +98,7 @@ export default function SystemEnvironmentVariableSettings() {
         description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables',
-          title: 'System Environment Variables',
+          topic: 'System Environment Variables',
         }}
       />
 

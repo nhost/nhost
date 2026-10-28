@@ -135,7 +135,7 @@ export default function EmailAndPasswordSettings() {
             description="Email and password sign-in is always available. Set its rules below."
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/sign-in-email-password',
-              title: 'how to sign in users with email and password',
+              topic: 'how to sign in users with email and password',
             }}
           />
 

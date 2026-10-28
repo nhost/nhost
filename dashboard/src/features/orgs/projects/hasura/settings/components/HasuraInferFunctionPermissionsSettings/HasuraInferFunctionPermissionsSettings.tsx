@@ -134,7 +134,7 @@ export default function HasuraInferFunctionPermissionsSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions',
-              title: 'enabling or disabling Infer Function Permissions',
+              topic: 'enabling or disabling Infer Function Permissions',
             }}
           />
 

@@ -197,7 +197,7 @@ export default function OAuth2ProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/oauth2-provider',
-              title: 'OAuth2 Providers',
+              topic: 'OAuth2 Providers',
             }}
           />
 

@@ -148,7 +148,7 @@ export default function LinkedInProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-linkedin',
-              title: 'how to sign in users with LinkedIn',
+              topic: 'how to sign in users with LinkedIn',
             }}
           />
 

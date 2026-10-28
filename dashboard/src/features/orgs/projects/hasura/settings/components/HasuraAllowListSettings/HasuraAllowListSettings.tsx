@@ -129,7 +129,7 @@ export default function HasuraAllowListSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/',
-              title: 'enabling or disabling Allow Lists',
+              topic: 'enabling or disabling Allow Lists',
             }}
           />
 

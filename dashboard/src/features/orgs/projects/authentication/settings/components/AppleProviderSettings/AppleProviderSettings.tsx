@@ -191,7 +191,7 @@ export default function AppleProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-apple',
-              title: 'how to sign in users with Apple',
+              topic: 'how to sign in users with Apple',
             }}
           />
 

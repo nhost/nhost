@@ -154,7 +154,7 @@ export default function GitHubProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-github',
-              title: 'how to sign in users with GitHub',
+              topic: 'how to sign in users with GitHub',
             }}
           />
 

@@ -145,7 +145,7 @@ export default function StorageServiceVersionSettings() {
             description="The version of Storage to use."
             docsLink={{
               href: 'https://github.com/nhost/hasura-storage/releases',
-              title: 'the latest releases',
+              topic: 'the latest releases',
             }}
           />
 

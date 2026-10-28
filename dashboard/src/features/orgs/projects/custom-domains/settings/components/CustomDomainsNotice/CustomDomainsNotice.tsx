@@ -22,7 +22,7 @@ export default function CustomDomainsNotice() {
         description="Add a custom domain to your project for only a $10 flat fee 🚀"
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/custom-domains',
-          title: 'Custom Domains',
+          topic: 'Custom Domains',
         }}
       />
     </SettingsCard>

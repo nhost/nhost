@@ -164,7 +164,7 @@ export default function EnvironmentVariableSettings() {
         description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/environment-variables',
-          title: 'Environment Variables',
+          topic: 'Environment Variables',
         }}
       />
 

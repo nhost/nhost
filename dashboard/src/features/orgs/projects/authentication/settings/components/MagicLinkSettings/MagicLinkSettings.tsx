@@ -132,7 +132,7 @@ export default function MagicLinkSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/sign-in-magic-link',
-              title: 'how to sign in users with Magic Link',
+              topic: 'how to sign in users with Magic Link',
             }}
           />
 

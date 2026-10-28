@@ -304,7 +304,7 @@ export default function DatabaseServiceVersionSettings() {
             }
             docsLink={{
               href: 'https://hub.docker.com/r/nhost/postgres/tags',
-              title: 'the latest releases',
+              topic: 'the latest releases',
             }}
           />
 

@@ -83,7 +83,7 @@ export default function AutomaticDeploysSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/platform/cloud/deployments',
-              title: 'Automatic Deploys',
+              topic: 'Automatic Deploys',
             }}
           />
 

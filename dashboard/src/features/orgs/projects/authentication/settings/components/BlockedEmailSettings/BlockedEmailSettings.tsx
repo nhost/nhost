@@ -175,7 +175,7 @@ export default function BlockedEmailSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains',
-              title: 'Blocked Emails and Domains',
+              topic: 'Blocked Emails and Domains',
             }}
           />
 

@@ -171,7 +171,7 @@ export default function GoogleProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-google',
-              title: 'how to sign in users with Google',
+              topic: 'how to sign in users with Google',
             }}
           />
 

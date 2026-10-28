@@ -123,7 +123,7 @@ export default function AllowedRedirectURLsSettings() {
             description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls',
-              title: 'Allowed Redirect URLs',
+              topic: 'Allowed Redirect URLs',
             }}
           />
 

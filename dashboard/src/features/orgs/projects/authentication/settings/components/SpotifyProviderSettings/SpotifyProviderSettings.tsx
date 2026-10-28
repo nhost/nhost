@@ -148,7 +148,7 @@ export default function SpotifyProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-spotify',
-              title: 'how to sign in users with Spotify',
+              topic: 'how to sign in users with Spotify',
             }}
           />
 

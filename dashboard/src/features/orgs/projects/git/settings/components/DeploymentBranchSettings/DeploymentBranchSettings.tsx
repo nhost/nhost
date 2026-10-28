@@ -89,7 +89,7 @@ export default function DeploymentBranchSettings() {
             description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
             docsLink={{
               href: 'https://docs.nhost.io/platform/cloud/deployments#deployment-branch',
-              title: 'Deployment Branch',
+              topic: 'Deployment Branch',
             }}
           />
 

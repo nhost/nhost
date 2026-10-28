@@ -306,7 +306,7 @@ export default function JWTSettings() {
             description="Select how JSON Web Tokens (JWTs) are signed and verified."
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/jwt',
-              title: 'JSON Web Token (JWT) Settings',
+              topic: 'JSON Web Token (JWT) Settings',
             }}
           />
 

@@ -169,7 +169,7 @@ export default function AllowedEmailDomainsSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains',
-              title: 'Allowed Emails and Domains',
+              topic: 'Allowed Emails and Domains',
             }}
           />
 

@@ -57,7 +57,7 @@ export default function GitConnectionSettings() {
         description="Create Deployments for commits pushed to your Git repository."
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/deployments',
-          title: 'Git Repository',
+          topic: 'Git Repository',
         }}
       />
 

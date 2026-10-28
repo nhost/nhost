@@ -134,7 +134,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/',
-              title: 'enabling or disabling Remote Schema Permissions',
+              topic: 'enabling or disabling Remote Schema Permissions',
             }}
           />
 

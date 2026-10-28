@@ -149,7 +149,7 @@ export default function UserCreationSettings() {
             description="Configure whether, when, and how users can register for your app."
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/controlling-user-creation',
-              title: 'controlling user creation',
+              topic: 'controlling user creation',
             }}
           />
 

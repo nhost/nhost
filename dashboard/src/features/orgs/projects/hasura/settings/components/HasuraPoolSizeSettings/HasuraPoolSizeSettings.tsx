@@ -111,7 +111,7 @@ export default function HasuraPoolSizeSettings() {
             description="Set the maximum number of concurrent HTTP workers for event delivery."
             docsLink={{
               href: 'https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size',
-              title: 'HTTP Pool Size',
+              topic: 'HTTP Pool Size',
             }}
           />
 

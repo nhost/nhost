@@ -52,7 +52,7 @@ export default function DatabasePiTRSettings() {
         }
         docsLink={{
           href: 'https://docs.nhost.io/products/database/backups#point-in-time-recovery',
-          title: 'enabling or disabling PiTR',
+          topic: 'enabling or disabling PiTR',
         }}
       />
 

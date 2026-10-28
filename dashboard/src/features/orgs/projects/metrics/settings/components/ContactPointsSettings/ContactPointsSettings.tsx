@@ -182,7 +182,7 @@ export default function ContactPointsSettings() {
             description="Define the contact points where your notifications will be sent."
             docsLink={{
               href: 'https://docs.nhost.io/platform/cloud/metrics#configure-contact-points',
-              title: 'Contact Points',
+              topic: 'Contact Points',
             }}
           />
 

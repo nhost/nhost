@@ -187,7 +187,7 @@ export default function WorkOsProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-workos',
-              title: 'how to sign in users with WorkOS',
+              topic: 'how to sign in users with WorkOS',
             }}
           />
 

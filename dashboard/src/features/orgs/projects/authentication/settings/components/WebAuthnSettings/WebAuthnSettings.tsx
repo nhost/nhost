@@ -136,7 +136,7 @@ export default function WebAuthnSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/webauthn',
-              title: 'how to sign in users with security keys',
+              topic: 'how to sign in users with security keys',
             }}
           />
 

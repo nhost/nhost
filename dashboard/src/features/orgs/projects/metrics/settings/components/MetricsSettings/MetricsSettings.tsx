@@ -145,7 +145,7 @@ export default function MetricsSettings() {
               }
               docsLink={{
                 href: 'https://docs.nhost.io/platform/cloud/metrics#alerting',
-                title: 'enabling or disabling Alerting',
+                topic: 'enabling or disabling Alerting',
               }}
             />
 

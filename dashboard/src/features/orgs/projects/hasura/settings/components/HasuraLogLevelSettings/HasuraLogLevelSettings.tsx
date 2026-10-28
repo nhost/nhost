@@ -129,7 +129,7 @@ export default function HasuraLogLevelSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/docs/latest/deployment/logging/#logging-levels',
-              title: 'Log Levels',
+              topic: 'Log Levels',
             }}
           />
 

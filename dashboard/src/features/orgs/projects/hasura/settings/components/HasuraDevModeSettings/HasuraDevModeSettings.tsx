@@ -128,7 +128,7 @@ export default function HasuraDevModeSettings() {
             }
             docsLink={{
               href: 'https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/',
-              title: 'enabling or disabling Dev Mode',
+              topic: 'enabling or disabling Dev Mode',
             }}
           />
 

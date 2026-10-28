@@ -148,7 +148,7 @@ export default function FacebookProviderSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/providers/sign-in-facebook',
-              title: 'how to sign in users with Facebook',
+              topic: 'how to sign in users with Facebook',
             }}
           />
 

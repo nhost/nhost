@@ -182,7 +182,7 @@ export default function SMSSettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth/otp/sms',
-              title: 'how to sign in users with a phone number (SMS)',
+              topic: 'how to sign in users with a phone number (SMS)',
             }}
           />
 

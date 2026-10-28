@@ -196,7 +196,7 @@ export default function RoleSettings() {
         description="Default Allowed Roles are roles users get automatically when they sign up."
         docsLink={{
           href: 'https://docs.nhost.io/products/auth/users#allowed-roles',
-          title: 'Default Allowed Roles',
+          topic: 'Default Allowed Roles',
         }}
       />
 

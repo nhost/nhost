@@ -166,7 +166,7 @@ export default function PermissionVariableSettings() {
         description="Permission variables are used to define permission rules in the GraphQL API."
         docsLink={{
           href: 'https://docs.nhost.io/products/graphql/permissions#permission-variables',
-          title: 'Permission Variables',
+          topic: 'Permission Variables',
         }}
       />
 

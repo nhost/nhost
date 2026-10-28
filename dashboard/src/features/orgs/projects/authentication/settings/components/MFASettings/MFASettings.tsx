@@ -138,7 +138,7 @@ export default function MFASettings() {
             }
             docsLink={{
               href: 'https://docs.nhost.io/products/auth',
-              title: 'Multi-Factor Authentication',
+              topic: 'Multi-Factor Authentication',
             }}
           />
 
