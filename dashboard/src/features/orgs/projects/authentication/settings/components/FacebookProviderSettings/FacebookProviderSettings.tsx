@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -147,6 +146,10 @@ export default function FacebookProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-facebook',
+              topic: 'how to sign in users with Facebook',
+            }}
           />
 
           <SettingsCardContent
@@ -168,11 +171,6 @@ export default function FacebookProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-facebook"
-              title="how to sign in users with Facebook"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

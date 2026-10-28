@@ -15,7 +15,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -181,6 +180,10 @@ export default function SMSSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/otp/sms',
+              topic: 'how to sign in users with a phone number (SMS)',
+            }}
           />
 
           <SettingsCardContent
@@ -236,11 +239,6 @@ export default function SMSSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/otp/sms"
-              title="how to sign in users with a phone number (SMS)"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}
