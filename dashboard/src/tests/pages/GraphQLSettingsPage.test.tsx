@@ -247,9 +247,7 @@ describe('GraphQLSettingsPage', () => {
     ).toEqual([
       within(navigation).getByRole('link', { name: 'Access and tooling' }),
     ]);
-    expect(
-      await screen.findByText('GitHub repository connected'),
-    ).toBeVisible();
+    expect(await screen.findByText('nhost config pull')).toBeVisible();
     expect(
       screen.queryByText(
         'This project is paused. Unpause to make this available.',

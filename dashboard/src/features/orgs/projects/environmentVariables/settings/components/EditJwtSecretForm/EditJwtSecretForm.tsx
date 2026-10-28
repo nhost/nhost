@@ -129,9 +129,9 @@ export default function EditJwtSecretForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden pb-4"
+        className="flex flex-auto flex-col content-between overflow-hidden pb-12"
       >
-        <div className="flex-auto overflow-y-auto px-6">
+        <div className="flex-auto overflow-y-auto px-12">
           <FormField
             control={control}
             name="jwtSecret"
@@ -153,17 +153,7 @@ export default function EditJwtSecretForm({
           />
         </div>
 
-        <div className="grid flex-shrink-0 grid-flow-row gap-2 px-6 pt-4">
-          {!disabled && (
-            <ButtonWithLoading
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              type="submit"
-            >
-              {submitButtonText}
-            </ButtonWithLoading>
-          )}
-
+        <div className="flex flex-shrink-0 flex-col-reverse gap-2 px-12 pt-12 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
@@ -173,6 +163,16 @@ export default function EditJwtSecretForm({
           >
             {disabled ? 'Close' : 'Cancel'}
           </Button>
+
+          {!disabled && (
+            <ButtonWithLoading
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              type="submit"
+            >
+              {submitButtonText}
+            </ButtonWithLoading>
+          )}
         </div>
       </Form>
     </FormProvider>
