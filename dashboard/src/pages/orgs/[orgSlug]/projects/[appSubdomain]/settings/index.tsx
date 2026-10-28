@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, type ReactElement, useEffect } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -12,6 +12,10 @@ import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { GeneralSettings } from '@/features/orgs/projects/general/settings/components/GeneralSettings';
@@ -19,51 +23,24 @@ import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/set
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
-/** The page title of each tab, the same as its sidebar link. */
-const PROJECT_SETTINGS_TITLES: Record<string, string> = {
-  general: 'General',
-  'compute-resources': 'Compute Resources',
-  'environment-variables': 'Environment Variables',
-  secrets: 'Secrets',
-  editor: 'Configuration Editor',
-};
+/**
+ * The configuration editor runs full width, without a title or the settings
+ * column, so it is rendered apart from the other tabs.
+ */
+const EDITOR_TAB = 'editor';
 
-function RedirectToGeneralTab() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'general' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [router]);
-
-  return null;
-}
-
-function ProjectSettingsTabContent() {
-  const router = useRouter();
-
-  switch (getSingleQueryParam(router.query.tab)) {
-    case 'general':
-      return <GeneralSettings />;
-    case 'compute-resources':
-      return <ComputeResourcesSettings />;
-    case 'environment-variables':
-      return <EnvironmentVariablesSettings />;
-    case 'secrets':
-      return <SecretsSettings />;
-    case 'editor':
-      return <TOMLEditor />;
-    default:
-      return <RedirectToGeneralTab />;
-  }
-}
+const PROJECT_SETTINGS_TABS = {
+  general: { title: 'General', Component: GeneralSettings },
+  'compute-resources': {
+    title: 'Compute Resources',
+    Component: ComputeResourcesSettings,
+  },
+  'environment-variables': {
+    title: 'Environment Variables',
+    Component: EnvironmentVariablesSettings,
+  },
+  secrets: { title: 'Secrets', Component: SecretsSettings },
+} satisfies Record<string, SettingsTab>;
 
 function ProjectSettingsSidebar() {
   const router = useRouter();
@@ -123,7 +100,7 @@ function ProjectSettingsSidebar() {
             Secrets
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=editor`}
+            href={`${settingsPath}?tab=${EDITOR_TAB}`}
             exact
             shallow
             scroll={false}
@@ -139,9 +116,7 @@ function ProjectSettingsSidebar() {
 function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
   const router = useRouter();
 
-  const tab = getSingleQueryParam(router.query.tab);
-
-  if (tab === 'editor') {
+  if (getSingleQueryParam(router.query.tab) === EDITOR_TAB) {
     return (
       <RetryableErrorBoundary resetKeys={[router.asPath]}>
         {children}
@@ -149,15 +124,17 @@ function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
     );
   }
 
-  return (
-    <SettingsArea title={tab ? PROJECT_SETTINGS_TITLES[tab] : undefined}>
-      {children}
-    </SettingsArea>
-  );
+  return <SettingsArea>{children}</SettingsArea>;
 }
 
 export default function SettingsGeneralPage() {
-  return <ProjectSettingsTabContent />;
+  const router = useRouter();
+
+  if (getSingleQueryParam(router.query.tab) === EDITOR_TAB) {
+    return <TOMLEditor />;
+  }
+
+  return <SettingsTabs tabs={PROJECT_SETTINGS_TABS} defaultTab="general" />;
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {

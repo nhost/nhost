@@ -7,6 +7,7 @@ import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { SettingsPage } from '@/features/orgs/projects/common/components/settings/SettingsPage';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -78,7 +79,9 @@ AISettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <AIArea>
           <SettingsGuard>
-            <SettingsArea title="Settings">{page}</SettingsArea>
+            <SettingsArea>
+              <SettingsPage title="Settings">{page}</SettingsPage>
+            </SettingsArea>
           </SettingsGuard>
         </AIArea>
       </ProjectScope>

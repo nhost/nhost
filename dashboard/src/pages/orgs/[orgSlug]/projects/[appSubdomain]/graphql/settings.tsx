@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
@@ -10,6 +10,10 @@ import {
 } from '@/components/layout/AreaSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -32,14 +36,6 @@ import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/setting
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetHasuraSettingsQuery } from '@/generated/graphql';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
-
-/** The page title of each tab, the same as its sidebar link. */
-const GRAPHQL_SETTINGS_TITLES: Record<string, string> = {
-  engine: 'Engine',
-  'access-and-tooling': 'Access and tooling',
-  'custom-domain': 'Custom Domain',
-  'rate-limiting': 'Rate Limiting',
-};
 
 function GraphQLEngineSettings() {
   return (
@@ -156,35 +152,31 @@ function GraphQLSettingsSidebar() {
   );
 }
 
+const GRAPHQL_SETTINGS_TABS = {
+  engine: { title: 'Engine', Component: GraphQLEngineSettings },
+  'access-and-tooling': {
+    title: 'Access and tooling',
+    Component: GraphQLAccessSettings,
+  },
+  'custom-domain': {
+    title: 'Custom Domain',
+    Component: GraphQLCustomDomainSettings,
+  },
+  'rate-limiting': {
+    title: 'Rate Limiting',
+    Component: GraphQLRateLimitingSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function GraphQLSettingsPage() {
-  const router = useRouter();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'engine' ||
-      tab === 'access-and-tooling' ||
-      tab === 'rate-limiting' ||
-      tab === 'custom-domain');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'engine' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
 
   const { data, error } = useGetHasuraSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
-    skip: !project?.id || !isValidTab,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -194,7 +186,7 @@ export default function GraphQLSettingsPage() {
 
   const isInitialLoading = loadingProject || !project?.id || !data;
 
-  if (!isValidTab || isInitialLoading) {
+  if (isInitialLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spinner />
@@ -202,16 +194,7 @@ export default function GraphQLSettingsPage() {
     );
   }
 
-  switch (tab) {
-    case 'access-and-tooling':
-      return <GraphQLAccessSettings />;
-    case 'custom-domain':
-      return <GraphQLCustomDomainSettings />;
-    case 'rate-limiting':
-      return <GraphQLRateLimitingSettings />;
-    default:
-      return <GraphQLEngineSettings />;
-  }
+  return <SettingsTabs tabs={GRAPHQL_SETTINGS_TABS} defaultTab="engine" />;
 }
 
 GraphQLSettingsPage.getLayout = function getLayout(page: ReactElement) {
@@ -219,10 +202,7 @@ GraphQLSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <GraphQLArea>
-          <AreaSettingsLayout
-            sidebar={<GraphQLSettingsSidebar />}
-            titles={GRAPHQL_SETTINGS_TITLES}
-          >
+          <AreaSettingsLayout sidebar={<GraphQLSettingsSidebar />}>
             {page}
           </AreaSettingsLayout>
         </GraphQLArea>

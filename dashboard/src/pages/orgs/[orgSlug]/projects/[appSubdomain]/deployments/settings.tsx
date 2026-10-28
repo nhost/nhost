@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { SettingsPage } from '@/features/orgs/projects/common/components/settings/SettingsPage';
 import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { AutomaticDeploysSettings } from '@/features/orgs/projects/git/settings/components/AutomaticDeploysSettings';
@@ -48,7 +49,9 @@ DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
       <ProjectScope>
         <DeploymentsArea>
           <SettingsGuard>
-            <SettingsArea title="Settings">{page}</SettingsArea>
+            <SettingsArea>
+              <SettingsPage title="Settings">{page}</SettingsPage>
+            </SettingsArea>
           </SettingsGuard>
         </DeploymentsArea>
       </ProjectScope>

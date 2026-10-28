@@ -306,12 +306,14 @@ describe('SettingsGeneralPage', () => {
     expect(screen.getByRole('button', { name: label })).toBeDisabled();
   });
 
-  it('replaces a missing tab with the general tab', () => {
+  it('shows the general tab for a missing tab and corrects the URL', () => {
     vi.mocked(useRouter).mockReturnValue(mockRouter);
 
     render(<SettingsGeneralPage />);
 
-    expect(screen.queryByText('Project Name')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'General' }),
+    ).toBeInTheDocument();
     expect(mockRouter.replace).toHaveBeenCalledWith(
       {
         pathname: mockRouter.pathname,
@@ -323,21 +325,34 @@ describe('SettingsGeneralPage', () => {
   });
 
   it.each([
-    { tab: 'compute-resources', heading: 'Compute Resources' },
-    { tab: 'environment-variables', heading: 'Project Environment Variables' },
-    { tab: 'secrets', heading: 'Secrets' },
-    { tab: 'editor', heading: 'Configuration Editor' },
-  ])('renders the $tab tab without redirecting', async ({ tab, heading }) => {
-    setTab(tab);
+    {
+      tab: 'compute-resources',
+      title: 'Compute Resources',
+      heading: 'Compute Resources',
+    },
+    {
+      tab: 'environment-variables',
+      title: 'Environment Variables',
+      heading: 'Project Environment Variables',
+    },
+    { tab: 'secrets', title: 'Secrets', heading: 'Secrets' },
+  ])(
+    'renders the $tab tab without redirecting',
+    async ({ tab, title, heading }) => {
+      setTab(tab);
 
-    render(<SettingsGeneralPage />);
+      render(<SettingsGeneralPage />);
 
-    expect(
-      await screen.findByRole('heading', { name: heading }),
-    ).toBeInTheDocument();
-    expect(mockRouter.replace).not.toHaveBeenCalled();
-    expect(mockRouter.push).not.toHaveBeenCalled();
-  });
+      expect(
+        await screen.findByRole('heading', { level: 3, name: heading }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 1, name: title }),
+      ).toBeInTheDocument();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    },
+  );
 
   it('links to each settings tab from the desktop sidebar', async () => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -368,7 +383,7 @@ describe('SettingsGeneralPage', () => {
     expect(screen.getByText('nhost config pull')).toBeVisible();
   });
 
-  it('renders the editor without the settings area notice', async () => {
+  it('renders the editor without a title or the settings area notice', async () => {
     setTab('editor');
 
     render(SettingsGeneralPage.getLayout(<SettingsGeneralPage />));
@@ -376,6 +391,7 @@ describe('SettingsGeneralPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Configuration Editor' }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.queryByText('nhost config pull')).not.toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
