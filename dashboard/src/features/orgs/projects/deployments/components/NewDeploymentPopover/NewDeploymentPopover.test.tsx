@@ -43,12 +43,15 @@ const refLabel = 'Branch, tag or commit SHA';
 const requests: InsertPipelineRunMutationVariables[] = [];
 
 // MSW has no handler for subscriptions, so this one picks it out by name and
-// leaves every other operation to the next handlers.
+// leaves every other operation to the next handlers. It answers once `ready`
+// resolves.
 function pendingDeployments(
   unifiedDeployments: UnifiedDeploymentRowFragment[],
+  ready?: Promise<void>,
 ) {
-  return nhostGraphQLLink.operation(({ operationName }) => {
+  return nhostGraphQLLink.operation(async ({ operationName }) => {
     if (operationName === 'PendingOrRunningUnifiedDeploymentsSub') {
+      await ready;
       return HttpResponse.json({ data: { unifiedDeployments } });
     }
   });
@@ -204,20 +207,30 @@ it('stays open with the values entered when scheduling fails', async () => {
   );
 });
 
-it('disables Deploy while a deployment is in progress', async () => {
-  server.use(pendingDeployments([running]));
+it('closes when a deployment starts while it is open', async () => {
+  const { promise, resolve } = Promise.withResolvers<void>();
+  server.use(pendingDeployments([running], promise));
   render(<NewDeploymentPopover />);
   await openPopover();
 
+  resolve();
+
   await waitFor(() =>
-    expect(screen.getByRole('button', { name: 'Deploy' })).toBeDisabled(),
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
   );
+  expect(screen.getByRole('button', { name: /New deployment/ })).toBeDisabled();
+});
+
+it('disables New deployment while a deployment is in progress', async () => {
+  server.use(pendingDeployments([running]));
+  render(<NewDeploymentPopover />);
+  const trigger = screen.getByRole('button', { name: /New deployment/ });
+
+  await waitFor(() => expect(trigger).toBeDisabled());
   await waitFor(async () => {
-    await userEvent.hover(
-      screen.getByRole('button', { name: 'Deploy' }).parentElement as Element,
-    );
+    await userEvent.hover(trigger.parentElement as Element);
     expect(screen.getByRole('tooltip')).toHaveTextContent(
-      'Deployments cannot be re-triggered when a deployment is in progress.',
+      'Deployments cannot be triggered when a deployment is in progress.',
     );
   });
 });

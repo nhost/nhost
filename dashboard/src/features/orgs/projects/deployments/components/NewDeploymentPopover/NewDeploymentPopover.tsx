@@ -20,7 +20,6 @@ import {
 import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hooks/useScheduleDeployment';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { usePendingOrRunningUnifiedDeploymentsSubSubscription } from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
 
 const validationSchema = z.object({
   ref: z
@@ -35,14 +34,7 @@ type NewDeploymentFormValues = z.infer<typeof validationSchema>;
 
 function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
   const { project } = useProject();
-  const userData = useUserData();
   const { schedule } = useScheduleDeployment();
-  const { data: pendingData } =
-    usePendingOrRunningUnifiedDeploymentsSubSubscription({
-      variables: { appId: project?.id },
-      skip: !project,
-    });
-  const inProgress = (pendingData?.unifiedDeployments.length ?? 0) > 0;
   const form = useForm<NewDeploymentFormValues>({
     resolver: zodResolver(validationSchema),
     defaultValues: { ref: '', commitMessage: '' },
@@ -50,15 +42,7 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
   const { isSubmitting } = form.formState;
 
   async function deploy({ ref, commitMessage }: NewDeploymentFormValues) {
-    const scheduled = await schedule({
-      commitSHA: ref,
-      commitMessage,
-      commitUserName: userData?.displayName,
-      commitUserAvatarUrl: userData?.avatarUrl,
-    });
-    if (scheduled) {
-      onScheduled();
-    }
+    await schedule({ commitSHA: ref, commitMessage }, onScheduled);
   }
 
   return (
@@ -99,25 +83,13 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
               Cancel
             </Button>
           </PopoverClose>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <ButtonWithLoading
-                  type="submit"
-                  loading={isSubmitting}
-                  disabled={inProgress || isSubmitting}
-                >
-                  Deploy
-                </ButtonWithLoading>
-              </span>
-            </TooltipTrigger>
-            {inProgress && (
-              <TooltipContent>
-                Deployments cannot be re-triggered when a deployment is in
-                progress.
-              </TooltipContent>
-            )}
-          </Tooltip>
+          <ButtonWithLoading
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            Deploy
+          </ButtonWithLoading>
         </div>
       </form>
     </Form>
@@ -125,15 +97,38 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
 }
 
 export default function NewDeploymentPopover() {
+  const { project } = useProject();
   const [open, setOpen] = useState(false);
+  const { data: pendingData } =
+    usePendingOrRunningUnifiedDeploymentsSubSubscription({
+      variables: { appId: project?.id },
+      skip: !project,
+      onData: ({ data }) => {
+        if (data.data?.unifiedDeployments.length) {
+          setOpen(false);
+        }
+      },
+    });
+  const inProgress = (pendingData?.unifiedDeployments.length ?? 0) > 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
-          New deployment
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="has-[:disabled]:cursor-not-allowed">
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" disabled={inProgress}>
+                New deployment
+              </Button>
+            </PopoverTrigger>
+          </span>
+        </TooltipTrigger>
+        {inProgress && (
+          <TooltipContent>
+            Deployments cannot be triggered when a deployment is in progress.
+          </TooltipContent>
+        )}
+      </Tooltip>
       <PopoverContent align="end" className="w-96">
         <NewDeploymentForm onScheduled={() => setOpen(false)} />
       </PopoverContent>

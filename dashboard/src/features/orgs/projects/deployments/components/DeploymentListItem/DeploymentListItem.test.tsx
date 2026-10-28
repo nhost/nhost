@@ -9,6 +9,7 @@ import {
   mockApplication,
   mockMatchMediaValue,
   mockRouter,
+  mockSession,
 } from '@/tests/mocks';
 import {
   getOrganization,
@@ -84,7 +85,7 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-it('redeploys the commit of the row without opening the deployment', async () => {
+it('redeploys the commit of the row as the signed-in user without opening the deployment', async () => {
   render(
     <ul>
       <DeploymentListItem deployment={deployment} showRedeploy />
@@ -101,10 +102,31 @@ it('redeploys the commit of the row without opening the deployment', async () =>
     app_id: mockApplication.id,
     commit_sha: deployment.commitSHA,
     commit_message: deployment.commitMessage,
-    commit_user_name: deployment.commitUserName,
-    commit_user_avatar_url: deployment.commitUserAvatarUrl,
+    commit_user_name: mockSession.user?.displayName,
+    commit_user_avatar_url: mockSession.user?.avatarUrl,
   });
   expect(mockRouter.push).not.toHaveBeenCalled();
+});
+
+it('credits a redeploy to the email of a user without a display name', async () => {
+  const user = mockSession.user!;
+  const { displayName } = user;
+  user.displayName = '';
+  onTestFinished(() => {
+    user.displayName = displayName;
+  });
+  render(
+    <ul>
+      <DeploymentListItem deployment={deployment} showRedeploy />
+    </ul>,
+  );
+
+  await new TestUserEvent().click(
+    await screen.findByRole('button', { name: 'Redeploy' }),
+  );
+
+  await waitFor(() => expect(requests).toHaveLength(1));
+  expect(requests[0].object.input.commit_user_name).toBe(user.email);
 });
 
 it('shows the short SHA of a commit and copies it in full without opening the deployment', async () => {

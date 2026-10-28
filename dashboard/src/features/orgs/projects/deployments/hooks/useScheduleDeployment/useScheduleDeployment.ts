@@ -9,16 +9,18 @@ import { useUserData } from '@/hooks/useUserData';
 
 export type DeploymentCommit = Pick<
   UnifiedDeploymentRowFragment,
-  'commitSHA' | 'commitMessage' | 'commitUserName' | 'commitUserAvatarUrl'
+  'commitSHA' | 'commitMessage'
 >;
 
 /**
  * Schedules a deployment of `commitSHA`, which can also be a branch or tag:
- * the backend checks out whatever ref it gets.
+ * the backend checks out whatever ref it gets. Deployments are credited to the
+ * signed-in user.
  */
 export default function useScheduleDeployment() {
   const { project } = useProject();
   const userData = useUserData();
+  const userName = userData?.displayName || userData?.email;
   const [insertPipelineRun, { loading: scheduling }] =
     useInsertPipelineRunMutation({
       refetchQueries: [
@@ -29,30 +31,34 @@ export default function useScheduleDeployment() {
       ],
     });
 
-  async function schedule(commit: DeploymentCommit) {
-    const result = await execPromiseWithErrorToast(
-      () =>
-        insertPipelineRun({
+  async function schedule(
+    commit: DeploymentCommit,
+    onScheduled?: VoidFunction,
+  ) {
+    await execPromiseWithErrorToast(
+      async () => {
+        await insertPipelineRun({
           variables: {
             object: {
               input: {
                 name: 'nhost-backend-build',
                 app_id: project?.id,
                 commit_sha: commit.commitSHA,
-                commit_user_name: commit.commitUserName,
-                commit_user_avatar_url: commit.commitUserAvatarUrl,
+                commit_user_name: userName,
+                commit_user_avatar_url: userData?.avatarUrl,
                 commit_message: commit.commitMessage,
               },
             },
           },
-        }),
+        });
+        onScheduled?.();
+      },
       {
         loadingMessage: 'Scheduling deployment...',
         successMessage: 'Deployment has been scheduled successfully.',
         errorMessage: 'An error occurred when scheduling deployment.',
       },
     );
-    return result !== null;
   }
 
   return { schedule, scheduling };
