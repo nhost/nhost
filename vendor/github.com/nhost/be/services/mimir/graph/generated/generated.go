@@ -4056,7 +4056,7 @@ type Query {
     ):ConfigSystemConfig
     systemConfigs(
         where: ConfigSystemConfigComparisonExp
-    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi", "sa:watchtower"])
+    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi"])
 
     runServiceConfigRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -4123,7 +4123,7 @@ type Mutation {
     updateSystemConfig(
         appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower", "sa:cd"])
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:cd"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,
@@ -23008,7 +23008,7 @@ func (ec *executionContext) _Mutation_updateSystemConfig(ctx context.Context, fi
 			directive0 := next
 
 			directive1 := func(ctx context.Context) (any, error) {
-				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:watchtower", "sa:cd"})
+				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:cd"})
 				if err != nil {
 					var zeroVal *model.ConfigSystemConfig
 					return zeroVal, err
@@ -23516,7 +23516,7 @@ func (ec *executionContext) _Query_systemConfigs(ctx context.Context, field grap
 			directive0 := next
 
 			directive1 := func(ctx context.Context) (any, error) {
-				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:bragi", "sa:watchtower"})
+				role, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"admin", "sa:factorio", "sa:bragi"})
 				if err != nil {
 					var zeroVal []*model.ConfigAppSystemConfig
 					return zeroVal, err
