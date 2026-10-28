@@ -1208,21 +1208,24 @@ html.dark .graphiql-themed .graphiql-container {
 }
 
 /* Phones: one pane at a time, picked in the bar above (MobilePlaygroundBar).
-   The query with Variables and Headers, or the response pane. */
+   GraphiQL wraps each pane in a box it sizes at half the width, so the
+   boxes are hidden or stretched, not just the panes inside them. */
 @media (max-width: 767px) {
   [data-mobile-view="query"]
-    .graphiql-themed
     .graphiql-container
-    .graphiql-response,
-  [data-mobile-view="query"] .graphiql-container .graphiql-response,
-  [data-mobile-view="panel"] .graphiql-container .graphiql-editors,
+    .graphiql-session
+    > div:has(> .graphiql-response),
+  [data-mobile-view="panel"]
+    .graphiql-container
+    .graphiql-session
+    > div:has(> .graphiql-editors),
   .graphiql-container .graphiql-session > .graphiql-horizontal-drag-bar {
     @apply hidden !important;
   }
 
   .graphiql-container
     .graphiql-session
-    > :is(.graphiql-editors, .graphiql-response) {
-    flex: 1 1 auto !important;
+    > div:has(> :is(.graphiql-editors, .graphiql-response)) {
+    flex: 1 1 100% !important;
   }
 }
