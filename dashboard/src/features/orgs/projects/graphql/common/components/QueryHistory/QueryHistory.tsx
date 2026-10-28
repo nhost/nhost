@@ -211,16 +211,18 @@ export default function QueryHistory() {
 
   if (starred.length === 0 && recent.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-        <History
-          strokeWidth={1}
-          aria-hidden="true"
-          className="size-10 text-disabled"
-        />
-        <p className="font-medium text-foreground text-sm">No queries yet</p>
-        <p className="text-muted-foreground text-sm">
-          Every query you run shows up here. Star the ones you want to keep.
-        </p>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
+        <span aria-hidden="true" className="flex shrink-0 text-disabled">
+          <History strokeWidth={1} className="h-12 w-12" />
+        </span>
+        <div className="flex w-full flex-col gap-1 sm:max-w-md">
+          <h3 className="font-semibold text-foreground text-lg">
+            No queries yet
+          </h3>
+          <div className="text-muted-foreground text-sm">
+            Every query you run shows up here. Star the ones you want to keep.
+          </div>
+        </div>
       </div>
     );
   }
