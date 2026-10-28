@@ -9,9 +9,10 @@
 ## Core Principles
 
 - **No new HTTP/auth stack** — always go through `internal/gh`, which wraps the `go-gh/v2` clients. The extension inherits whatever auth context `gh` resolves (the user's `gh auth` session, or `GH_TOKEN` / `GITHUB_TOKEN` in CI). Never instantiate `http.Client` or read tokens manually.
-- **The bucket classifier is the contract.** The six activity sections of the output (`InProgress`, `ReadyForReview`, `Blocked`, `ClosedOrMerged`, `Reviewed`, `Uncategorized`) are what users build their day around. Any change to `classifyPR` / `classifyIssue` must be accompanied by tests covering the moved cases.
-- **First-match-wins routing.** Each item lands in exactly one section. Priority order (top wins): `ClosedOrMerged` → `Blocked` → `ReadyForReview` → `InProgress` → `Reviewed` → `Uncategorized`. Preserve this order unless you have a clear reason.
-- **Project status name is configurable.** Don't hardcode `"Waiting"` / `"Ready for review"`; route through `Params.WaitingStatus` / `Params.ReadyStatus` so teams with different column names can use the tool. The Projects v2 *field* itself is also configurable via `Params.StatusField` (default `activity.DefaultStatusField` = `"Status"`, CLI flag `--status-field`, env var `GHACTIVITY_STATUS_FIELD`) and is threaded into the GraphQL query as the `$statusField` variable — do not reintroduce a hardcoded `fieldValueByName(name: "Status")`.
+- **The bucket classifier is the contract.** The seven activity sections of the output (`InProgress`, `ReadyForReview`, `ReadyToMerge`, `Blocked`, `ClosedOrMerged`, `Reviewed`, `Uncategorized`) are what users build their day around. Any change to `classifyPR` / `classifyIssue` must be accompanied by tests covering the moved cases.
+- **First-match-wins routing.** Each item lands in exactly one section. Priority order (top wins): `ClosedOrMerged` → `Blocked` → `ReadyToMerge` → `ReadyForReview` → `InProgress` → `Reviewed` → `Uncategorized`. Preserve this order unless you have a clear reason.
+- **Readiness is current project status, not activity.** `ReadyForReview` and `ReadyToMerge` include the user's open PRs matching their configured project statuses, without timestamp checks. Archived project items are excluded at the GraphQL boundary and cannot drive readiness or `Blocked`. Draft transitions alone do not qualify. Other sections remain window-bound, even for historical report windows.
+- **Project status name is configurable.** Don't hardcode `"Waiting"` / `"Ready for review"` / `"Ready to merge"`; route through `Params.WaitingStatus` / `Params.ReadyStatus` / `Params.MergeStatus` so teams with different column names can use the tool. The Projects v2 *field* itself is also configurable via `Params.StatusField` (default `activity.DefaultStatusField` = `"Status"`, CLI flag `--status-field`, env var `GHACTIVITY_STATUS_FIELD`) and is threaded into the GraphQL query as the `$statusField` variable — do not reintroduce a hardcoded `fieldValueByName(name: "Status")`.
 
 ## Directory Structure
 
@@ -39,7 +40,7 @@ The tool is a single binary with no subcommands. New behaviour belongs as a flag
 ## The Pipeline
 
 1. `report.Action` parses `--since` / `--until` in local time using the layout `20060102-1504`, resolves the user (CLI flag or `gh api user`), and constructs an `activity.Params`.
-2. `activity.Build` issues three searches (`involves:USER`, `reviewed-by:USER`, `review-requested:USER`), dedupes by URL, and feeds the union into `categorise`.
+2. `activity.Build` issues three window-bound activity searches (`involves:USER`, `reviewed-by:USER`, `review-requested:USER`) plus an unfiltered `is:pr is:open author:USER` search for readiness queues, dedupes by URL, and feeds the union into `categorise`.
 3. `categorise` walks each node and calls `classifyPR` or `classifyIssue`. These functions encode the bucket priority — any change must keep the early-return cascade.
 4. `render.Markdown` emits the report. Items within a section are sorted by `Repository` then `Number` for stable output.
 
@@ -54,7 +55,7 @@ When extending the classifier:
 
 ## GitHub API & Auth Notes
 
-- **Required scopes**: `repo`, `read:org`, and `read:project`. The third is needed only because we read Projects v2 status to detect `Blocked` and `ReadyForReview`. If a future bucket can be derived without Projects v2, prefer the cheaper signal so the tool degrades gracefully for users without that scope.
+- **Required scopes**: `repo`, `read:org`, and `read:project`. The third is needed only because we read Projects v2 status to detect `Blocked`, `ReadyForReview`, and `ReadyToMerge`. If a future bucket can be derived without Projects v2, prefer the cheaper signal so the tool degrades gracefully for users without that scope.
 - **Missing-scope handling**: `gh.ErrMissingScope` is a sentinel surfaced when `go-gh` returns a `*api.GraphQLError` whose item `Type` is `INSUFFICIENT_SCOPES` (or, as a fallback, when the error string contains "has not been granted the required scopes"). `report.Action` matches on it with `errors.Is` and prints the `gh auth refresh` command. If you add new fields that require a different scope, extend the mapping in `gh.isInsufficientScopes` rather than dumping the raw error.
 - **Time windows**: search qualifiers use ISO 8601 with the local zone offset (`time.RFC3339`). `time.Local` is gated by a `//nolint:gosmopolitan` because stand-up windows are inherently local-time concepts.
 - **GraphQL timeline item types**: only enum values in `PullRequestTimelineItemsItemType` are valid for PR `timelineItems(itemTypes:)`. Notably, `PULL_REQUEST_REVIEW_COMMENT` is **not** valid — review comments are nested inside `PullRequestReview` and not standalone timeline items.
@@ -62,7 +63,7 @@ When extending the classifier:
 ## Testing
 
 - `render_test.go` covers the formatter (empty report, ordering, item rendering).
-- `report_test.go` covers `ParseTimestamp` (the only `time` boundary).
+- `report_test.go` covers `ParseTimestamp` (the only `time` boundary) and merge-status flag defaults / overrides.
 - `internal/activity` pins the classifier with white-box tests in `classify_internal_test.go` against the unexported `ghClient` boundary. Stub the boundary with an inline type implementing the interface — do **not** add a `mock/` subpackage, since `package activity` cannot import it without an import cycle.
 
 ## Key Dependencies
