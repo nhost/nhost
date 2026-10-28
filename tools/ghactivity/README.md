@@ -71,6 +71,8 @@ It also searches for `is:pr is:open author:USER` in the org **without a date fil
 
 ### Pull requests
 
+Archived Projects v2 items are ignored when determining `Blocked`, `ReadyToMerge`, and `ReadyForReview`.
+
 For each PR, in this order:
 
 1. **`ClosedOrMerged`** — the user authored the PR **and** it was merged or closed inside the window (`mergedAt` or `closedAt` falls between `--since` and `--until`).

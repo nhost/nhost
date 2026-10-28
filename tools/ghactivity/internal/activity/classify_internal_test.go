@@ -741,15 +741,18 @@ type stubGHClient struct {
 	nodes          []searchNode
 	openPRNodes    []searchNode
 	queries        []string
+	graphqlQueries []string
 	gotStatusField string
 }
 
 func (s *stubGHClient) GraphQL(
 	_ context.Context,
-	_ string,
+	query string,
 	vars map[string]any,
 	out any,
 ) error {
+	s.graphqlQueries = append(s.graphqlQueries, query)
+
 	if v, ok := vars["statusField"].(string); ok {
 		s.gotStatusField = v
 	}
@@ -817,6 +820,12 @@ func TestBuild_DedupesAndClassifies(t *testing.T) {
 	}
 	if !reflect.DeepEqual(stub.queries, wantQueries) {
 		t.Fatalf("Build queries = %v, want %v", stub.queries, wantQueries)
+	}
+
+	for i, query := range stub.graphqlQueries {
+		if !strings.Contains(query, "projectItems(first: 10, includeArchived: false)") {
+			t.Fatalf("GraphQL query %d must exclude archived project items", i)
+		}
 	}
 
 	if len(got.ReadyForReview) != 1 || got.ReadyForReview[0].URL != reviewPR.URL {

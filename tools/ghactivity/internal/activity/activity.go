@@ -131,7 +131,7 @@ const searchQuery = `query($q: String!, $cursor: String, $statusField: String!) 
             ... on IssueComment { createdAt author { login } }
           }
         }
-        projectItems(first: 10) {
+        projectItems(first: 10, includeArchived: false) {
           nodes {
             project { title number }
             fieldValueByName(name: $statusField) {
