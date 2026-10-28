@@ -450,6 +450,10 @@ export default function ResourcesForm() {
           <SettingsCardHeader
             title="Compute Resources"
             description="Customize CPU and memory for the services in your project."
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/compute-resources',
+              topic: 'Compute Resources',
+            }}
             control={
               <FormSwitch
                 control={form.control}
