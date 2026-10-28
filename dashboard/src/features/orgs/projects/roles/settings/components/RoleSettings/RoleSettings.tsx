@@ -10,9 +10,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -196,6 +194,10 @@ export default function RoleSettings() {
       <SettingsCardHeader
         title="Default Allowed Roles"
         description="Default Allowed Roles are roles users get automatically when they sign up."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/auth/users#allowed-roles',
+          topic: 'Default Allowed Roles',
+        }}
       />
 
       <SettingsCardContent
@@ -204,7 +206,7 @@ export default function RoleSettings() {
           availableAllowedRoles.length === 0 && 'gap-2',
         )}
       >
-        <div className="border-b-1 px-4 py-3">
+        <div className="border-b-1 px-6 py-3">
           <p className="font-medium">Name</p>
         </div>
 
@@ -213,7 +215,7 @@ export default function RoleSettings() {
             <div>
               {availableAllowedRoles.map((role, index) => (
                 <Fragment key={role.name}>
-                  <div className="relative px-4 pr-12">
+                  <div className="relative px-6 pr-12">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -286,13 +288,6 @@ export default function RoleSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/auth/users#allowed-roles"
-          title="Default Allowed Roles"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

@@ -3,9 +3,7 @@ import { useState } from 'react';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import {
   AlertDialog,
@@ -57,6 +55,10 @@ export default function GitConnectionSettings() {
       <SettingsCardHeader
         title="Git Repository"
         description="Create Deployments for commits pushed to your Git repository."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/deployments',
+          topic: 'Git Repository',
+        }}
       />
 
       <SettingsCardContent className="grid-cols-5">
@@ -85,13 +87,6 @@ export default function GitConnectionSettings() {
           </div>
         )}
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/deployments"
-          title="Git Repository"
-        />
-      </SettingsCardFooter>
 
       <AlertDialog
         open={isDisconnectDialogOpen}
