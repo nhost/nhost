@@ -53,12 +53,14 @@ export default function DeleteActionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="p-12"
         hideCloseButton
         disableOutsideClick={isDeletingAction}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">Delete Action</DialogTitle>
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
+            Delete Action
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
@@ -67,20 +69,17 @@ export default function DeleteActionDialog({
             action?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+        <DialogFooter className="mt-8">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           <ButtonWithLoading
             variant="destructive"
-            className="!text-sm+ text-white"
             onClick={handleDeleteDialogClick}
             loading={isDeletingAction}
           >
             Delete
           </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

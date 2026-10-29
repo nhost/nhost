@@ -10,8 +10,16 @@ This document covers commands, project layout, and dashboard-specific workflows 
 
 ### Core Commands
 
+Run install and the SDK build from the repository root. The dashboard imports `@nhost/nhost-js` from its `dist/` output, and the root workspace has no `build` script.
+
 ```bash
 pnpm install          # Install dependencies (use pnpm, not npm/yarn)
+pnpm build:nhost-js   # Build @nhost/nhost-js before starting the dashboard
+```
+
+The remaining commands run from `dashboard/`. `pnpm dev:dashboard` from the repository root starts the same dev server as `pnpm dev`.
+
+```bash
 pnpm dev              # Start development server (port 3000)
 pnpm build            # Production build (skips lint)
 pnpm start            # Start production server
@@ -104,6 +112,16 @@ When creating a new feature page, check whether it needs to be added to:
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+
+### Metrics charts
+
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines) or `StackedBarMetricChart` (stacked bars). Both get their interactions from `useChartInteractions`, so use it in any new chart instead of copying the logic. It wires these hooks together, so zooming or a legend change closes the pinned tooltip and a drag doesn't also pin; attach its handlers to the chart:
+
+- `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
+- `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
+- `useDragToZoom` — drag to select a range.
+
+Relative time ranges use `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState`.
 
 ## Tool Usage
 

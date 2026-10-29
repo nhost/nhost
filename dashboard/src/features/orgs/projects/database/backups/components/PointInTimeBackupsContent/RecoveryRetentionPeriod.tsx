@@ -1,15 +1,14 @@
-import { CalendarClock } from 'lucide-react';
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 
 function RecoveryRetentionPeriod() {
   return (
-    <InfoAlert
-      title="Recovery retention period"
-      icon={<CalendarClock className="h-[38px] w-[38px]" />}
-    >
-      Database changes are retained for up to 7 days, allowing restoration to
-      any point within this period.
-    </InfoAlert>
+    <Alert>
+      <AlertTitle>Recovery retention period</AlertTitle>
+      <AlertDescription>
+        Database changes are retained for up to 7 days, allowing restoration to
+        any point within this period.
+      </AlertDescription>
+    </Alert>
   );
 }
 

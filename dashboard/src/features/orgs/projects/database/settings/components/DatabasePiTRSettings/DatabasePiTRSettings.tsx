@@ -3,12 +3,11 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Switch } from '@/components/ui/v3/switch';
 import { TextLink } from '@/components/ui/v3/text-link';
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useDatabasePiTRSettings } from '@/features/orgs/hooks/useDatabasePiTRSettings/';
 import { useUpdateDatabasePiTRConfig } from '@/features/orgs/hooks/useUpdateDatabasePiTRConfig';
 import { UpgradeNotification } from '@/features/orgs/projects/database/settings/components/UpgradeNotification';
@@ -51,28 +50,29 @@ export default function DatabasePiTRSettings() {
             />
           ) : null
         }
+        docsLink={{
+          href: 'https://docs.nhost.io/products/database/backups#point-in-time-recovery',
+          topic: 'enabling or disabling PiTR',
+        }}
       />
 
       <SettingsCardContent className="flex flex-col lg:flex-row">
         {isFreeProject ? (
           <UpgradeNotification description="To unlock this add-on, transfer this project to a Pro or Team organization." />
         ) : (
-          <InfoAlert borderLess>
-            Available as an add-on for organizations on Pro, Team, or Enterprise
-            plans for <strong>$100 per month.</strong>{' '}
-            <TextLink href="https://nhost.io/pricing" external>
-              View pricing details
-            </TextLink>
-          </InfoAlert>
+          <Alert>
+            <AlertDescription>
+              Available as an add-on for organizations on Pro, Team, or
+              Enterprise plans for <strong>$100 per month.</strong>{' '}
+              <TextLink href="https://nhost.io/pricing" external>
+                View pricing details
+              </TextLink>
+            </AlertDescription>
+          </Alert>
         )}
       </SettingsCardContent>
 
       <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
-          title="enabling or disabling PiTR"
-        />
-
         <ButtonWithLoading
           type="button"
           disabled={isSwitchDisabled}

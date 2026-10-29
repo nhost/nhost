@@ -1,13 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table';
-import { Copy } from 'lucide-react';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { HoverCardTimestamp } from '@/components/presentational/HoverCardTimestamp';
-import { Button } from '@/components/ui/v3/button';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ScheduledEventStatusCell } from '@/features/orgs/projects/events/common/components/ScheduledEventStatusCell';
 import { SortableHeader } from '@/features/orgs/projects/events/common/components/SortableHeader';
 import { StatusColumnHeader } from '@/features/orgs/projects/events/common/components/StatusColumnHeader';
 import type { EventsSection } from '@/features/orgs/projects/events/common/types';
-import copy from '@/utils/copy/copy';
 import type { ScheduledEventLogEntry } from '@/utils/hasura-api/generated/schemas';
 import OneOffEventsLogActionsCell from './OneOffEventsLogActionsCell';
 
@@ -94,18 +92,11 @@ export function createOneOffEventsDataTableColumns({
             containerClassName="min-w-0 cursor-text"
             text={row.original.webhook_conf}
           />
-          <Button
-            variant="outline"
-            size="icon"
-            className="-ml-px h-6 w-6 shrink-0 border-transparent bg-transparent p-1 text-muted-foreground opacity-0 hover:bg-transparent hover:text-foreground group-hover/cell:opacity-100"
-            onClick={(event) => {
-              event.stopPropagation();
-              copy(row.original.webhook_conf, 'Webhook');
-            }}
-            aria-label="Copy webhook"
-          >
-            <Copy className="size-4" />
-          </Button>
+          <CopyToClipboardButton
+            textToCopy={row.original.webhook_conf}
+            title="Webhook"
+            className="opacity-0 group-hover/cell:opacity-100"
+          />
         </div>
       ),
     },
@@ -124,18 +115,11 @@ export function createOneOffEventsDataTableColumns({
             containerClassName="min-w-0 cursor-text"
             text={row.original.id}
           />
-          <Button
-            variant="outline"
-            size="icon"
-            className="-ml-px h-6 w-6 shrink-0 border-transparent bg-transparent p-1 text-muted-foreground opacity-0 hover:bg-transparent hover:text-foreground group-hover/cell:opacity-100"
-            onClick={(event) => {
-              event.stopPropagation();
-              copy(row.original.id, 'ID');
-            }}
-            aria-label="Copy ID"
-          >
-            <Copy className="size-4" />
-          </Button>
+          <CopyToClipboardButton
+            textToCopy={row.original.id}
+            title="ID"
+            className="opacity-0 group-hover/cell:opacity-100"
+          />
         </div>
       ),
     },

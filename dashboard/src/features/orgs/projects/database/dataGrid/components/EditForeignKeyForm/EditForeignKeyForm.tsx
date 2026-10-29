@@ -71,10 +71,10 @@ export default function EditForeignKeyForm({
   return (
     <FormProvider {...form}>
       {error && (
-        <div className="mb-4 px-6">
+        <div className="mb-4 px-12">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
+            className="grid grid-flow-col items-center justify-between"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}

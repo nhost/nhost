@@ -44,7 +44,7 @@ export function createValidationSchema(lockedActionName?: string) {
       ],
     ),
     comment: z.string().optional(),
-    timeout: z.coerce.number().min(0),
+    timeout: z.coerce.number<number>().min(0),
     forwardClientHeaders: z.boolean(),
     headers: z.array(
       z.object({

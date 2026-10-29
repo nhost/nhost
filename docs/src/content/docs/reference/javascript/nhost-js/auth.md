@@ -112,7 +112,7 @@ Map of extension outputs from the client
 #### appid?
 
 ```ts
-optional appid?: boolean;
+appid?: boolean;
 ```
 
 Application identifier extension output
@@ -120,7 +120,7 @@ Application identifier extension output
 #### credProps?
 
 ```ts
-optional credProps?: CredentialPropertiesOutput;
+credProps?: CredentialPropertiesOutput;
 ```
 
 Credential properties extension output
@@ -128,7 +128,7 @@ Credential properties extension output
 #### hmacCreateSecret?
 
 ```ts
-optional hmacCreateSecret?: boolean;
+hmacCreateSecret?: boolean;
 ```
 
 HMAC secret extension output
@@ -166,7 +166,7 @@ signature: string;
 #### userHandle?
 
 ```ts
-optional userHandle?: string;
+userHandle?: string;
 ```
 
 Base64url encoded user handle
@@ -190,7 +190,7 @@ attestationObject: string;
 #### authenticatorData?
 
 ```ts
-optional authenticatorData?: string;
+authenticatorData?: string;
 ```
 
 Base64url-encoded binary data
@@ -209,7 +209,7 @@ clientDataJSON: string;
 #### publicKey?
 
 ```ts
-optional publicKey?: string;
+publicKey?: string;
 ```
 
 Base64url-encoded binary data
@@ -218,7 +218,7 @@ Format - byte
 #### publicKeyAlgorithm?
 
 ```ts
-optional publicKeyAlgorithm?: number;
+publicKeyAlgorithm?: number;
 ```
 
 The public key algorithm identifier
@@ -227,7 +227,7 @@ Format - int64
 #### transports?
 
 ```ts
-optional transports?: string[];
+transports?: string[];
 ```
 
 The authenticator transports
@@ -241,7 +241,7 @@ The authenticator transports
 #### authenticatorAttachment?
 
 ```ts
-optional authenticatorAttachment?: AuthenticatorAttachment;
+authenticatorAttachment?: AuthenticatorAttachment;
 ```
 
 The authenticator attachment modality
@@ -249,7 +249,7 @@ The authenticator attachment modality
 #### requireResidentKey?
 
 ```ts
-optional requireResidentKey?: boolean;
+requireResidentKey?: boolean;
 ```
 
 Whether the authenticator must create a client-side-resident public key credential source
@@ -257,7 +257,7 @@ Whether the authenticator must create a client-side-resident public key credenti
 #### residentKey?
 
 ```ts
-optional residentKey?: ResidentKeyRequirement;
+residentKey?: ResidentKeyRequirement;
 ```
 
 The resident key requirement
@@ -265,7 +265,7 @@ The resident key requirement
 #### userVerification?
 
 ```ts
-optional userVerification?: UserVerificationRequirement;
+userVerification?: UserVerificationRequirement;
 ```
 
 A requirement for user verification for the operation
@@ -1898,7 +1898,7 @@ expiresAt: string;
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Example - `{"name":"my-pat","used-by":"my-app-cli"}`
@@ -1940,7 +1940,7 @@ personalAccessToken: string;
 #### authenticatorAttachment?
 
 ```ts
-optional authenticatorAttachment?: string;
+authenticatorAttachment?: string;
 ```
 
 The authenticator attachment
@@ -1948,7 +1948,7 @@ The authenticator attachment
 #### clientExtensionResults?
 
 ```ts
-optional clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+clientExtensionResults?: AuthenticationExtensionsClientOutputs;
 ```
 
 Map of extension outputs from the client
@@ -1996,7 +1996,7 @@ type: string;
 #### authenticatorAttachment?
 
 ```ts
-optional authenticatorAttachment?: string;
+authenticatorAttachment?: string;
 ```
 
 The authenticator attachment
@@ -2004,7 +2004,7 @@ The authenticator attachment
 #### clientExtensionResults?
 
 ```ts
-optional clientExtensionResults?: AuthenticationExtensionsClientOutputs;
+clientExtensionResults?: AuthenticationExtensionsClientOutputs;
 ```
 
 Map of extension outputs from the client
@@ -2076,7 +2076,7 @@ Credential properties extension output
 #### rk?
 
 ```ts
-optional rk?: boolean;
+rk?: boolean;
 ```
 
 Indicates if the credential is a resident key
@@ -2300,7 +2300,7 @@ idToken: string;
 #### nonce?
 
 ```ts
-optional nonce?: string;
+nonce?: string;
 ```
 
 Nonce used during sign in process
@@ -2350,7 +2350,7 @@ client_id: string;
 #### code\_challenge?
 
 ```ts
-optional code_challenge?: string;
+code_challenge?: string;
 ```
 
 PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
@@ -2358,7 +2358,7 @@ PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
 #### code\_challenge\_method?
 
 ```ts
-optional code_challenge_method?: "S256";
+code_challenge_method?: "S256";
 ```
 
 Only S256 is supported. The plain method is not allowed.
@@ -2366,7 +2366,7 @@ Only S256 is supported. The plain method is not allowed.
 #### nonce?
 
 ```ts
-optional nonce?: string;
+nonce?: string;
 ```
 
 String value used to associate a client session with an ID token (OpenID Connect Core Section 3.1.2.1).
@@ -2374,7 +2374,7 @@ String value used to associate a client session with an ID token (OpenID Connect
 #### prompt?
 
 ```ts
-optional prompt?: string;
+prompt?: string;
 ```
 
 Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
@@ -2390,7 +2390,7 @@ redirect_uri: string;
 #### resource?
 
 ```ts
-optional resource?: string;
+resource?: string;
 ```
 
 Resource indicator for the target service (RFC 8707).
@@ -2406,7 +2406,7 @@ response_type: string;
 #### scope?
 
 ```ts
-optional scope?: string;
+scope?: string;
 ```
 
 Space-delimited list of requested scopes (RFC 6749 Section 3.3).
@@ -2414,7 +2414,7 @@ Space-delimited list of requested scopes (RFC 6749 Section 3.3).
 #### state?
 
 ```ts
-optional state?: string;
+state?: string;
 ```
 
 Opaque value used to maintain state between the request and callback (RFC 6749 Section 4.1.1).
@@ -2436,13 +2436,13 @@ client_id: string;
 #### code\_challenge?
 
 ```ts
-optional code_challenge?: string;
+code_challenge?: string;
 ```
 
 #### code\_challenge\_method?
 
 ```ts
-optional code_challenge_method?: string;
+code_challenge_method?: string;
 ```
 
 Only S256 is supported. The plain method is not allowed.
@@ -2450,13 +2450,13 @@ Only S256 is supported. The plain method is not allowed.
 #### nonce?
 
 ```ts
-optional nonce?: string;
+nonce?: string;
 ```
 
 #### prompt?
 
 ```ts
-optional prompt?: string;
+prompt?: string;
 ```
 
 #### redirect\_uri
@@ -2470,7 +2470,7 @@ redirect_uri: string;
 #### resource?
 
 ```ts
-optional resource?: string;
+resource?: string;
 ```
 
 #### response\_type
@@ -2484,13 +2484,13 @@ response_type: string;
 #### scope?
 
 ```ts
-optional scope?: string;
+scope?: string;
 ```
 
 #### state?
 
 ```ts
-optional state?: string;
+state?: string;
 ```
 
 ---
@@ -2510,43 +2510,43 @@ authorization_endpoint: string;
 #### authorization\_response\_iss\_parameter\_supported?
 
 ```ts
-optional authorization_response_iss_parameter_supported?: boolean;
+authorization_response_iss_parameter_supported?: boolean;
 ```
 
 #### claims\_supported?
 
 ```ts
-optional claims_supported?: string[];
+claims_supported?: string[];
 ```
 
 #### client\_id\_metadata\_document\_supported?
 
 ```ts
-optional client_id_metadata_document_supported?: boolean;
+client_id_metadata_document_supported?: boolean;
 ```
 
 #### code\_challenge\_methods\_supported?
 
 ```ts
-optional code_challenge_methods_supported?: string[];
+code_challenge_methods_supported?: string[];
 ```
 
 #### grant\_types\_supported?
 
 ```ts
-optional grant_types_supported?: string[];
+grant_types_supported?: string[];
 ```
 
 #### id\_token\_signing\_alg\_values\_supported?
 
 ```ts
-optional id_token_signing_alg_values_supported?: string[];
+id_token_signing_alg_values_supported?: string[];
 ```
 
 #### introspection\_endpoint?
 
 ```ts
-optional introspection_endpoint?: string;
+introspection_endpoint?: string;
 ```
 
 #### issuer
@@ -2568,7 +2568,7 @@ jwks_uri: string;
 #### request\_parameter\_supported?
 
 ```ts
-optional request_parameter_supported?: boolean;
+request_parameter_supported?: boolean;
 ```
 
 #### response\_types\_supported
@@ -2582,19 +2582,19 @@ response_types_supported: string[];
 #### revocation\_endpoint?
 
 ```ts
-optional revocation_endpoint?: string;
+revocation_endpoint?: string;
 ```
 
 #### scopes\_supported?
 
 ```ts
-optional scopes_supported?: string[];
+scopes_supported?: string[];
 ```
 
 #### subject\_types\_supported?
 
 ```ts
-optional subject_types_supported?: string[];
+subject_types_supported?: string[];
 ```
 
 #### token\_endpoint
@@ -2608,13 +2608,13 @@ token_endpoint: string;
 #### token\_endpoint\_auth\_methods\_supported?
 
 ```ts
-optional token_endpoint_auth_methods_supported?: string[];
+token_endpoint_auth_methods_supported?: string[];
 ```
 
 #### userinfo\_endpoint?
 
 ```ts
-optional userinfo_endpoint?: string;
+userinfo_endpoint?: string;
 ```
 
 ---
@@ -2634,7 +2634,7 @@ error: string;
 #### error\_description?
 
 ```ts
-optional error_description?: string;
+error_description?: string;
 ```
 
 Human-readable error description
@@ -2648,13 +2648,13 @@ Human-readable error description
 #### client\_id?
 
 ```ts
-optional client_id?: string;
+client_id?: string;
 ```
 
 #### client\_secret?
 
 ```ts
-optional client_secret?: string;
+client_secret?: string;
 ```
 
 #### token
@@ -2668,7 +2668,7 @@ token: string;
 #### token\_type\_hint?
 
 ```ts
-optional token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
+token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
 ```
 
 ---
@@ -2688,43 +2688,43 @@ active: boolean;
 #### client\_id?
 
 ```ts
-optional client_id?: string;
+client_id?: string;
 ```
 
 #### exp?
 
 ```ts
-optional exp?: number;
+exp?: number;
 ```
 
 #### iat?
 
 ```ts
-optional iat?: number;
+iat?: number;
 ```
 
 #### iss?
 
 ```ts
-optional iss?: string;
+iss?: string;
 ```
 
 #### scope?
 
 ```ts
-optional scope?: string;
+scope?: string;
 ```
 
 #### sub?
 
 ```ts
-optional sub?: string;
+sub?: string;
 ```
 
 #### token\_type?
 
 ```ts
-optional token_type?: string;
+token_type?: string;
 ```
 
 ---
@@ -2838,13 +2838,13 @@ scopes: string[];
 #### client\_id?
 
 ```ts
-optional client_id?: string;
+client_id?: string;
 ```
 
 #### client\_secret?
 
 ```ts
-optional client_secret?: string;
+client_secret?: string;
 ```
 
 #### token
@@ -2858,7 +2858,7 @@ token: string;
 #### token\_type\_hint?
 
 ```ts
-optional token_type_hint?: OAuth2RevokeRequestToken_type_hint;
+token_type_hint?: OAuth2RevokeRequestToken_type_hint;
 ```
 
 ---
@@ -2870,25 +2870,25 @@ optional token_type_hint?: OAuth2RevokeRequestToken_type_hint;
 #### client\_id?
 
 ```ts
-optional client_id?: string;
+client_id?: string;
 ```
 
 #### client\_secret?
 
 ```ts
-optional client_secret?: string;
+client_secret?: string;
 ```
 
 #### code?
 
 ```ts
-optional code?: string;
+code?: string;
 ```
 
 #### code\_verifier?
 
 ```ts
-optional code_verifier?: string;
+code_verifier?: string;
 ```
 
 #### grant\_type
@@ -2902,19 +2902,19 @@ grant_type: OAuth2TokenRequestGrant_type;
 #### redirect\_uri?
 
 ```ts
-optional redirect_uri?: string;
+redirect_uri?: string;
 ```
 
 #### refresh\_token?
 
 ```ts
-optional refresh_token?: string;
+refresh_token?: string;
 ```
 
 #### resource?
 
 ```ts
-optional resource?: string;
+resource?: string;
 ```
 
 ---
@@ -2942,19 +2942,19 @@ expires_in: number;
 #### id\_token?
 
 ```ts
-optional id_token?: string;
+id_token?: string;
 ```
 
 #### refresh\_token?
 
 ```ts
-optional refresh_token?: string;
+refresh_token?: string;
 ```
 
 #### scope?
 
 ```ts
-optional scope?: string;
+scope?: string;
 ```
 
 #### token\_type
@@ -2974,43 +2974,43 @@ token_type: string;
 #### email?
 
 ```ts
-optional email?: string;
+email?: string;
 ```
 
 #### email\_verified?
 
 ```ts
-optional email_verified?: boolean;
+email_verified?: boolean;
 ```
 
 #### locale?
 
 ```ts
-optional locale?: string;
+locale?: string;
 ```
 
 #### name?
 
 ```ts
-optional name?: string;
+name?: string;
 ```
 
 #### phone\_number?
 
 ```ts
-optional phone_number?: string;
+phone_number?: string;
 ```
 
 #### phone\_number\_verified?
 
 ```ts
-optional phone_number_verified?: boolean;
+phone_number_verified?: boolean;
 ```
 
 #### picture?
 
 ```ts
-optional picture?: string;
+picture?: string;
 ```
 
 #### sub
@@ -3030,7 +3030,7 @@ sub: string;
 #### redirectTo?
 
 ```ts
-optional redirectTo?: string;
+redirectTo?: string;
 ```
 
 Example - `"https://my-app.com/catch-redirection"`
@@ -3078,7 +3078,7 @@ expiresIn: number;
 #### refreshToken?
 
 ```ts
-optional refreshToken?: string;
+refreshToken?: string;
 ```
 
 OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
@@ -3093,7 +3093,7 @@ Example - `"1//0gK8..."`
 #### connection?
 
 ```ts
-optional connection?: string;
+connection?: string;
 ```
 
 (workos) Specifies the connection to use for authentication
@@ -3101,7 +3101,7 @@ optional connection?: string;
 #### organization?
 
 ```ts
-optional organization?: string;
+organization?: string;
 ```
 
 (workos) Specifies the organization to use for authentication
@@ -3115,7 +3115,7 @@ optional organization?: string;
 #### attestation?
 
 ```ts
-optional attestation?: ConveyancePreference;
+attestation?: ConveyancePreference;
 ```
 
 The attestation conveyance preference
@@ -3123,7 +3123,7 @@ The attestation conveyance preference
 #### attestationFormats?
 
 ```ts
-optional attestationFormats?: AttestationFormat[];
+attestationFormats?: AttestationFormat[];
 ```
 
 The preferred attestation statement formats
@@ -3131,7 +3131,7 @@ The preferred attestation statement formats
 #### authenticatorSelection?
 
 ```ts
-optional authenticatorSelection?: AuthenticatorSelection;
+authenticatorSelection?: AuthenticatorSelection;
 ```
 
 #### challenge
@@ -3147,7 +3147,7 @@ challenge: string;
 #### excludeCredentials?
 
 ```ts
-optional excludeCredentials?: PublicKeyCredentialDescriptor[];
+excludeCredentials?: PublicKeyCredentialDescriptor[];
 ```
 
 A list of PublicKeyCredentialDescriptor objects representing public key credentials that are not acceptable to the caller
@@ -3155,7 +3155,7 @@ A list of PublicKeyCredentialDescriptor objects representing public key credenti
 #### extensions?
 
 ```ts
-optional extensions?: Record<string, unknown>;
+extensions?: Record<string, unknown>;
 ```
 
 Additional parameters requesting additional processing by the client and authenticator
@@ -3163,7 +3163,7 @@ Additional parameters requesting additional processing by the client and authent
 #### hints?
 
 ```ts
-optional hints?: PublicKeyCredentialHints[];
+hints?: PublicKeyCredentialHints[];
 ```
 
 Hints to help guide the user through the experience
@@ -3187,7 +3187,7 @@ rp: RelyingPartyEntity;
 #### timeout?
 
 ```ts
-optional timeout?: number;
+timeout?: number;
 ```
 
 A time, in milliseconds, that the caller is willing to wait for the call to complete
@@ -3219,7 +3219,7 @@ id: string;
 #### transports?
 
 ```ts
-optional transports?: AuthenticatorTransport[];
+transports?: AuthenticatorTransport[];
 ```
 
 The authenticator transports that can be used
@@ -3241,7 +3241,7 @@ type: "public-key";
 #### allowCredentials?
 
 ```ts
-optional allowCredentials?: PublicKeyCredentialDescriptor[];
+allowCredentials?: PublicKeyCredentialDescriptor[];
 ```
 
 A list of CredentialDescriptor objects representing public key credentials acceptable to the caller
@@ -3259,7 +3259,7 @@ challenge: string;
 #### extensions?
 
 ```ts
-optional extensions?: Record<string, unknown>;
+extensions?: Record<string, unknown>;
 ```
 
 Additional parameters requesting additional processing by the client and authenticator
@@ -3267,7 +3267,7 @@ Additional parameters requesting additional processing by the client and authent
 #### hints?
 
 ```ts
-optional hints?: PublicKeyCredentialHints[];
+hints?: PublicKeyCredentialHints[];
 ```
 
 Hints to help guide the user through the experience
@@ -3275,7 +3275,7 @@ Hints to help guide the user through the experience
 #### rpId?
 
 ```ts
-optional rpId?: string;
+rpId?: string;
 ```
 
 The RP ID the credential should be scoped to
@@ -3283,7 +3283,7 @@ The RP ID the credential should be scoped to
 #### timeout?
 
 ```ts
-optional timeout?: number;
+timeout?: number;
 ```
 
 A time, in milliseconds, that the caller is willing to wait for the call to complete
@@ -3291,7 +3291,7 @@ A time, in milliseconds, that the caller is willing to wait for the call to comp
 #### userVerification?
 
 ```ts
-optional userVerification?: UserVerificationRequirement;
+userVerification?: UserVerificationRequirement;
 ```
 
 A requirement for user verification for the operation
@@ -3413,7 +3413,7 @@ refreshTokenId: string;
 #### user?
 
 ```ts
-optional user?: User;
+user?: User;
 ```
 
 User profile and account information
@@ -3429,7 +3429,7 @@ Container for session information
 #### session?
 
 ```ts
-optional session?: Session;
+session?: Session;
 ```
 
 User authentication session containing tokens and user information
@@ -3443,7 +3443,7 @@ User authentication session containing tokens and user information
 #### displayName?
 
 ```ts
-optional displayName?: string;
+displayName?: string;
 ```
 
 Example - `"John Smith"`
@@ -3451,7 +3451,7 @@ Example - `"John Smith"`
 #### locale?
 
 ```ts
-optional locale?: string;
+locale?: string;
 ```
 
 A two or three characters locale
@@ -3462,7 +3462,7 @@ MaxLength - 3
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Example - `{"firstName":"John","lastName":"Smith"}`
@@ -3509,7 +3509,7 @@ Response for email-password authentication that may include a session or MFA cha
 #### mfa?
 
 ```ts
-optional mfa?: MFAChallengePayload;
+mfa?: MFAChallengePayload;
 ```
 
 Challenge payload for multi-factor authentication
@@ -3517,7 +3517,7 @@ Challenge payload for multi-factor authentication
 #### session?
 
 ```ts
-optional session?: Session;
+session?: Session;
 ```
 
 User authentication session containing tokens and user information
@@ -3539,7 +3539,7 @@ idToken: string;
 #### nonce?
 
 ```ts
-optional nonce?: string;
+nonce?: string;
 ```
 
 Nonce used during sign in process
@@ -3547,7 +3547,7 @@ Nonce used during sign in process
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### provider
@@ -3602,7 +3602,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -3639,7 +3639,7 @@ otp: string;
 #### session?
 
 ```ts
-optional session?: Session;
+session?: Session;
 ```
 
 User authentication session containing tokens and user information
@@ -3653,7 +3653,7 @@ User authentication session containing tokens and user information
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -3675,7 +3675,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -3711,7 +3711,7 @@ phoneNumber: string;
 #### mfa?
 
 ```ts
-optional mfa?: MFAChallengePayload;
+mfa?: MFAChallengePayload;
 ```
 
 Challenge payload for multi-factor authentication
@@ -3719,7 +3719,7 @@ Challenge payload for multi-factor authentication
 #### session?
 
 ```ts
-optional session?: Session;
+session?: Session;
 ```
 
 User authentication session containing tokens and user information
@@ -3733,7 +3733,7 @@ User authentication session containing tokens and user information
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### phoneNumber
@@ -3774,7 +3774,7 @@ Parameters for the signInProvider method.
 #### allowedRoles?
 
 ```ts
-optional allowedRoles?: string[];
+allowedRoles?: string[];
 ```
 
 Array of allowed roles for the user
@@ -3782,7 +3782,7 @@ Array of allowed roles for the user
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
@@ -3790,7 +3790,7 @@ PKCE code challenge (S256). When provided, the callback redirect will contain an
 #### connect?
 
 ```ts
-optional connect?: string;
+connect?: string;
 ```
 
 If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
@@ -3798,7 +3798,7 @@ If set, this means that the user is already authenticated and wants to link thei
 #### defaultRole?
 
 ```ts
-optional defaultRole?: string;
+defaultRole?: string;
 ```
 
 Default role for the user
@@ -3806,7 +3806,7 @@ Default role for the user
 #### displayName?
 
 ```ts
-optional displayName?: string;
+displayName?: string;
 ```
 
 Display name for the user
@@ -3814,7 +3814,7 @@ Display name for the user
 #### locale?
 
 ```ts
-optional locale?: string;
+locale?: string;
 ```
 
 A two or three characters locale
@@ -3822,7 +3822,7 @@ A two or three characters locale
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Additional metadata for the user (JSON encoded string)
@@ -3830,7 +3830,7 @@ Additional metadata for the user (JSON encoded string)
 #### providerSpecificParams?
 
 ```ts
-optional providerSpecificParams?: ProviderSpecificParams;
+providerSpecificParams?: ProviderSpecificParams;
 ```
 
 Additional provider-specific parameters
@@ -3838,7 +3838,7 @@ Additional provider-specific parameters
 #### redirectTo?
 
 ```ts
-optional redirectTo?: string;
+redirectTo?: string;
 ```
 
 URI to redirect to
@@ -3846,7 +3846,7 @@ URI to redirect to
 #### state?
 
 ```ts
-optional state?: string;
+state?: string;
 ```
 
 Opaque state value to be returned by the provider
@@ -3854,7 +3854,7 @@ Opaque state value to be returned by the provider
 #### upstreamParams?
 
 ```ts
-optional upstreamParams?: Record<string, string>;
+upstreamParams?: Record<string, string>;
 ```
 
 Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
@@ -3870,7 +3870,7 @@ Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. 
 #### email?
 
 ```ts
-optional email?: string;
+email?: string;
 ```
 
 A valid email
@@ -3894,7 +3894,7 @@ credential: CredentialAssertionResponse;
 #### email?
 
 ```ts
-optional email?: string;
+email?: string;
 ```
 
 A valid email. Deprecated, no longer used
@@ -3910,7 +3910,7 @@ Format - email
 #### all?
 
 ```ts
-optional all?: boolean;
+all?: boolean;
 ```
 
 Sign out from all connected devices
@@ -3918,7 +3918,7 @@ Sign out from all connected devices
 #### refreshToken?
 
 ```ts
-optional refreshToken?: string;
+refreshToken?: string;
 ```
 
 Refresh token for the current session
@@ -3934,7 +3934,7 @@ Request to register a new user with email and password
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
@@ -3956,7 +3956,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### password
@@ -3988,7 +3988,7 @@ idToken: string;
 #### nonce?
 
 ```ts
-optional nonce?: string;
+nonce?: string;
 ```
 
 Nonce used during sign in process
@@ -3996,7 +3996,7 @@ Nonce used during sign in process
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### provider
@@ -4016,7 +4016,7 @@ provider: IdTokenProvider;
 #### allowedRoles?
 
 ```ts
-optional allowedRoles?: string[];
+allowedRoles?: string[];
 ```
 
 Example - `["me","user"]`
@@ -4024,7 +4024,7 @@ Example - `["me","user"]`
 #### defaultRole?
 
 ```ts
-optional defaultRole?: string;
+defaultRole?: string;
 ```
 
 Example - `"user"`
@@ -4032,7 +4032,7 @@ Example - `"user"`
 #### displayName?
 
 ```ts
-optional displayName?: string;
+displayName?: string;
 ```
 
 Example - `"John Smith"`
@@ -4042,7 +4042,7 @@ MaxLength - 32
 #### locale?
 
 ```ts
-optional locale?: string;
+locale?: string;
 ```
 
 A two or three characters locale
@@ -4053,7 +4053,7 @@ MaxLength - 3
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Example - `{"firstName":"John","lastName":"Smith"}`
@@ -4061,7 +4061,7 @@ Example - `{"firstName":"John","lastName":"Smith"}`
 #### redirectTo?
 
 ```ts
-optional redirectTo?: string;
+redirectTo?: string;
 ```
 
 Example - `"https://my-app.com/catch-redirection"`
@@ -4087,7 +4087,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -4099,7 +4099,7 @@ optional options?: SignUpOptions;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4121,7 +4121,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -4133,7 +4133,7 @@ optional options?: SignUpOptions;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### phoneNumber
@@ -4157,7 +4157,7 @@ Parameters for the signUpProvider method.
 #### allowedRoles?
 
 ```ts
-optional allowedRoles?: string[];
+allowedRoles?: string[];
 ```
 
 Array of allowed roles for the user
@@ -4165,7 +4165,7 @@ Array of allowed roles for the user
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
@@ -4173,7 +4173,7 @@ PKCE code challenge (S256). When provided, the callback redirect will contain an
 #### defaultRole?
 
 ```ts
-optional defaultRole?: string;
+defaultRole?: string;
 ```
 
 Default role for the user
@@ -4181,7 +4181,7 @@ Default role for the user
 #### displayName?
 
 ```ts
-optional displayName?: string;
+displayName?: string;
 ```
 
 Display name for the user
@@ -4189,7 +4189,7 @@ Display name for the user
 #### locale?
 
 ```ts
-optional locale?: string;
+locale?: string;
 ```
 
 A two or three characters locale
@@ -4197,7 +4197,7 @@ A two or three characters locale
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Additional metadata for the user (JSON encoded string)
@@ -4205,7 +4205,7 @@ Additional metadata for the user (JSON encoded string)
 #### providerSpecificParams?
 
 ```ts
-optional providerSpecificParams?: ProviderSpecificParams;
+providerSpecificParams?: ProviderSpecificParams;
 ```
 
 Additional provider-specific parameters
@@ -4213,7 +4213,7 @@ Additional provider-specific parameters
 #### redirectTo?
 
 ```ts
-optional redirectTo?: string;
+redirectTo?: string;
 ```
 
 URI to redirect to
@@ -4221,7 +4221,7 @@ URI to redirect to
 #### state?
 
 ```ts
-optional state?: string;
+state?: string;
 ```
 
 Opaque state value to be returned by the provider
@@ -4229,7 +4229,7 @@ Opaque state value to be returned by the provider
 #### upstreamParams?
 
 ```ts
-optional upstreamParams?: Record<string, string>;
+upstreamParams?: Record<string, string>;
 ```
 
 Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
@@ -4256,7 +4256,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -4268,7 +4268,7 @@ optional options?: SignUpOptions;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided and email verification is required, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4287,7 +4287,7 @@ credential: CredentialCreationResponse;
 #### nickname?
 
 ```ts
-optional nickname?: string;
+nickname?: string;
 ```
 
 Nickname for the security key
@@ -4295,7 +4295,7 @@ Nickname for the security key
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 ---
@@ -4364,7 +4364,7 @@ User profile and account information
 #### activeMfaType?
 
 ```ts
-optional activeMfaType?: string;
+activeMfaType?: string;
 ```
 
 Active MFA type for the user
@@ -4413,7 +4413,7 @@ displayName: string;
 #### email?
 
 ```ts
-optional email?: string;
+email?: string;
 ```
 
 User's email address
@@ -4476,7 +4476,7 @@ metadata: Record<string, unknown> | null;
 #### phoneNumber?
 
 ```ts
-optional phoneNumber?: string;
+phoneNumber?: string;
 ```
 
 User's phone number
@@ -4511,7 +4511,7 @@ roles: string[];
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4522,7 +4522,7 @@ MaxLength - 43
 #### connection?
 
 ```ts
-optional connection?: string;
+connection?: string;
 ```
 
 Deprecated, will be ignored
@@ -4541,13 +4541,13 @@ email: string;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### password?
 
 ```ts
-optional password?: string;
+password?: string;
 ```
 
 A password of minimum 3 characters
@@ -4572,7 +4572,7 @@ signInMethod: UserDeanonymizeRequestSignInMethod;
 #### options?
 
 ```ts
-optional options?: SignUpOptions;
+options?: SignUpOptions;
 ```
 
 #### phoneNumber
@@ -4594,7 +4594,7 @@ phoneNumber: string;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4616,7 +4616,7 @@ newEmail: string;
 #### options?
 
 ```ts
-optional options?: OptionsRedirectTo;
+options?: OptionsRedirectTo;
 ```
 
 ---
@@ -4628,7 +4628,7 @@ optional options?: OptionsRedirectTo;
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4650,7 +4650,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: OptionsRedirectTo;
+options?: OptionsRedirectTo;
 ```
 
 ---
@@ -4694,7 +4694,7 @@ Request to activate or deactivate multi-factor authentication
 #### activeMfaType?
 
 ```ts
-optional activeMfaType?: UserMfaRequestActiveMfaType;
+activeMfaType?: UserMfaRequestActiveMfaType;
 ```
 
 Type of MFA to activate. Use empty string to disable MFA.
@@ -4731,7 +4731,7 @@ newPassword: string;
 #### ticket?
 
 ```ts
-optional ticket?: string;
+ticket?: string;
 ```
 
 Ticket to reset the password, required if the user is not authenticated
@@ -4746,7 +4746,7 @@ Pattern - ^passwordReset\:.*$
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -4768,7 +4768,7 @@ email: string;
 #### options?
 
 ```ts
-optional options?: OptionsRedirectTo;
+options?: OptionsRedirectTo;
 ```
 
 ---
@@ -4830,7 +4830,7 @@ credential: CredentialCreationResponse;
 #### nickname?
 
 ```ts
-optional nickname?: string;
+nickname?: string;
 ```
 
 Optional nickname for the security key
@@ -4854,7 +4854,7 @@ id: string;
 #### nickname?
 
 ```ts
-optional nickname?: string;
+nickname?: string;
 ```
 
 The nickname of the security key if provided
@@ -4870,7 +4870,7 @@ Parameters for the verifyTicket method.
 #### codeChallenge?
 
 ```ts
-optional codeChallenge?: string;
+codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When present, the redirect will contain an authorization code instead of a refresh token.
@@ -4898,7 +4898,7 @@ ticket: string;
 #### type?
 
 ```ts
-optional type?: TicketTypeQuery;
+type?: TicketTypeQuery;
 ```
 
 Type of the ticket. Deprecated, no longer used
@@ -4914,7 +4914,7 @@ Type of the ticket. Deprecated, no longer used
 #### token?
 
 ```ts
-optional token?: string;
+token?: string;
 ```
 
 JWT token to verify
@@ -5206,10 +5206,10 @@ function createAPIClient(
 
 ### Parameters
 
-| Parameter        | Type                                        | Default value |
-| ---------------- | ------------------------------------------- | ------------- |
-| `baseURL`        | `string`                                    | `undefined`   |
-| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
+| Parameter         | Type                                        | Default value |
+| ----------------- | ------------------------------------------- | ------------- |
+| `baseURL`         | `string`                                    | `undefined`   |
+| `chainFunctions?` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 ### Returns
 

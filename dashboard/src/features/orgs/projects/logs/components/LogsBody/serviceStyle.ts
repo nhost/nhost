@@ -1,4 +1,5 @@
 import { CORE_LOG_SERVICE_TO_LABEL } from '@/features/orgs/projects/logs/utils/constants/services';
+import { hashString } from '@/utils/hashString';
 
 export interface ServiceStyle {
   label: string;
@@ -15,15 +16,6 @@ const FALLBACK_PALETTE = [
   'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-500/20 dark:text-fuchsia-300',
   'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300',
 ];
-
-function hashServiceName(service: string): number {
-  let hash = 0;
-  for (let i = 0; i < service.length; i += 1) {
-    hash = Math.imul(hash, 31) + service.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash >>> 0;
-}
 
 export function getServiceStyle(service: string): ServiceStyle {
   if (service.startsWith('run-')) {
@@ -100,7 +92,7 @@ export function getServiceStyle(service: string): ServiceStyle {
       return {
         label: mapped ?? service,
         className:
-          FALLBACK_PALETTE[hashServiceName(service) % FALLBACK_PALETTE.length],
+          FALLBACK_PALETTE[hashString(service) % FALLBACK_PALETTE.length],
       };
     }
   }

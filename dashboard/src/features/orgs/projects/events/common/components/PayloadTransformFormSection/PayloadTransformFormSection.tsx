@@ -112,9 +112,9 @@ export default function PayloadTransformFormSection({
                 </h4>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="sm"
-                  className="px-4 text-primary hover:bg-muted hover:text-primary"
+                  className="px-4"
                   onClick={() => append({ key: '', value: '' })}
                 >
                   <PlusIcon className="size-5" />
@@ -160,9 +160,9 @@ export default function PayloadTransformFormSection({
                     <div className="col-span-1 flex h-10 items-center justify-end self-start">
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="sm"
-                        className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="px-4"
                         onClick={() => remove(index)}
                       >
                         <TrashIcon className="size-4" />

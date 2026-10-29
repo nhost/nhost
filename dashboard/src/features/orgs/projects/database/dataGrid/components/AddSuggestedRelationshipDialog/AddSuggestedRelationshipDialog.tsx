@@ -198,13 +198,13 @@ export default function AddSuggestedRelationshipDialog({
       </Button>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className="sm:max-w-[425px]"
+          className="p-12 sm:max-w-xl"
           hideCloseButton
           disableOutsideClick={isSubmitting}
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Add Suggested Relationship
             </DialogTitle>
             <DialogDescription>
@@ -236,25 +236,20 @@ export default function AddSuggestedRelationshipDialog({
                 containerClassName="mt-0"
               />
 
-              <DialogFooter className="gap-2 pt-2 sm:flex sm:flex-col sm:space-x-0">
+              <DialogFooter className="mt-8">
+                <DialogClose asChild>
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
+                </DialogClose>
+
                 <ButtonWithLoading
                   type="submit"
                   loading={isSubmitting}
                   disabled={isSubmitting}
-                  className="!text-sm+"
                 >
                   Create Relationship
                 </ButtonWithLoading>
-
-                <DialogClose asChild>
-                  <Button
-                    variant="outline"
-                    className="!text-sm+ text-foreground"
-                    type="button"
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
               </DialogFooter>
             </form>
           </Form>

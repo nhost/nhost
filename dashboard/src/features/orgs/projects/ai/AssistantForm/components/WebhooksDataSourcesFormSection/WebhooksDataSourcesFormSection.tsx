@@ -26,7 +26,7 @@ export default function WebhooksDataSourcesFormSection() {
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add webhook data source"
           onClick={() =>
@@ -76,8 +76,9 @@ export default function WebhooksDataSourcesFormSection() {
 
               <Button
                 type="button"
-                variant="ghost"
-                className="h-10 self-end text-destructive hover:text-destructive"
+                variant="subtle"
+                size="sm"
+                className="h-10 self-end"
                 aria-label="Remove webhook data source"
                 onClick={() => remove(index)}
               >

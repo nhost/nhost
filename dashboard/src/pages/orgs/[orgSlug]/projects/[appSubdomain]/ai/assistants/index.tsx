@@ -147,7 +147,7 @@ export default function AssistantsPage() {
   if (assistants.length === 0 && !assistantsLoading) {
     return (
       <div className="w-full px-6 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-raised">
           <span className="text-6xl">🤖</span>
           <div className="flex flex-col space-y-1">
             <h2 className="text-center font-medium text-lg">
