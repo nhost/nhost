@@ -25,6 +25,8 @@ export interface Article {
    * product updates: the things worth leading with.
    */
   featured?: boolean
+  /** Estimated reading time. Set at build by `@/lib/remarkReadingTime`. */
+  readingMinutes: number
   slug: string
   /** SEO meta title (without the "| Nhost Blog" suffix). Keep under 50 chars. */
   seoTitle?: string

@@ -2,6 +2,7 @@ import rehypePrism from '@mapbox/rehype-prism'
 import nextMDX from '@next/mdx'
 import remarkGfm from 'remark-gfm'
 import { remarkCodeHike } from '@code-hike/mdx'
+import remarkReadingTime from './src/lib/remarkReadingTime.mjs'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -49,6 +50,8 @@ const withMDX = nextMDX({
   options: {
     providerImportSource: '@mdx-js/react',
     remarkPlugins: [
+      // First, so it counts code blocks before Code Hike turns them into JSX.
+      remarkReadingTime,
       [
         remarkCodeHike,
         {
