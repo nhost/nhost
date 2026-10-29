@@ -6,6 +6,7 @@ import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
+import { NewDeploymentPopover } from '@/features/orgs/projects/deployments/components/NewDeploymentPopover';
 import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -50,6 +51,7 @@ export default function DeploymentsPage() {
     <Container className="mx-auto flex max-w-5xl flex-col space-y-6 pt-8 pb-8">
       <div className="flex flex-row place-content-between">
         <h1 className="font-semibold text-2.5xl">Deployments</h1>
+        <NewDeploymentPopover />
       </div>
 
       <RetryableErrorBoundary>
