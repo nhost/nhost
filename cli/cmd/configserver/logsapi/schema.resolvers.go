@@ -15,14 +15,7 @@ import (
 )
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(
-	ctx context.Context,
-	appID string,
-	service *string,
-	regexFilter *string,
-	from *time.Time,
-	to *time.Time,
-) ([]model.Log, error) {
+func (r *queryResolver) Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error) {
 	svc := ""
 	if service != nil {
 		svc = *service
@@ -57,14 +50,7 @@ func (r *queryResolver) GetServiceLabelValues(ctx context.Context, appID string)
 }
 
 // GetFunctionsLogs is the resolver for the getFunctionsLogs field.
-func (r *queryResolver) GetFunctionsLogs(
-	ctx context.Context,
-	appID string,
-	path string,
-	regexFilter *string,
-	from *time.Time,
-	to *time.Time,
-) ([]model.Log, error) {
+func (r *queryResolver) GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time, to *time.Time) ([]model.Log, error) {
 	filter := ""
 	if regexFilter != nil {
 		filter = *regexFilter
@@ -84,13 +70,7 @@ func (r *queryResolver) GetFunctionsLogs(
 }
 
 // Logs is the resolver for the logs field.
-func (r *subscriptionResolver) Logs(
-	ctx context.Context,
-	appID string,
-	service *string,
-	regexFilter *string,
-	from *time.Time,
-) (<-chan []model.Log, error) {
+func (r *subscriptionResolver) Logs(ctx context.Context, appID string, service *string, regexFilter *string, from *time.Time) (<-chan []model.Log, error) {
 	svc := ""
 	if service != nil {
 		svc = *service
@@ -117,13 +97,7 @@ func (r *subscriptionResolver) Logs(
 }
 
 // GetFunctionsLogs is the resolver for the getFunctionsLogs field.
-func (r *subscriptionResolver) GetFunctionsLogs(
-	ctx context.Context,
-	appID string,
-	path string,
-	regexFilter *string,
-	from *time.Time,
-) (<-chan []model.Log, error) {
+func (r *subscriptionResolver) GetFunctionsLogs(ctx context.Context, appID string, path string, regexFilter *string, from *time.Time) (<-chan []model.Log, error) {
 	filter := ""
 	if regexFilter != nil {
 		filter = *regexFilter
@@ -150,7 +124,5 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-type (
-	queryResolver        struct{ *Resolver }
-	subscriptionResolver struct{ *Resolver }
-)
+type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
