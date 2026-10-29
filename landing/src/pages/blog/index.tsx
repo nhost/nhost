@@ -7,5 +7,5 @@ export default function BlogPage(props: BlogListingProps) {
 }
 
 export const getStaticProps: GetStaticProps<BlogListingProps> = async () => ({
-  props: await getBlogListingProps(1),
+  props: await getBlogListingProps(),
 })

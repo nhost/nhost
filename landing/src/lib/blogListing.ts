@@ -1,18 +1,10 @@
 import type { BlogListingProps } from '@/components/blog/BlogListing'
 import { getAllArticles } from '@/lib/blog'
-import {
-  getLeadArticle,
-  getPage,
-  getTags,
-  listingPath,
-  pageCount,
-  tagSlug,
-} from '@/lib/blogGrouping'
+import { getLeadArticle, getTags, tagSlug } from '@/lib/blogGrouping'
 import { Article } from '@/utils/types'
 
 /**
- * Props for the blog's listing routes: /blog, /blog/page/<n>, and the same
- * under /blog/tag/<slug>.
+ * Props for the blog's listing routes: /blog and /blog/tag/<slug>.
  *
  * The lead post sits above the list on every one of them, so the lists skip
  * it rather than show it twice.
@@ -23,7 +15,7 @@ import { Article } from '@/utils/types'
 const BLOG_DESCRIPTION =
   'The latest Nhost news, product updates, engineering deep-dives, and developer guides on Postgres, GraphQL, Auth, and more.'
 
-/** The posts a listing pages through: `tag`'s posts, or all, minus the lead. */
+/** The posts a listing shows: `tag`'s posts, or all, minus the lead. */
 function getListedArticles(articles: Article[], tag?: string): Article[] {
   const lead = getLeadArticle(articles)
 
@@ -33,59 +25,32 @@ function getListedArticles(articles: Article[], tag?: string): Article[] {
   )
 }
 
-/** /blog and its later pages. */
-export async function getBlogListingProps(
-  page: number,
-): Promise<BlogListingProps> {
+/** /blog. */
+export async function getBlogListingProps(): Promise<BlogListingProps> {
   const articles = await getAllArticles()
-  const listed = getListedArticles(articles)
 
   return {
     seo: {
-      path: listingPath('/blog', page),
-      title:
-        page === 1
-          ? 'Blog: Product News and Dev Guides'
-          : `Blog: Product News and Dev Guides, page ${page}`,
-      description:
-        page === 1 ? BLOG_DESCRIPTION : `${BLOG_DESCRIPTION} Page ${page}.`,
+      path: '/blog',
+      title: 'Blog: Product News and Dev Guides',
+      description: BLOG_DESCRIPTION,
     },
-    basePath: '/blog',
     lead: getLeadArticle(articles),
-    articles: getPage(listed, page),
-    totalPosts: listed.length,
+    articles: getListedArticles(articles),
     searchable: articles,
     tags: getTags(articles),
     activeTag: null,
-    page,
-    totalPages: pageCount(listed.length),
   }
 }
 
-/** How many pages /blog's list fills. */
-export async function getBlogPageCount(): Promise<number> {
-  return pageCount(getListedArticles(await getAllArticles()).length)
+/** Every tag's slug. */
+export async function getTagSlugs(): Promise<string[]> {
+  return getTags(await getAllArticles()).map(tagSlug)
 }
 
-/** Every tag with the number of pages its listing fills. */
-export async function getTagPageCounts(): Promise<
-  { slug: string; totalPages: number }[]
-> {
-  const articles = await getAllArticles()
-
-  return getTags(articles).map((tag) => ({
-    slug: tagSlug(tag),
-    totalPages: pageCount(getListedArticles(articles, tag).length),
-  }))
-}
-
-/**
- * A tag's listing, or `null` when `slug` is not a tag or `page` is
- * past its last page.
- */
+/** A tag's listing, or `null` when `slug` is not a tag. */
 export async function getTagListingProps(
   slug: string,
-  page: number,
 ): Promise<BlogListingProps | null> {
   const articles = await getAllArticles()
   const tags = getTags(articles)
@@ -95,33 +60,16 @@ export async function getTagListingProps(
     return null
   }
 
-  const listed = getListedArticles(articles, tag)
-  const totalPages = pageCount(listed.length)
-
-  if (page > totalPages) {
-    return null
-  }
-
-  const basePath = `/blog/tag/${slug}`
-  const description = `Nhost blog posts about ${tag}, newest first.`
-
   return {
     seo: {
-      path: listingPath(basePath, page),
-      title:
-        page === 1
-          ? `${tag} posts on the Nhost blog`
-          : `${tag} posts on the Nhost blog, page ${page}`,
-      description: page === 1 ? description : `${description} Page ${page}.`,
+      path: `/blog/tag/${slug}`,
+      title: `${tag} posts on the Nhost blog`,
+      description: `Nhost blog posts about ${tag}, newest first.`,
     },
-    basePath,
     lead: getLeadArticle(articles),
-    articles: getPage(listed, page),
-    totalPosts: listed.length,
+    articles: getListedArticles(articles, tag),
     searchable: articles.filter((article) => article.tags.includes(tag)),
     tags,
     activeTag: tag,
-    page,
-    totalPages,
   }
 }

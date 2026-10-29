@@ -1,13 +1,7 @@
 import {
   findUrlClashes,
   getLeadArticle,
-  getPage,
-  getPageNumbers,
   getTags,
-  listingPath,
-  pageCount,
-  parsePageParam,
-  POSTS_PER_PAGE,
   tagPath,
   tagSlug,
 } from '@/lib/blogGrouping'
@@ -74,90 +68,9 @@ describe('tagSlug', () => {
   })
 })
 
-describe('listing paths', () => {
-  it('keeps page 1 at the base path', () => {
-    expect(listingPath('/blog', 1)).toBe('/blog')
-    expect(listingPath('/blog', 3)).toBe('/blog/page/3')
-  })
-
-  it('builds tag paths from the slug', () => {
+describe('tagPath', () => {
+  it('builds the path from the slug', () => {
     expect(tagPath('Next.js')).toBe('/blog/tag/nextjs')
-    expect(tagPath('Next.js', 2)).toBe('/blog/tag/nextjs/page/2')
-  })
-})
-
-describe('pagination', () => {
-  it('counts pages, with at least one', () => {
-    expect(pageCount(0)).toBe(1)
-    expect(pageCount(POSTS_PER_PAGE)).toBe(1)
-    expect(pageCount(POSTS_PER_PAGE + 1)).toBe(2)
-  })
-
-  it('slices a page counting from 1', () => {
-    const posts = articles(POSTS_PER_PAGE + 2)
-
-    expect(getPage(posts, 1)).toHaveLength(POSTS_PER_PAGE)
-    expect(getPage(posts, 2).map((post) => post.slug)).toEqual([
-      `post-${POSTS_PER_PAGE}`,
-      `post-${POSTS_PER_PAGE + 1}`,
-    ])
-  })
-
-  it.each([
-    [1, 1, [1]],
-    [1, 2, [1, 2]],
-    [2, 3, [1, 2, 3]],
-    [4, 7, [1, 2, 3, 4, 5, 6, 7]],
-    [5, 8, [1, 2, 3, 4, 5, 6, 7, 8]],
-    [1, 9, [1, 2, 3, 4, 5, 6, null, 9]],
-    [4, 9, [1, 2, 3, 4, 5, 6, null, 9]],
-    [5, 9, [1, null, 4, 5, 6, 7, 8, 9]],
-    [9, 9, [1, null, 4, 5, 6, 7, 8, 9]],
-    [5, 20, [1, null, 4, 5, 6, 7, null, 20]],
-    [15, 20, [1, null, 14, 15, 16, 17, null, 20]],
-    [16, 20, [1, null, 15, 16, 17, 18, 19, 20]],
-  ])('links pages around page %i of %i', (page, total, expected) => {
-    expect(getPageNumbers(page, total)).toEqual(expected)
-  })
-
-  it.each([9, 10, 20])(
-    'fills the same eight slots on every page of %i, keeping the ends and neighbours',
-    (total) => {
-      for (let page = 1; page <= total; page += 1) {
-        const numbers = getPageNumbers(page, total)
-        const neighbours = [page - 1, page, page + 1].filter(
-          (number) => number >= 1 && number <= total,
-        )
-
-        expect(numbers).toHaveLength(8)
-        expect(numbers).toEqual(
-          expect.arrayContaining([1, total, ...neighbours]),
-        )
-
-        // A gap never stands in for a single page.
-        numbers.forEach((number, index) => {
-          if (number === null) {
-            const before = numbers[index - 1] as number
-            const after = numbers[index + 1] as number
-
-            expect(after - before).toBeGreaterThan(2)
-          }
-        })
-      }
-    },
-  )
-
-  it.each([
-    ['2', 3, 2],
-    ['3', 3, 3],
-    ['1', 3, null],
-    ['4', 3, null],
-    ['02', 3, null],
-    ['two', 3, null],
-    [undefined, 3, null],
-    [['2'], 3, null],
-  ])('parses page param %j of %i pages as %j', (param, total, expected) => {
-    expect(parsePageParam(param, total)).toBe(expected)
   })
 })
 

@@ -1,23 +1,21 @@
 import { BlogListing, BlogListingProps } from '@/components/blog/BlogListing'
-import { getTagListingProps, getTagPageCounts } from '@/lib/blogListing'
+import { getTagListingProps, getTagSlugs } from '@/lib/blogListing'
 import { GetStaticPaths, GetStaticProps } from 'next'
 
-/** A tag's first page of posts. */
+/** A tag's posts. */
 export default function BlogTagPage(props: BlogListingProps) {
   return <BlogListing key={props.seo.path} {...props} />
 }
 
 export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: (await getTagPageCounts()).map(({ slug }) => ({
-    params: { tag: slug },
-  })),
+  paths: (await getTagSlugs()).map((tag) => ({ params: { tag } })),
   fallback: false,
 })
 
 export const getStaticProps: GetStaticProps<BlogListingProps> = async ({
   params,
 }) => {
-  const props = await getTagListingProps(String(params?.tag), 1)
+  const props = await getTagListingProps(String(params?.tag))
 
   return props ? { props } : { notFound: true }
 }

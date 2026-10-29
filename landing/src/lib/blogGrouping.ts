@@ -9,8 +9,11 @@ import { Article } from '@/utils/types'
  * pulls `fs` into the bundle and fails the build.
  */
 
-/** Posts per listing page, on /blog and on tag pages. */
-export const POSTS_PER_PAGE = 9
+/**
+ * Posts a listing shows at first, on /blog and on tag pages, and how many more
+ * each "Show more posts" click reveals.
+ */
+export const POSTS_PER_BATCH = 9
 
 /** How many tags the filter row shows, most used first. */
 export const TAG_ROW_SIZE = 7
@@ -44,62 +47,13 @@ export function tagSlug(tag: string): string {
     .replace(/^-|-$/g, '')
 }
 
-/** Path of a tag's listing, or of one of its later pages. */
-export function tagPath(tag: string, page = 1): string {
-  return listingPath(`/blog/tag/${tagSlug(tag)}`, page)
-}
-
-/** Page 1 lives at `basePath` itself; later pages add `/page/<n>`. */
-export function listingPath(basePath: string, page: number): string {
-  return page <= 1 ? basePath : `${basePath}/page/${page}`
-}
-
-/** Number of pages `count` posts fill. Always at least one. */
-export function pageCount(count: number): number {
-  return Math.max(1, Math.ceil(count / POSTS_PER_PAGE))
-}
-
-/** Slots in the pagination row, gaps included. */
-const PAGE_SLOTS = 8
-
-/**
- * Page numbers to link from `page`, with `null` for a gap. Up to `PAGE_SLOTS`
- * pages it shows them all; past that the row always fills exactly that many
- * slots, keeping the first, the last, and the current page with its
- * neighbours: `1 2 3 4 5 6 … 20`, `1 … 9 10 11 12 … 20`,
- * `1 … 15 16 17 18 19 20`. Each gap hides at least two pages.
- */
-export function getPageNumbers(
-  page: number,
-  totalPages: number,
-): (number | null)[] {
-  const range = (from: number, to: number) =>
-    Array.from({ length: to - from + 1 }, (_, index) => from + index)
-
-  if (totalPages <= PAGE_SLOTS) {
-    return range(1, totalPages)
-  }
-
-  if (page <= 4) {
-    return [...range(1, 6), null, totalPages]
-  }
-
-  if (page >= totalPages - 4) {
-    return [1, null, ...range(totalPages - 5, totalPages)]
-  }
-
-  return [1, null, page - 1, page, page + 1, page + 2, null, totalPages]
-}
-
-/** The posts on `page`, counting from 1. */
-export function getPage(articles: Article[], page: number): Article[] {
-  const start = (page - 1) * POSTS_PER_PAGE
-
-  return articles.slice(start, start + POSTS_PER_PAGE)
+/** Path of a tag's listing. */
+export function tagPath(tag: string): string {
+  return `/blog/tag/${tagSlug(tag)}`
 }
 
 /** `/blog/<segment>` paths that belong to listings, not posts. */
-const RESERVED_POST_SLUGS = new Set(['page', 'tag'])
+const RESERVED_POST_SLUGS = new Set(['tag'])
 
 /**
  * Problems that would make two blog URLs collide: a post whose slug a listing
@@ -132,22 +86,4 @@ export function findUrlClashes(articles: Article[]): string[] {
   }
 
   return problems
-}
-
-/**
- * Parses a `[page]` route param. Returns `null` for anything that is not a
- * page past the first and within `totalPages`, so the route can 404. Page 1 is
- * rejected because it lives at the listing's base path.
- */
-export function parsePageParam(
-  param: string | string[] | undefined,
-  totalPages: number,
-): number | null {
-  if (typeof param !== 'string' || !/^[1-9]\d*$/.test(param)) {
-    return null
-  }
-
-  const page = Number(param)
-
-  return page >= 2 && page <= totalPages ? page : null
 }

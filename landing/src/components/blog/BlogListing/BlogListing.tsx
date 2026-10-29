@@ -1,46 +1,67 @@
 import { BlogLeadPost } from '@/components/blog/BlogLeadPost'
-import { BlogPagination, takePageGlide } from '@/components/blog/BlogPagination'
 import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { BlogSearchField } from '@/components/blog/BlogSearchField'
 import { BlogTagRow } from '@/components/blog/BlogTagRow'
+import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
 import { useArticleSearch } from '@/hooks/useArticleSearch'
+import { POSTS_PER_BATCH } from '@/lib/blogGrouping'
 import { buildSeo, BuildSeoOptions } from '@/utils/seo'
 import { Article } from '@/utils/types'
-import { useEffect } from 'react'
+import Router from 'next/router'
+import { useEffect, useRef, useState } from 'react'
 
-/** Id of the posts section, which a page link click glides to. */
-const POSTS_ID = 'posts'
+/**
+ * How many posts each listing has revealed, by path, so moving between tags
+ * and reading a post keep each list as far open as it was. Lives until a full
+ * reload or a navigation outside /blog.
+ */
+const revealedCounts = new Map<string, number>()
+
+/** The same for search results, for one search term only. */
+const revealedSearch = { term: '', counts: new Map<string, number>() }
+
+/** Forgets the revealed search results unless they were for `term`. */
+function keepRevealedSearch(term: string) {
+  if (revealedSearch.term !== term) {
+    revealedSearch.term = term
+    revealedSearch.counts.clear()
+  }
+}
+
+if (typeof window !== 'undefined') {
+  Router.events.on('routeChangeStart', (url: string) => {
+    if (!/^\/blog(?=[/?#]|$)/.test(url)) {
+      revealedCounts.clear()
+      keepRevealedSearch('')
+    }
+  })
+}
 
 export interface BlogListingProps {
   seo: BuildSeoOptions
-  /** The listing's page 1, e.g. `/blog` or `/blog/tag/auth`. */
-  basePath: string
   /** Shown above the toolbar on every listing; the lists leave it out. */
   lead: Article | null
-  /** This page's posts. */
+  /** Every post in the listing, newest first. */
   articles: Article[]
-  /** Posts across every page of the listing. */
-  totalPosts: number
-  /** Every post the search covers: the whole listing, not just this page. */
+  /** Every post the search covers: the listing plus the lead. */
   searchable: Article[]
   /** Every tag, most used first. */
   tags: string[]
   /** The tag whose listing this is, or `null` on /blog. */
   activeTag: string | null
-  page: number
-  totalPages: number
 }
 
 /**
  * The blog's listing pages: an optional lead post, a toolbar with search and
- * tags, then a page of posts.
+ * tags, then the newest posts with a button that shows more.
  *
- * Searching swaps the page for every match across `searchable`, the lead
- * included, and leaves the lead post above the toolbar in place. Without a
- * search, the prerendered HTML holds this page's posts and links to the
- * neighbouring pages, so crawlers reach every post without JavaScript.
+ * Searching swaps the list for the matches across `searchable`, the lead
+ * included, shown in the same batches, and leaves the lead post above the
+ * toolbar in place. Without a search, the prerendered HTML links every post in
+ * the listing, with the ones not shown yet hidden, so crawlers reach them all
+ * without JavaScript.
  *
  * Renders its own `Layout` rather than using `getLayout`: `_app.tsx` hands
  * `getLayout` a `PlausibleProvider` element, not the page, so per-page SEO
@@ -48,38 +69,69 @@ export interface BlogListingProps {
  */
 export default function BlogListing({
   seo,
-  basePath,
   lead,
   articles,
-  totalPosts,
   searchable,
   tags,
   activeTag,
-  page,
-  totalPages,
 }: BlogListingProps) {
   const { query, setQuery, isSearching, results } = useArticleSearch(searchable)
 
-  // Every listing page remounts this, so on arriving from a pagination link,
-  // glide to the posts while the new cards fade in. Back and forward never set
-  // the glide, and page URLs carry no hash, so Next's scroll restoration
-  // stands.
+  const [listCount, setListCount] = useState(
+    () => revealedCounts.get(seo.path) ?? POSTS_PER_BATCH,
+  )
+  const searchTerm = query.trim().toLowerCase()
+  const [searchCount, setSearchCount] = useState(() =>
+    revealedSearch.term === searchTerm
+      ? revealedSearch.counts.get(seo.path) ?? POSTS_PER_BATCH
+      : POSTS_PER_BATCH,
+  )
+  const visibleCount = isSearching ? searchCount : listCount
+  const postsRef = useRef<HTMLDivElement>(null)
+  const showedMoreRef = useRef(false)
+
+  // Move focus to the first post a "Show more posts" click revealed, so
+  // keyboard users continue from there rather than below the new posts.
   useEffect(() => {
-    if (!takePageGlide()) {
+    if (!showedMoreRef.current) {
       return
     }
 
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
+    showedMoreRef.current = false
+    postsRef.current
+      ?.querySelectorAll<HTMLAnchorElement>('li > a')
+      [visibleCount - POSTS_PER_BATCH]?.focus({ preventScroll: true })
+  }, [visibleCount])
 
-    document.getElementById(POSTS_ID)?.scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
-      block: 'start',
-    })
-  }, [])
+  function handleShowMore() {
+    showedMoreRef.current = true
 
-  const count = isSearching ? results.length : totalPosts
+    if (isSearching) {
+      keepRevealedSearch(searchTerm)
+      revealedSearch.counts.set(seo.path, searchCount + POSTS_PER_BATCH)
+      setSearchCount(searchCount + POSTS_PER_BATCH)
+
+      return
+    }
+
+    revealedCounts.set(seo.path, listCount + POSTS_PER_BATCH)
+    setListCount(listCount + POSTS_PER_BATCH)
+  }
+
+  // Each new search term starts again from the first batch, on every listing.
+  function handleQueryChange(value: string) {
+    const term = value.trim().toLowerCase()
+
+    setQuery(value)
+
+    if (term !== searchTerm) {
+      keepRevealedSearch(term)
+      setSearchCount(POSTS_PER_BATCH)
+    }
+  }
+
+  const shown = isSearching ? results : articles
+  const count = shown.length
 
   const sectionHeading = activeTag ?? 'Latest'
 
@@ -97,8 +149,7 @@ export default function BlogListing({
 
         {lead && <BlogLeadPost article={lead} />}
 
-        {/* Paging glides here, clear of the fixed header. */}
-        <section id={POSTS_ID} className="grid scroll-mt-24 grid-cols-1 gap-8">
+        <section className="grid grid-cols-1 gap-8">
           <div className="grid grid-cols-1 gap-4 border-b border-divider pb-6">
             <div className="flex items-center gap-3">
               <h2 className="font-mona text-2xl font-semibold text-white">
@@ -129,7 +180,7 @@ export default function BlogListing({
                   activeTag ? `Search ${activeTag} posts` : 'Search the blog'
                 }
                 value={query}
-                onChange={setQuery}
+                onChange={handleQueryChange}
                 className="md:max-w-[16rem] md:shrink-0"
               />
             </div>
@@ -141,19 +192,29 @@ export default function BlogListing({
             </p>
           )}
 
-          {isSearching && results.length > 0 && (
-            <BlogPostGrid articles={results} />
-          )}
+          {shown.length > 0 && (
+            <div ref={postsRef} className="grid grid-cols-1 gap-12">
+              <BlogPostGrid articles={shown} visibleCount={visibleCount} />
 
-          {!isSearching && (
-            <>
-              <BlogPostGrid articles={articles} />
-              <BlogPagination
-                basePath={basePath}
-                page={page}
-                totalPages={totalPages}
-              />
-            </>
+              {visibleCount < shown.length && (
+                <div className="flex items-center gap-4">
+                  <span aria-hidden className="h-px flex-1 bg-divider" />
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="sm"
+                    onClick={handleShowMore}
+                    className="shrink-0"
+                  >
+                    Show more posts
+                  </Button>
+                  <span aria-hidden className="h-px flex-1 bg-divider" />
+                  <p className="shrink-0 text-xs tabular-nums text-white text-opacity-50">
+                    {shown.length - visibleCount} left
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </section>
       </Container>
