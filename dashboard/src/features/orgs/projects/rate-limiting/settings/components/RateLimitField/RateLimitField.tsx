@@ -18,7 +18,7 @@ export default function RateLimitField({
   const { control } = useFormContext();
 
   return (
-    <div className="px-4">
+    <div className="px-6">
       {title ? <p className="py-4 font-semibold">{title}</p> : null}
       <div className="flex flex-row items-start gap-4">
         <FormInput

@@ -6,9 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 
 import { Button } from '@/components/ui/v3/button';
@@ -164,6 +162,10 @@ export default function EnvironmentVariableSettings() {
       <SettingsCardHeader
         title="Project Environment Variables"
         description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables',
+          topic: 'Environment Variables',
+        }}
       />
 
       <SettingsCardContent
@@ -172,7 +174,7 @@ export default function EnvironmentVariableSettings() {
           availableEnvironmentVariables.length === 0 && 'gap-2',
         )}
       >
-        <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 border-b-1 px-6 py-3 lg:grid-cols-3">
           <p className="font-medium">Variable Name</p>
         </div>
 
@@ -182,7 +184,7 @@ export default function EnvironmentVariableSettings() {
               {availableEnvironmentVariables.map(
                 (environmentVariable, index) => (
                   <Fragment key={environmentVariable.id}>
-                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12 lg:grid-cols-3">
+                    <div className="relative grid grid-cols-2 gap-2 px-6 pr-12 lg:grid-cols-3">
                       <p className="truncate">{environmentVariable.name}</p>
 
                       <DropdownMenu>
@@ -243,13 +245,6 @@ export default function EnvironmentVariableSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/environment-variables"
-          title="Environment Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

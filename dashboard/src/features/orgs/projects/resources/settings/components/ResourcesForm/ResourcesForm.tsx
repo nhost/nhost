@@ -450,6 +450,10 @@ export default function ResourcesForm() {
           <SettingsCardHeader
             title="Compute Resources"
             description="Customize CPU and memory for the services in your project."
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/compute-resources',
+              topic: 'Compute Resources',
+            }}
             control={
               <FormSwitch
                 control={form.control}
@@ -494,7 +498,7 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
   if (!enabled) {
     return (
       <>
-        <div className="px-4 pb-4">
+        <div className="px-6 pb-4">
           <Alert>
             <AlertDescription>
               Enable this feature to access custom resource allocation for your
@@ -509,7 +513,7 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
 
   return (
     <Tabs defaultValue="overview" className="flex flex-col">
-      <div className="border-b px-4 pt-2 pb-3">
+      <div className="border-b px-6 pt-2 pb-3">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
@@ -518,7 +522,7 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
 
       <TabsContent
         value="overview"
-        className="mt-0 flex flex-col gap-4 px-4 py-4"
+        className="mt-0 flex flex-col gap-4 px-6 py-4"
       >
         <PresetSelector />
         <div className="grid gap-4 lg:grid-cols-[1fr_minmax(0,18rem)]">
@@ -529,7 +533,7 @@ function ResourcesFormBody({ initialPrice }: { initialPrice: number }) {
       </TabsContent>
 
       <TabsContent value="advanced" className="mt-0 flex flex-col">
-        <div className="px-4 py-4">
+        <div className="px-6 py-4">
           <RatioBanner />
         </div>
         <ServiceRow

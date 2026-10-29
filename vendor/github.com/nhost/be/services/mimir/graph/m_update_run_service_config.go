@@ -47,7 +47,7 @@ func (r *mutationResolver) updateRunServiceConfig(
 
 	newService.Config.Update(&input)
 
-	if _, err := newService.ResolveConfig(r.schema, true, app.Secrets); err != nil {
+	if err := newService.validateConfig(r.schema, app.Secrets); err != nil {
 		return nil, err
 	}
 

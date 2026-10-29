@@ -9,7 +9,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -181,6 +180,10 @@ export default function ContactPointsSettings() {
           <SettingsCardHeader
             title="Contact Points"
             description="Define the contact points where your notifications will be sent."
+            docsLink={{
+              href: 'https://docs.nhost.io/platform/cloud/metrics#configure-contact-points',
+              topic: 'Contact Points',
+            }}
           />
 
           <SettingsCardContent className={twMerge('my-2 px-0')}>
@@ -197,11 +200,6 @@ export default function ContactPointsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
-              title="Contact Points"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

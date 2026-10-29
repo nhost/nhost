@@ -87,6 +87,7 @@ components:
 ```
 
 **Important**:
+
 - Use `additionalProperties: false` for strict validation
 - Add proper descriptions and examples
 - Define all possible response codes
@@ -103,6 +104,7 @@ WHERE condition = $1;
 ```
 
 **Query naming conventions**:
+
 - `:one` - returns single row
 - `:many` - returns multiple rows
 - `:exec` - no return value (INSERT/UPDATE/DELETE)
@@ -149,6 +151,7 @@ func (ctrl *Controller) YourEndpoint( //nolint:ireturn
 ```
 
 **Controller patterns**:
+
 - Always get logger from context: `middleware.LoggerFromContext(ctx)`
 - Use workflows for business logic, not direct DB calls
 - Handle errors with `ctrl.respondWithError(apiErr)` or `ctrl.sendError(ErrType)`
@@ -190,6 +193,7 @@ func (wf *Workflows) DoSomething(
 ```
 
 **Workflow patterns**:
+
 - Take context, relevant IDs, inputs, and logger as parameters
 - Return result and `*APIError` (not Go error)
 - Log warnings for user errors, errors for system errors
@@ -207,6 +211,7 @@ var (
 ```
 
 **Error patterns**:
+
 - Use existing error types when possible (`ErrInvalidRequest`, `ErrInternalServerError`, etc.)
 - Map to appropriate HTTP status codes
 - Provide meaningful error messages
@@ -297,6 +302,7 @@ func TestYourEndpoint(t *testing.T) {
 ```
 
 **Testing patterns**:
+
 - Use `testRequest` struct for consistent test structure
 - Test success cases, error cases, edge cases, and validation
 - Use `gomock.NewController(t)` and `defer ctrl.Finish()`
@@ -311,12 +317,16 @@ After making changes, always run:
 go generate ./...
 ```
 
+When regenerating `go/sql/auth_schema_dump.sql`, first migrate the Auth development database configured by `build/dev/docker/docker-compose.yaml`. Both `go/sql/schema.sh` and `go/sql/sqlc.yaml` target `localhost:5432/local`; using a different PostgreSQL server version can introduce unrelated dump churn. The Auth development shell may not provide a host `pg_isready`; wait on the Compose healthcheck (`docker compose up --wait`) or run `pg_isready` inside the PostgreSQL container instead.
+
 This generates:
+
 - API server code from OpenAPI spec (`api/server.gen.go`, `api/types.gen.go`)
 - SQL client code from queries (`sql/query.sql.go`)
 - Mocks from interfaces (`controller/mock/`)
 
 **Generation directives**:
+
 - OpenAPI: `//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml`
 - Mocks: `//go:generate mockgen -package mock -destination mock/controller.go --source=controller.go`
 
@@ -410,6 +420,7 @@ return ctrl.respondWithError(apiErr), nil
 ## Additional Notes
 
 When implementing new features:
+
 1. Review existing similar implementations for business logic patterns
 2. Identify required database operations and add appropriate queries
 3. Follow established validation patterns in workflows
