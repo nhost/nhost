@@ -59,6 +59,8 @@ let
       ../vendor/cuelang.org/go
       ../vendor/github.com/cockroachdb/apd
       ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
+      # Vale styles, shared with the blog; docs/.vale.ini points at them.
+      ../.vale/styles
     ];
   };
 

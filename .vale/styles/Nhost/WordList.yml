@@ -1,0 +1,30 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.errata-ai-Google.
+extends: substitution
+message: "Use '%s' instead of '%s'."
+link: "https://developers.google.com/style/word-list"
+level: suggestion
+# Case matters here: each key's own capitalization is what's being corrected,
+# so ignorecase would make these match their own replacements. The rest of the
+# word list lives in WordListCase.yml.
+ignorecase: false
+action:
+  name: replace
+swap:
+  Ajax: AJAX
+  Android device: Android-powered device
+  android: Android
+  API explorer: APIs Explorer
+  authN: authentication
+  authZ: authorization
+  CLI: command-line tool
+  Cloud: Google Cloud Platform|GCP
+  Container Engine: Kubernetes Engine
+  Developers Console: Google API Console|API Console
+  Google account: Google Account
+  Google accounts: Google Accounts
+  Googling: search with Google
+  HTTPs: HTTPS
+  k8s: Kubernetes
+  SHA1: SHA-1|HAS-SHA1
+  url: URL
+  World Wide Web: web

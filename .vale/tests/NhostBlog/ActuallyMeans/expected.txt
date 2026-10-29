@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/ActuallyMeans/fail.mdx:3:24:NhostBlog.ActuallyMeans:Name what the section covers instead of promising what a term 'actually means'.

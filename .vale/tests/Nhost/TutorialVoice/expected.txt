@@ -1,0 +1,9 @@
+.vale/tests/Nhost/TutorialVoice/fail.mdx:5:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'In this guide, we will'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:7:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'In this section we'll'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:9:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'In this post we'll'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:9:41:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'in this tutorial we will'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:11:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'Let's take a look'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:11:39:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'let's build'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:11:62:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'let's review'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:13:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'Now that we have'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:13:31:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'now that you've'.

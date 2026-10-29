@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/BoldParagraph/fail.mdx:3:1:NhostBlog.BoldParagraph:A bold-only paragraph is either a heading, which should be '###', or the thesis, which should read as prose.

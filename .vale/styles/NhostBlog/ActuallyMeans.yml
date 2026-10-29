@@ -1,0 +1,11 @@
+# NhostBlog rule. A subhead promising what a term "actually" or "really"
+# means is a generated-text tell: it sets up a reveal instead of naming what
+# the section covers, and the section under it usually just defines the term.
+extends: existence
+message: "Name what the section covers instead of promising what a
+  term '%s'."
+level: warning
+scope: heading
+ignorecase: true
+tokens:
+  - '(?:actually|really) (?:means|is|does|works)'

@@ -38,9 +38,15 @@ let
       ../pnpm-workspace.yaml
       ../pnpm-lock.yaml
       ../turbo.json
+      # Vale styles, shared with the docs; landing/.vale.ini points at them.
+      ../.vale/styles
       ./.
     ];
   };
+
+  # `pnpm test` ends in test:prose, which lints the blog with Vale. The rule
+  # fixtures are run by the tools/vale check.
+  checkDeps = with pkgs; [ vale ];
 
   buildInputs = with pkgs; [ nhost.nodejs ];
 
@@ -61,6 +67,7 @@ rec {
 
     buildInputs = [
     ]
+    ++ checkDeps
     ++ buildInputs
     ++ nativeBuildInputs;
   };
@@ -70,6 +77,7 @@ rec {
       src
       node_modules
       submodule
+      checkDeps
       buildInputs
       nativeBuildInputs
       ;

@@ -1,0 +1,52 @@
+# Nhost rule. The words and phrases with hits on the docs or blog trees; the
+# zero-hit ones are in LLMPhrasesStrict.yml, so nothing is reported twice.
+#
+# Deliberately not listed, each measured and checked in context:
+#   elevated/elevate  - 'x-hasura-auth-elevated' and "elevated access" are
+#                       Nhost auth vocabulary, not praise (28 hits)
+#   out of the box    - a technical idiom meaning "without configuration"
+#   first-class       - "first-class backends" describes support, not quality
+#   harness           - "test harness" is a real noun
+#   under the hood    - ordinary engineering speech as often as it is a tell
+#   ensure that       - wordy rather than boastful, and 42 hits of plain
+#                       technical writing; this rule is about praise
+extends: existence
+message: "Describe what the product does instead of '%s'."
+level: warning
+ignorecase: true
+# As in LLMPhrasesStrict: an accept.txt term inside a wildcard would hide the
+# match, so "not only Nhost but also" would never be reported. No token here
+# is itself an accepted term.
+vocab: false
+tokens:
+  # praise adjectives and verbs
+  - seamless(?:ly)?
+  - leverag(?:e|es|ed|ing)
+  - robust
+  - powerful
+  - unlock(?:s|ed|ing)?
+  - unleash(?:es|ed|ing)?
+  - comprehensive
+  - crucial
+  - blazing(?:ly)? fast
+  - cutting[- ]edge
+  - world[- ]class
+  - game[- ]chang(?:er|ers|ing)
+  - revolutionis(?:e|es|ed|ing)
+  - revolutioniz(?:e|es|ed|ing)
+  - streamlin(?:e|es|ed|ing)
+  - empower(?:s|ed|ing)?
+  # hedges and padding
+  - simply
+  - utilis(?:e|es|ed|ing)
+  - utiliz(?:e|es|ed|ing)
+  - facilitat(?:e|es|ed|ing)
+  - when it comes to
+  - "it['’]s important to (?:note|remember|understand)"
+  - keep in mind that
+  - not only .{1,60} but also
+  # framing openers that stand in for a point
+  - "whether you['’]?re"
+  - "in today['’]s"
+  - in the world of
+  - think of (?:it|this) as

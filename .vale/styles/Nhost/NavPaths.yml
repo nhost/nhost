@@ -1,0 +1,17 @@
+# Nhost rule. Raw scope, so a stale path inside a JSX-wrapped paragraph is
+# seen too. One row per dashboard location that has moved, each checked
+# against the dashboard source named beside it.
+extends: substitution
+message: "The dashboard path is now '%s', not '%s'."
+level: warning
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+ignorecase: false
+swap:
+  # GraphQL Engine version: graphql/settings?tab=engine
+  # (dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/graphql/settings.tsx)
+  'Settings (?:->|→) Hasura': GraphQL → Settings → Engine
+  # Sign-in methods: auth/settings?tab=sign-in-methods, under the Auth area
+  # (dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/settings.tsx)
+  '(?<!Auth (?:->|→) )Settings (?:->|→) Sign-In Methods': Auth → Settings → Sign-In Methods

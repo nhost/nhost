@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/InsecureLink/fail.mdx:3:18:NhostBlog.InsecureLink:'http://docs.nhost.io' redirects; link Nhost hosts over https.

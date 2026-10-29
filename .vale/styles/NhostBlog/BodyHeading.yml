@@ -1,0 +1,12 @@
+# NhostBlog rule. BlogPostLayout renders article.title as the page's only h1,
+# so a '#' in the body gives the post a second one. Vale's heading.h1 scope
+# parses the Markdown, so a '#' comment inside a code fence is not a heading
+# and is not reported.
+extends: existence
+message: "The layout renders the title as the h1; start the body
+  with a paragraph and use '##' and '###' only."
+level: warning
+scope: heading.h1
+nonword: true
+tokens:
+  - '.+'

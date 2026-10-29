@@ -1,0 +1,13 @@
+# NhostBlog rule. Raw scope, so the marker is seen wherever it sits. The blog
+# has no callout component: BlogPostLayout does not render ':::', so the
+# markup would ship to the reader as literal colons.
+extends: existence
+message: "The blog has no ':::' callout; put the caveat in a
+  sentence beside what it qualifies."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '(?m)^[ \t]*:::'

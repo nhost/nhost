@@ -1,0 +1,14 @@
+# NhostBlog rule. Raw scope, because the TokenIgnores in landing/.vale.ini
+# drop JSX and HTML tags. Matches one '<a ...>' opening tag, attributes in any
+# order. Wider than Nhost.DeepLinkRel, which only guards app.nhost.io: on the
+# blog every new tab needs the rel, whatever it points at.
+extends: existence
+message: "A link that opens a new tab needs
+  'rel=\"noopener noreferrer\"'."
+level: error
+scope: raw
+# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '<a\s(?![^<>]*\brel="noopener noreferrer")(?=[^<>]*\btarget="_blank")[^<>]*>'
