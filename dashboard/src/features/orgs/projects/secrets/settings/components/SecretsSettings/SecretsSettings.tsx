@@ -1,7 +1,5 @@
 import { NetworkStatus } from '@apollo/client';
-import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import {
@@ -10,15 +8,16 @@ import {
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/components/CreateSecretForm';
@@ -35,9 +34,6 @@ export default function SecretsSettings() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
-  const [openActionMenuSecret, setOpenActionMenuSecret] = useState<
-    string | undefined
-  >();
 
   const { data, error, refetch, networkStatus } = useGetSecretsQuery({
     variables: { appId: project?.id },
@@ -97,7 +93,7 @@ export default function SecretsSettings() {
 
   function handleOpenCreator() {
     openDialog({
-      title: 'Create Secret',
+      title: 'Create secret',
       component: <CreateSecretForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
@@ -108,7 +104,7 @@ export default function SecretsSettings() {
 
   function handleOpenEditor(originalSecret: Secret) {
     openDialog({
-      title: 'Edit Secret',
+      title: `Replace ${originalSecret.name}`,
       component: <EditSecretForm originalSecret={originalSecret} />,
       props: {
         titleProps: { className: '!pb-0' },
@@ -119,7 +115,7 @@ export default function SecretsSettings() {
 
   function handleConfirmDelete(originalSecret: Secret) {
     openAlertDialog({
-      title: 'Delete Secret',
+      title: 'Delete secret',
       payload: (
         <p>
           Are you sure you want to delete the &quot;
@@ -139,9 +135,9 @@ export default function SecretsSettings() {
 
   return (
     <div className="grid grid-flow-row gap-6">
-      <SettingsCard className="gap-0 pb-4">
+      <SettingsCard>
         <SettingsCardHeader
-          title="Secrets"
+          title={null}
           description={
             <span>
               To prevent exposing sensitive information, use secrets in your
@@ -152,87 +148,58 @@ export default function SecretsSettings() {
               in any configuration placeholder.
             </span>
           }
+          actions={
+            <Button type="button" variant="outline" onClick={handleOpenCreator}>
+              <PlusIcon className="mr-2" />
+              Create secret
+            </Button>
+          }
         />
 
-        <SettingsCardContent
-          className={twMerge('mt-2 px-0', secrets.length === 0 && 'gap-2')}
-        >
-          <div className="grid grid-cols-2 gap-2 border-b-1 px-6 py-3">
-            <p className="font-medium">Secret Name</p>
-          </div>
-
-          <div className="grid grid-flow-row gap-2">
-            {secrets.length > 0 && (
-              <div>
-                {secrets.map((secret, index) => (
-                  <Fragment key={secret.name}>
-                    <div className="relative grid grid-cols-2 gap-2 px-6 pr-12">
-                      <DropdownMenu
-                        open={openActionMenuSecret === secret.name}
-                        onOpenChange={(open) =>
-                          setOpenActionMenuSecret(
-                            open ? secret.name : undefined,
-                          )
-                        }
-                      >
-                        <DropdownMenuTrigger asChild>
+        {secrets.length > 0 && (
+          <SettingsCardContent className="mt-2">
+            <VariableGroup>
+              {secrets.map((secret) => (
+                <TableRow key={secret.name} className="group">
+                  <TableCell className="break-all font-mono">
+                    {secret.name}
+                  </TableCell>
+                  <TableCell className="w-24">
+                    <div className="flex justify-end gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <Button
                             type="button"
                             variant="subtle"
-                            size="icon"
-                            className="absolute top-1/2 right-4 -translate-y-1/2"
+                            aria-label={`Replace ${secret.name}`}
+                            onClick={() => handleOpenEditor(secret)}
                           >
-                            <DotsVerticalIcon className="h-4 w-4" />
+                            <PencilIcon />
                           </Button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="end" className="w-32">
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2"
-                            onClick={() => {
-                              setOpenActionMenuSecret(undefined);
-                              handleOpenEditor(secret);
-                            }}
+                        </TooltipTrigger>
+                        <TooltipContent>Replace value</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="subtle"
+                            className="hover:text-destructive dark:hover:text-destructive"
+                            aria-label={`Delete ${secret.name}`}
+                            onClick={() => handleConfirmDelete(secret)}
                           >
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setOpenActionMenuSecret(undefined);
-                              handleConfirmDelete(secret);
-                            }}
-                            className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
-                          >
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <p className="truncate">{secret.name}</p>
+                            <Trash2Icon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
                     </div>
-
-                    <div
-                      className={twMerge(
-                        'border-t',
-                        index === secrets.length - 1 ? '!mt-4' : '!my-4',
-                      )}
-                    />
-                  </Fragment>
-                ))}
-              </div>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              className="mx-4 mt-2 justify-self-start"
-              onClick={handleOpenCreator}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create Secret
-            </Button>
-          </div>
-        </SettingsCardContent>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </VariableGroup>
+          </SettingsCardContent>
+        )}
       </SettingsCard>
     </div>
   );
