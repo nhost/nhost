@@ -11,12 +11,16 @@ interface InfoTooltipProps {
 }
 
 export default function InfoTooltip({ children }: InfoTooltipProps) {
+  // The help text often has a docs link, so it stays open while hovered and
+  // its links can be clicked.
   return (
-    <Tooltip>
+    <Tooltip disableHoverableContent={false}>
       <TooltipTrigger asChild>
         <Info className="size-4 text-primary" />
       </TooltipTrigger>
-      <TooltipContent>{children}</TooltipContent>
+      <TooltipContent className="pointer-events-auto">
+        {children}
+      </TooltipContent>
     </Tooltip>
   );
 }

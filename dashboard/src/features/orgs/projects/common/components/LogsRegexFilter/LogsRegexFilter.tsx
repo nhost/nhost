@@ -18,7 +18,8 @@ type LogsRegexFilterProps = UseFormRegisterReturn<
 const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
   (props, ref) => (
     <div className="relative flex w-full min-w-0 items-center">
-      <Tooltip>
+      {/* Has a link inside, so it stays open while hovered. */}
+      <Tooltip disableHoverableContent={false}>
         <TooltipTrigger asChild>
           <button
             type="button"
@@ -28,7 +29,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
             <InfoIcon className="h-5 w-5 text-blue-500" />
           </button>
         </TooltipTrigger>
-        <TooltipContent className="max-w-[30rem]">
+        <TooltipContent className="pointer-events-auto max-w-[30rem]">
           <div className="space-y-4 p-2">
             <h2>Here are some useful regular expressions:</h2>
             <ul className="list-disc space-y-2 pl-3">
