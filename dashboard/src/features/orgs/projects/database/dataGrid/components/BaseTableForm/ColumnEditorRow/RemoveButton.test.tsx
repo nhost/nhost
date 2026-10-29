@@ -13,6 +13,7 @@ interface FormData {
     referencedColumns: string[];
   }>;
   primaryKeyIndices: string[];
+  uniqueKeys?: Array<{ name?: string; columnIndices: string[] }>;
   identityColumnIndex: number | null;
 }
 
@@ -112,5 +113,32 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.primaryKeyIndices).toEqual(['0']);
     expect(formValues!.foreignKeyRelations).toEqual([]);
     expect(formValues!.identityColumnIndex).toBeNull();
+  });
+
+  it('should drop unique keys using the column and shift the others down', async () => {
+    let formValues: FormData;
+
+    render(
+      <TestWrapper
+        defaultValues={{
+          ...defaultFormData,
+          uniqueKeys: [
+            { columnIndices: ['0', '1'] },
+            { name: 'test_id_email_key', columnIndices: ['0', '2'] },
+          ],
+        }}
+        onFormChange={(values) => {
+          formValues = values;
+        }}
+      >
+        <RemoveButton index={1} />
+      </TestWrapper>,
+    );
+
+    await user.click(screen.getByTestId('remove-column-1'));
+
+    expect(formValues!.uniqueKeys).toEqual([
+      { name: 'test_id_email_key', columnIndices: ['0', '1'] },
+    ]);
   });
 });
