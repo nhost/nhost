@@ -154,4 +154,39 @@ describe('UserAndRoleSelect', () => {
       role: 'me',
     });
   });
+
+  it('adds a role search when the project has many roles', async () => {
+    const manyRoles = Array.from({ length: 12 }, (_, i) => ({
+      role: `role${i + 1}`,
+    }));
+    mocks.fetchAppUsers.mockResolvedValue({
+      data: {
+        users: [
+          { id: USER_ID, displayName: 'Many Roles User', roles: manyRoles },
+        ],
+        authRoles: manyRoles,
+      },
+    });
+
+    const user = new TestUserEvent();
+
+    render(<UserAndRoleSelect onSelectionChange={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mocks.fetchAppUsers).toHaveBeenCalledTimes(1);
+    });
+
+    await user.click(screen.getByTestId('graphql-request-as-trigger'));
+    await user.click(
+      await screen.findByRole('option', { name: /Many Roles User/ }),
+    );
+    await user.type(screen.getByLabelText('Search roles'), 'role1');
+
+    // role1 (selected) plus role10, role11 and role12 match the search.
+    expect(screen.getByRole('button', { name: 'role1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'role12' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'role5' }),
+    ).not.toBeInTheDocument();
+  });
 });

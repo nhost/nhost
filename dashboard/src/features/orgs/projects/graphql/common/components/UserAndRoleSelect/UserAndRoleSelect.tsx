@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
 import type { GraphQLPlaygroundSelection } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import { cn } from '@/lib/utils';
+
+// Up to this many roles the chips are enough. Projects can have any number of
+// roles, so above it a search box filters the chips and the list scrolls.
+const ROLE_SEARCH_THRESHOLD = 8;
 
 /**
  * One "Request as" control: the user picker with the role chips below it.
@@ -20,6 +25,19 @@ export default function UserAndRoleSelect({
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [userId, setUserId] = useState('');
   const [role, setRole] = useState('');
+  const [roleSearch, setRoleSearch] = useState('');
+
+  const hasManyRoles = availableRoles.length > ROLE_SEARCH_THRESHOLD;
+  const search = roleSearch.trim().toLowerCase();
+  // The selected role stays visible while searching, so it's never hidden.
+  const shownRoles =
+    hasManyRoles && search
+      ? availableRoles.filter(
+          (availableRole) =>
+            availableRole === role ||
+            availableRole.toLowerCase().includes(search),
+        )
+      : availableRoles;
 
   const handleUserChange = (
     nextUserId: string,
@@ -33,6 +51,9 @@ export default function UserAndRoleSelect({
       ? role
       : (availableUserRoles[0] ?? '');
 
+    if (nextUserId !== userId) {
+      setRoleSearch('');
+    }
     setUserId(nextUserId);
     setRole(nextRole);
     onSelectionChange({ userId: nextUserId, role: nextRole });
@@ -64,8 +85,22 @@ export default function UserAndRoleSelect({
         <legend className="float-left w-full font-medium text-muted-foreground text-xs">
           Role
         </legend>
-        <div className="flex w-full flex-wrap gap-1.5 pt-2">
-          {availableRoles.map((availableRole) => {
+        {hasManyRoles && (
+          <Input
+            value={roleSearch}
+            onChange={(event) => setRoleSearch(event.target.value)}
+            placeholder="Search roles..."
+            aria-label="Search roles"
+            className="mt-2 h-8 text-xs"
+          />
+        )}
+        <div
+          className={cn(
+            'flex w-full flex-wrap gap-1.5 pt-2',
+            hasManyRoles && 'max-h-32 overflow-y-auto',
+          )}
+        >
+          {shownRoles.map((availableRole) => {
             const isSelected = availableRole === role;
 
             return (
