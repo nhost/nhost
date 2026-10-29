@@ -11,7 +11,7 @@ sidebar:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 
-One-Time Passwords (OTPs) are temporary codes for single use that can be delivered to users via email. OTPs expire after 5 minutes and can only be used once. OTPs can provide a more secure and convenient alternative to regular passwords.
+One-Time Passwords (OTPs) are temporary codes for single use that can be delivered to users via email. OTPs expire after 10 minutes and can only be used once. OTPs can provide a more secure and convenient alternative to regular passwords.
 
 To use One-Time Passwords, they need to be enabled in the configuration:
 
@@ -78,7 +78,9 @@ A user account is created the first time an email is used with OTP.
 
 ## Elevate a Session
 
-When email OTP is enabled, signed-in users with a verified email address can also use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions. The code is sent to the email address of the signed-in user using the `elevate-otp` template:
+When email OTP is enabled, signed-in users with a verified email address can also use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions. Email verification is required for elevation even if it is optional for sign-in. The code is sent to the email address of the signed-in user using the [`elevate-otp` template](/products/auth/email-templates), rather than the `signin-otp` template.
+
+Neither call takes an email address; both use the user's existing authenticated session:
 
 ```js
 await nhost.auth.elevateOTPEmail();

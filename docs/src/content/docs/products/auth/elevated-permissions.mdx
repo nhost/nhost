@@ -22,17 +22,17 @@ It is important to keep in mind the claim is added to the access token so, for a
 
 A signed-in user can elevate their session with any of the following methods. A method is only available when it is enabled for the project **and** the user has set it up:
 
-| Method | Enabled with | Available to the user when |
+| Method | Enabled with (`nhost.toml`) | Available to the user when |
 |---|---|---|
 | `webauthn` | `auth.method.webauthn.enabled` | They have at least one [security key](/products/auth/webauthn) registered |
 | `totp` | `auth.totp.enabled` | They have activated [TOTP](/products/auth/mfa) on their account |
 | `otp-email` | `auth.method.otp.email.enabled` | They have a verified email address |
 | `otp-sms` | `auth.method.otp.sms.enabled` | They have a verified phone number |
 
-Every method ends with the same result: a new session whose access token carries the `x-hasura-auth-elevated` claim. The JavaScript SDK stores that session automatically, so subsequent requests made with the same client use the elevated token.
+Every method ends with the same result: a new session whose access token carries the `x-hasura-auth-elevated` claim. The JavaScript SDK stores that session automatically, so subsequent requests made with the same client use the elevated token. If you call the REST API directly, store the returned `session`, including its access and refresh tokens, and use the new access token for the protected request.
 
 :::note
-Enabling `auth.method.otp.email` or `auth.method.otp.sms` also enables the corresponding passwordless sign-in method. Email OTP elevation uses its own `elevate-otp` [email template](/products/auth/email-templates).
+Enabling `auth.method.otp.email.enabled` or `auth.method.otp.sms.enabled` also enables the corresponding passwordless sign-in method. The deprecated `auth.method.smsPasswordless.enabled` setting still enables SMS OTP as described in [SMS configuration](/products/auth/otp/sms#configuration). Email OTP elevation uses its own `elevate-otp` [email template](/products/auth/email-templates); SMS elevation reuses `signin-passwordless-sms/body.txt`.
 :::
 
 ### Discovering available methods
@@ -48,11 +48,11 @@ const { body } = await nhost.auth.getElevationMethods();
 // }
 ```
 
-- `elevationRequired` tells you whether the [protected auth endpoints](#protecting-auth-data) will require an elevated session for this user under the current mode.
-- `methods` lists the methods the user can use right now.
-- `sessionElevated` tells you whether the current access token already carries the elevated claim, so you can skip the elevation step.
+- `elevationRequired` tells you whether the [protected auth endpoints](#protecting-auth-data) require an elevated session for this user under the current mode. It describes the policy, not the token, so it can be `true` even when `sessionElevated` is already `true`.
+- `methods` lists the methods enabled for the project and available to this user, even in `disabled` mode.
+- `sessionElevated` is `true` when the current access token has an `x-hasura-auth-elevated` claim matching its user ID, so you can skip the elevation step.
 
-If `elevationRequired` is `true` and `methods` is empty, the user has to set up a second factor before they can perform any protected action.
+If `elevationRequired` is `true`, `sessionElevated` is `false`, and `methods` is empty, offer first-factor setup rather than a code prompt. The [setup exceptions](#protecting-auth-data) let the user register their first security key or activate TOTP before elevating.
 
 ### Elevating a session
 
@@ -98,7 +98,15 @@ If `elevationRequired` is `true` and `methods` is empty, the user has to set up 
   </TabItem>
 </Tabs>
 
-All elevation endpoints require an `Authorization` header with a valid access token for the user being elevated. 
+All elevation endpoints require an `Authorization: Bearer <access-token>` header for the user being elevated; the SDK supplies it automatically. Email and SMS elevation use the signed-in user's verified address or phone number, so neither the request nor the verification call accepts an email address or phone number.
+
+Signing in, including completing a TOTP MFA challenge, does not itself add the elevated claim. Use the elevation endpoints for this extra step.
+
+### OTP codes and retries
+
+- Email elevation codes expire after **10 minutes**; SMS elevation codes expire after **5 minutes**. Both are six-digit, single-use codes.
+- Only one email or SMS OTP can be outstanding per user. Requesting another code, including for sign-in or a phone-number change, replaces the previous one. When offering resend or switching methods, prompt for the newest code.
+- An incorrect or expired code returns `invalid-otp`. After **five incorrect attempts**, the code is invalidated and verification returns `otp-too-many-attempts`; request a new code to continue. Error concealment can replace this with a generic error.
 
 ### API endpoints and SDK methods
 
@@ -143,12 +151,12 @@ mode = 'required'
 
 The mode can be one of `disabled` (default), `recommended`, `required`.
 
-In `disabled` mode the elevated claim isn't required for any of the endpoints above. This is the default behavior.
+In `disabled` mode the elevated claim isn't required for any of the endpoints above. This is the default behavior. Users can still elevate their sessions, and GraphQL permissions that check `x-hasura-auth-elevated` still apply independently of this setting.
 
-In `recommended` mode, the elevated claim is only required if the user has at least one [elevation method](#elevation-methods) available. Users with no available method can perform the actions above without elevating. This mode lets users opt into the extra security by setting up a second factor.
+In `recommended` mode, the elevated claim is only required if the user has at least one [elevation method](#elevation-methods) available. Users with no available method can perform the actions above without elevating. A registered security key or activated TOTP only counts while that method is enabled for the project.
 
 :::caution
-In `recommended` mode, email OTP and SMS OTP count as available methods too. If you enable `auth.method.otp.email`, every user with a verified email address will have to elevate before performing the actions above, which effectively behaves like `required` mode for them.
+In `recommended` mode, email OTP and SMS OTP count as available methods too, without separate enrollment. Enabling `auth.method.otp.email.enabled` requires every user with a verified email address to elevate before performing the actions above. Enabling `auth.method.otp.sms.enabled` does the same for users with a verified phone number. These users need to elevate even if they have never registered a security key or activated TOTP.
 :::
 
 In `required` mode, all of the endpoints above require an access token with the elevated claim. The only exception is setting up a first factor: if the user has no elevation method available, they can register a security key (`/user/webauthn/add` and `/user/webauthn/verify`) or start TOTP setup (`/mfa/totp/generate`) without the elevated claim. Every other endpoint still requires it, so such a user can't perform any other protected action until they set up a factor and elevate their session. Once the user has any method available, setting up additional factors requires the elevated claim as well.

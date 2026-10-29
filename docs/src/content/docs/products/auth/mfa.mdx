@@ -18,7 +18,10 @@ To enable MFA, navigate to **Auth -> Settings -> Authentication** and enable **M
 ```toml title="nhost.toml"
 [auth.totp]
 enabled = true
+issuer = 'My App'
 ```
+
+The `issuer` is the name shown in users' authenticator apps and is required when TOTP is enabled in `nhost.toml`.
 
 ## Enabling MFA
 
@@ -123,7 +126,7 @@ sequenceDiagram
 
 ## Elevating a Session with TOTP
 
-Users with TOTP activated can use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions:
+Users with TOTP activated can use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions. This is separate from sign-in MFA: `verifySignInMfaTotp` completes sign-in but does not add the elevated claim. A signed-in user submits their current authenticator code to `elevateTotp` without a sign-in ticket:
 
 ```js
 await nhost.auth.elevateTotp({
