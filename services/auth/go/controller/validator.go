@@ -88,20 +88,22 @@ func ValidateEmail(
 		}
 
 		domain := parts[1]
+		matchesEmail := func(candidate string) bool { return strings.EqualFold(candidate, email) }
+		matchesDomain := func(candidate string) bool { return strings.EqualFold(candidate, domain) }
 
-		if slices.Contains(blockedEmails, email) {
+		if slices.ContainsFunc(blockedEmails, matchesEmail) {
 			return false
 		}
 
-		if slices.Contains(allowedEmails, email) {
+		if slices.ContainsFunc(allowedEmails, matchesEmail) {
 			return true
 		}
 
-		if slices.Contains(blockedEmailDomains, domain) {
+		if slices.ContainsFunc(blockedEmailDomains, matchesDomain) {
 			return false
 		}
 
-		if slices.Contains(allowedEmailDomains, domain) {
+		if slices.ContainsFunc(allowedEmailDomains, matchesDomain) {
 			return true
 		}
 

@@ -3,9 +3,7 @@ import { useState } from 'react';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import {
   AlertDialog,
@@ -57,6 +55,10 @@ export default function GitConnectionSettings() {
       <SettingsCardHeader
         title="Git Repository"
         description="Create Deployments for commits pushed to your Git repository."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/deployments',
+          topic: 'Git Repository',
+        }}
       />
 
       <SettingsCardContent className="grid-cols-5">
@@ -86,20 +88,15 @@ export default function GitConnectionSettings() {
         )}
       </SettingsCardContent>
 
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/deployments"
-          title="Git Repository"
-        />
-      </SettingsCardFooter>
-
       <AlertDialog
         open={isDisconnectDialogOpen}
         onOpenChange={setIsDisconnectDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="p-12">
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect GitHub Repository</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Disconnect GitHub Repository
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to disconnect{' '}
               <span className="font-semibold text-foreground">
@@ -108,7 +105,7 @@ export default function GitConnectionSettings() {
               ?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel disabled={isDisconnecting}>
               Cancel
             </AlertDialogCancel>

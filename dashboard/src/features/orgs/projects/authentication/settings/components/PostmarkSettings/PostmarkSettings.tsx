@@ -115,7 +115,7 @@ export default function PostmarkSettings() {
             description="Configure postmark's native integration to send emails from your email domain."
           />
 
-          <SettingsCardContent className="grid-cols-1 lg:grid-cols-9">
+          <SettingsCardContent className="mt-2 grid-cols-1 lg:grid-cols-9">
             <FormInput
               control={form.control}
               name="sender"

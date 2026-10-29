@@ -42,7 +42,7 @@ function isBaseSyntheticEvent(event: unknown): event is BaseSyntheticEvent {
 }
 
 const MAX_WIDTH = {
-  xs: 'max-w-[444px]',
+  xs: 'max-w-lg',
   sm: 'max-w-[640px]',
   md: 'max-w-[768px]',
 } as const;
@@ -329,7 +329,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         <AlertDialogContent
           ref={alertContentRef}
           className={cn(
-            'max-h-[calc(100dvh-4rem)] max-w-[444px] gap-0',
+            'max-h-[calc(100dvh-4rem)] max-w-lg gap-0 p-12',
             defaultOverflow(alertDialogProps?.PaperProps?.className),
             MAX_WIDTH[alertDialogProps?.maxWidth ?? 'xs'],
             alertDialogProps?.PaperProps?.className,
@@ -355,7 +355,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         >
           <AlertDialogTitle
             className={cn(
-              'pb-2 font-medium',
+              'pb-2 font-semibold text-xl',
               (alertDialogProps?.hideTitle || !alertDialogTitle) && 'sr-only',
               alertDialogProps?.titleProps?.className,
             )}
@@ -364,13 +364,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           </AlertDialogTitle>
           <AlertDialogDescription
             asChild
-            className="text-[0.9375rem] text-foreground leading-[1.375rem]"
+            className="text-muted-foreground text-sm"
           >
             <div
               className={cn(
                 (!alertDialogProps?.hidePrimaryAction ||
                   !alertDialogProps?.hideSecondaryAction) &&
-                  'pb-4',
+                  'pb-12',
               )}
             >
               {alertDialogPayload}
@@ -378,11 +378,24 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           </AlertDialogDescription>
           {(!alertDialogProps?.hidePrimaryAction ||
             !alertDialogProps?.hideSecondaryAction) && (
-            <div className="grid w-full gap-2">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              {!alertDialogProps?.hideSecondaryAction && (
+                <Button
+                  ref={secondaryButtonRef}
+                  className="w-full sm:w-auto"
+                  variant="outline"
+                  onClick={() => {
+                    alertDialogProps?.onSecondaryAction?.();
+                    closeAlertDialog();
+                  }}
+                >
+                  {alertDialogProps?.secondaryButtonText ?? 'Cancel'}
+                </Button>
+              )}
               {!alertDialogProps?.hidePrimaryAction && (
                 <Button
                   ref={primaryButtonRef}
-                  className="w-full"
+                  className="w-full sm:w-auto"
                   variant={
                     alertDialogProps?.primaryButtonColor === 'error'
                       ? 'destructive'
@@ -394,19 +407,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
                   }}
                 >
                   {alertDialogProps?.primaryButtonText ?? 'Confirm'}
-                </Button>
-              )}
-              {!alertDialogProps?.hideSecondaryAction && (
-                <Button
-                  ref={secondaryButtonRef}
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => {
-                    alertDialogProps?.onSecondaryAction?.();
-                    closeAlertDialog();
-                  }}
-                >
-                  {alertDialogProps?.secondaryButtonText ?? 'Cancel'}
                 </Button>
               )}
             </div>
@@ -429,7 +429,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           hideCloseButton
           aria-describedby={undefined}
           className={cn(
-            'flex max-h-[calc(100dvh-4rem)] w-full max-w-md flex-col gap-0 p-0',
+            'flex max-h-[calc(100dvh-4rem)] w-full max-w-xl flex-col gap-0 p-0',
             defaultOverflow(dialogProps?.PaperProps?.className),
             dialogProps?.PaperProps?.className,
           )}
@@ -457,16 +457,16 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           {dialogTitle && !dialogProps?.hideTitle ? (
             <div
               className={cn(
-                'grid grid-flow-col items-center justify-between px-6 pt-6 pb-3',
+                'grid grid-flow-col items-center justify-between px-12 pt-12 pb-4',
                 dialogProps?.titleProps?.className,
               )}
             >
-              <DialogTitle className="font-medium text-lg leading-7 tracking-normal">
+              <DialogTitle className="font-semibold text-xl leading-7 tracking-normal">
                 {dialogTitle}
               </DialogTitle>
               {dialogProps?.titleProps?.onClose && (
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label="Close"
                   onClick={dialogProps.titleProps.onClose}
@@ -479,7 +479,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             <DialogTitle className="sr-only">{dialogTitle}</DialogTitle>
           )}
           <RetryableErrorBoundary
-            errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
+            errorMessageProps={{ className: 'pt-0 pb-12 px-12' }}
           >
             {isValidElement(activeDialog)
               ? cloneElement(activeDialog, {
@@ -557,7 +557,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {drawerTitle}
             </SheetTitle>
             <Button
-              variant="ghost"
+              variant="subtle"
               size="icon"
               aria-label="Close"
               onClick={closeDrawerWithDirtyGuard}
