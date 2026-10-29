@@ -8,10 +8,14 @@ import {
   pageCount,
   tagSlug,
 } from '@/lib/blogGrouping'
+import { Article } from '@/utils/types'
 
 /**
  * Props for the blog's listing routes: /blog, /blog/page/<n>, and the same
  * under /blog/tag/<slug>.
+ *
+ * The lead post sits above the list on every one of them, so the lists skip
+ * it rather than show it twice.
  *
  * BUILD TIME ONLY, like `@/lib/blog`, which it reads posts through.
  */
@@ -19,16 +23,22 @@ import {
 const BLOG_DESCRIPTION =
   'The latest Nhost news, product updates, engineering deep-dives, and developer guides on Postgres, GraphQL, Auth, and more.'
 
-/**
- * /blog and its later pages. The lead post sits above the list on page 1, so
- * the list skips it on every page to keep the pages consistent.
- */
+/** The posts a listing pages through: `tag`'s posts, or all, minus the lead. */
+function getListedArticles(articles: Article[], tag?: string): Article[] {
+  const lead = getLeadArticle(articles)
+
+  return articles.filter(
+    (article) =>
+      article !== lead && (tag === undefined || article.tags.includes(tag)),
+  )
+}
+
+/** /blog and its later pages. */
 export async function getBlogListingProps(
   page: number,
 ): Promise<BlogListingProps> {
   const articles = await getAllArticles()
-  const lead = getLeadArticle(articles)
-  const listed = articles.filter((article) => article !== lead)
+  const listed = getListedArticles(articles)
 
   return {
     heading: 'Blog',
@@ -43,8 +53,9 @@ export async function getBlogListingProps(
         page === 1 ? BLOG_DESCRIPTION : `${BLOG_DESCRIPTION} Page ${page}.`,
     },
     basePath: '/blog',
-    lead: page === 1 ? lead : null,
+    lead: getLeadArticle(articles),
     articles: getPage(listed, page),
+    totalPosts: listed.length,
     searchable: articles,
     tags: getPopularTags(articles),
     activeTag: null,
@@ -55,10 +66,7 @@ export async function getBlogListingProps(
 
 /** How many pages /blog's list fills. */
 export async function getBlogPageCount(): Promise<number> {
-  const articles = await getAllArticles()
-  const lead = getLeadArticle(articles)
-
-  return pageCount(articles.length - (lead ? 1 : 0))
+  return pageCount(getListedArticles(await getAllArticles()).length)
 }
 
 /** Every popular tag with the number of pages its listing fills. */
@@ -69,9 +77,7 @@ export async function getTagPageCounts(): Promise<
 
   return getPopularTags(articles).map((tag) => ({
     slug: tagSlug(tag),
-    totalPages: pageCount(
-      articles.filter((article) => article.tags.includes(tag)).length,
-    ),
+    totalPages: pageCount(getListedArticles(articles, tag).length),
   }))
 }
 
@@ -91,8 +97,8 @@ export async function getTagListingProps(
     return null
   }
 
-  const tagged = articles.filter((article) => article.tags.includes(tag))
-  const totalPages = pageCount(tagged.length)
+  const listed = getListedArticles(articles, tag)
+  const totalPages = pageCount(listed.length)
 
   if (page > totalPages) {
     return null
@@ -113,9 +119,10 @@ export async function getTagListingProps(
       description: page === 1 ? description : `${description} Page ${page}.`,
     },
     basePath,
-    lead: null,
-    articles: getPage(tagged, page),
-    searchable: tagged,
+    lead: getLeadArticle(articles),
+    articles: getPage(listed, page),
+    totalPosts: listed.length,
+    searchable: articles.filter((article) => article.tags.includes(tag)),
     tags,
     activeTag: tag,
     page,

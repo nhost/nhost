@@ -69,6 +69,37 @@ export function pageCount(count: number): number {
   return Math.max(1, Math.ceil(count / POSTS_PER_PAGE))
 }
 
+/** Pagination always shows every page number up to this many pages. */
+const MAX_PAGE_LINKS = 7
+
+/**
+ * Page numbers to link from `page`, with `null` for a gap. Past
+ * `MAX_PAGE_LINKS` pages it keeps the first, the last, and the current page's
+ * neighbours, so the row stays the same width wherever you are:
+ * `1 2 3 4 5 … 20`, `1 … 9 10 11 … 20`, `1 … 16 17 18 19 20`.
+ */
+export function getPageNumbers(
+  page: number,
+  totalPages: number,
+): (number | null)[] {
+  const range = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, index) => from + index)
+
+  if (totalPages <= MAX_PAGE_LINKS) {
+    return range(1, totalPages)
+  }
+
+  if (page <= 4) {
+    return [...range(1, 5), null, totalPages]
+  }
+
+  if (page >= totalPages - 3) {
+    return [1, null, ...range(totalPages - 4, totalPages)]
+  }
+
+  return [1, null, page - 1, page, page + 1, null, totalPages]
+}
+
 /** The posts on `page`, counting from 1. */
 export function getPage(articles: Article[], page: number): Article[] {
   const start = (page - 1) * POSTS_PER_PAGE

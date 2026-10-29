@@ -17,14 +17,13 @@ const activeChipClassName =
   'border-white bg-white text-black text-opacity-100 hover:border-white'
 
 /**
- * "All", the most used tags, and a "More" menu with the rest. Every entry is a
- * link to a prerendered listing, and `<details>` keeps the menu's links in the
- * HTML when closed, so crawlers reach every tag page from here.
+ * "All", the most used tags, and an "All tags" menu listing every tag. Every
+ * entry is a link to a prerendered listing, and `<details>` keeps the menu's
+ * links in the HTML when closed, so crawlers reach every tag page from here.
  */
 export default function BlogTagRow({ tags, activeTag }: BlogTagRowProps) {
   const rowTags = tags.slice(0, TAG_ROW_SIZE)
-  const moreTags = tags.slice(TAG_ROW_SIZE)
-  const activeInMore = activeTag !== null && moreTags.includes(activeTag)
+  const activeOutsideRow = activeTag !== null && !rowTags.includes(activeTag)
 
   return (
     <nav aria-label="Browse by tag" className="flex min-w-0 items-center gap-2">
@@ -59,7 +58,7 @@ export default function BlogTagRow({ tags, activeTag }: BlogTagRowProps) {
         </ul>
       </div>
 
-      {moreTags.length > 0 && (
+      {tags.length > rowTags.length && (
         // Keyed by the active tag so the menu closes after picking from it:
         // tag pages share one route, so the page itself stays mounted.
         <details key={activeTag ?? 'all'} className="group relative shrink-0">
@@ -67,10 +66,10 @@ export default function BlogTagRow({ tags, activeTag }: BlogTagRowProps) {
             className={twMerge(
               chipClassName,
               'flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden',
-              activeInMore && activeChipClassName,
+              activeOutsideRow && activeChipClassName,
             )}
           >
-            {activeInMore ? activeTag : 'More'}
+            {activeOutsideRow ? activeTag : 'All tags'}
             <ChevronDown
               className="h-3 w-3 group-open:rotate-180 motion-safe:transition-transform"
               aria-hidden
@@ -78,14 +77,15 @@ export default function BlogTagRow({ tags, activeTag }: BlogTagRowProps) {
           </summary>
 
           <ul className="absolute right-0 z-20 mt-2 grid max-h-72 min-w-[10rem] grid-flow-row overflow-y-auto rounded-xl border border-divider bg-black p-1 shadow-lg">
-            {moreTags.map((tag) => (
+            {tags.map((tag) => (
               <li key={tag}>
                 <Link
                   href={tagPath(tag)}
                   aria-current={tag === activeTag ? 'page' : undefined}
                   className={twMerge(
                     'block whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-white text-opacity-65 hover:bg-white hover:bg-opacity-10 hover:text-opacity-100 hover:no-underline',
-                    tag === activeTag && 'text-opacity-100',
+                    tag === activeTag &&
+                      'bg-white bg-opacity-10 text-opacity-100',
                   )}
                 >
                   {tag}

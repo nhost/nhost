@@ -2,6 +2,7 @@ import {
   findUrlClashes,
   getLeadArticle,
   getPage,
+  getPageNumbers,
   getPopularTags,
   listingPath,
   pageCount,
@@ -101,6 +102,19 @@ describe('pagination', () => {
       `post-${POSTS_PER_PAGE}`,
       `post-${POSTS_PER_PAGE + 1}`,
     ])
+  })
+
+  it.each([
+    [1, 1, [1]],
+    [4, 7, [1, 2, 3, 4, 5, 6, 7]],
+    [1, 20, [1, 2, 3, 4, 5, null, 20]],
+    [4, 20, [1, 2, 3, 4, 5, null, 20]],
+    [5, 20, [1, null, 4, 5, 6, null, 20]],
+    [10, 20, [1, null, 9, 10, 11, null, 20]],
+    [17, 20, [1, null, 16, 17, 18, 19, 20]],
+    [20, 20, [1, null, 16, 17, 18, 19, 20]],
+  ])('links pages around page %i of %i', (page, total, expected) => {
+    expect(getPageNumbers(page, total)).toEqual(expected)
   })
 
   it.each([

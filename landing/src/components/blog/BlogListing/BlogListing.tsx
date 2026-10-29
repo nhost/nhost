@@ -1,11 +1,12 @@
 import { BlogLeadPost } from '@/components/blog/BlogLeadPost'
 import { BlogPagination } from '@/components/blog/BlogPagination'
-import { BlogPostList } from '@/components/blog/BlogPostList'
+import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { BlogSearchField } from '@/components/blog/BlogSearchField'
 import { BlogTagRow } from '@/components/blog/BlogTagRow'
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
 import { useArticleSearch } from '@/hooks/useArticleSearch'
+import { POSTS_PER_PAGE } from '@/lib/blogGrouping'
 import { buildSeo, BuildSeoOptions } from '@/utils/seo'
 import { Article } from '@/utils/types'
 
@@ -16,10 +17,12 @@ export interface BlogListingProps {
   seo: BuildSeoOptions
   /** The listing's page 1, e.g. `/blog` or `/blog/tag/auth`. */
   basePath: string
-  /** Shown above the list, on page 1 of /blog only. */
+  /** Shown above the toolbar on every listing; the lists leave it out. */
   lead: Article | null
   /** This page's posts. */
   articles: Article[]
+  /** Posts across every page of the listing. */
+  totalPosts: number
   /** Every post the search covers: the whole listing, not just this page. */
   searchable: Article[]
   /** Popular tags, most used first. */
@@ -49,14 +52,29 @@ export default function BlogListing({
   basePath,
   lead,
   articles,
+  totalPosts,
   searchable,
   tags,
   activeTag,
   page,
   totalPages,
 }: BlogListingProps) {
-  const { query, setQuery, isSearching, results, statusMessage } =
-    useArticleSearch(searchable)
+  const { query, setQuery, isSearching, results } = useArticleSearch(searchable)
+
+  const firstOnPage = (page - 1) * POSTS_PER_PAGE + 1
+  const count = isSearching
+    ? `${results.length} of ${searchable.length} posts`
+    : `${firstOnPage}–${
+        firstOnPage + articles.length - 1
+      } of ${totalPosts} posts`
+
+  let sectionHeading = 'All posts'
+
+  if (isSearching) {
+    sectionHeading = 'Search results'
+  } else if (activeTag) {
+    sectionHeading = `Posts tagged ${activeTag}`
+  }
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
@@ -70,43 +88,51 @@ export default function BlogListing({
 
         {lead && !isSearching && <BlogLeadPost article={lead} />}
 
-        <section className="grid grid-cols-1 gap-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <BlogTagRow tags={tags} activeTag={activeTag} />
+        <section className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 gap-4 border-b border-divider pb-6">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="font-mona text-2xl font-semibold text-white">
+                {sectionHeading}
+              </h2>
+              <p
+                role="status"
+                className="shrink-0 text-sm tabular-nums text-white text-opacity-50"
+              >
+                {count}
+              </p>
+            </div>
 
-            <BlogSearchField
-              id="blog-search"
-              label={
-                activeTag ? `Search ${activeTag} posts` : 'Search the blog'
-              }
-              placeholder={activeTag ? `Search ${activeTag} posts` : undefined}
-              value={query}
-              onChange={setQuery}
-              className="md:max-w-[16rem] md:shrink-0"
-            />
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <BlogTagRow tags={tags} activeTag={activeTag} />
+
+              <BlogSearchField
+                id="blog-search"
+                label={
+                  activeTag ? `Search ${activeTag} posts` : 'Search the blog'
+                }
+                placeholder={
+                  activeTag ? `Search ${activeTag} posts` : undefined
+                }
+                value={query}
+                onChange={setQuery}
+                className="md:max-w-[16rem] md:shrink-0"
+              />
+            </div>
           </div>
 
-          <p role="status" className="sr-only">
-            {statusMessage}
-          </p>
-
-          <h2 className="sr-only">
-            {isSearching ? 'Search results' : 'Posts'}
-          </h2>
-
           {isSearching && results.length === 0 && (
-            <p className="border-y border-divider py-6 text-sm text-white text-opacity-65">
+            <p className="text-sm text-white text-opacity-65">
               No posts match.
             </p>
           )}
 
           {isSearching && results.length > 0 && (
-            <BlogPostList articles={results} />
+            <BlogPostGrid articles={results} />
           )}
 
           {!isSearching && (
             <>
-              <BlogPostList articles={articles} />
+              <BlogPostGrid articles={articles} />
               <BlogPagination
                 basePath={basePath}
                 page={page}

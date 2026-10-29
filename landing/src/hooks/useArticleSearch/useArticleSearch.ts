@@ -20,10 +20,6 @@ function searchableText(article: Article): string {
  *
  * `results` is every matching article, newest first, and is only meaningful
  * while `isSearching`.
- *
- * `statusMessage` describes the match count while searching and is empty
- * otherwise. Render it in an always-mounted `role="status"` element so screen
- * readers announce result changes.
  */
 export default function useArticleSearch(articles: Article[]) {
   const router = useRouter()
@@ -64,15 +60,6 @@ export default function useArticleSearch(articles: Article[]) {
     [articles, trimmedQuery, isSearching, haystacks],
   )
 
-  let statusMessage = ''
-
-  if (isSearching) {
-    statusMessage =
-      results.length === 0
-        ? 'No posts match'
-        : `${results.length} ${results.length === 1 ? 'post' : 'posts'}`
-  }
-
   function setQuery(value: string) {
     setQueryState(value)
 
@@ -90,5 +77,5 @@ export default function useArticleSearch(articles: Article[]) {
     })
   }
 
-  return { query, setQuery, isSearching, results, statusMessage }
+  return { query, setQuery, isSearching, results }
 }
