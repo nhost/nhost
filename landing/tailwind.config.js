@@ -53,13 +53,8 @@ module.exports = {
         'slide-line-up-delay': 'slide-line-up 1s ease-in-out forwards 0.3s',
         'bounce-right-left': 'bounce-right-left 1.5s ease-in-out infinite',
         'card-in': 'card-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
-        'popover-in': 'popover-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
       keyframes: {
-        'popover-in': {
-          '0%': { transform: 'translateY(-4px) scale(0.98)', opacity: 0 },
-          '100%': { transform: 'translateY(0) scale(1)', opacity: 1 },
-        },
         'card-in': {
           '0%': { transform: 'translateY(8px)', opacity: 0 },
           '100%': { transform: 'translateY(0)', opacity: 1 },

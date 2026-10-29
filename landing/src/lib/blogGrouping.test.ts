@@ -8,8 +8,6 @@ import {
   pageCount,
   parsePageParam,
   POSTS_PER_PAGE,
-  splitTags,
-  TAG_ROW_SIZE,
   tagPath,
   tagSlug,
 } from '@/lib/blogGrouping'
@@ -62,34 +60,6 @@ describe('getTags', () => {
     ]
 
     expect(getTags(posts)).toEqual(['Auth', 'AI', 'Platform', 'Rare'])
-  })
-})
-
-describe('splitTags', () => {
-  const rowTags = Array.from(
-    { length: TAG_ROW_SIZE },
-    (_, index) => `Tag ${index}`,
-  )
-
-  it.each([
-    [
-      'fewer tags than the row holds',
-      ['Product', 'Auth'],
-      ['Product', 'Auth'],
-      [],
-    ],
-    ['exactly a row of tags', rowTags, rowTags, []],
-    [
-      'more tags than the row holds, the rest A to Z ignoring case',
-      [...rowTags, 'pnpm', 'Template', 'example', 'Apollo', 'AI Week'],
-      rowTags,
-      ['AI Week', 'Apollo', 'example', 'pnpm', 'Template'],
-    ],
-  ])('splits %s', (_, tags, expectedRow, expectedMore) => {
-    expect(splitTags(tags)).toEqual({
-      rowTags: expectedRow,
-      moreTags: expectedMore,
-    })
   })
 })
 

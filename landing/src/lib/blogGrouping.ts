@@ -12,7 +12,7 @@ import { Article } from '@/utils/types'
 /** Posts per listing page, on /blog and on tag pages. */
 export const POSTS_PER_PAGE = 9
 
-/** How many tags the filter row shows before the rest go in "More". */
+/** How many tags the filter row shows, most used first. */
 export const TAG_ROW_SIZE = 7
 
 /** The newest post flagged `featured`, which leads /blog. */
@@ -33,22 +33,6 @@ export function getTags(articles: Article[]): string[] {
   return Array.from(counts)
     .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
     .map(([tag]) => tag)
-}
-
-/**
- * Splits `tags`, most used first, into the filter row's `TAG_ROW_SIZE` and the
- * rest for "More", A to Z ignoring case.
- */
-export function splitTags(tags: string[]): {
-  rowTags: string[]
-  moreTags: string[]
-} {
-  return {
-    rowTags: tags.slice(0, TAG_ROW_SIZE),
-    moreTags: tags
-      .slice(TAG_ROW_SIZE)
-      .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })),
-  }
 }
 
 /** URL segment for a tag: `Next.js` is `nextjs`, `Open Source` is `open-source`. */
