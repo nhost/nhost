@@ -218,6 +218,11 @@ export class TestUserEvent {
     await this.user.keyboard(value);
   }
 
+  // Not retried with waitFor: repeating a press would click twice.
+  async pointer(actions: Parameters<UserEvent['pointer']>[0]) {
+    await this.user.pointer(actions);
+  }
+
   async clear(element: Element) {
     await waitFor(async () => {
       await this.user.clear(element);

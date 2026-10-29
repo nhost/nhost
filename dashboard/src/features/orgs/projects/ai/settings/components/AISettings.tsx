@@ -332,10 +332,7 @@ export default function AISettings() {
                     </div>
 
                     {isPlatform ? (
-                      <Alert
-                        variant="info"
-                        className="flex items-center justify-between space-x-2"
-                      >
+                      <Alert className="flex items-center justify-between space-x-2">
                         <span>{getAIResourcesCost()}</span>
                         <b>
                           $

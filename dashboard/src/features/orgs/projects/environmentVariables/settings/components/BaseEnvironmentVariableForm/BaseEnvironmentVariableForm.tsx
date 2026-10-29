@@ -97,7 +97,7 @@ export default function BaseEnvironmentVariableForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Environment Variables are made available to all your services. All
         values are encrypted.
@@ -124,14 +124,14 @@ export default function BaseEnvironmentVariableForm({
           autoFocus={mode === 'edit'}
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

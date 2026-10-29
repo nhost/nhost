@@ -36,7 +36,7 @@ func (r *mutationResolver) updateSystemConfig(
 
 	newApp.SystemConfig.Update(&systemConfigInput)
 
-	if _, err := newApp.ResolveSystemConfig(r.schema); err != nil {
+	if err := newApp.validateSystemConfig(r.schema); err != nil {
 		return nil, err
 	}
 

@@ -1,3 +1,5 @@
+import { hashString } from '@/utils/hashString';
+
 /** Per-schema color as RGB channels separated by spaces, e.g. "59 130 246".
  * Designed to be plugged into a CSS custom property and consumed by Tailwind
  * arbitrary values via `rgb(var(--schema-color) / <alpha>)`. */
@@ -24,9 +26,5 @@ export function getSchemaColor(schema: string): string {
     return KNOWN_SCHEMA_COLORS[schema];
   }
 
-  let hash = 0;
-  for (let i = 0; i < schema.length; i += 1) {
-    hash = (hash * 31 + schema.charCodeAt(i)) >>> 0;
-  }
-  return PALETTE[hash % PALETTE.length];
+  return PALETTE[hashString(schema) % PALETTE.length];
 }

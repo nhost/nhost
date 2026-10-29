@@ -38,7 +38,7 @@ export {
 export const validationSchema = z
   .object({
     triggerName: z
-      .string({ required_error: 'Trigger name required' })
+      .string({ error: 'Trigger name required' })
       .min(1, { message: 'Trigger name required' })
       .max(42, { message: 'Trigger name must be at most 42 characters' })
       .regex(/^[a-zA-Z0-9_-]+$/, {
@@ -46,13 +46,13 @@ export const validationSchema = z
           'Trigger name can only contain alphanumeric characters, underscores, and hyphens',
       }),
     dataSource: z
-      .string({ required_error: 'Data source required' })
+      .string({ error: 'Data source required' })
       .min(1, { message: 'Data source required' }),
     tableName: z
-      .string({ required_error: 'Table name required' })
+      .string({ error: 'Table name required' })
       .min(1, { message: 'Table name required' }),
     tableSchema: z
-      .string({ required_error: 'Schema required' })
+      .string({ error: 'Schema required' })
       .min(1, { message: 'Schema required' }),
     webhook: z.string().min(1, { message: 'Webhook is required' }),
     triggerOperations: z
@@ -63,15 +63,9 @@ export const validationSchema = z
     updateTriggerOn: z.enum(updateTriggerOnOptions).optional(),
     updateTriggerColumns: z.array(z.string()).optional(),
     retryConf: z.object({
-      numRetries: z.coerce.number().min(0).default(DEFAULT_NUM_RETRIES),
-      intervalSec: z.coerce
-        .number()
-        .min(0)
-        .default(DEFAULT_RETRY_INTERVAL_SECONDS),
-      timeoutSec: z.coerce
-        .number()
-        .min(0)
-        .default(DEFAULT_RETRY_TIMEOUT_SECONDS),
+      numRetries: z.coerce.number<number>().min(0),
+      intervalSec: z.coerce.number<number>().min(0),
+      timeoutSec: z.coerce.number<number>().min(0),
     }),
     headers: z.array(
       z.object({

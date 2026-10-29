@@ -65,6 +65,12 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agents`, `agent_sessions`, and `agent_messages`. Provider declarations are configuration-only and are never persisted. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`.
 
+The down migrations for legacy versions 1 and 5 intentionally retain these database-global extensions. Their executable `DO` blocks and notices are frozen compatibility behavior, not placeholders for `DROP EXTENSION` statements.
+
+`make migrations-add MIGRATION_NAME=xxx` creates empty up and down files. This leaves the strict PostgreSQL migration bundle intentionally invalid until both files contain executable SQL; implement both bodies before running or shipping the service.
+
+Migration integration tests create and drop an isolated, cryptographically random per-run database on the server selected by `POSTGRES_CONNECTION`; the connection role must be allowed to create databases. Keep destructive migration cases in that isolated database rather than in the selected database itself.
+
 ## Code standards
 
 - Follow the repository Go rules in `.claude/docs/go-design-rules.md`.

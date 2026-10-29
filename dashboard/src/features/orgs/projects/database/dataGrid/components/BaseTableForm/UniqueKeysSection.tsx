@@ -1,0 +1,270 @@
+import { KeyRound, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
+import { areStrArraysEqual, areStrArraysEqualOrdered } from '@/lib/utils';
+import type { BaseTableFormValues } from './BaseTableForm';
+
+type UniqueKey = NonNullable<BaseTableFormValues['uniqueKeys']>[number];
+
+function displayName({ name, newName }: UniqueKey) {
+  return name ?? newName;
+}
+
+// Editing recreates a constraint from its name and columns only, so one with
+// other options (NULLS NOT DISTINCT, INCLUDE, DEFERRABLE, ...) can only be
+// deleted.
+function hasOtherOptions({ definition }: UniqueKey) {
+  return !!definition && !/^UNIQUE \([^)]*\)$/.test(definition);
+}
+
+interface UniqueKeyDialogValues {
+  name: string;
+  columnIndices: string[];
+}
+
+interface UniqueKeyDialogProps {
+  columnNames: string[];
+  uniqueKeys: UniqueKey[];
+  /**
+   * Index of the unique key being edited. Omit it to add a new one.
+   */
+  index?: number;
+  onSubmit?: (values: UniqueKeyDialogValues) => void;
+  onCancel?: VoidFunction;
+}
+
+function UniqueKeyDialog({
+  columnNames,
+  uniqueKeys,
+  index,
+  onSubmit,
+  onCancel,
+}: UniqueKeyDialogProps) {
+  const uniqueKey = index === undefined ? undefined : uniqueKeys[index];
+  const [name, setName] = useState((uniqueKey && displayName(uniqueKey)) ?? '');
+  const [columnIndices, setColumnIndices] = useState(
+    uniqueKey?.columnIndices ?? [],
+  );
+  const isNameTaken = uniqueKeys.some(
+    (otherKey, otherIndex) =>
+      otherIndex !== index && displayName(otherKey) === name.trim(),
+  );
+  const isColumnSetTaken = uniqueKeys.some(
+    (otherKey, otherIndex) =>
+      otherIndex !== index &&
+      areStrArraysEqual(otherKey.columnIndices, columnIndices),
+  );
+
+  return (
+    <div className="grid gap-4 border-t-1 px-6 py-4">
+      <div className="grid gap-2">
+        <span className="font-medium text-sm">Name (optional)</span>
+        <Input
+          aria-label="Name"
+          aria-invalid={isNameTaken}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Leave empty to let Postgres name it"
+          maxLength={POSTGRESQL_MAX_IDENTIFIER_LENGTH}
+          autoComplete="off"
+        />
+        {isNameTaken && (
+          <p className="font-medium text-destructive text-sm">
+            A unique constraint with this name already exists.
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <span className="font-medium text-sm">Columns</span>
+        <MultiSelect values={columnIndices} onValuesChange={setColumnIndices}>
+          <MultiSelectTrigger aria-label="Columns" className="h-10 w-full">
+            <MultiSelectValue placeholder="Select columns" />
+          </MultiSelectTrigger>
+          <MultiSelectContent
+            contentClassName="z-[1400]"
+            search={{
+              placeholder: 'Search columns...',
+              emptyMessage: 'No columns found.',
+            }}
+          >
+            <MultiSelectGroup>
+              {columnNames.map(
+                (columnName, columnIndex) =>
+                  columnName && (
+                    <MultiSelectItem
+                      key={columnName}
+                      value={`${columnIndex}`}
+                      keywords={[columnName]}
+                    >
+                      {columnName}
+                    </MultiSelectItem>
+                  ),
+              )}
+            </MultiSelectGroup>
+          </MultiSelectContent>
+        </MultiSelect>
+        {isColumnSetTaken && (
+          <p className="font-medium text-destructive text-sm">
+            A unique constraint on these columns already exists.
+          </p>
+        )}
+      </div>
+
+      <Button
+        type="button"
+        disabled={columnIndices.length === 0 || isNameTaken || isColumnSetTaken}
+        onClick={() => onSubmit?.({ name, columnIndices })}
+      >
+        {uniqueKey ? 'Save' : 'Add'}
+      </Button>
+      <Button type="button" variant="outline" onClick={onCancel}>
+        Cancel
+      </Button>
+    </div>
+  );
+}
+
+export default function UniqueKeysSection() {
+  const { control } = useFormContext<BaseTableFormValues>();
+  const columns = useWatch({ control, name: 'columns' });
+  const { fields, append, update, remove } = useFieldArray({
+    control,
+    name: 'uniqueKeys',
+  });
+  const { openDialog } = useDialog();
+  const columnNames = columns.map(({ name }) => name);
+
+  function openUniqueKeyDialog(index?: number) {
+    openDialog({
+      title: `${index === undefined ? 'Add a' : 'Edit'} Unique Constraint`,
+      props: { PaperProps: { className: 'max-w-xl' } },
+      component: (
+        <UniqueKeyDialog
+          columnNames={columnNames}
+          uniqueKeys={fields}
+          index={index}
+          onSubmit={({ name, columnIndices }) => {
+            const newName = name.trim() || undefined;
+
+            if (index === undefined) {
+              append({ newName, columnIndices });
+            } else if (
+              newName !== displayName(fields[index]) ||
+              !areStrArraysEqualOrdered(
+                columnIndices,
+                fields[index].columnIndices,
+              )
+            ) {
+              // Without `name` the old constraint is dropped and this one added.
+              update(index, { newName, columnIndices });
+            }
+          }}
+        />
+      ),
+    });
+  }
+
+  return (
+    <section className="grid grid-flow-row gap-2 px-6">
+      {fields.map((field, index) => (
+        <div
+          key={field.id}
+          className="box grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-2"
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <KeyRound className="h-4 w-4 flex-none" />
+            <div className="min-w-0">
+              {displayName(field) && (
+                <p className="m-0 truncate font-medium">{displayName(field)}</p>
+              )}
+              <p
+                className={twMerge(
+                  'm-0 truncate',
+                  displayName(field)
+                    ? 'text-muted-foreground text-sm'
+                    : 'font-medium',
+                )}
+              >
+                {field.columnIndices.map((i) => columnNames[+i]).join(', ')}
+              </p>
+              {hasOtherOptions(field) && (
+                <p className="m-0 truncate text-muted-foreground text-xs">
+                  {field.definition}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-flow-col">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-primary hover:text-primary"
+                    disabled={hasOtherOptions(field)}
+                    onClick={() => openUniqueKeyDialog(index)}
+                  >
+                    Edit
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {hasOtherOptions(field) && (
+                <TooltipContent>
+                  Editing would recreate this constraint without its other
+                  options. Change it with SQL instead.
+                </TooltipContent>
+              )}
+            </Tooltip>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-primary hover:text-primary"
+              onClick={() => remove(index)}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className={twMerge(
+          'mt-1 gap-2 rounded-sm+ py-2 text-primary hover:text-primary',
+          fields.length === 0 && 'border border-input',
+          fields.length > 0 && 'justify-self-start',
+        )}
+        disabled={!columnNames.some(Boolean)}
+        onClick={() => openUniqueKeyDialog()}
+      >
+        <Plus className="h-4 w-4" />
+        Add Unique Constraint
+      </Button>
+    </section>
+  );
+}

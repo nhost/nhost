@@ -42,6 +42,10 @@ func (r *mutationResolver) insertSecret(
 
 	newApp.Secrets = append(newApp.Secrets, &envVar)
 
+	if err := newApp.validateSecrets(r.schema); err != nil {
+		return nil, err
+	}
+
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {
 		if err := p.UpdateSecrets(ctx, oldApp, newApp, logger); err != nil {
@@ -49,7 +53,9 @@ func (r *mutationResolver) insertSecret(
 		}
 	}
 
+	oldApp.resolvedConfig = newApp.resolvedConfig
 	oldApp.Secrets = newApp.Secrets
+	oldApp.Services = newApp.Services
 
 	return &envVar, nil
 }

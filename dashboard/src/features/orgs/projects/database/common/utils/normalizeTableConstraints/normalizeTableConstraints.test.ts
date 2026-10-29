@@ -190,6 +190,7 @@ describe('normalizeTableConstraints', () => {
         name: 'orders_external_id_idx',
         isPrimary: false,
         columns: ['external_id'],
+        definition: 'UNIQUE (external_id)',
       },
     ]);
   });
@@ -227,8 +228,14 @@ describe('normalizeTableConstraints', () => {
         name: 'orders_pkey',
         isPrimary: true,
         columns: ['tenant_id', 'account_id'],
+        definition: 'PRIMARY KEY (tenant_id, account_id)',
       },
-      { name: 'orders_email_key', isPrimary: false, columns: ['email'] },
+      {
+        name: 'orders_email_key',
+        isPrimary: false,
+        columns: ['email'],
+        definition: 'UNIQUE (email)',
+      },
     ]);
   });
 
@@ -243,7 +250,12 @@ describe('normalizeTableConstraints', () => {
     );
 
     expect(result.candidateKeys).toEqual([
-      { name: 'orders_pkey', isPrimary: true, columns: ['id'] },
+      {
+        name: 'orders_pkey',
+        isPrimary: true,
+        columns: ['id'],
+        definition: 'PRIMARY KEY (id)',
+      },
     ]);
   });
 

@@ -30,7 +30,7 @@ export default function PagerdutyFormSection() {
     setValue(`pagerduty.${index}.severity`, value as EventSeverity);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">PagerDuty</h3>
@@ -47,7 +47,7 @@ export default function PagerdutyFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add PagerDuty integration"
           onClick={() =>
@@ -130,8 +130,9 @@ export default function PagerdutyFormSection() {
                 </Label>
                 <div className="flex">
                   <Button
-                    variant="ghost"
-                    className="h-10 text-destructive hover:text-destructive"
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
                     aria-label="Remove PagerDuty integration"
                     onClick={() => remove(index)}
                   >

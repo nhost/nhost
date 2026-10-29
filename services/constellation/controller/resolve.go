@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"maps"
 	"slices"
-	"sync"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
@@ -17,20 +16,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/resolver"
-	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/validator"
-	"github.com/vektah/gqlparser/v2/validator/rules"
 )
-
-// defaultRules returns the cached default validator rules. We resolve them
-// once on first call instead of allocating a fresh set per request; using
-// sync.OnceValue keeps the value behind a function rather than a mutable
-// package variable.
-//
-//nolint:gochecknoglobals // sync.OnceValue is the idiomatic memoised-constant pattern.
-var defaultRules = sync.OnceValue(rules.NewDefaultRules)
 
 // GraphQLRequest is the JSON payload accepted by HandlerPost (and used as
 // the input to Resolve when invoked directly). Variables are unmarshalled
@@ -677,26 +666,6 @@ func errorsResponse(results map[string]any, errs []map[string]any) *GraphQLRespo
 		Errors:      errs,
 		rawResponse: nil,
 	}
-}
-
-// loadQuery parses and validates a GraphQL query, using the LRU cache to
-// avoid re-parsing identical queries for the same role.
-func loadQuery(
-	cache *queryCache,
-	schema *ast.Schema,
-	queryStr string,
-	role string,
-) (*ast.QueryDocument, gqlerror.List) {
-	key := queryCacheKey{query: queryStr, role: role}
-
-	if cached, ok := cache.Get(key); ok {
-		return cached.doc, cached.errs
-	}
-
-	doc, errs := gqlparser.LoadQueryWithRules(schema, queryStr, defaultRules())
-	cache.Put(key, queryCacheEntry{doc: doc, errs: errs})
-
-	return doc, errs
 }
 
 // buildRawResponse builds the complete JSON response bytes {"data":{...}} when

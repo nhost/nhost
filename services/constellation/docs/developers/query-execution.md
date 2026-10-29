@@ -86,7 +86,7 @@ The snapshot carries: per-role validated schemas, the connector map, `fieldToCon
 
 ## 4. Parsing & validation
 
-`loadQuery` (`controller/resolve.go:438`) memoises parsing and validation in an LRU keyed by `(queryString, role)`. The cache stores both the parsed `*ast.QueryDocument` and the `gqlerror.List` so repeated requests with invalid queries also short-circuit. Validation uses `gqlparser/v2`'s default rules plus the operation must exist by name (or be the only operation if `operationName` is empty). Variables are coerced by `validator.VariableValues` in `validateVariables`.
+`loadQuery` (`controller/querycache.go`) memoises parsing and validation in an LRU keyed by `(queryString, role)`. The cache stores both the parsed `*ast.QueryDocument` and the `gqlerror.List` so repeated requests with invalid queries also short-circuit. Overlapping misses share one `singleflight` call per key; the callback rechecks the LRU before parsing, different keys load independently, and both completed and in-flight entries are isolated to the current metadata state. Warm hits bypass singleflight entirely. Validation uses `gqlparser/v2`'s default rules. Operation selection by name (or the only operation if `operationName` is empty) and variable coercion by `validator.VariableValues` in `validateVariables` run separately for each request.
 
 Validation failures produce a `GraphQLResponse` with `Errors` and `Data: nil` — `Resolve` itself only returns a Go error for unrecoverable internal failures.
 
