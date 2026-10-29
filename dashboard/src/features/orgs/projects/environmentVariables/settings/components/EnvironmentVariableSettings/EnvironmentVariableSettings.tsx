@@ -16,7 +16,6 @@ import {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
-import { MaskedValue } from '@/features/orgs/projects/environmentVariables/settings/components/MaskedValue';
 import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -180,12 +179,6 @@ export default function EnvironmentVariableSettings() {
               <TableRow key={environmentVariable.id} className="group">
                 <TableCell className="break-all font-mono">
                   {environmentVariable.name}
-                </TableCell>
-                <TableCell>
-                  <MaskedValue
-                    name={environmentVariable.name}
-                    value={environmentVariable.value}
-                  />
                 </TableCell>
                 <TableCell className="w-24">
                   <div className="flex justify-end gap-1">
