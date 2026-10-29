@@ -46,13 +46,11 @@ import { removeTypename } from '@/utils/helpers';
 // Has docs links inside, so it stays open while hovered.
 function InfoTooltip({ children }: { children: ReactNode }) {
   return (
-    <Tooltip disableHoverableContent={false}>
+    <Tooltip interactive>
       <TooltipTrigger asChild>
         <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
       </TooltipTrigger>
-      <TooltipContent className="pointer-events-auto max-w-xs">
-        {children}
-      </TooltipContent>
+      <TooltipContent className="max-w-xs">{children}</TooltipContent>
     </Tooltip>
   );
 }

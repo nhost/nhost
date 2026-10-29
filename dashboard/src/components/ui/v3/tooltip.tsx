@@ -1,5 +1,5 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import type * as React from 'react';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -16,22 +16,33 @@ function TooltipProvider({
   );
 }
 
+// Whether the open tooltip is interactive, so TooltipContent can let clicks
+// through or not without callers repeating it.
+const TooltipInteractiveContext = React.createContext(false);
+
 // A tooltip is a label: it closes as soon as the pointer leaves the trigger,
-// and its content lets clicks through (see TooltipContent), so it never blocks
-// the button under it. A tooltip with a link inside opts back in with
-// `disableHoverableContent={false}` and `pointer-events-auto` on its content.
+// and its content lets clicks through, so it never blocks the button under it.
+// A tooltip with a link inside is `interactive`: it stays open while hovered
+// and its content can be clicked.
 function Tooltip({
-  disableHoverableContent = true,
+  interactive = false,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+}: Omit<
+  React.ComponentProps<typeof TooltipPrimitive.Root>,
+  'disableHoverableContent'
+> & {
+  interactive?: boolean;
+}) {
   return (
-    <TooltipProvider>
-      <TooltipPrimitive.Root
-        data-slot="tooltip"
-        disableHoverableContent={disableHoverableContent}
-        {...props}
-      />
-    </TooltipProvider>
+    <TooltipInteractiveContext.Provider value={interactive}>
+      <TooltipProvider>
+        <TooltipPrimitive.Root
+          data-slot="tooltip"
+          disableHoverableContent={!interactive}
+          {...props}
+        />
+      </TooltipProvider>
+    </TooltipInteractiveContext.Provider>
   );
 }
 
@@ -47,13 +58,16 @@ function TooltipContent({
   children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  const interactive = React.useContext(TooltipInteractiveContext);
+
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          'fade-in-0 zoom-in-95 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 pointer-events-none z-50 animate-in overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-popover-foreground text-sm shadow-overlay data-[state=closed]:animate-out',
+          'fade-in-0 zoom-in-95 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 animate-in overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-popover-foreground text-sm shadow-overlay data-[state=closed]:animate-out',
+          interactive ? 'pointer-events-auto' : 'pointer-events-none',
           className,
         )}
         {...props}
