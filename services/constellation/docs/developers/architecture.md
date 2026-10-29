@@ -166,14 +166,14 @@ The HTTP handler maps:
 | Component | Mutation model |
 |---|---|
 | `Controller.state` | Atomic pointer swap on metadata reload |
-| `controllerState.queryCache` | Internal `sync.Mutex` (the LRU is concurrency-safe) |
+| `controllerState.queryCache` | LRU internal `sync.Mutex` for completed entries; per-state `singleflight.Group` makes concurrent cold misses for the same role/query wait for one shared parse and validation result (a leader panic re-panics in waiters); warm hits bypass singleflight |
 | `cohortManager.cohorts` | `sync.RWMutex` on the map; cohort polling under `context.Background()` |
 | `cohort.subscriptions` | `sync.RWMutex` on the map; per-subscription `sendMu` serialises send vs stop |
 | `webSocketHandler.subs` | `syncmap.Map[string, *subscriptionState]` |
 | `connector/sql` connectors | Driver-internal pooling; `Execute` is safe to call concurrently |
 | `connector/remoteschema` | Stateless beyond `httpClient`; safe to call concurrently |
 
-The hot path is therefore lock-free for steady-state reads (atomic pointer load), and only takes locks for short maps inside cohorts / sub registries. No request-path code blocks on metadata reload.
+State snapshot reads are lock-free (atomic pointer load), while warm query-cache hits take the LRU mutex and concurrent cold misses for the same role/query in one state wait for one in-flight parse and validation. Cohort and subscription registries use short map locks. No request-path code blocks on metadata reload.
 
 ## File reference
 
