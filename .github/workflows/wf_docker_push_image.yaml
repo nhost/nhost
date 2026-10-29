@@ -42,7 +42,9 @@ jobs:
     steps:
       - name: "Set custom env"
         if: ${{ inputs.ENV != '' }}
-        run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+        env:
+          CUSTOM_ENV: ${{ inputs.ENV }}
+        run: printf '%s\n' "$CUSTOM_ENV" >> "$GITHUB_ENV"
         working-directory: .
 
       - name: "Check out repository"
@@ -59,10 +61,11 @@ jobs:
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
         with:
-          path: ~/artifacts
+          pattern: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-*
+          path: ${{ runner.temp }}/artifacts
 
       - name: "Inspect artifacts"
-        run: find ~/artifacts
+        run: find "$RUNNER_TEMP/artifacts"
 
       - name: Login to DockerHub
         uses: docker/login-action@v4.7.0
@@ -79,7 +82,7 @@ jobs:
 
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
-              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-linux-$ARCH-$VERSION \
+              "dir:$RUNNER_TEMP/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-linux-$ARCH-$VERSION" \
               docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 

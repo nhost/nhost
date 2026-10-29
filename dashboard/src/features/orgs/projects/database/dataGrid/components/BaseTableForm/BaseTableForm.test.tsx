@@ -613,6 +613,29 @@ describe('BaseTableForm', () => {
     expect(mocks.onSubmit).not.toHaveBeenCalled();
   });
 
+  it('should show an error when a unique constraint uses the table name', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          ...defaultFormValues,
+          name: 'orders',
+          columns: [{ name: 'sku', type: 'text' }],
+          uniqueKeys: [{ newName: 'orders', columnIndices: ['0'] }],
+        }}
+      />,
+    );
+    const user = new TestUserEvent();
+
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findByText(
+        'A unique constraint in this table already uses this name.',
+      ),
+    ).toBeInTheDocument();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+  });
+
   it('should show an error when a column name exceeds 63 characters', async () => {
     render(<TestTableFormWrapper />);
     const user = new TestUserEvent();

@@ -270,7 +270,7 @@ Configuration for auth service
 | `emailPasswordless` | object |  | Passwordless sign-in via email magic link. |
 | `otp` | object |  | One-time password (OTP) sign-in. |
 | `emailPassword` | object |  | Email and password sign-in. |
-| `smsPasswordless` | object |  | Passwordless sign-in via SMS. |
+| `smsPasswordless` | object |  | Passwordless sign-in via SMS. Deprecated: use otp.sms instead. The two flags remain independent in config; their values are OR-ed only when generating hasura-auth environment variables. |
 | `oauth` | object |  | OAuth social sign-in providers. |
 | `webauthn` | object |  | WebAuthn / passkey sign-in. |
 
@@ -291,8 +291,15 @@ Configuration for auth service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `email` | object |  | Enable one-time-password sign-in over email. |
+| `sms` | object |  | Enable one-time-password over SMS, for passwordless sign-in and session elevation. |
 
 ##### `auth.method.otp.email`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+##### `auth.method.otp.sms`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
