@@ -187,12 +187,18 @@ describe('StorageSettingsPage', () => {
     expect(settingsQuery).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, 'unknown', ['storage', 'rate-limiting']])(
-    'redirects the %s tab to the default tab',
-    (tab) => {
+  it.each([undefined, 'unknown'])(
+    'shows the default tab for the %s tab and corrects the URL',
+    async (tab) => {
       loadProject();
       renderTab(tab);
 
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Storage' }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Storage Version' }),
+      ).toBeInTheDocument();
       expect(mockRouter.replace).toHaveBeenCalledWith(
         {
           pathname: SETTINGS_ROUTE,
@@ -214,14 +220,17 @@ describe('StorageSettingsPage', () => {
   });
 
   it.each([
-    ['storage', 'Storage Version', 'Rate limiting'],
-    ['rate-limiting', 'Rate limiting', 'Storage Version'],
+    ['storage', 'Storage', 'Storage Version', 'Rate limiting'],
+    ['rate-limiting', 'Rate Limiting', 'Rate limiting', 'Storage Version'],
   ])(
     'renders the selected %s settings content',
-    async (tab, heading, otherHeading) => {
+    async (tab, title, heading, otherHeading) => {
       loadProject();
       renderTab(tab);
 
+      expect(
+        screen.getByRole('heading', { level: 1, name: title }),
+      ).toBeInTheDocument();
       expect(
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();

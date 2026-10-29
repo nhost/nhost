@@ -189,7 +189,7 @@ function PipelineRunDetails({
     <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
       </div>
 
@@ -351,7 +351,7 @@ function LegacyDeploymentDetailsView({
     <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
         <div className="flex space-x-8">
           <div className="flex items-center space-x-2">

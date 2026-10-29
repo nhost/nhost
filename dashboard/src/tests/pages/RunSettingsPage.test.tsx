@@ -162,11 +162,17 @@ afterAll(() => server.close());
 
 describe('RunSettingsPage tab selection', () => {
   it.each([undefined, 'unknown'])(
-    'redirects the %s tab to the custom-domain tab',
+    'shows the custom-domain tab for the %s tab and corrects the URL',
     (tab) => {
       setTab(tab);
       render(<RunSettingsPage />);
 
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Custom Domain' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Loading Run custom domain settings...'),
+      ).toBeInTheDocument();
       expect(mockRouter.replace).toHaveBeenCalledExactlyOnceWith(
         {
           pathname: SETTINGS_ROUTE,
@@ -175,12 +181,6 @@ describe('RunSettingsPage tab selection', () => {
         undefined,
         { shallow: true },
       );
-      expect(
-        screen.queryByText('Loading Run custom domain settings...'),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText('Loading Run rate limit settings...'),
-      ).not.toBeInTheDocument();
     },
   );
 
@@ -189,15 +189,19 @@ describe('RunSettingsPage tab selection', () => {
     render(<RunSettingsPage />);
 
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
   });
 
   it.each([
-    ['custom-domain', 'Loading Run custom domain settings...'],
-    ['rate-limiting', 'Loading Run rate limit settings...'],
-  ])('renders the %s tab without redirecting', (tab, loadingText) => {
+    ['custom-domain', 'Custom Domain', 'Loading Run custom domain settings...'],
+    ['rate-limiting', 'Rate Limiting', 'Loading Run rate limit settings...'],
+  ])('renders the %s tab without redirecting', (tab, title, loadingText) => {
     setTab(tab);
     render(<RunSettingsPage />);
 
+    expect(
+      screen.getByRole('heading', { level: 1, name: title }),
+    ).toBeInTheDocument();
     expect(screen.getByText(loadingText)).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });

@@ -48,9 +48,9 @@ export default function DeploymentsPage() {
   }
 
   return (
-    <Container className="mx-auto flex max-w-5xl flex-col space-y-2 pt-8 pb-8">
+    <Container className="mx-auto flex max-w-5xl flex-col space-y-6 pt-8 pb-8">
       <div className="flex flex-row place-content-between">
-        <h1 className="font-medium text-2xl">Deployments</h1>
+        <h1 className="font-semibold text-2.5xl">Deployments</h1>
         <NewDeploymentPopover />
       </div>
 
