@@ -40,7 +40,7 @@ export default function BlogLeadPost({ article }: BlogLeadPostProps) {
         <p className="text-base text-white text-opacity-65">
           {article.description}
         </p>
-        <BlogPostMeta article={article} />
+        <BlogPostMeta article={article} avatars />
       </div>
     </Link>
   )
