@@ -1,99 +1,176 @@
-import { tagPath, TAG_ROW_SIZE } from '@/lib/blogGrouping'
-import { ChevronDown } from 'lucide-react'
+import { splitTags, tagPath } from '@/lib/blogGrouping'
+import { Popover } from '@headlessui/react'
+import { ChevronDown, X } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 export interface BlogTagRowProps {
-  /** Popular tags, most used first. */
+  /** Every tag, most used first. */
   tags: string[]
   /** The tag whose listing this is, or `null` on /blog. */
   activeTag: string | null
+  /** The current search, carried to the listing a tag links to. */
+  query: string
+  className?: string
 }
 
 const chipClassName =
-  'block whitespace-nowrap rounded-full border border-divider px-3 py-1 text-xs text-white text-opacity-65 hover:border-white hover:border-opacity-40 hover:text-opacity-100 hover:no-underline motion-safe:transition-colors'
+  'block whitespace-nowrap rounded-full border border-transparent px-2.5 py-1 text-[13px] font-medium leading-5 text-white text-opacity-65 hover:border-white hover:border-opacity-30 hover:text-opacity-100 hover:no-underline motion-safe:transition-colors'
 
 const activeChipClassName =
-  'border-white bg-white text-black text-opacity-100 hover:border-white'
+  'border-white bg-white text-black text-opacity-100 hover:border-white hover:border-opacity-100 hover:bg-white'
 
 /**
- * "All", the most used tags, and an "All tags" menu listing every tag. Every
- * entry is a link to a prerendered listing, and `<details>` keeps the menu's
- * links in the HTML when closed, so crawlers reach every tag page from here.
+ * The last tag picked from "More", kept across client-side navigation between
+ * tag listings: every listing remounts the row. Cleared on /blog, and empty on
+ * each full load, so hydration matches the prerendered "More".
  */
-export default function BlogTagRow({ tags, activeTag }: BlogTagRowProps) {
-  const rowTags = tags.slice(0, TAG_ROW_SIZE)
-  const activeOutsideRow = activeTag !== null && !rowTags.includes(activeTag)
+let lastMoreTag: string | null = null
+
+interface TagChipProps {
+  tag: string | null
+  activeTag: string | null
+  query: string
+  /** Clicking the active chip clears the filter, back to /blog. */
+  toggles?: boolean
+  className?: string
+}
+
+/**
+ * Links keep the scroll position: the page above the row is the same on every
+ * listing, so the row stays put and only the posts below change.
+ */
+function TagChip({
+  tag,
+  activeTag,
+  query,
+  toggles = false,
+  className,
+}: TagChipProps) {
+  const active = tag === activeTag
+  const clears = toggles && active
+  const pathname = tag === null || clears ? '/blog' : tagPath(tag)
 
   return (
-    <nav aria-label="Browse by tag" className="flex min-w-0 items-center gap-2">
-      <div className="min-w-0 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ul className="flex w-max gap-2">
-          <li>
-            <Link
-              href="/blog"
-              aria-current={activeTag === null ? 'page' : undefined}
-              className={twMerge(
-                chipClassName,
-                activeTag === null && activeChipClassName,
-              )}
-            >
-              All
-            </Link>
-          </li>
-          {rowTags.map((tag) => (
-            <li key={tag}>
-              <Link
-                href={tagPath(tag)}
-                aria-current={tag === activeTag ? 'page' : undefined}
+    <Link
+      href={query.trim() ? { pathname, query: { q: query } } : pathname}
+      scroll={false}
+      aria-current={active && !clears ? 'page' : undefined}
+      className={twMerge(
+        chipClassName,
+        className,
+        active && activeChipClassName,
+        clears && 'flex items-center gap-1',
+      )}
+    >
+      {tag ?? 'All'}
+      {clears && (
+        <>
+          <X className="h-3 w-3" aria-hidden />
+          <span className="sr-only">, clear filter</span>
+        </>
+      )}
+    </Link>
+  )
+}
+
+/**
+ * "All", the most used tags, and a "More" popover with the rest, A to Z. On a
+ * tag from the popover, "More" takes that tag's name and keeps it while other
+ * tags are picked from the row, until "All". Every entry is a link to a
+ * prerendered listing, and the popover's panel stays in the HTML while closed,
+ * so crawlers reach every tag page from here.
+ */
+export default function BlogTagRow({
+  tags,
+  activeTag,
+  query,
+  className,
+}: BlogTagRowProps) {
+  const { rowTags, moreTags } = splitTags(tags)
+  const activeInMore = activeTag !== null && moreTags.includes(activeTag)
+  const [rememberedTag] = useState(() => lastMoreTag)
+  let moreLabel = activeTag === null ? null : rememberedTag
+
+  if (activeInMore) {
+    moreLabel = activeTag
+  }
+
+  useEffect(() => {
+    if (activeTag === null) {
+      lastMoreTag = null
+    } else if (activeInMore) {
+      lastMoreTag = activeTag
+    }
+  }, [activeInMore, activeTag])
+
+  return (
+    <nav
+      aria-label="Browse by tag"
+      className={twMerge('relative flex min-w-0 flex-wrap gap-1', className)}
+    >
+      <TagChip tag={null} activeTag={activeTag} query={query} />
+
+      {rowTags.map((tag) => (
+        <TagChip key={tag} tag={tag} activeTag={activeTag} query={query} />
+      ))}
+
+      {moreTags.length > 0 && (
+        // From `lg` the panel centers under this button; on smaller screens,
+        // where it could run off the edge, it spans the row instead.
+        <Popover className="lg:relative">
+          {({ open }) => (
+            <>
+              <Popover.Button
                 className={twMerge(
                   chipClassName,
-                  tag === activeTag && activeChipClassName,
+                  'flex items-center gap-1 focus:outline-none focus-visible:border-white focus-visible:border-opacity-30',
+                  open && 'border-white border-opacity-30 text-opacity-100',
+                  activeInMore && activeChipClassName,
                 )}
               >
-                {tag}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {tags.length > rowTags.length && (
-        // Keyed by the active tag so the menu closes after picking from it:
-        // tag pages share one route, so the page itself stays mounted.
-        <details key={activeTag ?? 'all'} className="group relative shrink-0">
-          <summary
-            className={twMerge(
-              chipClassName,
-              'flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden',
-              activeOutsideRow && activeChipClassName,
-            )}
-          >
-            {activeOutsideRow ? activeTag : 'All tags'}
-            <ChevronDown
-              className="h-3 w-3 group-open:rotate-180 motion-safe:transition-transform"
-              aria-hidden
-            />
-          </summary>
-
-          <ul className="absolute right-0 z-20 mt-2 grid max-h-72 min-w-[10rem] grid-flow-row overflow-y-auto rounded-xl border border-divider bg-black p-1 shadow-lg">
-            {tags.map((tag) => (
-              <li key={tag}>
-                <Link
-                  href={tagPath(tag)}
-                  aria-current={tag === activeTag ? 'page' : undefined}
+                {moreLabel ? (
+                  <>
+                    <span className="sr-only">More tags: </span>
+                    {moreLabel}
+                  </>
+                ) : (
+                  'More'
+                )}
+                <ChevronDown
                   className={twMerge(
-                    'block whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-white text-opacity-65 hover:bg-white hover:bg-opacity-10 hover:text-opacity-100 hover:no-underline',
-                    tag === activeTag &&
-                      'bg-white bg-opacity-10 text-opacity-100',
+                    'h-3.5 w-3.5 motion-safe:transition-transform',
+                    open && 'rotate-180',
                   )}
-                >
-                  {tag}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </details>
+                  aria-hidden
+                />
+              </Popover.Button>
+
+              <Popover.Panel
+                unmount={false}
+                className="absolute left-0 right-0 top-full z-20 mt-2 lg:left-1/2 lg:right-auto lg:w-[40rem] lg:-translate-x-1/2"
+              >
+                {/* Styled apart from the panel, whose transform positions it,
+                    so the open animation can use its own. */}
+                <div className="origin-top overflow-hidden rounded-2xl border border-white/15 bg-paper bg-gradient-to-b from-brand-main/[0.08] to-transparent shadow-[0_20px_50px_rgba(0,0,0,0.75)] ring-1 ring-brand-main/10 motion-safe:animate-popover-in">
+                  <div className="flex max-h-[60vh] flex-wrap justify-center gap-1.5 overflow-y-auto overscroll-contain p-4">
+                    {moreTags.map((tag) => (
+                      <TagChip
+                        key={tag}
+                        tag={tag}
+                        activeTag={activeTag}
+                        query={query}
+                        toggles
+                        className="border-white/10 bg-white/[0.04] px-2 py-0.5 hover:bg-white/[0.08]"
+                      />
+                    ))}
+                  </div>
+                </div>
+              </Popover.Panel>
+            </>
+          )}
+        </Popover>
       )}
     </nav>
   )

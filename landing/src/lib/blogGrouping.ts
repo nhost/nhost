@@ -15,22 +15,13 @@ export const POSTS_PER_PAGE = 12
 /** How many tags the filter row shows before the rest go in "More". */
 export const TAG_ROW_SIZE = 7
 
-/**
- * Tags on fewer posts than this get no page and no filter. Most tags appear
- * once, which makes them noise as filters and thin as pages.
- */
-export const MIN_POSTS_PER_TAG = 3
-
 /** The newest post flagged `featured`, which leads /blog. */
 export function getLeadArticle(articles: Article[]): Article | null {
   return articles.find((article) => article.featured) ?? null
 }
 
-/**
- * Tags on at least `MIN_POSTS_PER_TAG` posts, ordered by how many posts carry
- * them, then alphabetically.
- */
-export function getPopularTags(articles: Article[]): string[] {
+/** Every tag, ordered by how many posts carry it, then alphabetically. */
+export function getTags(articles: Article[]): string[] {
   const counts = new Map<string, number>()
 
   for (const article of articles) {
@@ -40,9 +31,24 @@ export function getPopularTags(articles: Article[]): string[] {
   }
 
   return Array.from(counts)
-    .filter(([, count]) => count >= MIN_POSTS_PER_TAG)
     .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
     .map(([tag]) => tag)
+}
+
+/**
+ * Splits `tags`, most used first, into the filter row's `TAG_ROW_SIZE` and the
+ * rest for "More", A to Z ignoring case.
+ */
+export function splitTags(tags: string[]): {
+  rowTags: string[]
+  moreTags: string[]
+} {
+  return {
+    rowTags: tags.slice(0, TAG_ROW_SIZE),
+    moreTags: tags
+      .slice(TAG_ROW_SIZE)
+      .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })),
+  }
 }
 
 /** URL segment for a tag: `Next.js` is `nextjs`, `Open Source` is `open-source`. */
@@ -69,14 +75,15 @@ export function pageCount(count: number): number {
   return Math.max(1, Math.ceil(count / POSTS_PER_PAGE))
 }
 
-/** Pagination always shows every page number up to this many pages. */
-const MAX_PAGE_LINKS = 7
+/** Slots in the pagination row, gaps included. */
+const PAGE_SLOTS = 8
 
 /**
- * Page numbers to link from `page`, with `null` for a gap. Past
- * `MAX_PAGE_LINKS` pages it keeps the first, the last, and the current page's
- * neighbours, so the row stays the same width wherever you are:
- * `1 2 3 4 5 … 20`, `1 … 9 10 11 … 20`, `1 … 16 17 18 19 20`.
+ * Page numbers to link from `page`, with `null` for a gap. Up to `PAGE_SLOTS`
+ * pages it shows them all; past that the row always fills exactly that many
+ * slots, keeping the first, the last, and the current page with its
+ * neighbours: `1 2 3 4 5 6 … 20`, `1 … 9 10 11 12 … 20`,
+ * `1 … 15 16 17 18 19 20`. Each gap hides at least two pages.
  */
 export function getPageNumbers(
   page: number,
@@ -85,19 +92,19 @@ export function getPageNumbers(
   const range = (from: number, to: number) =>
     Array.from({ length: to - from + 1 }, (_, index) => from + index)
 
-  if (totalPages <= MAX_PAGE_LINKS) {
+  if (totalPages <= PAGE_SLOTS) {
     return range(1, totalPages)
   }
 
   if (page <= 4) {
-    return [...range(1, 5), null, totalPages]
+    return [...range(1, 6), null, totalPages]
   }
 
-  if (page >= totalPages - 3) {
-    return [1, null, ...range(totalPages - 4, totalPages)]
+  if (page >= totalPages - 4) {
+    return [1, null, ...range(totalPages - 5, totalPages)]
   }
 
-  return [1, null, page - 1, page, page + 1, null, totalPages]
+  return [1, null, page - 1, page, page + 1, page + 2, null, totalPages]
 }
 
 /** The posts on `page`, counting from 1. */
@@ -112,7 +119,7 @@ const RESERVED_POST_SLUGS = new Set(['page', 'tag'])
 
 /**
  * Problems that would make two blog URLs collide: a post whose slug a listing
- * route already uses, or popular tags that share a slug and so a page. Empty
+ * route already uses, or tags that share a slug and so a page. Empty
  * when there are none.
  */
 export function findUrlClashes(articles: Article[]): string[] {
@@ -125,7 +132,7 @@ export function findUrlClashes(articles: Article[]): string[] {
 
   const tagsBySlug = new Map<string, string[]>()
 
-  for (const tag of getPopularTags(articles)) {
+  for (const tag of getTags(articles)) {
     const slug = tagSlug(tag)
     tagsBySlug.set(slug, [...(tagsBySlug.get(slug) ?? []), tag])
   }

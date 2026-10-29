@@ -23,11 +23,16 @@ function searchableText(article: Article): string {
  */
 export default function useArticleSearch(articles: Article[]) {
   const router = useRouter()
-  const [query, setQueryState] = useState('')
+  // After client-side navigation, e.g. picking a tag mid-search, the router is
+  // ready on the first render, so start from `?q=` rather than flash the list.
+  const [query, setQueryState] = useState(() =>
+    router.isReady && typeof router.query.q === 'string' ? router.query.q : '',
+  )
   const readFromUrl = useRef(false)
 
-  // Static pages render without the query string, so `?q=` is only known once
-  // the router is ready. Read it then, once; after that the input owns it.
+  // Static pages render without the query string, so on a full load `?q=` is
+  // only known once the router is ready. Read it then, once; after that the
+  // input owns it.
   useEffect(() => {
     if (!router.isReady || readFromUrl.current) return
 

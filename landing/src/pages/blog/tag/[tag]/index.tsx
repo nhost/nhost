@@ -2,7 +2,7 @@ import { BlogListing, BlogListingProps } from '@/components/blog/BlogListing'
 import { getTagListingProps, getTagPageCounts } from '@/lib/blogListing'
 import { GetStaticPaths, GetStaticProps } from 'next'
 
-/** Posts with one popular tag. Rarer tags have no page. */
+/** A tag's first page of posts. */
 export default function BlogTagPage(props: BlogListingProps) {
   return <BlogListing key={props.seo.path} {...props} />
 }

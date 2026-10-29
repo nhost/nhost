@@ -1,19 +1,19 @@
 import { BlogLeadPost } from '@/components/blog/BlogLeadPost'
-import { BlogPagination } from '@/components/blog/BlogPagination'
+import { BlogPagination, takePageGlide } from '@/components/blog/BlogPagination'
 import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { BlogSearchField } from '@/components/blog/BlogSearchField'
 import { BlogTagRow } from '@/components/blog/BlogTagRow'
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
 import { useArticleSearch } from '@/hooks/useArticleSearch'
-import { POSTS_PER_PAGE } from '@/lib/blogGrouping'
 import { buildSeo, BuildSeoOptions } from '@/utils/seo'
 import { Article } from '@/utils/types'
+import { useEffect } from 'react'
+
+/** Id of the posts section, which a page link click glides to. */
+const POSTS_ID = 'posts'
 
 export interface BlogListingProps {
-  /** The page's h1. */
-  heading: string
-  subheading: string
   seo: BuildSeoOptions
   /** The listing's page 1, e.g. `/blog` or `/blog/tag/auth`. */
   basePath: string
@@ -25,7 +25,7 @@ export interface BlogListingProps {
   totalPosts: number
   /** Every post the search covers: the whole listing, not just this page. */
   searchable: Article[]
-  /** Popular tags, most used first. */
+  /** Every tag, most used first. */
   tags: string[]
   /** The tag whose listing this is, or `null` on /blog. */
   activeTag: string | null
@@ -37,7 +37,8 @@ export interface BlogListingProps {
  * The blog's listing pages: an optional lead post, a toolbar with search and
  * tags, then a page of posts.
  *
- * Searching swaps the page for every match across `searchable`. Without a
+ * Searching swaps the page for every match across `searchable`, the lead
+ * included, and leaves the lead post above the toolbar in place. Without a
  * search, the prerendered HTML holds this page's posts and links to the
  * neighbouring pages, so crawlers reach every post without JavaScript.
  *
@@ -46,8 +47,6 @@ export interface BlogListingProps {
  * props can't be read there.
  */
 export default function BlogListing({
-  heading,
-  subheading,
   seo,
   basePath,
   lead,
@@ -61,57 +60,73 @@ export default function BlogListing({
 }: BlogListingProps) {
   const { query, setQuery, isSearching, results } = useArticleSearch(searchable)
 
-  const firstOnPage = (page - 1) * POSTS_PER_PAGE + 1
-  const count = isSearching
-    ? `${results.length} of ${searchable.length} posts`
-    : `${firstOnPage}–${
-        firstOnPage + articles.length - 1
-      } of ${totalPosts} posts`
+  // Every listing page remounts this, so on arriving from a pagination link,
+  // glide to the posts while the new cards fade in. Back and forward never set
+  // the glide, and page URLs carry no hash, so Next's scroll restoration
+  // stands.
+  useEffect(() => {
+    if (!takePageGlide()) {
+      return
+    }
 
-  let sectionHeading = 'All posts'
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
 
-  if (isSearching) {
-    sectionHeading = 'Search results'
-  } else if (activeTag) {
-    sectionHeading = `Posts tagged ${activeTag}`
-  }
+    document.getElementById(POSTS_ID)?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }, [])
+
+  const count = isSearching ? results.length : totalPosts
+
+  const sectionHeading = activeTag ?? 'Latest'
 
   return (
     <Layout slotProps={{ nextSeo: buildSeo(seo) }}>
-      <Container className="grid max-w-5xl grid-cols-1 gap-10 pb-16 pt-14 lg:pb-28 lg:pt-20">
+      <Container className="grid max-w-5xl grid-cols-1 gap-10 pb-16 pt-14 lg:pb-28">
         <header className="grid grid-flow-row gap-2">
           <h1 className="font-mona text-3.5xl font-semibold text-white md:text-4.5xl">
-            {heading}
+            Blog
           </h1>
-          <p className="text-base text-white text-opacity-65">{subheading}</p>
+          <p className="text-base text-white text-opacity-65">
+            Read the latest news about Nhost.
+          </p>
         </header>
 
-        {lead && !isSearching && <BlogLeadPost article={lead} />}
+        {lead && <BlogLeadPost article={lead} />}
 
-        <section className="grid grid-cols-1 gap-8">
+        {/* Paging glides here, clear of the fixed header. */}
+        <section id={POSTS_ID} className="grid scroll-mt-24 grid-cols-1 gap-8">
           <div className="grid grid-cols-1 gap-4 border-b border-divider pb-6">
-            <div className="flex items-baseline justify-between gap-4">
+            <div className="flex items-center gap-3">
               <h2 className="font-mona text-2xl font-semibold text-white">
                 {sectionHeading}
               </h2>
               <p
                 role="status"
-                className="shrink-0 text-sm tabular-nums text-white text-opacity-50"
+                className="shrink-0 rounded-full border border-divider bg-white bg-opacity-5 px-2 py-0.5 text-xs font-medium tabular-nums text-white text-opacity-65"
               >
                 {count}
+                <span className="sr-only">
+                  {count === 1 ? ' post' : ' posts'}
+                </span>
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <BlogTagRow tags={tags} activeTag={activeTag} />
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <BlogTagRow
+                tags={tags}
+                activeTag={activeTag}
+                query={query}
+                className="md:py-0.5"
+              />
 
               <BlogSearchField
                 id="blog-search"
                 label={
                   activeTag ? `Search ${activeTag} posts` : 'Search the blog'
-                }
-                placeholder={
-                  activeTag ? `Search ${activeTag} posts` : undefined
                 }
                 value={query}
                 onChange={setQuery}

@@ -7,20 +7,32 @@ export interface BlogPostGridProps {
   articles: Article[]
 }
 
+/** Later cards wait a little longer to fade in, up to this many steps. */
+const MAX_STAGGER_STEPS = 6
+
 /**
  * Posts as cards: cover, title, excerpt, then date, authors, and read time.
  * One column on phones, two from `sm`, three from `lg`.
+ *
+ * Cards fade in when they mount. They are keyed by slug, so as a search
+ * changes only newly matching cards animate.
  */
 export default function BlogPostGrid({ articles }: BlogPostGridProps) {
   return (
     <ul className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-      {articles.map((article) => (
-        <li key={article.slug}>
+      {articles.map((article, index) => (
+        <li
+          key={article.slug}
+          className="motion-safe:animate-card-in"
+          style={{
+            animationDelay: `${Math.min(index, MAX_STAGGER_STEPS) * 40}ms`,
+          }}
+        >
           <Link
             href={`/blog/${article.slug}`}
             className="group grid grid-flow-row gap-3 hover:no-underline"
           >
-            <div className="overflow-hidden rounded-xl border border-divider">
+            <div className="overflow-hidden rounded-xl border border-divider bg-paper">
               <Image
                 src={article.image}
                 width={1920}

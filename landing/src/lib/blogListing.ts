@@ -3,7 +3,7 @@ import { getAllArticles } from '@/lib/blog'
 import {
   getLeadArticle,
   getPage,
-  getPopularTags,
+  getTags,
   listingPath,
   pageCount,
   tagSlug,
@@ -41,8 +41,6 @@ export async function getBlogListingProps(
   const listed = getListedArticles(articles)
 
   return {
-    heading: 'Blog',
-    subheading: 'Read the latest news about Nhost.',
     seo: {
       path: listingPath('/blog', page),
       title:
@@ -57,7 +55,7 @@ export async function getBlogListingProps(
     articles: getPage(listed, page),
     totalPosts: listed.length,
     searchable: articles,
-    tags: getPopularTags(articles),
+    tags: getTags(articles),
     activeTag: null,
     page,
     totalPages: pageCount(listed.length),
@@ -69,20 +67,20 @@ export async function getBlogPageCount(): Promise<number> {
   return pageCount(getListedArticles(await getAllArticles()).length)
 }
 
-/** Every popular tag with the number of pages its listing fills. */
+/** Every tag with the number of pages its listing fills. */
 export async function getTagPageCounts(): Promise<
   { slug: string; totalPages: number }[]
 > {
   const articles = await getAllArticles()
 
-  return getPopularTags(articles).map((tag) => ({
+  return getTags(articles).map((tag) => ({
     slug: tagSlug(tag),
     totalPages: pageCount(getListedArticles(articles, tag).length),
   }))
 }
 
 /**
- * A tag's listing, or `null` when `slug` is not a popular tag or `page` is
+ * A tag's listing, or `null` when `slug` is not a tag or `page` is
  * past its last page.
  */
 export async function getTagListingProps(
@@ -90,7 +88,7 @@ export async function getTagListingProps(
   page: number,
 ): Promise<BlogListingProps | null> {
   const articles = await getAllArticles()
-  const tags = getPopularTags(articles)
+  const tags = getTags(articles)
   const tag = tags.find((candidate) => tagSlug(candidate) === slug)
 
   if (!tag) {
@@ -108,8 +106,6 @@ export async function getTagListingProps(
   const description = `Nhost blog posts about ${tag}, newest first.`
 
   return {
-    heading: tag,
-    subheading: description,
     seo: {
       path: listingPath(basePath, page),
       title:

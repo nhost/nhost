@@ -3,11 +3,13 @@ import {
   getLeadArticle,
   getPage,
   getPageNumbers,
-  getPopularTags,
+  getTags,
   listingPath,
   pageCount,
   parsePageParam,
   POSTS_PER_PAGE,
+  splitTags,
+  TAG_ROW_SIZE,
   tagPath,
   tagSlug,
 } from '@/lib/blogGrouping'
@@ -50,17 +52,44 @@ describe('getLeadArticle', () => {
   })
 })
 
-describe('getPopularTags', () => {
-  it('keeps tags on three or more posts, most used first, ties by name', () => {
+describe('getTags', () => {
+  it('lists every tag, most used first, ties by name', () => {
     const posts = [
       article({ tags: ['Auth', 'AI', 'Rare'] }),
-      article({ tags: ['Auth', 'AI', 'Rare'] }),
-      article({ tags: ['Auth', 'AI', 'Platform'] }),
+      article({ tags: ['Auth', 'AI'] }),
       article({ tags: ['Auth', 'Platform'] }),
       article({ tags: ['Platform'] }),
     ]
 
-    expect(getPopularTags(posts)).toEqual(['Auth', 'AI', 'Platform'])
+    expect(getTags(posts)).toEqual(['Auth', 'AI', 'Platform', 'Rare'])
+  })
+})
+
+describe('splitTags', () => {
+  const rowTags = Array.from(
+    { length: TAG_ROW_SIZE },
+    (_, index) => `Tag ${index}`,
+  )
+
+  it.each([
+    [
+      'fewer tags than the row holds',
+      ['Product', 'Auth'],
+      ['Product', 'Auth'],
+      [],
+    ],
+    ['exactly a row of tags', rowTags, rowTags, []],
+    [
+      'more tags than the row holds, the rest A to Z ignoring case',
+      [...rowTags, 'pnpm', 'Template', 'example', 'Apollo', 'AI Week'],
+      rowTags,
+      ['AI Week', 'Apollo', 'example', 'pnpm', 'Template'],
+    ],
+  ])('splits %s', (_, tags, expectedRow, expectedMore) => {
+    expect(splitTags(tags)).toEqual({
+      rowTags: expectedRow,
+      moreTags: expectedMore,
+    })
   })
 })
 
@@ -106,16 +135,47 @@ describe('pagination', () => {
 
   it.each([
     [1, 1, [1]],
+    [1, 2, [1, 2]],
+    [2, 3, [1, 2, 3]],
     [4, 7, [1, 2, 3, 4, 5, 6, 7]],
-    [1, 20, [1, 2, 3, 4, 5, null, 20]],
-    [4, 20, [1, 2, 3, 4, 5, null, 20]],
-    [5, 20, [1, null, 4, 5, 6, null, 20]],
-    [10, 20, [1, null, 9, 10, 11, null, 20]],
-    [17, 20, [1, null, 16, 17, 18, 19, 20]],
-    [20, 20, [1, null, 16, 17, 18, 19, 20]],
+    [5, 8, [1, 2, 3, 4, 5, 6, 7, 8]],
+    [1, 9, [1, 2, 3, 4, 5, 6, null, 9]],
+    [4, 9, [1, 2, 3, 4, 5, 6, null, 9]],
+    [5, 9, [1, null, 4, 5, 6, 7, 8, 9]],
+    [9, 9, [1, null, 4, 5, 6, 7, 8, 9]],
+    [5, 20, [1, null, 4, 5, 6, 7, null, 20]],
+    [15, 20, [1, null, 14, 15, 16, 17, null, 20]],
+    [16, 20, [1, null, 15, 16, 17, 18, 19, 20]],
   ])('links pages around page %i of %i', (page, total, expected) => {
     expect(getPageNumbers(page, total)).toEqual(expected)
   })
+
+  it.each([9, 10, 20])(
+    'fills the same eight slots on every page of %i, keeping the ends and neighbours',
+    (total) => {
+      for (let page = 1; page <= total; page += 1) {
+        const numbers = getPageNumbers(page, total)
+        const neighbours = [page - 1, page, page + 1].filter(
+          (number) => number >= 1 && number <= total,
+        )
+
+        expect(numbers).toHaveLength(8)
+        expect(numbers).toEqual(
+          expect.arrayContaining([1, total, ...neighbours]),
+        )
+
+        // A gap never stands in for a single page.
+        numbers.forEach((number, index) => {
+          if (number === null) {
+            const before = numbers[index - 1] as number
+            const after = numbers[index + 1] as number
+
+            expect(after - before).toBeGreaterThan(2)
+          }
+        })
+      }
+    },
+  )
 
   it.each([
     ['2', 3, 2],
@@ -142,10 +202,11 @@ describe('findUrlClashes', () => {
     ])
   })
 
-  it('reports popular tags that share a slug', () => {
-    const posts = Array.from({ length: 3 }, () =>
-      article({ tags: ['Next.js', 'NextJS'] }),
-    )
+  it('reports tags that share a slug', () => {
+    const posts = [
+      article({ tags: ['Next.js'] }),
+      article({ tags: ['NextJS'] }),
+    ]
 
     expect(findUrlClashes(posts)).toEqual([
       'Tags "Next.js", "NextJS" all map to /blog/tag/nextjs. Merge or rename them.',
