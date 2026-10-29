@@ -66,6 +66,7 @@ func replaceFileParseRequest(
 		if d.Name != "" {
 			res.Name = d.Name
 		}
+
 		res.Metadata = d.Metadata
 	}
 

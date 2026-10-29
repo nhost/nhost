@@ -19,38 +19,39 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-func createReplaceMultiForm(t *testing.T, file fakeFile) *multipart.Reader {
+func createReplaceMultiForm(t *testing.T, filename, contents, metadata string) *multipart.Reader {
 	t.Helper()
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-
-	// Store the boundary before we close the writer
 	boundary := writer.Boundary()
 
-	formWriter, err := writer.CreateFormFile("file", file.md.Name)
+	formWriter, err := writer.CreateFormFile("file", filename)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = io.Copy(formWriter, strings.NewReader(file.contents))
+	_, err = io.Copy(formWriter, strings.NewReader(contents))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	formWriter, err = writer.CreateFormField("metadata")
-	if err != nil {
+	if metadata != "" {
+		formWriter, err = writer.CreateFormField("metadata")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, err = io.Copy(formWriter, strings.NewReader(metadata))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := writer.Close(); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = io.Copy(formWriter, strings.NewReader(file.md.encode()))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	writer.Close()
-
-	// Create and return a multipart.Reader
 	return multipart.NewReader(bytes.NewReader(body.Bytes()), boundary)
 }
 
@@ -58,16 +59,52 @@ func TestReplaceFile(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		contents string
+		name             string
+		contents         string
+		filename         string
+		metadata         string
+		expectedName     string
+		expectedMetadata map[string]any
 	}{
 		{
-			name:     "successful",
-			contents: "some content",
+			name:             "metadata name overrides multipart filename",
+			contents:         "some content",
+			filename:         "upload.txt",
+			metadata:         `{"name":"renamed.txt","metadata":{"some":"metadata"}}`,
+			expectedName:     "renamed.txt",
+			expectedMetadata: map[string]any{"some": "metadata"},
 		},
 		{
-			name:     "successful with large file exceeding maxFormMemory",
-			contents: strings.Repeat("x", 1<<20+1),
+			name:             "successful with large file exceeding maxFormMemory",
+			contents:         strings.Repeat("x", 1<<20+1),
+			filename:         "a_file.txt",
+			metadata:         `{"name":"a_file.txt","metadata":{"some":"metadata"}}`,
+			expectedName:     "a_file.txt",
+			expectedMetadata: map[string]any{"some": "metadata"},
+		},
+		{
+			name:             "metadata omits name",
+			contents:         "some content",
+			filename:         "upload.txt",
+			metadata:         `{"metadata":{"department":"finance"}}`,
+			expectedName:     "upload.txt",
+			expectedMetadata: map[string]any{"department": "finance"},
+		},
+		{
+			name:             "metadata name is empty",
+			contents:         "some content",
+			filename:         "upload.txt",
+			metadata:         `{"name":"","metadata":{"department":"finance"}}`,
+			expectedName:     "upload.txt",
+			expectedMetadata: map[string]any{"department": "finance"},
+		},
+		{
+			name:             "no metadata part",
+			contents:         "some content",
+			filename:         "upload.txt",
+			metadata:         "",
+			expectedName:     "upload.txt",
+			expectedMetadata: nil,
 		},
 	}
 
@@ -79,16 +116,11 @@ func TestReplaceFile(t *testing.T) {
 				slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
 			)
 
-			file := fakeFile{
-				contents:    tc.contents,
-				contentType: "",
-				md: fakeFileMetadata{
-					Name: "a_file.txt",
-					ID:   uuid.New().String(),
-					Metadata: map[string]any{
-						"some": "metadata",
-					},
-				},
+			fileID := uuid.New().String()
+
+			var responseMetadata *map[string]any
+			if tc.expectedMetadata != nil {
+				responseMetadata = new(tc.expectedMetadata)
 			}
 
 			c := gomock.NewController(t)
@@ -99,12 +131,12 @@ func TestReplaceFile(t *testing.T) {
 			av := mock.NewMockAntivirus(c)
 
 			metadataStorage.EXPECT().GetFileByID(
-				gomock.Any(), file.md.ID, gomock.Any(),
+				gomock.Any(), fileID, gomock.Any(),
 			).Return(
 				api.FileMetadata{
-					Id:               file.md.ID,
-					Name:             file.md.Name,
-					Size:             int64(len(file.contents)),
+					Id:               fileID,
+					Name:             "original.txt",
+					Size:             int64(len(tc.contents)),
 					BucketId:         "blah",
 					Etag:             "some-etag",
 					CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC), // ignored
@@ -131,34 +163,34 @@ func TestReplaceFile(t *testing.T) {
 			)
 
 			metadataStorage.EXPECT().SetIsUploaded(
-				gomock.Any(), file.md.ID, false, gomock.Any(),
+				gomock.Any(), fileID, false, gomock.Any(),
 			).Return(nil)
 
 			contentStorage.EXPECT().PutFile(
 				gomock.Any(),
 				ReaderMatcher(
-					file.contents,
+					tc.contents,
 				),
-				file.md.ID,
+				fileID,
 				"text/plain; charset=utf-8",
 			).Return("some-etag", nil)
 
 			metadataStorage.EXPECT().PopulateMetadata(
 				gomock.Any(),
-				file.md.ID,
-				file.md.Name,
-				int64(len(file.contents)),
+				fileID,
+				tc.expectedName,
+				int64(len(tc.contents)),
 				"blah",
 				"some-etag",
 				true,
 				"text/plain; charset=utf-8",
-				file.md.Metadata,
+				tc.expectedMetadata,
 				gomock.Any(),
 			).Return(
 				api.FileMetadata{
-					Id:               file.md.ID,
-					Name:             file.md.Name,
-					Size:             int64(len(file.contents)),
+					Id:               fileID,
+					Name:             tc.expectedName,
+					Size:             int64(len(tc.contents)),
 					BucketId:         "blah",
 					Etag:             "some-etag",
 					CreatedAt:        time.Time{}, // ignored
@@ -166,7 +198,7 @@ func TestReplaceFile(t *testing.T) {
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
 					UploadedByUserId: new("some-valid-uuid"),
-					Metadata:         new(map[string]any{"some": "metadata"}),
+					Metadata:         responseMetadata,
 				},
 				nil,
 			)
@@ -187,8 +219,8 @@ func TestReplaceFile(t *testing.T) {
 			resp, err := ctrl.ReplaceFile(
 				t.Context(),
 				api.ReplaceFileRequestObject{
-					Id:   file.md.ID,
-					Body: createReplaceMultiForm(t, file),
+					Id:   fileID,
+					Body: createReplaceMultiForm(t, tc.filename, tc.contents, tc.metadata),
 				},
 			)
 			if err != nil {
@@ -197,8 +229,8 @@ func TestReplaceFile(t *testing.T) {
 
 			assert(
 				t, api.ReplaceFile200JSONResponse{
-					Id:               file.md.ID,
-					Name:             "a_file.txt",
+					Id:               fileID,
+					Name:             tc.expectedName,
 					Size:             int64(len(tc.contents)),
 					BucketId:         "blah",
 					Etag:             "some-etag",
@@ -207,7 +239,7 @@ func TestReplaceFile(t *testing.T) {
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
 					UploadedByUserId: new("some-valid-uuid"),
-					Metadata:         new(map[string]any{"some": "metadata"}),
+					Metadata:         responseMetadata,
 				}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
@@ -318,7 +350,7 @@ func TestReplaceFile_FileSize(t *testing.T) {
 				t.Context(),
 				api.ReplaceFileRequestObject{
 					Id:   file.md.ID,
-					Body: createReplaceMultiForm(t, file),
+					Body: createReplaceMultiForm(t, file.md.Name, file.contents, file.md.encode()),
 				},
 			)
 			if err != nil {
@@ -337,124 +369,5 @@ func TestReplaceFile_FileSize(t *testing.T) {
 				Data:    tc.expectedData,
 			})
 		})
-	}
-}
-
-func TestReplaceFile_PreservesFilenameWhenMetadataOmitsName(t *testing.T) {
-	t.Parallel()
-
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	fileID := uuid.New().String()
-	filename := "document_report.pdf"
-
-	c := gomock.NewController(t)
-	defer c.Finish()
-
-	metadataStorage := mock.NewMockMetadataStorage(c)
-	contentStorage := mock.NewMockContentStorage(c)
-	av := mock.NewMockAntivirus(c)
-
-	// Mock file lookup in Hasura
-	metadataStorage.EXPECT().GetFileByID(gomock.Any(), fileID, gomock.Any()).Return(
-		api.FileMetadata{
-			Id:         fileID,
-			Name:       filename,
-			Size:       4,
-			BucketId:   "default",
-			IsUploaded: true,
-			MimeType:   "application/pdf",
-		},
-		nil,
-	)
-
-	// Mock bucket lookup
-	metadataStorage.EXPECT().GetBucketByID(gomock.Any(), "default", gomock.Any()).Return(
-		controller.BucketMetadata{
-			ID:            "default",
-			MinUploadFile: 0,
-			MaxUploadFile: 10 << 20,
-		},
-		nil,
-	)
-
-	metadataStorage.EXPECT().SetIsUploaded(gomock.Any(), fileID, false, gomock.Any()).Return(nil)
-	contentStorage.EXPECT().PutFile(gomock.Any(), gomock.Any(), fileID, gomock.Any()).Return("etag-123", nil)
-
-	// CRITICAL ASSERTION:
-	// Verify that PopulateMetadata receives "document_report.pdf" (not empty string "")
-	metadataStorage.EXPECT().PopulateMetadata(
-		gomock.Any(),
-		fileID,
-		filename, // <-- Asserts filename was preserved
-		int64(4),
-		"default",
-		"etag-123",
-		true,
-		gomock.Any(),
-		map[string]any{"department": "finance"},
-		gomock.Any(),
-	).Return(
-		api.FileMetadata{
-			Id:         fileID,
-			Name:       filename,
-			Size:       4,
-			BucketId:   "default",
-			IsUploaded: true,
-			MimeType:   "application/pdf",
-			Metadata:   new(map[string]any{"department": "finance"}),
-		},
-		nil,
-	)
-
-	av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
-
-	ctrl := controller.New(
-		"http://localhost",
-		"/v1",
-		"admin-secret",
-		metadataStorage,
-		contentStorage,
-		nil,
-		av,
-		logger,
-	)
-
-	// Build multipart request with custom metadata omitting the "name" attribute
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	boundary := writer.Boundary()
-
-	fw, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := fw.Write([]byte("test")); err != nil {
-		t.Fatal(err)
-	}
-
-	mw, err := writer.CreateFormField("metadata")
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Note: "name" is intentionally omitted from the JSON payload
-	if _, err := mw.Write([]byte(`{"metadata": {"department": "finance"}}`)); err != nil {
-		t.Fatal(err)
-	}
-	writer.Close()
-
-	resp, err := ctrl.ReplaceFile(
-		t.Context(),
-		api.ReplaceFileRequestObject{
-			Id:   fileID,
-			Body: multipart.NewReader(bytes.NewReader(body.Bytes()), boundary),
-		},
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	resObj, ok := resp.(api.ReplaceFile200JSONResponse)
-	if !ok || resObj.Name != filename {
-		t.Fatalf("expected file name %q to be preserved, got %q", filename, resObj.Name)
 	}
 }
