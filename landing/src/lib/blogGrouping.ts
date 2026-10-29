@@ -10,7 +10,7 @@ import { Article } from '@/utils/types'
  */
 
 /** Posts per listing page, on /blog and on tag pages. */
-export const POSTS_PER_PAGE = 12
+export const POSTS_PER_PAGE = 9
 
 /** How many tags the filter row shows before the rest go in "More". */
 export const TAG_ROW_SIZE = 7
