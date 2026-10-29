@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This pinned version is bumped automatically by the changelog workflow.
-VERSION="1.52.0"
+VERSION="1.52.2"
 
 # helper functions
 yell() { echo -e "${RED}FAILED> $* ${NC}" >&2; }

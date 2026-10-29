@@ -10,8 +10,16 @@ This document covers commands, project layout, and dashboard-specific workflows 
 
 ### Core Commands
 
+Run install and the SDK build from the repository root. The dashboard imports `@nhost/nhost-js` from its `dist/` output, and the root workspace has no `build` script.
+
 ```bash
 pnpm install          # Install dependencies (use pnpm, not npm/yarn)
+pnpm build:nhost-js   # Build @nhost/nhost-js before starting the dashboard
+```
+
+The remaining commands run from `dashboard/`. `pnpm dev:dashboard` from the repository root starts the same dev server as `pnpm dev`.
+
+```bash
 pnpm dev              # Start development server (port 3000)
 pnpm build            # Production build (skips lint)
 pnpm start            # Start production server
@@ -83,7 +91,7 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
 
 - Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
-- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the query cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the TanStack Query cache and the project configuration in the Apollo cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
 - Project settings pages: `<AppLayout><ProjectScope><ProjectStateGate><SettingsGuard><SettingsArea>{page}</SettingsArea></SettingsGuard></ProjectStateGate></ProjectScope></AppLayout>`.
 - Sections with route tabs (Database, GraphQL, …) use their area component from `features/orgs/projects/<area>/layout/<Area>Area.tsx` inside `ProjectScope`. Each area passes its route tabs to the shared `AreaLayout` (`features/orgs/projects/common/layout/AreaLayout`; new tabbed areas do the same), which composes `ProjectStateGate` below the tabs, keeping navigation available while the project is paused; do not add a second gate to these pages. Their settings pages wrap the settings content in `SettingsGuard` and `SettingsArea`.
 - Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
@@ -104,6 +112,16 @@ When creating a new feature page, check whether it needs to be added to:
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+
+### Metrics charts
+
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines) or `StackedBarMetricChart` (stacked bars). Both get their interactions from `useChartInteractions`, so use it in any new chart instead of copying the logic. It wires these hooks together, so zooming or a legend change closes the pinned tooltip and a drag doesn't also pin; attach its handlers to the chart:
+
+- `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
+- `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
+- `useDragToZoom` — drag to select a range.
+
+Relative time ranges use `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState`.
 
 ## Tool Usage
 

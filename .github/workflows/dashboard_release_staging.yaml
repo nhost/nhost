@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/wf_build_artifacts.yaml'
       - '.github/workflows/wf_check.yaml'
       - '.github/workflows/wf_deploy_vercel.yaml'
       - '.github/workflows/dashboard_checks.yaml'
@@ -40,6 +39,7 @@ jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
+      RUNNER_SIZE: "4c8g"
       NAME: dashboard
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: production

@@ -105,6 +105,7 @@ export default function CreateTableForm({
       ],
       foreignKeyRelations: [],
       primaryKeyIndices: ['0'],
+      uniqueKeys: [],
       identityColumnIndex: null,
     },
     shouldUnregister: false,
@@ -125,6 +126,10 @@ export default function CreateTableForm({
       const table: DatabaseTable = {
         ...values,
         primaryKey,
+        uniqueKeys: values.uniqueKeys?.map(({ newName, columnIndices }) => ({
+          newName,
+          columns: columnIndices.map((index) => values.columns[+index].name),
+        })),
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
@@ -180,7 +185,7 @@ export default function CreateTableForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
+            className="grid grid-flow-col items-center justify-between"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}

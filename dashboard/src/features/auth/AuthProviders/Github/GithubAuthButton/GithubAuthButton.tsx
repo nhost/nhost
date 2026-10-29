@@ -49,7 +49,7 @@ function GithubAuthButton({
 
   return (
     <Button
-      className={cn('gap-2 text-sm+', className)}
+      className={cn('gap-2', className)}
       onClick={signInWithGithub}
       aria-describedby={ariaDescribedBy}
     >

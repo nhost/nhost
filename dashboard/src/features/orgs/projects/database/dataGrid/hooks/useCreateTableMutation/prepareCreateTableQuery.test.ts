@@ -114,7 +114,7 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('should prepare a query with unique keys', () => {
+  it('should prepare a query with a single-column unique constraint', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -125,10 +125,10 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'name',
           type: 'text',
-          isUnique: true,
         },
       ],
       primaryKey: ['id'],
+      uniqueKeys: [{ columns: ['name'] }],
     };
 
     const transaction = prepareCreateTableQuery({
@@ -139,7 +139,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name text UNIQUE NOT NULL, PRIMARY KEY (id));',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, PRIMARY KEY (id), UNIQUE (name));',
     );
   });
 
@@ -338,6 +338,32 @@ describe('prepareCreateTableQuery', () => {
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
       'CREATE TABLE public.test_table (id uuid NOT NULL, name character varying(10) NOT NULL);',
+    );
+  });
+
+  it('should prepare a query with a multi-column unique constraint', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      primaryKey: ['id'],
+      columns: [
+        { name: 'id', type: 'uuid' },
+        { name: 'region', type: 'text' },
+        { name: 'code', type: 'text' },
+      ],
+      uniqueKeys: [
+        { columns: ['region', 'code'] },
+        { newName: 'test_table_code_id_key', columns: ['code', 'id'] },
+      ],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table (id uuid NOT NULL, region text NOT NULL, code text NOT NULL, PRIMARY KEY (id), UNIQUE (region,code), CONSTRAINT test_table_code_id_key UNIQUE (code,id));',
     );
   });
 

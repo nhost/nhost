@@ -42,7 +42,7 @@ function DataGridFiltersPopoverImpl({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="flex flex-col gap-6 md:w-[34rem] md:max-w-[33rem]"
+        className="flex flex-col gap-6 md:w-screen md:max-w-lg"
         onAnimationEnd={restoreFiltersOnAnimationEndIfNeeded}
       >
         <DataGridFilters />

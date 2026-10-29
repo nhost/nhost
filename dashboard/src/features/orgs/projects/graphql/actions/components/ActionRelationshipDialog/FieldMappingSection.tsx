@@ -150,9 +150,9 @@ export default function FieldMappingSection({
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="col-span-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="col-span-1"
                 onClick={() => removeFieldMapping(index)}
               >
                 <Trash2Icon className="h-4 w-4" />

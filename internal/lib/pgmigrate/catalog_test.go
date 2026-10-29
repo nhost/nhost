@@ -1,0 +1,1280 @@
+//nolint:testpackage // PostgreSQL integration tests exercise the package-private catalog boundary.
+package pgmigrate
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"errors"
+	"fmt"
+	"os"
+	"slices"
+	"strings"
+	"sync"
+	"testing"
+
+	"github.com/lib/pq"
+)
+
+const (
+	catalogTestDSNEnvironment              = "PGMIGRATE_TEST_DSN"
+	catalogTestDatabaseRequiredEnvironment = "PGMIGRATE_TEST_DATABASE_REQUIRED"
+)
+
+var errCatalogTestDatabaseDSNMissing = errors.New(
+	"PGMIGRATE_TEST_DATABASE_REQUIRED is set but PGMIGRATE_TEST_DSN is empty",
+)
+
+func TestCatalogTestDatabaseDSNRequirement(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		dsn            string
+		requiredMarker string
+		wantDSN        string
+		wantError      bool
+	}{
+		{
+			name:           "direct test without database skips",
+			dsn:            "",
+			requiredMarker: "",
+			wantDSN:        "",
+			wantError:      false,
+		},
+		{
+			name:           "required database without DSN fails",
+			dsn:            "",
+			requiredMarker: "1",
+			wantDSN:        "",
+			wantError:      true,
+		},
+		{
+			name:           "required database with DSN runs",
+			dsn:            "host=/tmp/postgres dbname=postgres",
+			requiredMarker: "1",
+			wantDSN:        "host=/tmp/postgres dbname=postgres",
+			wantError:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := catalogTestDatabaseDSN(tt.dsn, tt.requiredMarker)
+			if (err != nil) != tt.wantError {
+				t.Fatalf("catalogTestDatabaseDSN() error = %v, want error %t", err, tt.wantError)
+			}
+
+			if got != tt.wantDSN {
+				t.Fatalf("catalogTestDatabaseDSN() = %q, want %q", got, tt.wantDSN)
+			}
+		})
+	}
+}
+
+//nolint:paralleltest,tparallel // Constraint subtests intentionally mutate one shared catalog serially.
+func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("second bootstrap() error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into these statements.
+	root := testMigration(1, nil, "root")
+	child := testMigration(2, uintPointer(1), "child")
+
+	insertStoredMigration(t, database, relation, storedMigrationFrom(root))
+	insertStoredMigration(t, database, relation, storedMigrationFrom(child))
+
+	tests := []struct {
+		name       string
+		constraint string
+		run        func() error
+	}{
+		{
+			name:       "one root",
+			constraint: "schema_migration_catalog_one_active_root",
+			run: func() error {
+				migration := storedMigrationFrom(testMigration(3, nil, "another_root"))
+				return insertStoredMigrationError(t.Context(), database, relation, migration)
+			},
+		},
+		{
+			name:       "one successor",
+			constraint: "schema_migration_catalog_active_successor",
+			run: func() error {
+				migration := storedMigrationFrom(testMigration(3, uintPointer(1), "another_child"))
+				return insertStoredMigrationError(t.Context(), database, relation, migration)
+			},
+		},
+		{
+			name:       "one active version",
+			constraint: "schema_migration_catalog_active_version",
+			run: func() error {
+				migration := storedMigrationFrom(
+					testMigration(2, uintPointer(2), "duplicate_version"),
+				)
+
+				return insertStoredMigrationError(t.Context(), database, relation, migration)
+			},
+		},
+		{
+			name:       "existing predecessor",
+			constraint: "schema_migration_catalog_previous_id_fkey",
+			run: func() error {
+				query := fmt.Sprintf(
+					"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
+					relation,
+				)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("assigning nonexistent predecessor: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "complete archive metadata",
+			constraint: "schema_migration_catalog_archive_metadata_check",
+			run: func() error {
+				query := fmt.Sprintf(
+					"UPDATE %s SET archived_at = CURRENT_TIMESTAMP WHERE version = $1",
+					relation,
+				)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("archiving without a batch identifier: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "nonempty up SQL",
+			constraint: "schema_migration_catalog_up_sql_nonempty",
+			run: func() error {
+				query := fmt.Sprintf("UPDATE %s SET up_sql = $1 WHERE version = $2", relation)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					[]byte{},
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("updating up SQL to empty: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "nonempty down SQL",
+			constraint: "schema_migration_catalog_down_sql_nonempty",
+			run: func() error {
+				query := fmt.Sprintf("UPDATE %s SET down_sql = $1 WHERE version = $2", relation)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					[]byte{},
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("updating down SQL to empty: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "up checksum length",
+			constraint: "schema_migration_catalog_up_sha256_length",
+			run: func() error {
+				query := fmt.Sprintf("UPDATE %s SET up_sha256 = $1 WHERE version = $2", relation)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					[]byte("short"),
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("updating up checksum to invalid length: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "down checksum length",
+			constraint: "schema_migration_catalog_down_sha256_length",
+			run: func() error {
+				query := fmt.Sprintf("UPDATE %s SET down_sha256 = $1 WHERE version = $2", relation)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					[]byte("short"),
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("updating down checksum to invalid length: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name:       "restricted predecessor deletion",
+			constraint: "schema_migration_catalog_previous_id_fkey",
+			run: func() error {
+				query := fmt.Sprintf("DELETE FROM %s WHERE version = $1", relation)
+
+				_, err := database.ExecContext(
+					t.Context(),
+					query,
+					int64(1),
+				)
+				if err != nil {
+					return fmt.Errorf("deleting referenced predecessor: %w", err)
+				}
+
+				return nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assertCatalogConstraintError(t, tt.run(), tt.constraint)
+		})
+	}
+
+	var indexDefinition string
+
+	err := database.QueryRowContext(
+		t.Context(),
+		`SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = $2`,
+		schema,
+		"schema_migration_catalog_one_active_root",
+	).Scan(&indexDefinition)
+	if err != nil {
+		t.Fatalf("querying root index: %v", err)
+	}
+
+	for _, fragment := range []string{
+		"((previous_id IS NULL))",
+		"WHERE ((archived_at IS NULL) AND (previous_id IS NULL))",
+	} {
+		if !strings.Contains(indexDefinition, fragment) {
+			t.Fatalf("root index = %q, want %q", indexDefinition, fragment)
+		}
+	}
+
+	if strings.Contains(indexDefinition, "NULLS NOT DISTINCT") {
+		t.Fatalf(
+			"root index = %q, want no PostgreSQL-15-only NULLS NOT DISTINCT clause",
+			indexDefinition,
+		)
+	}
+}
+
+func assertCatalogConstraintError(t *testing.T, err error, constraint string) {
+	t.Helper()
+
+	if err == nil {
+		t.Fatal("constraint-violating statement error = nil")
+	}
+
+	var postgresError *pq.Error
+	if !errors.As(err, &postgresError) {
+		t.Fatalf("error = %v (%T), want *pq.Error", err, err)
+	}
+
+	if postgresError.Constraint != constraint {
+		t.Fatalf("constraint = %q, want %q", postgresError.Constraint, constraint)
+	}
+}
+
+func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, `catalog_"quoted`)
+
+	catalog := sqlCatalogForTest(t, database, schema)
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	older := testBundle(
+		testMigration(1, nil, "first"),
+		testMigration(5, uintPointer(1), "fifth"),
+	)
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into these statements.
+
+	var registeredAt string
+
+	registeredAtQuery := fmt.Sprintf(
+		"SELECT registered_at::text FROM %s WHERE version = $1",
+		relation,
+	)
+	if err := database.QueryRowContext(
+		t.Context(),
+		registeredAtQuery,
+		int64(1),
+	).Scan(&registeredAt); err != nil {
+		t.Fatalf("querying registration time: %v", err)
+	}
+
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("second publish(older) error = %v", err)
+	}
+
+	newer := testBundle(
+		testMigration(1, nil, "first"),
+		testMigration(5, uintPointer(1), "fifth"),
+		testMigration(10, uintPointer(5), "future"),
+	)
+	if err := catalog.publish(newer); err != nil {
+		t.Fatalf("publish(newer) error = %v", err)
+	}
+
+	addFutureColumnQuery := fmt.Sprintf(
+		"ALTER TABLE %s ADD COLUMN future_metadata TEXT",
+		relation,
+	)
+	if _, err := database.ExecContext(
+		t.Context(),
+		addFutureColumnQuery,
+	); err != nil {
+		t.Fatalf("adding compatible future column: %v", err)
+	}
+
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) with future row and column error = %v", err)
+	}
+
+	var (
+		count             int
+		registeredAtAgain string
+	)
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT count(*), min(registered_at)::text FROM "+relation,
+	).Scan(&count, &registeredAtAgain); err != nil {
+		t.Fatalf("querying catalog rows: %v", err)
+	}
+
+	if count != 3 {
+		t.Fatalf("catalog row count = %d, want 3", count)
+	}
+
+	if registeredAtAgain != registeredAt {
+		t.Fatalf("root registered_at changed from %q to %q", registeredAt, registeredAtAgain)
+	}
+}
+
+func TestCatalogDefaultedFutureColumnPreservesOlderPublicationAndReads(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	older := testBundle(testMigration(1, nil, "root"))
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) before ALTER error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into this statement.
+	addFutureColumn := fmt.Sprintf(
+		"ALTER TABLE %s ADD COLUMN future_metadata TEXT NOT NULL DEFAULT 'future'",
+		relation,
+	)
+	if _, err := database.ExecContext(t.Context(), addFutureColumn); err != nil {
+		t.Fatalf("adding defaulted future column: %v", err)
+	}
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() against evolved catalog error = %v", err)
+	}
+
+	// An old image still inserts all eight named columns, even for an existing row:
+	// PostgreSQL checks NOT NULL before resolving the version conflict.
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) against evolved catalog error = %v", err)
+	}
+
+	future := testMigration(2, uintPointer(1), "future")
+	if err := catalog.publish(testBundle(older.migrations[0], future)); err != nil {
+		t.Fatalf("publish(future) against evolved catalog error = %v", err)
+	}
+
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) with future row error = %v", err)
+	}
+
+	var defaultedRows int
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT count(*) FROM "+relation+
+			" WHERE archived_at IS NULL AND future_metadata = $1 AND format_version = 1",
+		"future",
+	).Scan(&defaultedRows); err != nil {
+		t.Fatalf("querying defaulted catalog rows: %v", err)
+	}
+
+	if defaultedRows != 2 {
+		t.Fatalf("defaulted catalog rows = %d, want 2", defaultedRows)
+	}
+
+	body, identifier := readCatalogSourceBody(t, newCatalogSource(catalog).ReadDown, 2)
+	if !bytes.Equal(body, future.downSQL) || identifier != future.identifier {
+		t.Fatalf(
+			"ReadDown(2) = %q, %q; want %q, %q",
+			body, identifier, future.downSQL, future.identifier,
+		)
+	}
+}
+
+func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+
+	beta := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+		testMigration(3, uintPointer(2), "beta_enabled"),
+	)
+	if err := catalog.reconcile(beta, -1); err != nil {
+		t.Fatalf("reconcile(beta) error = %v", err)
+	}
+
+	reconcileAdditiveCatalogAndAssertReuse(t, database, catalog, relation, beta)
+
+	stable := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "stable_squashed"),
+	)
+	if err := catalog.reconcile(stable, 1); err != nil {
+		t.Fatalf("reconcile(stable) error = %v", err)
+	}
+
+	stored, found, err := catalog.migration(2)
+	if err != nil {
+		t.Fatalf("migration(2) error = %v", err)
+	}
+
+	if !found {
+		t.Fatal("migration(2) found = false")
+	}
+
+	if err := compareMigration(stable.migrations[1], stored); err != nil {
+		t.Fatalf("active migration 2 does not match stable replacement: %v", err)
+	}
+
+	var (
+		activeRows     int
+		archivedRows   int
+		archiveBatches int
+	)
+
+	query := fmt.Sprintf(
+		`SELECT
+    count(*) FILTER (WHERE archived_at IS NULL),
+    count(*) FILTER (WHERE archived_at IS NOT NULL),
+    count(DISTINCT archive_batch_id) FILTER (WHERE archived_at IS NOT NULL)
+FROM %s
+WHERE version >= 2`,
+		relation,
+	)
+	if err := database.QueryRowContext(t.Context(), query).Scan(
+		&activeRows,
+		&archivedRows,
+		&archiveBatches,
+	); err != nil {
+		t.Fatalf("querying active and archived rows: %v", err)
+	}
+
+	if activeRows != 1 || archivedRows != 3 || archiveBatches != 1 {
+		t.Fatalf(
+			"catalog rows = active %d, archived %d, batches %d; want 1, 3, 1",
+			activeRows,
+			archivedRows,
+			archiveBatches,
+		)
+	}
+
+	query = fmt.Sprintf(
+		`SELECT count(*)
+FROM %s AS child
+JOIN %s AS predecessor ON predecessor.id = child.previous_id
+WHERE child.identifier = 'beta_enabled'
+  AND predecessor.identifier = 'beta_name'
+  AND child.archived_at IS NOT NULL
+  AND predecessor.archived_at IS NOT NULL`,
+		relation,
+		relation,
+	)
+
+	var linkedArchivedRows int
+	if err := database.QueryRowContext(t.Context(), query).Scan(&linkedArchivedRows); err != nil {
+		t.Fatalf("querying archived lineage: %v", err)
+	}
+
+	if linkedArchivedRows != 1 {
+		t.Fatalf("linked archived rows = %d, want 1", linkedArchivedRows)
+	}
+}
+
+func TestCatalogReconcileArchivesOnlyDivergentFutureSuffix(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	published := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "shared_future"),
+		testMigration(3, uintPointer(2), "beta_name"),
+		testMigration(4, uintPointer(3), "beta_enabled"),
+	)
+	if err := catalog.reconcile(published, -1); err != nil {
+		t.Fatalf("reconcile(published) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	registrationQuery := fmt.Sprintf(
+		`SELECT array_agg(registered_at::text ORDER BY version)
+FROM %s
+WHERE version <= 2 AND archived_at IS NULL`,
+		relation,
+	)
+
+	var registeredBefore pq.StringArray
+	if err := database.QueryRowContext(t.Context(), registrationQuery).Scan(
+		&registeredBefore,
+	); err != nil {
+		t.Fatalf("querying matching registration times before reconcile: %v", err)
+	}
+
+	replacement := testBundle(
+		published.migrations[0],
+		published.migrations[1],
+		testMigration(3, uintPointer(2), "stable_name"),
+		testMigration(4, uintPointer(3), "stable_enabled"),
+	)
+	if err := catalog.reconcile(replacement, 1); err != nil {
+		t.Fatalf("reconcile(replacement) error = %v", err)
+	}
+
+	var (
+		registeredAfter       pq.StringArray
+		matchingArchivedRows  int
+		divergentArchivedRows int
+		archiveBatches        int
+	)
+
+	stateQuery := "SELECT\n    array_agg(registered_at::text ORDER BY version) FILTER (\n        WHERE version <= 2 AND archived_at IS NULL\n    ),\n    count(*) FILTER (WHERE version <= 2 AND archived_at IS NOT NULL),\n    count(*) FILTER (WHERE version >= 3 AND archived_at IS NOT NULL),\n    count(DISTINCT archive_batch_id) FILTER (\n        WHERE version >= 3 AND archived_at IS NOT NULL\n    )\nFROM " + relation
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&registeredAfter,
+		&matchingArchivedRows,
+		&divergentArchivedRows,
+		&archiveBatches,
+	); err != nil {
+		t.Fatalf("querying catalog state after divergent reconcile: %v", err)
+	}
+
+	if !slices.Equal(registeredAfter, registeredBefore) {
+		t.Fatalf(
+			"matching registered_at values changed from %v to %v",
+			registeredBefore,
+			registeredAfter,
+		)
+	}
+
+	if matchingArchivedRows != 0 {
+		t.Fatalf("archived matching rows = %d, want 0", matchingArchivedRows)
+	}
+
+	if divergentArchivedRows != 2 || archiveBatches != 1 {
+		t.Fatalf(
+			"divergent archive rows = %d in %d batches; want 2 in 1 batch",
+			divergentArchivedRows,
+			archiveBatches,
+		)
+	}
+
+	stored, found, err := catalog.migration(3)
+	if err != nil {
+		t.Fatalf("migration(3) error = %v", err)
+	}
+
+	if !found {
+		t.Fatal("migration(3) found = false")
+	}
+
+	if err := compareMigration(replacement.migrations[2], stored); err != nil {
+		t.Fatalf("active migration 3 does not match replacement: %v", err)
+	}
+}
+
+func TestCatalogReconcileRejectsHigherReplacementAfterOmittedAppliedVersions(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	beta := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+		testMigration(3, uintPointer(2), "beta_enabled"),
+	)
+	if err := catalog.reconcile(beta, -1); err != nil {
+		t.Fatalf("reconcile(beta) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	stateQuery := fmt.Sprintf(
+		`SELECT
+    jsonb_agg(to_jsonb(catalog_row) ORDER BY version)::text,
+    array_agg(registered_at::text ORDER BY version)
+FROM %s AS catalog_row`,
+		relation,
+	)
+
+	var (
+		rowsBefore         string
+		registeredAtBefore pq.StringArray
+	)
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&rowsBefore,
+		&registeredAtBefore,
+	); err != nil {
+		t.Fatalf("querying catalog state before rejected reconcile: %v", err)
+	}
+
+	higherVersionSquash := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(6, uintPointer(1), "stable_squashed"),
+	)
+
+	err := catalog.reconcile(higherVersionSquash, 3)
+	if err == nil {
+		t.Fatal("reconcile(higher version squash) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf(
+			"reconcile(higher version squash) error = %v (%T), want *IntegrityError",
+			err,
+			err,
+		)
+	}
+
+	wantIssue := "active catalog version 2 belongs to a different lineage and is still applied; " +
+		"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle"
+
+	if integrityErr.Version == nil {
+		t.Fatal("reconcile(higher version squash) integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"reconcile(higher version squash) integrity error = version %d, issue %q; want version 2, issue %q",
+			*integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	var (
+		rowsAfter         string
+		registeredAtAfter pq.StringArray
+	)
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&rowsAfter,
+		&registeredAtAfter,
+	); err != nil {
+		t.Fatalf("querying catalog state after rejected reconcile: %v", err)
+	}
+
+	if rowsAfter != rowsBefore {
+		t.Fatalf("catalog rows changed from %s to %s", rowsBefore, rowsAfter)
+	}
+
+	if !slices.Equal(registeredAtAfter, registeredAtBefore) {
+		t.Fatalf(
+			"registered_at values changed from %v to %v",
+			registeredAtBefore,
+			registeredAtAfter,
+		)
+	}
+}
+
+func TestCatalogReconcileRejectsAppliedLocalForkMissingFromActiveLineage(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	root := testMigration(1, nil, "root")
+
+	activeStable := testBundle(
+		root,
+		testMigration(3, uintPointer(1), "stable_squashed"),
+	)
+	if err := catalog.reconcile(activeStable, -1); err != nil {
+		t.Fatalf("reconcile(active stable) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	stateQuery := fmt.Sprintf(
+		`SELECT jsonb_agg(to_jsonb(catalog_row) ORDER BY version)::text
+FROM %s AS catalog_row`,
+		relation,
+	)
+
+	var rowsBefore string
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(&rowsBefore); err != nil {
+		t.Fatalf("querying catalog state before rejected reconcile: %v", err)
+	}
+
+	localBeta := testBundle(
+		root,
+		testMigration(2, uintPointer(1), "beta_name"),
+	)
+
+	err := catalog.reconcile(localBeta, 3)
+	if err == nil {
+		t.Fatal("reconcile(local beta) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf("reconcile(local beta) error = %v (%T), want *IntegrityError", err, err)
+	}
+
+	const wantIssue = "embedded migration version 2 and still-applied active catalog version 3 are " +
+		"different successors of their last common version 1; downgrade below version 2 with an image " +
+		"whose bundle maximum is <= 1 before deploying this bundle"
+
+	if integrityErr.Version == nil {
+		t.Fatal("reconcile(local beta) integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"reconcile(local beta) integrity error = version %d, issue %q; want version 2, issue %q",
+			*integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	var rowsAfter string
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(&rowsAfter); err != nil {
+		t.Fatalf("querying catalog state after rejected reconcile: %v", err)
+	}
+
+	if rowsAfter != rowsBefore {
+		t.Fatalf("catalog rows changed from %s to %s", rowsBefore, rowsAfter)
+	}
+}
+
+func reconcileAdditiveCatalogAndAssertReuse(
+	t *testing.T,
+	database *sql.DB,
+	catalog *catalog,
+	relation string,
+	beta *bundle,
+) {
+	t.Helper()
+
+	registrationQuery := fmt.Sprintf(
+		`SELECT array_agg(registered_at::text ORDER BY version)
+FROM %s
+WHERE archived_at IS NULL`,
+		relation,
+	)
+
+	var registeredBeforeAdditive pq.StringArray
+	if err := database.QueryRowContext(t.Context(), registrationQuery).Scan(
+		&registeredBeforeAdditive,
+	); err != nil {
+		t.Fatalf("querying registration times before additive reconcile: %v", err)
+	}
+
+	additiveMigrations := append(
+		slices.Clone(beta.migrations),
+		testMigration(4, uintPointer(3), "beta_tail"),
+	)
+	if err := catalog.reconcile(testBundle(additiveMigrations...), 1); err != nil {
+		t.Fatalf("reconcile(additive) error = %v", err)
+	}
+
+	additiveStateQuery := `
+SELECT
+    array_agg(registered_at::text ORDER BY version) FILTER (
+        WHERE archived_at IS NULL AND version <= 3
+    ),
+    count(*) FILTER (WHERE archived_at IS NOT NULL)
+FROM ` + relation
+
+	var (
+		registeredAfterAdditive pq.StringArray
+		additiveArchivedRows    int
+	)
+	if err := database.QueryRowContext(t.Context(), additiveStateQuery).Scan(
+		&registeredAfterAdditive,
+		&additiveArchivedRows,
+	); err != nil {
+		t.Fatalf("querying state after additive reconcile: %v", err)
+	}
+
+	if additiveArchivedRows != 0 {
+		t.Fatalf("archived rows after additive reconcile = %d, want 0", additiveArchivedRows)
+	}
+
+	if !slices.Equal(registeredAfterAdditive, registeredBeforeAdditive) {
+		t.Fatalf(
+			"pre-existing registered_at values changed from %v to %v",
+			registeredBeforeAdditive,
+			registeredAfterAdditive,
+		)
+	}
+}
+
+func TestCatalogPublicationRejectsChangedHistory(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		column string
+		value  func(migration) any
+		issue  string
+	}{
+		{
+			name:   "identifier",
+			column: "identifier",
+			value: func(migration) any {
+				return "changed"
+			},
+			issue: "identifier",
+		},
+		{
+			name:   "up SQL",
+			column: "up_sql",
+			value: func(migration) any {
+				return []byte("SELECT 'changed up';")
+			},
+			issue: "up SQL",
+		},
+		{
+			name:   "down SQL",
+			column: "down_sql",
+			value: func(migration) any {
+				return []byte("SELECT 'changed down';")
+			},
+			issue: "down SQL",
+		},
+		{
+			name:   "up checksum",
+			column: "up_sha256",
+			value: func(migration) any {
+				return bytesOfLength(sha256.Size, 1)
+			},
+			issue: "up checksum",
+		},
+		{
+			name:   "down checksum",
+			column: "down_sha256",
+			value: func(migration) any {
+				return bytesOfLength(sha256.Size, 2)
+			},
+			issue: "down checksum",
+		},
+		{
+			name:   "format version",
+			column: "format_version",
+			value: func(migration) any {
+				return int64(2)
+			},
+			issue: "format version",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			database := openCatalogTestDatabase(t)
+			schema := createCatalogTestSchema(t, database, "")
+
+			catalog := sqlCatalogForTest(t, database, schema)
+			if err := catalog.bootstrap(); err != nil {
+				t.Fatalf("bootstrap() error = %v", err)
+			}
+
+			migration := testMigration(1, nil, "first")
+
+			local := testBundle(migration)
+			if err := catalog.publish(local); err != nil {
+				t.Fatalf("initial publish() error = %v", err)
+			}
+
+			// The relation is identifier-quoted and the column comes from the fixed test table above.
+			query := fmt.Sprintf(
+				"UPDATE %s SET %s = $1 WHERE version = $2",
+				catalogTestRelation(schema),
+				pq.QuoteIdentifier(tt.column),
+			)
+			if _, err := database.ExecContext(
+				t.Context(),
+				query,
+				tt.value(migration),
+				int64(1),
+			); err != nil {
+				t.Fatalf("changing stored field: %v", err)
+			}
+
+			err := catalog.publish(local)
+			if err == nil {
+				t.Fatal("publish(changed history) error = nil")
+			}
+
+			var integrityErr *IntegrityError
+			if !errors.As(err, &integrityErr) {
+				t.Fatalf("publish(changed history) error = %v (%T), want *IntegrityError", err, err)
+			}
+
+			if !strings.Contains(integrityErr.Issue, tt.issue) {
+				t.Fatalf(
+					"publish(changed history) issue = %q, want %q",
+					integrityErr.Issue,
+					tt.issue,
+				)
+			}
+		})
+	}
+}
+
+func TestCatalogPublicationIsConcurrentSafe(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(16)
+	schema := createCatalogTestSchema(t, database, "")
+
+	catalog := sqlCatalogForTest(t, database, schema)
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	local := testBundle(
+		testMigration(1, nil, "first"),
+		testMigration(5, uintPointer(1), "fifth"),
+		testMigration(10, uintPointer(5), "tenth"),
+	)
+
+	const publishers = 8
+
+	// Each publisher can report a publication error and a connection-close error.
+	errorsChannel := make(chan error, publishers*2)
+
+	var waitGroup sync.WaitGroup
+	for range publishers {
+		waitGroup.Go(func() {
+			connection, err := database.Conn(t.Context())
+			if err != nil {
+				errorsChannel <- fmt.Errorf("acquiring publication connection: %w", err)
+				return
+			}
+
+			defer func() {
+				if closeErr := connection.Close(); closeErr != nil {
+					errorsChannel <- fmt.Errorf("closing publication connection: %w", closeErr)
+				}
+			}()
+
+			concurrentCatalog, err := newSQLCatalog(t.Context(), connection, schema)
+			if err != nil {
+				errorsChannel <- err
+				return
+			}
+
+			if err := concurrentCatalog.publish(local); err != nil {
+				errorsChannel <- err
+			}
+		})
+	}
+
+	waitGroup.Wait()
+	close(errorsChannel)
+
+	for err := range errorsChannel {
+		if err != nil {
+			t.Errorf("concurrent publish() error = %v", err)
+		}
+	}
+
+	var count int
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT count(*) FROM "+catalogTestRelation(schema),
+	).Scan(&count); err != nil {
+		t.Fatalf("counting catalog rows: %v", err)
+	}
+
+	if count != 3 {
+		t.Fatalf("catalog row count = %d, want 3", count)
+	}
+}
+
+func openCatalogTestDatabase(t *testing.T) *sql.DB {
+	t.Helper()
+
+	dsn, err := catalogTestDatabaseDSN(
+		os.Getenv(catalogTestDSNEnvironment),
+		os.Getenv(catalogTestDatabaseRequiredEnvironment),
+	)
+	if err != nil {
+		t.Fatalf("PostgreSQL integration test setup: %v", err)
+	}
+
+	if dsn == "" {
+		t.Skipf("set %s to run PostgreSQL integration tests", catalogTestDSNEnvironment)
+	}
+
+	database, err := sql.Open("postgres", dsn)
+	if err != nil {
+		t.Fatalf("sql.Open() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		if closeErr := database.Close(); closeErr != nil {
+			t.Errorf("database.Close() error = %v", closeErr)
+		}
+	})
+
+	if err := database.PingContext(t.Context()); err != nil {
+		t.Fatalf("database.PingContext() error = %v", err)
+	}
+
+	return database
+}
+
+func catalogTestDatabaseDSN(dsn, requiredMarker string) (string, error) {
+	if dsn != "" {
+		return dsn, nil
+	}
+
+	if requiredMarker != "" {
+		return "", errCatalogTestDatabaseDSNMissing
+	}
+
+	return "", nil
+}
+
+func createCatalogTestSchema(t *testing.T, database *sql.DB, requested string) string {
+	t.Helper()
+
+	schema := requested
+	if schema == "" {
+		digest := sha256.Sum256([]byte(t.Name()))
+		schema = fmt.Sprintf("pgmigrate_%x", digest[:8])
+	}
+
+	quotedSchema := pq.QuoteIdentifier(schema)
+	if _, err := database.ExecContext(
+		t.Context(),
+		"DROP SCHEMA IF EXISTS "+quotedSchema+" CASCADE",
+	); err != nil {
+		t.Fatalf("clearing stale test schema %q: %v", schema, err)
+	}
+
+	if _, err := database.ExecContext(t.Context(), "CREATE SCHEMA "+quotedSchema); err != nil {
+		t.Fatalf("creating test schema %q: %v", schema, err)
+	}
+
+	t.Cleanup(func() {
+		if _, err := database.ExecContext(
+			context.Background(),
+			"DROP SCHEMA "+quotedSchema+" CASCADE",
+		); err != nil {
+			t.Errorf("dropping test schema %q: %v", schema, err)
+		}
+	})
+
+	return schema
+}
+
+func sqlCatalogForTest(t *testing.T, database *sql.DB, schema string) *catalog {
+	t.Helper()
+
+	connection, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("database.Conn() error = %v", err)
+	}
+
+	t.Cleanup(func() {
+		if closeErr := connection.Close(); closeErr != nil {
+			t.Errorf("connection.Close() error = %v", closeErr)
+		}
+	})
+
+	catalog, err := newSQLCatalog(t.Context(), connection, schema)
+	if err != nil {
+		t.Fatalf("newSQLCatalog() error = %v", err)
+	}
+
+	return catalog
+}
+
+func catalogTestRelation(schema string) string {
+	return pq.QuoteIdentifier(schema) + "." + pq.QuoteIdentifier(catalogTableName)
+}
+
+func insertStoredMigration(
+	t *testing.T,
+	database *sql.DB,
+	relation string,
+	migration storedMigration,
+) {
+	t.Helper()
+
+	if err := insertStoredMigrationError(t.Context(), database, relation, migration); err != nil {
+		t.Fatalf("inserting stored migration %d: %v", migration.version, err)
+	}
+}
+
+func insertStoredMigrationError(
+	ctx context.Context,
+	database *sql.DB,
+	relation string,
+	migration storedMigration,
+) error {
+	// The relation is assembled exclusively from pq.QuoteIdentifier.
+	query := fmt.Sprintf(`
+INSERT INTO %s (
+    version,
+    previous_id,
+    identifier,
+    up_sql,
+    down_sql,
+    up_sha256,
+    down_sha256,
+    format_version
+) VALUES (
+    $1,
+    (SELECT id FROM %s WHERE version = $2 AND archived_at IS NULL),
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8
+)
+`, relation, relation)
+
+	databaseVersion, err := catalogVersion(migration.version)
+	if err != nil {
+		return fmt.Errorf("converting migration version: %w", err)
+	}
+
+	var previous any
+	if migration.previousVersion != nil {
+		previous, err = catalogVersion(*migration.previousVersion)
+		if err != nil {
+			return fmt.Errorf("converting previous migration version: %w", err)
+		}
+	}
+
+	_, err = database.ExecContext(
+		ctx,
+		query,
+		databaseVersion,
+		previous,
+		migration.identifier,
+		migration.upSQL,
+		migration.downSQL,
+		migration.upChecksum,
+		migration.downChecksum,
+		migration.formatVersion,
+	)
+	if err != nil {
+		return fmt.Errorf("inserting migration %d: %w", migration.version, err)
+	}
+
+	return nil
+}
+
+func bytesOfLength(length int, value byte) []byte {
+	body := make([]byte, length)
+	for index := range body {
+		body[index] = value
+	}
+
+	return body
+}

@@ -11,6 +11,16 @@ on:
       VERSION:
         type: string
         required: true
+      GIT_REF:
+        type: string
+        required: false
+      ARCHS:
+        description: "JSON list of architectures produced by the build"
+        type: string
+        default: '["x86_64", "aarch64"]'
+      AWS_REGION:
+        type: string
+        default: "eu-central-1"
       ENV:
         type: string
         required: false
@@ -42,7 +52,9 @@ jobs:
     steps:
       - name: "Set custom env"
         if: ${{ inputs.ENV != '' }}
-        run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+        env:
+          CUSTOM_ENV: ${{ inputs.ENV }}
+        run: printf '%s\n' "$CUSTOM_ENV" >> "$GITHUB_ENV"
         working-directory: .
 
       - name: "Check out repository"
@@ -50,12 +62,13 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          ref: ${{ inputs.GIT_REF }}
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-          aws-region: eu-central-1
+          aws-region: ${{ inputs.AWS_REGION }}
 
       - name: "Login to Amazon ECR"
         uses: aws-actions/amazon-ecr-login@v2
@@ -64,33 +77,51 @@ jobs:
 
       - name: "Compute common env vars"
         id: vars
+        env:
+          REQUESTED_VERSION: ${{ inputs.VERSION }}
         run: |
-          echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+          version=$(make get-version VER="$REQUESTED_VERSION")
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
         with:
-          path: ~/artifacts
+          pattern: >-
+            ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-*
+          path: ${{ runner.temp }}/artifacts
 
       - name: "Inspect artifacts"
-        run: find ~/artifacts
+        run: find "$RUNNER_TEMP/artifacts"
 
       - name: "Push docker image to ECR"
+        env:
+          NAME: ${{ inputs.NAME }}
+          VERSION: ${{ steps.vars.outputs.VERSION }}
+          CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+          ARTIFACT_SUFFIX: ${{ inputs.ARTIFACT_SUFFIX }}
+          ARCHS: ${{ inputs.ARCHS }}
         run: |
-          export NAME=${{ inputs.NAME }}
-          export VERSION=${{ steps.vars.outputs.VERSION }}
-          export CONTAINER_REGISTRY=${{ secrets.CONTAINER_REGISTRY }}
-          export CONTAINER_NAME=$CONTAINER_REGISTRY/$NAME
-
-          for ARCH in "x86_64" "aarch64"; do
+          CONTAINER_NAME="$CONTAINER_REGISTRY/$NAME"
+          architectures=$(printf '%s\n' "$ARCHS" | jq -er '
+            if type == "array" and length > 0 and
+              all(.[]; . == "aarch64" or . == "x86_64")
+            then .[] else error("invalid architecture list") end')
+          amendments=()
+          for ARCH in $architectures; do
+            artifact="$NAME-docker-image$ARTIFACT_SUFFIX-linux-$ARCH-$VERSION"
+            src="$RUNNER_TEMP/artifacts/$artifact"
+            # download-artifact flattens a single matched artifact.
+            if [ ! -d "$src" ] && [ "$architectures" = "$ARCH" ]; then
+              src="$RUNNER_TEMP/artifacts"
+            fi
+            if [ ! -f "$src/manifest.json" ]; then
+              echo "::error::Missing image manifest: $src/manifest.json" >&2
+              exit 1
+            fi
             skopeo copy --insecure-policy \
-              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-linux-$ARCH-$VERSION \
-              docker://$CONTAINER_NAME:$VERSION-$ARCH
+              "dir:$src" \
+              "docker://$CONTAINER_NAME:$VERSION-$ARCH"
+            amendments+=(--amend "$CONTAINER_NAME:$VERSION-$ARCH")
           done
-
-          docker manifest create \
-            $CONTAINER_NAME:$VERSION \
-            --amend $CONTAINER_NAME:$VERSION-x86_64 \
-            --amend $CONTAINER_NAME:$VERSION-aarch64
-
-          docker manifest push $CONTAINER_NAME:$VERSION
+          docker manifest create "$CONTAINER_NAME:$VERSION" "${amendments[@]}"
+          docker manifest push "$CONTAINER_NAME:$VERSION"

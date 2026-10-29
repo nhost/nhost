@@ -72,7 +72,7 @@ function GitHubModalHeader({
       <div className="mx-auto h-8 w-8">
         <GitHubIcon className="h-8 w-8" />
       </div>
-      <h2 className="mt-2.5 font-medium text-lg">{title}</h2>
+      <h2 className="mt-2.5 font-semibold text-xl">{title}</h2>
       {description ? (
         <p className="font-normal text-muted-foreground text-xs">
           {description}
@@ -345,7 +345,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           <GitHubIcon className="mx-auto h-8 w-8" />
 
           <div className="text-center">
-            <h2 className="font-semibold text-lg">
+            <h2 className="font-semibold text-xl">
               Install the Nhost GitHub Application
             </h2>
 
@@ -489,10 +489,10 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   };
 
   return (
-    <div className="relative w-full p-6">
+    <div className="relative w-full p-12">
       {close && (
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Close"
           className="absolute top-4 right-4"

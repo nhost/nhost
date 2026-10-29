@@ -51,7 +51,7 @@ nhost up \
 
 The format for `--run-service-volume` is `service-name=/local/path:/container/path`. You can pass this flag multiple times to mount multiple directories or for different services.
 
-For example, given the following service configuration:
+For example, given the following [service configuration](/products/run/configuration):
 
 <Tabs>
 <TabItem label="nhost-run-service.toml">
@@ -113,7 +113,7 @@ You can also use the environment variable `NHOST_RUN_SERVICE_VOLUME` passing com
 
 # Quick Development
 
-While developing your service, you may want to run it locally outside of the Nhost CLI to quickly iterate on it. To simplify this the Nhost CLI includes a command to generate an `.env` file based on your environment variables configuration and secrets. For instance, imagine a service with the following configuration:
+While developing your service, you may want to run it locally outside of the Nhost CLI to quickly iterate on it. To simplify this the Nhost CLI includes a command to generate an `.env` file based on your environment variables configuration and [secrets](/platform/cloud/secrets). For instance, imagine a service with the following configuration:
 
 <Tabs>
 <TabItem label="run-service.toml">

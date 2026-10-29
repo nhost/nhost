@@ -1,9 +1,10 @@
-import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
@@ -15,7 +16,6 @@ import {
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function HasuraPage() {
@@ -81,16 +81,10 @@ function HasuraPageContent() {
                   {Array(projectAdminSecret.length).fill('•').join('')}
                 </span>
 
-                <Button
-                  onClick={() =>
-                    copy(projectAdminSecret, 'Hasura admin secret')
-                  }
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Copy admin secret"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <CopyToClipboardButton
+                  textToCopy={projectAdminSecret}
+                  title="Hasura admin secret"
+                />
               </div>
             </div>
           </div>
