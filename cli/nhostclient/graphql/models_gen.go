@@ -247,6 +247,7 @@ type ConfigAuthMethodOauthWorkosUpdateInput struct {
 
 type ConfigAuthMethodOtp struct {
 	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSms   `json:"sms,omitempty"`
 }
 
 type ConfigAuthMethodOtpEmail struct {
@@ -257,8 +258,17 @@ type ConfigAuthMethodOtpEmailUpdateInput struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+type ConfigAuthMethodOtpSms struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthMethodOtpSmsUpdateInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 type ConfigAuthMethodOtpUpdateInput struct {
 	Email *ConfigAuthMethodOtpEmailUpdateInput `json:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSmsUpdateInput   `json:"sms,omitempty"`
 }
 
 type ConfigAuthMethodSmsPasswordless struct {
