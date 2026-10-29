@@ -328,23 +328,32 @@ describe('SettingsGeneralPage', () => {
     {
       tab: 'compute-resources',
       title: 'Compute Resources',
-      heading: 'Compute Resources',
+      content: { role: 'heading', name: 'Compute Resources' },
     },
     {
       tab: 'environment-variables',
       title: 'Environment Variables',
-      heading: 'Project Environment Variables',
+      content: { role: 'heading', name: 'Project Environment Variables' },
     },
-    { tab: 'secrets', title: 'Secrets', heading: 'Secrets' },
-  ])(
+    // The secrets card has no title of its own (it would repeat the page
+    // title), so its Create button shows the content loaded.
+    {
+      tab: 'secrets',
+      title: 'Secrets',
+      content: { role: 'button', name: 'Create secret' },
+    },
+  ] as const)(
     'renders the $tab tab without redirecting',
-    async ({ tab, title, heading }) => {
+    async ({ tab, title, content }) => {
       setTab(tab);
 
       render(<SettingsGeneralPage />);
 
       expect(
-        await screen.findByRole('heading', { level: 3, name: heading }),
+        await screen.findByRole(content.role, {
+          name: content.name,
+          ...(content.role === 'heading' ? { level: 3 } : {}),
+        }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('heading', { level: 1, name: title }),
