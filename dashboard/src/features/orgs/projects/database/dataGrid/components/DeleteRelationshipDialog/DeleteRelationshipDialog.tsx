@@ -90,9 +90,8 @@ export default function DeleteRelationshipDialog({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         onClick={() => setOpen(true)}
         data-testid={`delete-rel-${relationshipToDelete}`}
       >
@@ -101,13 +100,13 @@ export default function DeleteRelationshipDialog({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="sm:max-w-[425px]"
+          className="p-12"
           hideCloseButton
           disableOutsideClick={loadingDelete}
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Delete Relationship
             </DialogTitle>
             <DialogDescription>
@@ -120,21 +119,18 @@ export default function DeleteRelationshipDialog({
               relationship?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+          <DialogFooter className="mt-8">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
             <ButtonWithLoading
               variant="destructive"
-              className="!text-sm+ text-white"
               onClick={handleDeleteDialogClick}
               loading={loadingDelete}
               disabled={isDeleteDisabled}
             >
               Delete
             </ButtonWithLoading>
-            <DialogClose asChild>
-              <Button variant="outline" className="!text-sm+ text-foreground">
-                Cancel
-              </Button>
-            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

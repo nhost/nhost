@@ -94,7 +94,7 @@ export default function ComputedFieldRow({
           <CollapsibleTrigger asChild>
             <Button
               type="button"
-              variant="ghost"
+              variant="subtle"
               size="icon"
               disabled={disabled}
               aria-label={isExpanded ? 'Close editor' : 'Edit computed field'}

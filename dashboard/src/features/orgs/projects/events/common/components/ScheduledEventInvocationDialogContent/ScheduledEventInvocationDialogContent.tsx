@@ -29,9 +29,9 @@ export default function ScheduledEventInvocationDialogContent({
   log,
 }: ScheduledEventInvocationDialogContentProps) {
   return (
-    <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto text-foreground">
+    <DialogContent className="flex h-[80vh] max-w-4xl flex-col overflow-y-auto p-12 text-foreground">
       <DialogHeader>
-        <DialogTitle className="text-foreground">
+        <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
           Invocation Log Details
         </DialogTitle>
       </DialogHeader>

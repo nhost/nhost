@@ -148,11 +148,17 @@ afterAll(() => server.close());
 
 describe('FunctionsSettingsPage tab selection', () => {
   it.each([undefined, 'unknown'])(
-    'redirects the %s tab to the custom-domain tab',
+    'shows the custom-domain tab for the %s tab and corrects the URL',
     (tab) => {
       setTab(tab);
       render(<FunctionsSettingsPage />);
 
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Custom Domain' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Loading Functions custom domain settings...'),
+      ).toBeInTheDocument();
       expect(mockRouter.replace).toHaveBeenCalledExactlyOnceWith(
         {
           pathname: SETTINGS_ROUTE,
@@ -161,12 +167,6 @@ describe('FunctionsSettingsPage tab selection', () => {
         undefined,
         { shallow: true },
       );
-      expect(
-        screen.queryByText('Loading Functions custom domain settings...'),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText('Loading Functions rate limit settings...'),
-      ).not.toBeInTheDocument();
     },
   );
 
@@ -175,15 +175,27 @@ describe('FunctionsSettingsPage tab selection', () => {
     render(<FunctionsSettingsPage />);
 
     expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
   });
 
   it.each([
-    ['custom-domain', 'Loading Functions custom domain settings...'],
-    ['rate-limiting', 'Loading Functions rate limit settings...'],
-  ])('renders the %s tab without redirecting', (tab, loadingText) => {
+    [
+      'custom-domain',
+      'Custom Domain',
+      'Loading Functions custom domain settings...',
+    ],
+    [
+      'rate-limiting',
+      'Rate Limiting',
+      'Loading Functions rate limit settings...',
+    ],
+  ])('renders the %s tab without redirecting', (tab, title, loadingText) => {
     setTab(tab);
     render(<FunctionsSettingsPage />);
 
+    expect(
+      screen.getByRole('heading', { level: 1, name: title }),
+    ).toBeInTheDocument();
     expect(screen.getByText(loadingText)).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
@@ -264,7 +276,7 @@ describe('FunctionsSettingsPage content', () => {
       within(navigation).getByRole('link', { name: 'Rate Limiting' }),
     ]);
     expect(
-      await screen.findByRole('heading', { name: 'Functions' }),
+      await screen.findByRole('heading', { name: 'Rate limiting' }),
     ).toBeInTheDocument();
   });
 });

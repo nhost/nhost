@@ -1,4 +1,4 @@
-import { Link2, Plus, Split, SquarePen } from 'lucide-react';
+import { Link2, Pencil, Plus, Split } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -218,13 +218,13 @@ export default function EditActionRelationshipsForm({
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
                         aria-label={`Edit relationship ${relationship.name}`}
                         onClick={() => openDialog(relationship)}
                         data-testid={`edit-action-rel-${relationship.name}`}
                       >
-                        <SquarePen className="size-4" />
+                        <Pencil className="size-4" />
                       </Button>
                       <DeleteActionRelationshipDialog
                         relationshipName={relationship.name}

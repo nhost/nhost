@@ -439,6 +439,10 @@ export interface CandidateKey {
   name: string;
   isPrimary: boolean;
   columns: string[];
+  /**
+   * Definition from Postgres, e.g. `UNIQUE NULLS NOT DISTINCT (a, b)`.
+   */
+  definition: string;
 }
 
 /**
@@ -538,6 +542,11 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /**
+   * UNIQUE constraints. `name` is set for an existing constraint and absent
+   * for one that still has to be created, optionally as `newName`.
+   */
+  uniqueKeys?: { name?: string; newName?: string; columns: string[] }[];
 }
 
 /**

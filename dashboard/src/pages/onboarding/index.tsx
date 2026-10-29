@@ -429,7 +429,7 @@ export default function OnboardingPage() {
               </div>
 
               {invites && invites.length > 0 && (
-                <Alert variant="info" className="mt-4">
+                <Alert className="mt-4">
                   <AlertDescription>
                     <span className="font-medium text-primary">
                       💡 Pending Invitation{invites.length > 1 ? 's' : ''}

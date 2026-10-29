@@ -92,6 +92,11 @@ const legacyProjectRedirects = [
 
 module.exports = withBundleAnalyzer({
   turbopack: {},
+  experimental: {
+    // Next.js 16.4 enables this by default and inlines each route's chunk
+    // bootstrap into the HTML, which our CSP (no 'unsafe-inline') blocks.
+    turbopackSharedRuntime: false,
+  },
   reactStrictMode: false,
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../'),

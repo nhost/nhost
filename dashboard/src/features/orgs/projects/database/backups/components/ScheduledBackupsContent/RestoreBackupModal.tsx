@@ -4,12 +4,10 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
-import BackupScheduledInfo from '@/features/orgs/projects/database/backups/components/common/BackupScheduledInfo';
 import {
   BACKUP_OPERATION_COPY,
   type BackupOperation,
 } from '@/features/orgs/projects/database/backups/components/common/backup-operation';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { Backup } from '@/types/application';
@@ -38,15 +36,14 @@ export default function RestoreBackupModal({
   const { id: backupId, createdAt } = backup;
 
   const [isSure, setIsSure] = useState(false);
-  const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
+  const [isRestoreCompleted, setIsRestoreCompleted] = useState(false);
   const { project } = useProject();
-  const { org } = useCurrentOrg();
   const track = useTrackEvent();
 
   const { restoreApplicationDatabase, loading } =
     useRestoreApplicationDatabase();
   const operationCopy = BACKUP_OPERATION_COPY[operation].backupList;
-  const toastMessages = BACKUP_OPERATION_COPY[operation].toastMessages;
+  const { toastMessages } = operationCopy;
 
   async function handleSubmit() {
     if (!project?.id) {
@@ -61,29 +58,31 @@ export default function RestoreBackupModal({
       },
       () => {
         track('Backup Restored');
-        setIsRestoreScheduled(true);
+        setIsRestoreCompleted(true);
       },
       toastMessages,
     );
   }
 
-  if (isRestoreScheduled) {
+  if (isRestoreCompleted) {
     return (
-      <div className="grid grid-flow-row gap-4 px-6 pb-6">
-        <BackupScheduledInfo
-          onClose={close}
-          orgSlug={org?.slug}
-          subdomain={project?.subdomain}
-          operation={operation}
-        />
+      <div className="grid grid-flow-row gap-2 px-12 pb-12">
+        <p className="text-muted-foreground text-sm">
+          {operationCopy.completedMessage}
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" onClick={close}>
+            Close
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+    <div className="grid grid-flow-row gap-2 px-12 pb-12">
       {sourceAppId === project?.id ? (
-        <p>
+        <p className="text-muted-foreground text-sm">
           Your current database will be deleted, and the backup created at{' '}
           <span className="font-semibold">
             {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
@@ -91,7 +90,7 @@ export default function RestoreBackupModal({
           will be restored.
         </p>
       ) : (
-        <p>
+        <p className="text-muted-foreground text-sm">
           The current database in{' '}
           <span className="font-semibold">{project?.name}</span> will be deleted
           and replaced with the backup created at{' '}
@@ -122,17 +121,18 @@ export default function RestoreBackupModal({
         </div>
       </div>
 
-      <ButtonWithLoading
-        onClick={handleSubmit}
-        disabled={!isSure}
-        loading={loading}
-      >
-        {operationCopy.submitButtonText}
-      </ButtonWithLoading>
-
-      <Button variant="outline" onClick={close}>
-        Cancel
-      </Button>
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button variant="outline" onClick={close}>
+          Cancel
+        </Button>
+        <ButtonWithLoading
+          onClick={handleSubmit}
+          disabled={!isSure}
+          loading={loading}
+        >
+          {operationCopy.submitButtonText}
+        </ButtonWithLoading>
+      </div>
     </div>
   );
 }
