@@ -50,6 +50,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /apis/metadata:
+    get:
+      summary: Save metadata to the project files
+      description: >-
+        Saves the running metadata to the project's nhost/metadata files. The
+        dashboard calls it after metadata changes when it doesn't run on the
+        Nhost platform, for example with nhost up.
+      operationId: saveMetadata
+      tags:
+        - migrations
+      parameters:
+        - name: export
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: Write the exported metadata to the project files.
+      responses:
+        "200":
+          description: Metadata exported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveMetadataResponse"
+        "500":
+          description: Metadata could not be exported or saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /apis/migrate:
     post:
       summary: Execute a migration
@@ -1797,6 +1827,16 @@ components:
           type: boolean
           description: Whether to skip the execution of the migration
           default: false
+
+    SaveMetadataResponse:
+      type: object
+      required:
+        - metadata
+      properties:
+        metadata:
+          type: string
+          enum: [Success]
+          description: The CLI acknowledges that metadata was exported and saved when export is true.
 
     SuccessResponse:
       type: object

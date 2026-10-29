@@ -1,5 +1,5 @@
 import type { DeleteRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 
 export interface DeleteRemoteSchemaRelationshipOptions {
   appUrl: string;
@@ -17,7 +17,7 @@ export default async function deleteRemoteSchemaRelationship({
 }: DeleteRemoteSchemaRelationshipOptions &
   DeleteRemoteSchemaRelationshipVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'delete_remote_schema_remote_relationship',
         args: {

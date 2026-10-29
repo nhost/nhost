@@ -1,5 +1,5 @@
 import type { SetFunctionCustomizationArgs } from '@/utils/hasura-api/generated/schemas';
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetFunctionCustomizationVariables {
@@ -12,7 +12,7 @@ export default async function setFunctionCustomization({
   args,
 }: MetadataOperationOptions & SetFunctionCustomizationVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'pg_set_function_customization',
         args,
