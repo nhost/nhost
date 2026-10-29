@@ -1,5 +1,6 @@
 import { Article } from '@/utils/types'
-import { useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 /** What a post is matched against when searching. */
 function searchableText(article: Article): string {
@@ -14,23 +15,35 @@ function searchableText(article: Article): string {
 }
 
 /**
- * Filters `articles` by a free-text query and an optional tag, then pages
- * through the result.
+ * Filters `articles` by a free-text query kept in the URL as `?q=`, so a search
+ * can be shared as a link.
  *
- * With neither set, `results` is every article, so a page can list them all
- * through the same paging. The page resets whenever either filter changes.
+ * `results` is every matching article, newest first, and is only meaningful
+ * while `isSearching`.
  *
- * `statusMessage` describes the match count while filtering and is empty
+ * `statusMessage` describes the match count while searching and is empty
  * otherwise. Render it in an always-mounted `role="status"` element so screen
  * readers announce result changes.
  */
-export default function useArticleSearch(articles: Article[], pageSize = 10) {
+export default function useArticleSearch(articles: Article[]) {
+  const router = useRouter()
   const [query, setQueryState] = useState('')
-  const [tag, setTagState] = useState<string | null>(null)
-  const [visibleCount, setVisibleCount] = useState(pageSize)
+  const readFromUrl = useRef(false)
+
+  // Static pages render without the query string, so `?q=` is only known once
+  // the router is ready. Read it then, once; after that the input owns it.
+  useEffect(() => {
+    if (!router.isReady || readFromUrl.current) return
+
+    readFromUrl.current = true
+
+    if (typeof router.query.q === 'string') {
+      setQueryState(router.query.q)
+    }
+  }, [router.isReady, router.query.q])
 
   const trimmedQuery = query.trim().toLowerCase()
-  const isFiltering = trimmedQuery.length > 0 || tag !== null
+  const isSearching = trimmedQuery.length > 0
 
   // Precompute the haystack once per article list rather than per keystroke.
   const haystacks = useMemo(
@@ -41,19 +54,19 @@ export default function useArticleSearch(articles: Article[], pageSize = 10) {
     [articles],
   )
 
-  const results = useMemo(() => {
-    if (!isFiltering) return articles
-
-    return articles.filter(
-      (article) =>
-        (tag === null || (article.tags ?? []).includes(tag)) &&
-        (haystacks.get(article.slug) ?? '').includes(trimmedQuery),
-    )
-  }, [articles, trimmedQuery, tag, isFiltering, haystacks])
+  const results = useMemo(
+    () =>
+      isSearching
+        ? articles.filter((article) =>
+            (haystacks.get(article.slug) ?? '').includes(trimmedQuery),
+          )
+        : [],
+    [articles, trimmedQuery, isSearching, haystacks],
+  )
 
   let statusMessage = ''
 
-  if (isFiltering) {
+  if (isSearching) {
     statusMessage =
       results.length === 0
         ? 'No posts match'
@@ -62,24 +75,20 @@ export default function useArticleSearch(articles: Article[], pageSize = 10) {
 
   function setQuery(value: string) {
     setQueryState(value)
-    setVisibleCount(pageSize)
+
+    const nextQuery = { ...router.query }
+
+    if (value.trim()) {
+      nextQuery.q = value
+    } else {
+      delete nextQuery.q
+    }
+
+    router.replace({ pathname: router.pathname, query: nextQuery }, undefined, {
+      shallow: true,
+      scroll: false,
+    })
   }
 
-  function setTag(value: string | null) {
-    setTagState(value)
-    setVisibleCount(pageSize)
-  }
-
-  return {
-    query,
-    setQuery,
-    tag,
-    setTag,
-    isFiltering,
-    results,
-    statusMessage,
-    visible: results.slice(0, visibleCount),
-    hasMore: results.length > visibleCount,
-    loadMore: () => setVisibleCount((count) => count + pageSize),
-  }
+  return { query, setQuery, isSearching, results, statusMessage }
 }

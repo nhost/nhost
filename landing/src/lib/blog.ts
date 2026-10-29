@@ -1,3 +1,4 @@
+import { findUrlClashes } from '@/lib/blogGrouping'
 import { Article } from '@/utils/types'
 import glob from 'fast-glob'
 import * as path from 'path'
@@ -37,6 +38,11 @@ export async function getAllArticles(): Promise<Article[]> {
   })
 
   const articles = await Promise.all(articleFilenames.map(importArticle))
+  const clashes = findUrlClashes(articles)
+
+  if (clashes.length > 0) {
+    throw new Error(`Blog URL clashes:\n  ${clashes.join('\n  ')}`)
+  }
 
   return articles.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),

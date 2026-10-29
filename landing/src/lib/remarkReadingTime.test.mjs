@@ -46,8 +46,8 @@ function articleExport() {
 }
 
 function readingMinutesOf(tree) {
-  const article = tree.children[0].data.estree.body[0].declaration
-    .declarations[0].init
+  const article =
+    tree.children[0].data.estree.body[0].declaration.declarations[0].init
 
   return article.properties.find(
     (property) => property.key.name === 'readingMinutes',
@@ -97,7 +97,9 @@ describe('remarkReadingTime', () => {
   it('leaves MDX without an article export alone', () => {
     const tree = {
       type: 'root',
-      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Hi' }] }],
+      children: [
+        { type: 'paragraph', children: [{ type: 'text', value: 'Hi' }] },
+      ],
     }
 
     remarkReadingTime()(tree)

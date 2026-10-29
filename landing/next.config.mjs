@@ -26,6 +26,17 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Page 1 of a blog listing lives at its base path.
+      {
+        source: '/blog/page/1',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
+        source: '/blog/tag/:tag/page/1',
+        destination: '/blog/tag/:tag',
+        permanent: true,
+      },
       {
         source: '/blog/how-we-raised-3m-without-leaving-the-house',
         destination: '/blog/how-we-raised-3m-dollars-without-leaving-the-house',
