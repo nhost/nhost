@@ -64,7 +64,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `tools/configdocs` - Go generator for the `nhost.toml` configuration reference, checked and built through its own Nix project
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
-- `tools/vale` - Nix check for the shared Vale styles in `.vale/`: runs their rule fixtures and lints repository Markdown (READMEs, contributor guides, `CLAUDE.md` files) with the root `.vale.ini`
+- `tools/vale` - Nix check for the shared Vale styles in `.vale/`: runs their rule fixtures and lints repository Markdown (READMEs, contributor guides, `CLAUDE.md` files) with the root `.vale.ini`; `make -C tools/vale spellcheck` spell-checks all tracked Markdown with `typos` and the root `.typos.toml`
 
 ## Development Environment
 
@@ -80,7 +80,7 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
-- **Prose (Markdown and MDX)** — Vale, from `.vale/styles/` at the repository root, shared by three configs: `docs/.vale.ini` for the docs site, `landing/.vale.ini` for the blog, and the root `.vale.ini` for every other tracked Markdown file not listed in `.vale/markdown.ignore`. The `Nhost` style runs everywhere, `NhostBlog` on the blog only. Error-level alerts fail the `docs`, `landing` and `vale` Nix checks. Commands, severity tiers with their measured counts, and the fixture harness (`.vale/test.sh`) are in `.vale/styles/README.md`. A rule's tier moves only on a measured count, and a change under `.vale/styles/` moves every destination.
+- **Prose (Markdown and MDX)** — Vale, from `.vale/styles/` at the repository root, shared by three configs: `docs/.vale.ini` for the docs site, `landing/.vale.ini` for the blog, and the root `.vale.ini` for every other tracked Markdown file not listed in `.vale/markdown.ignore`. The `Nhost` style runs everywhere, `NhostBlog` on the blog only. Error-level alerts fail the `docs`, `landing` and `vale` Nix checks. Spelling is checked by `typos` (`.vale/spellcheck.sh`), not `Vale.Spelling`. Commands, severity tiers with their measured counts, and the fixture harness (`.vale/test.sh`) are in `.vale/styles/README.md`. A rule's tier moves only on a measured count, and a change under `.vale/styles/` moves every destination.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 

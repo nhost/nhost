@@ -43,6 +43,26 @@ those matched by `.vale/markdown.ignore`. An entry there needs a reason other
 than "it has findings": fix the page, or relax the rule in `.vale.ini` on a
 measured count.
 
+## Spelling
+
+`Vale.Spelling` stays off (see the docs rules below). Misspellings are caught
+by [typos](https://github.com/crate-ci/typos) instead, which flags known
+misspellings only and so does not trip over code identifiers and product
+names. `make -C tools/vale spellcheck` runs `.vale/spellcheck.sh`, which
+checks every tracked `*.md` and `*.mdx` file, the docs site and the blog
+included, with the root `.typos.toml`. Pass `--diff` to the script to
+preview fixes and `--write-changes` to apply them. `typos` comes from the
+`vale` dev shell.
+
+`.typos.toml` excludes the generated CHANGELOGs and `vendor/`, and accepts a
+few words that are correct in context, such as Hasura's `_nin` operator. Add
+to it only for a false positive, never to silence a real typo. It keeps the
+name `typos` looks for, so a bare `typos` run and editor plugins read it too.
+
+The spellcheck is not yet part of any Nix check: main has 33 misspellings in
+25 files at `f528abb090`. Once they are fixed, it joins the `vale` Nix check
+at zero.
+
 ## Severity tiers
 
 Every rule sits in one of three tiers, chosen by its count on main:

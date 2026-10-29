@@ -25,3 +25,8 @@ test: ## Run the Vale rule fixtures.
 .PHONY: lint
 lint: ## Lint repository Markdown with Vale, warnings included.
 	nix develop .\#$(NAME) -c bash $(ROOT_DIR)/.vale/lint_markdown.sh
+
+
+.PHONY: spellcheck
+spellcheck: ## Check every tracked Markdown file for misspellings.
+	nix develop .\#$(NAME) -c bash $(ROOT_DIR)/.vale/spellcheck.sh

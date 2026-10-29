@@ -52,7 +52,9 @@ in
         mkdir "$out"
       '';
 
+  # typos, the spellcheck, stays out of checkInputs until main has no
+  # misspellings; see .vale/styles/README.md.
   devShell = pkgs.mkShell {
-    packages = checkInputs;
+    packages = checkInputs ++ [ pkgs.typos ];
   };
 }
