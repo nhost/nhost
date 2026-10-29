@@ -175,7 +175,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
             aria-describedby={ariaDescribedBy}
             aria-invalid={ariaInvalid}
             className={cn(
-              'w-full justify-between font-normal',
+              'h-11 w-full justify-between font-normal text-base md:h-9 md:text-sm',
               !displayLabel && 'text-muted-foreground',
               className,
             )}
@@ -200,7 +200,6 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
           <Command filter={filter}>
             <CommandInput
               placeholder={searchPlaceholder}
-              className="h-9"
               disabled={disabled}
               onValueChange={onSearchChange}
             />

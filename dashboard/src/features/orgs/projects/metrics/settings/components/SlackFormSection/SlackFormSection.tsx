@@ -174,7 +174,6 @@ export default function SlackFormSection() {
                   <Button
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove Slack channel"
                     onClick={() => handleRemove(index)}
                   >

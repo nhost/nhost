@@ -47,23 +47,11 @@ export default function ForeignKeyEditorRow({
       </div>
 
       <div className="grid grid-flow-col justify-start sm:justify-end">
-        <Button
-          type="button"
-          onClick={onEdit}
-          variant="outline"
-          size="sm"
-          className="h-7 px-2"
-        >
+        <Button type="button" onClick={onEdit} variant="outline" size="xs">
           Edit
         </Button>
 
-        <Button
-          type="button"
-          onClick={onDelete}
-          variant="outline"
-          size="sm"
-          className="h-7 px-2"
-        >
+        <Button type="button" onClick={onDelete} variant="outline" size="xs">
           Delete
         </Button>
       </div>

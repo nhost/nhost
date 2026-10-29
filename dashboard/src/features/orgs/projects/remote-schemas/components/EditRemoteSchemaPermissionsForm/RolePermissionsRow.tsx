@@ -80,8 +80,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid h-full w-full items-center border-0 p-0 text-center',
-          disabled && 'justify-center',
+          'inline-grid h-full w-full items-center justify-center border-0 p-0 text-center',
           cellProps.className,
         )}
       >
@@ -92,7 +91,6 @@ export default function RolePermissions({
             type="button"
             variant="subtle"
             size="icon"
-            className="h-full w-full rounded-none"
             onClick={onActionSelect}
           >
             <AccessLevelIcon level={accessLevel} />

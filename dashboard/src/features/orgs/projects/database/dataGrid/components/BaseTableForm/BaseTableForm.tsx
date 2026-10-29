@@ -260,7 +260,7 @@ export default function BaseTableForm({
             </label>
             <div className="col-span-6">
               <Select value={schema ?? ''} onValueChange={onSchemaChange}>
-                <SelectTrigger id="schema" className="h-10 w-full">
+                <SelectTrigger id="schema" className="w-full">
                   <SelectValue placeholder="Select schema" />
                 </SelectTrigger>
                 <SelectContent>

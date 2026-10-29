@@ -52,7 +52,7 @@ export default function ColumnEditorTable() {
               </span>
             </Label>
           </div>
-          <div className="w-8 flex-none">
+          <div className="w-11 flex-none md:w-9">
             <Label asChild className="hidden">
               <span>Comment</span>
             </Label>

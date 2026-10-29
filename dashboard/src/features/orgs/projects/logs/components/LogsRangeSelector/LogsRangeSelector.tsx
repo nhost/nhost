@@ -205,7 +205,7 @@ export default function LogsRangeSelector({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="h-10 w-full min-w-40 items-center justify-between"
+          className="w-full min-w-40 items-center justify-between"
         >
           <span>
             {isNotEmptyValue(to)

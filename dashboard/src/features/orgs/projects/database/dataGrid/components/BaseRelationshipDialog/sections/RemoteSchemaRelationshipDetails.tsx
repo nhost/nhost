@@ -225,7 +225,7 @@ export default function RemoteSchemaRelationshipDetails() {
         <Textarea
           value={remoteFieldPreview}
           readOnly
-          className="font-mono text-xs"
+          className="font-mono text-base md:text-xs"
           rows={8}
         />
       </div>

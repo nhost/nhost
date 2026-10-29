@@ -139,7 +139,7 @@ export default function SQLEditor({
       <div className="flex flex-col space-y-2 border-b p-4">
         <p className="font-semibold">Raw SQL</p>
         <div className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
+          <div className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-9">
             <div className="flex items-center gap-2">
               <Switch id="track" checked={track} onCheckedChange={setTrack} />
               <Label htmlFor="track" className="font-normal">
@@ -191,7 +191,7 @@ export default function SQLEditor({
                     name="migrationName"
                     id="migrationName"
                     placeholder="migration_name"
-                    className="h-auto w-auto max-w-md"
+                    className="w-auto max-w-md"
                     onChange={(e) => setMigrationName(e.target.value)}
                   />
                 )}
@@ -254,10 +254,10 @@ export default function SQLEditor({
                 <span className="text-muted-foreground text-xs">Result</span>
                 <Button
                   variant="subtle"
-                  size="icon"
+                  size="icon-sm"
                   aria-label="Close results"
                   onClick={reset}
-                  className="h-7 w-7 text-muted-foreground"
+                  className="text-muted-foreground"
                 >
                   <XIcon className="h-4 w-4" />
                 </Button>
@@ -341,7 +341,7 @@ export default function SQLEditor({
                       >
                         <SelectTrigger
                           aria-label="Rows per page"
-                          className="h-7 min-w-[60px] px-2 text-xs"
+                          className="h-7 min-w-[60px] px-2 text-xs md:h-7 md:text-xs"
                         >
                           <SelectValue />
                         </SelectTrigger>
