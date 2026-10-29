@@ -1,6 +1,9 @@
 package controller_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -132,7 +135,7 @@ func TestCustomClaims(t *testing.T) {
 			claims: map[string]string{
 				"empty": "",
 			},
-			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {} }",
+			expectedGraphql: "",
 			expectedData: map[string]any{
 				"empty": nil,
 			},
@@ -160,6 +163,109 @@ func TestCustomClaims(t *testing.T) {
 
 			if diff := cmp.Diff(tc.expectedData, gotData); diff != "" {
 				t.Fatalf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestCustomClaimsGetClaims(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name                 string
+		claims               map[string]string
+		customClaimsDefaults map[string]any
+		expectedGraphql      string
+		expectedData         map[string]any
+	}{
+		{
+			name:                 "empty path without defaults",
+			claims:               map[string]string{"empty": ""},
+			customClaimsDefaults: nil,
+			expectedGraphql:      "",
+			expectedData:         map[string]any{"empty": nil},
+		},
+		{
+			name:                 "empty path with defaults",
+			claims:               map[string]string{"empty": ""},
+			customClaimsDefaults: map[string]any{"empty": "dflt"},
+			expectedGraphql:      "",
+			expectedData:         map[string]any{"empty": "dflt"},
+		},
+		{
+			name:                 "mixed paths without defaults",
+			claims:               map[string]string{"key": "m.k", "empty": ""},
+			customClaimsDefaults: nil,
+			expectedGraphql:      "query GetClaims($id: uuid!) { user(id:$id) {m{k }} }",
+			expectedData:         map[string]any{"key": "v", "empty": nil},
+		},
+		{
+			name:                 "mixed paths with defaults",
+			claims:               map[string]string{"key": "m.k", "empty": ""},
+			customClaimsDefaults: map[string]any{"key": "fallback", "empty": "dflt"},
+			expectedGraphql:      "query GetClaims($id: uuid!) { user(id:$id) {m{k }} }",
+			expectedData:         map[string]any{"key": "v", "empty": "dflt"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			userID := "db477732-48fa-4289-b694-2886a646b6eb"
+
+			var requests atomic.Int32
+
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					requests.Add(1)
+
+					if tc.expectedGraphql == "" {
+						t.Error("unexpected GraphQL request for empty claim paths")
+						http.Error(w, "unexpected request", http.StatusBadRequest)
+
+						return
+					}
+
+					w.Header().Set("Content-Type", "application/json")
+
+					if _, err := w.Write([]byte(`{"data":{"user":{"m":{"k":"v"}}}}`)); err != nil {
+						t.Errorf("failed to write response: %v", err)
+					}
+				}),
+			)
+			defer server.Close()
+
+			c, err := controller.NewCustomClaims(
+				tc.claims,
+				server.Client(),
+				server.URL,
+				tc.customClaimsDefaults,
+			)
+			if err != nil {
+				t.Fatalf("failed to get custom claims: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.expectedGraphql, c.GraphQLQuery()); diff != "" {
+				t.Fatalf("unexpected query (-want +got):\n%s", diff)
+			}
+
+			got, err := c.GetClaims(t.Context(), userID)
+			if err != nil {
+				t.Fatalf("failed to get claims: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.expectedData, got); diff != "" {
+				t.Errorf("unexpected claims (-want +got):\n%s", diff)
+			}
+
+			var expectedRequests int32
+			if tc.expectedGraphql != "" {
+				expectedRequests = 1
+			}
+
+			if got := requests.Load(); got != expectedRequests {
+				t.Errorf("unexpected request count: got %d, want %d", got, expectedRequests)
 			}
 		})
 	}
