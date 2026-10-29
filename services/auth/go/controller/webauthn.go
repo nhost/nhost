@@ -202,6 +202,12 @@ func (w *Webauthn) FinishLogin(
 	}
 
 	if challenge.User.Discoverable {
+		// callers that pass no handler only accept challenges bound to a known user
+		if userHandler == nil {
+			logger.InfoContext(ctx, "discoverable webauthn challenge not allowed")
+			return nil, WebauthnUser{}, ErrInvalidRequest
+		}
+
 		return w.FinishDiscoverableLogin(ctx, response, userHandler, logger)
 	}
 

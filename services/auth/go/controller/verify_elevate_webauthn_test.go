@@ -32,31 +32,35 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("d0902ee3-d160-4853-af6a-8d4b6248117e")
+	otherUserID := uuid.MustParse("8b2c7a5e-3f4d-4e6a-9b1c-2d3e4f5a6b7c")
 
-	jwtTokenFn := func() *jwt.Token {
-		return &jwt.Token{
-			Raw:    "",
-			Method: jwt.SigningMethodHS256,
-			Header: map[string]any{
-				"alg": "HS256",
-				"typ": "JWT",
-			},
-			Claims: jwt.MapClaims{
-				"exp": float64(time.Now().Add(900 * time.Second).Unix()),
-				"https://hasura.io/jwt/claims": map[string]any{
-					"x-hasura-allowed-roles":     []any{"user", "me"},
-					"x-hasura-default-role":      "user",
-					"x-hasura-user-id":           userID.String(),
-					"x-hasura-user-is-anonymous": "false",
+	jwtTokenFor := func(id uuid.UUID) func() *jwt.Token {
+		return func() *jwt.Token {
+			return &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{
+					"alg": "HS256",
+					"typ": "JWT",
 				},
-				"iat": float64(time.Now().Unix()),
-				"iss": "hasura-auth",
-				"sub": userID.String(),
-			},
-			Signature: []byte{},
-			Valid:     true,
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":     []any{"user", "me"},
+						"x-hasura-default-role":      "user",
+						"x-hasura-user-id":           id.String(),
+						"x-hasura-user-is-anonymous": "false",
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": "hasura-auth",
+					"sub": id.String(),
+				},
+				Signature: []byte{},
+				Valid:     true,
+			}
 		}
 	}
+	jwtTokenFn := jwtTokenFor(userID)
 
 	cases := []testRequest[api.VerifyElevateWebauthnRequestObject, api.VerifyElevateWebauthnResponseObject]{
 		{
@@ -157,6 +161,44 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 				Valid:     true,
 			},
 			jwtTokenFn:        jwtTokenFn,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name: "challenge issued to a different user",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
+				config.WebauthnRPID = "localhost"
+				config.WebauthnRPName = "React pollo Example"
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					otherUserID,
+				).Return(getSigninUser(otherUserID), nil)
+
+				return mock
+			},
+			request: api.VerifyElevateWebauthnRequestObject{
+				Body: unmarshalElevateRequest(
+					t,
+					[]byte(
+						`{"credential":{"id":"rkT-z-JhiBWGseoxXEKPulXcKcM","rawId":"rkT-z-JhiBWGseoxXEKPulXcKcM","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoibk02b204bHp2VDVveHZSQ0Z1QXFSRE9qLXRsQXE4RmRQLWVSTk93c2ZncyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCJ9","signature":"MEYCIQDAjwCZjJdHQub-tZHyXKLYdm4_IYefv2p-V8Z5k8a9lwIhAOhV5Kc5po30xgAc3XrzSiwy-Q5ItdcIMXPP5-4FvHOt","userHandle":"d0902ee3-d160-4853-af6a-8d4b6248117e"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"platform"}}`,
+					),
+				),
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        jwtTokenFor(otherUserID),
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
