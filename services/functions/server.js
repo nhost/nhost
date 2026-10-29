@@ -406,8 +406,8 @@ const main = async () => {
       let mtimeMs;
       try {
         mtimeMs = fs.statSync(filePath).mtimeMs;
-      } catch {
-        if (depMtimes.has(file)) depMtimes.delete(file);
+      } catch (err) {
+        if (err.code === 'ENOENT') depMtimes.delete(file);
         continue;
       }
       const prev = depMtimes.get(file);
@@ -433,7 +433,6 @@ const main = async () => {
         }
         return; // rebuildAll already covers everything
       }
-      depMtimes.set(file, mtimeMs);
     }
   }, 1000);
 
