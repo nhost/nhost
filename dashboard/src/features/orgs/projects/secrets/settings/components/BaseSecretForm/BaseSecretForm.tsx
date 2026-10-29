@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -40,7 +40,11 @@ export const baseSecretFormValidationSchema = Yup.object({
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  value: Yup.string().label('Value'),
+  // An empty or blank value would wipe the secret, so it can't be saved.
+  value: Yup.string()
+    .label('Value')
+    .required('Enter a value.')
+    .test('notBlank', 'Enter a value.', (value) => Boolean(value?.trim())),
 });
 
 export type BaseSecretFormValues = Yup.InferType<
@@ -62,6 +66,9 @@ export default function BaseSecretForm({
     formState: { dirtyFields, isSubmitting },
   } = form;
 
+  const value = useWatch({ control, name: 'value' });
+  const hasValue = Boolean(value?.trim());
+
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -77,20 +84,27 @@ export default function BaseSecretForm({
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <FormInput
-          control={control}
-          name="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          autoComplete="off"
-          disabled={mode === 'edit'}
-        />
+        {/* A secret can't be read back, so editing only replaces its value.
+            Its name can't change: the configuration refers to it by name. */}
+        {mode === 'edit' ? (
+          <p className="text-muted-foreground text-sm">
+            The current value is hidden. Saving replaces it.
+          </p>
+        ) : (
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+          />
+        )}
 
         <FormTextarea
           control={control}
           name="value"
-          label="Value"
-          placeholder="Enter value"
+          label={mode === 'edit' ? 'New value' : 'Value'}
+          placeholder={mode === 'edit' ? 'Enter a new value' : 'Enter value'}
           className="min-h-32"
         />
 
@@ -99,7 +113,11 @@ export default function BaseSecretForm({
             Cancel
           </Button>
 
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
+          <ButtonWithLoading
+            type="submit"
+            loading={isSubmitting}
+            disabled={!hasValue}
+          >
             {submitButtonText}
           </ButtonWithLoading>
         </div>
