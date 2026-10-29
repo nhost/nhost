@@ -1,12 +1,12 @@
-import { BlogDirectory } from '@/components/blog/BlogDirectory'
 import { BlogFeaturedFeed } from '@/components/blog/BlogFeaturedFeed'
+import { BlogPostGrid } from '@/components/blog/BlogPostGrid'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { getAllArticles } from '@/lib/blog'
-import { getFeaturedArticles, getPopularTags } from '@/lib/blogGrouping'
+import { getFeaturedArticles } from '@/lib/blogGrouping'
 import { buildSeo } from '@/utils/seo'
 import { Article } from '@/utils/types'
 import { ReactElement } from 'react'
@@ -19,11 +19,9 @@ export interface BlogPageProps {
   articles: Article[]
   /** The newest `FEATURED_COUNT` posts flagged `featured`. */
   featured: Article[]
-  /** Tags offered as filter buttons. */
-  tags: string[]
 }
 
-export default function BlogPage({ articles, featured, tags }: BlogPageProps) {
+export default function BlogPage({ articles, featured }: BlogPageProps) {
   return (
     <>
       <Container
@@ -54,7 +52,7 @@ export default function BlogPage({ articles, featured, tags }: BlogPageProps) {
       </Container>
 
       <Container component="section" className="max-w-5xl pb-16 lg:pb-28">
-        <BlogDirectory articles={articles} featured={featured} tags={tags} />
+        <BlogPostGrid articles={articles} />
       </Container>
     </>
   )
@@ -84,7 +82,6 @@ export async function getStaticProps() {
     props: {
       articles,
       featured: getFeaturedArticles(articles).slice(0, FEATURED_COUNT),
-      tags: getPopularTags(articles),
     },
   }
 }

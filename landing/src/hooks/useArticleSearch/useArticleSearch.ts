@@ -6,7 +6,6 @@ function searchableText(article: Article): string {
   return [
     article.title,
     article.description,
-    article.category,
     ...(article.tags ?? []),
     ...(article.authors ?? []).map((author) => author.name),
   ]

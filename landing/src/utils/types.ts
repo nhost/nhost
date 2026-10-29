@@ -1,5 +1,3 @@
-import { BlogCategorySlug } from '@/data/blogCategories'
-
 export interface Author {
   name: string
   title: string
@@ -20,22 +18,11 @@ export interface Article {
    */
   updatedAt?: string
   authors: Author[]
-  /**
-   * Freeform labels describing the post. Useful on the post itself, too
-   * granular to navigate by, which is what `category` is for.
-   */
   tags: string[]
   /**
-   * The one section this post belongs to on /blog. See
-   * `@/data/blogCategories` for the list and what belongs in each.
-   */
-  category: BlogCategorySlug
-  /**
-   * Puts the post in the featured feed at the top of /blog, which shows the
-   * newest five; older ones list in their category as usual. Reserved for
-   * important announcements, technical deep dives, and quarterly product
-   * updates: the things worth leading with. Monthly roundups, guides, and
-   * comparisons stay in their category.
+   * Makes the post eligible to lead /blog; the newest featured post leads.
+   * Reserved for important announcements, technical deep dives, and quarterly
+   * product updates: the things worth leading with.
    */
   featured?: boolean
   slug: string
