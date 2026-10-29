@@ -8,6 +8,11 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import {
+  SettingsCard,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -142,45 +147,60 @@ export default function TOMLEditor() {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
-      <div className="flex w-full shrink-0 flex-col space-y-2 border-b p-4">
-        <h3 className="font-semibold text-lg">Configuration Editor</h3>
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto">
+    <SettingsCard className="gap-6 pb-0">
+      <SettingsCardHeader
+        title={null}
+        description={
+          // No title (it would repeat the page title), so the help icon
+          // follows the description.
+          <>
+            Edit your project&apos;s configuration directly in TOML. Use it for
+            settings that don&apos;t have their own page yet.{' '}
+            <span className="inline-flex align-middle">
+              <SettingsDocsLink
+                href="https://docs.nhost.io/reference/configuration"
+                topic="the configuration file"
+              />
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading || !isDirty}
+              onClick={handleRevert}
+            >
+              Revert changes
+            </Button>
+            <ButtonWithLoading
+              type="submit"
+              disabled={loading || !isDirty}
+              loading={isSaving}
+              onClick={handleSave}
+            >
+              Save
+            </ButtonWithLoading>
+          </>
+        }
+      />
+
+      {/* Edge to edge in the card, under a line, like a code block. */}
+      <div className="border-t">
         {loading ? (
-          <div className="h-full w-full animate-pulse bg-muted" />
+          <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
           <CodeMirror
             value={tomlCode}
-            className="h-full"
-            height="100%"
             width="100%"
+            minHeight="24rem"
             theme={resolvedTheme === 'light' ? bbedit : githubDark}
             extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
             onChange={onChange}
           />
         )}
       </div>
-      <div className="grid w-full shrink-0 grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading || !isDirty}
-          onClick={handleRevert}
-        >
-          Revert changes
-        </Button>
-
-        <ButtonWithLoading
-          type="submit"
-          disabled={loading || !isDirty}
-          loading={isSaving}
-          className="justify-self-end"
-          onClick={handleSave}
-        >
-          Save
-        </ButtonWithLoading>
-      </div>
-    </div>
+    </SettingsCard>
   );
 }
