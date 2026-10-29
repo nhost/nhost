@@ -413,7 +413,9 @@ const main = async () => {
       const prev = depMtimes.get(file);
       if (prev !== mtimeMs) {
         depMtimes.set(file, mtimeMs);
-        console.log(`Dependency file ${prev === undefined ? 'created' : 'changed'}: ${file} — reinstalling...`);
+        console.log(
+          `Dependency file ${prev === undefined ? 'created' : 'changed'}: ${file} — reinstalling...`,
+        );
         try {
           // Reinstall through the same shared library start.sh uses, so a
           // hot-reload reinstall is identical to the initial install (corepack
