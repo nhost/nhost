@@ -123,7 +123,7 @@ export default function EnvironmentVariableSettings() {
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
     openDialog({
-      title: 'Edit environment variable',
+      title: `Edit ${originalVariable.name}`,
       component: (
         <EditEnvironmentVariableForm
           originalEnvironmentVariable={originalVariable}

@@ -1,12 +1,15 @@
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { TextLink } from '@/components/ui/v3/text-link';
 import type { DialogFormProps } from '@/types/common';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
   /**
@@ -80,7 +83,9 @@ export default function BaseEnvironmentVariableForm({
   submitButtonText = 'Save',
   location,
 }: BaseEnvironmentVariableFormProps) {
-  const { onDirtyStateChange } = useDialog();
+  const { onDirtyStateChange, closeDialog } = useDialog();
+  const router = useRouter();
+  const secretsPath = `/orgs/${getSingleQueryParam(router.query.orgSlug)}/projects/${getSingleQueryParam(router.query.appSubdomain)}/settings?tab=secrets`;
   const form = useFormContext<BaseEnvironmentVariableFormValues>();
 
   const {
@@ -96,23 +101,35 @@ export default function BaseEnvironmentVariableForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
+  // Create needs a name. Edit only saves once something changed, so an
+  // untouched popup can't overwrite the variable with the same value.
+  const name = useWatch({ control, name: 'name' });
+  const canSubmit = mode === 'edit' ? isDirty : Boolean(name?.trim());
+
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
+      {/* Sensitive values belong in Secrets, which can't be read back. */}
       <p className="text-muted-foreground text-sm">
-        Environment Variables are made available to all your services. All
-        values are encrypted.
+        Available to all your services. For API keys and passwords, use{' '}
+        <TextLink href={secretsPath} onClick={closeDialog}>
+          Secrets
+        </TextLink>
+        .
       </p>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <FormInput
-          control={control}
-          name="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          autoComplete="off"
-          autoFocus={mode === 'create'}
-          disabled={mode === 'edit'}
-        />
+        {/* The name can't change once created, and it's already in the popup
+            title, so editing only shows the value. */}
+        {mode === 'create' && (
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+            autoFocus
+          />
+        )}
 
         <FormTextarea
           control={control}
@@ -129,7 +146,11 @@ export default function BaseEnvironmentVariableForm({
             Cancel
           </Button>
 
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
+          <ButtonWithLoading
+            type="submit"
+            loading={isSubmitting}
+            disabled={!canSubmit}
+          >
             {submitButtonText}
           </ButtonWithLoading>
         </div>
