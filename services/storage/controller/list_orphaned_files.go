@@ -26,19 +26,15 @@ func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
 		return nil, apiErr
 	}
 
+	hasuraIDs := make(map[string]struct{}, len(filesInHasura))
+	for _, fileHasura := range filesInHasura {
+		hasuraIDs[fileHasura.ID] = struct{}{}
+	}
+
 	missing := make([]string, 0, 10) //nolint: mnd
 
 	for _, fileS3 := range filesInS3 {
-		found := false
-
-		for _, fileHasura := range filesInHasura {
-			if path.Base(fileS3) == fileHasura.ID {
-				found = true
-				break
-			}
-		}
-
-		if !found {
+		if _, found := hasuraIDs[path.Base(fileS3)]; !found {
 			missing = append(missing, fileS3)
 		}
 	}

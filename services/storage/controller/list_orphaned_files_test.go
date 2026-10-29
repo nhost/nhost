@@ -17,13 +17,84 @@ func TestListOrphans(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		expected api.ListOrphanedFiles200JSONResponse
+		name          string
+		filesInS3     []string
+		filesInHasura []controller.FileSummary
+		expected      api.ListOrphanedFiles200JSONResponse
 	}{
 		{
 			name: "successful",
+			filesInS3: []string{
+				"app_id/b3b4e653-ca59-412c-a165-92d251c3fe86",
+				"app_id/7dc0b0d0-b100-4667-89f1-0434942d9c15",
+				"app_id/garbage",
+			},
+			filesInHasura: []controller.FileSummary{
+				{
+					ID:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
+					Name:       "file-1.txt",
+					IsUploaded: true,
+					BucketID:   "default",
+				},
+				{
+					ID:         "7dc0b0d0-b100-4667-89f1-0434942d9c15",
+					Name:       "file-two.txt",
+					IsUploaded: true,
+					BucketID:   "default",
+				},
+			},
 			expected: api.ListOrphanedFiles200JSONResponse{
 				Files: &[]string{"app_id/garbage"},
+			},
+		},
+		{
+			name: "preserves S3 order and full keys",
+			filesInS3: []string{
+				"app_id/z-orphan",
+				"app_id/present",
+				"app_id/nested/a-orphan",
+				"app_id/pending",
+				"app_id/z-orphan",
+			},
+			filesInHasura: []controller.FileSummary{
+				{ID: "pending", IsUploaded: false},
+				{ID: "metadata-only", IsUploaded: true},
+				{ID: "present", IsUploaded: true},
+				{ID: "present", IsUploaded: true},
+			},
+			expected: api.ListOrphanedFiles200JSONResponse{
+				Files: &[]string{"app_id/z-orphan", "app_id/nested/a-orphan", "app_id/z-orphan"},
+			},
+		},
+		{
+			name:      "no metadata",
+			filesInS3: []string{"app_id/z-orphan", "app_id/a-orphan"},
+			expected: api.ListOrphanedFiles200JSONResponse{
+				Files: &[]string{"app_id/z-orphan", "app_id/a-orphan"},
+			},
+		},
+		{
+			name:          "no S3 objects",
+			filesInHasura: []controller.FileSummary{{ID: "metadata-only", IsUploaded: true}},
+			expected: api.ListOrphanedFiles200JSONResponse{
+				Files: &[]string{},
+			},
+		},
+		{
+			name:      "all objects have metadata",
+			filesInS3: []string{"app_id/present", "app_id/nested/pending"},
+			filesInHasura: []controller.FileSummary{
+				{ID: "pending", IsUploaded: false},
+				{ID: "present", IsUploaded: true},
+			},
+			expected: api.ListOrphanedFiles200JSONResponse{
+				Files: &[]string{},
+			},
+		},
+		{
+			name: "both listings empty",
+			expected: api.ListOrphanedFiles200JSONResponse{
+				Files: &[]string{},
 			},
 		},
 	}
@@ -44,30 +115,9 @@ func TestListOrphans(t *testing.T) {
 
 			metadataStorage.EXPECT().ListFiles(
 				gomock.Any(), gomock.Any(),
-			).Return(
-				[]controller.FileSummary{
-					{
-						ID:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
-						Name:       "file-1.txt",
-						IsUploaded: true,
-						BucketID:   "default",
-					},
-					{
-						ID:         "7dc0b0d0-b100-4667-89f1-0434942d9c15",
-						Name:       "file-two.txt",
-						IsUploaded: true,
-						BucketID:   "default",
-					},
-				}, nil,
-			)
+			).Return(tc.filesInHasura, nil)
 
-			contentStorage.EXPECT().ListFiles(gomock.Any()).Return(
-				[]string{
-					"app_id/b3b4e653-ca59-412c-a165-92d251c3fe86",
-					"app_id/7dc0b0d0-b100-4667-89f1-0434942d9c15",
-					"app_id/garbage",
-				}, nil,
-			)
+			contentStorage.EXPECT().ListFiles(gomock.Any()).Return(tc.filesInS3, nil)
 
 			ctrl := controller.New(
 				"http://asd",
