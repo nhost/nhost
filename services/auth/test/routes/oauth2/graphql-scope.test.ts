@@ -140,7 +140,10 @@ describe('oauth2-scope-claims', () => {
 
     expect(payload).toEqual({
       sub: userId,
-      aud: clientId,
+      aud: 'https://local.nhost.run',
+      client_id: clientId,
+      sid: expect.any(String),
+      jti: expect.any(String),
       scope: 'openid graphql',
       exp: expect.any(Number),
       iat: expect.any(Number),
@@ -161,7 +164,10 @@ describe('oauth2-scope-claims', () => {
 
     expect(payload).toEqual({
       sub: userId,
-      aud: clientId,
+      aud: 'https://local.nhost.run',
+      client_id: clientId,
+      sid: expect.any(String),
+      jti: expect.any(String),
       scope: 'openid profile email',
       exp: expect.any(Number),
       iat: expect.any(Number),

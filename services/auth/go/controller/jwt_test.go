@@ -39,6 +39,7 @@ var (
 	)
 )
 
+//nolint:maintidx // Broad pre-existing golden matrix also checks the two new session identifiers.
 func TestGetJWTFunc(t *testing.T) {
 	t.Parallel()
 
@@ -83,6 +84,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("hasura-auth"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -119,6 +121,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("some-issuer"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -155,6 +158,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": float64(1.708100135e+09),
 					"iss": string("hasura-auth"),
 					"sub": string("585e21fc-3664-4d03-8539-69945342a4f4"),
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -198,6 +202,7 @@ func TestGetJWTFunc(t *testing.T) {
 					"iat": 1.708100135e+09,
 					"iss": "hasura-auth",
 					"sub": "585e21fc-3664-4d03-8539-69945342a4f4",
+					"sid": "ced6ca27-20ba-4149-af39-44a2c242e009",
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -248,6 +253,7 @@ func TestGetJWTFunc(t *testing.T) {
 				controller.ElevationConfig{},
 				nil,
 				"hasura-auth",
+				"",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
@@ -256,6 +262,7 @@ func TestGetJWTFunc(t *testing.T) {
 			accessToken, _, err := jwtGetter.GetToken(
 				t.Context(),
 				tc.userID,
+				uuid.MustParse("ced6ca27-20ba-4149-af39-44a2c242e009"),
 				false,
 				tc.allowedRoles,
 				tc.defaultRole,
@@ -266,12 +273,27 @@ func TestGetJWTFunc(t *testing.T) {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
 
-			t.Logf("token = %v", accessToken)
-
 			decodedToken, err := jwtGetter.Validate(accessToken, tokenpurpose.Session)
 			if err != nil {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
+
+			claims, ok := decodedToken.Claims.(jwt.MapClaims)
+			if !ok {
+				t.Fatal("session claims are not MapClaims")
+			}
+
+			jti, ok := claims["jti"].(string)
+			if !ok {
+				t.Fatal("jti is not a string")
+			}
+
+			id, err := uuid.Parse(jti)
+			if err != nil || id.Version() != 4 {
+				t.Errorf("jti is not a UUID v4: %v", err)
+			}
+
+			delete(claims, "jti")
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"),
@@ -315,13 +337,207 @@ func signTestToken(
 	return token
 }
 
+func assertProviderStateRedirectAudience(
+	t *testing.T, location string, getter *controller.JWTGetter, expected string,
+) {
+	t.Helper()
+
+	redirect, err := url.Parse(location)
+	if err != nil {
+		t.Fatalf("parsing provider redirect: %v", err)
+	}
+
+	state := redirect.Query().Get("state")
+	if state == "" {
+		t.Fatal("provider redirect has no state")
+	}
+
+	token, err := getter.Validate(state, tokenpurpose.ProviderState)
+	if err != nil {
+		t.Fatalf("validating provider state: %v", err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		t.Fatal("provider state claims are not MapClaims")
+	}
+
+	got, present := claims["aud"]
+	if present != (expected != "") || present && got != expected {
+		t.Errorf("state aud = %v, present = %t; want %q", got, present, expected)
+	}
+}
+
+func TestProviderStateAudienceValidation(t *testing.T) {
+	t.Parallel()
+
+	const callbackAudience = "https://local.nhost.run/auth/provider-callback"
+
+	cases := []struct {
+		name      string
+		audience  string
+		claim     any
+		include   bool
+		wantValid bool
+		clientID  string
+	}{
+		{"correct", "https://local.nhost.run/", callbackAudience, true, true, ""},
+		{
+			"array containing callback",
+			"https://local.nhost.run",
+			[]string{"other", callbackAudience},
+			true,
+			true,
+			"",
+		},
+		{"missing during transition", "https://local.nhost.run", nil, false, true, ""},
+		{
+			"wrong callback",
+			"https://local.nhost.run",
+			"https://other.example/auth/provider-callback",
+			true,
+			false,
+			"",
+		},
+		{
+			"project audience is not callback audience",
+			"https://local.nhost.run",
+			"https://local.nhost.run",
+			true,
+			false,
+			"",
+		},
+		{
+			"own client ID is not exempt",
+			"https://local.nhost.run",
+			"some-client",
+			true,
+			false,
+			"some-client",
+		},
+		{"null", "https://local.nhost.run", nil, true, false, ""},
+		{"number", "https://local.nhost.run", 42, true, false, ""},
+		{
+			"non-string array",
+			"https://local.nhost.run",
+			[]any{callbackAudience, 42},
+			true,
+			false,
+			"",
+		},
+		{"unset skips audience check", "", "https://other.example", true, true, ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// The legacy signer does not add an audience; a configured validator
+			// must still distinguish missing from malformed claims.
+			signer := newAudienceGetter(t, "")
+
+			claims := jwt.MapClaims{"flow": "signin"}
+			if tc.include {
+				claims["aud"] = tc.claim
+			}
+
+			if tc.clientID != "" {
+				claims["client_id"] = tc.clientID
+			}
+
+			signed, err := signer.SignTokenWithClaims(
+				claims, time.Now().Add(time.Minute), tokenpurpose.ProviderState,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			validator := newAudienceGetter(t, tc.audience)
+
+			_, err = validator.Validate(signed, tokenpurpose.ProviderState)
+			if (err == nil) != tc.wantValid {
+				t.Errorf("Validate() error = %v; want valid = %t", err, tc.wantValid)
+			}
+		})
+	}
+}
+
+func TestLegacyProviderStateValidation(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.New()
+
+	cases := []struct {
+		name      string
+		claims    jwt.MapClaims
+		wantValid bool
+	}{
+		{
+			name:      "legacy provider state",
+			claims:    jwt.MapClaims{"flow": "signin", "options": map[string]any{}},
+			wantValid: true,
+		},
+		{
+			name:      "legacy-typed token without options",
+			claims:    jwt.MapClaims{"flow": "signin"},
+			wantValid: false,
+		},
+		{
+			name: "legacy-typed token with an audience",
+			claims: jwt.MapClaims{
+				"flow": "signin", "options": map[string]any{}, "aud": "some-client",
+			},
+			wantValid: false,
+		},
+		{
+			name: "legacy session token",
+			claims: jwt.MapClaims{
+				"sub": userID.String(),
+				"https://hasura.io/jwt/claims": map[string]any{
+					"x-hasura-user-id": userID.String(),
+				},
+			},
+			wantValid: false,
+		},
+		{
+			name: "legacy OAuth2 access token",
+			claims: jwt.MapClaims{
+				"sub": userID.String(), "aud": "some-client", "scope": "openid",
+			},
+			wantValid: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			getter := newAudienceGetter(t, "https://local.nhost.run")
+
+			// State signed before provider state had its own type used the
+			// default "JWT" type, the one OIDC ID tokens still carry.
+			signed, err := getter.SignTokenWithClaims(
+				tc.claims, time.Now().Add(time.Minute), tokenpurpose.OIDCIDToken,
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_, err = getter.Validate(signed, tokenpurpose.ProviderState)
+			if (err == nil) != tc.wantValid {
+				t.Errorf("Validate() error = %v; want valid = %t", err, tc.wantValid)
+			}
+		})
+	}
+}
+
 func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
 	signingGetter, err := controller.NewJWTGetter(
-		jwtSecret, time.Hour, nil, controller.ElevationConfig{}, nil, "hasura-auth",
+		jwtSecret, time.Hour, nil, controller.ElevationConfig{}, nil, "hasura-auth", "",
 	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
@@ -990,6 +1206,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				tc.elevation,
 				tc.db(ctrl),
 				"hasura-auth",
+				"",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)

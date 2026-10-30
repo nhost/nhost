@@ -2624,6 +2624,14 @@ active: boolean;
 
 (`boolean`) -
 
+#### aud?
+
+```ts
+optional aud?: string[];
+```
+
+Audiences of an active access token, when present in the token.
+
 #### client\_id?
 
 ```ts
@@ -2648,11 +2656,27 @@ iat?: number;
 iss?: string;
 ```
 
+#### jti?
+
+```ts
+optional jti?: string;
+```
+
+Unique identifier of an active access token, when present in the token.
+
 #### scope?
 
 ```ts
 scope?: string;
 ```
+
+#### sid?
+
+```ts
+optional sid?: string;
+```
+
+Nhost extension identifying the session backing an active access or refresh token.
 
 #### sub?
 

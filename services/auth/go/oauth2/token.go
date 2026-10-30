@@ -165,8 +165,8 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 	accessTokenTTL := time.Duration(p.config.AccessTokenTTL) * time.Second
 	refreshTokenTTL := time.Duration(p.config.RefreshTokenTTL) * time.Second
 
-	accessToken, err := p.createAccessToken(
-		ctx, rt.UserID, rt.ClientID, rt.Scopes, accessTokenTTL, logger,
+	claims, err := p.buildAccessTokenClaims(
+		ctx, rt.UserID, rt.ClientID, rt.Scopes, logger,
 	)
 	if err != nil {
 		if errors.Is(err, errUserLacksRequestedRole) {
@@ -180,6 +180,12 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 
 		logger.ErrorContext(ctx, "error creating OAuth2 access token", logError(err))
 
+		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+	}
+
+	accessToken, err := p.signAccessToken(claims, rt.ID, accessTokenTTL)
+	if err != nil {
+		logger.ErrorContext(ctx, "error signing OAuth2 access token", logError(err))
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
@@ -245,8 +251,8 @@ func (p *Provider) issueTokens( //nolint:funlen
 	accessTokenTTL := time.Duration(p.config.AccessTokenTTL) * time.Second
 	refreshTokenTTL := time.Duration(p.config.RefreshTokenTTL) * time.Second
 
-	accessToken, err := p.createAccessToken(
-		ctx, userID, authReq.ClientID, authReq.Scopes, accessTokenTTL, logger,
+	claims, err := p.buildAccessTokenClaims(
+		ctx, userID, authReq.ClientID, authReq.Scopes, logger,
 	)
 	if err != nil {
 		if errors.Is(err, errUserLacksRequestedRole) {
@@ -266,7 +272,7 @@ func (p *Provider) issueTokens( //nolint:funlen
 	refreshToken := uuid.NewString()
 	refreshTokenHash := HashToken(refreshToken)
 
-	_, err = p.db.ConsumeOAuth2CodeAndInsertRefreshToken(
+	rt, err := p.db.ConsumeOAuth2CodeAndInsertRefreshToken(
 		ctx,
 		sql.ConsumeOAuth2CodeAndInsertRefreshTokenParams{
 			CodeHash:  codeHash,
@@ -284,6 +290,12 @@ func (p *Provider) issueTokens( //nolint:funlen
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error consuming code and inserting refresh token", logError(err))
+		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+	}
+
+	accessToken, err := p.signAccessToken(claims, rt.ID, accessTokenTTL)
+	if err != nil {
+		logger.ErrorContext(ctx, "error signing OAuth2 access token", logError(err))
 		return nil, &Error{Err: "server_error", Description: "Internal server error"}
 	}
 
@@ -321,27 +333,45 @@ func (p *Provider) issueTokens( //nolint:funlen
 	return resp, nil
 }
 
-func (p *Provider) createAccessToken(
+func (p *Provider) buildAccessTokenClaims(
 	ctx context.Context,
 	userID uuid.UUID,
 	clientID string,
 	scopes []string,
-	ttl time.Duration,
 	logger *slog.Logger,
-) (string, error) {
+) (jwt.MapClaims, error) {
+	audience := p.config.Audience
+	if audience == "" {
+		audience = clientID
+	}
+
 	claims := jwt.MapClaims{
-		"sub":   userID.String(),
-		"aud":   clientID,
-		"scope": strings.Join(scopes, " "),
+		"sub":       userID.String(),
+		"aud":       audience,
+		"client_id": clientID,
+		"scope":     strings.Join(scopes, " "),
 	}
 
 	if err := p.addGraphQLClaims(ctx, claims, scopes, userID, logger); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	exp := time.Now().Add(ttl)
+	return claims, nil
+}
 
-	raw, err := p.signer.SignTokenWithClaims(claims, exp, tokenpurpose.OAuth2AccessToken)
+func (p *Provider) signAccessToken(
+	claims jwt.MapClaims,
+	sessionID uuid.UUID,
+	ttl time.Duration,
+) (string, error) {
+	claims["sid"] = sessionID.String()
+	claims["jti"] = uuid.NewString()
+
+	raw, err := p.signer.SignTokenWithClaims(
+		claims,
+		time.Now().Add(ttl),
+		tokenpurpose.OAuth2AccessToken,
+	)
 	if err != nil {
 		return "", fmt.Errorf("error signing access token: %w", err)
 	}

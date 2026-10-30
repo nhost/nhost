@@ -349,6 +349,9 @@ Session tokens, OAuth2 access tokens, OIDC ID tokens and provider state tokens a
 - Sign with `JWTGetter.SignTokenWithClaims(claims, exp, purpose)`; `GetToken` always signs `tokenpurpose.Session`.
 - Validate with `JWTGetter.Validate(token, purpose)`, passing the only purpose the call site accepts. Never accept a token without checking its purpose.
 - OpenAPI security schemes map to purposes in `schemePurpose` (`go/controller/jwt.go`): `BearerAuth` and `BearerAuthElevated` accept session tokens, `BearerAuthOAuth2` accepts OAuth2 access tokens (`at+jwt`, RFC 9068). A new scheme accepts no token until it is added there.
+- When `AUTH_JWT_AUDIENCE` is set, session and OAuth2 access tokens use that project `aud`; provider state uses `<audience without trailing slash>/auth/provider-callback`; OIDC ID tokens retain `aud = client_id` and have no project-audience check. When unset, session/provider state omit `aud`, OAuth2 access uses `aud = client_id`, and `Validate` does not check audience. Auth never derives the project audience from Hasura's JWT secret.
+- `Validate` accepts absent `aud` on the checked purposes during transition, but rejects malformed or mismatched present `aud`. OAuth2 access tokens additionally accept pre-change tokens without `client_id`, or tokens whose sole `aud` is their own string `client_id`; non-string `client_id` is rejected when audience checking is enabled. These audience exceptions and legacy `typ: JWT` support are temporary (remove in auth@0.54.0).
+- Session access `sid` is `auth.refresh_tokens.id`; OAuth2 access `sid` is `auth.oauth2_refresh_tokens.id`. Both stay stable on refresh, while each issued access token has a fresh random UUID `jti`. ID and provider-state tokens do not gain these claims.
 
 ### Optional Authentication
 

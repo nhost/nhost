@@ -154,7 +154,7 @@ On each request Backend MCP:
 
 1. Reads the `Authorization: Bearer <token>` header. A missing or malformed header results in `401 Unauthorized`.
 2. Fetches the signing keys from `<auth-url>/.well-known/jwks.json` (JWKS) and validates the token's signature.
-3. Checks that the token's issuer matches the configured auth URL, that it has not expired, and that it carries an issued-at claim.
+3. Checks the issuer (the configured auth URL), expiry, and issued-at claims, and that the token is an OAuth2 access token (`typ: at+jwt`). Session tokens, including personal access tokens, and ID tokens get `401 Unauthorized`; access tokens from Auth before 0.53.0 (`typ: JWT`) are still accepted when they carry `aud` and `scope` claims.
 4. Forwards the same `Authorization` header to every downstream GraphQL request, so Hasura enforces permissions from the token's claims.
 
 </Steps>

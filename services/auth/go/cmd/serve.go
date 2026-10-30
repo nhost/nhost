@@ -44,6 +44,7 @@ const (
 	flagGravatarRating                           = "gravatar-rating"
 	flagRefreshTokenExpiresIn                    = "refresh-token-expires-in"
 	flagAccessTokensExpiresIn                    = "access-tokens-expires-in"
+	flagJWTAudience                              = "jwt-audience"
 	flagHasuraGraphqlJWTSecret                   = "hasura-graphql-jwt-secret" //nolint:gosec
 	flagEmailSigninEmailVerifiedRequired         = "email-verification-required"
 	flagSMTPHost                                 = "smtp-host"
@@ -350,6 +351,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    900, //nolint:mnd
 				Category: "jwt",
 				Sources:  cli.EnvVars("AUTH_ACCESS_TOKEN_EXPIRES_IN"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     flagJWTAudience,
+				Usage:    "Audience for Auth-signed access tokens",
+				Category: "jwt",
+				Sources:  cli.EnvVars("AUTH_JWT_AUDIENCE"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagHasuraGraphqlJWTSecret,
@@ -1467,7 +1474,7 @@ func getGoServer(
 		return nil, err
 	}
 
-	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
+	handler := controller.NewStrictHandler(ctrl)
 
 	swagger, err := api.GetSpec()
 	if err != nil {

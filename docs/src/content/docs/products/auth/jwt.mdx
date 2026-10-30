@@ -268,6 +268,47 @@ Don't use `claims_map` to supply missing roles for tokens signed by Nhost Auth. 
 
 The complete `#JWTSecret` schema, with every field and default, is documented in the [configuration reference](/reference/configuration#jwtsecret).
 
+## Session Access Token Claims
+
+Auth-issued session access tokens include a payload like this (timestamps and IDs are illustrative):
+
+```json
+{
+  "iss": "https://your-project.auth.nhost.run/v1",
+  "sub": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+  "aud": "https://your-project.nhost.run",
+  "sid": "3fb25293-8b81-44eb-b5c9-465741e54148",
+  "jti": "64d9576c-16a5-4c08-a38b-0ead97d3b462",
+  "iat": 1234567890,
+  "exp": 1234568790,
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "f5765cb0-1c45-4b6e-8a30-0b2abc1a2f3d",
+    "x-hasura-default-role": "user",
+    "x-hasura-allowed-roles": ["user", "me"],
+    "x-hasura-user-is-anonymous": "false"
+  }
+}
+```
+
+The JWT header has `typ: nhost-session+jwt`. The `sid` is the ID of the session's refresh-token record (`auth.refresh_tokens.id`); it stays the same when the session is refreshed. The `jti` is a new random UUID for **each** access token, including each refreshed token. Neither is the refresh token value itself. `aud` is a single project-audience string when configured, and is **omitted** when unset. See [OAuth2 tokens](/products/auth/oauth2-provider/tokens-and-scopes#access-token) for the different access-token audience and session ID used by OAuth2 clients.
+
+### Configuring the Audience
+
+With an Auth release that supports `AUTH_JWT_AUDIENCE`, set the audience in `nhost.toml` using a CLI release that supports `[auth].audience`:
+
+```toml
+[auth]
+audience = "https://your-project.nhost.run"
+```
+
+Older CLI releases reject this setting because their configuration schema does not include it. For a standalone/self-hosted Auth service, set `AUTH_JWT_AUDIENCE` (or `--jwt-audience`) directly. Auth itself has **no audience default**: without this setting, self-hosted session tokens have no `aud` claim, and Auth does not require one when verifying them. Once the Nhost Cloud platform supports `[auth].audience`, it supplies `https://<subdomain>.nhost.run` by default, and CLI releases that support this setting use `https://local.nhost.run` for `nhost dev`, unless overridden; until then, Cloud and `nhost dev` session tokens have no `aud` claim. These defaults are supplied by the platform/CLI, not inferred by Auth from the Hasura JWT secret.
+
+:::caution
+Before enabling an audience, align any `audience` in your Hasura JWT-secret configuration with the Auth audience; otherwise Hasura may reject newly issued tokens. Where a Cloud or CLI default applies, it is skipped when `[auth].audience` is unset but a Hasura JWT secret already specifies an audience, rather than issuing tokens for a different audience. Auth does not read Hasura's `audience` to determine what to issue.
+:::
+
+Changing the configured audience makes outstanding session and new-format OAuth2 access tokens with the **old** `aud` fail Auth's audience validation until clients refresh them. During the transition, Auth still accepts tokens with no `aud`, pre-change OAuth2 access tokens without a `client_id` claim, and OAuth2 access tokens whose sole `aud` is their own `client_id` until they expire. These compatibility exceptions are scheduled for removal in auth@0.54.0. Resource servers that enforce an audience themselves may reject those older tokens; configure their audience policy accordingly.
+
 ## Verify a JWT
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).

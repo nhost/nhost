@@ -17,6 +17,8 @@ Nhost Auth signs every kind of token it issues with the same key: the session ac
 Auth versions that predate typed tokens sign session tokens with `typ: JWT`, so on those versions the examples below reject every request. Upgrade Auth before adding the `typ` check. Session tokens issued before the upgrade still carry `typ: JWT` and will be rejected by these examples until clients obtain newly issued session tokens.
 :::
 
+If your session tokens carry an `aud` claim (see [Configuring the audience](/products/auth/jwt#configuring-the-audience)), set your Function's `JWT_AUDIENCE` environment variable to that value to check it. Otherwise leave it unset, because `jsonwebtoken` rejects tokens without `aud` when an `audience` is given. After you enable the check, tokens issued before the audience was configured fail until the client refreshes them. Use the project audience, not an OAuth2 client ID.
+
 ## Dependencies
 
 ```shell
@@ -34,6 +36,7 @@ import process from 'node:process'
 import jwt, { type Jwt } from 'jsonwebtoken'
 
 const JWT_SECRET = JSON.parse(process.env.NHOST_JWT_SECRET).key
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE
 const SESSION_TOKEN_TYPE = 'nhost-session+jwt'
 
 export default (req: Request, res: Response) => {
@@ -49,7 +52,11 @@ export default (req: Request, res: Response) => {
     jwt.verify(
       token,
       JWT_SECRET,
-      { algorithms: ['HS256', 'HS384', 'HS512'], complete: true },
+      {
+        algorithms: ['HS256', 'HS384', 'HS512'],
+        complete: true,
+        ...(JWT_AUDIENCE ? { audience: JWT_AUDIENCE } : {}),
+      },
       (err, decoded) => {
         if (err) reject(err)
         else if (decoded?.header.typ !== SESSION_TOKEN_TYPE) reject(new Error('not a session token'))
@@ -90,6 +97,7 @@ import jwksClient from 'jwks-rsa'
 
 const subdomain = process.env.NHOST_SUBDOMAIN
 const region = process.env.NHOST_REGION
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE
 const SESSION_TOKEN_TYPE = 'nhost-session+jwt'
 
 const client = jwksClient({
@@ -116,7 +124,11 @@ export default (req: Request, res: Response) => {
           callback(null, key.getPublicKey())
         })
       },
-      { algorithms: ['RS256', 'RS384', 'RS512'], complete: true },
+      {
+        algorithms: ['RS256', 'RS384', 'RS512'],
+        complete: true,
+        ...(JWT_AUDIENCE ? { audience: JWT_AUDIENCE } : {}),
+      },
       (err, decoded) => {
         if (err) reject(err)
         else if (decoded?.header.typ !== SESSION_TOKEN_TYPE) reject(new Error('not a session token'))
