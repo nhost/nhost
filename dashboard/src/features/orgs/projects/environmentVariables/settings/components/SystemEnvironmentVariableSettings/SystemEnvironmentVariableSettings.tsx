@@ -104,8 +104,6 @@ export default function SystemEnvironmentVariableSettings() {
         }}
       />
 
-      {/* The system variables are a fixed list, so their groups are set
-          here, not guessed from the names. Each group is its own box. */}
       <SettingsCardContent className="mt-2 gap-6">
         <VariableGroup label="Project">
           {projectVariables.map((variable) => (

@@ -101,14 +101,12 @@ export default function BaseEnvironmentVariableForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  // Create needs a name. Edit only saves once something changed, so an
-  // untouched popup can't overwrite the variable with the same value.
+  // Create needs a name. Edit can always save, an empty value included.
   const name = useWatch({ control, name: 'name' });
-  const canSubmit = mode === 'edit' ? isDirty : Boolean(name?.trim());
+  const canSubmit = mode === 'edit' || Boolean(name?.trim());
 
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
-      {/* Sensitive values belong in Secrets, which can't be read back. */}
       <p className="text-muted-foreground text-sm">
         Available to all your services. For API keys and passwords, use{' '}
         <TextLink href={secretsPath} onClick={closeDialog}>

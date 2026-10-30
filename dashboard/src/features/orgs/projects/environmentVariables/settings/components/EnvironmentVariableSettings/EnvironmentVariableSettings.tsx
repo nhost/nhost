@@ -123,7 +123,12 @@ export default function EnvironmentVariableSettings() {
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
     openDialog({
-      title: `Edit ${originalVariable.name}`,
+      // Long names end in "…" instead of stretching the popup.
+      title: (
+        <span className="block truncate" title={originalVariable.name}>
+          Edit {originalVariable.name}
+        </span>
+      ),
       component: (
         <EditEnvironmentVariableForm
           originalEnvironmentVariable={originalVariable}

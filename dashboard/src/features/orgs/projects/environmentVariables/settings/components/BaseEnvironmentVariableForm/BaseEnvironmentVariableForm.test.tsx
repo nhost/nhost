@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import BaseEnvironmentVariableForm, {
   type BaseEnvironmentVariableFormValues,
@@ -31,8 +31,7 @@ function TestForm({
 }
 
 describe('BaseEnvironmentVariableForm', () => {
-  it('edit shows only the value and saves once it changed', async () => {
-    const user = new TestUserEvent();
+  it('edit shows only the value', () => {
     render(
       <TestForm
         mode="edit"
@@ -41,9 +40,15 @@ describe('BaseEnvironmentVariableForm', () => {
     );
 
     expect(screen.queryByLabelText('Name')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
 
-    await user.type(screen.getByLabelText('Value'), 'b');
+  it('edit can save an empty value', () => {
+    render(
+      <TestForm
+        mode="edit"
+        defaultValues={{ id: 'API_URL', name: 'API_URL', value: '' }}
+      />,
+    );
 
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
   });
