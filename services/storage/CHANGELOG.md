@@ -1,3 +1,22 @@
+## [storage@0.16.0] - 2026-10-30
+
+### 🚀 Features
+
+- *(storage)* Use pgmigrate to support downing migrations (#5263)
+
+
+### 🐛 Bug Fixes
+
+- *(storage)* Preserve modification time for transformed images (#5204)
+- *(storage)* Skip transforms for conditional image responses (#5205)
+- *(storage)* List s3 before hasura when looking for orphans (#5267)
+- *(storage)* Preserve original filename when replace metadata omits name (#5271)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update dependencies due to CVEs (#5307)
+
 ## [storage@0.15.1] - 2026-09-30
 
 ### 🐛 Bug Fixes
