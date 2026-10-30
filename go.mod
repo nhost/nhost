@@ -54,6 +54,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2
 	github.com/vektah/gqlparser/v2 v2.5.34
 	github.com/wI2L/jsondiff v0.7.0
+	github.com/zeebo/xxh3 v1.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v3 v3.0.4

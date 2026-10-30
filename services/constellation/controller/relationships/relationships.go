@@ -11,7 +11,11 @@
 package relationships
 
 import (
+	"maps"
+	"strings"
+
 	"github.com/nhost/nhost/services/constellation/connector"
+	connectorrelationships "github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -61,32 +65,187 @@ func forDatabase(
 			continue
 		}
 
-		sourceType := dbConn.GetTypeName(table.Table.Schema + "." + table.Table.Name)
+		sourceType := connectorrelationships.SchemaTypeName(
+			dbConn, table.Table.Schema+"."+table.Table.Name,
+		)
 
+		localNames := table.LocalRelationshipNames()
+
+		rawSources := make(map[string]*metadata.ToSourceRelationship)
+		for _, rel := range table.RemoteRelationships {
+			if rel.Definition.ToSource != nil {
+				rawSources[rel.Name] = rel.Definition.ToSource
+			}
+		}
+
+		emitted := make(map[string]*planner.RelationshipMetadata)
 		for _, rel := range table.ObjectRelationships {
-			if rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, false); rm != nil {
+			if rm := loweredRelationship(
+				sourceType,
+				rel.Name,
+				rel.Using,
+				false,
+				localNames,
+				rawSources,
+			); rm != nil {
 				out = append(out, rm)
+				emitted[rel.Name] = rm
 			}
 		}
 
 		for _, rel := range table.ArrayRelationships {
-			rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, true)
+			rm := loweredRelationship(sourceType, rel.Name, rel.Using, true, localNames, rawSources)
 			if rm == nil {
 				continue
 			}
 
 			out = append(out, rm)
+			emitted[rel.Name] = rm
 
 			// Cross-database array relationships also expose an
 			// "<rel>_aggregate" sibling field, routed through the
-			// grouped-aggregate execution path.
-			if agg := aggregateRelationship(rm); agg != nil {
+			// grouped-aggregate execution path, unless a local
+			// relationship already owns that field.
+			if agg := aggregateRelationship(rm); agg != nil && !localNames[agg.Name] {
 				out = append(out, agg)
 			}
+		}
+
+		out = append(out, forRawRemoteRelationships(table, sourceType, localNames, emitted)...)
+	}
+
+	return out
+}
+
+func loweredRelationship(
+	sourceType, name string, using metadata.RelationshipUsing, array bool,
+	localNames map[string]bool, rawSources map[string]*metadata.ToSourceRelationship,
+) *planner.RelationshipMetadata {
+	if localNames[name] {
+		return nil
+	}
+
+	rm := forDatabaseRelationship(sourceType, name, using, array)
+	if rm != nil {
+		if raw := rawSources[name]; raw != nil && !matchesRawSource(rm, raw) {
+			return nil
+		}
+	}
+
+	return rm
+}
+
+// matchesRawSource identifies the lowered form of a raw to_source entry.
+// Conflicting lowered entries must not supersede the raw definition used by
+// the composer, including its array aggregate sibling.
+func matchesRawSource(rm *planner.RelationshipMetadata, raw *metadata.ToSourceRelationship) bool {
+	return rm.TargetConnector == raw.Source &&
+		rm.TargetTable == raw.Table.Name && rm.TargetTableSchema == raw.Table.Schema &&
+		rm.IsArray == (raw.RelationshipType == metadata.RelationshipTypeArray) &&
+		maps.Equal(rm.JoinMapping, raw.FieldMapping)
+}
+
+func forRawRemoteRelationships(
+	table metadata.TableMetadata, sourceType string, localNames map[string]bool,
+	emitted map[string]*planner.RelationshipMetadata,
+) []*planner.RelationshipMetadata {
+	var out []*planner.RelationshipMetadata
+	for _, rel := range table.RemoteRelationships {
+		if localNames[rel.Name] {
+			continue
+		}
+
+		if rel.Definition.ToSource == nil {
+			if emitted[rel.Name] != nil {
+				continue
+			}
+
+			// Prefer a usable lowered relationship, but retain raw-only native
+			// definitions and malformed lowered paths as planner fallbacks.
+			if rm := remoteSchemaRelationship(
+				sourceType,
+				rel,
+				table.Configuration.ColumnConfig,
+			); rm != nil {
+				out = append(out, rm)
+			}
+
+			continue
+		}
+
+		toSource := rel.Definition.ToSource
+		if lower := emitted[rel.Name]; lower != nil && matchesRawSource(lower, toSource) {
+			continue
+		}
+
+		rm := &planner.RelationshipMetadata{
+			Name: rel.Name, SourceType: sourceType, TargetConnector: toSource.Source,
+			TargetTable: toSource.Table.Name, TargetTableSchema: toSource.Table.Schema,
+			JoinMapping:      toSource.FieldMapping,
+			IsArray:          toSource.RelationshipType == metadata.RelationshipTypeArray,
+			IsArrayAggregate: false, IsRemote: true,
+			LHSFields: nil, RemoteFieldPath: nil,
+		}
+
+		out = append(out, rm)
+		if agg := aggregateRelationship(rm); agg != nil && !localNames[agg.Name] {
+			out = append(out, agg)
 		}
 	}
 
 	return out
+}
+
+func remoteSchemaRelationship(
+	sourceType string,
+	rel metadata.RemoteRelationship,
+	columnConfig map[string]metadata.ColumnConfig,
+) *planner.RelationshipMetadata {
+	toRS := rel.Definition.ToRemoteSchema
+	if toRS == nil {
+		return nil
+	}
+
+	path := metadata.ExtractRemoteFieldPath(toRS.RemoteField)
+	if len(path) == 0 {
+		return nil
+	}
+
+	rename := func(sqlName string) string {
+		if column, ok := columnConfig[sqlName]; ok && column.CustomName != "" {
+			return column.CustomName
+		}
+
+		return sqlName
+	}
+
+	lhsFields := make([]string, len(toRS.LHSFields))
+	for i, field := range toRS.LHSFields {
+		lhsFields[i] = rename(field)
+	}
+
+	plannerPath := make([]planner.RemoteFieldPathEntry, len(path))
+	for i, entry := range path {
+		args := make(map[string]string, len(entry.Arguments))
+		for key, value := range entry.Arguments {
+			if sqlName, ok := strings.CutPrefix(value, "$"); ok {
+				value = "$" + rename(sqlName)
+			}
+
+			args[key] = value
+		}
+
+		plannerPath[i] = planner.RemoteFieldPathEntry{
+			FieldName: entry.FieldName, Arguments: args,
+		}
+	}
+
+	return &planner.RelationshipMetadata{
+		Name: rel.Name, SourceType: sourceType,
+		TargetConnector: toRS.RemoteSchema, TargetTable: "", TargetTableSchema: "",
+		JoinMapping: nil, IsArray: false, IsArrayAggregate: false, IsRemote: true,
+		LHSFields: lhsFields, RemoteFieldPath: plannerPath,
+	}
 }
 
 // forRemoteSchema builds rs→db relationship metadata for a single remote

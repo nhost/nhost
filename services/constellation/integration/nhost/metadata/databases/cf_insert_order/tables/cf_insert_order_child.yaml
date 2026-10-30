@@ -1,0 +1,22 @@
+table:
+  name: child
+  schema: cf_insert_order
+object_relationships:
+  - name: owner
+    using:
+      foreign_key_constraint_on: parent_id
+insert_permissions:
+  - role: cf_insert_guard
+    permission:
+      check: {}
+      columns:
+        - id
+        - tag
+select_permissions:
+  - role: cf_insert_guard
+    permission:
+      columns:
+        - id
+        - tag
+        - parent_id
+      filter: {}

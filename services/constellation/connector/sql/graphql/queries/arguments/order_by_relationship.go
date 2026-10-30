@@ -76,9 +76,11 @@ func appendRelationshipOrderBy(
 }
 
 // buildRelationshipOrderItems builds ordering terms for an object relationship.
-// Each leaf column produces one ORDER BY term rendering a correlated scalar
-// subquery; nested object relationships and aggregates recurse, wrapping the
-// inner expression in this relationship's subquery.
+// Each leaf produces an ORDER BY term rendering a correlated scalar subquery;
+// computed-table aggregates and nested relationships retain the related row as
+// their source and wrap the inner expression in this relationship's subquery.
+//
+//nolint:funlen // Column, computed scalar and nested relationship branches share one correlated alias.
 func buildRelationshipOrderItems(
 	rel Relationship,
 	target Table,
@@ -110,6 +112,54 @@ func buildRelationshipOrderItems(
 			})
 
 			continue
+		}
+
+		if computed := target.ComputedScalarFromGraphqlName(child.Name, role); computed != nil {
+			direction, err := orderByDirection(child.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			items = append(items, OrderByItem{
+				Column: "", Direction: direction,
+				term: newRelationshipOrderTerm(
+					rel,
+					target,
+					parentSource,
+					alias,
+					&computedOrderTerm{
+						expression:       computed,
+						source:           alias,
+						sessionVariables: sessionVariables,
+					},
+					role,
+					sessionVariables,
+				),
+			})
+
+			continue
+		}
+
+		if name, ok := strings.CutSuffix(child.Name, "_aggregate"); ok {
+			if computed := target.ComputedTableFromGraphqlName(name, role); computed != nil {
+				computedItems, err := appendComputedTableOrderBy(
+					target, computed, child.Value, alias, role, sessionVariables, gen,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, item := range computedItems {
+					items = append(items, OrderByItem{
+						Column: "", Direction: item.Direction,
+						term: newRelationshipOrderTerm(
+							rel, target, parentSource, alias, item.term, role, sessionVariables,
+						),
+					})
+				}
+
+				continue
+			}
 		}
 
 		nested, err := buildNestedRelationshipOrderItems(
@@ -349,8 +399,8 @@ func (c *columnOrderExpr) writeExpr(
 
 // relationshipOrderTerm renders an object-relationship ordering as a correlated
 // scalar subquery: (SELECT <inner> FROM <target> <alias> WHERE <join>
-// [AND <perms>] LIMIT 1). inner is a column reference, a nested relationship
-// term, or a nested aggregate term.
+// [AND <perms>] LIMIT 1). inner is a column, computed expression, nested
+// relationship, or aggregate term.
 type relationshipOrderTerm struct {
 	rel              Relationship
 	target           Table

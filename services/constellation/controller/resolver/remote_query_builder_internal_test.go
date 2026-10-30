@@ -46,9 +46,8 @@ func TestBuildRemoteQueriesFromPlan(t *testing.T) { //nolint:maintidx,gocognit,g
 			},
 		},
 		{
-			name: "all-nil join keys yields nil result",
-			// All parent rows have nil deptId — the builder should skip the plan
-			// entirely so the resolver doesn't issue a no-op remote call.
+			name: "all-nil join keys retain a query for null stitching",
+			// No target call is needed, but both parent fields must be present.
 			results: map[string]any{
 				"teams": []any{
 					map[string]any{"name": "A", "deptId": nil},
@@ -80,8 +79,8 @@ func TestBuildRemoteQueriesFromPlan(t *testing.T) { //nolint:maintidx,gocognit,g
 			check: func(t *testing.T, got []*remoteQuery) {
 				t.Helper()
 
-				if got != nil {
-					t.Errorf("expected nil result when all join keys are nil, got %v", got)
+				if len(got) != 1 || len(got[0].joinArguments) != 0 {
+					t.Errorf("expected one query with no join arguments, got %v", got)
 				}
 			},
 		},
