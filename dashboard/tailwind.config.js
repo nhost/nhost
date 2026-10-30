@@ -257,6 +257,10 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'card-border-sweep': {
+          from: { '--card-border-angle': '0deg' },
+          to: { '--card-border-angle': '180deg' },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
@@ -265,6 +269,8 @@ module.exports = {
         progress: 'progress 1s infinite linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out forwards',
+        'card-border-sweep':
+          'card-border-sweep 0.75s cubic-bezier(0.16,1,0.3,1) forwards',
       },
     },
   },

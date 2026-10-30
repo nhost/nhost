@@ -28655,7 +28655,7 @@ export type GetProjectsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, region: { __typename?: 'regions', id: any, name: string }, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
+export type GetProjectsQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, createdAt: any, subdomain: string, repositoryProductionBranch: string, region: { __typename?: 'regions', id: any, name: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> }> };
 
 export type GetUserProjectMetricsQueryVariables = Exact<{
   startOfMonth: Scalars['timestamptz'];
@@ -34167,6 +34167,10 @@ export const GetProjectsDocument = gql`
       id
       name
     }
+    githubRepository {
+      fullName
+    }
+    repositoryProductionBranch
     deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
       id
       commitSHA

@@ -26,8 +26,8 @@ vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
     currentOrg: {
       slug: 'org-a',
       apps: [
-        { name: 'Project A', subdomain: 'project-a' },
-        { name: 'Project B', subdomain: 'project-b' },
+        { name: 'Project A', subdomain: 'project-a', appStates: [] },
+        { name: 'Project B', subdomain: 'project-b', appStates: [] },
       ],
     },
   }),
