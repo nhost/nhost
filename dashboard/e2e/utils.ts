@@ -977,8 +977,8 @@ export async function navigateToGraphQLPlayground({
 }
 
 /**
- * Selects a role in the GraphiQL playground's "Request as" panel
- * (`UserAndRoleSelect`): opens the panel, clicks the role chip and closes it.
+ * Selects a role in the GraphiQL playground's "Request as" controls
+ * (`UserAndRoleSelect`): opens the role dropdown and picks the role.
  * Unlike editing the Headers JSON, this updates `selection` synchronously (no
  * debounce), so the rebuilt fetcher carries `x-hasura-role: <role>` on the
  * next request the caller triggers.
@@ -994,15 +994,11 @@ export async function selectGraphQLRole({
   page: Page;
   role: string;
 }) {
-  const requestAsTrigger = page.getByTestId('graphql-request-as-trigger');
+  const roleSelect = page.getByRole('combobox', { name: 'Role' });
 
   await expect(async () => {
-    await requestAsTrigger.click();
-    await page
-      .getByRole('dialog')
-      .getByRole('button', { name: role, exact: true })
-      .click();
-    await page.keyboard.press('Escape');
+    await roleSelect.click();
+    await page.getByRole('option', { name: role, exact: true }).click();
     await expect(page.getByTestId('graphql-role-tag')).toHaveText(role);
   }).toPass();
 }
