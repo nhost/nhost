@@ -63,7 +63,10 @@ func replaceFileParseRequest(
 			return fileData{}, nil, WrongMetadataFormatError(err)
 		}
 
-		res.Name = d.Name
+		if d.Name != "" {
+			res.Name = d.Name
+		}
+
 		res.Metadata = d.Metadata
 	}
 

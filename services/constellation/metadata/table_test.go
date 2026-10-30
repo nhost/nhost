@@ -8,6 +8,34 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+func TestTableMetadata_LocalRelationshipNames(t *testing.T) {
+	t.Parallel()
+
+	table := metadata.TableMetadata{
+		ObjectRelationships: []metadata.ObjectRelationship{
+			{Name: "fk", Using: metadata.RelationshipUsing{ForeignKeyColumns: []string{"id"}}},
+			{Name: "remote", Using: metadata.RelationshipUsing{
+				ManualConfiguration: &metadata.ManualConfiguration{Source: "other"},
+			}},
+		},
+		ArrayRelationships: []metadata.ArrayRelationship{
+			{Name: "manual", Using: metadata.RelationshipUsing{
+				ManualConfiguration: &metadata.ManualConfiguration{},
+			}},
+			{Name: "schema", Using: metadata.RelationshipUsing{
+				ManualConfiguration: &metadata.ManualConfiguration{RemoteSchema: "rs"},
+			}},
+		},
+	}
+
+	if diff := cmp.Diff(
+		map[string]bool{"fk": true, "manual": true},
+		table.LocalRelationshipNames(),
+	); diff != "" {
+		t.Errorf("local names (-want +got):\n%s", diff)
+	}
+}
+
 func TestExtractRemoteFieldPath(t *testing.T) {
 	t.Parallel()
 
