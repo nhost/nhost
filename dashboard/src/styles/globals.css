@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animatable angle for the project cards' hover border sweep. */
+@property --card-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .sb-show-main {
   overflow: auto;
 }

@@ -9,6 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { getProjectSwitchHref } from '@/utils/getProjectSwitchHref';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
@@ -38,35 +39,47 @@ export default function ProjectsComboBox() {
     );
   };
 
-  const options = apps.map((app) => ({
-    value: app.subdomain,
-    label: app.name,
-    render: (
-      <div className="flex w-full items-center gap-1">
-        <Box className="h-4 w-4 shrink-0" />
-        <span className="max-w-52 truncate">{app.name}</span>
-        {!!app.githubRepository && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="ml-auto flex shrink-0 items-center">
-                <SiGithub className="h-3.5 w-3.5" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side="right"
-              sideOffset={8}
-              className="pointer-events-none max-w-56"
-            >
-              <p className="font-medium">GitHub connected</p>
-              <p className="text-muted-foreground">
-                Metadata changes may be overridden by the next deployment.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    ),
-  }));
+  // Oldest first, the same order as the projects page, so rows never move.
+  const options = [...apps]
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    )
+    .map((app) => ({
+      value: app.subdomain,
+      label: app.name,
+      render: (
+        <div className="flex w-full items-center gap-1">
+          <Box className="h-4 w-4 shrink-0" />
+          <span className="max-w-52 truncate">{app.name}</span>
+          <span className="ml-auto flex shrink-0 items-center gap-2">
+            {!!app.githubRepository && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex shrink-0 items-center">
+                    <SiGithub className="h-3.5 w-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  sideOffset={8}
+                  className="pointer-events-none max-w-56"
+                >
+                  <p className="font-medium">GitHub connected</p>
+                  <p className="text-muted-foreground">
+                    Metadata changes may be overridden by the next deployment.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <ProjectStatusPill
+              status={app.appStates[0]?.stateId}
+              size="compact"
+            />
+          </span>
+        </div>
+      ),
+    }));
 
   const selectedLabel = selectedProjectFromUrl ? (
     <ProjectLabel name={selectedProjectFromUrl.name} />
@@ -98,6 +111,8 @@ export default function ProjectsComboBox() {
       value={selectedProjectFromUrl?.subdomain ?? null}
       placeholder="Select a project"
       searchPlaceholder="Select a project..."
+      // Room for the name, the GitHub mark and the status pill on each row.
+      popoverContentClassName="w-[260px]"
       footerSlot={footerSlot}
       linkHref={
         selectedProjectFromUrl && orgSlug

@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -14,8 +14,8 @@ export interface ProjectLabelProps {
 }
 
 /**
- * The current project as shown in the header triggers: status dot, name,
- * GitHub marker and the updating badge.
+ * The current project as shown in the header triggers: name, GitHub marker,
+ * status pill and the updating badge.
  */
 export default function ProjectLabel({ name }: ProjectLabelProps) {
   const { state: appState } = useAppState();
@@ -24,9 +24,6 @@ export default function ProjectLabel({ name }: ProjectLabelProps) {
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
-      <span className="flex size-2 shrink-0 items-center justify-center">
-        <ProjectStatusIndicator status={appState} />
-      </span>
       <span className="truncate" title={name}>
         {name}
       </span>
@@ -48,6 +45,7 @@ export default function ProjectLabel({ name }: ProjectLabelProps) {
           </TooltipContent>
         </Tooltip>
       )}
+      <ProjectStatusPill status={appState} size="compact" />
       <ProjectStatus />
     </div>
   );
