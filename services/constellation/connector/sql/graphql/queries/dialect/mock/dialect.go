@@ -83,6 +83,62 @@ func (mr *MockDialectMockRecorder) CoalesceJSONArray(alias any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CoalesceJSONArray", reflect.TypeOf((*MockDialect)(nil).CoalesceJSONArray), alias)
 }
 
+// DependentInsertAffectedRows mocks base method.
+func (m *MockDialect) DependentInsertAffectedRows(index int) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DependentInsertAffectedRows", index)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DependentInsertAffectedRows indicates an expected call of DependentInsertAffectedRows.
+func (mr *MockDialectMockRecorder) DependentInsertAffectedRows(index any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependentInsertAffectedRows", reflect.TypeOf((*MockDialect)(nil).DependentInsertAffectedRows), index)
+}
+
+// DependentInsertCapture mocks base method.
+func (m *MockDialect) DependentInsertCapture() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DependentInsertCapture")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DependentInsertCapture indicates an expected call of DependentInsertCapture.
+func (mr *MockDialectMockRecorder) DependentInsertCapture() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependentInsertCapture", reflect.TypeOf((*MockDialect)(nil).DependentInsertCapture))
+}
+
+// DependentInsertRowValue mocks base method.
+func (m *MockDialect) DependentInsertRowValue(column string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DependentInsertRowValue", column)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DependentInsertRowValue indicates an expected call of DependentInsertRowValue.
+func (mr *MockDialectMockRecorder) DependentInsertRowValue(column any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependentInsertRowValue", reflect.TypeOf((*MockDialect)(nil).DependentInsertRowValue), column)
+}
+
+// DependentInsertRowsSource mocks base method.
+func (m *MockDialect) DependentInsertRowsSource(index int) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DependentInsertRowsSource", index)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DependentInsertRowsSource indicates an expected call of DependentInsertRowsSource.
+func (mr *MockDialectMockRecorder) DependentInsertRowsSource(index any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DependentInsertRowsSource", reflect.TypeOf((*MockDialect)(nil).DependentInsertRowsSource), index)
+}
+
 // EmptyJSONArray mocks base method.
 func (m *MockDialect) EmptyJSONArray() string {
 	m.ctrl.T.Helper()
@@ -263,6 +319,20 @@ func (m *MockDialect) SupportsArrays() bool {
 func (mr *MockDialectMockRecorder) SupportsArrays() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsArrays", reflect.TypeOf((*MockDialect)(nil).SupportsArrays))
+}
+
+// SupportsDependentInsertSteps mocks base method.
+func (m *MockDialect) SupportsDependentInsertSteps() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsDependentInsertSteps")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsDependentInsertSteps indicates an expected call of SupportsDependentInsertSteps.
+func (mr *MockDialectMockRecorder) SupportsDependentInsertSteps() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsDependentInsertSteps", reflect.TypeOf((*MockDialect)(nil).SupportsDependentInsertSteps))
 }
 
 // SupportsDistinctOn mocks base method.

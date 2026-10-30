@@ -16,13 +16,16 @@ type Aliases struct {
 	// Exists is the prefix used when emitting an EXISTS subquery for the
 	// _exists permission operator (e.g. e0, e1 nested by level).
 	Exists string
+	// root carries the original table through relationship and _exists parsing.
+	// It is a per-parse value, never shared mutable state.
+	root Table
 }
 
 //nolint:gochecknoglobals
 var (
 	// QueryAliases is the alias set used when parsing user-supplied where clauses.
-	QueryAliases = Aliases{Relationship: "f", Exists: "e"}
+	QueryAliases = Aliases{Relationship: "f", Exists: "e", root: nil}
 
 	// PermissionAliases is the alias set used when parsing permission filter clauses.
-	PermissionAliases = Aliases{Relationship: "g", Exists: "h"}
+	PermissionAliases = Aliases{Relationship: "g", Exists: "h", root: nil}
 )

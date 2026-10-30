@@ -1,78 +1,11 @@
 package planner
 
 import (
-	"maps"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
-
-// ---------- mergePhantomResults ----------
-
-func TestMergePhantomResults_CopiesColumnsAndOverridesRelName(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		dst        map[string]struct{}
-		src        map[string]struct{}
-		dstRel     string
-		srcRel     string
-		wantCols   []string
-		wantDstRel string
-	}{
-		{
-			name:       "merges into empty dst",
-			dst:        map[string]struct{}{},
-			src:        map[string]struct{}{"a": {}, "b": {}},
-			dstRel:     "",
-			srcRel:     "rel1",
-			wantCols:   []string{"a", "b"},
-			wantDstRel: "rel1",
-		},
-		{
-			name:       "appends new columns to existing dst",
-			dst:        map[string]struct{}{"x": {}},
-			src:        map[string]struct{}{"y": {}},
-			dstRel:     "existing",
-			srcRel:     "newer",
-			wantCols:   []string{"x", "y"},
-			wantDstRel: "newer", // srcRel non-empty overrides dstRel
-		},
-		{
-			name:       "empty srcRel preserves dstRel",
-			dst:        map[string]struct{}{},
-			src:        map[string]struct{}{"col": {}},
-			dstRel:     "keep_me",
-			srcRel:     "",
-			wantCols:   []string{"col"},
-			wantDstRel: "keep_me",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			dst := make(map[string]struct{})
-			maps.Copy(dst, tt.dst)
-
-			dstRel := tt.dstRel
-			mergePhantomResults(dst, tt.src, &dstRel, tt.srcRel)
-
-			for _, col := range tt.wantCols {
-				if _, ok := dst[col]; !ok {
-					t.Errorf("expected column %q in merged dst, got %v", col, dst)
-				}
-			}
-
-			if dstRel != tt.wantDstRel {
-				t.Errorf("expected dstRel=%q, got %q", tt.wantDstRel, dstRel)
-			}
-		})
-	}
-}
 
 // ---------- analyzer.getFragment / resolveFragmentTypeName ----------
 
@@ -327,6 +260,20 @@ func analyzerTestRelationship() *RelationshipMetadata {
 	}
 }
 
+func assertDepartmentSource(t *testing.T, result *analysisResult) {
+	t.Helper()
+
+	source := result.sources["users\x00users"]
+	if source == nil || source.path.String() != "users" || source.sourceType != "users" ||
+		source.phantomForRel != "department" {
+		t.Fatalf("expected users relationship source, got %+v", source)
+	}
+
+	if _, ok := source.needed["department_id"]; !ok {
+		t.Errorf("expected department_id phantom, got %v", source.needed)
+	}
+}
+
 func TestCollectFromSelectionSet_DirectField(t *testing.T) {
 	t.Parallel()
 
@@ -346,20 +293,16 @@ func TestCollectFromSelectionSet_DirectField(t *testing.T) {
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	neededPhantoms, relName := a.collectFromSelectionSet(
+	a.collectFromSelectionSet(
 		selSet,
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
-	if _, ok := neededPhantoms["department_id"]; !ok {
-		t.Errorf("expected department_id phantom, got %v", neededPhantoms)
-	}
-
-	if relName != "department" {
-		t.Errorf("expected relName=department, got %q", relName)
-	}
+	assertDepartmentSource(t, result)
 
 	if len(result.RemoteQueries) != 1 {
 		t.Fatalf("expected 1 RemoteQuery, got %d", len(result.RemoteQueries))
@@ -404,23 +347,16 @@ func TestCollectFromSelectionSet_FragmentSpreadBranch(t *testing.T) {
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	neededPhantoms, relName := a.collectFromSelectionSet(
+	a.collectFromSelectionSet(
 		selSet,
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
-	if _, ok := neededPhantoms["department_id"]; !ok {
-		t.Errorf(
-			"expected department_id phantom propagated from fragment spread, got %v",
-			neededPhantoms,
-		)
-	}
-
-	if relName != "department" {
-		t.Errorf("expected relName=department, got %q", relName)
-	}
+	assertDepartmentSource(t, result)
 
 	if len(result.RemoteQueries) != 1 {
 		t.Fatalf("expected 1 RemoteQuery propagated, got %d", len(result.RemoteQueries))
@@ -448,19 +384,17 @@ func TestCollectFromSelectionSet_FragmentSpreadMissingFragmentIgnored(t *testing
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	neededPhantoms, relName := a.collectFromSelectionSet(
+	a.collectFromSelectionSet(
 		selSet,
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
-	if len(neededPhantoms) != 0 {
-		t.Errorf("expected no phantoms for missing fragment, got %v", neededPhantoms)
-	}
-
-	if relName != "" {
-		t.Errorf("expected empty relName, got %q", relName)
+	if len(result.sources) != 0 {
+		t.Errorf("expected no sources for missing fragment, got %v", result.sources)
 	}
 
 	if len(result.RemoteQueries) != 0 {
@@ -492,23 +426,16 @@ func TestCollectFromSelectionSet_InlineFragmentBranch(t *testing.T) {
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	neededPhantoms, relName := a.collectFromSelectionSet(
+	a.collectFromSelectionSet(
 		selSet,
 		"users",
 		jsonpath.Parse("users"),
 		result,
+		jsonpath.Parse("users"),
+		selSet,
 	)
 
-	if _, ok := neededPhantoms["department_id"]; !ok {
-		t.Errorf(
-			"expected department_id phantom propagated from inline fragment, got %v",
-			neededPhantoms,
-		)
-	}
-
-	if relName != "department" {
-		t.Errorf("expected relName=department, got %q", relName)
-	}
+	assertDepartmentSource(t, result)
 }
 
 func TestCollectFromSelectionSet_InlineFragmentWithoutTypeConditionUsesFallback(t *testing.T) {
@@ -535,11 +462,15 @@ func TestCollectFromSelectionSet_InlineFragmentWithoutTypeConditionUsesFallback(
 		RemoteQueries: []*RemoteQueryPlan{},
 	}
 
-	_, relName := a.collectFromSelectionSet(selSet, "users", jsonpath.Parse("users"), result)
-
-	if relName != "department" {
-		t.Errorf("expected fallback type to resolve relationship, got relName=%q", relName)
-	}
+	a.collectFromSelectionSet(
+		selSet,
+		"users",
+		jsonpath.Parse("users"),
+		result,
+		jsonpath.Parse("users"),
+		selSet,
+	)
+	assertDepartmentSource(t, result)
 
 	if len(result.RemoteQueries) != 1 {
 		t.Fatalf("expected 1 RemoteQuery using fallback type, got %d", len(result.RemoteQueries))
@@ -564,6 +495,7 @@ func TestAnalyzeField_NoSelectionSetIsNoOp(t *testing.T) {
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 0 {
 		t.Errorf("expected no phantom fields, got %d", len(result.PhantomFields))
@@ -598,6 +530,7 @@ func TestAnalyzeField_SkipsPhantomWhenColumnAlreadySelected(t *testing.T) {
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 0 {
 		t.Errorf(
@@ -642,6 +575,7 @@ func TestAnalyzeField_AliasedUnrelatedFieldDoesNotSuppressPhantom(t *testing.T) 
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 1 {
 		t.Fatalf("expected one phantom field spec, got %+v", result.PhantomFields)
@@ -661,28 +595,39 @@ func TestAnalyzeField_AliasedUnrelatedFieldDoesNotSuppressPhantom(t *testing.T) 
 	}
 }
 
-// ---------- analyzer.collectOwnResponseKeyFields / collectResponseKeys ----------
+// ---------- analyzer.collectOwnResponseKeyFieldsForType / collectResponseKeys ----------
 
-func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedFields(
+func TestAnalyzer_CollectOwnResponseKeyFieldsForType_ExpandsCompatibleFragments(
 	t *testing.T,
 ) {
 	t.Parallel()
 
 	frag := &ast.FragmentDefinition{
 		Name:          "UserFields",
-		TypeCondition: "users",
+		TypeCondition: "Node",
 		SelectionSet: ast.SelectionSet{
 			&ast.Field{Name: "email", Alias: "user_email"},
 			&ast.Field{Name: "created_at", Alias: "created_at"},
 		},
 	}
+	sibling := &ast.FragmentDefinition{
+		Name:          "OtherFields",
+		TypeCondition: "other",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "unrelated"},
+		},
+	}
 
+	schema := analyzerTestSchema()
+	schema.PossibleTypes = map[string][]*ast.Definition{
+		"Node": {{Name: "users"}, {Name: "other"}},
+	}
 	a := newAnalyzer(
 		"db1",
-		analyzerTestSchema(),
+		schema,
 		nil,
 		ast.Query,
-		ast.FragmentDefinitionList{frag},
+		ast.FragmentDefinitionList{frag, sibling},
 	)
 
 	field := &ast.Field{
@@ -690,6 +635,7 @@ func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedF
 		SelectionSet: ast.SelectionSet{
 			&ast.Field{Name: "id"},
 			&ast.FragmentSpread{Name: "UserFields"},
+			&ast.FragmentSpread{Name: "OtherFields"},
 			&ast.InlineFragment{
 				TypeCondition: "users",
 				SelectionSet: ast.SelectionSet{
@@ -699,14 +645,16 @@ func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedF
 		},
 	}
 
-	ownResponseKeys := a.collectOwnResponseKeyFields(field)
+	ownResponseKeys := make(map[string]struct{})
+	a.collectOwnResponseKeyFieldsForType(field.SelectionSet, "users", ownResponseKeys)
+
 	for _, want := range []string{"id", "created_at", "name"} {
 		if _, ok := ownResponseKeys[want]; !ok {
 			t.Errorf("expected %q in own-response-key fields, got %v", want, ownResponseKeys)
 		}
 	}
 
-	for _, unwanted := range []string{"email", "user_email"} {
+	for _, unwanted := range []string{"email", "user_email", "unrelated"} {
 		if _, ok := ownResponseKeys[unwanted]; ok {
 			t.Errorf(
 				"did not expect %q in own-response-key fields, got %v",
@@ -716,8 +664,10 @@ func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedF
 		}
 	}
 
-	responseKeys := a.collectResponseKeys(field)
-	for _, want := range []string{"id", "user_email", "created_at", "name"} {
+	responseKeys := make(map[string]struct{})
+	a.collectResponseKeysFromSelections(field.SelectionSet, responseKeys)
+
+	for _, want := range []string{"id", "user_email", "created_at", "name", "unrelated"} {
 		if _, ok := responseKeys[want]; !ok {
 			t.Errorf("expected %q in response keys, got %v", want, responseKeys)
 		}
