@@ -3,6 +3,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import {
   ThemeColorMeta,
@@ -64,12 +65,14 @@ function MyApp({ Component, pageProps }: MyAppProps) {
               <RetryableErrorBoundary>
                 <TooltipProvider>
                   <DialogProvider>
-                    <ProgressBar
-                      height="2px"
-                      color="#0052cd"
-                      options={{ showSpinner: false }}
-                    />
-                    {getLayout(<Component {...pageProps} />)}
+                    <ElevationProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
+                      {getLayout(<Component {...pageProps} />)}
+                    </ElevationProvider>
                   </DialogProvider>
                 </TooltipProvider>
               </RetryableErrorBoundary>
