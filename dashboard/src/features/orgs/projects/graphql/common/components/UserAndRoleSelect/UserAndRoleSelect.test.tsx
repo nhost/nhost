@@ -95,14 +95,12 @@ describe('UserAndRoleSelect', () => {
     });
 
     const trigger = screen.getByTestId('graphql-request-as-trigger');
+    await user.click(screen.getByRole('combobox', { name: 'Role' }));
+    await user.click(await screen.findByRole('option', { name: 'public' }));
+
+    expect(screen.getByTestId('graphql-role-tag')).toHaveTextContent('public');
+
     await user.click(trigger);
-    await user.click(screen.getByRole('button', { name: 'public' }));
-
-    expect(screen.getByRole('button', { name: 'public' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-
     await user.type(screen.getByPlaceholderText('Search users...'), 't');
 
     await waitFor(() => {
@@ -145,17 +143,13 @@ describe('UserAndRoleSelect', () => {
     await user.click(screen.getByRole('option', { name: /Second User/ }));
 
     expect(screen.getByTestId('graphql-role-tag')).toHaveTextContent('me');
-    expect(screen.getByRole('button', { name: 'me' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
     expect(onSelectionChange).toHaveBeenLastCalledWith({
       userId: SECOND_USER_ID,
       role: 'me',
     });
   });
 
-  it('adds a role search when the project has many roles', async () => {
+  it('finds a role by searching, for projects with many roles', async () => {
     const manyRoles = Array.from({ length: 12 }, (_, i) => ({
       role: `role${i + 1}`,
     }));
@@ -180,13 +174,14 @@ describe('UserAndRoleSelect', () => {
     await user.click(
       await screen.findByRole('option', { name: /Many Roles User/ }),
     );
-    await user.type(screen.getByLabelText('Search roles'), 'role1');
+    await user.click(screen.getByRole('combobox', { name: 'Role' }));
+    await user.type(screen.getByPlaceholderText('Search roles...'), 'role12');
 
-    // role1 (selected) plus role10, role11 and role12 match the search.
-    expect(screen.getByRole('button', { name: 'role1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'role12' })).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'role5' }),
+      await screen.findByRole('option', { name: 'role12' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', { name: 'role5' }),
     ).not.toBeInTheDocument();
   });
 });
