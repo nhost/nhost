@@ -341,6 +341,8 @@ export * from './responseTransformationTemplateEngine';
 export * from './responseTransformationVersion';
 export * from './retryConf';
 export * from './retryConfCT';
+export * from './saveMetadataResponse';
+export * from './saveMetadataResponseMetadata';
 export * from './scalarTypeDefinition';
 export * from './scheduledEventLogEntry';
 export * from './scheduledEventLogEntryPayload';
