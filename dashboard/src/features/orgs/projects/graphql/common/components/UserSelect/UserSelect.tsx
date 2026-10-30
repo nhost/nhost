@@ -180,9 +180,7 @@ export default function UserSelect({
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-        Request as
-      </span>
+      <span className="shrink-0 text-muted-foreground text-sm">Request as</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
