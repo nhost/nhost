@@ -1,13 +1,13 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
-import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -122,39 +122,38 @@ export default function FileStoresPage() {
 
   if (fileStores.length === 0 && !loading) {
     return (
-      <div className="w-full px-6 pt-8 pb-8">
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <FileStoresIcon className="h-10 w-10" />
-
-          <div className="flex flex-col space-y-1">
-            <h2 className="text-center font-medium text-lg">
-              No File Stores are configured
-            </h2>
-            <p className="text-center text-muted-foreground text-sm">
+      <div className="flex h-full w-full flex-col p-6">
+        <EmptyState
+          icon={SparklesIcon}
+          title="No File Stores are configured"
+          description={
+            <>
               File Stores are used to share storage documents with your AI
               assistants.
-            </p>
-            {isFileStoreSupported === false && (
-              <div className="px-4 pb-4">
-                <Alert variant="warning" className="mt-2 text-left">
-                  Please upgrade Graphite to its latest version in order to use
-                  file stores.
-                </Alert>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-row place-content-between rounded-lg">
-            <Button
-              className="w-full"
-              onClick={openCreateFileStoreForm}
-              size="sm"
-              disabled={!isFileStoreSupported}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add a new File Store
-            </Button>
-          </div>
-        </div>
+              {isFileStoreSupported === false && (
+                <div className="px-4 pb-4">
+                  <Alert variant="warning" className="mt-2 text-left">
+                    Please upgrade Graphite to its latest version in order to
+                    use file stores.
+                  </Alert>
+                </div>
+              )}
+            </>
+          }
+          action={
+            <div className="flex flex-row place-content-between rounded-lg">
+              <Button
+                className="w-full"
+                onClick={openCreateFileStoreForm}
+                size="sm"
+                disabled={!isFileStoreSupported}
+              >
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Add a new File Store
+              </Button>
+            </div>
+          }
+        />
       </div>
     );
   }

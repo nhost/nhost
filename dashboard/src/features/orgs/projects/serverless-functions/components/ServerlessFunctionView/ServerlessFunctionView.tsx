@@ -1,7 +1,8 @@
+import { Code } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { FunctionDetailsPanel } from '@/features/orgs/projects/serverless-functions/components/FunctionDetailsPanel';
-import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
 import { isEmptyValue } from '@/lib/utils';
 
@@ -26,7 +27,8 @@ export default function ServerlessFunctionView() {
 
   if (error || isEmptyValue(fn)) {
     return (
-      <FunctionsEmptyState
+      <EmptyState
+        icon={Code}
         title="Function not found"
         description={
           <span>

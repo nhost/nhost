@@ -1,5 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ChevronRightIcon, RocketIcon } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { NavLink } from '@/components/common/NavLink';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -77,32 +78,36 @@ function OverviewDeploymentList() {
 
   if (!deployments.length) {
     return (
-      <div className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border px-4 py-12 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10 text-foreground" />
-        <div className="grid grid-flow-row gap-2">
-          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
-          <p className="max-w-md text-center text-muted-foreground">
-            We&apos;ll deploy changes automatically when you push to the
-            deployment branch in your connected GitHub repository
-          </p>
-        </div>
-        <div className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg bg-muted px-2 py-2">
-          <div className="ml-2 grid grid-flow-col gap-1.5">
-            <GitHubIcon className="h-4 w-4 self-center" />
-            <span className="self-center font-normal">
-              {project?.githubRepository?.fullName}
+      <div className="overflow-hidden rounded-lg border shadow-sm">
+        <EmptyState
+          icon={RocketIcon}
+          title="No Deployments"
+          description={
+            <span className="mx-auto block max-w-md">
+              We&apos;ll deploy changes automatically when you push to the
+              deployment branch in your connected GitHub repository
             </span>
-          </div>
+          }
+          action={
+            <div className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg bg-muted px-2 py-2">
+              <div className="ml-2 grid grid-flow-col gap-1.5">
+                <GitHubIcon className="h-4 w-4 self-center" />
+                <span className="self-center font-normal">
+                  {project?.githubRepository?.fullName}
+                </span>
+              </div>
 
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            variant="ghost"
-            className="text-primary"
-            underline="none"
-          >
-            Edit
-          </NavLink>
-        </div>
+              <NavLink
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+                variant="ghost"
+                className="text-primary"
+                underline="none"
+              >
+                Edit
+              </NavLink>
+            </div>
+          }
+        />
       </div>
     );
   }
@@ -150,23 +155,25 @@ export default function OverviewDeployments() {
     <section className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <div className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border px-4 py-12 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10" />
-
-        <div className="grid grid-flow-row gap-1">
-          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
-          <p className="max-w-sm text-center text-muted-foreground">
-            Connect your project with a GitHub repository to create your first
-            deployment
-          </p>
-        </div>
-
-        <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-          <Button className="w-full" onClick={openGitHubModal}>
-            <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
-            Connect to GitHub
-          </Button>
-        </div>
+      <div className="rounded-lg border shadow-sm">
+        <EmptyState
+          icon={RocketIcon}
+          title="No Deployments"
+          description={
+            <span className="mx-auto block max-w-sm">
+              Connect your project with a GitHub repository to create your first
+              deployment
+            </span>
+          }
+          action={
+            <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
+              <Button className="w-full" onClick={openGitHubModal}>
+                <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
+                Connect to GitHub
+              </Button>
+            </div>
+          }
+        />
       </div>
     </section>
   );

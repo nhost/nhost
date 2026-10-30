@@ -1,6 +1,7 @@
+import { Database } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 
@@ -51,7 +52,8 @@ export default function EditFunctionForm({
 
   if (status === 'error' || functionError) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Error loading function"
         description={
           <span>
@@ -67,7 +69,8 @@ export default function EditFunctionForm({
 
   if (!functionDefinition) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Function not found"
         description={
           <span>
