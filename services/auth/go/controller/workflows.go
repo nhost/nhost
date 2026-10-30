@@ -510,6 +510,65 @@ func (wf *Workflows) VerifyEmailOTP(
 	return user, nil
 }
 
+func smsVerificationError(ctx context.Context, err error, logger *slog.Logger) *APIError {
+	switch {
+	case sqlIsDuplcateError(err, "users_phone_number_key"):
+		logger.ErrorContext(
+			ctx,
+			"phone number promotion conflict during SMS passwordless verification",
+			slog.String("constraint", "users_phone_number_key"),
+			logError(err),
+		)
+
+		return ErrInvalidOTP
+	case sqlIsForeignKeyError(err, "fk_role"),
+		sqlIsForeignKeyError(err, "fk_default_role"):
+		logger.ErrorContext(
+			ctx,
+			"staged deanonymization carries a role that no longer exists",
+			logError(err),
+		)
+
+		return ErrRoleNotAllowed
+	default:
+		logger.ErrorContext(ctx, "error verifying SMS OTP", logError(err))
+
+		return ErrInternalServerError
+	}
+}
+
+func (wf *Workflows) VerifySMSOTP(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, status, err := wf.sms.CheckVerificationCode(ctx, phoneNumber, otp)
+	if err != nil {
+		return sql.AuthUser{}, smsVerificationError(ctx, err, logger)
+	}
+
+	switch status {
+	case sql.OTPStatusOK:
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "sms otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "invalid OTP")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx,
+			"unexpected SMS OTP verification status",
+			slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return user, nil
+}
+
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {
