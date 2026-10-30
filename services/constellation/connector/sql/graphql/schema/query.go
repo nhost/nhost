@@ -177,10 +177,12 @@ func generateTableInputTypes(
 	generatedAggregateBoolExp map[string]struct{},
 	usedScalars map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
+	tableFields []*graph.Field,
 ) {
 	generateTableQueryInputTypes(
 		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, role, md,
-		objects, generatedAggregateBoolExp, usedScalars, caps,
+		objects, generatedAggregateBoolExp, usedScalars, caps, computedFields, tableFields,
 	)
 
 	generateTableSubscriptionInputTypes(
@@ -307,7 +309,9 @@ func generateOrderByRelationshipFields(
 }
 
 // generateTableQueryInputTypes generates all input types for a table.
-func generateTableQueryInputTypes( //nolint:funlen
+//
+//nolint:funlen,gocognit,cyclop // A single builder keeps permission and capability gates aligned.
+func generateTableQueryInputTypes(
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
@@ -320,6 +324,8 @@ func generateTableQueryInputTypes( //nolint:funlen
 	generatedAggregateBoolExp map[string]struct{},
 	usedScalars map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
+	tableFields []*graph.Field,
 ) {
 	// Generate bool_exp
 	boolExpFields := []*graph.InputField{
@@ -360,6 +366,28 @@ func generateTableQueryInputTypes( //nolint:funlen
 		})
 	}
 
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				boolExpFields = append(boolExpFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType(caps.comparisonExpName(field.Type.NamedType)),
+				})
+			}
+		}
+	}
+
+	if caps.SupportsComputedTableInput {
+		for _, field := range tableFields {
+			if !computedRequiresUserArgs(field) {
+				boolExpFields = append(boolExpFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType(field.Type.Elem.NamedType + "_bool_exp"),
+				})
+			}
+		}
+	}
+
 	boolExpFields = append(
 		boolExpFields,
 		generateBoolExpRelationshipFields(
@@ -396,6 +424,33 @@ func generateTableQueryInputTypes( //nolint:funlen
 			Description: getColumnDescription(&col),
 			Type:        graph.NewNamedType("order_by"),
 		})
+	}
+
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				orderByFields = append(orderByFields, &graph.InputField{
+					Name: field.Name, Description: "", DefaultValue: nil, Directives: nil,
+					Type: graph.NewNamedType("order_by"),
+				})
+			}
+		}
+	}
+
+	if caps.SupportsComputedTableInput {
+		for _, field := range tableFields {
+			if !computedRequiresUserArgs(field) {
+				orderByFields = append(orderByFields, &graph.InputField{
+					Name: field.Name + "_aggregate",
+					Type: graph.NewNamedType(
+						field.Type.Elem.NamedType + "_aggregate_order_by",
+					),
+					Description:  "",
+					DefaultValue: nil,
+					Directives:   nil,
+				})
+			}
+		}
 	}
 
 	orderByFields = append(

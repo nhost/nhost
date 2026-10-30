@@ -45,7 +45,7 @@ func (r *mutationResolver) deleteSecret(
 
 	newApp.Secrets = append(newApp.Secrets[:j], newApp.Secrets[j+1:]...)
 
-	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
+	if err := newApp.validateSecrets(r.schema); err != nil {
 		errNotFound := &appconfig.VariableNotFoundError{} //nolint:exhaustruct
 		if errors.As(err, &errNotFound) {
 			return nil, NewVariableRequiredError(errNotFound.Name)
@@ -61,7 +61,9 @@ func (r *mutationResolver) deleteSecret(
 		}
 	}
 
+	oldApp.resolvedConfig = newApp.resolvedConfig
 	oldApp.Secrets = newApp.Secrets
+	oldApp.Services = newApp.Services
 
 	return envVar, nil
 }

@@ -35,7 +35,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `resolver/` - Executes cross-connector relationship queries after primary execution and stitches results back. Two strategies: `DatabaseResolver` (WHERE IN batching) and `SchemaResolver` (aliased field batching)
   - `websocket/` - `graphql-transport-ws` protocol handler. Pure protocol layer (read/write pumps, message routing, ping/pong). Business logic delegated to `MessageHandler` interface
 - `graph/` - Intermediate GraphQL schema representation (`Schema`, `ObjectType`, `Field`, etc.) with `ToAST()` conversion to gqlparser types
-- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions. `metadata/source/` holds the `FileMetadataSource` (one-time file load) and `DatabaseMetadataSource` (polls `hdb_catalog`) implementations of `MetadataSource`
+- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions. `metadata/source/` holds the `FileMetadataSource` (one-time file load) and `DatabaseMetadataSource` (polls `hdb_catalog`) implementations of `MetadataSource`. Computed-field lists are decoded per entry, keeping each malformed entry's raw value and decode error for reconciliation. Never capture nested inline YAML with `yaml.RawMessage`: goccy/go-yaml can corrupt `\\x`/`\\u`/`\\U` escapes and reject merge-key overrides.
 - `subscription/` - Subscription handler interface and types (`Request`, `Update`, `Handler`)
 - `integration/` - Integration tests against real PostgreSQL and Nhost environments
 - `internal/` - Internal utilities:
@@ -47,7 +47,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `github.com/nhost/nhost/internal/lib/syncmap` - typed generic map safe for concurrent use
   - `lib/testdb/` - Spins up a PostgreSQL test database (per-test schemas) for connector and integration tests
   - `lib/testhelpers/` - Golden file testing helpers (JSON and GraphQL schema comparison)
-- `docs/developers/` - Architecture, query execution pipeline, customization, remote relationships, remote schemas, subscriptions
+- `docs/developers/` - Architecture, query execution pipeline, customization, remote relationships, remote schemas, subscriptions, computed fields
 - `docs/user/` - User-facing documentation: Hasura metadata support matrix, PostgreSQL features, remote schema configuration
 
 ## Development Environment
@@ -68,6 +68,9 @@ This provides: Go, PostgreSQL client, SQLite, Hasura CLI, Nhost CLI, mockgen, bu
 make build                    # Nix build -> ./result/bin/constellation
 make build-docker-image       # Docker container for native arch
 ```
+
+Nix builds only see tracked or intent-to-add files: run `git add -N <new paths>`
+before a Nix build or `make check` that needs new sources or fixtures.
 
 ### Dev Environments
 
@@ -115,6 +118,30 @@ go test ./connector/sql/graphql/schema/... -update
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
 
+### Integration comparisons and regression tests
+
+`integration/` compares Constellation with the Nhost Hasura image pinned in
+`integration/nhost/nhost.toml`. Use it for sanity checks and for investigating
+reported differences, not as the regression suite: cover implemented behavior
+with Constellation-only tests (metadata, schema, SQL, execution, permissions)
+that stay useful if the comparison harness is retired. Never cite ignored
+`.nhost-code/` artifacts in tracked docs or tests.
+
+- `make check` runs `integration/` against the `constellation` container on
+  `:8000`. After Go changes, run `make dev-env-down && make dev-env-up` first;
+  never start a second stack.
+- Keep integration metadata in the Hasura CLI export's canonical form, so a
+  refresh leaves tracked files unchanged.
+- PostgreSQL nested inserts are a `core.InsertPlan` built in
+  `connector/sql/graphql/queries/mutation_insert_steps.go` and run by
+  `connector/sql/postgres/insert_steps.go`. Test them through
+  `postgres.Client.ExecuteOperations`, not `op.SQL`. Rerun
+  `TestOrderedInsertReference` when changing the Hasura image, because the
+  relationship order is version-coupled.
+- testdb (`:5433`) has a limited connection budget. Reuse pools and close them
+  in test cleanup, keep large fixture matrices as one top-level test with
+  sequential subtests, and never lower `-p`/`-parallel` to hide SQLSTATE 53300.
+  Respect an explicit `DATABASE_URL`.
 **Golden file ordering pitfall.** A subset of goldens are JSON-marshalled via `encoding/json/v2` from Go maps (e.g. `*_data.json` query result fixtures, `TestIntrospect/success.golden.json`, and aggregate result data). JSON v2 emits map keys in Go map iteration order, which is **deliberately randomized** — so re-running `-update` against an unchanged codebase produces a byte-different file even though the content is semantically identical. Treat noisy reorderings as nondeterminism artefacts, not real changes: revert them with `git checkout --` instead of committing. If a test passes against the existing golden, the golden is correct; don't run `-update` on it without a real reason. The same applies to `integration/schema.nhost.*.graphqls` produced by `nhost schema dump` (invoked from `integration/gen.sh`, which now shells out to the Nhost CLI in `cli/`) — those are byproducts of `integration/gen.sh` runs, not goldens proper. Only the GraphQL SDL goldens under `connector/.../testdata/*.graphqls` are deterministically ordered (via sorted scalar/type emission in `connector/sql/graphql/schema/scalars.go`) and safe to commit verbatim.
 
 ## Key Interfaces
@@ -132,12 +159,13 @@ Golden file tests live in `testdata/` directories. Update them with the `-update
 - **Dialect pattern**: `Dialect` interface (`connector/sql/graphql/queries/dialect/`) abstracts all SQL syntax differences between PostgreSQL and SQLite. New SQL generation should go through `dialect.Dialect` (the `queries.Dialect` alias also still works) -- never hardcode database-specific syntax. Concrete implementations live in `dialect/postgres.go` and `dialect/sqlite.go`. Construct dialect values via `dialect.NewPostgresDialect()` / `dialect.NewSQLiteDialect()`. Note: `JSONAggQuotedAlias(alias)` quotes the alias for use as an identifier key; `JSONAggRawExpr(expr)` takes a raw SQL expression -- the name tells you which one to use.
 - **Capabilities**: `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) controls which GraphQL features are exposed based on what the database supports (regex, JSONB, DISTINCT ON, functions). Gate new database-specific features behind a capability flag.
 - **Role-based schemas**: Each role gets its own GraphQL schema based on permission metadata. The admin role has unrestricted access.
-- **Multi-connector composition**: `composer.Composer` (in `connector/composer/`) merges per-role schemas from all connectors (databases + remote schemas) into a composed schema graph. The controller routes each root field to its owning connector via the operation-qualified `fieldToConnector` map keyed with `schemamerge.FieldKey`, and tracks object type ownership via `typeToConnectors` (`map[type][]connector`). Structurally identical object types can be owned by multiple connectors.
-- **Remote relationships**: Cross-connector relationships are resolved by `controller/resolver/` after initial connector execution. Join keys are collected during the first pass, then used to fetch related data from the remote connector.
-- **Parameterized SQL only**: User-provided values flow into a `params []any` slice paired with a `paramIndex` counter. Builders call `dialect.Placeholder(paramIndex)` to emit `$N` (Postgres) or `?` (SQLite). Never build SQL by string-concatenating user values; always thread values through the params slice. See `connector/sql/graphql/queries/values/` for the AST-to-Go conversion helpers feeding this pipeline.
+- **Query parsing cache**: `controller/querycache.go` caches validated documents/errors by exact query text and role. A per-state `singleflight.Group` coalesces concurrent misses using an unambiguous length-prefixed role/query key and rechecks the LRU before parsing; warm hits bypass singleflight. Both completed entries and in-flight loads belong to `controllerState` and are discarded on reload. Cached ASTs/errors are read-only; variable coercion, normalization, permissions, and execution remain request-local.
+- **Multi-connector composition**: `composer.Composer` (in `connector/composer/`) merges per-role schemas from all connectors (databases + remote schemas) into a composed schema graph. The controller routes each root field to its owning connector via the operation-qualified `fieldToConnector` map keyed with `schemamerge.FieldKey`, and tracks object type ownership via `typeToConnectors` (`map[type][]connector`). Structurally identical object types can be owned by multiple connectors. SQL `GetTypeName(schema.table)` must return the schema-qualified generated GraphQL name (e.g. `cf_select_items` for `cf_select.items`); remote joins resolve their target through it.
+- **Remote relationships**: Cross-connector relationships are resolved by `controller/resolver/` after initial connector execution. Join keys are collected during the first pass, then used to fetch related data from the remote connector. The planner only uses relationships present in the role's validated schema, and it injects phantom join keys into path-local copies of fragments (never into shared definitions). Phantoms are removed before the response. Array modifiers apply per parent key, null parent keys stitch explicit `null`, and WebSocket `OnSubscribe` rejects remote relationships before polling. A computed LHS key requires a reconciled non-`SETOF` scalar, the role's explicit grant and, for `to_source`, role-selectable target columns; never infer computed identity from a field name. See `docs/developers/remote-relationships.md` and `docs/developers/customization.md`.
+- **Parameterized SQL only**: User-provided values flow into a `params []any` slice paired with a `paramIndex` counter. Builders call `dialect.Placeholder(paramIndex)` to emit `$N` (Postgres) or `?` (SQLite). Never build SQL by string-concatenating user values; always thread values through the params slice. Never leave parameters from a discarded rendering in `params`: an unreferenced `$N` fails with 42P18 or pgx's `expected N arguments`. See `connector/sql/graphql/queries/values/` for the AST-to-Go conversion helpers feeding this pipeline. In PostgreSQL catalog queries, cast placeholders inside polymorphic `format('%I.%I', $N::text, ...)` calls: PostgreSQL cannot infer the uncast parameter type there (`42P18`). Bare computed-field function references resolve in `public`, not through `search_path`; carry the resolved catalog schema/name into later SQL.
 - **Permission injection**: The permissions package (`connector/sql/graphql/queries/permissions/`) exposes a `Store` that resolves per-role select/insert/update/delete rules, wraps queries with additional WHERE clauses, and restricts visible columns. Permissions can reference session variables (`X-Hasura-User-Id`, etc.) which are substituted at execution time.
 - **Subscriptions**: SQL subscriptions use multiplexed polling (`connector/sql/subscription/`). The `cohortManager` groups subscriptions with identical queries into cohorts sharing a single SQL poll; the `streamCohortManager` handles cursor-based `subscription_stream`. Both are unexported and constructed through `subscription.Handler`.
 - **Atomic state swaps**: `Controller` uses `atomic.Pointer[controllerState]` for lock-free metadata hot-reload. In-flight requests complete against old state; new requests use updated state. Old connectors and subscription handlers are shut down in a background goroutine. When modifying controller state, always work through `buildState()` -- never mutate `controllerState` fields directly.
-- **Inconsistency-tolerant builds**: once `metadata.Source` returns a parsed document, every downstream failure is recorded as a `metadata.Inconsistency` and the offending entity is dropped at the finest granularity available — whole source (`database`/`remote_schema`), whole role (`role`), or one table/column/function/relationship/enum_values entry within a source. The collector lives on `controllerState` and is exposed by `Controller.Inconsistencies()`. SQL-source filtering happens in `connector/sql/reconcile.go`; driver-level introspection (`introspectEnumValues`, `introspectFunctions`) silently elides per-entity gaps so reconcile can record them rather than aborting the whole connector. **User-facing rules**: see `docs/user/inconsistencies.md` for the full catalogue, what each kind drops, and the source-type matrix.
+- **Inconsistency-tolerant builds**: once `metadata.Source` returns a parsed document, every downstream failure is recorded as a `metadata.Inconsistency` and the offending entity is dropped at the finest granularity available — whole source (`database`/`remote_schema`), whole role (`role`), or one table/column/function/relationship/enum_values entry within a source. The collector lives on `controllerState` and is exposed by `Controller.Inconsistencies()`. SQL-source filtering happens in `connector/sql/reconcile.go`; driver-level introspection (`introspectEnumValues`, `introspectFunctions`) silently elides per-entity gaps so reconcile can record them rather than aborting the whole connector. PostgreSQL computed fields are reconciled per field. An invalid grant, or an identifiable invalid/unexecutable computed reference in a filter/check, drops the **entire** permission, never only its filter/check. Collisions with generated names drop only the computed field, so the role schema stays valid. A filter key with neither a computed definition nor a grant stays an ordinary unknown key (source-wide failure; see `KNOWN_DIFFERENCES.md`). See `docs/developers/computed-fields.md`. **User-facing rules**: see `docs/user/inconsistencies.md` for the full catalogue, what each kind drops, and the source-type matrix.
 - **Authentication flow**: `controller/middleware` extracts session from requests in priority order: (1) admin secret header grants admin role, (2) JWT token validated against configured secrets with Hasura claims extraction, (3) fallback to public role. Session variables from `X-Hasura-*` headers are injected into SQL permission WHERE clauses.
 - **Remote schema presets**: `connector/remoteschema/` uses `@preset(value: "...")` directives in SDL to hide arguments from non-admin roles and inject values (literals or session variables like `x-hasura-user-id`). Admin role always gets the live introspected schema; other roles use SDL from metadata.

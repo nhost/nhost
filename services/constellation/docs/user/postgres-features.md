@@ -248,7 +248,19 @@ delete_permissions:
 - Session variables of the form `X-Hasura-*` are extracted from request headers or JWT Hasura claims by `controller/middleware/`.
 - `_eq: X-Hasura-User-Id` substitutes the session variable as a parameterized SQL value.
 - `set` (insert/update) writes column presets — including session variables — on every affected row.
-- **Not enforced:** a per-role `limit` on select permissions, plus `query_root_fields`, `subscription_root_fields`, `computed_fields`, `backend_only`, and `validate_input`. These parse without error but have no effect — see [hasura-metadata-support.md](./hasura-metadata-support.md).
+- **Not enforced:** a per-role `limit` on select permissions, plus `query_root_fields`, `subscription_root_fields`, `backend_only`, and `validate_input`. These parse without error but have no effect — see [hasura-metadata-support.md](./hasura-metadata-support.md).
+
+### Computed fields on tracked tables
+
+PostgreSQL sources serve table-owned `computed_fields` backed by `STABLE` or `IMMUTABLE` functions that take the table row (and optionally the session) as an argument. SQLite sources ignore them.
+
+- **Scalar returns** (non-array base types) need an explicit per-role grant in the select permission's `computed_fields`. A granted field can be selected wherever the table's rows appear, including relationships, mutation `returning` and subscriptions, and takes the function's remaining arguments through `args`. Fields without user arguments can also be used in `where` and `order_by`. Eligible types appear in aggregate `min`/`max`, and numeric types in the other aggregates.
+- **Table returns** (`SETOF` a tracked table, or a single tracked-table row) are visible to any role that can select from the returned table. That table's row filter and column permissions apply, along with `args`, `where`, `order_by`, `distinct_on`, `limit` and `offset`. Do not list them in `computed_fields`: an explicit grant invalidates the select permission. Fields without user arguments can also be used in `where` (matching rows where any returned row satisfies the condition) and as a `<field>_aggregate` sort key.
+- **Permission rules** can reference computed fields without user arguments in select/update/delete filters and insert/update checks, even when the role cannot select the field.
+- **`SETOF` scalar returns** are limited to `text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and `public.citext`. A row with no values returns `null`, and a row with several values fails the request (a mutation is rolled back). Filtering on such a field always fails, sorting by it can drop or repeat rows, and selecting it in an aggregate makes `count`, the other aggregates and `nodes` use one row per returned value.
+- **Custom argument types** (domain, enum, composite, range, multirange and array) are passed as strings in PostgreSQL literal syntax, for example `"{happy}"` for an enum array.
+
+Invalid definitions, grants and permission references are dropped rather than served; see [inconsistencies](./inconsistencies.md). Remote-relationship join keys are covered in the [metadata support matrix](./hasura-metadata-support.md), and Hasura differences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md#computed-fields).
 
 ## Queries
 

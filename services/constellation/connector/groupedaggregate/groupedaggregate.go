@@ -9,6 +9,7 @@ package groupedaggregate
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -25,7 +26,11 @@ import (
 // fields at the call site rather than deep inside the SQL builder.
 type Request struct {
 	// TableSchema is the database schema (e.g. "public") of the target table.
+	// Empty is the SQLite namespace for collection requests only.
 	TableSchema string
+	// AllowEmptySchema permits SQLite's schema-less collection target while
+	// retaining the grouped-aggregate request's existing validation contract.
+	AllowEmptySchema bool
 	// TableName is the unqualified name of the target table to aggregate over.
 	TableName string
 	// JoinColumnSQLName is the SQL column name on the target table used both
@@ -34,9 +39,20 @@ type Request struct {
 	// JoinValues are the distinct join keys to filter on; the executor returns
 	// one aggregate entry per value (empty groups included). Must be non-nil-
 	// elemented and pre-deduped by the caller — the executor does not filter
-	// nils or collapse duplicates, and a nil entry will be stringified to "<nil>"
-	// when keying the result map (see Executor godoc).
+	// nils or collapse duplicates (see Executor godoc).
 	JoinValues []any
+	// JoinColumns and JoinTuples describe collection keys in sorted source-column
+	// order. JoinColumns holds target GraphQL field names; the collection SQL
+	// builder also accepts SQL names as a fallback. A single-column collection
+	// can use JoinValues instead, with JoinColumnSQLName resolved the same way.
+	JoinColumns []string
+	JoinTuples  [][]any
+	// JSONTargets marks JSON/JSONB columns in JoinColumns order.
+	JSONTargets []bool
+	// JSONTarget indicates that the target join column has a json/jsonb GraphQL
+	// type. JoinValues must then be canonical JSON text for SQL binding; the
+	// executor uses typed JSON keys when indexing the returned groups.
+	JSONTarget bool
 	// Field is the user's aggregate selection, used by the executor to drive
 	// sub-field selection (aggregate / nodes).
 	Field *ast.Field
@@ -57,23 +73,21 @@ type Request struct {
 var ErrInvalidRequest = errors.New("invalid grouped aggregate request")
 
 // NewRequest validates that the fields required to build a grouped-aggregate
-// SQL query are present: TableSchema, TableName, JoinColumnSQLName, and Field.
+// SQL query are present: TableSchema (unless AllowEmptySchema), TableName,
+// a join column (or JoinColumns), and Field.
 // JoinValues, Fragments, and Variables are optional and may be zero. Callers
 // initialise the Request by name so the type system prevents accidental field
 // swaps among the same-typed string fields.
 func NewRequest(req Request) (Request, error) {
 	switch {
-	case req.TableSchema == "":
-		return Request{}, fmt.Errorf(
-			"%w: TableSchema is required",
-			ErrInvalidRequest,
-		)
+	case req.TableSchema == "" && !req.AllowEmptySchema:
+		return Request{}, fmt.Errorf("%w: TableSchema is required", ErrInvalidRequest)
 	case req.TableName == "":
 		return Request{}, fmt.Errorf(
 			"%w: TableName is required",
 			ErrInvalidRequest,
 		)
-	case req.JoinColumnSQLName == "":
+	case req.JoinColumnSQLName == "" && len(req.JoinColumns) == 0:
 		return Request{}, fmt.Errorf(
 			"%w: JoinColumnSQLName is required",
 			ErrInvalidRequest,
@@ -88,6 +102,41 @@ func NewRequest(req Request) (Request, error) {
 	return req, nil
 }
 
+// JoinKey is shared by grouped-result indexing and parent stitching. The
+// non-JSON form intentionally matches an ID string to an integer ID.
+func JoinKey(value any, jsonTarget bool) string {
+	if jsonTarget {
+		encoded, err := json.Marshal(value)
+		if err == nil {
+			return "json:" + string(encoded)
+		}
+	}
+
+	return fmt.Sprintf("%v", value)
+}
+
+// TupleKey indexes a composite join key. Non-JSON components keep the
+// cross-scalar ID matching of ordinary relationships; JSON components retain
+// their JSON type (including string versus number) and canonical object order.
+func TupleKey(values []any, jsonTargets []bool) string {
+	parts := make([]string, len(values))
+	for i, value := range values {
+		if i < len(jsonTargets) && jsonTargets[i] {
+			parts[i] = JoinKey(value, true)
+		} else {
+			parts[i] = fmt.Sprint(value)
+		}
+	}
+
+	encoded, err := json.Marshal(parts)
+	if err != nil {
+		// []string cannot contain unsupported JSON values.
+		return fmt.Sprint(parts)
+	}
+
+	return string(encoded)
+}
+
 // Executor is an extension interface implemented by connectors that support
 // batched grouped-aggregate execution — the optimized resolution path for
 // cross-database array-aggregate relationships.
@@ -97,17 +146,11 @@ func NewRequest(req Request) (Request, error) {
 // target is a remote schema, so the type-assertion against this interface in
 // the resolver is unreachable when the target is non-SQL.
 //
-// Result-map invariants. The returned map is keyed by the stringified join
-// value — specifically fmt.Sprintf("%v", v) of each entry in Request.JoinValues
-// — and each value preserves the same GraphQL response fields as the same-
-// database aggregate field (aliases when present, otherwise "aggregate" /
-// "nodes"). An entry is present for every value in Request.JoinValues,
-// including those with no matching target rows (count: 0, nodes: []). Because
-// keys are %v-stringified, distinct JoinValues
-// entries that share the same %v representation (e.g. a []byte and its string
-// equivalent) will collide on the same key; callers must dedupe in a way that
-// matches that formatting. The resolver-side stitcher applies the same
-// fmt.Sprintf("%v", …) formatting on the parent side to look results back up.
+// Result-map invariants. For JSONTarget, the map is keyed by JoinKey of the
+// decoded JSON group key (not the JSON-text SQL parameter). This distinguishes
+// JSON strings from numbers and canonicalizes object keys. Otherwise it uses
+// the legacy %v representation, retaining cross-scalar ID matching. Each
+// value preserves the requested GraphQL fields and includes empty groups.
 //
 // Parameter ordering caveat. req.Variables (the GraphQL operation variables)
 // and the sessionVariables argument are both map[string]any and travel side-

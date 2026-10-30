@@ -247,6 +247,7 @@ type ConfigAuthMethodOauthWorkosUpdateInput struct {
 
 type ConfigAuthMethodOtp struct {
 	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSms   `json:"sms,omitempty"`
 }
 
 type ConfigAuthMethodOtpEmail struct {
@@ -257,8 +258,17 @@ type ConfigAuthMethodOtpEmailUpdateInput struct {
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
+type ConfigAuthMethodOtpSms struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigAuthMethodOtpSmsUpdateInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 type ConfigAuthMethodOtpUpdateInput struct {
 	Email *ConfigAuthMethodOtpEmailUpdateInput `json:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSmsUpdateInput   `json:"sms,omitempty"`
 }
 
 type ConfigAuthMethodSmsPasswordless struct {
@@ -2431,11 +2441,14 @@ type AuthUserSecurityKeysStreamCursorValueInput struct {
 
 // columns and relationships of "backups"
 type Backups struct {
-	ID          string     `json:"id"`
-	AppID       string     `json:"appId"`
-	Size        int64      `json:"size"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	ID              string     `json:"id"`
+	AppID           string     `json:"appId"`
+	Size            int64      `json:"size"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CompletedAt     *time.Time `json:"completedAt,omitempty"`
+	Status          *string    `json:"status,omitempty"`
+	FailureReason   *string    `json:"failureReason,omitempty"`
+	ExpireCondition *string    `json:"expireCondition,omitempty"`
 	// An object relationship
 	App *Apps `json:"app"`
 }
@@ -2462,43 +2475,55 @@ type BackupsAvgOrderBy struct {
 
 // Boolean expression to filter rows from the table "backups". All fields are combined with a logical 'AND'.
 type BackupsBoolExp struct {
-	And         []*BackupsBoolExp         `json:"_and,omitempty"`
-	Not         *BackupsBoolExp           `json:"_not,omitempty"`
-	Or          []*BackupsBoolExp         `json:"_or,omitempty"`
-	ID          *UUIDComparisonExp        `json:"id,omitempty"`
-	AppID       *UUIDComparisonExp        `json:"appId,omitempty"`
-	Size        *BigintComparisonExp      `json:"size,omitempty"`
-	CreatedAt   *TimestamptzComparisonExp `json:"createdAt,omitempty"`
-	CompletedAt *TimestamptzComparisonExp `json:"completedAt,omitempty"`
-	App         *AppsBoolExp              `json:"app,omitempty"`
+	And             []*BackupsBoolExp         `json:"_and,omitempty"`
+	Not             *BackupsBoolExp           `json:"_not,omitempty"`
+	Or              []*BackupsBoolExp         `json:"_or,omitempty"`
+	ID              *UUIDComparisonExp        `json:"id,omitempty"`
+	AppID           *UUIDComparisonExp        `json:"appId,omitempty"`
+	Size            *BigintComparisonExp      `json:"size,omitempty"`
+	CreatedAt       *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	CompletedAt     *TimestamptzComparisonExp `json:"completedAt,omitempty"`
+	Status          *StringComparisonExp      `json:"status,omitempty"`
+	FailureReason   *StringComparisonExp      `json:"failureReason,omitempty"`
+	ExpireCondition *StringComparisonExp      `json:"expireCondition,omitempty"`
+	App             *AppsBoolExp              `json:"app,omitempty"`
 }
 
 // order by max() on columns of table "backups"
 type BackupsMaxOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	AppID       *OrderBy `json:"appId,omitempty"`
-	Size        *OrderBy `json:"size,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	CompletedAt *OrderBy `json:"completedAt,omitempty"`
+	ID              *OrderBy `json:"id,omitempty"`
+	AppID           *OrderBy `json:"appId,omitempty"`
+	Size            *OrderBy `json:"size,omitempty"`
+	CreatedAt       *OrderBy `json:"createdAt,omitempty"`
+	CompletedAt     *OrderBy `json:"completedAt,omitempty"`
+	Status          *OrderBy `json:"status,omitempty"`
+	FailureReason   *OrderBy `json:"failureReason,omitempty"`
+	ExpireCondition *OrderBy `json:"expireCondition,omitempty"`
 }
 
 // order by min() on columns of table "backups"
 type BackupsMinOrderBy struct {
-	ID          *OrderBy `json:"id,omitempty"`
-	AppID       *OrderBy `json:"appId,omitempty"`
-	Size        *OrderBy `json:"size,omitempty"`
-	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
-	CompletedAt *OrderBy `json:"completedAt,omitempty"`
+	ID              *OrderBy `json:"id,omitempty"`
+	AppID           *OrderBy `json:"appId,omitempty"`
+	Size            *OrderBy `json:"size,omitempty"`
+	CreatedAt       *OrderBy `json:"createdAt,omitempty"`
+	CompletedAt     *OrderBy `json:"completedAt,omitempty"`
+	Status          *OrderBy `json:"status,omitempty"`
+	FailureReason   *OrderBy `json:"failureReason,omitempty"`
+	ExpireCondition *OrderBy `json:"expireCondition,omitempty"`
 }
 
 // Ordering options when selecting data from "backups".
 type BackupsOrderBy struct {
-	ID          *OrderBy     `json:"id,omitempty"`
-	AppID       *OrderBy     `json:"appId,omitempty"`
-	Size        *OrderBy     `json:"size,omitempty"`
-	CreatedAt   *OrderBy     `json:"createdAt,omitempty"`
-	CompletedAt *OrderBy     `json:"completedAt,omitempty"`
-	App         *AppsOrderBy `json:"app,omitempty"`
+	ID              *OrderBy     `json:"id,omitempty"`
+	AppID           *OrderBy     `json:"appId,omitempty"`
+	Size            *OrderBy     `json:"size,omitempty"`
+	CreatedAt       *OrderBy     `json:"createdAt,omitempty"`
+	CompletedAt     *OrderBy     `json:"completedAt,omitempty"`
+	Status          *OrderBy     `json:"status,omitempty"`
+	FailureReason   *OrderBy     `json:"failureReason,omitempty"`
+	ExpireCondition *OrderBy     `json:"expireCondition,omitempty"`
+	App             *AppsOrderBy `json:"app,omitempty"`
 }
 
 // order by stddev() on columns of table "backups"
@@ -2526,11 +2551,14 @@ type BackupsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type BackupsStreamCursorValueInput struct {
-	ID          *string    `json:"id,omitempty"`
-	AppID       *string    `json:"appId,omitempty"`
-	Size        *int64     `json:"size,omitempty"`
-	CreatedAt   *time.Time `json:"createdAt,omitempty"`
-	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	ID              *string    `json:"id,omitempty"`
+	AppID           *string    `json:"appId,omitempty"`
+	Size            *int64     `json:"size,omitempty"`
+	CreatedAt       *time.Time `json:"createdAt,omitempty"`
+	CompletedAt     *time.Time `json:"completedAt,omitempty"`
+	Status          *string    `json:"status,omitempty"`
+	FailureReason   *string    `json:"failureReason,omitempty"`
+	ExpireCondition *string    `json:"expireCondition,omitempty"`
 }
 
 // order by sum() on columns of table "backups"
@@ -6327,6 +6355,12 @@ const (
 	BackupsSelectColumnCreatedAt BackupsSelectColumn = "createdAt"
 	// column name
 	BackupsSelectColumnCompletedAt BackupsSelectColumn = "completedAt"
+	// column name
+	BackupsSelectColumnStatus BackupsSelectColumn = "status"
+	// column name
+	BackupsSelectColumnFailureReason BackupsSelectColumn = "failureReason"
+	// column name
+	BackupsSelectColumnExpireCondition BackupsSelectColumn = "expireCondition"
 )
 
 var AllBackupsSelectColumn = []BackupsSelectColumn{
@@ -6335,11 +6369,14 @@ var AllBackupsSelectColumn = []BackupsSelectColumn{
 	BackupsSelectColumnSize,
 	BackupsSelectColumnCreatedAt,
 	BackupsSelectColumnCompletedAt,
+	BackupsSelectColumnStatus,
+	BackupsSelectColumnFailureReason,
+	BackupsSelectColumnExpireCondition,
 }
 
 func (e BackupsSelectColumn) IsValid() bool {
 	switch e {
-	case BackupsSelectColumnID, BackupsSelectColumnAppID, BackupsSelectColumnSize, BackupsSelectColumnCreatedAt, BackupsSelectColumnCompletedAt:
+	case BackupsSelectColumnID, BackupsSelectColumnAppID, BackupsSelectColumnSize, BackupsSelectColumnCreatedAt, BackupsSelectColumnCompletedAt, BackupsSelectColumnStatus, BackupsSelectColumnFailureReason, BackupsSelectColumnExpireCondition:
 		return true
 	}
 	return false

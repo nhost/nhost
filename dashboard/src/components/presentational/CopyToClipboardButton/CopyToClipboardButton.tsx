@@ -47,6 +47,8 @@ function CopyToClipboardButton({
   }
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    // Inside a link, a click that isn't default-prevented also follows it.
+    event.preventDefault();
     event.stopPropagation();
 
     copy(textToCopy, title);

@@ -60,7 +60,8 @@ func (d *DatabaseMetadata) UnmarshalYAML(ctx context.Context, unmarshal func(any
 // directive string or inline data. For unknown shapes the destination is left
 // unchanged. The context carries the current !include base directory so the
 // inline-decode path can resolve nested !include strings the same way the
-// top-level decoder does.
+// top-level decoder does. Inline arrays retain the legacy decode/re-marshal
+// path so YAML escapes and merge overrides are resolved by the first decode.
 func resolveIncludeOrInline[T any](ctx context.Context, raw any, dst *[]T, fieldName string) error {
 	switch v := raw.(type) {
 	case string:
