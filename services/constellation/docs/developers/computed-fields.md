@@ -1,141 +1,59 @@
-# PostgreSQL computed fields: alpha contract inventory
+# PostgreSQL computed fields
 
-## Remote join-key contract (Phase 13)
+Developer notes for table-owned computed fields. User-facing behavior is in
+[`docs/user/postgres-features.md`](../user/postgres-features.md#computed-fields-on-tracked-tables),
+[`docs/user/inconsistencies.md`](../user/inconsistencies.md) and
+[`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md#computed-fields).
 
-The existing Hasura v2.50.3-ce oracle accepts no-user-argument scalar LHS
-keys: `item_label` self object/array and cross-source object (positive text
-matches), `item_payload` self and cross-source object with a JSONB target,
-and a text-valued computed team ID joined to remote `team(id: ID!)`. A
-session-bound variant joins two distinct team IDs for two session cohorts.
-Hasura rejects `item_score`/`item_second` (user arguments) and `item_tags`
-(table result) at metadata validation. It accepts a JSONB-object→remote
-`ID!` definition but execution fails GraphQL ID coercion; do not infer
-support from metadata consistency alone. Constellation excludes every
-JSON/JSONB computed LHS key toward remote schemas, regardless of argument type;
-JSONB source joins to JSONB target columns bind/stitch objects, strings,
-numbers and arrays as distinct JSON values. Constellation requires an explicit
-per-role LHS computed select grant for any of these joins (admin is implicit).
-Hasura joins denied keys; that behavior is intentionally not reproduced.
-The source's function runs as a phantom selection under the caller's session;
-its response key is removed after stitching. For a JSON `path` selection, a
-separate full-value phantom must be injected rather than reusing that path's
-projection. For computed `to_source` keys, target join-column select access is required
-in Constellation even though Hasura joins through denied columns (a hidden-value
-equality oracle); target row filters still apply. Physical-key relationships do not
-use the computed-key grant or target-column gates. JSONB targets bind
-typed JSON values for object/array joins, including physical keys whose target column is role-hidden; JSONB array `_aggregate` siblings
-bind and stitch typed keys for computed and physical JSONB keys. PostgreSQL `json` targets lack `json = json`, so ordinary and grouped joins into them fail at execution, as in Hasura’s equality join. GeoJSON object
-keys are also JSON-encoded, fixing physical geometry joins. Hasura rejects remote relationships in subscriptions, and
-the WebSocket path must reject them before polling.
+## Pipeline
 
+1. **Metadata** (`metadata/`): definitions and select-permission grants are
+   decoded per entry. A malformed entry keeps its raw value and decode error so
+   reconciliation can report it. TOML export fails on invalid entries instead
+   of dropping them.
+2. **Introspection** (`connector/sql/postgres/introspect_computed_functions.go`):
+   functions are resolved by catalog identity (bare names mean `public`, not
+   `search_path`), including argument modes, defaults, row/session argument
+   positions, return type and volatility.
+3. **Reconciliation** (`connector/sql/reconcile_computed.go`): invalid
+   definitions are dropped individually. Invalid grants and invalid or
+   unexecutable computed references in filters/checks drop the whole
+   permission. Collisions that would invalidate a role schema drop only the
+   computed field.
+4. **Schema and SQL** (`connector/sql/graphql/schema`,
+   `connector/sql/graphql/queries`): the function receives the complete base row
+   cast to its schema-qualified table type, never a role-projected or anonymous
+   row, plus parameterized arguments. Table-valued fields reuse the collection
+   builder over a correlated function source, with the returned table's
+   permissions.
+5. **Remote join keys** (`connector/composer`, `connector/relationships`): a
+   computed LHS key is injected only when the SQL connector reports a
+   reconciled non-`SETOF` scalar (`HasComputedJoinKey`), the role has an
+   explicit grant, and every `to_source` target mapping is a role-selectable
+   column (`HasSelectableJoinColumn`).
 
-Phase 2 fixture/oracle: the existing `integration/nhost/nhost.toml` image (`nhost/graphql-engine` v2.50.3-ce; initial inventory ran on v2.48.10-ce), `cf_select` and `cf_predicates` sources on `local`. The two sources are independent of `default`, `customized` and `other`; `cf_predicates` has a startup `cf_predicate_guard` scalar select filter and insert check. Use `integration/computedfields/testdata/{contract,predicate_permissions,inconsistent_contract,metadata}.json` as checked-in Constellation-only expectations. The `connector/sql` fixture tests build isolated test databases from the **same** Nhost migration and seed used by integration, check that the metadata JSON matches the tracked YAML tables, replay each SQL/DDL variant and predicate SQL without Hasura, and validate recorded role SDL and GraphQL expectation shapes. Reconciliation tests now assert computed-field and known computed-permission inconsistency classification. PostgreSQL scalar selection and user-input capabilities are enabled for queries, mutation `returning` and conditions (including conflicts), live/stream subscriptions, aggregate/grouped rows and cross-source/remote-schema-to-database results. Only argument-free scalar fields occur in row boolean/order inputs, including JSONB fields whose selection accepts `path`. Hasura includes no **scalar** computed fields in aggregate-order inputs. All ten aggregate field output types include eligible computed returns; output arguments and declared return types are retained even when physical column aggregates use `Float`. PostgreSQL table-valued `SETOF` selections are enabled when the target table has select access; argument-free scalar permissions execute in role filters/checks. Argument-free table functions now execute in row boolean EXISTS and `<field>_aggregate` ordering and in select/update/delete filters and insert/update checks. User inputs apply returned-table select permissions, including the target row filter; metadata predicates run independently of target select access. A serialized v2.50.3-ce probe with target filter `label = one` returned no items for `where: {item_tags: {label: {_eq: two}}}` (admin returned item 1). With target filter `label = three`, aggregate count-desc ordering returned items `[2, 1]` (admin `[1, 2]`). Both changes were restored from `export_metadata` and consistency checked; static filtered roles now pin these outcomes in the live sanity suite. The older v2.48.10-ce image did not enforce the target row filter for user table EXISTS, so do not use it as the security contract. Unnamed non-row SQL arguments are exposed as `arg_N`, counting only unnamed user inputs after removing the row and session arguments; named inputs do not advance the counter (verified against the existing Nhost Hasura v2.48.10-ce instance). Reconciliation checks exposed catalog/generated names for GraphQL identifier syntax, reserved `__` prefix and uniqueness (including a catalog `arg_N` colliding with an unnamed input). An invalid name drops only that computed field and revokes any select permission explicitly granting it, rather than invalidating the admin/granted role schema; hidden row/session slots are excluded. Hasura v2.50.3-ce accepts reserved and duplicate names (binding the same value to both duplicate slots), but rejects invalid identifiers atomically even with `allow_inconsistent_metadata: true`; see `KNOWN_DIFFERENCES.md`. This computed-only mapping does not change the older tracked-root `FunctionArgument.GraphQLName(index)` positional numbering; align that separately. The PostgreSQL-only PostGIS geometry/geography constructors and JSON output conversion share existing column helpers; testdb verifies input/output coercion, and their live Hasura behavior was confirmed for SRID 4326. GraphQL validation error paths use field names (including customized prefix/suffix/namespace roots and remote-relationship prefixes), while SQL result/stitching paths continue to use response aliases. An unset variable inside a computed `args` object binds a typed SQL NULL, distinct from omitting the key and using the SQL default. Quoted JSON paths reject lone surrogate escapes; keys containing NUL return null without binding NUL text. Keep the function call under a strict `#> NULL::text[]` lookup so client/session argument placeholders remain referenced, even when another computed selection follows. For a 4326 geometry, `ST_AsGeoJSON(value, 15, 4)` includes a long `crs` name; test the full payload rather than assuming only `type` and `coordinates`. `TestComputedFieldReference` includes representative live scalar/table selection, scalar user-input/aggregate-output and table predicate/order comparisons but remains a small sanity comparison, not the regression oracle for these cases.
+## Invariants
 
-Local verification caveat: Nix's `make check` filters untracked new source files out of its copied tree, so it cannot compile this phase until those files enter the Git index; direct `go test`, `golines` and `golangci-lint` still exercise the working tree without staging. For a locally built service used by `TestComputedFieldReference`, inject a nonempty `main.Version` via `go build -ldflags '-X main.Version=...'` (plain `go run` returns an empty `/v1/version`). Preserve the trailing slash in `CONSTELLATION_METADATA_PATH` when pointing at a metadata directory: its loader resolves includes relative to `filepath.Dir` of that path.
+- Never serve a permission with a computed predicate stripped; drop the whole
+  permission instead.
+- Multiplexed subscriptions must keep `core.SessionVarValue` markers for
+  session arguments, so each subscriber binds its own session.
+- A successful `buildState` publishes reconciled schemas and SQL roots
+  together. A polled `export_metadata` returns the raw snapshot and can be
+  ahead of the served state.
 
-Historical Phase 12 serialized schema/permission probes on Hasura v2.48.10-ce confirmed
-`item_tags: cf_select_tags_bool_exp` and `item_tags_aggregate:
-cf_select_tags_aggregate_order_by` for admin and `cf_reader`, without a
-computed-field grant. The aggregate-order input remains visible even when
-the target role's `allow_aggregations` is false; a role with no target select
-access sees neither input. A temporary role with a parent select filter
-`item_tags: {label: {_eq: two}}` but **no target select permission** still
-sees item 1: permission predicates do not borrow the target's role select
-filter. That probe did not establish the behavior of **user** predicates;
-the later v2.50.3-ce filtered-target probe above did. The metadata was restored from
-`export_metadata` after each probe and `get_inconsistent_metadata` returned
-`is_consistent: true`; no fixture metadata was changed. A separate temporary
-`item_copies` array relationship on `cf_select.tags` plus a role permission
-`item_copies_aggregate: {count: {filter: {item_tags: {id: {_eq: 2}}},
-predicate: {_gt: 0}}}` made Hasura mark that select permission inconsistent:
-`"item_copies_aggregate" does not exist`. The relationship and role were
-restored; computed references inside relationship-aggregate **permission**
-filters remain fail-closed, unlike user-facing aggregate predicates.
+## Tests
 
-## Observed accepted forms and behavior
+Lasting coverage is Constellation-only and runs without Hasura:
 
-- Fully qualified, stable SQL functions taking the table row as their first argument: text, numeric with an optional extra integer argument, JSONB and `SETOF` tracked rows. Explicit `table_argument` also accepts a row argument **after** another argument (`item_second(multiplier, item)` yielded `25` for `multiplier: 2`). Row-bound fields are nullable even when the source columns are non-null; JSONB fields additionally accept a `path` selection argument. The optional multiplier is an input field of `item_score_cf_select_items_args` (`Int`, nullable); the function's SQL default is used when omitted (`12.5` for item 1). `item_second(args: {})` instead returns `not-supported`: `Non default arguments cannot be omitted`. `item_second` requires `item_second_cf_select_items_args!`, while `item_score` accepts an optional args object. **Gotcha:** Hasura leaves the `multiplier` field *inside* both input objects nullable (`Int`), even for the required SQL argument; enforce missing required values during function-call construction, not by changing the field to `Int!` (which changes role SDL). SQL must reconstruct the entire physical row as a schema-qualified table composite from CTE/function aliases; casting an anonymous or role-projected row fails or hides values needed by the function.
-- Admin and `cf_reader` see the scalar and table-valued fields; `cf_no_grant` sees only its permitted columns and neither computed `_args` type. The nullable field types, non-null elements of the nullable `item_tags` list, `item_payload(path: String)`, both argument input types, boolean/order inputs and denied-role absences are recorded per role in `contract.json`. `item_label`/`item_payload` occur in boolean expressions and ordering; `item_tags` occurs in boolean expressions and `item_tags_aggregate` ordering. The argument-bearing `item_score` does **not** occur in either boolean or order inputs. `item_tags` list selection has target-table `where`, `order_by`, `distinct_on`, `limit` and `offset`; target permissions derive its visibility. Hasura has no `item_tags_aggregate` selection sibling; its separately recorded `item_tags_aggregate` **input** executes as a correlated aggregate order. A serialized nullable-composite `SETOF` function probe returned `[{id: null}]` for admin and `cf_reader`, not `null` or `[]`; metadata and DDL were restored and Hasura consistency checked. The Constellation-only testdb suite pins the same shape, empty collections, SQL errors, nested selections and target permissions. Numeric arguments, JSONB selections and a JSONB `_contains` predicate returned the checked-in response values. Admin `update_cf_select_items.returning` evaluated the computed scalar, argument and table selection on the updated row; its fixture label was restored after the probe.
-- Explicit scalar select grants are accepted. An explicit select grant for `item_tags` is **inconsistent**: table-returning computed select access is inferred from permissions on `cf_select.tags`. A `cf_no_grant` selection of `item_label` fails GraphQL validation, rather than returning null.
-- A separate `cf_predicate_guard` role with `rule_visible: {_eq: true}` select filter returned only rule `1`. The same predicate was accepted in update `filter` and `check` and insert `check` metadata. The select filter and insert check now run from startup metadata; other metadata probe variants remain isolated. A computed scalar as a `to_source` remote relationship join key (`field_mapping: {item_label: label}`) was accepted by `replace_metadata` with no inconsistency; positive join execution and per-role permissions are classified above; argument-bearing and table-valued LHS keys were rejected at metadata validation.
-
-## Observed rejected/inconsistent forms
-
-- `pg_add_computed_field` referring to a missing function failed with `invalid-configuration` and did not change export metadata. Adding a second overload of an existing tracked computed function made its field inconsistent (`computed_field`), and its explicit role grant inconsistent (`select_permission`); Hasura reports that overloaded functions are not supported. A distinct field name may refer to the same SQL function (the `column_collision` alias was accepted and now has an independent served-SDL/data test). The separate collision/grant matrix is classified below; do not infer it from the alias case.
-- Dropping `cf_predicates.rule_visible(cf_predicates.rules)` then reloading metadata marked both the field and its `cf_reader` grant inconsistent. For that role `__type(name:"cf_predicates_rules")` became null and querying the root yielded `validation-failed`. Restoring the exact function and reloading restored consistency.
-- Replacing metadata with `allow_inconsistent_metadata: true` and a select filter referencing `missing_computed` marked only that `select_permission` inconsistent. The affected role lost `cf_predicates_rules` from its SDL; an unaffected source remained present. Do not remove a failing filter and retain its role permission. Constellation retains its source-wide root-construction failure for this unidentifiable unknown key (also reproduced by a column-only unknown-key control). This operator-approved invalid-key divergence is **not** supported computed-field parity. A filter key identified by a definition or grant is removed with its whole permission if invalid or unexecutable; executable argument-free scalar predicates now run without a select grant.
-
-The destructive probes ran **serially**, after an `export_metadata` snapshot; each restored function DDL and `replace_metadata` in a finally block, checked `get_inconsistent_metadata` was empty, and awaited the existing DB-backed Constellation's metadata resource version on replacement before switching the same container back to file metadata. Do not overlap these probes with integration query tests, and do not add their invalid entries to startup YAML.
-
-## Independent alpha regression inventory
-
-These tests run without Hasura and pin results against isolated testdb fixtures or fixed expected schemas/responses. The required live `integration/TestComputedFieldReference` and `TestRemoteSchemaNamespaceReference` remain separate sanity checks against the pinned v2.50.3-ce image, not replacement expectations.
-
-| Contract | Constellation-owned checks |
+| Area | Tests |
 |---|---|
-| Wire decoding, YAML/JSON/TOML, malformed entries and snapshots | `metadata/computed_fields_test.go`, `metadata/internal/hasura/computed_field_test.go`, `metadata/source/computed_{fields,snapshot,yaml_edge}_test.go` |
-| Catalog signature, overloads, collisions and permission-level reconciliation | `connector/sql/postgres/introspect_computed_functions*_test.go`, `connector/sql/reconcile_computed*_test.go`, `connector/sql/computed_{fields_variants,reconciliation}_test.go` (including alias SDL/data and unknown-key column control) |
-| Role SDL, scalar/table queries, bound arguments, errors, aggregates, mutations and live/stream cohorts | `connector/sql/computed_{fields_fixture,contract_execution,custom_arguments,return_signatures}_test.go`, `connector/sql/graphql/{schema,queries}/computed*_test.go`, `connector/sql/computed_permission*_test.go` |
-| Nested write visibility, denial/rollback, and returned rows | `connector/sql/computed_{permission*,table_nested_check}_test.go`, `connector/sql/graphql/queries/mutation_insert*_test.go`; required live denial/row comparisons remain in `integration/computed_permission_denial_test.go` |
-| Remote joins, LHS grant and target-column gates, namespace/fragment handling | `controller/computed_join*_test.go`, `controller/computed_null_remote_schema_test.go`, `controller/customized*_test.go`, `connector/composer/computed_conflicts_internal_test.go`; namespace-fragment live comparison is read-only |
-| Served reload versus raw export timing | `controller/computed_reload_internal_test.go` (successive builds and unknown-key control), `metadata/source/computed_snapshot_test.go` (polled raw snapshot can advance without a served swap), `controller/metadata_internal_test.go` and `controller/security_internal_test.go` (native snapshot/proxied export) |
+| Metadata decoding, export and snapshots | `metadata/computed_fields_test.go`, `metadata/internal/hasura/computed_field_test.go`, `metadata/source/computed_*_test.go` |
+| Introspection and reconciliation | `connector/sql/postgres/introspect_computed_functions*_test.go`, `connector/sql/reconcile_computed*_test.go`, `connector/sql/computed_reconciliation_test.go` |
+| Schema, queries, aggregates, mutations, permissions and subscriptions | `connector/sql/graphql/{schema,queries}/computed*_test.go`, `connector/sql/computed_*_test.go` |
+| Remote joins and customization | `controller/computed_join*_test.go`, `controller/computed_null_remote_schema_test.go`, `controller/computed_setof_join_key_test.go`, `connector/composer/computed_conflicts_internal_test.go` |
+| Reload and export timing | `controller/computed_reload_internal_test.go`, `metadata/source/computed_snapshot_test.go` |
 
-A successful `buildState` swap publishes one reconciled set of role schemas and SQL roots; in-flight requests retain the old state. A database-source `export_metadata` without an upstream instead reports the latest **raw polled** snapshot and resource version: it can advance before a successful served-state rebuild and does not certify that a computed function or permission is executable. With `--hasura-upstream-url`, all metadata operations, including export and computed-field add/drop, are proxied to Hasura. Without upstream, native add/drop operations are unsupported; file export is best-effort, and TOML export has its existing empty envelope. For rollback, remove/repair the field or grant in the metadata source and wait for a successful reload (or disable Constellation and route traffic to Hasura); do not treat an export response as proof that the new role SDL is serving. `integration/gen.sh` is diagnostic only: review its SDL/schema changes and ignore nondeterministic JSON-v2 ordering noise instead of committing generated output automatically.
-
-## Classified Phase 14 collision, nullable join and request errors
-
-The redacted, checked-in
-`integration/computedfields/testdata/phase14-oracle.json` contains selected
-Hasura v2.50.3-ce request/SDL/error observations; it has no metadata exports,
-connection details or credentials. `controller/TestComputedCollisionRoleMatrix`
-replays isolated variants from the unchanged fixture on testdb, covering admin,
-`cf_reader` (with/without an explicit grant) and `cf_no_grant`:
-
-| Definition name collides with | Hasura observation | Independent Constellation outcome |
-| --- | --- | --- |
-| Physical `label` column | `computed_field` invalid; an explicit computed grant invalidates the whole reader select permission | Computed definition omitted; invalid grant revokes reader root; unrelated admin/no-grant fields remain |
-| Configured custom name of `label` | Same field/grant granularity | Same field/grant granularity |
-| Object or array relationship; `to_source` remote relationship | Conflicting field definitions; explicit grant invalidates reader root | Computed field omitted and grant revoked; unrelated roles/fields remain |
-| `<rel>_aggregate` sibling | Metadata stayed consistent; row SDL and `order_by` both contain duplicate names with distinct object/scalar and aggregate-order/enum types | Approved fail-closed omission of only the ambiguous computed field/grant with a `computed_field` inconsistency; the genuine relationship and aggregate sibling, authorized role roots and other grants remain. `connector/sql/TestComputedAggregateSiblingCollisionKeepsRelationshipAndRole` pins both grant states and roles. |
-| Argument-free table field `X` plus an orderable `X_aggregate` column/custom column, object relationship or argument-free scalar field | Metadata consistent, admin and reader roots intact and `X` selectable. Duplicate order input fields make **both** uses of the key fail validation. | `computed_field` inconsistency omits `X` (selection, EXISTS and synthesized order input), keeps the genuine field/order and both roles. The internal order-collision matrix and testdb connector/HTTP regressions pin that boundary. This is a narrower valid-schema contract, not Hasura selection parity; an array relationship named `X_aggregate`, an argument-bearing scalar `X_aggregate` and an argument-bearing table `X` are non-colliding controls. When classifying arguments, `GraphQLArgumentNames` includes empty row/session slots: test for a nonempty user name, not slice length. |
-| PUBLIC computed-argument enum scalar vs. same-named tracked scratch row object | `replace_metadata` failed atomically (HTTP 500 `unexpected`, `$.args`) with and without a reader grant despite `allow_inconsistent_metadata:true`; no definition/grant installed, no inconsistencies, original admin/reader/no-grant roots survived | **Approved metadata-acceptance difference:** Constellation accepts the metadata but reports `computed_field` and omits only the ambiguous computed selection/input/orphan scalar, preserving unrelated roles and grants. `controller/TestComputedScalarObjectCollisionMetadataAcceptance` pins both grant states, metadata acceptance, inconsistency and admin/reader/no-grant SDL and data; `composer/TestComputedScalarCollisionKeepsRolesAndOtherSources` checks the lower-level omission. The unique public control was in the same rejected replacement, so separate acceptance was not established. |
-| Other computed-argument scalar vs. non-scalar type permutations | Not independently probed on Hasura | Source-derived fail-closed selection omission, **not** a Hasura parity claim or expanded waiver; composer matrix checks other sources and enum/input types. |
-
-The tracked oracle now includes a redacted p13 scalar/object rejection and summaries
-of the earlier collision matrix and nullable remote-schema key observations; it
-contains no scratch metadata export or seeded identifiers.
-
-A subsequent serialized, independently restored v2.50.3-ce scratch-table probe
-classified scalar `SETOF` collection `returning`, permission predicates and
-`to_source` keys without modifying seeded rows. Collection insert, upsert DO
-UPDATE, update, update_many and delete each return `[null]` for zero values,
-one object for one and a database-query error with rollback for multiple values;
-a mixed insert rolls back all rows. Select/insert/update/delete permission
-predicates were accepted with role roots intact, but each failed at execution
-without persisting a write. A `SETOF text` remote key was exposed for admin,
-granted and **ungranted** roles; one value joined, zero produced a null parent
-and multiple values failed. Constellation deliberately omits that relationship
-for every role under the operator-approved fail-closed rule, not a Hasura parity
-claim. The exact redacted outcomes and restoration proof are in
-`integration/computedfields/testdata/phase14-oracle.json`; the independent
-`computed_setof_permission_test.go`, `computed_setof_join_key_test.go` and
-`computed_setof_kinds_test.go` regressions pin Constellation's behavior. The p13 observation
-establishes only this exact PUBLIC enum vs. tracked object case, not a separate
-noncolliding control or other type-name permutations.
-
-`controller/TestComputedNullRemoteSchemaKeyAndGrant` independently pins a
-computed text `to_remote_schema` key: null parent returns null without a remote
-request, non-null parent joins an existing team, and neither result leaks the
-phantom key. Hasura v2.50.3-ce joined both granted and ungranted-key roles;
-Constellation intentionally hides the relationship from the ungranted role
-under the Phase 13 authorization exception (see `KNOWN_DIFFERENCES.md`).
-`controller/TestComputedArgumentHTTPInheritedErrorAndIntControls` exercises
-public-domain 23514, computed/column 22P02 in production and dev HTTP paths,
-and both computed/column quoted-string, float and out-of-int4-range Int
-controls. Hasura accepts quoted Int strings while Constellation rejects them;
-production DB errors are sanitized, dev errors retain the raw chain. These are
-**two approved inherited behavior differences**, not computed-field parity.
-
-## Remaining investigation and bounded unsupported forms
-
-Domain/enum/range/multirange scalar returns were rejected as non-BASE by serialized `pg_add_computed_field` probes against the existing Nhost Hasura; Constellation marks their definitions invalid and revokes select permissions granting them. Supported domain, enum, composite, range, multirange and built-in array **arguments** are exposed as string-only custom scalars (`<type>_scalar` for composites) with parameterized schema-qualified casts. `connector/sql/computed_custom_arguments_test.go` checks role SDL, data, parse/SQL errors, aggregate and mutation returning independently on isolated testdb. Selected serialized Hasura v2.50.3-ce observations are checked in at `integration/computedfields/testdata/phase14-oracle.json` (no metadata snapshot or connection details): it exposes non-public custom argument fields but fails string, null and variable-valued requests with `type "…" does not exist`, whereas a public-domain control executes and reports domain-check/invalid-integer errors. GraphQL enum-token literals resolve to string names; numeric/list custom inputs fail parsing. Catalog array identity also applies to user-defined enum arrays and rejects non-string input at the argument path. The operator approved only qualified successful execution for accepted non-public types; the observed error does not establish Hasura's internal cause. PostgreSQL base types, including extension types such as `citext` and `vector` outside `pg_catalog`, are accepted by kind rather than schema. Single tracked-table and `SETOF text` return signatures are independently pinned in `connector/sql/computed_return_signatures_test.go`; `SETOF numeric` and mutation-returning cardinality have isolated `connector/sql/computed_numeric_return_test.go` coverage: a NULL/missing single composite creates an all-null list element unless the target row filter excludes it; a `SETOF` scalar can produce null parent rows, duplicate rows in `order_by`, a multi-row scalar-subquery error and aggregate maxima. Hasura rejects `text[]` returns as non-BASE; an invalid explicit grant revokes only its role's select permission. Classified: physical/custom-name/object/array/to_source collisions with and without grants, custom-scalar name collisions, and nullable `to_remote_schema` text keys (see table above). The serialized disposable-only oracle classified numeric `SETOF` direct/where/order/max, scalar/table mutation returning and the exact aggregate sibling collision, with independent restoration checks. The later scratch-table probe directly confirmed the collection-mutation, permission-predicate and SETOF-key outcomes summarized above. The explicitly enabled scalar `SETOF` kinds are `pg_catalog.text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext`; `computed_setof_kinds_test.go` pins each on its own testdb, and combined aggregates expand count, physical columns, computed operands and nodes from one row source (including nested and grouped per-key windows, with multiple SETOF operands in lockstep) instead of only fixing per-parent average/variance weighting: even zero/one-row `where` requests fail at the database; ordering drops zero-row parents and duplicates multi-row parents; direct zero yields a null parent and direct multi-row fails. Scalar SETOF returning zero yields a null single-object result or a null element for each affected collection row while successful writes persist. Multi-row results raise PostgreSQL 21000 and roll back all writes in the same-source mutation; production GraphQL errors remain sanitized under the inherited approval. A single-composite table return missing its row yields an all-null list element for unrestricted roles. **Still bounded:** vector, spatial, array and other untested BASE scalar `SETOF` kinds are not inferred from the disposable probe. A disposable public enum and enum-array were independently Hasura-probed: scalar bare `happy` and quoted `"happy"` succeed, array bare `happy` is a malformed-array database error while quoted `"{happy}"` succeeds; numeric/list parse-fail and invalid labels fail at the database, with null/default outcomes pinned. `connector/sql/computed_public_enum_arguments_test.go` uses an isolated public enum testdb; the earlier p6 nonpublic enum only proves parsing (runtime type-not-found), not successful nonpublic Hasura execution. The independent metadata/role/SDL and query tests do not turn any of these unknowns into a blanket parity claim. `IMMUTABLE` execution was accepted; `VOLATILE` definition and invalid grant were rejected by the pinned oracle. `connector/sql/computed_custom_arguments_test.go` now pins immutable served SDL/data, and `reconcile_computed_validation_internal_test.go` pins volatile field/grant revocation. These are not approved parity exceptions; no alpha-closure claim follows. Argument-free scalar filters/checks run against physical rows with earlier dependent writes visible on the ordered executor; table-valued selections use the shared collection builder over a correlated function source and target permissions, with table predicate/order inputs and role predicates using the correlated function source. JSON selection `path` uses Hasura grammar (`$`, dot keys, bracket indices and quoted bracket keys) and binds parsed segments as `text[]`; in Go raw-string test cases use one backslash for a JSONPath Unicode escape (`["\u0073tatus"]`), not two (which means a literal backslash in the key). Explicit `args: null` and `path: null` return argument-specific validation errors; omitting either argument entirely preserves default/full JSON behavior. Error paths use GraphQL names even when SQL response keys use aliases. The pre-existing jsonb **column** `path` implementation is separately tracked, not changed by the computed-field parser. Serialized Hasura probes established that date, timestamptz and uuid computed returns occur in `min`/`max`; boolean and JSONB do not, while Hasura rejected a `time` computed return as non-BASE. PostgreSQL in the fixture has no `min(uuid)`: Hasura advertises the uuid aggregate field but returns a database-query error with SQLSTATE `42883` when selected. Constellation pins the same SQLSTATE in an independent testdb regression; do not describe uuid aggregate **results** as working without a PostgreSQL implementation. Numeric computed returns occur in the other eight aggregate output types, including `sum`, `avg` and the variance family. Hasura retains the function return type (numeric in the fixture) for computed `avg`/variance fields, unlike physical column `Float`. Constellation follows this fixed computed-output eligibility, separately from its dynamically discovered column aggregate support documented in `KNOWN_DIFFERENCES.md`. A temporary array relationship targeting computed items confirmed Hasura omits even argument-free computed fields from aggregate-order inputs; the probe restored metadata equality and consistency before ending. Each accepted case needs its own independent expected metadata/SDL/SQL/result/error/permission regression; the live comparison remains deliberately small. Constellation retains computed definitions and grants from Hasura metadata and native TOML. PostgreSQL scalar selections, argument-free user predicates/order and eligible aggregate outputs are served with supported argument types. Table-valued selections, argument-free row boolean/order inputs and role predicates are supported on PostgreSQL; unexecutable computed references remain fail-closed.
+`integration/TestComputedFieldReference` is a small live comparison with the
+pinned Hasura image, used as a sanity check during alpha; it is not the
+regression suite. Fixtures live in `integration/computedfields/testdata/`.

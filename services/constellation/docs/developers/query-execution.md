@@ -167,30 +167,15 @@ results, err := c.driver.ExecuteOperations(ctx, operations, logger)
 
 Values returned from SQL drivers are usually `jsontext.Value` (raw JSON) so the controller can avoid double-marshalling on the response.
 
-A PostgreSQL nested insert is a `core.SQLOperation.Insert` plan, not a
-`Sequential` update-many result: `postgres.Client.ExecuteOperations` executes
-its recursive steps within the same transaction as its sibling root fields,
-then renders the selected root rows from their physical `RETURNING` capture.
-A relationship-free level remains one multirow statement; at a related level,
-input rows run one at a time. Within each row, before-parent objects, the row
-and its insert/actual-upsert check, arrays depth-first, then implicit
-remote-table-FK after-parent objects execute in that order. Relationship
-siblings follow the Hasura hash-map order first probed on v2.48.10-ce and
-reverified on v2.50.3-ce, not input field order; see `KNOWN_DIFFERENCES.md` for the version/dependency coupling and
-collision fallback. Explicit client FK columns overlapping relationship-determined
-values are rejected during planning before any write; server insert presets are
-not client columns and win over relationship-determined FKs. A zero-row parent
-with array or implicit after-parent object
-descendants fails and rolls back. For result and FK transport, every returned physical column is
-captured with `::text` (including generated, identity and no-PK rows), passed
-as a bound parameter, and cast back to its **original catalog type** using
-quoted schema/type names. A captured SQL NULL remains NULL. `json` lexical
-whitespace/duplicate keys require extracting text before the cast: casting a
-JSON string through `json_populate_record` instead would insert a *JSON string*
-value, not the original object. Flat inserts continue to evaluate computed
-`returning` within their original INSERT statement's snapshot; dependent
-inserts evaluate returning after the final child statement. SQLite explicitly
-rejects dependent step plans; ordinary SQLite write limitations still apply.
+A PostgreSQL nested insert is a `core.SQLOperation.Insert` plan (`core.InsertPlan`,
+built in `queries/mutation_insert_steps.go`). `postgres.Client.ExecuteOperations`
+runs its steps in the same transaction as sibling root fields. A level without
+relationships is one multirow statement; otherwise each input row runs its
+before-parent objects, the row and its insert check, arrays depth-first, then
+after-parent objects. Sibling relationships follow Hasura's hash order (see
+`KNOWN_DIFFERENCES.md`). Returned columns are captured as text and cast back to
+their catalog types before they feed child rows and the final `returning`.
+SQLite rejects these plans.
 
 ### Remote schema connector
 

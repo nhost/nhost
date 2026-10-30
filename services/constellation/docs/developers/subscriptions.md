@@ -97,7 +97,7 @@ subHandler := state.subHandlers[dbName]
 h.startSubscription(ctx, id, payload, subHandler, operation, fragments, validatedVariables, logger)
 ```
 
-`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors: `OnSubscribe` rejects remote relationships after validation, before registering a subscription or starting SQL polling, matching Hasura's rejection. Ordinary subscriptions continue on their owning connector.
+`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors: `OnSubscribe` rejects operations with remote relationships before registering the subscription or starting SQL polling.
 
 `startSubscription` calls `subHandler.Start`, gets a `<-chan subscription.Update`, and spawns `forwardUpdates` to translate updates into `next`/`error` frames.
 

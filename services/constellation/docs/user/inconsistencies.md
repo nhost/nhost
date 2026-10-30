@@ -90,118 +90,20 @@ table — and every other permission entry — keeps serving. The table itself i
 unaffected.
 
 > **What is *not* checked:** ordinary missing column references inside
-> `filter` / `check` expressions are not reconciled per permission. The
-> existing permission parser can reject them during root construction,
-> dropping the source; this is distinct from a known computed-field reference.
-> On PostgreSQL, malformed `_exists` values, table references and `_where` maps,
-> or untracked targets, are checked per permission even without computed fields;
-> unknown keys inside a valid `_where` keep the existing parser behavior.
+> `filter` / `check` expressions. The permission parser can still reject them
+> while building the source, which drops the whole source. On PostgreSQL,
+> malformed `_exists` predicates and computed-field references are checked per
+> permission (see below).
 
 ### `computed_field` and `<operation>_permission` (PostgreSQL source)
 
-An invalid table-owned computed definition (malformed wire entry, missing or
-ambiguous function, missing or non-IN row argument, volatile function,
-unsupported return or argument type kind, untracked SETOF composite target,
-non-IN non-row argument, field-name collision, or exposed computed argument name
-that is not a GraphQL identifier, begins with reserved `__`, or duplicates
-another exposed name, including a generated `arg_N`) is recorded as
-`computed_field` and removed **individually**. Hidden row/session argument
-names are not checked. Non-array PostgreSQL BASE scalar returns include
-extension types outside `pg_catalog`, but `SETOF` scalar returns are enabled
-only for independently classified `pg_catalog.text`, `numeric`, `int4`,
-`float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext`.
-Arrays (including `text[]`, despite catalog `typtype = 'b'`) and unclassified
-`SETOF` base returns are invalid; a role granting one loses its entire select
-permission. Domain, enum, range and multirange **returns** are also invalid.
-BASE non-row arguments are accepted; pseudo-type arguments are rejected.
-Domain, enum, range, multirange, composite and array **arguments** (including
-user-defined element types) are exposed as string-only custom scalars;
-composites use `<type>_scalar`. Values or nulls use bound, qualified
-PostgreSQL casts, and invalid values fail at the database.
-Manual table-valued grants remain invalid regardless of argument kind.
-A computed definition on SQLite is ignored as before, without computed-specific
-inconsistencies or grant revocation. Other fields and tables survive. Valid
-PostgreSQL scalar selections and argument-free computed user predicates
-and ordering are available to admin and granted roles; argument-free scalar
-computed permission filters/checks execute without a selection grant. PostgreSQL
-`SETOF` tracked-table selections are available to roles with select access on
-the returned table, without a computed grant; that table's row filters and
-column permissions apply to the returned rows. Argument-free table functions
-also appear in row `bool_exp` as an EXISTS over the function result and in
-`order_by` as `<field>_aggregate` (without a selection aggregate sibling).
-User predicates and aggregate ordering apply the returned table's row and
-column permissions, including its select row filter (matching patched Hasura
-v2.50.3-ce). Metadata permission predicates instead evaluate independently
-of the target select grant and filter. Role select/update/delete filters and insert/update checks
-may use argument-free table predicates without a select grant on the returned
-table; their predicate sees the full function result, as in Hasura. An
-identifiable invalid, argument-bearing or unexecutable table predicate removes
-its entire affected permission.
+`computed_field` is recorded when a table's computed-field definition cannot be served. The entry may be malformed; the function may be missing, ambiguous (overloaded), `VOLATILE` or without a row argument; its return type may be unsupported (only non-array base types, the `SETOF` scalar types listed in [PostgreSQL features](./postgres-features.md#computed-fields-on-tracked-tables), and tracked tables are accepted); or its field, input or argument names may collide with another field or type or not be valid GraphQL names. Only that field is removed. A collision with a generated name (`<relationship>_aggregate`, `<field>_aggregate` order keys, `_args` inputs, argument types) also removes the field's grant alone. For other invalid definitions, a select permission that grants the field is removed too.
 
-A select permission with an invalid/malformed computed grant is recorded as
-`select_permission` and removed **in its entirety**, including its filter;
-manual table-valued grants are invalid because target-table permissions derive
-them. A valid scalar grant exposes its executable selection, including supported
-custom argument scalars; an ungranted role sees neither the field nor its
-private `_args` input type. A computed `_args` input that differs from a
-composed input of the same name, or a computed `_args` input or argument scalar
-whose name conflicts with a non-scalar composed type, drops just the affected
-selection and records a `computed_field`
-inconsistency; the role and other fields remain. If the omitted selection was
-an aggregate family's only operand, its now-empty output type and the
-corresponding aggregate field are also removed; `count`, other aggregate
-families and `nodes` remain. Hasura v2.50.3-ce instead atomically rejects
-the probed PUBLIC argument enum versus tracked-row object collision and
-both cross-source and same-source differing `_args` inputs (including a
-tracked root function's input), even with `allow_inconsistent_metadata: true`.
-A same-source collision keeps the tracked function's root and input, and records
-one computed-field inconsistency per affected field and role. Constellation's
-metadata acceptance and narrow fail-closed omission are an approved difference,
-not metadata parity.
-An exact computed `<rel>_aggregate` array-relationship sibling collision
-also omits only the ambiguous computed field and its grant, retaining the
-select permission and genuine relationship; Hasura exposes duplicate names.
-An argument-free table computed field `X` whose synthesized order key
-`X_aggregate` collides with a column/custom column name, object relationship
-or argument-free scalar computed field is omitted individually as a
-`computed_field` inconsistency. Its selection, EXISTS predicate and aggregate
-order input disappear, while the genuine field's order input and unrelated
-roles survive. A permission predicate depending on the removed field is
-invalidated rather than silently ignored. Hasura v2.50.3-ce accepts these
-names, keeps `X` selectable and the roles available, but publishes duplicate
-order inputs; neither use of `X_aggregate` works. Constellation drops the
-ambiguous field to retain a valid schema and the genuine order input. An array
-relationship named `X_aggregate` does not create this conflict: its generated
-order key is `X_aggregate_aggregate`. Only the column's effective GraphQL
-name participates: a physical `X_aggregate` column renamed with `custom_name`
-to another name does not collide. Argument-bearing table fields generate
-no aggregate-order input. This does not make manual table-valued grants valid;
-the earlier sibling and argument-type omissions remain exceptions to the usual
-invalid-grant rule for ordinary invalid computed definitions. A select/update/delete filter or insert/update check referencing a valid,
-argument-free PostgreSQL scalar or table computed field is enforced, including
-through logical operators, local relationships and `_exists`.
-On PostgreSQL, `_exists._table` accepts a bare name or an object with an
-optional schema; omitted and `null` schemas mean `public`, not the containing
-table's schema. An invalid `_exists` value, table reference, `_where` map or
-untracked target revokes only the containing permission, including for
-computed-free predicates. An identifiable invalid or unexecutable computed
-reference is likewise recorded as `<operation>_permission` and the **entire
-affected permission** is removed, not just its filter/check.
-Hasura rejects relationship-aggregate permission keys; identifiable computed
-references inside them revoke the affected permission. Non-computed aggregate
-permission keys retain their existing parser behavior. Other roles
-and permissions on the same table remain available. A definition or a grant
-(on any role of that table) identifies a computed predicate, including if its
-function is missing. An unknown key with neither a definition nor a grant is
-not classified by its spelling. For example, a `missing_computed` filter without
-a matching definition or grant is an ordinary unknown key to Constellation:
-root construction fails and the **whole database source** is unavailable, even
-though Hasura marks only its `select_permission` inconsistent. A filter with an ordinary
-missing-column key has the same source-wide outcome in Constellation, including
-an unknown key inside a valid `_exists._where` outside a recognized computed-table
-predicate. This is an intentional, documented difference for invalid metadata, not supported
-computed-field parity; do not use unknown filter keys as an access-control
-mechanism.
+`select_permission`, `insert_permission`, `update_permission` or `delete_permission` is recorded when a permission cannot be enforced: an invalid computed-field grant (including any grant of a table-valued field), an invalid or argument-bearing computed field in its `filter`/`check`, or a malformed `_exists` predicate. The **whole permission** is removed, never just its filter or check; other roles and permissions keep serving. `_exists._table` without a schema refers to `public`.
+
+A filter key counts as a computed field only if the table defines or grants it. Any other unknown key, such as a misspelled computed field, keeps the existing behavior: the whole source fails to build. Hasura marks only that permission inconsistent (see [known differences](../../KNOWN_DIFFERENCES.md#computed-fields)).
+
+SQLite sources ignore computed fields and record none of these inconsistencies.
 
 ### `function` (PostgreSQL source)
 
@@ -281,7 +183,7 @@ roles continue serving with the connectors that did merge successfully.
 
 ## Reload and export timing
 
-A successful metadata reload builds new effective computed fields, role schemas, SQL roots and inconsistencies together before swapping the served state. A failed reload keeps the previous served state. On a polled database source, native `export_metadata` instead reads the latest **raw** metadata snapshot: it may include a newly invalid computed definition or grant before the served state changes. When a Hasura upstream is configured, export and metadata writes are proxied upstream, not served from this snapshot. Do not use export's resource version as evidence of the current role schema; verify role introspection and a representative query after reload. File-source export is best-effort, not an exact copy of unknown metadata keys.
+A reload swaps in the new schemas, SQL and inconsistency list together; a failed reload keeps serving the previous state. Without a Hasura upstream, `export_metadata` on a polled database source returns the latest polled metadata, which can be ahead of what is served. To confirm a change, check the role's schema and a sample query rather than the export.
 
 ## How inconsistencies surface today
 

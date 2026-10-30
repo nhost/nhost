@@ -17,7 +17,6 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 |---|---|
 | ✅ **Supported** | Parsed **and** consumed. Behaves like Hasura (modulo the intentional divergences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md)). |
 | 🟡 **Partial** | Works, but only in some forms or with caveats noted inline. |
-| 🔵 **Retained, not served** | Parsed and available to metadata conversion/export, but not exposed or enforced on the GraphQL request path. |
 | ⚪ **Ignored** | The surrounding object is parsed, but this field is **silently dropped** — no effect, no error. It looks configured but does nothing. |
 | ❌ **Unsupported** | The whole feature area is not modeled. The metadata key is never read. |
 
@@ -29,9 +28,9 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 > permission, or a `pool_settings` block, is accepted and thrown away. Treat
 > ⚪/❌ rows as *silently inert*, not *rejected*.
 
-## Operating computed fields during alpha
+## Computed fields
 
-Author definitions and per-role scalar select grants in the existing Hasura metadata source. Constellation reads and reconciles them on the GraphQL request path; it does **not** implement native `*_add_computed_field`/drop metadata operations. Configure the Hasura upstream to proxy metadata writes and exports, or make changes at the authoritative metadata source. Without an upstream, `export_metadata` reports a file-source best-effort inspection snapshot or the latest raw database-poll snapshot; the latter can be newer than the last successfully served schema/SQL state. A returned resource version is not proof that a role can select the field. Check the affected role's GraphQL schema and query after a successful reload, and inspect inconsistency logs for an invalid field/grant. For rollback, restore the metadata definition/grant and allow a successful reload, or disable Constellation to send requests to Hasura. See [inconsistencies](./inconsistencies.md) for fail-closed granularity and [developer inventory](../developers/computed-fields.md) for tested alpha cases and known coverage limits. The Hasura comparator is a required alpha sanity check, not a guarantee of universal parity. On the request path, database errors remain sanitized in production and raw in dev mode (without Hasura's code/path); strict GraphQL Int validation rejects quoted Int strings in both computed arguments and column predicates **even when Hasura v2.50.3-ce accepts and executes them**. Float/out-of-range Int error presentations also differ; see [the narrow inherited differences](../../KNOWN_DIFFERENCES.md#inherited-database-error-sanitization-and-strict-int-inputs-approved-phase-14) and their independent HTTP controls.
+Constellation serves computed fields from metadata but does not implement the `*_add_computed_field`/`*_drop_computed_field` metadata operations. Author them in the existing Hasura engine; requests are proxied to it when `--hasura-upstream-url` is set. After a change, check the affected role's schema and a sample query: invalid definitions and grants are dropped on reload (see [inconsistencies](./inconsistencies.md)), and a polled `export_metadata` can show metadata before it is served.
 
 ## How Constellation reads Hasura metadata
 
@@ -137,7 +136,7 @@ configuration:
 | `configuration.column_config.<col>.comment` | ⚪ | Dropped. |
 | `configuration.comment` | ⚪ | Table comment is dropped. |
 | `configuration.identifier` | ⚪ | Dropped. |
-| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🟡 | Retained from Hasura YAML/JSON and native TOML. PostgreSQL scalar computed fields support role-granted selections, argument-free `where`/`order_by` inputs and eligible aggregate outputs. `min`/`max` include comparable scalar returns (including text, numeric, date, timestamptz and uuid in SDL, but not boolean or JSONB; PostgreSQL may reject `min(uuid)` at execution if the aggregate is not installed, as Hasura does); numeric fields also appear in `sum`, `avg`, `stddev`, `stddev_pop`, `stddev_samp`, `var_pop`, `var_samp` and `variance`. Aggregate outputs retain the computed field's `args` and result type even when a column aggregate uses `Float`. Hasura omits computed fields with user arguments from row `where`/`order_by`, and scalar computed fields from aggregate-order inputs. PostgreSQL `SETOF` and single-composite tracked-table computed fields are selectable when the returned table has select access, without a separate computed-field grant: the returned table's row/column permissions, user `where`/`order_by`/`distinct_on`/`limit`/`offset`, nested selections and bound arguments apply to the correlated result. Hasura exposes no aggregate sibling for these fields. Argument-free table-valued functions support row `bool_exp` EXISTS and `<field>_aggregate` ordering, with the returned table's select row/column permissions (including the row filter, as in patched Hasura v2.50.3-ce); role filters/checks can use these predicates without a select grant on either the field or its returned table. Argument-free PostgreSQL scalar computed fields also execute in role filters/checks independently of selection grants. SQLite does not expose computed fields. Both bare and schema-qualified function references load. Unnamed user arguments are numbered `arg_1`, `arg_2`, etc., excluding row/session slots and named user arguments; the default descriptions omit `public.` for public functions/tables. Domain, enum, range and multirange scalar returns are invalid and revoke a permission granting them, whereas domain, enum, composite, range and multirange argument types are exposed as string-only custom scalars (composites use `<type>_scalar`); catalog-identified array arguments (including user enum arrays) also require string inputs; array returns are invalid. Bare GraphQL enum-token literals count as strings for these custom inputs. A public enum accepts bare `happy` and quoted `"happy"`, while a public enum array requires a quoted PostgreSQL array literal such as `"{happy}"`; bare `happy` fails as a malformed array, and list/numeric forms fail parsing. Null and omitted defaults are supported. The pinned nonpublic enum parsed both token forms but failed at runtime; only Constellation qualified-cast execution is asserted for it. The individually tested `SETOF text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext` returns are nullable scalars with row inputs and eligible aggregate output (numeric `max` is pinned): zero-row direct selections yield a null parent, multi-row direct selections fail and even zero/one-row `where` use fails at the database; `order_by` omits zero-row parents and duplicates multi-row parents. A zero-row scalar SETOF returns null for a single-object mutation or one null collection `returning` element per affected row while the write persists; multi-row returning fails and rolls back all same-source writes (the production client error is sanitized). Tracked-table `SETOF` returns lists (zero is `[]`); a missing single composite may yield an all-null list element. Selecting a scalar SETOF aggregate expands `count`, physical-column aggregates, computed operands and `nodes` together, including nested/grouped paths and lockstep multiple operands. Eligible aggregate outputs reduce those flattened sets; UUID max/min are advertised but fail with 42883 where PostgreSQL lacks these functions, as on pinned Hasura. Boolean/JSONB have no aggregate outputs. Untested vector, spatial, array and other BASE scalar `SETOF` kinds remain unavailable. A PUBLIC computed-argument enum scalar with the same GraphQL name as a tracked scratch row object is an approved metadata-acceptance difference: pinned Hasura atomically rejects replacement while Constellation records an inconsistency and omits only the colliding selection, retaining other roots/grants (other type-name collisions are unclassified against Hasura). An exact computed `<rel>_aggregate` array-relationship sibling collision omits only the ambiguous computed selection/grant and reports an inconsistency, preserving the genuine relationship, aggregate and unrelated role roots; Hasura v2.50.3-ce instead emits duplicate row and order input names (see [known differences](../../KNOWN_DIFFERENCES.md)). Parameterized qualified casts execute non-public custom arguments in Constellation, unlike pinned Hasura v2.50.3-ce's accepted-but-type-not-found runtime behavior (see [known differences](../../KNOWN_DIFFERENCES.md)). On PostgreSQL sources, malformed or invalid individual entries retain their wire value and are recorded as `computed_field` inconsistencies during reconciliation, without preventing the rest of the source from serving. SQLite ignores computed definitions as before. File export retains JSON-representable computed-field values in a best-effort snapshot; database export preserves the original JSON blob. `constellation metadata export` to TOML fails explicitly if computed definitions or grants are invalid rather than dropping their error markers. |
+| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🟡 | PostgreSQL only; SQLite ignores them. Scalar and table-valued fields are served with the limits in [PostgreSQL features](./postgres-features.md#computed-fields-on-tracked-tables). Invalid entries are recorded as `computed_field` [inconsistencies](./inconsistencies.md) without affecting the rest of the source. `constellation metadata export` to TOML fails on invalid entries instead of dropping them. |
 | `apollo_federation_config` | ❌ | No Apollo Federation support. |
 
 ---
@@ -160,7 +159,7 @@ parameterized SQL values.
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
 | `query_root_fields` | ⚪ | Cannot restrict which query root fields a role sees. |
 | `subscription_root_fields` | ⚪ | Same, for subscriptions. |
-| `computed_fields` | 🟡 | On PostgreSQL, valid scalar grants allow selections and argument-free `where`/`order_by` inputs. SQLite continues to ignore computed definitions and grants without computed-specific permission reconciliation. Invalid/malformed grants (including manual table-valued grants) make the **whole select permission** inconsistent and unavailable. Argument-free scalar and table computed predicates in select/update/delete `filter` or insert/update `check` are enforced without requiring a selection grant; invalid or unsupported identifiable references make the **whole affected permission** inconsistent. The filter/check is never discarded to make a grant permissive. A key with neither definition nor grant (e.g. `missing_computed`) retains the existing source-wide unknown-key failure, unlike Hasura's permission-level inconsistency; see [inconsistencies](./inconsistencies.md) and [known differences](../../KNOWN_DIFFERENCES.md). |
+| `computed_fields` | 🟡 | PostgreSQL: grants scalar computed fields to the role. Table-valued fields follow the returned table's select permission and must not be listed. An invalid grant makes the whole select permission inconsistent. SQLite ignores the list. |
 
 ### Insert permission
 
@@ -264,45 +263,12 @@ remote_relationships:
 
 | Field | Status | Notes |
 |---|---|---|
-| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. Argument-free, non-SETOF PostgreSQL scalar computed fields may serve as the LHS key for object or array joins; text→text and JSONB→JSONB (object, string, array and number values) have positive matches. For computed keys Constellation requires each target mapping to name a role-selectable GraphQL column (not merely a relationship or other field), unlike Hasura; target row filters still apply. Remote arrays apply `limit` and `offset` per non-null parent key on PostgreSQL (including `offset` without `limit`), and `limit` with optional `offset` per key on SQLite, including multi-column mappings. PostgreSQL also applies `distinct_on` per key. Duplicate keys share the same window. SQLite-target remote arrays expose `distinct_on` but it fails at execution; `offset` without `limit` also fails at execution on SQLite. |
-| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. Argument-free text computed keys (including session-bound keys) can bind a remote `ID!` input; all JSON/JSONB computed keys are excluded from remote-schema relationships regardless of remote argument type; Hasura's JSONB-object→`ID!` fails at execution. |
+| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. Array `limit`, `offset` and `distinct_on` apply per parent row (see [SQLite](./sqlite.md) for SQLite targets). PostgreSQL scalar computed fields can be source keys (see below). |
+| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. Text computed fields can be source keys; JSON/JSONB computed fields cannot. |
 
-Computed LHS keys require an **explicit select grant for each role** (admin is
-implicitly granted). Without it, the relationship is absent from that role's
-SDL and cannot be used; unlike Hasura v2.50.3-ce, a denied key is never used
-as a phantom join field. Argument-bearing, table-valued and scalar `SETOF`
-computed keys are not joinable: their relationships are omitted even from admin
-SDL, with no inconsistency, while other roots survive. Hasura v2.50.3-ce was
-probed with a disposable `SETOF text` key: its `to_source` object relationship
-was exposed and joined for admin and roles **without** a key grant; zero values
-produced null parent elements and multiple values failed. Constellation
-intentionally omits this relationship even for granted roles rather than expose
-a multi-valued or role-hidden join key. Other SETOF key forms were not probed.
-For computed `to_source` keys, every target mapping must be the
-GraphQL name of a selectable physical target column; a relationship or computed
-field cannot satisfy this gate, even if it shares a hidden column's SQL name.
-The relationship and its aggregate sibling are omitted otherwise. This is a
-deliberate stricter rule than Hasura's positive join through
-a denied target column (an equality oracle); physical-key relationships do not use
-these computed-key authorization gates. JSONB targets bind typed JSON values
-for object/array joins, including physical keys whose target column is role-hidden; JSONB array `_aggregate` siblings bind and stitch typed
-keys for computed and physical JSONB keys. PostgreSQL `json` targets lack `json = json`, so ordinary and grouped joins into them fail at execution, as in Hasura’s equality join. GeoJSON object keys are also
-JSON-encoded, fixing physical geometry joins.
-Target row filters still apply. Hasura interprets `field_mapping` targets as
-physical SQL names. Constellation's aggregate siblings retain that interpretation
-for unambiguous names, but fail closed (no counts or nodes) if a name also
-identifies a *different* GraphQL target column. This prevents an aggregate from
-joining on a denied SQL column after the computed-key gate checked a permitted
-GraphQL column. A renamed target mapped only by its GraphQL name still fails on
-the aggregate path; physical SQL-name mappings continue to work for aggregates
-when unambiguous. Mutations selecting an aggregate with these failing mappings,
-or a multi-column mapping, are rejected before writing and return a sanitized
-error in production. See the known difference below. As with other cross-connector remote
-relationships, WebSocket subscriptions reject remote relationship selections
-before polling, even though the shared row type appears in subscription SDL;
-queries and mutation `returning` use the resolver. See the
-[known difference](../../KNOWN_DIFFERENCES.md#computed-remote-relationship-join-keys)
-and [`docs/developers/remote-relationships.md`](../developers/remote-relationships.md)
+A computed field can be a relationship source key only if it is a PostgreSQL scalar without user arguments that does not return `SETOF`. Relationships keyed by other computed fields are omitted for every role. The role needs a select grant on the computed field (admin is implicit), and a `to_source` relationship also needs select access to every mapped target column; otherwise the relationship is hidden from that role. These checks are stricter than Hasura's (see [known differences](../../KNOWN_DIFFERENCES.md#computed-fields)). Remote relationships cannot be selected in subscriptions.
+
+See [`docs/developers/remote-relationships.md`](../developers/remote-relationships.md)
 for the planner/resolver mechanics.
 
 ---
@@ -398,7 +364,7 @@ what Constellation serves.
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
 | **RESTified endpoints** | `create_rest_endpoint` | ❌ |
 | **Inherited roles** | `add_inherited_role` | ❌ |
-| **Computed field metadata operations** | `*_add_computed_field` | ⚠️ — PostgreSQL scalar selections and table-valued selections are served; native add/drop operations remain proxied to upstream Hasura, or `not-supported` without one. |
+| **Computed field metadata operations** | `*_add_computed_field`, `*_drop_computed_field` | ⚠️ — proxied to `--hasura-upstream-url` when set; `not-supported` otherwise. |
 | **API limits** | `set_api_limits` | ❌ |
 | **Network / TLS allowlist** | `add_host_to_tls_allowlist` | ❌ |
 | **Metrics config** | `set_metrics_config` | ❌ |
@@ -414,7 +380,7 @@ what Constellation serves.
 
 ## Sharp edges, in one place
 
-- **Unsupported sections load silently, but invalid computed definitions and permissions are reconciled fail-closed.** Other ignored fields load silently.
+- **Nothing is rejected.** Unsupported sections and ignored fields load silently.
   If a permission `limit`, a `pool_settings` block, or an `actions` list seems to
   have "no effect," that is expected — Constellation never read it.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
@@ -427,22 +393,9 @@ what Constellation serves.
   (`remote_schemas[].definition.customization`): root-field
   namespacing/prefix/suffix and `type_names` renaming. Two carve-outs: database
   `naming_convention` is ignored, and remote-schema `field_names` is **rejected at
-  startup** (not silently dropped). A database `to_source` relationship's
-  **source** may use a root-field namespace alone or with a type-name prefix;
-  role-hidden physical join columns are not returned, and computed join keys
-  still require grants. Root-field and type-name prefix/suffix customization
-  on a database **target** supports object/array joins, per-parent paginated
-  arrays and eligible `<relationship>_aggregate` siblings. Target row/column
-  permissions still apply. Untracked target identifiers are not inferred from
-  prefixes. Two aliases of a **database** source namespace retain independent
-  arguments and results; compatible native duplicate-root selections merge
-  only for databases. Validation errors use GraphQL field names rather than
-  response aliases. Two aliases of a namespaced remote schema forward children
-  unaliased and unmerged: identical children work, but differing arguments
-  are rejected by remote conflicting-fields validation rather than executing
-  independently. Database-to-remote-schema relationships into
-  type-renamed remote schemas remain unavailable; other remote-schema
-  customization combinations have not been established by these tests.
+  startup** (not silently dropped). Customized database sources can be the
+  source or target of `to_source` relationships; relationships into a
+  type-renamed remote schema are not supported.
 - **`kind` must be `postgres` or `sqlite`;** other backends fail at startup.
 
 ## See also
