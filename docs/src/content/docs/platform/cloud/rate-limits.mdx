@@ -58,13 +58,13 @@ Given that not all endpoints are equally sensitive, [Auth](/products/auth) suppo
 | Any that sends emails<sup>1</sup> | Global | 10 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
 | Any that sends emails<sup>1</sup> | Client IP | 10 / hour | Configurable. This limit applies to any project with custom SMTP settings and is configurable  | 0.33.0 |
 | Any that sends SMS<sup>2</sup> | Client IP | 10 / hour | Configurable. | 0.33.0 |
-| Any endpoint that an attacker may try to brute-force. This includes sign-in, verify, and OAuth2 authorize/login endpoints<sup>3</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
+| Any endpoint that an attacker may try to brute-force. This includes sign-in, session elevation, verify, and OAuth2 authorize/login endpoints<sup>3</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
 | Signup endpoints<sup>4</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
 | OAuth2 server-to-server endpoints<sup>5</sup> | Client IP | 100 / 5 minutes | Configurable. Higher limit to accommodate backend services making requests on behalf of multiple users from a single IP | - |
 | Any | Client IP | 100 / minute | The total sum of requests to any endpoint (including previous ones) can not exceed this limit | 0.33.0 |
 
 :::note
-Limits are grouped within a given category. For instance, with a limit of 10 per hour for the sign-in/verify category, if a user attempts to sign in 10 times and then tries to verify an OTP code, the latter will be rate-limited alongside the sign-in attempts.
+Limits are grouped within a given category. For instance, with a limit of 10 per 5 minutes for the brute-force category, if a user attempts to sign in 10 times and then tries to verify an OTP code, the latter will be rate-limited alongside the sign-in attempts. All `/elevate/*` requests share this category, including OTP requests and verification. Requesting an elevation OTP also counts against the email or SMS category and the global Auth limit. `GET /elevate` only counts against the global Auth limit.
 :::
 
 <sup>1</sup> Paths included:
