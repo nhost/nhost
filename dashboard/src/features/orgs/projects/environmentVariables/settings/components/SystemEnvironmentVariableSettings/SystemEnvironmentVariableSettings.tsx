@@ -1,19 +1,20 @@
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import { InlineCode } from '@/components/ui/v3/inline-code';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   defaultRemoteBackendSlugs,
   generateAppServiceUrl,
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditJwtSecretForm';
+import { MaskedValue } from '@/features/orgs/projects/environmentVariables/settings/components/MaskedValue';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -27,8 +28,6 @@ export default function SystemEnvironmentVariableSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
-  const [showAdminSecret, setShowAdminSecret] = useState(false);
-  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
@@ -53,7 +52,7 @@ export default function SystemEnvironmentVariableSettings() {
     openDialog({
       title: (
         <span className="grid grid-flow-row">
-          <span>Auth JWT Secret</span>
+          <span>Auth JWT secret</span>
 
           <span className="text-muted-foreground text-sm">
             This is the key used for generating JWTs. It&apos;s the same as
@@ -67,9 +66,12 @@ export default function SystemEnvironmentVariableSettings() {
     });
   }
 
-  const systemEnvironmentVariables = [
+  const projectVariables = [
     { key: 'NHOST_SUBDOMAIN', value: project!.subdomain },
     { key: 'NHOST_REGION', value: project!.region.name },
+  ];
+
+  const serviceUrlVariables = [
     {
       key: 'NHOST_HASURA_URL',
       value:
@@ -92,127 +94,85 @@ export default function SystemEnvironmentVariableSettings() {
   ];
 
   return (
-    <SettingsCard className="gap-0">
+    <SettingsCard>
       <SettingsCardHeader
-        title="System Environment Variables"
-        description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
+        title="System environment variables"
+        description="Set automatically from your configuration file and your project's subdomain and region."
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables',
           topic: 'System Environment Variables',
         }}
       />
 
-      <SettingsCardContent className="mt-2 px-0">
-        <div className="grid grid-cols-3 gap-2 border-b-1 px-6 py-3">
-          <p className="font-medium">Variable Name</p>
-          <p className="font-medium lg:col-span-2">Value</p>
-        </div>
-
-        <div>
-          <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
-            <p>NHOST_ADMIN_SECRET</p>
-
-            <div className="flex items-center gap-2 lg:col-span-2">
-              <p className="min-w-0 break-words">
-                {showAdminSecret ? (
-                  <InlineCode className="!text-sm whitespace-normal font-medium">
-                    {adminSecret}
-                  </InlineCode>
-                ) : (
-                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-                )}
-              </p>
-
-              <Button
-                type="button"
-                variant="subtle"
-                size="icon"
-                className="shrink-0"
-                aria-label={
-                  showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
-                }
-                onClick={() => setShowAdminSecret((show) => !show)}
-              >
-                {showAdminSecret ? (
-                  <EyeOffIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-          <div className="!my-4 border-t" />
-
-          <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
-            <p>NHOST_WEBHOOK_SECRET</p>
-
-            <div className="flex items-center gap-2 lg:col-span-2">
-              <p className="min-w-0 break-words">
-                {showWebhookSecret ? (
-                  <InlineCode className="!text-sm whitespace-normal font-medium">
-                    {webhookSecret}
-                  </InlineCode>
-                ) : (
-                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-                )}
-              </p>
-
-              <Button
-                type="button"
-                variant="subtle"
-                size="icon"
-                className="shrink-0"
-                aria-label={
-                  showWebhookSecret
-                    ? 'Hide Webhook Secret'
-                    : 'Show Webhook Secret'
-                }
-                onClick={() => setShowWebhookSecret((show) => !show)}
-              >
-                {showWebhookSecret ? (
-                  <EyeOffIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-          <div className="!my-4 border-t" />
-
-          {systemEnvironmentVariables.map((environmentVariable, index) => (
-            <Fragment key={environmentVariable.key}>
-              <div className="grid grid-cols-2 gap-2 px-6 lg:grid-cols-3">
-                <p>{environmentVariable.key}</p>
-
-                <p className="truncate lg:col-span-2">
-                  {environmentVariable.value}
-                </p>
-              </div>
-
-              {index !== systemEnvironmentVariables.length - 1 && (
-                <div className="!my-4 border-t" />
-              )}
-            </Fragment>
+      <SettingsCardContent className="mt-2 gap-6">
+        <VariableGroup label="Project">
+          {projectVariables.map((variable) => (
+            <ValueRow
+              key={variable.key}
+              name={variable.key}
+              value={variable.value}
+            />
           ))}
-          <div className="!mb-2.5 !mt-4 border-t" />
+        </VariableGroup>
 
-          <div className="grid grid-cols-2 justify-start px-6 lg:grid-cols-3">
-            <p>NHOST_JWT_SECRET</p>
+        <VariableGroup label="Service URLs">
+          {serviceUrlVariables.map((variable) => (
+            <ValueRow
+              key={variable.key}
+              name={variable.key}
+              value={variable.value}
+            />
+          ))}
+        </VariableGroup>
 
-            <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
+        <VariableGroup label="Secrets">
+          <TableRow className="group">
+            <TableCell className="font-mono">NHOST_ADMIN_SECRET</TableCell>
+            <TableCell>
+              <MaskedValue name="NHOST_ADMIN_SECRET" value={adminSecret} />
+            </TableCell>
+          </TableRow>
+          <TableRow className="group">
+            <TableCell className="font-mono">NHOST_WEBHOOK_SECRET</TableCell>
+            <TableCell>
+              <MaskedValue name="NHOST_WEBHOOK_SECRET" value={webhookSecret} />
+            </TableCell>
+          </TableRow>
+          <TableRow className="group">
+            <TableCell className="font-mono">NHOST_JWT_SECRET</TableCell>
+            <TableCell>
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:bg-primary-highlight hover:text-primary"
+                variant="outline"
                 onClick={showViewJwtSecretModal}
               >
-                Show JWT Secret
+                Show JWT secret
               </Button>
-            </div>
-          </div>
-        </div>
+            </TableCell>
+          </TableRow>
+        </VariableGroup>
       </SettingsCardContent>
     </SettingsCard>
+  );
+}
+
+// A variable with a plain value, copied from the icon that shows on row hover.
+function ValueRow({ name, value }: { name: string; value: string }) {
+  return (
+    <TableRow className="group">
+      <TableCell className="font-mono">{name}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <span className="min-w-0 break-all text-muted-foreground">
+            {value}
+          </span>
+          <CopyToClipboardButton
+            className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+            textToCopy={value}
+            title={name}
+          />
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }
