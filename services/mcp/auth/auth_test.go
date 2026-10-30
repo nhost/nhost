@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log/slog"
+	"maps"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -87,6 +88,74 @@ func TestAuth(t *testing.T) { //nolint:paralleltest
 			authorization:  "Bearer " + makeToken(t, privateKey, authServer.URL, false),
 			expectedStatus: http.StatusOK,
 			checkWWWAuth:   false,
+		},
+		{
+			name: "valid token with application/ type prefix",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "application/at+jwt", nil,
+			),
+			expectedStatus: http.StatusOK,
+			checkWWWAuth:   false,
+		},
+		{
+			name: "session token",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "nhost-session+jwt", nil,
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
+		},
+		{
+			name: "legacy session token",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "JWT", nil,
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
+		},
+		{
+			name: "legacy access token",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "JWT",
+				jwt.MapClaims{"aud": "some-client", "scope": "openid graphql"},
+			),
+			expectedStatus: http.StatusOK,
+			checkWWWAuth:   false,
+		},
+		{
+			name: "OIDC ID token",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "JWT",
+				jwt.MapClaims{"aud": "some-client"},
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
+		},
+		{
+			name: "legacy-typed token with scope but no audience",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "JWT",
+				jwt.MapClaims{"scope": "openid graphql"},
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
+		},
+		{
+			name: "session token with access token claims",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "nhost-session+jwt",
+				jwt.MapClaims{"aud": "some-client", "scope": "openid graphql"},
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
+		},
+		{
+			name: "token without type",
+			authorization: "Bearer " + makeTokenWithType(
+				t, privateKey, authServer.URL, false, "", nil,
+			),
+			expectedStatus: http.StatusUnauthorized,
+			checkWWWAuth:   true,
 		},
 	}
 
@@ -435,6 +504,19 @@ func makeToken(
 ) string {
 	t.Helper()
 
+	return makeTokenWithType(t, key, issuer, expired, "at+jwt", nil)
+}
+
+func makeTokenWithType(
+	t *testing.T,
+	key *rsa.PrivateKey,
+	issuer string,
+	expired bool,
+	typ string,
+	extraClaims jwt.MapClaims,
+) string {
+	t.Helper()
+
 	now := time.Now()
 	exp := now.Add(time.Hour)
 
@@ -454,8 +536,11 @@ func makeToken(
 		},
 	}
 
+	maps.Copy(claims, extraClaims)
+
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = "test-key"
+	token.Header["typ"] = typ
 
 	signed, err := token.SignedString(key)
 	if err != nil {

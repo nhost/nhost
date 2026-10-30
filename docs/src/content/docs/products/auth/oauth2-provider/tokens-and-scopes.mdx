@@ -33,7 +33,11 @@ Access tokens are RSA-signed JWTs. They contain standard OAuth2 claims:
 }
 ```
 
-The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
+The JWT header includes `typ: at+jwt` ([RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068)) and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
+
+:::caution
+Access tokens, ID tokens and the session tokens your own app receives on sign-in are all signed with the same key and published in the same JWKS, so a valid signature does not tell them apart. A resource server that accepts access tokens must also reject any token whose `typ` header is not `at+jwt` (compared case-insensitively, with an optional `application/` prefix). Otherwise it will accept a user's session token or an ID token as an access token.
+:::
 
 ## The `graphql` Scope
 
@@ -57,6 +61,10 @@ When the `graphql` scope is requested, the access token includes GraphQL-compati
 ```
 
 Without the `graphql` scope, the `https://hasura.io/jwt/claims` namespace is omitted from the access token.
+
+:::note
+Storage checks file permissions through your GraphQL API, so an access token with the `graphql` or `graphql:role:xxxx` scope also works with [Storage](/products/storage): the app can upload, download and manage the files that the granted roles have permission to access. Keep this in mind when deciding which clients may request these scopes.
+:::
 
 ### The `graphql:role:xxxx` Scope
 
@@ -123,6 +131,8 @@ The ID token is issued when the `openid` scope is requested. It contains identit
 | `phone` | `phone_number`, `phone_number_verified` | Only if the user has a phone number |
 
 The `nonce` claim is included in the ID token if a `nonce` parameter was provided in the authorization request. It is **not** included on refresh.
+
+The ID token's JWT header includes `typ: JWT`. The ID token identifies the signed-in user to the OAuth2 client; it must not be used as a bearer access token for resource APIs.
 
 ## UserInfo Endpoint
 

@@ -96,7 +96,7 @@ func TestSignOut(t *testing.T) {
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "nhost-session+jwt",
 					},
 					Claims: &jwt.MapClaims{
 						"sub": userID.String(),
@@ -196,7 +196,7 @@ func TestSignOut(t *testing.T) {
 					Method: jwt.SigningMethodHS256,
 					Header: map[string]any{
 						"alg": "HS256",
-						"typ": "JWT",
+						"typ": "nhost-session+jwt",
 					},
 					Claims: &jwt.MapClaims{
 						"sub": userID.String(),

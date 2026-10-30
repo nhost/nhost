@@ -15,6 +15,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/oauth2"
 	"github.com/nhost/nhost/services/auth/go/oauth2/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 )
 
@@ -493,7 +494,8 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m
@@ -551,9 +553,14 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
-					Return("fake-token", nil).
-					Times(2)
+				gomock.InOrder(
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
+						Return("fake-token", nil),
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OIDCIDToken).
+						Return("fake-token", nil),
+				)
 
 				return m
 			},
@@ -594,9 +601,11 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
 				gomock.InOrder(
-					m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 						Return("access-token", nil),
-					m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OIDCIDToken).
 						Return("", errors.New("sign error")), //nolint:err113
 				)
 
@@ -632,7 +641,8 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db:   mock.NewMockDBClient,
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("", errors.New("sign error")) //nolint:err113
 
 				return m
@@ -737,7 +747,8 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m
@@ -776,7 +787,8 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m
@@ -1162,7 +1174,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m
@@ -1221,9 +1234,14 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
-					Return("fake-token", nil).
-					Times(2)
+				gomock.InOrder(
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
+						Return("fake-token", nil),
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OIDCIDToken).
+						Return("fake-token", nil),
+				)
 
 				return m
 			},
@@ -1265,9 +1283,11 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
 				gomock.InOrder(
-					m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 						Return("access-token", nil),
-					m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+					m.EXPECT().
+						SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OIDCIDToken).
 						Return("", errors.New("sign error")), //nolint:err113
 				)
 
@@ -1321,8 +1341,9 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				}, nil)
 
 				var capturedClaims map[string]any
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(claims map[string]any, _ time.Time) (string, error) {
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
+					DoAndReturn(func(claims map[string]any, _ time.Time, _ tokenpurpose.Purpose) (string, error) {
 						capturedClaims = claims
 
 						return "fake-token", nil
@@ -1390,8 +1411,9 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				m := mock.NewMockSigner(ctrl)
 
 				var capturedClaims map[string]any
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(claims map[string]any, _ time.Time) (string, error) {
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
+					DoAndReturn(func(claims map[string]any, _ time.Time, _ tokenpurpose.Purpose) (string, error) {
 						capturedClaims = claims
 
 						return "fake-token", nil
@@ -1436,7 +1458,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db:   mock.NewMockDBClient,
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("", errors.New("sign error")) //nolint:err113
 
 				return m
@@ -1547,7 +1570,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 					"x-hasura-allowed-roles": []string{"user"},
 				}, nil)
 
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("fake-token", nil)
 
 				return m
@@ -1596,7 +1620,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 					"x-hasura-allowed-roles": []string{"user", "editor"},
 				}, nil)
 
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("fake-token", nil)
 
 				return m
@@ -1665,7 +1690,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m
@@ -1705,7 +1731,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				m.EXPECT().SignTokenWithClaims(gomock.Any(), gomock.Any()).
+				m.EXPECT().
+					SignTokenWithClaims(gomock.Any(), gomock.Any(), tokenpurpose.OAuth2AccessToken).
 					Return("access-token", nil)
 
 				return m

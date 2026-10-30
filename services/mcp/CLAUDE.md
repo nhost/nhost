@@ -102,7 +102,7 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 1. MCP client discovers auth requirements via `/.well-known/oauth-protected-resource`
 2. Client obtains a token from the authorization server (Nhost Auth) using the OAuth2 authorization code flow with PKCE
 3. Client sends `Authorization: Bearer <token>` header on MCP requests
-4. Middleware fetches JWKS from `<auth-url>/.well-known/jwks.json` and validates the JWT (signature, issuer, expiration)
+4. Middleware fetches JWKS from `<auth-url>/.well-known/jwks.json` and validates the JWT (signature, issuer, expiration, and the RFC 9068 `typ: at+jwt` header).
 5. The validated JWT (and its Authorization header) are propagated to tool handlers via context
 6. Tool handlers forward the Authorization header to downstream GraphQL requests via `authorizationInterceptor`, so Hasura enforces permissions based on the JWT's Hasura claims
 
