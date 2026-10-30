@@ -1,17 +1,36 @@
 package controller
 
 import (
+	"context"
 	"errors"
+	"log/slog"
 	"slices"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
-	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
+	"github.com/nhost/nhost/services/constellation/controller/resolver"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+// nativeTargetValidator accepts controller-built database target roots without
+// applying published root-field customization a second time.
+//
+//go:generate mockgen -package mock -destination mock/native_target_validator.go . nativeTargetValidator
+type nativeTargetValidator interface {
+	ValidateNative(
+		operation *ast.OperationDefinition,
+		fragments ast.FragmentDefinitionList,
+		variables map[string]any,
+		role string,
+		sessionVariables map[string]any,
+	) error
+}
+
+//nolint:funlen // Keep grouped and ordinary validation in the same ordered pass before root execution.
 func (c *Controller) validateRemoteTargets(
+	ctx context.Context,
+	logger *slog.Logger,
 	state *controllerState,
 	plan *planner.QueryPlan,
 	fragments ast.FragmentDefinitionList,
@@ -22,6 +41,14 @@ func (c *Controller) validateRemoteTargets(
 	var allStructuredErrs []map[string]any
 
 	for _, target := range remoteValidationTargets(state, plan, fragments, variables) {
+		if target.aggregateError != nil {
+			allStructuredErrs = append(
+				allStructuredErrs, c.classifyConnectorError(ctx, logger, target.aggregateError)...,
+			)
+
+			continue
+		}
+
 		conn := state.connectors[target.connectorName]
 		if conn == nil {
 			// Missing target connectors are reported by the remote resolver; skip them here.
@@ -45,9 +72,16 @@ func (c *Controller) validateRemoteTargets(
 				*target.aggregateRequest, role, sessionVariables,
 			)
 		} else {
-			err = conn.ValidateOperation(
-				target.operation, target.fragments, variables, role, sessionVariables,
-			)
+			if native, ok := conn.(nativeTargetValidator); ok {
+				err = native.ValidateNative(
+					target.operation, target.fragments, variables, role, sessionVariables,
+				)
+			} else {
+				err = conn.ValidateOperation(
+					target.operation, target.fragments, variables, role, sessionVariables,
+				)
+			}
+
 			err = remapRemoteValidationArgumentPath(
 				err, target.remoteRootPath, target.clientPath,
 			)
@@ -57,7 +91,13 @@ func (c *Controller) validateRemoteTargets(
 			continue
 		}
 
-		if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		if target.aggregateRequest != nil {
+			// Unlike ordinary remote roots, the grouped builder is also used after
+			// the source mutation. A deterministic build failure must stop the write.
+			allStructuredErrs = append(
+				allStructuredErrs,
+				c.classifyConnectorError(ctx, logger, err)...)
+		} else if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
 			allStructuredErrs = append(allStructuredErrs, structuredErrs...)
 		}
 	}
@@ -72,16 +112,18 @@ type remoteValidationTarget struct {
 	operation        *ast.OperationDefinition
 	fragments        ast.FragmentDefinitionList
 	aggregateRequest *groupedaggregate.Request
+	aggregateError   error
 }
 
 func (t remoteValidationTarget) kind() string {
-	if t.aggregateRequest != nil {
+	if t.aggregateRequest != nil || t.aggregateError != nil {
 		return "aggregate"
 	}
 
 	return "operation"
 }
 
+//nolint:funlen // Aggregate and ordinary targets share one sorted validation order.
 func remoteValidationTargets(
 	state *controllerState,
 	plan *planner.QueryPlan,
@@ -100,6 +142,20 @@ func remoteValidationTargets(
 
 		clientPath := remoteQueryArgumentPath(rqp)
 		if rqp.IsArrayAggregate {
+			if len(rqp.JoinMapping) != 1 {
+				targets = append(targets, remoteValidationTarget{
+					connectorName:    rqp.TargetConnector,
+					clientPath:       clientPath,
+					remoteRootPath:   "",
+					operation:        nil,
+					fragments:        nil,
+					aggregateRequest: nil,
+					aggregateError:   resolver.ErrAggregateMultiColumnJoinUnsupported,
+				})
+
+				continue
+			}
+
 			req, ok := remoteAggregateValidationRequest(rqp, fragments, variables, clientPath)
 			if !ok {
 				continue
@@ -112,6 +168,7 @@ func remoteValidationTargets(
 				operation:        nil,
 				fragments:        nil,
 				aggregateRequest: &req,
+				aggregateError:   nil,
 			})
 
 			continue
@@ -129,6 +186,7 @@ func remoteValidationTargets(
 			operation:        op,
 			fragments:        fragments,
 			aggregateRequest: nil,
+			aggregateError:   nil,
 		})
 	}
 
@@ -174,7 +232,7 @@ func remoteValidationOperation(
 	return &ast.OperationDefinition{ //nolint:exhaustruct
 		Operation:    ast.Query,
 		SelectionSet: ast.SelectionSet{field},
-	}, responseFieldName(field)
+	}, field.Name
 }
 
 func remoteTargetTableName(state *controllerState, rqp *planner.RemoteQueryPlan) string {
@@ -228,9 +286,14 @@ func remoteAggregateValidationRequest(
 
 	req, err := groupedaggregate.NewRequest(groupedaggregate.Request{
 		TableSchema:       rqp.TargetTableSchema,
+		AllowEmptySchema:  false,
 		TableName:         rqp.TargetTable,
 		JoinColumnSQLName: targetCol,
 		JoinValues:        []any{""},
+		JoinColumns:       nil,
+		JoinTuples:        nil,
+		JSONTargets:       nil,
+		JSONTarget:        false,
 		Field:             rqp.Selection,
 		ArgumentPath:      clientPath,
 		Fragments:         fragments,
@@ -260,9 +323,14 @@ func singleTargetJoinColumn(joinMapping map[string]string) (string, bool) {
 }
 
 func remoteQueryArgumentPath(rqp *planner.RemoteQueryPlan) string {
-	path := make([]string, 0, len(rqp.SourcePath)+1)
-	path = append(path, rqp.SourcePath...)
-	path = append(path, rqp.OutputField)
+	names := rqp.SourceNamePath
+	if len(names) == 0 {
+		names = rqp.SourcePath
+	}
+
+	path := make([]string, 0, len(names)+1)
+	path = append(path, names...)
+	path = append(path, rqp.Selection.Name)
 
 	return strings.Join(path, ".selectionSet.")
 }
@@ -284,8 +352,11 @@ func remapRemoteValidationArgumentPath(
 		return err
 	}
 
-	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
-		vErr.RemapArgumentPath(func(path string) string {
+	if remapper, ok := errors.AsType[interface {
+		error
+		RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
+	}](err); ok {
+		remapper.RemapArgumentPath(func(path string) string {
 			if remoteRootPath == "" || path == remoteRootPath {
 				return clientPath
 			}

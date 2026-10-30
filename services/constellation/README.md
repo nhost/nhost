@@ -9,7 +9,8 @@ Constellation is a GraphQL engine that turns relational databases into a role-ba
 What this means in practice:
 
 - **Stable**: the SQL connectors (PostgreSQL, SQLite), GraphQL query/mutation/subscription pipeline, JWT/admin-secret auth, role-based permissions, remote schemas, and cross-source remote relationships. These have integration tests against real databases and are in production.
-- **Missing**: anything outside the GraphQL request path — Hasura Actions, event/cron triggers, REST endpoints, allowlists, query collections, inherited roles, native queries, computed fields, MSSQL/BigQuery/Snowflake. See [`docs/user/hasura-metadata-support.md`](./docs/user/hasura-metadata-support.md) for the full map of what's parsed vs. dropped.
+- **Partial**: PostgreSQL computed fields — scalar and table-valued selections, aggregates, argument-free filters, ordering and permission predicates, and scalar remote-relationship join keys. SQLite sources ignore them. See [`docs/user/postgres-features.md`](./docs/user/postgres-features.md#computed-fields-on-tracked-tables) and [`KNOWN_DIFFERENCES.md`](./KNOWN_DIFFERENCES.md#computed-fields).
+- **Missing**: anything outside the GraphQL request path — Hasura Actions, event/cron triggers, REST endpoints, allowlists, query collections, inherited roles, native queries, MSSQL/BigQuery/Snowflake. See [`docs/user/hasura-metadata-support.md`](./docs/user/hasura-metadata-support.md) for the full map of what's parsed vs. dropped.
 - **Required alongside Hasura today**: Constellation does not yet implement the Hasura Metadata HTTP API (`POST /v1/metadata`). It consumes metadata only — either from a YAML/JSON file on disk or by polling Hasura's `hdb_catalog.hdb_metadata` table. The typical deployment runs Hasura for metadata management and Constellation for query serving, with both pointing at the same database. See [Runtime modes](#runtime-modes).
 
 ## Performance

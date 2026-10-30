@@ -16,6 +16,7 @@ func TestParseGroupedAggregateResult(t *testing.T) {
 	tests := []struct {
 		name        string
 		raw         any
+		jsonTarget  bool
 		wantErr     bool
 		wantErrSub  string
 		wantKeys    []string
@@ -98,6 +99,30 @@ func TestParseGroupedAggregateResult(t *testing.T) {
 			wantKeys: []string{"1", "2"},
 		},
 		{
+			name: "JSON groups remain distinct and structured",
+			raw: jsontext.Value(`[{"_join_key":"1","nodes":[{"id":1}]},` +
+				`{"_join_key":1,"nodes":[{"id":2}]},` +
+				`{"_join_key":{"b":2,"a":1},"nodes":[]},` +
+				`{"_join_key":["first"],"nodes":[]}]`),
+			jsonTarget: true,
+			wantKeys:   []string{`json:"1"`, "json:1", `json:{"a":1,"b":2}`, `json:["first"]`},
+			checkValues: func(t *testing.T, out map[string]any) {
+				t.Helper()
+
+				entry, ok := out[`json:"1"`].(map[string]any)
+				if !ok {
+					t.Fatalf("JSON string group has wrong type: %T", out[`json:"1"`])
+				}
+
+				if diff := cmp.Diff(
+					[]any{map[string]any{"id": float64(1)}},
+					entry["nodes"],
+				); diff != "" {
+					t.Errorf("JSON string group mismatch (-want +got):\n%s", diff)
+				}
+			},
+		},
+		{
 			name:     "row missing aggregate/nodes still keyed by _join_key",
 			raw:      jsontext.Value(`[{"_join_key":"k"}]`),
 			wantKeys: []string{"k"},
@@ -120,7 +145,7 @@ func TestParseGroupedAggregateResult(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			out, err := parseGroupedAggregateResult(tt.raw)
+			out, err := parseGroupedAggregateResult(tt.raw, tt.jsonTarget)
 			if tt.wantErr {
 				checkParseErr(t, err, tt.wantErrSub)
 

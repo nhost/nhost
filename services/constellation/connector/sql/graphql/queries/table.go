@@ -36,10 +36,15 @@ type table struct {
 
 	pkColumns                []*core.Column
 	columns                  []*core.Column
+	physicalColumnTypes      map[string]string
+	restoreColumnTypes       map[string]string
 	conflictColumns          map[string][]string
 	conflictNullsNotDistinct map[string]bool
 	relationships            []*relationship
 	functions                []*function
+	computedScalars          []computedScalar
+	computedTables           []computedTable
+	computedGrants           map[string][]string
 
 	// allTables is retained so _exists permission predicates can resolve
 	// references to sibling tables within the same database.
@@ -72,10 +77,15 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		mutationDeleteByPkName:       "",
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
+		physicalColumnTypes:          map[string]string{},
+		restoreColumnTypes:           map[string]string{},
 		conflictColumns:              map[string][]string{},
 		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
 		functions:                    []*function{},
+		computedScalars:              nil,
+		computedTables:               nil,
+		computedGrants:               nil,
 		allTables:                    nil,
 
 		permissions: permissions.NewStore(),
@@ -99,6 +109,7 @@ func (t *table) Initialize(
 	}
 
 	columns := make([]*core.Column, len(tableObj.Columns))
+	t.initializePhysicalColumnTypes(tableObj.Columns)
 
 	for i, colObj := range tableObj.Columns {
 		graphqlName := colObj.Name
@@ -134,16 +145,34 @@ func (t *table) Initialize(
 	}
 
 	t.columns = columns
+
+	t.computedGrants = make(map[string][]string, len(md.SelectPermissions))
+	for _, permission := range md.SelectPermissions {
+		t.computedGrants[permission.Role] = permission.Permission.ComputedFields
+	}
+
 	t.conflictColumns, t.conflictNullsNotDistinct = tableConflictMetadata(tableObj)
 	t.allTables = tables
 
 	t.initializeRootNames(md)
+	// Root construction installs the executable scalar selections after
+	// initializing the table and its relationships.
 
 	if err := t.initializeRelationships(objects, tableObj, md, tables); err != nil {
 		return fmt.Errorf("error initializing relationships: %w", err)
 	}
 
 	return nil
+}
+
+func (t *table) initializePhysicalColumnTypes(columns []introspection.Column) {
+	t.physicalColumnTypes = make(map[string]string, len(columns))
+	t.restoreColumnTypes = make(map[string]string, len(columns))
+
+	for _, col := range columns {
+		t.physicalColumnTypes[col.Name] = col.PhysicalSQLType
+		t.restoreColumnTypes[col.Name] = col.RestoreSQLType
+	}
 }
 
 func tableConflictMetadata(tableObj *introspection.Table) (map[string][]string, map[string]bool) {
