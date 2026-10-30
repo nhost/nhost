@@ -1,3 +1,25 @@
+## [auth@0.53.0] - 2026-10-30
+
+### 🚀 Features
+
+- *(postgres)* Update postgres to 18.6 and drop support for 16 and 17 (#5020)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using TOTP (#4612)
+- *(auth)* Use pgmigrate to support downing migrations (#5264)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using email OTP (#4665)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using SMS OTP (#4831)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Don't convert OAuth access errors to internal-server-error (#5058)
+- *(auth)* Match email access rules case-insensitively (#5301)
+- *(auth)* Prevent panic in parseClaims on empty claim path (#5268)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Add generic SMS provider settings to .env.example (#5251)
+
 ## [auth@0.52.0] - 2026-09-15
 
 ### 🚀 Features
