@@ -976,7 +976,7 @@ func TestPlan(t *testing.T) {
 				)
 			}
 
-			plan, err := p.Plan(tt.op, tt.fragments, tt.role)
+			plan, err := p.Plan(tt.op, tt.fragments, tt.role, nil)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -1073,6 +1073,7 @@ func TestPlan_PreservesFragmentOnSharedTypeOwnedByCurrentConnector(t *testing.T)
 			},
 		},
 		"admin",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1148,6 +1149,7 @@ func TestPlan_OperationQualifiedRouting(t *testing.T) {
 				},
 				nil,
 				"admin",
+				nil,
 			)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -1178,7 +1180,7 @@ func TestPlan_UnknownRoleReturnsSentinelError(t *testing.T) {
 		},
 	}
 
-	plan, err := p.Plan(op, nil, "nonexistent_role")
+	plan, err := p.Plan(op, nil, "nonexistent_role", nil)
 	if !errors.Is(err, planner.ErrSchemaForRoleNotFound) {
 		t.Fatalf("expected ErrSchemaForRoleNotFound, got %v", err)
 	}

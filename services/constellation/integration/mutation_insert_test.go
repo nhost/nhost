@@ -647,13 +647,12 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// Multi-parent nested array-relationship insert through a composite FK
 		// (exercise_log_sets.(parent_id, parent_kind) -> exercise_logs.(id, kind)).
-		// Each child's parent_kind join column must be sourced from its OWN
-		// parent's `kind`, never the parent's `id`: the composite-FK column
-		// routing emits cte."kind" via NestedFKSource.ColumnName, not a hardcoded
-		// ."id". affected_rows sums the 2 parents + 3 children (= 5); a misrouted
-		// parent_kind would carry a uuid value that trips the parent_kind =
+		// Each child's parent_kind join column must be bound from its OWN
+		// captured parent's `kind`, never the parent's `id`. affected_rows sums
+		// the 2 parents + 3 children (= 5). A misrouted parent_kind would carry
+		// a uuid value that trips the parent_kind =
 		// 'strength' CHECK (and the composite FK), so an INSERT error there would
-		// break parity with Hasura. Also exercises per-parent partitioning of the
+		// break parity with Hasura. Also exercises per-parent traversal of the
 		// nested rows; the admin-role sibling below selects `sets` in returning to
 		// lock the read-back shape without coupling this user-role write/permission
 		// case to child select-permission traversal.
@@ -751,11 +750,8 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// children whose post-check (`note.author_id = X-Hasura-User-Id AND
 		// visibility = 'public'`) reaches the parent through note_id and
 		// references the DB-defaulted `visibility` column absent from the
-		// payload. Exercises buildMultiNestedInsertCTEPostCheck threading
-		// tableSubs into permissions.Store.WriteInsertCheckSubstituted so the
-		// EXISTS subquery reads from each parent's in-flight mutation_result
-		// CTE instead of the empty public.notes table. Also exercises the
-		// multi-parent partitioning fix: each parent's children must be
+		// payload. The child post-check reads its previously inserted parent
+		// from public.notes through note_id. Each parent's children must be
 		// inserted only against that parent (no cross-join, no drops).
 		{
 			name: "permissions: multi-row parent insert with nested array replies through parent CTE",
@@ -797,21 +793,13 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// INCON_HIGH_4: multi-parent partitioned array-rel insert with a MIXED
-		// column set across parents. Parent one's reply OMITS the NOT NULL
-		// DEFAULT 'public' `visibility` column; parent two's reply SUPPLIES it.
-		// Both children merge into one partitioned UNION-ALL data CTE
-		// (buildPartitionedUnionAllSelect). Pre-fix the omitting branch emitted
-		// `NULL::text AS "visibility"`, which the INSERT ... SELECT wrote
-		// explicitly into the NOT NULL column and tripped Postgres 23502;
-		// Hasura lets the per-row default apply. The fix emits
-		// `('public'::text)::text` for the omitted branch. RunGraphQLTests
-		// diffs against live Hasura, so the absence of Postgres 23502, the
-		// affected_rows sum, and the parent titles must match Hasura; the exact
-		// default expression is locked by
-		// TestBuildPartitionedUnionAllSelectDefaultExprForMissing. Uses the `user`
-		// role so `visibility` is permission-referenced and the post-check path
-		// is the one exercised.
+		// INCON_HIGH_4: parent replies have a mixed column set. The first omits
+		// NOT NULL DEFAULT 'public' `visibility`; the second supplies it. Each
+		// parent row and its reply batch run as separate steps, so the database
+		// default applies to the omitted value. The flat default-expression
+		// shape is pinned by TestBuildUnionAllSelectDefaultExprForMissing.
+		// RunGraphQLTests compares results with live Hasura. The `user` role's
+		// permission references `visibility`, exercising the post-check path.
 		{
 			name: "multi-parent array-rel insert applies DB default for omitted NOT NULL column (Hasura parity)",
 			query: query{
@@ -851,17 +839,10 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Single-parent collection-insert with a nested array-rel child
-		// whose substituted post-check denies (visibility = "private" trips
-		// the `visibility _eq "public"` leaf). The selection set is
-		// `{ returning { id } }` ONLY — no `affected_rows` — so the
-		// affected_rows COUNT sum that historically forced Postgres to
-		// evaluate the gated `nested_replies` chain is gone. Exercises the
-		// returning-side `WHERE (SELECT COUNT(*) FROM nested_replies) IS
-		// NOT NULL` force reference emitted by writeNestedCTEForceRef: if
-		// removed, the gated `nested_replies_post_check` CTE is elided and
-		// `constellation_throw_error` never fires, leaving the
-		// permission-violating reply in the database silently.
+		// A nested child's post-insert check must run even if the mutation
+		// selects only `returning { id }` and no affected_rows. Its private
+		// visibility fails the child's permission check; the parent and
+		// child statements must both roll back.
 		{
 			name: "permissions: nested array insert denied at substituted child post-check (returning only, no affected_rows)",
 			query: query{
@@ -936,8 +917,8 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// the child's `visibility _eq "public"` insert check via
 		// `visibility: "private"`. Because every child explicitly supplies
 		// visibility, the child insert stays on the pre-check path. With
-		// partitioning the offending row survives parse-time, reaches the
-		// pre-check with its matched parent FK, and the mutation errors out —
+		// per-parent traversal the offending row reaches its pre-check with
+		// the matched parent FK, and the mutation errors out —
 		// matching Hasura. Pre-bug, parent[1]'s row was silently dropped and
 		// the check passed: a permission bypass.
 		{
@@ -1115,8 +1096,8 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// parent + every nested-rel row — so this 1-row collection insert
 		// with one nested storage.files parent must report affected_rows = 2.
 		// RunGraphQLTests runs the case against BOTH Hasura and Constellation
-		// and diffs results, so a future change that filters nested CTEs out
-		// of the affected_rows sum (e.g. limiting to the gated subset) would
+		// and diffs results, so a future change that excludes dependent steps
+		// from the affected_rows sum (e.g. counting only root rows) would
 		// regress to affected_rows = 1 and fail this test.
 		//
 		// Uses admin role to keep the case purely about the sum semantics —
@@ -1156,10 +1137,8 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// CTE (nested_file) and cross-joined it onto every parent, so the second
 		// file was silently dropped and BOTH parents linked to file A.
 		// RunGraphQLTests diffs Constellation against the live Hasura, so the
-		// per-parent partitioning (nested_file_0 / nested_file_1) is asserted
-		// for affected_rows, per-parent file_id linkage, and returning.file
-		// resolution from the nested CTEs rather than a snapshot-hidden base-table
-		// scan.
+		// per-parent traversal is asserted for affected_rows, per-parent file_id
+		// linkage, and returning.file read-back after the nested writes.
 		{
 			name: "object-rel collection insert: each parent row links to its own nested file (Hasura parity)",
 			query: query{

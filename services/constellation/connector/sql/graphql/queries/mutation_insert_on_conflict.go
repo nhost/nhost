@@ -635,16 +635,3 @@ func writeConflictKeyMatch(
 		core.WriteQualifiedColumn(b, rightSource, column)
 	}
 }
-
-// sourceColumnsFromInsertObject mirrors the single-row source CTE's visible
-// columns. Parent-sourced nested FK columns are included because the source CTE
-// selects them from their parent CTE, so they are available for conflict-key
-// detection.
-func sourceColumnsFromInsertObject(insertObj arguments.InsertObject) []string {
-	columns := make([]string, 0, len(insertObj.Columns))
-	for _, column := range insertObj.Columns {
-		columns = append(columns, column.Column.SQLName)
-	}
-
-	return columns
-}

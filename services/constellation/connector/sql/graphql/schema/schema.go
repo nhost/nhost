@@ -88,6 +88,15 @@ type Capabilities struct {
 	// SupportsFunctions gates the emission of GraphQL fields for tracked
 	// SQL functions.
 	SupportsFunctions bool
+	// SupportsComputedFields is the durable PostgreSQL backend capability;
+	// rollout gates below additionally require each executor to be ready.
+	SupportsComputedFields bool
+	// PostgreSQL scalar and table selections and scalar user inputs are enabled.
+	// Table-valued predicate/order inputs remain gated until their executors are complete.
+	SupportsComputedScalarSelection bool
+	SupportsComputedTableSelection  bool
+	SupportsComputedScalarInput     bool
+	SupportsComputedTableInput      bool
 	// SupportsArrays gates the emission of <scalar>_array_comparison_exp
 	// input types and array-typed column fields on bool_exp inputs.
 	SupportsArrays bool
@@ -151,15 +160,20 @@ func ParseDBKind(s string) (DBKind, error) {
 // mis-namespaced types.
 func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 	return Capabilities{
-		Kind:                          kind,
-		SupportsRegex:                 dial.SupportsRegex(),
-		SupportsJSONB:                 dial.SupportsJSONB(),
-		SupportsDistinctOn:            dial.SupportsDistinctOn(),
-		SupportsFunctions:             dial.SupportsFunctions(),
-		SupportsArrays:                dial.SupportsArrays(),
-		SupportsSpatialTypes:          dial.SupportsSpatialTypes(),
-		SupportsVarianceAggregates:    dial.SupportsVarianceAggregates(),
-		SupportsStableVarianceOrderBy: dial.SupportsStableVarianceOrderBy(),
+		Kind:                            kind,
+		SupportsRegex:                   dial.SupportsRegex(),
+		SupportsJSONB:                   dial.SupportsJSONB(),
+		SupportsDistinctOn:              dial.SupportsDistinctOn(),
+		SupportsFunctions:               dial.SupportsFunctions(),
+		SupportsComputedFields:          kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedScalarSelection: kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedTableSelection:  kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedScalarInput:     kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedTableInput:      kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsArrays:                  dial.SupportsArrays(),
+		SupportsSpatialTypes:            dial.SupportsSpatialTypes(),
+		SupportsVarianceAggregates:      dial.SupportsVarianceAggregates(),
+		SupportsStableVarianceOrderBy:   dial.SupportsStableVarianceOrderBy(),
 	}
 }
 
