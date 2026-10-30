@@ -219,8 +219,10 @@ export default function GeneralSettings() {
                   loading={unpauseLoading || isUnpausing}
                   onClick={onUnpause}
                   className="w-full gap-2 sm:w-auto"
+                  loaderClassName="mr-0"
                 >
-                  <Play />
+                  {/* The spinner takes the icon's place while loading. */}
+                  {!(unpauseLoading || isUnpausing) && <Play />}
                   {isUnpausing ? 'Waking up...' : 'Wake up'}
                 </ButtonWithLoading>
               }
@@ -291,8 +293,9 @@ export default function GeneralSettings() {
                     });
                   }}
                   className="w-full gap-2 sm:w-auto"
+                  loaderClassName="mr-0"
                 >
-                  <Pause />
+                  {!(pauseLoading || isPausing) && <Pause />}
                   {isPausing ? 'Pausing...' : 'Pause'}
                 </ButtonWithLoading>
               }

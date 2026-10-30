@@ -205,8 +205,11 @@ function TransferProjectForm({
             disabled={form.formState.isSubmitting || !form.formState.isDirty}
             loading={form.formState.isSubmitting}
             className="gap-2"
+            loaderClassName="mr-0"
           >
-            {!createNewFormSelected && <ArrowLeftRight />}
+            {!createNewFormSelected && !form.formState.isSubmitting && (
+              <ArrowLeftRight />
+            )}
             {submitButtonText}
           </Button>
         </div>
