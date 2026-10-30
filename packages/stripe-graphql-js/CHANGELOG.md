@@ -1,3 +1,21 @@
+## [@nhost/stripe-graphql-js@1.4.1] - 2026-10-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update dependencies due to CVEs (#5307)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5103)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+- *(deps)* Update vulnerable dependencies (#5226)
+- *(deps)* Update vulnerable dependencies (#5242)
+- *(deps)* Update vulnerable dependencies (#5256)
+
 ## [@nhost/stripe-graphql-js@1.4.0] - 2026-09-30
 
 ### 🚀 Features
