@@ -4,6 +4,8 @@ import type {
   TableRelationshipFormValues,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import type {
+  ForeignKeyConstraintObjectRelationship,
+  ForeignKeyConstraintOn,
   RelationshipUsing,
   RelationshipUsingForeignKeyConstraintOn,
   RelationshipUsingManualConfiguration,
@@ -27,6 +29,27 @@ export const isUsingForeignKeyConstraint = (
   using: RelationshipUsing,
 ): using is RelationshipUsingForeignKeyConstraintOn =>
   'foreign_key_constraint_on' in using;
+
+/**
+ * Narrows a `foreign_key_constraint_on` to the shapes that place the constraint
+ * on the table declaring the relationship (a bare column or a column array).
+ * The remaining shape, `{ table, column(s) }`, places it on the referenced
+ * table.
+ *
+ * `true` implies an object relationship; `false` can be an array relationship.
+ *
+ * @example
+ * // FK `orders.user_id -> users.id`:
+ * isFKConstraintOnSameTable('user_id'); // true, declared on `orders`
+ * isFKConstraintOnSameTable({
+ *   table: { schema: 'public', name: 'orders' },
+ *   column: 'user_id',
+ * }); // false, declared on `users`
+ */
+export const isFKConstraintOnSameTable = (
+  constraint: ForeignKeyConstraintOn | undefined,
+): constraint is ForeignKeyConstraintObjectRelationship =>
+  typeof constraint === 'string' || Array.isArray(constraint);
 
 export const isLocalRelationshipViewModel = (
   relationship: RelationshipViewModel,

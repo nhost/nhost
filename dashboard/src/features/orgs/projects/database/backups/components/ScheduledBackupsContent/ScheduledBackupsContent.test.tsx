@@ -1,10 +1,6 @@
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import {
-  mockApplication,
-  mockMatchMediaValue,
-  mockOrganization,
-} from '@/tests/mocks';
+import { mockApplication, mockMatchMediaValue } from '@/tests/mocks';
 import {
   getApplicationBackups,
   MOCK_BACKUP_ID,
@@ -100,14 +96,11 @@ describe('ScheduledBackupsContent', () => {
       }),
     );
     expect(
-      await screen.findByText(
-        'Your backup restore has been scheduled successfully and will start shortly.',
-      ),
+      await screen.findByText('Your backup has been restored successfully.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Logs page' })).toHaveAttribute(
-      'href',
-      `/orgs/${mockOrganization.slug}/projects/${mockApplication.subdomain}/logs`,
-    );
+    expect(
+      screen.queryByRole('link', { name: 'Logs page' }),
+    ).not.toBeInTheDocument();
   });
 
   test('downloads a scheduled backup from the current project', async () => {

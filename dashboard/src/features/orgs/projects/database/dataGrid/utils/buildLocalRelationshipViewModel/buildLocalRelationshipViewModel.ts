@@ -1,12 +1,13 @@
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
+  isFKConstraintOnSameTable,
   isUsingForeignKeyConstraint,
   isUsingManualConfiguration,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
-import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { areStrArraysEqual, isEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
@@ -57,84 +58,45 @@ export default function buildLocalRelationshipViewModel({
     remoteTableName = using.manual_configuration.remote_table.name;
   } else if (isUsingForeignKeyConstraint(using)) {
     const { foreign_key_constraint_on: foreignKeyConstraintOn } = using;
-    if (type === 'Object') {
-      if (typeof foreignKeyConstraintOn === 'string') {
-        localColumns = [foreignKeyConstraintOn];
 
-        const matchingRelation = foreignKeyRelations.find(
-          (relation) => relation.columnName === foreignKeyConstraintOn,
-        );
+    if (type === 'Array' && typeof foreignKeyConstraintOn !== 'object') {
+      throw new Error(
+        'foreignKeyConstraintOn must be an object when type is Array',
+      );
+    }
 
-        if (matchingRelation) {
-          remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
-          remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
-        }
-      } else if (Array.isArray(foreignKeyConstraintOn)) {
-        localColumns = foreignKeyConstraintOn;
+    if (isFKConstraintOnSameTable(foreignKeyConstraintOn)) {
+      if (type === 'Object') {
+        localColumns = getForeignKeyConstraintColumns(foreignKeyConstraintOn);
 
         const matchingRelation = foreignKeyRelations.find((relation) =>
-          areStrArraysEqual(
-            formatForeignKeyColumns(relation.columnName),
-            foreignKeyConstraintOn,
-          ),
+          areStrArraysEqual(relation.columns, localColumns),
         );
 
         if (matchingRelation) {
+          localColumns = matchingRelation.columns;
           remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
           remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
+          remoteColumns = matchingRelation.referencedColumns;
         }
       }
-    } else if (type === 'Array') {
-      if (typeof foreignKeyConstraintOn !== 'object') {
-        throw new Error(
-          'foreignKeyConstraintOn must be an object when type is Array',
-        );
-      }
+    } else {
+      remoteColumns = getForeignKeyConstraintColumns(foreignKeyConstraintOn);
+      remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
+      remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
 
-      if ('column' in foreignKeyConstraintOn) {
-        remoteColumns = isNotEmptyValue(foreignKeyConstraintOn.column)
-          ? [foreignKeyConstraintOn.column]
-          : [];
-        remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
-        remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
-      } else if ('columns' in foreignKeyConstraintOn) {
-        remoteColumns = foreignKeyConstraintOn.columns ?? [];
-        remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
-        remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
-      }
+      const matchingSuggestion = suggestedRelationships?.find(
+        ({ from, to }) =>
+          from?.table?.schema === tableSchema &&
+          from?.table?.name === tableName &&
+          to?.table?.schema === remoteTableSchema &&
+          to?.table?.name === remoteTableName &&
+          areStrArraysEqual(to?.columns ?? [], remoteColumns),
+      );
 
-      const matchingSuggestion = suggestedRelationships?.find((suggestion) => {
-        const suggestionFrom = suggestion.from;
-        const suggestionTo = suggestion.to;
-
-        if (suggestion.type !== 'array') {
-          return false;
-        }
-
-        const isSameFromTable =
-          suggestionFrom?.table?.schema === tableSchema &&
-          suggestionFrom?.table?.name === tableName;
-
-        const isSameToTable =
-          suggestionTo?.table?.schema === remoteTableSchema &&
-          suggestionTo?.table?.name === remoteTableName;
-
-        const isSameToColumns = areStrArraysEqual(
-          suggestionTo?.columns ?? [],
-          remoteColumns,
-        );
-
-        return isSameFromTable && isSameToTable && isSameToColumns;
-      });
-
-      if (isNotEmptyValue(matchingSuggestion)) {
+      if (matchingSuggestion) {
         localColumns = matchingSuggestion.from?.columns ?? [];
+        remoteColumns = matchingSuggestion.to?.columns ?? remoteColumns;
       }
     }
   }

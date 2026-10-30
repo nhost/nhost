@@ -106,6 +106,8 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 	statusCode int,
 	bucketMetadata BucketMetadata,
 	fileMetadata api.FileMetadata,
+	filename string,
+	mimeType string,
 ) (api.GetFileMetadataHeadersResponseObject, *APIError) {
 	switch statusCode {
 	case http.StatusOK:
@@ -113,14 +115,14 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 			Headers: api.GetFileMetadataHeaders200ResponseHeaders{
 				AcceptRanges:     new("bytes"),
 				CacheControl:     new(bucketMetadata.CacheControl),
-				ContentType:      new(fileMetadata.MimeType),
+				ContentType:      new(mimeType),
 				Etag:             new(fileMetadata.Etag),
 				LastModified:     new(api.RFC2822Date(fileMetadata.UpdatedAt)),
 				SurrogateControl: new(bucketMetadata.CacheControl),
 				SurrogateKey:     new(fileMetadata.Id),
 				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
-					url.QueryEscape(fileMetadata.Name),
+					url.QueryEscape(filename),
 				)),
 				ContentLength: new(int(fileMetadata.Size)),
 			},
@@ -179,7 +181,9 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		return nil, apiErr
 	}
 
-	if !opts.IsEmpty() {
+	// Validate explicit options even for bodyless conditional responses, but only
+	// download and transform the image when its content length will be returned.
+	if !opts.IsEmpty() && statusCode == http.StatusOK {
 		download, apiErr := ctrl.contentStorage.GetFile(ctx, fileMetadata.Id, nil)
 		if apiErr != nil {
 			return nil, apiErr
@@ -197,7 +201,11 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		defer object.Close()
 	}
 
-	return ctrl.getFileMetadataHeadersResponseObject(statusCode, bucketMetadata, fileMetadata)
+	filename, mimeType := getFileNameAndMimeType(fileMetadata, opts)
+
+	return ctrl.getFileMetadataHeadersResponseObject(
+		statusCode, bucketMetadata, fileMetadata, filename, mimeType,
+	)
 }
 
 func (ctrl *Controller) GetFileMetadataHeaders( //nolint:ireturn

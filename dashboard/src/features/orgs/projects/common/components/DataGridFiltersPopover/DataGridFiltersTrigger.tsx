@@ -21,7 +21,7 @@ export default forwardRef(
       >
         <Funnel />
         {numberOfAppliedFilters > 0 && (
-          <span className="absolute right-[6px] bottom-[6px] w-[0.725rem] rounded-full bg-primary-text p-0 text-[0.725rem] text-paper leading-none">
+          <span className="absolute right-1.5 bottom-1.5 w-2.5 rounded-full bg-primary-text p-0 text-2xs text-paper leading-none">
             {numberOfAppliedFilters}
           </span>
         )}

@@ -7,7 +7,7 @@ import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
@@ -103,11 +103,11 @@ export default function ResetPasswordPage() {
 
 ResetPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
+    <AuthFlowLayout
       title="Request Password Reset"
       rightColumnContent={<SignInRightColumn />}
     >
       {page}
-    </UnauthenticatedLayout>
+    </AuthFlowLayout>
   );
 };

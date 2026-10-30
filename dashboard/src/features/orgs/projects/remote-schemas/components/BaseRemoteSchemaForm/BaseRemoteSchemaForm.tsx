@@ -47,7 +47,7 @@ export const baseRemoteSchemaValidationSchema = z.object({
       )
       .optional(),
     timeout_seconds: z.coerce
-      .number({ invalid_type_error: 'Timeout must be a number.' })
+      .number<number>({ error: 'Timeout must be a number.' })
       .positive('Timeout must be a positive number.'),
     customization: z
       .object({
@@ -60,7 +60,7 @@ export const baseRemoteSchemaValidationSchema = z.object({
           .object({
             prefix: z.string().optional(),
             suffix: z.string().optional(),
-            mapping: z.record(z.string()).optional(),
+            mapping: z.record(z.string(), z.string()).optional(),
           })
           .optional(),
         field_names: z
@@ -69,7 +69,7 @@ export const baseRemoteSchemaValidationSchema = z.object({
               parent_type: z.string().optional(),
               prefix: z.string().optional(),
               suffix: z.string().optional(),
-              mapping: z.record(z.string()).optional(),
+              mapping: z.record(z.string(), z.string()).optional(),
             }),
           )
           .optional(),
@@ -127,7 +127,7 @@ function FormFooter({
   return (
     <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
       <Button
-        variant="outline-emboss"
+        variant="outline"
         onClick={onCancel}
         tabIndex={isDirty ? -1 : 0}
         type="button"

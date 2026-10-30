@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { NavLink } from '@/components/common/NavLink';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
-import InfoAlert from '@/features/orgs/components/InfoAlert/InfoAlert';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -46,22 +46,24 @@ export default function PermissionsGridLayout({
 
           {children}
 
-          <InfoAlert>
-            Please go to the{' '}
-            <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
-              underline="hover"
-              className="px-0"
-            >
-              Settings page
-            </NavLink>{' '}
-            to add and delete roles.
-          </InfoAlert>
+          <Alert>
+            <AlertDescription>
+              Please go to the{' '}
+              <NavLink
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+                underline="hover"
+                className="px-0"
+              >
+                Settings page
+              </NavLink>{' '}
+              to add and delete roles.
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

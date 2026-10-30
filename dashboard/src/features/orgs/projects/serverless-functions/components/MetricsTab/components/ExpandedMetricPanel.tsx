@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import { MetricChart } from '@/features/orgs/projects/common/metrics/components/MetricChart';
 import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
 import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import {
@@ -86,17 +86,12 @@ export default function ExpandedMetricPanel({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <CopyToClipboardButton
-              textToCopy={shareUrl}
-              title="Link"
-              aria-label="Copy link"
-              className="px-3 py-2.5 text-sm"
-            >
+            <CopyToClipboardButton textToCopy={shareUrl} title="Link">
               Copy link
             </CopyToClipboardButton>
             <Button
               type="button"
-              variant="ghost"
+              variant="subtle"
               size="icon"
               onClick={onClose}
               aria-label="Close expanded panel"

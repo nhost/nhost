@@ -555,21 +555,21 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	if unptr(
-		config.GetAuth().GetMethod().GetSmsPasswordless().GetEnabled(),
-	) {
+	// smsPasswordless is the deprecated name of otp.sms, either one enables SMS OTP
+	otpSmsEnabled := unptr(config.GetAuth().GetMethod().GetOtp().GetSms().GetEnabled()) ||
+		unptr(config.GetAuth().GetMethod().GetSmsPasswordless().GetEnabled())
+	if otpSmsEnabled {
 		env = append(env, []EnvVar{
 			{
-				Name: "AUTH_SMS_PASSWORDLESS_ENABLED",
-				Value: Stringify(
-					unptr(
-						config.
-							GetAuth().
-							GetMethod().
-							GetSmsPasswordless().
-							GetEnabled(),
-					),
-				),
+				Name:       "AUTH_OTP_SMS_ENABLED",
+				Value:      Stringify(otpSmsEnabled),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			{
+				// understood by auth versions predating AUTH_OTP_SMS_ENABLED
+				Name:       "AUTH_SMS_PASSWORDLESS_ENABLED",
+				Value:      Stringify(otpSmsEnabled),
 				IsSecret:   false,
 				SecretName: "",
 			},

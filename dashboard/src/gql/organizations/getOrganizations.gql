@@ -11,7 +11,6 @@ query getOrganizations($userId: uuid!) {
       name
       price
       deprecated
-      individual
       isFree
       featureMaxDbSize
       slaLevel

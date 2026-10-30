@@ -84,11 +84,6 @@ test('should not be able to delete a table if other tables have foreign keys ref
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  // select column in current table
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-
-  await page.getByRole('option', { name: /author_id/i }).click();
-
   // select reference schema
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
@@ -97,9 +92,14 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
-  // select reference column
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  // select the referenced key
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  // map the local column to the referenced column
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'author_id', exact: true }).click();
+
   await page.getByRole('button', { name: /add/i }).click();
 
   await expect(

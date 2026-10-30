@@ -22,7 +22,8 @@ function RemoveSecurityKeyButton({ id }: Props) {
 
   return (
     <Button
-      variant="ghost"
+      variant="subtle"
+      size="sm"
       onClick={handleClick}
       aria-label={`Remove security key ${id}`}
     >

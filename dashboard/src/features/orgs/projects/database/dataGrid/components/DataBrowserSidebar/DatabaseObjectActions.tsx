@@ -1,5 +1,5 @@
 import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
-import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { Anchor, Ellipsis, Pencil, Trash2, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -11,8 +11,7 @@ import {
 import type { DatabaseObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 
-const menuItemClassName =
-  'flex hover:cursor-pointer hover:bg-data-cell-bg h-9 font-medium items-center justify-start gap-2 rounded-none border border-b-1 text-sm+ leading-4';
+const menuItemClassName = 'cursor-pointer gap-2';
 
 const editLabels: Record<DatabaseObjectType, string> = {
   'ORDINARY TABLE': 'Edit Table',
@@ -90,35 +89,25 @@ function DatabaseObjectActions({
   const deleteLabel = deleteLabels[objectType] || 'Delete';
 
   return (
-    <DropdownMenu
-      open={open}
-      onOpenChange={handleOnOpenChange}
-      // The menu items open MUI drawers/dialogs. A modal Radix menu would
-      // still have `#__next` aria-hidden when MUI opens, so MUI's ModalManager
-      // treats it as already hidden and never restores it on close.
-      modal={false}
-    >
+    <DropdownMenu open={open} onOpenChange={handleOnOpenChange} modal={false}>
       <DropdownMenuTrigger
         className={cn(className)}
         disabled={disabled}
         asChild
       >
         <Button
-          id={`${idPrefix}-management-menu-${objectName}`}
-          variant="outline"
+          data-testid={`${idPrefix}-management-menu-${objectName}`}
+          variant="subtle"
           size="icon"
-          className={cn(
-            'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent',
-            triggerClassName,
-          )}
+          className={cn('h-6 w-6', triggerClassName)}
         >
           {triggerIcon ?? <Ellipsis />}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">
+      <DropdownMenuContent side="bottom" align="start" className="w-52">
         {isSelectedNotSchemaLocked && (
           <DropdownMenuItem className={menuItemClassName} onClick={onEdit}>
-            <SquarePen className="h-4 w-4" /> <span>{editLabel}</span>
+            <Pencil className="h-4 w-4" /> <span>{editLabel}</span>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem
@@ -153,7 +142,7 @@ function DatabaseObjectActions({
           <DropdownMenuItem
             className={cn(
               menuItemClassName,
-              '!text-sm+ !text-destructive font-medium',
+              'text-destructive focus:bg-destructive-hover focus:text-destructive',
             )}
             onClick={onDelete}
           >

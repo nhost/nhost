@@ -1,4 +1,4 @@
-import { Download, Info, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -58,8 +58,7 @@ export default function ExportMetadataSection() {
         Download your current metadata as a JSON file for backup or version
         control.
       </p>
-      <Alert variant="info">
-        <Info className="size-5" />
+      <Alert>
         <AlertDescription className="text-muted-foreground">
           Includes tracked tables, relationships, permissions, event triggers,
           and remote schemas.

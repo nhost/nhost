@@ -137,6 +137,30 @@ func (e CredentialType) Valid() bool {
 	}
 }
 
+// Defines values for ElevationMethod.
+const (
+	ElevationMethodOtpEmail ElevationMethod = "otp-email"
+	ElevationMethodOtpSms   ElevationMethod = "otp-sms"
+	ElevationMethodTotp     ElevationMethod = "totp"
+	ElevationMethodWebauthn ElevationMethod = "webauthn"
+)
+
+// Valid indicates whether the value is a known member of the ElevationMethod enum.
+func (e ElevationMethod) Valid() bool {
+	switch e {
+	case ElevationMethodOtpEmail:
+		return true
+	case ElevationMethodOtpSms:
+		return true
+	case ElevationMethodTotp:
+		return true
+	case ElevationMethodWebauthn:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ErrorResponseError.
 const (
 	CannotSendSms                   ErrorResponseError = "cannot-send-sms"
@@ -397,16 +421,16 @@ func (e UserDeanonymizeRequestSignInMethod) Valid() bool {
 
 // Defines values for UserMfaRequestActiveMfaType.
 const (
-	Empty UserMfaRequestActiveMfaType = ""
-	Totp  UserMfaRequestActiveMfaType = "totp"
+	UserMfaRequestActiveMfaTypeEmpty UserMfaRequestActiveMfaType = ""
+	UserMfaRequestActiveMfaTypeTotp  UserMfaRequestActiveMfaType = "totp"
 )
 
 // Valid indicates whether the value is a known member of the UserMfaRequestActiveMfaType enum.
 func (e UserMfaRequestActiveMfaType) Valid() bool {
 	switch e {
-	case Empty:
+	case UserMfaRequestActiveMfaTypeEmpty:
 		return true
-	case Totp:
+	case UserMfaRequestActiveMfaTypeTotp:
 		return true
 	default:
 		return false
@@ -1035,6 +1059,39 @@ type CredentialPropertiesOutput struct {
 
 // CredentialType The valid credential types
 type CredentialType string
+
+// ElevateOTPEmailVerifyRequest defines model for ElevateOTPEmailVerifyRequest.
+type ElevateOTPEmailVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevateOTPSmsVerifyRequest defines model for ElevateOTPSmsVerifyRequest.
+type ElevateOTPSmsVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevateTotpRequest defines model for ElevateTotpRequest.
+type ElevateTotpRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevationMethod Method that can be used to elevate a session
+type ElevationMethod string
+
+// ElevationMethodsResponse Elevation status of the user
+type ElevationMethodsResponse struct {
+	// ElevationRequired Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+	ElevationRequired bool `json:"elevationRequired"`
+
+	// Methods Methods the user can use to elevate their session
+	Methods []ElevationMethod `json:"methods"`
+
+	// SessionElevated Whether the bearer token has an elevated claim matching its subject
+	SessionElevated bool `json:"sessionElevated"`
+}
 
 // ErrorResponse Standardized error response
 type ErrorResponse struct {
@@ -1974,6 +2031,15 @@ type VerifyTicketParams struct {
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
 type VerifyTicketParamsType string
+
+// VerifyElevateOTPEmailJSONRequestBody defines body for VerifyElevateOTPEmail for application/json ContentType.
+type VerifyElevateOTPEmailJSONRequestBody = ElevateOTPEmailVerifyRequest
+
+// VerifyElevateOTPSmsJSONRequestBody defines body for VerifyElevateOTPSms for application/json ContentType.
+type VerifyElevateOTPSmsJSONRequestBody = ElevateOTPSmsVerifyRequest
+
+// ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
+type ElevateTotpJSONRequestBody = ElevateTotpRequest
 
 // VerifyElevateWebauthnJSONRequestBody defines body for VerifyElevateWebauthn for application/json ContentType.
 type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest

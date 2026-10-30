@@ -193,12 +193,12 @@ export default function ColumnPresetsSection({
         </div>
 
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           type="button"
           onClick={() => append({ column: '', value: '' })}
           disabled={isAddColumnDisabled}
-          className="justify-self-start text-primary hover:text-primary"
+          className="justify-self-start"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Column

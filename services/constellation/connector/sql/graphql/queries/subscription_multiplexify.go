@@ -12,8 +12,6 @@ import (
 
 const subscriptionTemplateSessionArgumentKey = "\x00nhost.subscription.template.session_argument"
 
-type subscriptionTemplateSessionArgument struct{}
-
 // markSubscriptionTemplateSessionArgument returns a shallow copy of
 // sessionVariables tagged so function session_argument placeholders use a
 // multiplexed whole-session marker instead of eagerly marshaling the template
@@ -22,7 +20,11 @@ func markSubscriptionTemplateSessionArgument(sessionVariables map[string]any) ma
 	marked := make(map[string]any, len(sessionVariables)+1)
 	maps.Copy(marked, sessionVariables)
 
-	marked[subscriptionTemplateSessionArgumentKey] = subscriptionTemplateSessionArgument{}
+	// Permission predicates also inspect SessionVarValue markers to defer
+	// whole-session JSON binding until each subscriber is multiplexed.
+	marked[subscriptionTemplateSessionArgumentKey] = core.SessionVarValue{
+		Name: subscriptionTemplateSessionArgumentKey,
+	}
 
 	return marked
 }
@@ -31,7 +33,7 @@ func markSubscriptionTemplateSessionArgument(sessionVariables map[string]any) ma
 // from a non-stream subscription template build that must keep a function's
 // whole-session argument dynamic across subscribers in a cohort.
 func isSubscriptionTemplateSessionArgument(sessionVariables map[string]any) bool {
-	_, ok := sessionVariables[subscriptionTemplateSessionArgumentKey].(subscriptionTemplateSessionArgument)
+	_, ok := sessionVariables[subscriptionTemplateSessionArgumentKey].(core.SessionVarValue)
 
 	return ok
 }

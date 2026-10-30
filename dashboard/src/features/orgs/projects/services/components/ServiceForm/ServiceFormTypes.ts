@@ -32,10 +32,17 @@ export const validationSchema = Yup.object({
     cpu: Yup.number().min(MIN_SERVICES_CPU).max(MAX_SERVICES_CPU).required(),
     memory: Yup.number().min(MIN_SERVICES_MEM).max(MAX_SERVICES_MEM).required(),
   }),
-  replicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS).required(),
+  replicas: Yup.number()
+    .typeError('Replicas must be a number.')
+    .min(0)
+    .max(MAX_SERVICE_REPLICAS)
+    .required(),
   autoscaler: Yup.object()
     .shape({
-      maxReplicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS),
+      maxReplicas: Yup.number()
+        .typeError('Max Replicas must be a number.')
+        .min(0)
+        .max(MAX_SERVICE_REPLICAS),
     })
     .nullable()
     .default(null),

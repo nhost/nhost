@@ -157,9 +157,9 @@ The response body will be automatically parsed based on the content type into th
 
 ##### Type Parameters
 
-| Type Parameter | Default type |
-| -------------- | ------------ |
-| `T`            | `unknown`    |
+| Type Parameter                    | Default type |
+| --------------------------------- | ------------ |
+| <a id="type-parameter-t"></a> `T` | `unknown`    |
 
 ##### Parameters
 
@@ -194,9 +194,9 @@ For a more generic request, use the `fetch` method instead.
 
 ##### Type Parameters
 
-| Type Parameter | Default type |
-| -------------- | ------------ |
-| `T`            | `unknown`    |
+| Type Parameter                      | Default type |
+| ----------------------------------- | ------------ |
+| <a id="type-parameter-t-1"></a> `T` | `unknown`    |
 
 ##### Parameters
 
@@ -249,10 +249,10 @@ and other cross-cutting concerns.
 
 ### Parameters
 
-| Parameter        | Type                                        | Default value | Description                                       |
-| ---------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
-| `baseURL`        | `string`                                    | `undefined`   | Base URL for the functions endpoint               |
-| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
+| Parameter         | Type                                        | Default value | Description                                       |
+| ----------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
+| `baseURL`         | `string`                                    | `undefined`   | Base URL for the functions endpoint               |
+| `chainFunctions?` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 ### Returns
 

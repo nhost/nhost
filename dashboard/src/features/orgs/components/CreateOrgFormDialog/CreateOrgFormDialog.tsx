@@ -239,9 +239,9 @@ function CreateOrgForm({
           )}
         />
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 pt-8">
           <Button
-            variant="secondary"
+            variant="outline"
             type="button"
             disabled={form.formState.isSubmitting}
             onClick={onCancel}
@@ -406,13 +406,15 @@ export default function CreateOrgDialog({
       <DialogContent
         className={cn(
           'text-foreground sm:max-w-xl',
-          !loading && stripeClientSecret ? 'bg-white text-black' : '',
+          !loading && stripeClientSecret ? 'bg-white text-black' : 'p-12',
         )}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>New Organization</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            New Organization
+          </DialogTitle>
           <DialogDescription />
         </DialogHeader>
 

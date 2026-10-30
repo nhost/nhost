@@ -29,16 +29,16 @@ function DataGridFilterValuePopup({
         <PopoverTrigger asChild>
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             title="Expand filter value"
-            className="h-6 w-6 hover:bg-accent"
+            className="h-6 w-6"
           >
             <ExpandIcon strokeWidth={1} className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[28rem] p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
+          className="w-screen max-w-md p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
           align="end"
         >
           <Textarea

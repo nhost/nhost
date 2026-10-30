@@ -6213,7 +6213,8 @@ apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [app
 }
 
 type Mutation {
-  """update single row of the table: "apps""""
+  """update single row of the table: "apps"
+  """
 updateApp(_append: apps_append_input, _delete_at_path: apps_delete_at_path_input, _delete_elem: apps_delete_elem_input, _delete_key: apps_delete_key_input, _inc: apps_inc_input, _prepend: apps_prepend_input, _set: apps_set_input, pk_columns: apps_pk_columns_input!): apps
   updateConfig(appID: uuid!, config: ConfigConfigUpdateInput!): ConfigConfig!
 }

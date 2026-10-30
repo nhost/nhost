@@ -56,9 +56,9 @@ export default function ApplicationInfo() {
         <p className="text-muted-foreground text-xs">Application ID:</p>
 
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => copy(project.id, 'Application ID')}
-          className="h-auto py-1 text-primary text-xs"
+          className="h-auto py-1 text-xs"
         >
           {project.id}
         </Button>
@@ -68,11 +68,11 @@ export default function ApplicationInfo() {
         <p className="text-muted-foreground text-xs">Desired State:</p>
 
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() =>
             copy(project.desiredState.toString(), 'Application Desired State')
           }
-          className="h-auto py-1 text-primary text-xs"
+          className="h-auto py-1 text-xs"
         >
           {getApplicationStatusString(project.desiredState)}
         </Button>

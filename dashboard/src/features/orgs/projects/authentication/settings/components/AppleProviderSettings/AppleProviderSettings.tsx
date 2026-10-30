@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/material';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -16,7 +15,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -32,6 +30,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { useThemePreference } from '@/providers/Theme';
 
 const validationSchema = Yup.object({
   teamId: Yup.string()
@@ -65,7 +64,7 @@ const validationSchema = Yup.object({
 export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
@@ -173,7 +172,7 @@ export default function AppleProviderSettings() {
             title="Apple"
             description="Allow users to sign in with Apple."
             icon={
-              theme.palette.mode === 'dark'
+              resolvedTheme === 'dark'
                 ? '/assets/brands/light/apple.svg'
                 : '/assets/brands/apple.svg'
             }
@@ -190,11 +189,15 @@ export default function AppleProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-apple',
+              topic: 'how to sign in users with Apple',
+            }}
           />
 
           <SettingsCardContent
             className={twMerge(
-              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 py-2',
               !authEnabled && 'hidden',
             )}
           >
@@ -246,11 +249,6 @@ export default function AppleProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
-              title="how to sign in users with Apple"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

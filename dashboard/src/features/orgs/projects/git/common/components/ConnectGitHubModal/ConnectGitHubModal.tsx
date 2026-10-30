@@ -3,6 +3,7 @@ import debounce from 'lodash.debounce';
 import {
   ExternalLink as ArrowSquareOutIcon,
   CirclePlus as PlusCircleIcon,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ChangeEvent, ReactNode } from 'react';
@@ -71,7 +72,7 @@ function GitHubModalHeader({
       <div className="mx-auto h-8 w-8">
         <GitHubIcon className="h-8 w-8" />
       </div>
-      <h2 className="mt-2.5 font-medium text-lg">{title}</h2>
+      <h2 className="mt-2.5 font-semibold text-xl">{title}</h2>
       {description ? (
         <p className="font-normal text-muted-foreground text-xs">
           {description}
@@ -344,7 +345,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           <GitHubIcon className="mx-auto h-8 w-8" />
 
           <div className="text-center">
-            <h2 className="font-semibold text-lg">
+            <h2 className="font-semibold text-xl">
               Install the Nhost GitHub Application
             </h2>
 
@@ -455,7 +456,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                           </span>
                         </div>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => setSelectedRepoId(repo.node_id)}
                         >
                           Connect
@@ -487,5 +488,20 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     );
   };
 
-  return <div className="md:w-[653px]">{renderContent()}</div>;
+  return (
+    <div className="relative w-full p-12">
+      {close && (
+        <Button
+          variant="subtle"
+          size="icon"
+          aria-label="Close"
+          className="absolute top-4 right-4"
+          onClick={close}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      )}
+      {renderContent()}
+    </div>
+  );
 }

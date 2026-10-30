@@ -8,8 +8,9 @@ import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -154,11 +155,11 @@ export default function NewPasswordPage() {
 
 NewPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
+    <AuthFlowLayout
       title="Request Password Reset"
       rightColumnContent={<SignInRightColumn />}
     >
-      {page}
-    </UnauthenticatedLayout>
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };

@@ -163,7 +163,7 @@ export default function TwitterProviderSettings() {
 
           <SettingsCardContent
             className={twMerge(
-              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 py-2',
               !authEnabled && 'hidden',
             )}
           >

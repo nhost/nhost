@@ -57,7 +57,7 @@ function BucketNavItem({
             className={cn(
               'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
               {
-                'text-primary-main': isSelected,
+                'text-primary': isSelected,
               },
             )}
             onClick={() => onSidebarItemClick?.()}

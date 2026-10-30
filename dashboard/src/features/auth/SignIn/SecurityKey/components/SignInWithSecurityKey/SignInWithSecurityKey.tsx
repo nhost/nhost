@@ -25,8 +25,8 @@ function SignInWithSecurityKey({
     <>
       <VerifyEmailDialog open={open} setOpen={setOpen} />
       <Button
-        variant="outline-emboss"
-        className={cn('w-full gap-2 text-sm+', className)}
+        variant="outline"
+        className={cn('w-full gap-2', className)}
         disabled={disabled}
         onClick={signInWithSecurityKey}
         aria-describedby={ariaDescribedBy}

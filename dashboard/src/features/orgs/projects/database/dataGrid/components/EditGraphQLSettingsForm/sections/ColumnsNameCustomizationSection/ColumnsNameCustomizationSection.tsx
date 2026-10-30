@@ -315,7 +315,7 @@ export default function ColumnsNameCustomizationSection({
                   Reset to default
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   type="button"
                   onClick={handleMakeCamelCaseClick}
                   disabled={isError || isSubmitting}

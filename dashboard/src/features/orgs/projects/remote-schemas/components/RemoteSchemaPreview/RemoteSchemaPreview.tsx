@@ -192,7 +192,7 @@ export default function RemoteSchemaPreview({
             />
             {searchTerm && (
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 type="button"
                 onClick={() => {
@@ -209,7 +209,7 @@ export default function RemoteSchemaPreview({
           </div>
           <Button
             type="submit"
-            variant="secondary"
+            variant="outline"
             disabled={!searchTerm.trim() || isSearching}
             loading={isSearching}
           >

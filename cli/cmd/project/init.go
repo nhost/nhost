@@ -221,6 +221,13 @@ func deploy(
 		return fmt.Errorf("failed to create postgres migration: %w", err)
 	}
 
+	if err := filterInitMigrationPsqlRestrictions(
+		filepath.Join(ce.Path.NhostFolder(), "migrations", "default"),
+		ce.Warnln,
+	); err != nil {
+		return fmt.Errorf("failed to filter psql commands from initial migration: %w", err)
+	}
+
 	ce.Infoln("Downloading metadata...")
 
 	if err := docker.HasuraWrapper(

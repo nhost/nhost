@@ -5,7 +5,6 @@ import {
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
-  mockOrganization,
 } from '@/tests/mocks';
 import {
   getApplicationBackups,
@@ -325,15 +324,11 @@ describe('ImportBackupContent', () => {
       }),
     );
     expect(
-      await screen.findByText(
-        'Your backup import has been scheduled successfully and will start shortly.',
-      ),
+      await screen.findByText('Your backup has been imported successfully.'),
     ).toBeInTheDocument();
-    expect(screen.getByText(/to see the import logs/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Logs page' })).toHaveAttribute(
-      'href',
-      `/orgs/${mockOrganization.slug}/projects/${mockApplication.subdomain}/logs`,
-    );
+    expect(
+      screen.queryByRole('link', { name: 'Logs page' }),
+    ).not.toBeInTheDocument();
   });
 
   test.each([

@@ -58,6 +58,10 @@ import { WebAuthnSettings } from '@/features/orgs/projects/authentication/settin
 import { WindowsLiveProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/orgs/projects/authentication/settings/components/WorkOsProviderSettings';
 import { OTPEmailSettings } from '@/features/orgs/projects/authentication/settings/OTPEmailSettings';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
@@ -493,61 +497,39 @@ function AuthSettingsSidebar() {
   );
 }
 
+const AUTH_SETTINGS_TABS = {
+  'sign-in-methods': {
+    title: 'Sign-In Methods',
+    Component: SignInMethodsSettings,
+  },
+  'oauth2-provider': {
+    title: 'OAuth2 Provider',
+    Component: OAuth2ProviderSettingsTab,
+  },
+  smtp: { title: 'SMTP', Component: SMTPSettingsTab },
+  authentication: {
+    title: 'Authentication',
+    Component: AuthenticationSettings,
+  },
+  'roles-and-permissions': {
+    title: 'Roles and Permissions',
+    Component: RolesAndPermissionsSettings,
+  },
+  jwt: { title: 'JWT', Component: JWTSettingsTab },
+  'custom-domain': {
+    title: 'Custom Domain',
+    Component: AuthCustomDomainSettings,
+  },
+  'rate-limiting': {
+    title: 'Rate Limiting',
+    Component: AuthRateLimitingSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function AuthSettingsPage() {
-  const router = useRouter();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'sign-in-methods' ||
-      tab === 'oauth2-provider' ||
-      tab === 'smtp' ||
-      tab === 'authentication' ||
-      tab === 'roles-and-permissions' ||
-      tab === 'jwt' ||
-      tab === 'custom-domain' ||
-      tab === 'rate-limiting');
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: 'sign-in-methods' },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
-
-  if (!isValidTab) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  switch (tab) {
-    case 'oauth2-provider':
-      return <OAuth2ProviderSettingsTab />;
-    case 'smtp':
-      return <SMTPSettingsTab />;
-    case 'authentication':
-      return <AuthenticationSettings />;
-    case 'roles-and-permissions':
-      return <RolesAndPermissionsSettings />;
-    case 'jwt':
-      return <JWTSettingsTab />;
-    case 'custom-domain':
-      return <AuthCustomDomainSettings />;
-    case 'rate-limiting':
-      return <AuthRateLimitingSettings />;
-    default:
-      return <SignInMethodsSettings />;
-  }
+  return (
+    <SettingsTabs tabs={AUTH_SETTINGS_TABS} defaultTab="sign-in-methods" />
+  );
 }
 
 AuthSettingsPage.getLayout = function getLayout(page: ReactElement) {

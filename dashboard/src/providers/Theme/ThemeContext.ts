@@ -24,6 +24,11 @@ export interface ThemePreferenceContextProps {
    * @default THEME_STORAGE_KEY
    */
   storageKey: string;
+  /**
+   * Whether the stored preference has been read on the client. Until then
+   * `resolvedTheme` is the server default (`'light'`).
+   */
+  isLoaded: boolean;
 }
 
 const ThemePreferenceContext =

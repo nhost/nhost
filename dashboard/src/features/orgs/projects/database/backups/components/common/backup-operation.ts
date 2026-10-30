@@ -5,6 +5,8 @@ interface BackupListOperationCopy {
   confirmationCheckboxLabel: string;
   dialogTitle: string;
   submitButtonText: string;
+  completedMessage: string;
+  toastMessages: BackupOperationToastMessages;
 }
 
 interface PointInTimeOperationCopy {
@@ -37,6 +39,13 @@ export const BACKUP_OPERATION_COPY: Record<
       confirmationCheckboxLabel: "I'm sure I want to restore this backup",
       dialogTitle: 'Restore Backup',
       submitButtonText: 'Restore',
+      completedMessage: 'Your backup has been restored successfully.',
+      toastMessages: {
+        errorMessage:
+          'An error occurred while attempting to restore the backup. Please try again.',
+        loadingMessage: 'Restoring backup...',
+        successMessage: 'Backup has been restored successfully.',
+      },
     },
     pointInTime: {
       confirmationActionText: 'restoring',
@@ -58,6 +67,13 @@ export const BACKUP_OPERATION_COPY: Record<
       confirmationCheckboxLabel: "I'm sure I want to import this backup",
       dialogTitle: 'Import backup',
       submitButtonText: 'Import backup',
+      completedMessage: 'Your backup has been imported successfully.',
+      toastMessages: {
+        errorMessage:
+          'An error occurred while attempting to import the backup. Please try again.',
+        loadingMessage: 'Importing backup...',
+        successMessage: 'Backup has been imported successfully.',
+      },
     },
     pointInTime: {
       confirmationActionText: 'importing',

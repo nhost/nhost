@@ -1,5 +1,9 @@
 import Image from 'next/image';
 import * as React from 'react';
+import {
+  SettingsDocsLink,
+  type SettingsDocsLinkProps,
+} from '@/components/layout/SettingsCard/SettingsDocsLink';
 import { cn } from '@/lib/utils';
 
 export interface SettingsCardHeaderProps
@@ -26,6 +30,10 @@ export interface SettingsCardHeaderProps
    * owned by the surrounding form (e.g. an RHF `FormSwitch`).
    */
   control?: React.ReactNode;
+  /**
+   * Docs for this section, shown as a help icon right after the title.
+   */
+  docsLink?: SettingsDocsLinkProps;
 }
 
 const SettingsCardHeader = React.forwardRef<
@@ -33,18 +41,34 @@ const SettingsCardHeader = React.forwardRef<
   SettingsCardHeaderProps
 >(
   (
-    { className, title, description, icon, actions, control, ...props },
+    {
+      className,
+      title,
+      description,
+      icon,
+      actions,
+      control,
+      docsLink,
+      ...props
+    },
     ref,
   ) => (
     <div
       ref={ref}
       className={cn(
-        'flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-3 px-6 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}
     >
-      <div className="flex min-w-0 flex-1 gap-4">
+      {/* With a control or actions on the right, the description stops at a
+          readable width instead of running into them. */}
+      <div
+        className={cn(
+          'flex min-w-0 flex-1 gap-4',
+          Boolean(control || actions) && 'sm:max-w-lg',
+        )}
+      >
         {typeof icon === 'string' ? (
           <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
             <Image src={icon} alt="" width={32} height={32} />
@@ -53,12 +77,15 @@ const SettingsCardHeader = React.forwardRef<
           icon
         )}
 
-        <div className="grid min-w-0 grid-flow-row gap-1">
-          {typeof title === 'string' ? (
-            <h3 className="font-semibold text-lg">{title}</h3>
-          ) : (
-            title
-          )}
+        <div className="grid min-w-0 grid-flow-row gap-0.5">
+          <div className="flex items-center gap-1">
+            {typeof title === 'string' ? (
+              <h3 className="font-semibold text-lg">{title}</h3>
+            ) : (
+              title
+            )}
+            {docsLink && <SettingsDocsLink {...docsLink} />}
+          </div>
 
           {description && (
             <p className="text-muted-foreground">{description}</p>

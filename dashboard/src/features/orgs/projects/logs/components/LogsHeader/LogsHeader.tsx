@@ -1,16 +1,16 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { subMinutes } from 'date-fns';
+import { SearchIcon } from 'lucide-react';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { SearchIcon } from 'lucide-react';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { LogsRangeSelector } from '@/features/orgs/projects/logs/components/LogsRangeSelector';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
 import { DEFAULT_LOG_INTERVAL } from '@/utils/constants/common';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { subMinutes } from 'date-fns';
-import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   from: Yup.string().required(),

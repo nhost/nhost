@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
-import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, ListFilter, Search, X } from 'lucide-react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { forwardRef } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { cn } from '@/lib/utils';
 
 export interface LogsSearchBarProps {
   query: string;
@@ -18,7 +18,7 @@ export interface LogsSearchBarProps {
   className?: string;
 }
 
-const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
+const ForwardedLogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
   function LogsSearchBar(
     {
       query,
@@ -64,7 +64,7 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
     return (
       <div
         className={cn(
-          'flex items-center gap-2 border-b border-divider px-3 py-2',
+          'flex items-center gap-2 border-divider border-b px-3 py-2',
           className,
         )}
       >
@@ -77,15 +77,18 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
           placeholder="Filter logs"
           className="h-8 flex-1"
         />
-        <span className="min-w-[5rem] text-right text-xs- text-muted-foreground tabular-nums">
+        <span className="min-w-[5rem] text-right text-muted-foreground text-xs- tabular-nums">
           {counter}
         </span>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-pressed={filterMode}
-          className={cn('h-8 w-8', filterMode && 'bg-primary/10 text-primary')}
+          className={cn(
+            'h-8 w-8',
+            filterMode && 'bg-primary/10 text-primary dark:text-primary',
+          )}
           onClick={onToggleFilter}
           aria-label={filterMode ? 'Show all rows' : 'Filter to matching rows'}
           title={
@@ -98,7 +101,7 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={totalMatches === 0}
@@ -109,7 +112,7 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={totalMatches === 0}
@@ -120,7 +123,7 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           className="h-8 w-8"
           disabled={query.length === 0}
@@ -134,4 +137,4 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
   },
 );
 
-export default LogsSearchBar;
+export default ForwardedLogsSearchBar;

@@ -267,15 +267,29 @@ func decodeStyledParameter(param *openapi3.Parameter, input *RequestValidationIn
 	return decodeValue(dec, param.Name, sm, param.Schema, param.Required)
 }
 
+var errCircularSchema = errors.New("circular schema reference detected while decoding")
+
 func decodeValue(dec valueDecoder, param string, sm *openapi3.SerializationMethod, schema *openapi3.SchemaRef, required bool) (any, bool, error) {
+	return decodeValueGuarded(dec, param, sm, schema, required, nil)
+}
+
+func decodeValueGuarded(dec valueDecoder, param string, sm *openapi3.SerializationMethod, schema *openapi3.SchemaRef, required bool, seen []*openapi3.Schema) (any, bool, error) {
 	var found bool
+
+	if schema == nil {
+		return nil, false, nil
+	}
+	if slices.Contains(seen, schema.Value) {
+		return nil, false, errCircularSchema
+	}
+	seen = append(seen, schema.Value)
 
 	if len(schema.Value.AllOf) > 0 {
 		var value any
 		var err error
 		for _, sr := range schema.Value.AllOf {
 			var f bool
-			value, f, err = decodeValue(dec, param, sm, sr, required)
+			value, f, err = decodeValueGuarded(dec, param, sm, sr, required, seen)
 			found = found || f
 			if value == nil || err != nil {
 				break
@@ -286,7 +300,7 @@ func decodeValue(dec valueDecoder, param string, sm *openapi3.SerializationMetho
 
 	if len(schema.Value.AnyOf) > 0 {
 		for _, sr := range schema.Value.AnyOf {
-			value, f, _ := decodeValue(dec, param, sm, sr, required)
+			value, f, _ := decodeValueGuarded(dec, param, sm, sr, required, seen)
 			found = found || f
 			if value != nil {
 				return value, found, nil
@@ -302,7 +316,7 @@ func decodeValue(dec valueDecoder, param string, sm *openapi3.SerializationMetho
 		isMatched := 0
 		var value any
 		for _, sr := range schema.Value.OneOf {
-			v, f, _ := decodeValue(dec, param, sm, sr, required)
+			v, f, _ := decodeValueGuarded(dec, param, sm, sr, required, seen)
 			found = found || f
 			if v != nil {
 				value = v
@@ -574,6 +588,9 @@ func (d *urlValuesDecoder) DecodeArray(param string, sm *openapi3.SerializationM
 // Every item is parsed as a primitive value.
 // The function returns an error when an error happened while parse array's items.
 func (d *urlValuesDecoder) parseArray(raw []string, schemaRef *openapi3.SchemaRef) ([]any, error) {
+	if schemaRef.Value.Items == nil || schemaRef.Value.Items.Value == nil {
+		return nil, errors.New("array items schema is required for decoding")
+	}
 	var value []any
 
 	for i, v := range raw {
@@ -660,6 +677,13 @@ const (
 	urlDecoderDelimiter = "\x1F" // should not conflict with URL characters
 )
 
+func decodesAdditionalProperties(schema *openapi3.Schema) bool {
+	if schema.AdditionalProperties.Schema != nil {
+		return true
+	}
+	return schema.AdditionalProperties.Has != nil && *schema.AdditionalProperties.Has
+}
+
 func (d *urlValuesDecoder) DecodeObject(param string, sm *openapi3.SerializationMethod, schema *openapi3.SchemaRef) (map[string]any, bool, error) {
 	var propsFn func(url.Values) (map[string]string, error)
 	switch sm.Style {
@@ -684,10 +708,15 @@ func (d *urlValuesDecoder) DecodeObject(param string, sm *openapi3.Serialization
 			return propsFromString(values[0], ",", ",")
 		}
 	case "deepObject":
+		// Compile the parameter-name prefix matcher once: it depends only on
+		// param (constant for the whole loop), not on the loop variable. Doing
+		// this inside the loop recompiles it once per query key, turning an
+		// attacker-controlled key count into proportional CPU.
+		paramPrefixRE := regexp.MustCompile(fmt.Sprintf(`^%s\[`, regexp.QuoteMeta(param)))
 		propsFn = func(params url.Values) (map[string]string, error) {
 			props := make(map[string]string)
 			for key, values := range params {
-				if !regexp.MustCompile(fmt.Sprintf(`^%s\[`, regexp.QuoteMeta(param))).MatchString(key) {
+				if !paramPrefixRE.MatchString(key) {
 					continue
 				}
 				matches := deepObjectBracketRE.FindAllStringSubmatch(key, -1)
@@ -724,7 +753,7 @@ func (d *urlValuesDecoder) DecodeObject(param string, sm *openapi3.Serialization
 		return nil, false, err
 	}
 
-	found := false
+	found := sm.Style == "deepObject" && len(props) > 0 && decodesAdditionalProperties(schema.Value)
 	for propName := range schema.Value.Properties {
 		if _, ok := props[propName]; ok {
 			found = true
@@ -1010,6 +1039,9 @@ func buildResObj(params map[string]any, parentKeys []string, key string, schema 
 
 	switch {
 	case schema.Value.Type.Is("array"):
+		if schema.Value.Items == nil || schema.Value.Items.Value == nil {
+			return nil, &ParseError{path: pathFromKeys(mapKeys), Kind: KindOther, Reason: "array items schema is required"}
+		}
 		paramArr, ok := deepGet(params, mapKeys...)
 		if !ok {
 			return nil, nil
@@ -1061,6 +1093,15 @@ func buildResObj(params map[string]any, parentKeys []string, key string, schema 
 				}
 				if r != nil {
 					resultMap[k] = r
+				}
+			}
+		} else if schema.Value.AdditionalProperties.Has != nil && *schema.Value.AdditionalProperties.Has {
+			// additionalProperties: true is free-form: retain dynamic values as
+			// decoded query-string data, but never overwrite schema-decoded
+			// properties.
+			for k, v := range objectParams {
+				if _, exists := resultMap[k]; !exists {
+					resultMap[k] = v
 				}
 			}
 		}
@@ -1685,7 +1726,7 @@ func ZipFileBodyDecoder(body io.Reader, header http.Header, schema *openapi3.Sch
 			for {
 				n, err := rc.Read(buffer)
 				if 0 < n {
-					content = append(content, buffer...)
+					content = append(content, buffer[:n]...)
 				}
 				if err == io.EOF {
 					break

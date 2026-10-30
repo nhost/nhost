@@ -417,10 +417,11 @@ describe('LogicalModelPermissionForm', () => {
     await user.click(screen.getByRole('button', { name: 'Deselect All' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    await screen.findByRole('alertdialog', { name: 'Unsaved changes' });
     await user.keyboard('{Escape}');
     await waitFor(() =>
       expect(
-        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+        screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
       ).not.toBeInTheDocument(),
     );
     expect(onCancel).not.toHaveBeenCalled();

@@ -38,7 +38,9 @@ test('should create a table with role permissions to select row', async ({
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
@@ -83,7 +85,9 @@ test('should create a table with role permissions and a custom check to select r
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();
@@ -152,7 +156,9 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   // Press three horizontal dots more options button next to the table name
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit permissions/i }).click();

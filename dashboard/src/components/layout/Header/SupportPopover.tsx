@@ -9,10 +9,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { Separator } from '@/components/ui/v3/separator';
+import { getDashboardVersion } from '@/utils/env';
 
 const DISCORD_URL = 'https://discord.com/invite/9V7Qb2U';
 
 export default function SupportPopover() {
+  const dashboardVersion = getDashboardVersion();
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -54,6 +57,12 @@ export default function SupportPopover() {
             <ExternalLinkIcon className="size-4 shrink-0" />
           </Link>
         </div>
+
+        <Separator />
+
+        <p className="px-4 py-2.5 text-muted-foreground text-xs">
+          Version <span className="font-mono">{dashboardVersion}</span>
+        </p>
       </PopoverContent>
     </Popover>
   );

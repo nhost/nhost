@@ -73,7 +73,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		graphql.IntrospectionQuery,
 		nil,
 		&introspection,
-		nil,
+		[]string{"*"},
 		nil,
 		interceptor,
 	); err != nil {

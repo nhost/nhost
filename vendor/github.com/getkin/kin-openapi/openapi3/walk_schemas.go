@@ -130,9 +130,8 @@ func (w *schemaWalker) pathItem(ptr string, item *PathItem) error {
 			return err
 		}
 	}
-	ops := item.Operations()
-	for _, method := range slices.Sorted(maps.Keys(ops)) {
-		if err := w.operation(ptr+"/"+strings.ToLower(method), ops[method]); err != nil {
+	for _, entry := range item.operationEntries() {
+		if err := w.operation(ptr+entry.pointerSuffix, entry.operation); err != nil {
 			return err
 		}
 	}

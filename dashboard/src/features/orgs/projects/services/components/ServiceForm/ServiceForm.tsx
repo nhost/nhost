@@ -91,6 +91,10 @@ export default function ServiceForm({
   } = form;
 
   const formValues = watch();
+  // The replicas input holds NaN while it is cleared.
+  const billedReplicas = Number.isFinite(formValues.replicas)
+    ? formValues.replicas
+    : 0;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
@@ -247,8 +251,8 @@ export default function ServiceForm({
     const mem = `${formValues.compute.memory} MiB Mem`;
     let details = `${vCPUs} + ${mem}`;
 
-    if (formValues.replicas > 1) {
-      details = `(${details}) x ${formValues.replicas} replicas`;
+    if (billedReplicas > 1) {
+      details = `(${details}) x ${billedReplicas} replicas`;
     }
 
     return `Approximate cost for ${details}`;
@@ -306,17 +310,14 @@ export default function ServiceForm({
         <CommandFormSection />
 
         {isPlatform ? (
-          <Alert
-            variant="info"
-            className="flex items-center justify-between space-x-2"
-          >
+          <Alert className="flex items-center justify-between space-x-2">
             <span>{pricingExplanation()}</span>
             <b>
               $
               {parseFloat(
                 (
                   formValues.compute.cpu *
-                  formValues.replicas *
+                  billedReplicas *
                   COST_PER_VCPU
                 ).toFixed(2),
               )}
@@ -355,9 +356,8 @@ export default function ServiceForm({
 
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateServiceFormError(null);
               }}
@@ -378,7 +378,7 @@ export default function ServiceForm({
             </Button>
             <Button
               type="button"
-              variant="outline-emboss"
+              variant="outline"
               disabled={isSubmitting}
               onClick={copyConfig}
             >
@@ -387,7 +387,7 @@ export default function ServiceForm({
             </Button>
           </div>
 
-          <Button type="button" variant="outline-emboss" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateOrganizationMutation } from '@/generated/graphql';
@@ -109,14 +114,21 @@ export default function GeneralSettings() {
                   value={org?.slug ?? ''}
                   className="disabled:opacity-100"
                 />
-                <Button
-                  onClick={copySlugToClipboard}
-                  className="absolute top-0 right-0"
-                  type="button"
-                  variant="ghost"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={copySlugToClipboard}
+                      className="absolute top-1 right-1"
+                      type="button"
+                      variant="subtle"
+                      size="icon-sm"
+                      aria-label="Copy slug"
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy slug</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>

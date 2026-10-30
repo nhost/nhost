@@ -25,7 +25,7 @@ inconsistency and the server keeps running with whatever did load.
 | Loading metadata bytes from file/db | **Yes on initial load, No on reload** | Initial load wraps with `initial metadata load: …` and aborts startup. Reload errors are logged as `metadata reload failed, keeping current state` and the previous state continues serving. |
 | Parsing metadata bytes into types | **Yes on initial load, No on reload** | Same paths as above. |
 | Building a source connector (factory error, customization rejection) | No | Whole source dropped, recorded as `database` or `remote_schema`. |
-| Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values`. |
+| Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values` / `computed_field` / `<operation>_permission`. |
 | Composing per-role schemas | No | Whole role dropped on validation/merge failure, recorded as `role`. |
 
 ## Inconsistency kinds
@@ -89,10 +89,21 @@ exist on the introspected table. The reconciler checks the following sites:
 table — and every other permission entry — keeps serving. The table itself is
 unaffected.
 
-> **What is *not* checked:** column references buried inside `filter` /
-> `check` Hasura expressions are not walked, because doing so would require
-> running the full where-parser at build time. A missing column inside a
-> `filter` still produces a query-time error today, not an inconsistency.
+> **What is *not* checked:** ordinary missing column references inside
+> `filter` / `check` expressions. The permission parser can still reject them
+> while building the source, which drops the whole source. On PostgreSQL,
+> malformed `_exists` predicates and computed-field references are checked per
+> permission (see below).
+
+### `computed_field` and `<operation>_permission` (PostgreSQL source)
+
+`computed_field` is recorded when a table's computed-field definition cannot be served. The entry may be malformed; the function may be missing, ambiguous (overloaded), `VOLATILE` or without a row argument; its return type may be unsupported (only non-array base types, the `SETOF` scalar types listed in [PostgreSQL features](./postgres-features.md#computed-fields-on-tracked-tables), and tracked tables are accepted); or its field, input or argument names may collide with another field or type or not be valid GraphQL names. Only that field is removed. A collision with a generated name (`<relationship>_aggregate`, `<field>_aggregate` order keys, `_args` inputs, argument types) also removes the field's grant alone. For other invalid definitions, a select permission that grants the field is removed too.
+
+`select_permission`, `insert_permission`, `update_permission` or `delete_permission` is recorded when a permission cannot be enforced: an invalid computed-field grant (including any grant of a table-valued field), an invalid or argument-bearing computed field in its `filter`/`check`, or a malformed `_exists` predicate. The **whole permission** is removed, never just its filter or check; other roles and permissions keep serving. `_exists._table` without a schema refers to `public`.
+
+A filter key counts as a computed field only if the table defines or grants it. Any other unknown key, such as a misspelled computed field, keeps the existing behavior: the whole source fails to build. Hasura marks only that permission inconsistent (see [known differences](../../KNOWN_DIFFERENCES.md#computed-fields)).
+
+SQLite sources ignore computed fields and record none of these inconsistencies.
 
 ### `function` (PostgreSQL source)
 
@@ -170,6 +181,10 @@ Recorded when schema composition fails for a specific role. Triggers:
 that role get the standard "no schema available for role: X" response. Other
 roles continue serving with the connectors that did merge successfully.
 
+## Reload and export timing
+
+A reload swaps in the new schemas, SQL and inconsistency list together; a failed reload keeps serving the previous state. Without a Hasura upstream, `export_metadata` on a polled database source returns the latest polled metadata, which can be ahead of what is served. To confirm a change, check the role's schema and a sample query rather than the export.
+
 ## How inconsistencies surface today
 
 Per-entry: each `Record` call emits a `WARN` log line with fields `kind`,
@@ -198,6 +213,8 @@ produce.
 | `table` | ✅ | ✅ | — |
 | `column` | ✅ | ✅ | — |
 | `function` | ✅ | — | — |
+| `computed_field` | ✅ | — | — |
+| `select_permission` / `insert_permission` / `update_permission` / `delete_permission` (computed references or invalid PostgreSQL `_exists`) | ✅ | — | — |
 | `relationship` | ✅ | ✅ | — |
 | `enum_values` | ✅ | ✅ | — |
 | `role` | ✅ | ✅ | ✅ |

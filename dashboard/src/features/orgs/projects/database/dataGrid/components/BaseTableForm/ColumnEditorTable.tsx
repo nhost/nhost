@@ -83,9 +83,9 @@ export default function ColumnEditorTable() {
       <div className="col-span-8 py-3">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="gap-2 text-primary hover:text-primary"
+          className="gap-2"
           onClick={() =>
             append({
               name: '',

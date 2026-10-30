@@ -322,8 +322,8 @@ export default function EditFunctionPermissionsForm({
             isMutating={isMutating}
           />
 
-          <Alert className="border-none bg-primary/10 text-left">
-            <AlertDescription className="space-y-2 text-sm+">
+          <Alert className="text-left">
+            <AlertDescription className="space-y-2">
               <p>
                 Please go to the{' '}
                 <NavLink
@@ -333,7 +333,7 @@ export default function EditFunctionPermissionsForm({
                 >
                   Settings page
                 </NavLink>{' '}
-                page to add and delete roles.
+                to add and delete roles.
               </p>
               <p>
                 To configure infer function permissions, go to{' '}
@@ -352,7 +352,7 @@ export default function EditFunctionPermissionsForm({
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

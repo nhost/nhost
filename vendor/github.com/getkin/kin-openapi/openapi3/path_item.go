@@ -3,9 +3,10 @@ package openapi3
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"maps"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
 // PathItem is specified by OpenAPI/Swagger standard version 3.
@@ -26,9 +27,46 @@ type PathItem struct {
 	Post        *Operation `json:"post,omitempty" yaml:"post,omitempty"`
 	Put         *Operation `json:"put,omitempty" yaml:"put,omitempty"`
 	Trace       *Operation `json:"trace,omitempty" yaml:"trace,omitempty"`
+	Query       *Operation `json:"query,omitempty" yaml:"query,omitempty"` // OpenAPI >=3.2
 	Servers     Servers    `json:"servers,omitempty" yaml:"servers,omitempty"`
 	Parameters  Parameters `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+
+	// AdditionalOperations maps custom HTTP method names to operations.
+	// Keys are case-sensitive HTTP method tokens and must not duplicate
+	// the methods covered by the fixed fields above.
+	AdditionalOperations map[string]*Operation `json:"additionalOperations,omitempty" yaml:"additionalOperations,omitempty"` // OpenAPI >=3.2
 }
+
+// MethodQuery is the HTTP QUERY method, introduced as a fixed Path Item
+// Object field by OpenAPI 3.2. The net/http package has no constant for it.
+const MethodQuery = "QUERY"
+
+// fixedPathItemMethods are the HTTP methods that have a dedicated PathItem
+// field; they must not appear as AdditionalOperations keys.
+var fixedPathItemMethods = map[string]struct{}{
+	http.MethodConnect: {},
+	http.MethodDelete:  {},
+	http.MethodGet:     {},
+	http.MethodHead:    {},
+	http.MethodOptions: {},
+	http.MethodPatch:   {},
+	http.MethodPost:    {},
+	http.MethodPut:     {},
+	http.MethodTrace:   {},
+	MethodQuery:        {},
+}
+
+// PathItemMethods returns the HTTP methods that have a dedicated Path Item
+// Object field, sorted. Any other method an operation is registered under
+// lives in AdditionalOperations, so a caller that treats the two groups
+// differently can tell them apart without listing the fixed methods itself.
+func PathItemMethods() []string {
+	return componentNames(fixedPathItemMethods)
+}
+
+// httpTokenRe matches an RFC 9110 token, the grammar HTTP method names
+// must follow.
+var httpTokenRe = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
 
 // MarshalJSON returns the JSON encoding of PathItem.
 func (pathItem PathItem) MarshalJSON() ([]byte, error) {
@@ -45,7 +83,7 @@ func (pathItem PathItem) MarshalYAML() (any, error) {
 		return Ref{Ref: ref}, nil
 	}
 
-	m := make(map[string]any, 13+len(pathItem.Extensions))
+	m := make(map[string]any, 15+len(pathItem.Extensions))
 	maps.Copy(m, pathItem.Extensions)
 	if x := pathItem.Summary; x != "" {
 		m["summary"] = x
@@ -80,6 +118,12 @@ func (pathItem PathItem) MarshalYAML() (any, error) {
 	if x := pathItem.Trace; x != nil {
 		m["trace"] = x
 	}
+	if x := pathItem.Query; x != nil {
+		m["query"] = x
+	}
+	if x := pathItem.AdditionalOperations; len(x) != 0 {
+		m["additionalOperations"] = x
+	}
 	if x := pathItem.Servers; len(x) != 0 {
 		m["servers"] = x
 	}
@@ -109,6 +153,8 @@ func (pathItem *PathItem) UnmarshalJSON(data []byte) error {
 	delete(x.Extensions, "post")
 	delete(x.Extensions, "put")
 	delete(x.Extensions, "trace")
+	delete(x.Extensions, "query")
+	delete(x.Extensions, "additionalOperations")
 	delete(x.Extensions, "servers")
 	delete(x.Extensions, "parameters")
 	if len(x.Extensions) == 0 {
@@ -118,8 +164,50 @@ func (pathItem *PathItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (pathItem *PathItem) Operations() map[string]*Operation {
-	operations := make(map[string]*Operation)
+// operationEntry pairs an operation with the method it is registered under
+// and the JSON pointer suffix that addresses it inside a PathItem.
+type operationEntry struct {
+	method    string
+	operation *Operation
+	// pointerSuffix is "/get" for a fixed field and
+	// "/additionalOperations/COPY" for a custom method.
+	pointerSuffix string
+}
+
+// operationEntries returns pathItem's operations in a deterministic order
+// (fixed fields first, then AdditionalOperations, each sorted by method),
+// paired with the JSON pointer suffix addressing them. Custom methods
+// shadowed by a fixed field are skipped, matching Operations().
+func (pathItem *PathItem) operationEntries() []operationEntry {
+	fixed := pathItem.fixedOperations()
+	entries := make([]operationEntry, 0, len(fixed)+len(pathItem.AdditionalOperations))
+	for _, method := range componentNames(fixed) {
+		entries = append(entries, operationEntry{
+			method:        method,
+			operation:     fixed[method],
+			pointerSuffix: "/" + strings.ToLower(method),
+		})
+	}
+	for _, method := range componentNames(pathItem.AdditionalOperations) {
+		operation := pathItem.AdditionalOperations[method]
+		if operation == nil {
+			continue
+		}
+		if _, ok := fixed[method]; ok {
+			continue
+		}
+		entries = append(entries, operationEntry{
+			method:        method,
+			operation:     operation,
+			pointerSuffix: "/additionalOperations/" + escapeRefString(method),
+		})
+	}
+	return entries
+}
+
+// fixedOperations returns the operations held by PathItem's fixed fields.
+func (pathItem *PathItem) fixedOperations() map[string]*Operation {
+	operations := make(map[string]*Operation, len(fixedPathItemMethods))
 	if v := pathItem.Connect; v != nil {
 		operations[http.MethodConnect] = v
 	}
@@ -147,6 +235,27 @@ func (pathItem *PathItem) Operations() map[string]*Operation {
 	if v := pathItem.Trace; v != nil {
 		operations[http.MethodTrace] = v
 	}
+	if v := pathItem.Query; v != nil {
+		operations[MethodQuery] = v
+	}
+	return operations
+}
+
+// Operations returns pathItem's operations keyed by HTTP method, including
+// the OpenAPI 3.2 QUERY field and any AdditionalOperations. When an
+// AdditionalOperations key collides with a fixed field, the fixed field
+// wins (Validate reports the duplicate separately).
+func (pathItem *PathItem) Operations() map[string]*Operation {
+	operations := pathItem.fixedOperations()
+	for method, operation := range pathItem.AdditionalOperations {
+		if operation == nil {
+			continue
+		}
+		if _, ok := operations[method]; ok {
+			continue
+		}
+		operations[method] = operation
+	}
 	return operations
 }
 
@@ -170,8 +279,10 @@ func (pathItem *PathItem) GetOperation(method string) *Operation {
 		return pathItem.Put
 	case http.MethodTrace:
 		return pathItem.Trace
+	case MethodQuery:
+		return pathItem.Query
 	default:
-		panic(fmt.Errorf("unsupported HTTP method %q", method))
+		return pathItem.AdditionalOperations[method]
 	}
 }
 
@@ -195,8 +306,18 @@ func (pathItem *PathItem) SetOperation(method string, operation *Operation) {
 		pathItem.Put = operation
 	case http.MethodTrace:
 		pathItem.Trace = operation
+	case MethodQuery:
+		pathItem.Query = operation
 	default:
-		panic(fmt.Errorf("unsupported HTTP method %q", method))
+		// Custom (OpenAPI >=3.2) methods live in AdditionalOperations.
+		if operation == nil {
+			delete(pathItem.AdditionalOperations, method)
+			return
+		}
+		if pathItem.AdditionalOperations == nil {
+			pathItem.AdditionalOperations = make(map[string]*Operation, 1)
+		}
+		pathItem.AdditionalOperations[method] = operation
 	}
 }
 
@@ -204,6 +325,33 @@ func (pathItem *PathItem) SetOperation(method string, operation *Operation) {
 func (pathItem *PathItem) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
 	me := newErrCollector(ctx)
+
+	if !getValidationOptions(ctx).isOpenAPI32OrLater {
+		if pathItem.Query != nil {
+			if err := me.emit(errFieldFor32Plus("query", pathItem.Origin)); err != nil {
+				return err
+			}
+		}
+		if len(pathItem.AdditionalOperations) != 0 {
+			if err := me.emit(errFieldFor32Plus("additionalOperations", pathItem.Origin)); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, method := range componentNames(pathItem.AdditionalOperations) {
+		if _, ok := fixedPathItemMethods[method]; ok {
+			if err := me.emit(newAdditionalOperationsDuplicateMethod(method, pathItem.Origin)); err != nil {
+				return err
+			}
+			continue
+		}
+		if !httpTokenRe.MatchString(method) {
+			if err := me.emit(newAdditionalOperationsInvalidMethod(method, pathItem.Origin)); err != nil {
+				return err
+			}
+		}
+	}
 
 	operations := pathItem.Operations()
 
@@ -239,6 +387,8 @@ func (pathItem *PathItem) isEmpty() bool {
 		pathItem.Post == nil &&
 		pathItem.Put == nil &&
 		pathItem.Trace == nil &&
+		pathItem.Query == nil &&
+		len(pathItem.AdditionalOperations) == 0 &&
 		len(pathItem.Servers) == 0 &&
 		len(pathItem.Parameters) == 0
 }

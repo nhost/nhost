@@ -9,7 +9,7 @@ sidebar:
   label: Rule Editor
 ---
 
-When you configure permissions — whether on the **Database** page (table permissions) or the **Storage** page (file permissions) — selecting **With custom check** opens the rule editor. It lets you describe who can access which rows visually, instead of writing the permission JSON by hand.
+When you configure permissions — whether on the **Database** page ([table permissions](/products/graphql/permissions)) or the **Storage** page (file permissions) — selecting **With custom check** opens the rule editor. It lets you describe who can access which rows visually, instead of writing the permission JSON by hand.
 
 The examples on this page come from the [Nhost demo app](https://github.com/nhost/nhost/tree/main/examples/demos) — a small app where users join communities and share files inside them.
 
@@ -43,9 +43,9 @@ Each condition row has three parts: **column**, **operator**, and **value**. The
 The **value** input adapts to the operator:
 
 - `_is_null` — a `true`/`false` select.
-- `_in` / `_nin` — a multi-select where you can pick a session variable or enter literal values.
+- `_in` / `_nin` — a multi-select where you can pick a [session variable](/products/graphql/permissions/permission-variables) or enter literal values.
 - `_ceq` / `_cne` / `_cgt` / `_clt` / `_cgte` / `_clte` — a column picker; the right-hand side is another column on the same table.
-- Everything else — a combobox listing the session variables available for your project (`X-Hasura-User-Id`, `X-Hasura-Role`, plus any custom claims you've defined under **Settings → Roles and Permissions → Permission Variables**). You can also type a literal value.
+- Everything else — a combobox listing the session variables available for your project (`X-Hasura-User-Id`, `X-Hasura-Role`, plus any custom claims you've defined under **Auth → Settings → Roles and Permissions → Permission Variables**). You can also type a literal value.
 
 ## Groups and logical operators
 

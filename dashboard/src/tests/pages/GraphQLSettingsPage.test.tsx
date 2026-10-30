@@ -190,12 +190,15 @@ describe('GraphQLSettingsPage', () => {
     expect(settingsQuery).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, 'unknown', ['engine', 'access-and-tooling']])(
-    'redirects the %s tab to the default tab',
-    (tab) => {
+  it.each([undefined, 'unknown'])(
+    'shows the default tab for the %s tab and corrects the URL',
+    async (tab) => {
       loadProject();
       renderTab(tab);
 
+      expect(
+        await screen.findByRole('heading', { level: 1, name: 'Engine' }),
+      ).toBeInTheDocument();
       expect(mockRouter.replace).toHaveBeenCalledWith(
         {
           pathname: SETTINGS_ROUTE,
@@ -210,14 +213,10 @@ describe('GraphQLSettingsPage', () => {
   it('waits for router readiness before normalizing a missing tab', () => {
     loadProject();
     setTab(undefined, { isReady: false });
-    const settingsQuery = vi.spyOn(graphql, 'useGetHasuraSettingsQuery');
     render(<GraphQLSettingsPage />);
 
     expect(mockRouter.replace).not.toHaveBeenCalled();
-    expect(settingsQuery).toHaveBeenCalled();
-    expect(settingsQuery).not.toHaveBeenCalledWith(
-      expect.objectContaining({ skip: false }),
-    );
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
   });
 
   it('selects the desktop link and keeps settings reachable while paused', async () => {
@@ -247,9 +246,7 @@ describe('GraphQLSettingsPage', () => {
     ).toEqual([
       within(navigation).getByRole('link', { name: 'Access and tooling' }),
     ]);
-    expect(
-      await screen.findByText('GitHub repository connected'),
-    ).toBeVisible();
+    expect(await screen.findByText('nhost config pull')).toBeVisible();
     expect(
       screen.queryByText(
         'This project is paused. Unpause to make this available.',

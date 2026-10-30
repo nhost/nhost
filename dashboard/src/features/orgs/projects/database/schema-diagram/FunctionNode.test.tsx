@@ -217,9 +217,7 @@ describe('FunctionNode', () => {
     renderNode(baseData);
 
     expect(
-      screen.queryByRole('button', {
-        name: /function-management-menu-find_users/i,
-      }),
+      screen.queryByTestId('function-management-menu-find_users'),
     ).toBeNull();
   });
 

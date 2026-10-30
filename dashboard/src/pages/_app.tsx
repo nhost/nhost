@@ -1,17 +1,19 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
+import {
+  ThemeColorMeta,
+  ThemeDocumentClass,
+  ThemePreferenceProvider,
+} from '@/providers/Theme';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import { CacheProvider, type EmotionCache } from '@emotion/react';
 import { THEME_STORAGE_KEY } from '@/utils/constants/common';
-import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
@@ -27,8 +29,6 @@ import { DefaultSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 
-// Client-side cache, shared for the whole session of the user in the browser.
-const clientSideEmotionCache = createEmotionCache();
 const queryClient = new QueryClient();
 
 export type NextPageWithLayout = NextPage & {
@@ -36,52 +36,47 @@ export type NextPageWithLayout = NextPage & {
 };
 
 export interface MyAppProps extends AppProps {
-  emotionCache?: EmotionCache;
   Component: NextPageWithLayout;
 }
 
-function MyApp({
-  Component,
-  pageProps,
-  emotionCache = clientSideEmotionCache,
-}: MyAppProps) {
+function MyApp({ Component, pageProps }: MyAppProps) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
 
   return (
     <QueryClientProvider client={queryClient}>
       <DefaultSeo titleTemplate="%s - Nhost" defaultTitle="Nhost" />
 
-      <CacheProvider value={emotionCache}>
-        <NhostProvider nhost={nhost}>
-          <NhostApolloProvider
-            fetchPolicy="cache-and-network"
-            nhost={nhost}
-            connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
-          >
-            <AuthProvider>
-              {/* z-index above the z-[9999] dialogs and z-[10000] popovers */}
-              <Toaster
-                position="bottom-center"
-                containerStyle={{ zIndex: 10001 }}
-              />
-              <ThemeProvider storageKey={THEME_STORAGE_KEY}>
-                <RetryableErrorBoundary>
-                  <TooltipProvider>
-                    <DialogProvider>
-                      <ProgressBar
-                        height="2px"
-                        color="#0052cd"
-                        options={{ showSpinner: false }}
-                      />
-                      {getLayout(<Component {...pageProps} />)}
-                    </DialogProvider>
-                  </TooltipProvider>
-                </RetryableErrorBoundary>
-              </ThemeProvider>
-            </AuthProvider>
-          </NhostApolloProvider>
-        </NhostProvider>
-      </CacheProvider>
+      <NhostProvider nhost={nhost}>
+        <NhostApolloProvider
+          fetchPolicy="cache-and-network"
+          nhost={nhost}
+          connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
+        >
+          <AuthProvider>
+            {/* z-index above the z-[9999] dialogs and z-[10000] popovers */}
+            <Toaster
+              position="bottom-center"
+              containerStyle={{ zIndex: 10001 }}
+            />
+            <ThemePreferenceProvider storageKey={THEME_STORAGE_KEY}>
+              <ThemeDocumentClass />
+              <ThemeColorMeta />
+              <RetryableErrorBoundary>
+                <TooltipProvider>
+                  <DialogProvider>
+                    <ProgressBar
+                      height="2px"
+                      color="#0052cd"
+                      options={{ showSpinner: false }}
+                    />
+                    {getLayout(<Component {...pageProps} />)}
+                  </DialogProvider>
+                </TooltipProvider>
+              </RetryableErrorBoundary>
+            </ThemePreferenceProvider>
+          </AuthProvider>
+        </NhostApolloProvider>
+      </NhostProvider>
     </QueryClientProvider>
   );
 }

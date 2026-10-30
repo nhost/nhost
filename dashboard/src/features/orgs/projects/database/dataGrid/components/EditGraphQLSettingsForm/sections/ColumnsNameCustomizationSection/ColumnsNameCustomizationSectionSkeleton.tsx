@@ -45,7 +45,7 @@ export default function ColumnsNameCustomizationSectionSkeleton() {
             <Button variant="outline" color="secondary" type="button" disabled>
               Reset to default
             </Button>
-            <Button variant="secondary" type="button" disabled>
+            <Button variant="outline" type="button" disabled>
               Make camelCase
             </Button>
           </div>

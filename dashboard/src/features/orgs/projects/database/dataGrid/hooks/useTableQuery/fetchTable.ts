@@ -9,6 +9,7 @@ import {
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
+  CandidateKey,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -72,6 +73,10 @@ export interface FetchTableReturnType {
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
+  /**
+   * Primary key and unique constraints in the table.
+   */
+  candidateKeys: CandidateKey[];
   /**
    * Total number of rows in the table.
    */
@@ -186,6 +191,7 @@ export default async function fetchTable({
           error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
+          candidateKeys: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
       }
@@ -200,6 +206,7 @@ export default async function fetchTable({
           error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
+          candidateKeys: [],
           metadata: { schema, table, columnsNotFound: true },
         };
       }
@@ -216,11 +223,8 @@ export default async function fetchTable({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const { columns, foreignKeyRelations } = normalizeTableConstraints(
-    rawColumns,
-    rawConstraints,
-    schema,
-  );
+  const { columns, foreignKeyRelations, candidateKeys } =
+    normalizeTableConstraints(rawColumns, rawConstraints, schema);
 
   if (!orderByClause) {
     orderByClause = buildDefaultOrderByClause(columns, tableType);
@@ -266,6 +270,7 @@ export default async function fetchTable({
         rawData.internal?.error.message ||
         'Something went wrong while fetching the table rows.',
       foreignKeyRelations,
+      candidateKeys,
       numberOfRows: 0,
     };
   }
@@ -278,6 +283,7 @@ export default async function fetchTable({
     rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
     error: null,
     foreignKeyRelations,
+    candidateKeys,
     numberOfRows: parseInt(rowAggregate, 10) || 0,
   };
 }

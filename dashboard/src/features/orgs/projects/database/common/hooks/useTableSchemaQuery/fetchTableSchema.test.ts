@@ -36,6 +36,7 @@ describe('fetchTableSchema', () => {
     expect(result).toEqual({
       columns: [],
       foreignKeyRelations: [],
+      candidateKeys: [],
       error: null,
     });
   });

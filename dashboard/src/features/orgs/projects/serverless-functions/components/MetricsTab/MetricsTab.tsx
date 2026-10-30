@@ -1,5 +1,5 @@
 import { useMeasure } from '@uidotdev/usehooks';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useCallback } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import MetricsTimeRangeFilter from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
+import { MetricsTimeRangeFilter } from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
 import { useMetricsTimeRangeUrlState } from '@/features/orgs/projects/common/metrics/hooks/useMetricsTimeRangeUrlState';
 import { resolveTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
 import ExpandedMetricPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel';
@@ -148,7 +148,6 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-6">
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
               <AlertTitle>Couldn't load metrics</AlertTitle>
               <AlertDescription className="mt-2 flex flex-col gap-3">
                 <span>

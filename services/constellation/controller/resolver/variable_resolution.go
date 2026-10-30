@@ -7,28 +7,42 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// resolveVariableReferences walks a selection set and replaces any variable references
-// in field arguments with their literal values from the variables map.
-// This is needed because remote operations are standalone queries without variable definitions.
-func resolveVariableReferences(selections ast.SelectionSet, variables map[string]any) {
+// resolveVariableReferences returns a per-request selection tree. Remote operations
+// have no variable definitions, but their selections may share cached client nodes.
+func resolveVariableReferences(
+	selections ast.SelectionSet,
+	variables map[string]any,
+) ast.SelectionSet {
+	out := make(ast.SelectionSet, 0, len(selections))
 	for _, sel := range selections {
 		switch s := sel.(type) {
 		case *ast.Field:
-			resolveArgumentVariables(s.Arguments, variables)
-			resolveVariableReferences(s.SelectionSet, variables)
+			field := *s
+			field.Arguments = resolveArgumentVariables(s.Arguments, variables)
+			field.SelectionSet = resolveVariableReferences(s.SelectionSet, variables)
+			out = append(out, &field)
 		case *ast.InlineFragment:
-			resolveVariableReferences(s.SelectionSet, variables)
-		case *ast.FragmentSpread:
-			// Fragment spreads are resolved separately
+			inline := *s
+			inline.SelectionSet = resolveVariableReferences(s.SelectionSet, variables)
+			out = append(out, &inline)
+		default:
+			out = append(out, sel)
 		}
 	}
+
+	return out
 }
 
-// resolveArgumentVariables replaces variable references in arguments with literal values.
-func resolveArgumentVariables(args ast.ArgumentList, variables map[string]any) {
+// resolveArgumentVariables copies arguments and all nested values before substitution.
+func resolveArgumentVariables(args ast.ArgumentList, variables map[string]any) ast.ArgumentList {
+	out := make(ast.ArgumentList, 0, len(args))
 	for _, arg := range args {
-		arg.Value = resolveValueVariables(arg.Value, variables)
+		copyArg := *arg
+		copyArg.Value = resolveValueVariables(arg.Value, variables)
+		out = append(out, &copyArg)
 	}
+
+	return out
 }
 
 func resolveValueVariables(value *ast.Value, variables map[string]any) *ast.Value {
@@ -41,14 +55,22 @@ func resolveValueVariables(value *ast.Value, variables map[string]any) *ast.Valu
 			return toLiteralValue(val)
 		}
 
-		return value
+		copyValue := *value
+
+		return &copyValue
 	}
 
-	for _, child := range value.Children {
-		child.Value = resolveValueVariables(child.Value, variables)
+	copyValue := *value
+	if len(value.Children) != 0 {
+		copyValue.Children = make(ast.ChildValueList, 0, len(value.Children))
+		for _, child := range value.Children {
+			copyChild := *child
+			copyChild.Value = resolveValueVariables(child.Value, variables)
+			copyValue.Children = append(copyValue.Children, &copyChild)
+		}
 	}
 
-	return value
+	return &copyValue
 }
 
 // toLiteralValue converts a Go value to an AST literal value.
@@ -71,6 +93,8 @@ func toLiteralValue(v any) *ast.Value {
 			Kind: ast.BooleanValue,
 			Raw:  raw,
 		}
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return &ast.Value{Kind: ast.IntValue, Raw: fmt.Sprintf("%v", val)} //nolint:exhaustruct
 	case float64:
 		kind := ast.IntValue
 		if val != math.Trunc(val) {

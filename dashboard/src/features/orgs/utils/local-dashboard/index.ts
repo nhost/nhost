@@ -31,7 +31,6 @@ export const localApplication: GetProjectQuery['apps'][0] = {
   repositoryProductionBranch: '',
   nhostBaseFolder: '',
   automaticDeploys: true,
-  legacyPlan: null,
   config: {
     observability: {
       grafana: {
@@ -52,7 +51,6 @@ export const localOrganization: Org = {
     id: 'abc',
     name: 'Pro',
     deprecated: false,
-    individual: false,
     isFree: false,
     price: 25,
     featureMaxDbSize: 1,

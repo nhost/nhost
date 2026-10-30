@@ -827,8 +827,14 @@ export async function openRelationshipDialog({
   page: Page;
   tableName: string;
 }) {
+  // A drawer that is still animating out restores focus when it unmounts,
+  // which can dismiss the sidebar menu we are about to open.
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit relationships/i }).click();

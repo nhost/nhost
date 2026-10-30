@@ -109,7 +109,7 @@ export default function AdditionalHeadersEditor() {
         <Button
           aria-label="Add header"
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           onClick={() => append({ name: '', value: '', value_from_env: '' })}
         >
@@ -194,9 +194,9 @@ export default function AdditionalHeadersEditor() {
               </div>
 
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="col-span-1 text-destructive hover:text-destructive"
+                className="col-span-1"
                 aria-label="Remove header"
                 onClick={() => handleRemoveHeader(index, field.id)}
               >

@@ -1,0 +1,1 @@
+export const MIN_HASURA_VERSION_NATIVE_QUERIES = 'v2.33.0';

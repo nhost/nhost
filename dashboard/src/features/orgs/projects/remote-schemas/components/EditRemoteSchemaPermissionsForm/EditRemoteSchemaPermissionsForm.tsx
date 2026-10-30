@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import { Alert } from '@/components/ui/v3/alert';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
@@ -15,7 +15,6 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { TextLink } from '@/components/ui/v3/text-link';
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -114,14 +113,16 @@ export default function EditRemoteSchemaPermissionsForm({
   if (!remoteSchemaPermissionsEnabled) {
     return (
       <div className="p-4">
-        <InfoAlert>
-          To configure permissions, enable remote schema permissions first in{' '}
-          <TextLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
-          >
-            GraphQL Settings.
-          </TextLink>
-        </InfoAlert>
+        <Alert>
+          <AlertDescription>
+            To configure permissions, enable remote schema permissions first in{' '}
+            <TextLink
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
+            >
+              GraphQL Settings.
+            </TextLink>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -266,21 +267,23 @@ export default function EditRemoteSchemaPermissionsForm({
           </Table>
 
           <Alert className="text-left">
-            Please go to the{' '}
-            <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
-              underline="hover"
-              className="px-0"
-            >
-              Settings page
-            </NavLink>{' '}
-            to add and delete roles.
+            <AlertDescription>
+              Please go to the{' '}
+              <NavLink
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
+                underline="hover"
+                className="px-0"
+              >
+                Settings page
+              </NavLink>{' '}
+              to add and delete roles.
+            </AlertDescription>
           </Alert>
         </div>
       </div>
 
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

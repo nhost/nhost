@@ -222,6 +222,30 @@ func (response ErrorResponse) VisitVerifyElevateWebauthnResponse(w http.Response
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitElevateTotpResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetElevationMethodsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitElevateOTPSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyElevateOTPSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitAddSecurityKeyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }

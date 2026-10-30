@@ -1,9 +1,9 @@
 import { Fingerprint } from 'lucide-react';
 import { memo } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import RemoveSecurityKeyButton from '@/features/account/settings/components/SecurityKeysSettings/components/RemoveSecurityKeyButton';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
-import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 
 type SecurityKeyProps = {
   id: string;
@@ -31,7 +31,11 @@ function SecurityKeyList() {
     <div>
       {loading && <Spinner />}
       {!loading && data?.authUserSecurityKeys.length === 0 && (
-        <InfoAlert>No security keys have been added yet!</InfoAlert>
+        <Alert>
+          <AlertDescription>
+            No security keys have been added yet!
+          </AlertDescription>
+        </Alert>
       )}
       {data?.authUserSecurityKeys.map(({ id, nickname }) => (
         <MemoizedSecurityKey key={id} id={id} nickname={nickname} />

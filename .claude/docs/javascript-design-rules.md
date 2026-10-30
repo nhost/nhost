@@ -63,7 +63,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 - `React.forwardRef` for components that need ref forwarding; set `displayName`.
 - Avoid `React.FC`; prefer explicit prop types.
 - Arrow functions are allowed for components.
-- Prefer Shadcn / `ui/v3` over `ui/v2`. Use `ui/v3` for all new features.
+- Use Shadcn / `ui/v3` components; MUI and `ui/v2` have been removed.
 
 ### Naming
 
@@ -108,7 +108,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
 
 - Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
-- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the query cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`. `ProjectScope` clears the TanStack Query cache and the project configuration in the Apollo cache when the user switches projects or leaves project pages (`useClearQueryCacheOnProjectChange`), so keep it the direct child of `AppLayout`; `ProjectStateGate` may remount on section navigation without clearing it.
 - Project settings pages: `<AppLayout><ProjectScope><ProjectStateGate><SettingsGuard><SettingsArea>{page}</SettingsArea></SettingsGuard></ProjectStateGate></ProjectScope></AppLayout>`.
 - Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
 

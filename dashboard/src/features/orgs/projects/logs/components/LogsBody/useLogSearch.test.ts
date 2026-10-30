@@ -1,8 +1,12 @@
+import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
 import { useLogSearch } from '@/features/orgs/projects/logs/components/LogsBody/useLogSearch';
 import { act, renderHook } from '@/tests/testUtils';
-import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
 
-const entry = (timestamp: string, log: string, service = 'hasura'): LogEntry => ({
+const entry = (
+  timestamp: string,
+  log: string,
+  service = 'hasura',
+): LogEntry => ({
   timestamp,
   service,
   log,

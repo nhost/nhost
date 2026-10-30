@@ -29,7 +29,7 @@ The Storage service is a Go-based API that handles all file operations. It provi
 File metadata is stored in PostgreSQL in the `storage` schema and exposed through the GraphQL API. This gives you:
 
 - **Metadata queries** -- query files and buckets using the full power of GraphQL (filtering, sorting, pagination, relationships)
-- **Permission enforcement** -- the same permission system that protects your application data also protects file access
+- **Permission enforcement** -- the same [permission system](/products/graphql/permissions) that protects your application data also protects file access
 - **Relationships** -- create GraphQL relationships between your application tables and `storage.files`
 
 ### Auth Integration
