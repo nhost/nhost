@@ -977,10 +977,11 @@ export async function navigateToGraphQLPlayground({
 }
 
 /**
- * Selects a role in the GraphiQL playground's Role dropdown
- * (`UserAndRoleSelect`). Unlike editing the Headers JSON, this Radix Select
- * updates `selection` synchronously (no debounce), so the rebuilt fetcher
- * carries `x-hasura-role: <role>` on the next request the caller triggers.
+ * Selects a role in the GraphiQL playground's "Request as" controls
+ * (`UserAndRoleSelect`): opens the role dropdown and picks the role.
+ * Unlike editing the Headers JSON, this updates `selection` synchronously (no
+ * debounce), so the rebuilt fetcher carries `x-hasura-role: <role>` on the
+ * next request the caller triggers.
  *
  * @param page - The Playwright page object.
  * @param role - The role to select (e.g. `public`).
@@ -993,12 +994,12 @@ export async function selectGraphQLRole({
   page: Page;
   role: string;
 }) {
-  const roleTrigger = page.getByTestId('graphql-role-select');
+  const roleSelect = page.getByRole('combobox', { name: 'Role' });
 
   await expect(async () => {
-    await roleTrigger.click();
+    await roleSelect.click();
     await page.getByRole('option', { name: role, exact: true }).click();
-    await expect(roleTrigger).toContainText(role);
+    await expect(page.getByTestId('graphql-role-tag')).toHaveText(role);
   }).toPass();
 }
 

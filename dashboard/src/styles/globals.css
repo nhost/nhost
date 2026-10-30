@@ -68,16 +68,151 @@ html.dark .graphiql-themed .graphiql-container {
   @apply m-0 rounded-none !important;
 }
 
-.graphiql-container .graphiql-session {
-  @apply p-0 !important;
-}
-
 .graphiql-container .graphiql-doc-explorer {
   @apply h-full overflow-y-auto border-l-0 px-3 py-3 !important;
 }
 
-.graphiql-container .graphiql-plugin {
-  @apply max-w-[initial] border-none py-2 pl-2 pr-0 !important;
+/* Docs search: always an open field on top, styled like our inputs, with the
+   results floating under it. GraphiQL shows it as a small box that only opens
+   on focus. */
+.playground-docs .graphiql-doc-explorer-header {
+  @apply flex-col-reverse gap-0 !important;
+}
+
+/* Our header (DocsHeader) replaces GraphiQL's back link, title and, on
+   opened pages, the description. A line under it, full width, like the one
+   under the search. */
+.playground-docs .graphiql-doc-explorer-back,
+.playground-docs .graphiql-doc-explorer-title,
+.playground-docs
+  > :not(.playground-docs-start)
+  .graphiql-doc-explorer-content
+  > .graphiql-markdown-description:first-child {
+  @apply hidden !important;
+}
+
+.playground-docs .graphiql-doc-explorer-header-content {
+  @apply block p-0 !important;
+}
+
+.playground-docs .playground-header-slot:not(:empty) {
+  @apply -mx-4 border-b px-4 py-4;
+}
+
+.playground-docs .graphiql-doc-explorer-content {
+  @apply mt-4 !important;
+}
+
+/* The start page lists root types and types in our own groups, so only
+   GraphiQL's description stays. */
+.playground-docs-start
+  .graphiql-doc-explorer-content
+  > div:not(.graphiql-markdown-description) {
+  @apply hidden !important;
+}
+
+.playground-docs-start .graphiql-doc-explorer-content {
+  @apply mb-6 !important;
+}
+
+/* Every list starts at the same left edge as its section title. */
+.playground-docs .graphiql-doc-explorer-section-content {
+  @apply ml-0 !important;
+}
+
+/* A description sits right under its name (GraphiQL leaves 12px, almost
+   the gap to the next item), so each pair reads as one. */
+.playground-docs
+  .graphiql-doc-explorer-item
+  > :not(:first-child):not(.playground-copy-slot) {
+  @apply mt-1 !important;
+}
+
+/* Section titles get their count, set from the rows ("Fields 6"). */
+.playground-docs .graphiql-doc-explorer-section-title[data-count]::after {
+  content: attr(data-count);
+  @apply ml-1.5 font-normal tracking-normal;
+}
+
+.playground-docs .graphiql-doc-explorer-content > :first-child {
+  @apply mt-0 !important;
+}
+
+/* In the side panel the whole tab scrolls (the docs and our grouped type
+   list below them), not the docs on their own. */
+.playground-docs .graphiql-doc-explorer {
+  @apply h-auto overflow-visible px-0 py-0 !important;
+}
+
+/* Section titles (Root types, Fields, Arguments…) match the panel's own
+   section titles (PLAYGROUND_SECTION_TITLE_CLASSES), like Tables and Other
+   types. */
+.playground-docs .graphiql-doc-explorer-section-title {
+  @apply font-semibold text-muted-foreground text-xs uppercase leading-normal tracking-[0.06em] !important;
+}
+
+.playground-docs .graphiql-doc-explorer-section-title > svg {
+  @apply hidden !important;
+}
+
+/* Type names in teal (an existing chart token) instead of GraphiQL's orange
+   warning color, so they stand apart from the blue field names. */
+.playground-docs .graphiql-doc-explorer-type-name {
+  color: hsl(var(--chart-2)) !important;
+}
+
+/* The search sits in its own band, with a full width line under it. */
+.playground-docs .graphiql-doc-explorer-search {
+  @apply relative inset-auto -mx-4 w-auto rounded-none border-0 border-b px-4 pb-4 shadow-none !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search-input {
+  @apply h-9 rounded-md border border-input bg-transparent px-3 py-0 text-muted-foreground !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-search:focus-within
+  .graphiql-doc-explorer-search-input {
+  @apply border-primary bg-transparent !important;
+}
+
+.playground-docs .graphiql-doc-explorer-search [role="combobox"] {
+  @apply ml-2 h-full w-full border-0 text-foreground text-sm shadow-none outline-none ring-0 placeholder:text-muted-foreground !important;
+}
+
+/* Each field is a small card with a copy button in its top right corner,
+   shown on hover, like code blocks in docs. */
+.playground-docs .graphiql-doc-explorer-item:has(> .playground-copy-slot) {
+  @apply relative rounded-md border bg-background p-4 pr-12 !important;
+}
+
+/* Centred on the first line of the card, its icon 16px from the edge.
+   GraphiQL gives every row child a top margin, not this one. */
+.playground-docs .playground-copy-slot {
+  @apply absolute top-3.5 right-2.5 mt-0 flex opacity-0 transition-opacity !important;
+}
+
+.playground-docs
+  .graphiql-doc-explorer-item:is(:hover, :focus-within)
+  > .playground-copy-slot {
+  @apply opacity-100 !important;
+}
+
+/* GraphiQL draws a white or yellow outline on every link it focuses, also
+   on a mouse click. Only keyboard focus gets a ring, in our blue. */
+.playground-docs a:focus {
+  outline: none !important;
+}
+
+.playground-docs a:focus-visible {
+  outline: 2px solid hsl(var(--ring)) !important;
+  outline-offset: 2px;
+  @apply rounded-sm;
+}
+
+.playground-docs .graphiql-doc-explorer-search [role="listbox"] {
+  @apply absolute inset-x-4 top-[calc(100%-0.75rem)] z-10 rounded-md border bg-popover shadow-md !important;
 }
 
 .graphiql-container .graphiql-logo {
@@ -92,8 +227,266 @@ html.dark .graphiql-themed .graphiql-container {
   @apply px-2 !important;
 }
 
+/* Our own tab bar replaces GraphiQL's, so hide its standalone plus on the
+   right and stop the single tab editor from sliding up under the tabs. */
+.graphiql-themed .graphiql-container .graphiql-session-header-right {
+  @apply hidden !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-editors.full-height {
+  @apply mt-0 !important;
+}
+
 .graphiql-container .graphiql-editors {
   @apply rounded-none shadow-none !important;
+}
+
+/* Playground panes: the input side is outlined, the response is outlined and
+   filled so the read only output reads as a separate surface. */
+.graphiql-themed .graphiql-container .graphiql-editors,
+.graphiql-themed .graphiql-container .graphiql-response {
+  border: 1px solid hsl(var(--border));
+  @apply overflow-hidden rounded-lg !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-query-editor {
+  border-bottom-color: hsl(var(--border));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools,
+.graphiql-themed .graphiql-container .graphiql-editor-tool {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.graphiql-themed .graphiql-container .graphiql-response {
+  background-color: hsl(var(--muted));
+}
+
+/* Playground spacing: the panes line up with the section tabs above
+   (16px) on the left, right and bottom. */
+.graphiql-themed .graphiql-container .graphiql-session {
+  @apply px-4 pb-4 !important;
+}
+
+/* History and Docs are tabs of the response pane, so GraphiQL's own plugin
+   column and its drag handle never show. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-main
+  > div:has(> .graphiql-plugin),
+.graphiql-themed
+  .graphiql-container
+  .graphiql-main
+  > .graphiql-horizontal-drag-bar {
+  @apply hidden !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-session-header .graphiql-tabs {
+  @apply px-4 !important;
+}
+
+/* Response pane: our footer slot holds the title bar and the empty state,
+   so it moves to the top of the pane. */
+.graphiql-themed .graphiql-container .graphiql-response {
+  @apply relative;
+}
+
+.graphiql-themed .graphiql-container .graphiql-response > .graphiql-footer {
+  order: -1;
+  border-top: 0;
+}
+
+/* Variables and Headers use the same underline tabs as the section tabs. */
+.graphiql-themed .graphiql-container .graphiql-editor-tools {
+  @apply h-10 items-stretch gap-6 border-b px-4 py-0 !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editor-tools
+  > button:not(.graphiql-toggle-editor-tools) {
+  @apply rounded-none border-b-2 border-transparent px-0 py-0 font-semibold text-muted-foreground text-sm transition-colors hover:bg-transparent hover:text-primary !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools > button.active {
+  @apply border-primary text-primary !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editor-tools
+  > .graphiql-toggle-editor-tools {
+  @apply ml-auto self-center !important;
+}
+
+/* Grips on both dividers, so it is clear they can be dragged: a small
+   outlined handle with dots. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar {
+  @apply relative !important;
+  width: 24px;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar::after,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar:hover::after,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools)::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background:
+    radial-gradient(
+      circle,
+      hsl(var(--muted-foreground)) 0.75px,
+      transparent 1.25px
+    )
+    center / 4px 4px content-box,
+    hsl(var(--background));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: border-color 150ms ease;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar::after,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar:hover::after {
+  width: 12px;
+  height: 22px;
+  padding: 4px 1px;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar:hover::after {
+  border-color: hsl(var(--muted-foreground));
+}
+
+/* Hover on a divider: a blue line that fades out at both ends, with a soft
+   blue glow around the grip (the "blurp"), so it is clear it can be dragged. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar::before,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools)::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar::before {
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      hsl(var(--primary)) 25%,
+      hsl(var(--primary)) 75%,
+      transparent
+    )
+    center / 2px 100% no-repeat,
+    radial-gradient(
+      ellipse 50% 22% at center,
+      hsl(var(--primary) / 0.28),
+      transparent 70%
+    );
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools)::after {
+  top: -8px;
+  right: 0;
+  left: 0;
+  height: 16px;
+  background:
+    linear-gradient(
+      to right,
+      transparent,
+      hsl(var(--primary)) 25%,
+      hsl(var(--primary)) 75%,
+      transparent
+    )
+    center / 100% 2px no-repeat,
+    radial-gradient(
+      ellipse 22% 50% at center,
+      hsl(var(--primary) / 0.28),
+      transparent 70%
+    );
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar:is(:hover, :active)::before,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools:is(:hover, :active)):not(
+    :has(.graphiql-editor-tools button:hover)
+  )::after {
+  opacity: 1;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-session
+  > .graphiql-horizontal-drag-bar:is(:hover, :active)::after,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools:is(:hover, :active)):not(
+    :has(.graphiql-editor-tools button:hover)
+  )::before {
+  border-color: hsl(var(--primary));
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools) {
+  @apply relative;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editors
+  > div:has(> .graphiql-editor-tools)::before {
+  top: 0;
+  width: 22px;
+  height: 12px;
+  padding: 1px 4px;
 }
 
 .graphiql-themed .graphiql-container .graphiql-main,
@@ -120,17 +513,37 @@ html.dark .graphiql-themed .graphiql-container {
   background-color: hsl(var(--background));
 }
 
+/* Variables/Headers and Response have their own fill, so their gutters
+   use it too (still opaque: the fill is layered over the background). */
+.graphiql-themed .graphiql-container .graphiql-editor-tool .CodeMirror-gutters {
+  background:
+    linear-gradient(hsl(var(--muted) / 0.5), hsl(var(--muted) / 0.5)),
+    hsl(var(--background));
+}
+
+/* Same 16px inset as the History and Docs tabs: the fold arrows start
+   16px from the pane's edges, the first line 16px under the tabs. */
+.graphiql-themed .graphiql-container .graphiql-response .result-window {
+  @apply ml-4 !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-response .CodeMirror-lines {
+  @apply pt-4 !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-response
+  :is(.CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded)::after {
+  @apply pl-0 !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-response .CodeMirror-gutters {
+  background: hsl(var(--muted));
+}
+
 .graphiql-themed .graphiql-container .graphiql-query-editor {
   background-color: hsl(var(--background));
-}
-
-.graphiql-themed .graphiql-container .graphiql-editor-tools,
-.graphiql-themed .graphiql-container .graphiql-editor-tool {
-  background-color: hsl(var(--muted) / 0.5);
-}
-
-.graphiql-themed .graphiql-container .graphiql-response {
-  background-color: hsl(var(--muted));
 }
 
 .graphiql-themed .graphiql-container .CodeMirror-linenumber,
@@ -156,6 +569,60 @@ html.dark .graphiql-themed .graphiql-container {
 
 .graphiql-themed .graphiql-container .graphiql-tabs button {
   outline: none;
+}
+
+/* GraphiQL's legacy stylesheet colors every button inside the playground
+   with the text color, which beats the main button's own white text (Run sits
+   in the Query bar). Give it back, disabled state included. */
+.graphiql-themed .graphiql-container .btn-emboss-primary {
+  color: hsl(var(--on-solid));
+}
+
+.graphiql-themed .graphiql-container .btn-emboss-primary:disabled {
+  color: hsl(var(--on-solid) / 0.5);
+}
+
+/* Variables/Headers tabs take focus on click now (their press no longer
+   reaches GraphiQL's drag handler, which used to cancel it). Show the focus
+   ring for the keyboard only, not after a mouse click. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-editor-tools
+  button:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Active query tab: our main blue, like the active section tab. */
+.graphiql-themed .graphiql-container .graphiql-tab.graphiql-tab-active {
+  background-color: hsl(var(--primary) / 0.1);
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-tab.graphiql-tab-active
+  > button {
+  color: hsl(var(--primary));
+}
+
+/* Hovering a query tab highlights the whole tab, name and close button
+   together, in the same light grey as the plus button. GraphiQL highlights each button on its own, so they lose their
+   own background and only the close icon turns blue on its hover. */
+.graphiql-themed
+  .graphiql-container
+  .graphiql-tab:not(.graphiql-tab-active):hover {
+  background-color: hsla(var(--color-neutral), var(--alpha-background-light));
+}
+
+.graphiql-themed .graphiql-container .graphiql-tab > button:hover {
+  background-color: transparent !important;
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-tab
+  > button.graphiql-tab-close:hover {
+  color: hsl(var(--primary));
 }
 
 .graphiql-themed .graphiql-container .CodeMirror-hint {
@@ -738,4 +1205,27 @@ html.dark .graphiql-themed .graphiql-container {
     hsl(var(--destructive-gradient-disabled-from)) 0%,
     hsl(var(--destructive-gradient-disabled-to)) 100%
   );
+}
+
+/* Phones: one pane at a time, picked in the bar above (MobilePlaygroundBar).
+   GraphiQL wraps each pane in a box it sizes at half the width, so the
+   boxes are hidden or stretched, not just the panes inside them. */
+@media (max-width: 767px) {
+  [data-mobile-view="query"]
+    .graphiql-container
+    .graphiql-session
+    > div:has(> .graphiql-response),
+  [data-mobile-view="panel"]
+    .graphiql-container
+    .graphiql-session
+    > div:has(> .graphiql-editors),
+  .graphiql-container .graphiql-session > .graphiql-horizontal-drag-bar {
+    @apply hidden !important;
+  }
+
+  .graphiql-container
+    .graphiql-session
+    > div:has(> :is(.graphiql-editors, .graphiql-response)) {
+    flex: 1 1 100% !important;
+  }
 }

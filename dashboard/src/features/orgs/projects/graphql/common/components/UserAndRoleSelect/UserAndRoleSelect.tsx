@@ -1,16 +1,11 @@
 import { useState } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+import { Combobox } from '@/components/ui/v3/combobox';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
 import type { GraphQLPlaygroundSelection } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 
 /**
- * Component that combines user selection and role selection functionality
+ * "Request as": the user picker, and next to it the role, a searchable dropdown
+ * so it works for any number of roles.
  */
 interface UserAndRoleSelectProps {
   /**
@@ -25,7 +20,6 @@ export default function UserAndRoleSelect({
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [userId, setUserId] = useState('');
   const [role, setRole] = useState('');
-
   const handleUserChange = (
     nextUserId: string,
     availableUserRoles: string[],
@@ -49,33 +43,26 @@ export default function UserAndRoleSelect({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-      <UserSelect
-        className="col-span-1 md:col-auto md:w-52"
-        onUserChange={handleUserChange}
+    <div className="flex min-w-0 items-center gap-2">
+      <UserSelect onUserChange={handleUserChange} />
+      <span className="shrink-0 text-muted-foreground text-sm">with role</span>
+      <Combobox
+        value={role || null}
+        onChange={handleRoleChange}
+        options={availableRoles.map((availableRole) => ({
+          value: availableRole,
+          label: availableRole,
+        }))}
+        placeholder="Role"
+        aria-label="Role"
+        searchPlaceholder="Search roles..."
+        emptyText="No role found."
+        disabled={availableRoles.length === 0}
+        className="h-10 w-44 font-mono"
+        triggerLabel={
+          role ? <span data-testid="graphql-role-tag">{role}</span> : undefined
+        }
       />
-
-      <div className="col-span-1 flex flex-col gap-2 md:col-auto md:w-52">
-        <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-          Role
-        </span>
-        <Select value={role} onValueChange={handleRoleChange}>
-          <SelectTrigger
-            aria-label="Role"
-            data-testid="graphql-role-select"
-            className="w-full"
-          >
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoles.map((availableRole) => (
-              <SelectItem value={availableRole} key={availableRole}>
-                {availableRole}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
     </div>
   );
 }
