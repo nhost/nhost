@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -40,11 +40,8 @@ export const baseSecretFormValidationSchema = Yup.object({
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  // An empty or blank value would wipe the secret, so it can't be saved.
-  value: Yup.string()
-    .label('Value')
-    .required('Enter a value.')
-    .test('notBlank', 'Enter a value.', (value) => Boolean(value?.trim())),
+  // Can be empty: some setups need a secret that exists with no value.
+  value: Yup.string().label('Value'),
 });
 
 export type BaseSecretFormValues = Yup.InferType<
@@ -65,9 +62,6 @@ export default function BaseSecretForm({
     setFocus,
     formState: { dirtyFields, isSubmitting },
   } = form;
-
-  const value = useWatch({ control, name: 'value' });
-  const hasValue = Boolean(value?.trim());
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
@@ -113,11 +107,7 @@ export default function BaseSecretForm({
             Cancel
           </Button>
 
-          <ButtonWithLoading
-            type="submit"
-            loading={isSubmitting}
-            disabled={!hasValue}
-          >
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
             {submitButtonText}
           </ButtonWithLoading>
         </div>
