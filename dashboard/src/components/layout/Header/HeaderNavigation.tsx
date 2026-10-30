@@ -1,7 +1,17 @@
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import OrganizationsCombobox from '@/components/layout/Header/OrganizationsCombobox';
 import ProjectsComboBox from '@/components/layout/Header/ProjectsComboBox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+
+// DUMMY PROTOTYPE: client-only because the fake branches live in localStorage.
+const BranchesComboBox = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/branches/components/BranchesComboBox'
+    ).then((mod) => mod.default),
+  { ssr: false },
+);
 
 export default function HeaderNavigation() {
   const isPlatform = useIsPlatform();
@@ -20,6 +30,8 @@ export default function HeaderNavigation() {
       <div className="flex flex-nowrap items-center gap-1">
         <OrganizationsCombobox />
         {appSubdomain && <ProjectsComboBox />}
+        {/* DUMMY PROTOTYPE: branch switcher, data is fake for now. */}
+        {appSubdomain && <BranchesComboBox />}
       </div>
     </nav>
   );
