@@ -38,14 +38,13 @@ let
       ../pnpm-workspace.yaml
       ../pnpm-lock.yaml
       ../turbo.json
-      # Vale styles, shared with the docs; landing/.vale.ini points at them.
+      # Shared Vale styles.
       ../.vale/styles
       ./.
     ];
   };
 
-  # `pnpm test` ends in test:prose, which lints the blog with Vale. The rule
-  # fixtures are run by the tools/vale check.
+  # For test:prose.
   checkDeps = with pkgs; [ vale ];
 
   buildInputs = with pkgs; [ nhost.nodejs ];

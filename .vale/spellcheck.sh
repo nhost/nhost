@@ -2,10 +2,8 @@
 
 set -euo pipefail
 
-# Checks tracked Markdown for misspellings with typos and the root
-# .typos.toml. Unlike lint_markdown.sh this covers the docs site and the blog
-# too, since spelling does not depend on the Vale config. Arguments are passed
-# to typos, so `--diff` previews fixes and `--write-changes` applies them.
+# Runs typos over all tracked Markdown, docs and blog included. Arguments go
+# to typos, e.g. `--diff` or `--write-changes`.
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$script_dir/.."

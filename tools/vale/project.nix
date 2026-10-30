@@ -9,9 +9,7 @@ let
   fs = pkgs.lib.fileset;
   root = ../..;
 
-  # The rule fixtures and every Markdown file .vale/lint_markdown.sh may
-  # select. The docs site and the blog are left out: their own checks lint
-  # them, so a page edit there does not rebuild this check.
+  # Fixtures and repository Markdown; docs and blog pages have their own checks.
   src = fs.toSource {
     inherit root;
     fileset = fs.unions [
@@ -52,8 +50,7 @@ in
         mkdir "$out"
       '';
 
-  # typos, the spellcheck, stays out of checkInputs until main has no
-  # misspellings; see .vale/styles/README.md.
+  # typos isn't gated until main has no misspellings.
   devShell = pkgs.mkShell {
     packages = checkInputs ++ [ pkgs.typos ];
   };

@@ -1,7 +1,5 @@
-# Nhost rule. Three tutorial-voice constructions: the writer announcing
-# a plan, inviting the reader along, or recapping what was just built. `dive`
-# is absent from the verb list on purpose, because `let's dive` is in
-# LLMPhrasesStrict and the phrase should be reported once.
+# Announcing a plan, inviting the reader along, or recapping. `dive` is left
+# to LLMPhrasesStrict so it's reported once.
 extends: existence
 message: "Give the reader the instruction or the fact instead of
   '%s'."

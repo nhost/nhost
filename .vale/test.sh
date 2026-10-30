@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
 
-# Fixture tests for the Nhost and NhostBlog Vale rules.
-#
-#   .vale/tests/<Style>/<Rule>/fail.mdx   reports exactly expected.txt, every
-#                                         line from <Style>.<Rule>
-#   .vale/tests/<Style>/<Rule>/pass.mdx   reports nothing
-#   .vale/tests/Nhost/Ignores/{fail,pass} the TokenIgnores fixture, same shape
-#
-# Vale runs from the repository root so the paths in --output=line match the
-# expected files wherever a fixture lives. `./.vale/test.sh --update` rewrites
-# every expected file from the current output, creating a missing one; review
-# the diff before committing it.
-#
-# Both styles are checked here, by the tools/vale Nix check, rather than split
-# across the docs and landing checks; see .vale/styles/README.md.
+# Fixture tests: <Style>/<Rule>/fail.mdx must report exactly expected.txt,
+# and pass.mdx nothing. `--update` rewrites expected.txt; review the diff.
 
 set -euo pipefail
 
@@ -84,7 +72,6 @@ for style in "${styles[@]}"; do
 				continue 2
 			fi
 		done
-		# --update writes a missing expected.txt, so a new rule can be bootstrapped.
 		if [[ $update != true && ! -f $dir/expected.txt ]]; then
 			fail "$dir/expected.txt is missing; generate it with ./.vale/test.sh --update"
 			continue

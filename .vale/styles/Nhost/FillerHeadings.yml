@@ -1,4 +1,3 @@
-# Nhost rule.
 extends: existence
 message: "Name the task or the thing the section covers, not
   '%s'."

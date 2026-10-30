@@ -1,10 +1,10 @@
-# Nhost rule. Raw scope, so a path inside a JSX-wrapped paragraph is seen too.
+# Raw scope, to see paths inside JSX.
 extends: existence
 message: "Separate the segments of a bold UI path with '→',
   not '->'."
 level: warning
 scope: raw
-# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

@@ -1,16 +1,10 @@
-# Nhost rule. The words and phrases with no hits on either tree, so it runs at
-# error and a new one cannot land; the rest are in LLMPhrases.yml. A word is
-# never in both files. `let's dive` stays here rather than moving to
-# TutorialVoice, so that "let's dive into" is reported once.
+# Words with no hits on main, so they can be errors. Never also in LLMPhrases.
 extends: existence
 message: "Describe what the product does instead of '%s'."
 level: error
 ignorecase: true
-# Vale treats every accept.txt entry as an exception to every rule, matching
-# against the matched text. That is harmless for a single word, but a token
-# with a wildcard can span one: without this, "that's where Nhost comes in",
-# the likeliest way anyone writes it, is silently skipped because the match
-# contains the accepted 'Nhost'. No token here is itself an accepted term.
+# An accept.txt term inside a wildcard match would hide it, e.g. "that's where
+# Nhost comes in".
 vocab: false
 tokens:
   # praise adjectives and verbs
@@ -41,5 +35,4 @@ tokens:
   - deep[- ]dive
   - does the heavy lifting
   - navigat(?:e|es|ing) the (?:complexit(?:y|ies)|landscape)
-  # Tokens ending in punctuation live in RhetoricalQuestion.yml, which sets
-  # nonword; the \b this rule wraps tokens in cannot follow a '?'.
+  # Tokens ending in '?' go in RhetoricalQuestion, which sets nonword.

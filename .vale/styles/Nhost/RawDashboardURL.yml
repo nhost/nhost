@@ -1,11 +1,10 @@
-# Nhost rule. Raw scope, so URL templates in code fences and in JSX
-# attributes are seen too.
+# Raw scope, to see URLs in code fences and JSX.
 extends: existence
 message: "Give the UI path and a deep link through
   'app.nhost.io/orgs/_/projects/_/', not '%s'."
 level: error
 scope: raw
-# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

@@ -1,4 +1,4 @@
-# Nhost rule. Em dashes are house style; this rule only shows them.
+# Em dashes are house style; shown only on request.
 extends: existence
 message: "Em dash; house style allows it."
 level: suggestion

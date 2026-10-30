@@ -14,8 +14,7 @@ on:
       - "nixops/**"
       - "build/**"
 
-      # vale: the shared styles, their fixtures, and the repository Markdown
-      # the root .vale.ini lints
+      # vale
       - "tools/vale/**"
       - ".vale/**"
       - ".vale.ini"

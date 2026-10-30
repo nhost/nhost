@@ -1,20 +1,13 @@
-# Nhost rule. The question-fragment tell: a one-word question standing in for
-# a transition, which answers itself in the next sentence. Separate from
-# LLMPhrasesStrict because a token ending in '?' needs nonword: the word
-# boundary that rule wraps its tokens in cannot follow a question mark, so
-# such a token silently never matches.
-#
-# Deliberately not listed: 'what does this mean?', the one candidate with
-# hits (2 posts, both reader-facing announcement headings), and any bare
-# heading ending in '?', which the blog uses legitimately ('What's next?',
-# 'How does it work?').
+# One-word questions used as transitions. Separate from LLMPhrasesStrict
+# because tokens ending in '?' need nonword. Left out on purpose: "what does
+# this mean?" and headings ending in '?'.
 extends: existence
 message: "Answer the question in a sentence instead of asking
   '%s'."
 level: error
 ignorecase: true
 nonword: true
-# An accepted term inside a match would hide it; none of these is one.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 tokens:
   - 'the (?:result|catch|best part|problem|fix|takeaway|upshot)\?'

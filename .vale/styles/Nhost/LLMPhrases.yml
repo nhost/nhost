@@ -1,22 +1,11 @@
-# Nhost rule. The words and phrases with hits on the docs or blog trees; the
-# zero-hit ones are in LLMPhrasesStrict.yml, so nothing is reported twice.
-#
-# Deliberately not listed, each measured and checked in context:
-#   elevated/elevate  - 'x-hasura-auth-elevated' and "elevated access" are
-#                       Nhost auth vocabulary, not praise (28 hits)
-#   out of the box    - a technical idiom meaning "without configuration"
-#   first-class       - "first-class backends" describes support, not quality
-#   harness           - "test harness" is a real noun
-#   under the hood    - ordinary engineering speech as often as it is a tell
-#   ensure that       - wordy rather than boastful, and 42 hits of plain
-#                       technical writing; this rule is about praise
+# Words with hits on main; zero-hit ones are in LLMPhrasesStrict. Left out on
+# purpose: elevated (an auth term), out of the box, first-class, harness, under
+# the hood, ensure that.
 extends: existence
 message: "Describe what the product does instead of '%s'."
 level: warning
 ignorecase: true
-# As in LLMPhrasesStrict: an accept.txt term inside a wildcard would hide the
-# match, so "not only Nhost but also" would never be reported. No token here
-# is itself an accepted term.
+# An accept.txt term inside a wildcard match would hide it.
 vocab: false
 tokens:
   # praise adjectives and verbs

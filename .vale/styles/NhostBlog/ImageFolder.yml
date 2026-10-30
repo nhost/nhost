@@ -1,14 +1,11 @@
-# NhostBlog rule. Raw scope, because the image path lives in the
-# 'export const article' block and in JSX attributes, both dropped by the
-# TokenIgnores. A post keeps its images in its own folder, so a file sitting
-# flat under /images/blog/ belongs to no post and cannot be cleaned up with
-# one. Matches a path whose next segment is a file rather than a folder.
+# Images go in the post's own folder. Raw scope: the paths sit in the article
+# export and JSX.
 extends: existence
 message: "Put the image in the post's own folder,
   '/images/blog/<slug>/', not flat at '%s'."
 level: warning
 scope: raw
-# Accepted vocabulary terms (Nhost) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

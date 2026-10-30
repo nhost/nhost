@@ -1,13 +1,9 @@
-# NhostBlog rule. Raw scope, so a host inside a code fence or a JSX href is
-# seen too. Scoped to hosts we serve, because a third party's scheme is not
-# ours to fix; every nhost.io host redirects to https, so a plain-http link
-# only costs the reader a hop. 'http://localhost' does not match: the token
-# needs a literal 'nhost.io' after the scheme.
+# Nhost hosts only; they all redirect to https.
 extends: existence
 message: "'%s' redirects; link Nhost hosts over https."
 level: warning
 scope: raw
-# Accepted vocabulary terms (Nhost) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

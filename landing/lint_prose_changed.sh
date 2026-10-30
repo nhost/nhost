@@ -2,12 +2,8 @@
 
 set -euo pipefail
 
-# Runs Vale on the blog posts this branch adds or changes against main, plus
-# uncommitted and untracked posts, so a local run shows only the alerts you
-# introduced. `--merge-base` diffs the working tree against the merge base, the
-# same base as `<base>...HEAD`, so edits not yet committed are included.
-#
-# The docs twin is docs/lint_prose_changed.sh; keep the two in step.
+# Lints blog posts changed against main, uncommitted and untracked included.
+# Keep in step with docs/lint_prose_changed.sh.
 
 base=""
 for candidate in origin/main main; do

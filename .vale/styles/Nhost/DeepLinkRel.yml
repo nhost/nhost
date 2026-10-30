@@ -1,11 +1,11 @@
-# Nhost rule. Raw scope, because the TokenIgnores in .vale.ini drop JSX and
-# HTML tags. Matches one '<a ...>' opening tag, attributes in any order.
+# Raw scope: TokenIgnores drop tags. Matches one <a> tag, attributes in any
+# order.
 extends: existence
 message: "A dashboard link that opens a new tab needs
   'rel=\"noopener noreferrer\"'."
 level: error
 scope: raw
-# Accepted vocabulary terms (Hasura, GraphQL) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

@@ -1,13 +1,11 @@
-# NhostBlog rule. Raw scope, so a host inside a code fence or a JSX href is
-# seen too. console.nhost.io was the Nhost v1 dashboard and no longer
-# resolves. The two hits are v1-era posts, where the dead link is the point;
-# they are why this is a warning rather than an error.
+# console.nhost.io was the v1 dashboard. A warning, since two v1-era posts link
+# it on purpose.
 extends: existence
 message: "'console.nhost.io' is the retired v1 dashboard and no
   longer resolves; link 'https://app.nhost.io'."
 level: warning
 scope: raw
-# Accepted vocabulary terms (Nhost) would otherwise hide a match.
+# accept.txt terms would otherwise hide a match.
 vocab: false
 nonword: true
 tokens:

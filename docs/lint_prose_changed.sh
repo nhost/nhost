@@ -2,10 +2,7 @@
 
 set -euo pipefail
 
-# Runs Vale on the docs pages this branch adds or changes against main, plus
-# uncommitted and untracked pages, so a local run shows only the alerts you
-# introduced. `--merge-base` diffs the working tree against the merge base, the
-# same base as `<base>...HEAD`, so edits not yet committed are included.
+# Lints docs pages changed against main, uncommitted and untracked included.
 
 base=""
 for candidate in origin/main main; do

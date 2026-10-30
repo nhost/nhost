@@ -2,15 +2,9 @@
 
 set -euo pipefail
 
-# Runs Vale over the repository's Markdown with the root .vale.ini: READMEs,
-# contributor guides, service docs and the CLAUDE.md files. The docs site and
-# the blog have their own configs and are left out here, as is everything in
-# .vale/markdown.ignore. Arguments are passed to Vale, so the Nix check runs
-# this with --minAlertLevel=error and a local run shows warnings too.
-#
-# Files come from `git ls-files` in a work tree, so untracked notes are not
-# linted, and from `find` in the Nix sandbox, where the source is already
-# limited to tracked files.
+# Lints tracked Markdown with the root .vale.ini, minus .vale/markdown.ignore.
+# Arguments go to Vale. Falls back to `find` in the Nix sandbox, which has no
+# git.
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$script_dir/.."
