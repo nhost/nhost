@@ -1,26 +1,27 @@
-import { DAY_MS } from '@/features/orgs/components/billing/BillingUsage/constants';
+import { tz } from '@date-fns/tz';
+import { format } from 'date-fns';
 import type {
   BillingUsageRangeBounds,
   BillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingUsage/types';
-import { startOfUtcDay } from '@/features/orgs/components/billing/BillingUsage/utils/startOfUtcDay';
 
+// The days, in the page's time zone, from the one holding `first` to the one
+// holding `last`, kept within the retained reports.
 export default function toBillingUsageZoomRange(
-  firstDay: number,
-  lastDay: number,
+  first: number,
+  last: number,
   bounds: BillingUsageRangeBounds,
-): BillingUsageTimeRange {
-  const from = Math.max(
-    startOfUtcDay(firstDay),
-    new Date(bounds.min).getTime(),
-  );
-  const to = Math.min(
-    startOfUtcDay(lastDay) + DAY_MS - 1,
-    new Date(bounds.max).getTime(),
-  );
+  timeZone: string,
+): BillingUsageTimeRange | undefined {
+  const inZone = { in: tz(timeZone) };
+  const from = Math.max(first, new Date(bounds.min).getTime());
+  const to = Math.min(last, new Date(bounds.max).getTime() - 1);
+  if (from > to) {
+    return undefined;
+  }
   return {
     kind: 'absolute',
-    from: new Date(from).toISOString(),
-    to: new Date(to).toISOString(),
+    from: format(from, 'yyyy-MM-dd', inZone),
+    to: format(to, 'yyyy-MM-dd', inZone),
   };
 }

@@ -27903,7 +27903,7 @@ export type GetBillingMetricsQueryVariables = Exact<{
 }>;
 
 
-export type GetBillingMetricsQuery = { __typename?: 'query_root', billingReports: Array<{ __typename?: 'billing_reports', appID: any, type: Billing_Report_Type_Enum, value: number, reportEnds: any }>, billingResources: Array<{ __typename?: 'billing_resources', appID: any, functionsAmount: number, customDomains: number, persistentVolume: number, pitr: number }>, billingDedicatedComputes: Array<{ __typename?: 'billing_dedicated_compute', appID: any, totalMillicores: number }> };
+export type GetBillingMetricsQuery = { __typename?: 'query_root', billingReports: Array<{ __typename?: 'billing_reports', appID: any, type: Billing_Report_Type_Enum, value: number, reportEnds: any }>, billingResources: Array<{ __typename?: 'billing_resources', appID: any, functionsAmount: number, customDomains: number, persistentVolume: number, pitr: number }>, billingTimeBasedUsages: Array<{ __typename?: 'billing_time_based_usage', appID: any, value: number }> };
 
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -29751,9 +29751,11 @@ export const GetBillingMetricsDocument = gql`
     persistentVolume
     pitr
   }
-  billingDedicatedComputes(where: {organizationID: {_eq: $organizationID}}) {
+  billingTimeBasedUsages(
+    where: {organizationID: {_eq: $organizationID}, productType: {_eq: dedicated_compute}}
+  ) {
     appID
-    totalMillicores
+    value
   }
 }
     `;

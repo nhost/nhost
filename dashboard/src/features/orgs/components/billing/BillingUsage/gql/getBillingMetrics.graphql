@@ -18,10 +18,13 @@ query getBillingMetrics($organizationID: uuid!, $from: timestamptz!) {
     persistentVolume
     pitr
   }
-  billingDedicatedComputes(
-    where: { organizationID: { _eq: $organizationID } }
+  billingTimeBasedUsages(
+    where: {
+      organizationID: { _eq: $organizationID }
+      productType: { _eq: dedicated_compute }
+    }
   ) {
     appID
-    totalMillicores
+    value
   }
 }

@@ -32,4 +32,21 @@ describe('HoverTooltipContent', () => {
     expect(screen.getByText('3 GB')).toBeInTheDocument();
     expect(screen.getByText('Total of 5 projects')).toBeInTheDocument();
   });
+
+  it('fades the rows whose value is zero', () => {
+    render(
+      <HoverTooltipContent
+        active
+        payload={[
+          { dataKey: 'project-1', value: 0 },
+          { dataKey: 'project-2', value: 2 },
+        ]}
+        config={config}
+        label={Date.UTC(2026, 9, 1)}
+      />,
+    );
+
+    expect(screen.getByText('Project 1').closest('.opacity-50')).not.toBeNull();
+    expect(screen.getByText('Project 2').closest('.opacity-50')).toBeNull();
+  });
 });

@@ -1,9 +1,8 @@
 import type { ApolloError } from '@apollo/client';
+import { tz } from '@date-fns/tz';
+import { addMonths, startOfMonth, subDays, subMonths } from 'date-fns';
 import { useMemo, useState } from 'react';
-import {
-  BILLING_USAGE_HISTORY_DAYS,
-  DAY_MS,
-} from '@/features/orgs/components/billing/BillingUsage/constants';
+import { BILLING_USAGE_HISTORY_DAYS } from '@/features/orgs/components/billing/BillingUsage/constants';
 import type {
   BillingCycle,
   BillingMetricsData,
@@ -12,11 +11,13 @@ import type {
   BillingUsageReportType,
 } from '@/features/orgs/components/billing/BillingUsage/types';
 import { compareBillingProjects } from '@/features/orgs/components/billing/BillingUsage/utils/compareBillingProjects';
+import { toBilledReports } from '@/features/orgs/components/billing/BillingUsage/utils/toBilledReports';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import {
   Billing_Report_Type_Enum,
   type GetBillingMetricsQuery,
+  useBillingGetNextInvoiceQuery,
   useGetBillingMetricsQuery,
 } from '@/generated/graphql';
 
@@ -25,6 +26,10 @@ const REPORT_TYPES: Record<Billing_Report_Type_Enum, BillingUsageReportType> = {
   [Billing_Report_Type_Enum.Functions]: 'functions',
   [Billing_Report_Type_Enum.DedicatedCompute]: 'dedicatedCompute',
 };
+
+const MILLICORES_PER_VCPU = 1000;
+
+const UTC = { in: tz('UTC') };
 
 export interface UseBillingMetricsResult {
   data: BillingMetricsData | undefined;
@@ -42,19 +47,28 @@ export default function useBillingMetrics(): UseBillingMetricsResult {
   const { data, loading, error, refetch } = useGetBillingMetricsQuery({
     variables: {
       organizationID: org.id,
-      from: new Date(
-        now.getTime() - BILLING_USAGE_HISTORY_DAYS * DAY_MS,
-      ).toISOString(),
+      // A day more than the chart shows, so its first day, which starts at
+      // midnight in the page's time zone, is complete.
+      from: subDays(now, BILLING_USAGE_HISTORY_DAYS + 1).toISOString(),
     },
     skip: isNotOrgAdmin,
     notifyOnNetworkStatusChange: true,
   });
 
-  const currentCycle = useMemo(() => toUtcCalendarMonth(now), [now]);
+  const nextInvoice = useBillingGetNextInvoiceQuery({
+    variables: { organizationID: org.id },
+    skip: isNotOrgAdmin,
+  });
+  const periodEnd = nextInvoice.data?.billingGetNextInvoice?.PeriodEnd;
+  const currentCycle = useMemo(
+    () =>
+      periodEnd ? toBillingCycleEndingAt(periodEnd) : toUtcCalendarMonth(now),
+    [now, periodEnd],
+  );
 
   const { apps } = org;
   const metrics = useMemo<BillingMetricsData | undefined>(() => {
-    if (!data) {
+    if (!data || nextInvoice.loading) {
       return undefined;
     }
 
@@ -64,23 +78,30 @@ export default function useBillingMetrics(): UseBillingMetricsResult {
 
     return {
       currentCycle,
-      usageReports: toUsageReports(data, projectNames),
+      usageReports: toBilledReports(
+        toUsageReports(data, projectNames),
+        now.getTime(),
+      ),
       trackedResources: toTrackedResources(data, projectNames),
     };
-  }, [apps, currentCycle, data]);
+  }, [apps, currentCycle, data, nextInvoice.loading, now]);
 
   return { data: metrics, loading, error, refetch, isNotOrgAdmin };
 }
 
-// Subscriptions are renewed on the 1st at 00:00 UTC and the chart buckets
-// reports by UTC day, so the cycle follows the UTC calendar month rather than
-// the browser's.
-function toUtcCalendarMonth(now: Date): BillingCycle {
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth();
+function toBillingCycleEndingAt(periodEnd: string): BillingCycle {
+  const end = new Date(periodEnd);
   return {
-    start: new Date(Date.UTC(year, month, 1)).toISOString(),
-    end: new Date(Date.UTC(year, month + 1, 1)).toISOString(),
+    start: new Date(subMonths(end, 1, UTC).getTime()).toISOString(),
+    end: end.toISOString(),
+  };
+}
+
+function toUtcCalendarMonth(now: Date): BillingCycle {
+  const start = startOfMonth(now, UTC);
+  return {
+    start: new Date(start.getTime()).toISOString(),
+    end: new Date(addMonths(start, 1, UTC).getTime()).toISOString(),
   };
 }
 
@@ -91,7 +112,10 @@ function toUsageReports(
   return data.billingReports.map((report) => ({
     ...toBillingProject(report.appID, projectNames),
     type: REPORT_TYPES[report.type],
-    value: report.value,
+    value:
+      report.type === Billing_Report_Type_Enum.DedicatedCompute
+        ? report.value / MILLICORES_PER_VCPU
+        : report.value,
     reportEnds: report.reportEnds,
   }));
 }
@@ -127,9 +151,9 @@ function toTrackedResources(
     resource.pitr = row.pitr;
   });
 
-  data.billingDedicatedComputes.forEach((row) => {
+  data.billingTimeBasedUsages.forEach((row) => {
     const resource = resourceFor(row.appID);
-    resource.dedicatedComputeMillicores = row.totalMillicores;
+    resource.dedicatedComputeMillicores = row.value;
   });
 
   return Array.from(byProject.values()).sort(compareBillingProjects);

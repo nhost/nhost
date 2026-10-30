@@ -1,6 +1,6 @@
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
 import { BillingUsageByProject } from '@/features/orgs/components/billing/BillingUsage/components/BillingUsageByProject';
+import { BillingUsageEstimateNotice } from '@/features/orgs/components/billing/BillingUsage/components/BillingUsageEstimateNotice';
 import { BillingUsageUnavailable } from '@/features/orgs/components/billing/BillingUsage/components/BillingUsageUnavailable';
 import { CurrentTrackedResourcesTable } from '@/features/orgs/components/billing/BillingUsage/components/CurrentTrackedResourcesTable';
 import { useBillingMetrics } from '@/features/orgs/components/billing/BillingUsage/hooks/useBillingMetrics';
@@ -42,28 +42,16 @@ export default function BillingUsage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground text-sm">
-        These figures are estimates. Your invoices show what you're billed. See{' '}
-        <TextLink href="https://nhost.io/pricing" external>
-          pricing
-        </TextLink>{' '}
-        and{' '}
-        <TextLink
-          href="https://docs.nhost.io/platform/cloud/billing#usage"
-          external
-        >
-          how usage is billed
-        </TextLink>
-        .
-      </p>
+      <BillingUsageEstimateNotice />
       <BillingUsageByProject
-        data={data}
+        usageReports={data.usageReports}
+        currentCycle={data.currentCycle}
         refreshing={loading}
         onRefresh={() => refetch()}
         showIncludedUsage={hasProTeamPricing}
       />
       <CurrentTrackedResourcesTable
-        data={data}
+        trackedResources={data.trackedResources}
         showPricing={hasProTeamPricing}
       />
     </div>

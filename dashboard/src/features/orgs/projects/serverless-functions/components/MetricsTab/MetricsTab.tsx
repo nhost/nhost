@@ -11,11 +11,6 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
 import { MetricsTimeRangeFilter } from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
 import { useMetricsTimeRangeUrlState } from '@/features/orgs/projects/common/metrics/hooks/useMetricsTimeRangeUrlState';
 import { resolveTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
@@ -115,22 +110,15 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
       </div>
       <div className="flex flex-row items-center justify-end gap-2 border-b bg-background px-6 py-4">
         <MetricsTimeRangeFilter value={range} onChange={setRange} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ButtonWithLoading
-              variant="outline"
-              size="icon"
-              onClick={refetch}
-              loading={loading}
-              loaderClassName="mr-0 h-4 w-4"
-              aria-label="Refresh metrics"
-              data-testid="metricsRefreshButton"
-            >
-              {!loading && <RefreshCw className="h-4 w-4" />}
-            </ButtonWithLoading>
-          </TooltipTrigger>
-          <TooltipContent>Refresh metrics</TooltipContent>
-        </Tooltip>
+        <ButtonWithLoading
+          variant="outline"
+          onClick={refetch}
+          loading={loading}
+          data-testid="metricsRefreshButton"
+        >
+          {!loading && <RefreshCw className="mr-2 h-4 w-4" />}
+          Refresh
+        </ButtonWithLoading>
       </div>
 
       {openPanel && data && !error ? (

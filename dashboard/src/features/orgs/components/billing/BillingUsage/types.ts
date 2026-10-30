@@ -53,15 +53,29 @@ export type BillingUsageTimeRange =
   | { kind: 'preset'; preset: BillingUsageRangePreset }
   | { kind: 'absolute'; from: string; to: string };
 
+export type BillingUsageTimeZone = 'browser' | 'utc';
+
+export const BILLING_USAGE_CHART_VIEWS = ['cumulative', 'daily'] as const;
+
+export type BillingUsageChartView = (typeof BILLING_USAGE_CHART_VIEWS)[number];
+
 export interface BillingUsageRangeBounds {
   min: string;
   max: string;
-  currentBillingCycleStart: string;
+  currentBillingCycle: BillingCycle;
 }
 
 export interface ResolvedBillingUsageTimeRange {
   from: Date;
   to: Date;
+}
+
+export interface BillingUsageBucket {
+  day: number;
+  start: number;
+  end: number;
+  cycleStart: number;
+  timestamp: number;
 }
 
 export interface BillingUsageTimeAxis {
@@ -74,18 +88,10 @@ export type BillingUsageProjectKind = 'active' | 'deleted' | 'deletedGroup';
 export interface BillingUsagePeriod {
   periodStart: string;
   periodEnd: string;
-  latestReportEnd: string;
 }
 
 export interface BillingUsageSummary {
   total: number;
-  topProject?: {
-    projectID: string;
-    name: string;
-    isDeleted: boolean;
-    total: number;
-    percentage: number;
-  };
   deletedProjects?: {
     count: number;
     total: number;

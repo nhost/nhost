@@ -1,15 +1,12 @@
 import { BillingProjectLabel } from '@/features/orgs/components/billing/BillingUsage/components/BillingProjectLabel';
 import { BillingSectionCard } from '@/features/orgs/components/billing/BillingUsage/components/BillingSectionCard';
-import type {
-  BillingMetricsData,
-  BillingTrackedResource,
-} from '@/features/orgs/components/billing/BillingUsage/types';
+import type { BillingTrackedResource } from '@/features/orgs/components/billing/BillingUsage/types';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { MetricTable } from '@/features/orgs/projects/common/metrics/components/MetricTable';
 import { formatInteger } from '@/features/orgs/projects/common/metrics/utils/formatters';
 
 export interface CurrentTrackedResourcesTableProps {
-  data: BillingMetricsData;
+  trackedResources: BillingTrackedResource[];
   showPricing: boolean;
 }
 
@@ -48,7 +45,7 @@ function PricingColumnLabel({ label, pricing }: PricingColumnLabelProps) {
 }
 
 export default function CurrentTrackedResourcesTable({
-  data,
+  trackedResources,
   showPricing,
 }: CurrentTrackedResourcesTableProps) {
   const pricing = showPricing ? PRO_TEAM_RESOURCE_PRICING : undefined;
@@ -59,7 +56,7 @@ export default function CurrentTrackedResourcesTable({
       description="Current billable resources by project."
     >
       <MetricTable<BillingTrackedResource>
-        rows={data.trackedResources}
+        rows={trackedResources}
         rowKey={(resource) => resource.projectID}
         emptyLabel="No tracked resources are reported for this organization yet."
         columns={[

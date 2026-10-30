@@ -1,36 +1,30 @@
 import toBillingUsageZoomOutRange from './toBillingUsageZoomOutRange';
 
+// Aug 22 to Oct 20 in UTC.
 const BOUNDS = {
   min: '2026-08-22T00:00:00.000Z',
-  max: '2026-10-20T13:00:00.000Z',
-  currentBillingCycleStart: '2026-10-01T00:00:00.000Z',
+  max: '2026-10-21T00:00:00.000Z',
+  currentBillingCycle: {
+    start: '2026-10-01T00:00:00.000Z',
+    end: '2026-11-01T00:00:00.000Z',
+  },
 };
-
-const CYCLE_END = '2026-11-01T00:00:00.000Z';
 
 describe('toBillingUsageZoomOutRange', () => {
   it('keeps a range that already covers the retained reports', () => {
     const range = { kind: 'preset', preset: '60d' } as const;
 
-    expect(toBillingUsageZoomOutRange(range, BOUNDS, CYCLE_END)).toBe(range);
+    expect(toBillingUsageZoomOutRange(range, BOUNDS, 'UTC')).toBe(range);
   });
 
-  it('doubles a range around its midpoint in whole UTC days', () => {
+  it('doubles a range around its midpoint in whole days', () => {
     expect(
       toBillingUsageZoomOutRange(
-        {
-          kind: 'absolute',
-          from: '2026-09-10T00:00:00.000Z',
-          to: '2026-09-11T23:59:59.999Z',
-        },
+        { kind: 'absolute', from: '2026-09-10', to: '2026-09-11' },
         BOUNDS,
-        CYCLE_END,
+        'UTC',
       ),
-    ).toEqual({
-      kind: 'absolute',
-      from: '2026-09-09T00:00:00.000Z',
-      to: '2026-09-12T23:59:59.999Z',
-    });
+    ).toEqual({ kind: 'absolute', from: '2026-09-09', to: '2026-09-12' });
   });
 
   it('widens the whole current billing cycle, not only its reported days', () => {
@@ -40,14 +34,10 @@ describe('toBillingUsageZoomOutRange', () => {
         {
           ...BOUNDS,
           min: '2026-08-07T00:00:00.000Z',
-          max: '2026-10-05T12:00:00.000Z',
+          max: '2026-10-06T00:00:00.000Z',
         },
-        CYCLE_END,
+        'UTC',
       ),
-    ).toEqual({
-      kind: 'absolute',
-      from: '2026-08-07T00:00:00.000Z',
-      to: '2026-10-05T12:00:00.000Z',
-    });
+    ).toEqual({ kind: 'absolute', from: '2026-08-07', to: '2026-10-05' });
   });
 });

@@ -1,12 +1,12 @@
-const DAY_TICK_FORMAT = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'UTC',
-  month: 'short',
-  day: 'numeric',
-});
+import { tz } from '@date-fns/tz';
+import { format } from 'date-fns';
 
-export default function formatBillingDayTick(timestamp: number): string {
+export default function formatBillingDayTick(
+  timestamp: number,
+  timeZone: string,
+): string {
   if (!Number.isFinite(timestamp)) {
     return '';
   }
-  return DAY_TICK_FORMAT.format(new Date(timestamp));
+  return format(timestamp, 'MMM d', { in: tz(timeZone) });
 }

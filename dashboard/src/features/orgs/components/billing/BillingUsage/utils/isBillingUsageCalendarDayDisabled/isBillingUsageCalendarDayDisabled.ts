@@ -1,16 +1,16 @@
-import { addDays, startOfDay } from 'date-fns';
+import { tz } from '@date-fns/tz';
+import { startOfDay } from 'date-fns';
 import type { BillingUsageRangeBounds } from '@/features/orgs/components/billing/BillingUsage/types';
 
-// The calendar passes each day as midnight in the time zone it shows, so the
-// whole local day is compared with the retained reports, not its UTC day.
+// The bounds are midnights in the page's time zone, the one the calendar shows.
 export default function isBillingUsageCalendarDayDisabled(
   date: Date,
   bounds: BillingUsageRangeBounds,
+  timeZone: string,
 ): boolean {
-  const dayStart = startOfDay(date);
-  const nextDayStart = addDays(dayStart, 1);
+  const dayStart = startOfDay(date, { in: tz(timeZone) }).getTime();
   return (
-    nextDayStart.getTime() <= new Date(bounds.min).getTime() ||
-    dayStart.getTime() > new Date(bounds.max).getTime()
+    dayStart < new Date(bounds.min).getTime() ||
+    dayStart >= new Date(bounds.max).getTime()
   );
 }

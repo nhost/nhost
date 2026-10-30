@@ -1,12 +1,13 @@
-import { DAY_MS } from '@/features/orgs/components/billing/BillingUsage/constants';
+import { tz } from '@date-fns/tz';
+import { addDays, parseISO, subDays, subMonths } from 'date-fns';
 import type {
   BillingUsageRangeBounds,
   BillingUsageRangePreset,
   BillingUsageTimeRange,
   ResolvedBillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingUsage/types';
-import { previousBillingCycleStart } from '@/features/orgs/components/billing/BillingUsage/utils/previousBillingCycleStart';
-import { startOfUtcDay } from '@/features/orgs/components/billing/BillingUsage/utils/startOfUtcDay';
+
+const UTC = { in: tz('UTC') };
 
 const PRESET_DAYS: Record<
   Exclude<
@@ -23,45 +24,37 @@ const PRESET_DAYS: Record<
 export default function resolveBillingUsageTimeRange(
   range: BillingUsageTimeRange,
   bounds: BillingUsageRangeBounds,
+  timeZone: string,
 ): ResolvedBillingUsageTimeRange {
-  const min = new Date(bounds.min);
-  const max = new Date(bounds.max);
+  const inZone = { in: tz(timeZone) };
+  const min = new Date(bounds.min).getTime();
+  const max = new Date(bounds.max).getTime();
+  const cycleStart = new Date(bounds.currentBillingCycle.start).getTime();
 
   if (range.kind === 'absolute') {
-    return { from: new Date(range.from), to: new Date(range.to) };
+    const from = parseISO(range.from, inZone);
+    const to = addDays(parseISO(range.to, inZone), 1, inZone);
+    return { from: new Date(from.getTime()), to: new Date(to.getTime()) };
   }
 
-  // When the latest report predates a billing cycle, both cycle presets
-  // resolve to an empty range at the cycle's start instead of a reversed one.
   if (range.preset === 'currentBillingCycle') {
-    const from = Math.max(
-      min.getTime(),
-      new Date(bounds.currentBillingCycleStart).getTime(),
-    );
-    return {
-      from: new Date(from),
-      to: new Date(Math.max(from, max.getTime())),
-    };
+    const from = Math.max(min, cycleStart);
+    return { from: new Date(from), to: new Date(Math.max(from, max)) };
   }
 
-  // The previous cycle is clipped to the retained reports: after two 31-day
-  // months its first day or two fall outside the 60-day window.
   if (range.preset === 'previousBillingCycle') {
-    const cycleEnd = new Date(bounds.currentBillingCycleStart).getTime();
-    const from = Math.max(
-      min.getTime(),
-      previousBillingCycleStart(bounds.currentBillingCycleStart),
-    );
+    const previousCycleStart = subMonths(
+      bounds.currentBillingCycle.end,
+      2,
+      UTC,
+    ).getTime();
+    const from = Math.max(min, previousCycleStart);
     return {
       from: new Date(from),
-      to: new Date(Math.max(from, Math.min(max.getTime(), cycleEnd - 1))),
+      to: new Date(Math.max(from, Math.min(max, cycleStart))),
     };
   }
 
-  const days = PRESET_DAYS[range.preset];
-  const firstDay = startOfUtcDay(max.getTime()) - (days - 1) * DAY_MS;
-  return {
-    from: new Date(Math.max(min.getTime(), firstDay)),
-    to: max,
-  };
+  const from = subDays(max, PRESET_DAYS[range.preset], inZone).getTime();
+  return { from: new Date(Math.max(min, from)), to: new Date(max) };
 }

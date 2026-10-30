@@ -4,11 +4,7 @@ import type {
   BillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingUsage/types';
 
-export const DAY_MS = 24 * 60 * 60 * 1000;
-
-export const BILLING_USAGE_HISTORY_DAYS = 60;
-
-export const BILLING_USAGE_RETENTION_MESSAGE = `Usage reports are retained for at most ${BILLING_USAGE_HISTORY_DAYS} days.`;
+export const BILLING_USAGE_HISTORY_DAYS = 95;
 
 export const DELETED_PROJECTS_GROUP_THRESHOLD = 5;
 
@@ -23,13 +19,13 @@ export const BILLING_USAGE_REPORT_LABELS: Record<
 
 export const BILLING_USAGE_REFERENCE_LINES: Record<
   BillingUsageReportType,
-  { value: number; label: string }
+  { value: number; describe: (amount: string) => string }
 > = {
-  egress: { value: 50_000, label: 'Included usage' },
-  functions: { value: 36_000, label: 'Included usage' },
+  egress: { value: 50_000, describe: (amount) => `the ${amount} included` },
+  functions: { value: 36_000, describe: (amount) => `the ${amount} included` },
   dedicatedCompute: {
-    value: 12_500_000,
-    label: 'Approx. $15 compute credit',
+    value: 12_500,
+    describe: (amount) => `the $15 credit (about ${amount})`,
   },
 };
 
@@ -39,7 +35,7 @@ export const BILLING_USAGE_REPORT_UNITS: Record<
 > = {
   egress: 'MB',
   functions: 'seconds',
-  dedicatedCompute: 'millicore-minutes',
+  dedicatedCompute: 'vCPU-minutes',
 };
 
 export const DEFAULT_BILLING_USAGE_TIME_RANGE: BillingUsageTimeRange = {
