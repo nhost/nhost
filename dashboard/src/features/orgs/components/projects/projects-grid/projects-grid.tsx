@@ -286,9 +286,14 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
             items={orderedProjects.map((project) => project.id)}
             strategy={rectSortingStrategy}
           >
-            {orderedProjects.map((project) => (
-              <SortableProjectCard key={project.id} project={project} />
-            ))}
+            {/* One project has nowhere to go, so no drag handle until there are two. */}
+            {orderedProjects.map((project) =>
+              orderedProjects.length > 1 ? (
+                <SortableProjectCard key={project.id} project={project} />
+              ) : (
+                <ProjectCard key={project.id} project={project} />
+              ),
+            )}
           </SortableContext>
         </DndContext>
       </div>
