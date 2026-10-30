@@ -1,101 +1,110 @@
+import { tz } from '@date-fns/tz';
+import { format, parseISO, startOfMonth } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
-import { DateTimePicker } from '@/components/common/DateTimePicker';
+import { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { Label } from '@/components/ui/v3/label';
+import { Calendar } from '@/components/ui/v3/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
-import {
-  BILLING_USAGE_PRESET_LABELS,
-  BILLING_USAGE_RETENTION_MESSAGE,
-} from '@/features/orgs/components/billing/BillingUsage/constants';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { BILLING_USAGE_PRESET_LABELS } from '@/features/orgs/components/billing/BillingUsage/constants';
 import {
   BILLING_USAGE_RANGE_PRESETS,
   type BillingUsageRangeBounds,
   type BillingUsageRangePreset,
   type BillingUsageTimeRange,
+  type BillingUsageTimeZone,
+  type ResolvedBillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingUsage/types';
-import { getBillingUsagePresetCycleMonth } from '@/features/orgs/components/billing/BillingUsage/utils/getBillingUsagePresetCycleMonth';
+import { getBillingUsagePresetCycle } from '@/features/orgs/components/billing/BillingUsage/utils/getBillingUsagePresetCycle';
+import { getBillingUsagePresetCycleLabel } from '@/features/orgs/components/billing/BillingUsage/utils/getBillingUsagePresetCycleLabel';
+import { getBillingUsageRangeDays } from '@/features/orgs/components/billing/BillingUsage/utils/getBillingUsageRangeDays';
+import { getBillingUsageTimeZone } from '@/features/orgs/components/billing/BillingUsage/utils/getBillingUsageTimeZone';
 import { isBillingUsageCalendarDayDisabled } from '@/features/orgs/components/billing/BillingUsage/utils/isBillingUsageCalendarDayDisabled';
 import { resolveBillingUsageTimeRange } from '@/features/orgs/components/billing/BillingUsage/utils/resolveBillingUsageTimeRange';
 import { validateBillingUsageTimeRange } from '@/features/orgs/components/billing/BillingUsage/utils/validateBillingUsageTimeRange';
 import { cn } from '@/lib/utils';
 
-// The chart buckets usage by UTC day, so custom ranges are labelled in UTC too.
-const TRIGGER_FORMAT = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'UTC',
-  month: 'short',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-});
-
 export interface BillingUsageTimeRangeFilterProps {
   value: BillingUsageTimeRange;
   bounds: BillingUsageRangeBounds;
+  timeZone: BillingUsageTimeZone;
   onChange: (next: BillingUsageTimeRange) => void;
+  onTimeZoneChange: (next: BillingUsageTimeZone) => void;
 }
 
 export default function BillingUsageTimeRangeFilter({
   value,
   bounds,
+  timeZone,
   onChange,
+  onTimeZoneChange,
 }: BillingUsageTimeRangeFilterProps) {
+  const zone = getBillingUsageTimeZone(timeZone);
+  const inZone = { in: tz(zone) };
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<BillingUsageTimeRange>(value);
-  const resolvedDraft = resolveBillingUsageTimeRange(draft, bounds);
-  const resolvedValue = resolveBillingUsageTimeRange(value, bounds);
-  const error = validateBillingUsageTimeRange(draft, bounds);
+  // The day picked first, while the calendar waits for the other end.
+  const firstPickedDayRef = useRef<string | null>(null);
+  const resolvedDraft = resolveBillingUsageTimeRange(draft, bounds, zone);
+  const resolvedValue = resolveBillingUsageTimeRange(value, bounds, zone);
+  const draftDays = getBillingUsageRangeDays(
+    resolvedDraft,
+    zone,
+    bounds.currentBillingCycle.end,
+  );
+  const [month, setMonth] = useState<Date>(() =>
+    lastMonthOf(resolvedValue, bounds, zone),
+  );
+  const error = validateBillingUsageTimeRange(draft, bounds, zone);
   const activePreset = draft.kind === 'preset' ? draft.preset : null;
+  const timeZoneHeadingId = useId();
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       setDraft(value);
+      firstPickedDayRef.current = null;
+      setMonth(lastMonthOf(resolvedValue, bounds, zone));
     }
     setOpen(nextOpen);
   }
 
   function handlePresetClick(preset: BillingUsageRangePreset) {
-    setDraft({ kind: 'preset', preset });
+    const next: BillingUsageTimeRange = { kind: 'preset', preset };
+    setDraft(next);
+    firstPickedDayRef.current = null;
+    setMonth(
+      lastMonthOf(
+        resolveBillingUsageTimeRange(next, bounds, zone),
+        bounds,
+        zone,
+      ),
+    );
   }
 
-  function handleFromChange(newIso: string | null) {
-    if (newIso !== null) {
-      setDraft({
-        kind: 'absolute',
-        from: newIso,
-        to: resolvedDraft.to.toISOString(),
-      });
+  function handleDayPick(day: Date) {
+    const picked = format(day, 'yyyy-MM-dd', inZone);
+    const firstPickedDay = firstPickedDayRef.current;
+    if (firstPickedDay === null) {
+      setDraft({ kind: 'absolute', from: picked, to: picked });
+      firstPickedDayRef.current = picked;
+      return;
     }
-  }
-
-  function handleToChange(newIso: string | null) {
-    if (newIso !== null) {
-      setDraft({
-        kind: 'absolute',
-        from: resolvedDraft.from.toISOString(),
-        to: newIso,
-      });
-    }
-  }
-
-  function validatePickerDate(date: Date): string {
-    if (date.getTime() < new Date(bounds.min).getTime()) {
-      return BILLING_USAGE_RETENTION_MESSAGE;
-    }
-    if (date.getTime() > new Date(bounds.max).getTime()) {
-      return 'No usage reported after this time.';
-    }
-    return '';
+    setDraft(
+      firstPickedDay <= picked
+        ? { kind: 'absolute', from: firstPickedDay, to: picked }
+        : { kind: 'absolute', from: picked, to: firstPickedDay },
+    );
+    firstPickedDayRef.current = null;
   }
 
   function handleApply() {
@@ -105,42 +114,32 @@ export default function BillingUsageTimeRangeFilter({
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="justify-start gap-2 font-normal"
-              data-testid="billingUsageTimeRangeTrigger"
-            >
-              <CalendarIcon className="h-4 w-4" />
-              <span className="tabular-nums">
-                {formatTriggerLabel(value, bounds)}
-              </span>
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent className="text-center">
-          {resolvedValue.from.toISOString()}
-          <br />
-          to
-          <br />
-          {resolvedValue.to.toISOString()}
-        </TooltipContent>
-      </Tooltip>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="justify-start font-normal"
+          data-testid="billingUsageTimeRangeTrigger"
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          <span className="tabular-nums">
+            {formatTriggerLabel(value, bounds, timeZone, zone)}
+          </span>
+        </Button>
+      </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[37rem] max-w-[calc(100vw-2rem)] p-0"
+        className="w-[42rem] max-w-[calc(100vw-2rem)] p-0"
       >
         <div className="flex flex-col sm:flex-row">
-          <div className="flex flex-col gap-1 border-b p-3 sm:min-w-[190px] sm:border-r sm:border-b-0">
+          <div className="flex flex-col gap-1 border-b p-3 sm:min-w-[190px] sm:flex-1 sm:border-r sm:border-b-0">
             <span className="px-2 pb-1 font-medium text-muted-foreground text-xs">
               Quick ranges
             </span>
             {BILLING_USAGE_RANGE_PRESETS.map((preset) => {
-              const cycleMonth = getBillingUsagePresetCycleMonth(
+              const cycleLabel = getBillingUsagePresetCycleLabel(
                 preset,
                 bounds,
+                zone,
               );
               const active = activePreset === preset;
               return (
@@ -148,19 +147,23 @@ export default function BillingUsageTimeRangeFilter({
                   key={preset}
                   variant={active ? 'outline' : 'ghost'}
                   size="sm"
-                  className="group justify-between gap-3 font-normal"
+                  className="group justify-between font-normal"
+                  disabled={
+                    getBillingUsagePresetCycle(preset, bounds)?.hasReports ===
+                    false
+                  }
                   onClick={() => handlePresetClick(preset)}
                 >
                   {BILLING_USAGE_PRESET_LABELS[preset]}
-                  {cycleMonth ? (
+                  {cycleLabel ? (
                     <span
                       className={cn(
-                        'text-xs',
+                        'ml-3 text-xs',
                         !active &&
                           'text-muted-foreground group-hover:text-accent-foreground',
                       )}
                     >
-                      {cycleMonth}
+                      {cycleLabel}
                     </span>
                   ) : null}
                 </Button>
@@ -168,38 +171,50 @@ export default function BillingUsageTimeRangeFilter({
             })}
           </div>
           <div className="flex w-full flex-col gap-3 p-3 sm:w-[340px]">
-            <span className="px-1 pb-1 font-medium text-muted-foreground text-xs">
-              Absolute time range
+            <span className="px-1 font-medium text-muted-foreground text-xs">
+              Days
             </span>
+            <Calendar
+              mode="range"
+              fixedWeeks
+              timeZone={zone}
+              selected={{ from: draftDays.first, to: draftDays.last }}
+              onSelect={(_range, day) => handleDayPick(day)}
+              month={month}
+              defaultMonth={month}
+              onMonthChange={setMonth}
+              startMonth={startOfMonth(bounds.min, inZone)}
+              endMonth={startOfMonth(
+                new Date(bounds.max).getTime() - 1,
+                inZone,
+              )}
+              disabled={(date) =>
+                isBillingUsageCalendarDayDisabled(date, bounds, zone)
+              }
+            />
             <div className="flex flex-col gap-1.5">
-              <Label className="text-muted-foreground text-xs">From</Label>
-              <DateTimePicker
-                key={resolvedDraft.from.toISOString()}
-                dateTime={resolvedDraft.from.toISOString()}
-                triggerTestId="billingUsageFromPickerTrigger"
-                onDateTimeChange={handleFromChange}
-                isCalendarDayDisabled={(date) =>
-                  isBillingUsageCalendarDayDisabled(date, bounds)
+              <span
+                id={timeZoneHeadingId}
+                className="px-1 font-medium text-muted-foreground text-xs"
+              >
+                Time zone
+              </span>
+              <Select
+                value={timeZone}
+                onValueChange={(next) =>
+                  onTimeZoneChange(next as BillingUsageTimeZone)
                 }
-                validateDateFn={validatePickerDate}
-                withTimezone
-                align="end"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-muted-foreground text-xs">To</Label>
-              <DateTimePicker
-                key={resolvedDraft.to.toISOString()}
-                dateTime={resolvedDraft.to.toISOString()}
-                triggerTestId="billingUsageToPickerTrigger"
-                onDateTimeChange={handleToChange}
-                isCalendarDayDisabled={(date) =>
-                  isBillingUsageCalendarDayDisabled(date, bounds)
-                }
-                validateDateFn={validatePickerDate}
-                withTimezone
-                align="end"
-              />
+              >
+                <SelectTrigger aria-labelledby={timeZoneHeadingId}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="browser">
+                    Browser time ({getBillingUsageTimeZone('browser')})
+                  </SelectItem>
+                  <SelectItem value="utc">UTC</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {error ? <p className="text-destructive text-xs">{error}</p> : null}
             <div className="mt-1 flex justify-end gap-2">
@@ -217,14 +232,46 @@ export default function BillingUsageTimeRangeFilter({
   );
 }
 
+function lastMonthOf(
+  range: ResolvedBillingUsageTimeRange,
+  bounds: BillingUsageRangeBounds,
+  zone: string,
+) {
+  const { last } = getBillingUsageRangeDays(
+    range,
+    zone,
+    bounds.currentBillingCycle.end,
+  );
+  return startOfMonth(last, { in: tz(zone) });
+}
+
 function formatTriggerLabel(
   range: BillingUsageTimeRange,
   bounds: BillingUsageRangeBounds,
+  timeZone: BillingUsageTimeZone,
+  zone: string,
 ): string {
-  if (range.kind === 'preset') {
-    const label = BILLING_USAGE_PRESET_LABELS[range.preset];
-    const cycleMonth = getBillingUsagePresetCycleMonth(range.preset, bounds);
-    return cycleMonth ? `${label} · ${cycleMonth}` : label;
+  const suffix = timeZone === 'utc' ? ' (UTC)' : '';
+  if (range.kind === 'absolute') {
+    return `${formatDays(range.from, range.to)}${suffix}`;
   }
-  return `${TRIGGER_FORMAT.format(new Date(range.from))} → ${TRIGGER_FORMAT.format(new Date(range.to))} UTC`;
+  const label = BILLING_USAGE_PRESET_LABELS[range.preset];
+  const cycleLabel = getBillingUsagePresetCycleLabel(
+    range.preset,
+    bounds,
+    zone,
+  );
+  return cycleLabel ? `${label} · ${cycleLabel}${suffix}` : `${label}${suffix}`;
+}
+
+function formatDays(from: string, to: string): string {
+  const first = parseISO(from);
+  const last = parseISO(to);
+  if (from === to) {
+    return format(first, 'MMM d, yyyy');
+  }
+  if (first.getFullYear() === last.getFullYear()) {
+    return `${format(first, 'MMM d')} – ${format(last, 'MMM d, yyyy')}`;
+  }
+  return `${format(first, 'MMM d, yyyy')} – ${format(last, 'MMM d, yyyy')}`;
 }

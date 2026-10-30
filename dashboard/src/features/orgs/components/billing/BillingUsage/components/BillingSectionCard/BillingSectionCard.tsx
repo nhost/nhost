@@ -20,7 +20,7 @@ export default function BillingSectionCard({
     >
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="space-y-1">
-          <h3 className="font-medium text-foreground text-sm">{title}</h3>
+          <h3 className="font-medium text-base text-foreground">{title}</h3>
           <p className="max-w-prose text-muted-foreground text-xs">
             {description}
           </p>

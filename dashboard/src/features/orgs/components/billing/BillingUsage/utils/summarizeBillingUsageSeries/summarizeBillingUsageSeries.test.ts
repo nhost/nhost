@@ -21,16 +21,9 @@ const series: MetricSeries[] = [
 ];
 
 describe('summarizeBillingUsageSeries', () => {
-  it('totals the usage and names the top project and the deleted share', () => {
+  it('totals the usage and the deleted share', () => {
     expect(summarizeBillingUsageSeries(series)).toEqual({
       total: 100,
-      topProject: {
-        projectID: 'alpha',
-        name: 'Alpha',
-        isDeleted: false,
-        total: 60,
-        percentage: 60,
-      },
       deletedProjects: { count: 1, total: 40, percentage: 40 },
     });
   });

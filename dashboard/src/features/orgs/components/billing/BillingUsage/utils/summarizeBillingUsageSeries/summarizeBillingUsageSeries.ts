@@ -5,8 +5,6 @@ export default function summarizeBillingUsageSeries(
   dailySeries: MetricSeries[],
 ): BillingUsageSummary {
   const projectTotals = dailySeries.map((series) => ({
-    projectID: series.labels.projectID,
-    name: series.labels.projectName ?? series.labels.projectID ?? 'Project',
     isDeleted: series.labels.projectKind === 'deleted',
     total: sumOf(series.datapoints),
   }));
@@ -15,7 +13,6 @@ export default function summarizeBillingUsageSeries(
     return { total };
   }
 
-  const [topProject] = [...projectTotals].sort((a, b) => b.total - a.total);
   const deletedProjects = projectTotals.filter(
     (project) => project.isDeleted && project.total > 0,
   );
@@ -23,16 +20,12 @@ export default function summarizeBillingUsageSeries(
 
   return {
     total,
-    topProject: {
-      ...topProject,
-      percentage: toPercentage(topProject.total, total),
-    },
     deletedProjects:
       deletedProjects.length > 0
         ? {
             count: deletedProjects.length,
             total: deletedTotal,
-            percentage: toPercentage(deletedTotal, total),
+            percentage: (deletedTotal / total) * 100,
           }
         : undefined,
   };
@@ -40,8 +33,4 @@ export default function summarizeBillingUsageSeries(
 
 function sumOf(values: number[]): number {
   return values.reduce((sum, value) => sum + value, 0);
-}
-
-function toPercentage(part: number, total: number): number {
-  return Math.round((part / total) * 100);
 }

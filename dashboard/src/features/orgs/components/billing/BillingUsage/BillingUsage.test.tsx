@@ -39,14 +39,36 @@ const billingMetrics = {
       pitr: 0,
     },
   ],
-  billingDedicatedComputes: [],
+  billingTimeBasedUsages: [],
 };
 
 const getBillingMetrics = nhostGraphQLLink.query('getBillingMetrics', () =>
   HttpResponse.json({ data: billingMetrics }),
 );
 
-const server = setupServer(tokenQuery, getBillingMetrics);
+function nextInvoiceEndingAt(periodEnd: string) {
+  return nhostGraphQLLink.query('billingGetNextInvoice', () =>
+    HttpResponse.json({
+      data: {
+        billingGetNextInvoice: {
+          __typename: 'InvoiceSummary',
+          AmountDue: 0,
+          PeriodEnd: periodEnd,
+          items: [],
+        },
+      },
+    }),
+  );
+}
+
+const now = new Date();
+const getNextInvoice = nextInvoiceEndingAt(
+  new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+  ).toISOString(),
+);
+
+const server = setupServer(tokenQuery, getBillingMetrics, getNextInvoice);
 
 describe('BillingUsage', () => {
   beforeAll(() => {
@@ -117,7 +139,7 @@ describe('BillingUsage', () => {
         return HttpResponse.json({ data: billingMetrics });
       }),
     );
-    await user.click(screen.getByRole('button', { name: 'Refresh metrics' }));
+    await user.click(screen.getByRole('button', { name: 'Refresh' }));
 
     expect(
       screen.getByRole('heading', { name: 'Usage by project' }),
@@ -127,27 +149,29 @@ describe('BillingUsage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each([
-    { planName: 'Pro', pricingIcons: 1 },
-    { planName: 'Enterprise', pricingIcons: 0 },
-  ])(
-    'shows Pro/Team pricing icons only outside Enterprise ($planName plan)',
-    async ({ planName, pricingIcons }) => {
-      mocks.useCurrentOrg.mockReturnValue({
-        org: {
-          ...mockOrganization,
-          plan: { ...mockOrganization.plan, name: planName },
-        },
-      });
+  it("shows a project's dedicated compute in the tracked resources", async () => {
+    server.use(
+      nhostGraphQLLink.query('getBillingMetrics', () =>
+        HttpResponse.json({
+          data: {
+            ...billingMetrics,
+            billingTimeBasedUsages: [
+              {
+                __typename: 'billing_time_based_usage',
+                appID: mockApplication.id,
+                value: 2000,
+              },
+            ],
+          },
+        }),
+      ),
+    );
 
-      render(<BillingUsage />);
+    render(<BillingUsage />);
 
-      const computeColumn = await screen.findByRole('columnheader', {
-        name: 'Compute',
-      });
-      expect(computeColumn.querySelectorAll('svg')).toHaveLength(pricingIcons);
-    },
-  );
+    const table = await screen.findByRole('table');
+    expect(within(table).getByText('2,000 millicores')).toBeInTheDocument();
+  });
 
   it('labels a deleted project by its shortened ID', async () => {
     server.use(
@@ -171,5 +195,59 @@ describe('BillingUsage', () => {
     const table = await screen.findByRole('table');
     expect(within(table).getByText('Deleted project')).toBeInTheDocument();
     expect(within(table).getByText('f81d4fae…6bf6')).toBeInTheDocument();
+  });
+
+  describe('on Nov 5, 2026', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-11-05T10:00:00.000Z'));
+      server.use(
+        nhostGraphQLLink.query('getBillingMetrics', () =>
+          HttpResponse.json({
+            data: {
+              ...billingMetrics,
+              billingReports: [
+                {
+                  ...billingMetrics.billingReports[0],
+                  reportEnds: '2026-11-05T08:00:00.000Z',
+                },
+              ],
+            },
+          }),
+        ),
+      );
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('names a cycle that ends on the 30th after the next invoice', async () => {
+      server.use(nextInvoiceEndingAt('2026-11-30T23:00:00Z'));
+
+      render(<BillingUsage />);
+
+      expect(
+        await screen.findByRole('button', {
+          name: 'Current billing cycle · Oct 30 – Nov 30',
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('names the UTC month when the next invoice is unavailable', async () => {
+      server.use(
+        nhostGraphQLLink.query('billingGetNextInvoice', () =>
+          HttpResponse.json({ errors: [{ message: 'Stripe is down' }] }),
+        ),
+      );
+
+      render(<BillingUsage />);
+
+      expect(
+        await screen.findByRole('button', {
+          name: 'Current billing cycle · Nov 2026',
+        }),
+      ).toBeInTheDocument();
+    });
   });
 });

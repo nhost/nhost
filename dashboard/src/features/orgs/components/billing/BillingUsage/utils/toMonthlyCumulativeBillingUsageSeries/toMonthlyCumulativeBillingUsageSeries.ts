@@ -1,16 +1,19 @@
+import type { BillingUsageBucket } from '@/features/orgs/components/billing/BillingUsage/types';
 import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
 
+// Turns bucket totals into cycle-to-date totals, starting again with each
+// billing cycle. The series and the buckets are index-aligned.
 export default function toMonthlyCumulativeBillingUsageSeries(
   dailySeries: MetricSeries[],
+  buckets: BillingUsageBucket[],
 ): MetricSeries[] {
   return dailySeries.map((series) => {
-    let month = '';
     let runningTotal = 0;
     const datapoints = series.datapoints.map((value, index) => {
-      const timestamp = new Date(series.timestamps[index]);
-      const nextMonth = `${timestamp.getUTCFullYear()}-${timestamp.getUTCMonth()}`;
-      if (nextMonth !== month) {
-        month = nextMonth;
+      if (
+        index > 0 &&
+        buckets[index].cycleStart !== buckets[index - 1].cycleStart
+      ) {
         runningTotal = 0;
       }
       runningTotal += value;

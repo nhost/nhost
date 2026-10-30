@@ -11,16 +11,16 @@ import { toBillingUsageZoomRange } from '@/features/orgs/components/billing/Bill
 export default function toBillingUsageZoomOutRange(
   range: BillingUsageTimeRange,
   bounds: BillingUsageRangeBounds,
-  currentBillingCycleEnd: string,
+  timeZone: string,
 ): BillingUsageTimeRange {
-  const { from, to } = resolveBillingUsageTimeRange(range, bounds);
+  const { from, to } = resolveBillingUsageTimeRange(range, bounds, timeZone);
   const min = new Date(bounds.min).getTime();
   const max = new Date(bounds.max).getTime();
   // The current cycle's chart runs to the cycle's end, past the latest report,
   // so zooming out widens the whole cycle, not only the days reported so far.
   const visibleTo =
     range.kind === 'preset' && range.preset === 'currentBillingCycle'
-      ? new Date(currentBillingCycleEnd).getTime()
+      ? new Date(bounds.currentBillingCycle.end).getTime()
       : to.getTime();
   const currentSpan = visibleTo - from.getTime();
   const span = Math.min(currentSpan * 2, max - min);
@@ -29,5 +29,7 @@ export default function toBillingUsageZoomOutRange(
   }
   const midpoint = (from.getTime() + visibleTo) / 2;
   const start = Math.min(Math.max(midpoint - span / 2, min), max - span);
-  return toBillingUsageZoomRange(start, start + span, bounds);
+  return (
+    toBillingUsageZoomRange(start, start + span - 1, bounds, timeZone) ?? range
+  );
 }
