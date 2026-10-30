@@ -1,3 +1,39 @@
+## [@nhost/dashboard@3.9.0] - 2026-10-30
+
+### 🚀 Features
+
+- *(dashboard)* Add a stacked bar metrics chart (#5221)
+- *(dashboard)* Add a multi-column unique constraint editor (#5095)
+- *(dashboard)* Deploy a branch, tag or commit from the Deployments page (#5232)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Buttons round 4, remove one off button styles (#5235)
+- *(dashboard)* One edit icon and one look for three dots menus (#5248)
+- *(dashboard)* Make the name in the delete confirmation popups easy to copy and see (#5233)
+- *(dashboard)* Untick the delete account checkbox on cancel (#5291)
+- *(dashboard)* Icon buttons use the subtle style (#5231)
+- *(dashboard)* Give most popups the same look (#5217)
+- *(dashboard)* One copy button look everywhere (#5249)
+- *(dashboard)* Compact GitHub sync notice on settings pages (#5288)
+- *(dashboard)* Consistent settings cards (#5289)
+- *(dashboard)* Keep the metrics chart legend from interfering with tooltips (#5209)
+- *(dashboard)* More inner padding on settings cards (#5299)
+- *(dashboard)* Docs links as a help icon next to settings card titles (#5300)
+- *(dashboard)* Settings page titles (#5298)
+- *(dashboard)* Clear cached project config when switching projects (#5255)
+- *(dashboard)* Secondary button refresh (#5311)
+- *(dashboard)* Easier to see checkbox outlines (#5302)
+- *(dashboard)* Tooltips no longer block the buttons under them (#5312)
+- *(dashboard)* No top line on flat outline buttons (#5327)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use the primary token instead of primary-main (#5250)
+- *(ci)* Update dependencies due to CVEs (#5307)
+
 ## [@nhost/dashboard@3.8.1] - 2026-10-26
 
 ### 🐛 Bug Fixes
