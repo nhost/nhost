@@ -8,11 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  SettingsCard,
-  SettingsCardHeader,
-  SettingsDocsLink,
-} from '@/components/layout/SettingsCard';
+import { SettingsDocsLink } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -147,47 +143,44 @@ export default function TOMLEditor() {
   };
 
   return (
-    <SettingsCard className="gap-6 pb-0">
-      <SettingsCardHeader
-        title={null}
-        description={
-          // No title (it would repeat the page title), so the help icon
-          // follows the description.
-          <>
-            Edit your project&apos;s configuration directly in TOML. Use it for
-            settings that don&apos;t have their own page yet.{' '}
-            <span className="inline-flex align-middle">
-              <SettingsDocsLink
-                href="https://docs.nhost.io/reference/configuration"
-                topic="the configuration file"
-              />
-            </span>
-          </>
-        }
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading || !isDirty}
-              onClick={handleRevert}
-            >
-              Revert changes
-            </Button>
-            <ButtonWithLoading
-              type="submit"
-              disabled={loading || !isDirty}
-              loading={isSaving}
-              onClick={handleSave}
-            >
-              Save
-            </ButtonWithLoading>
-          </>
-        }
-      />
+    // Not a SettingsCard: that is for settings forms and clips its content,
+    // which would stop the header from sticking. Same border, radius and
+    // spacing, so it reads like the other settings cards.
+    <section className="rounded-lg border">
+      {/* Sticks to the top while scrolling the file, so Revert and Save are
+          always in reach. */}
+      <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <p className="min-w-0 text-muted-foreground sm:max-w-lg">
+          Edit your project&apos;s configuration directly in TOML. Use it for
+          settings that don&apos;t have their own page yet.{' '}
+          <span className="inline-flex align-middle">
+            <SettingsDocsLink
+              href="https://docs.nhost.io/reference/configuration"
+              topic="the configuration file"
+            />
+          </span>
+        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading || !isDirty}
+            onClick={handleRevert}
+          >
+            Revert changes
+          </Button>
+          <ButtonWithLoading
+            type="submit"
+            disabled={loading || !isDirty}
+            loading={isSaving}
+            onClick={handleSave}
+          >
+            Save
+          </ButtonWithLoading>
+        </div>
+      </div>
 
-      {/* Edge to edge in the card, under a line, like a code block. */}
-      <div className="border-t">
+      <div className="overflow-hidden rounded-b-lg">
         {loading ? (
           <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
@@ -201,6 +194,6 @@ export default function TOMLEditor() {
           />
         )}
       </div>
-    </SettingsCard>
+    </section>
   );
 }
