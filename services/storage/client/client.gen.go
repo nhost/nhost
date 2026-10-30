@@ -267,6 +267,16 @@ type ReplaceFileMultipartBody struct {
 	Metadata *UpdateFileMetadata `json:"metadata,omitempty"`
 }
 
+// GetFilePresignedURLParams defines parameters for GetFilePresignedURL.
+type GetFilePresignedURLParams struct {
+	// ExpiresIn Number of seconds the presigned URL is valid for, overriding the
+	// bucket's download expiration. Only allowed for requests that carry
+	// a valid `X-Hasura-Admin-Secret` header; other requests get a 403.
+	// Capped at 604800 (7 days), the longest expiration S3 signatures
+	// support.
+	ExpiresIn *int `form:"expiresIn,omitempty" json:"expiresIn,omitempty"`
+}
+
 // GetFileWithPresignedURLParams defines parameters for GetFileWithPresignedURL.
 type GetFileWithPresignedURLParams struct {
 	// XAmzAlgorithm Use presignedurl endpoint to generate this automatically
@@ -422,7 +432,7 @@ type ClientInterface interface {
 	ReplaceFileWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFilePresignedURL request
-	GetFilePresignedURL(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetFilePresignedURL(ctx context.Context, id string, params *GetFilePresignedURLParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetFileWithPresignedURL request
 	GetFileWithPresignedURL(ctx context.Context, id string, params *GetFileWithPresignedURLParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -509,8 +519,8 @@ func (c *Client) ReplaceFileWithBody(ctx context.Context, id string, contentType
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetFilePresignedURL(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetFilePresignedURLRequest(c.Server, id)
+func (c *Client) GetFilePresignedURL(ctx context.Context, id string, params *GetFilePresignedURLParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetFilePresignedURLRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1042,7 +1052,7 @@ func NewReplaceFileRequestWithBody(server string, id string, contentType string,
 }
 
 // NewGetFilePresignedURLRequest generates requests for GetFilePresignedURL
-func NewGetFilePresignedURLRequest(server string, id string) (*http.Request, error) {
+func NewGetFilePresignedURLRequest(server string, id string, params *GetFilePresignedURLParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -1065,6 +1075,33 @@ func NewGetFilePresignedURLRequest(server string, id string) (*http.Request, err
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ExpiresIn != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "expiresIn", *params.ExpiresIn, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
@@ -1567,7 +1604,7 @@ type ClientWithResponsesInterface interface {
 	ReplaceFileWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReplaceFileR, error)
 
 	// GetFilePresignedURLWithResponse request
-	GetFilePresignedURLWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetFilePresignedURLR, error)
+	GetFilePresignedURLWithResponse(ctx context.Context, id string, params *GetFilePresignedURLParams, reqEditors ...RequestEditorFn) (*GetFilePresignedURLR, error)
 
 	// GetFileWithPresignedURLWithResponse request
 	GetFileWithPresignedURLWithResponse(ctx context.Context, id string, params *GetFileWithPresignedURLParams, reqEditors ...RequestEditorFn) (*GetFileWithPresignedURLR, error)
@@ -2080,8 +2117,8 @@ func (c *ClientWithResponses) ReplaceFileWithBodyWithResponse(ctx context.Contex
 }
 
 // GetFilePresignedURLWithResponse request returning *GetFilePresignedURLR
-func (c *ClientWithResponses) GetFilePresignedURLWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*GetFilePresignedURLR, error) {
-	rsp, err := c.GetFilePresignedURL(ctx, id, reqEditors...)
+func (c *ClientWithResponses) GetFilePresignedURLWithResponse(ctx context.Context, id string, params *GetFilePresignedURLParams, reqEditors ...RequestEditorFn) (*GetFilePresignedURLR, error) {
+	rsp, err := c.GetFilePresignedURL(ctx, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
