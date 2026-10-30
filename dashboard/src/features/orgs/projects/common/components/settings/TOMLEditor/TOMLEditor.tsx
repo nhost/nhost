@@ -3,8 +3,8 @@ import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
 import { bbedit } from '@uiw/codemirror-theme-bbedit';
 import { githubDark } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useEffect, useState } from 'react';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -37,6 +37,17 @@ export default function TOMLEditor() {
   const [isSaving, setIsSaving] = useState(false); // used to show loading spinner on save
 
   const { openDialog } = useDialog();
+
+  // When the cursor moves up with the arrow keys, the editor scrolls to keep it
+  // visible. The margin keeps it below the sticky header instead of behind it.
+  const headerRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderMargin = useMemo(
+    () =>
+      EditorView.scrollMargins.of(() => ({
+        top: headerRef.current?.offsetHeight ?? 0,
+      })),
+    [],
+  );
 
   const { project } = useProject();
 
@@ -146,10 +157,13 @@ export default function TOMLEditor() {
     // Not a SettingsCard: that is for settings forms and clips its content,
     // which would stop the header from sticking. Same border, radius and
     // spacing, so it reads like the other settings cards.
-    <section className="rounded-lg border">
-      {/* Sticks to the top while scrolling the file, so Revert and Save are
-          always in reach. */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+    // min-w-0: a very long line scrolls inside the editor instead of
+    // stretching the page and pushing Revert and Save off screen.
+    <section className="min-w-0 rounded-lg border">
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between"
+      >
         <p className="min-w-0 text-muted-foreground sm:max-w-lg">
           Edit your project&apos;s configuration directly in TOML. Use it for
           settings that don&apos;t have their own page yet.{' '}
@@ -180,7 +194,9 @@ export default function TOMLEditor() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-b-lg">
+      {/* Clips the corners without becoming a scroll container, so the
+          search panel (Cmd+F) can stick to the bottom of the window. */}
+      <div className="overflow-clip rounded-b-lg">
         {loading ? (
           <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
@@ -189,7 +205,11 @@ export default function TOMLEditor() {
             width="100%"
             minHeight="24rem"
             theme={resolvedTheme === 'light' ? bbedit : githubDark}
-            extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
+            extensions={[
+              StreamLanguage.define(toml),
+              codeMirrorAppBackground,
+              stickyHeaderMargin,
+            ]}
             onChange={onChange}
           />
         )}
