@@ -1,3 +1,15 @@
+## [constellation@0.8.0] - 2026-10-30
+
+### 🚀 Features
+
+- *(constellation)* Coalesce concurrent query parsing (#5309)
+- *(constellation)* Added support for computed fields (#5273)
+
+
+### Chore
+
+- *(deps)* Bump go and govulncheck (#5162)
+
 ## [constellation@0.7.1] - 2026-09-30
 
 ### 🐛 Bug Fixes
