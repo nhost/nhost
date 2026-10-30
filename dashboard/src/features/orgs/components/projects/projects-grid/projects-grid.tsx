@@ -16,9 +16,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
-import { ArrowRight, Move, Play, Plus, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Move, Plus, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { type ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -30,93 +30,29 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { baseServices } from '@/features/orgs/projects/overview/health';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
-  GetOrganizationsDocument,
-  GetProjectsDocument,
   type GetProjectsQuery,
   PipelineRunStatus_Enum,
   ServiceState,
   useGetProjectServicesHealthQuery,
-  useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
 import { cn } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
+import ProjectCardVariations from './ProjectCardVariations';
 import useProjectOrder from './useProjectOrder';
 
-type Project = GetProjectsQuery['apps'][0];
+export type Project = GetProjectsQuery['apps'][0];
 
-/**
- * Wakes a paused project from its card, the same mutation as the Wake up on
- * the project itself. The card shows "Waking up" as soon as it's clicked.
- */
-function WakeUpButton({
-  project,
-  onStart,
-  onFail,
-}: {
-  project: Project;
-  onStart: () => void;
-  onFail: () => void;
-}) {
-  const userData = useUserData();
-  const { org } = useCurrentOrg();
-  const [unpauseApplication, { loading }] = useUnpauseApplicationMutation({
-    refetchQueries: [
-      { query: GetProjectsDocument, variables: { orgSlug: org?.slug } },
-      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
-    ],
-  });
-
-  async function handleClick() {
-    onStart();
-
-    const woke = await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication({ variables: { appId: project.id } });
-        analytics.track('Project Resumed', {
-          org_id: org?.id ?? null,
-          project_id: project.id,
-        });
-        return true;
-      },
-      {
-        loadingMessage: 'Waking up the project...',
-        successMessage: 'The project is waking up.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-
-    if (!woke) {
-      onFail();
-    }
-  }
-
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="xs"
-      disabled={loading}
-      onClick={handleClick}
-      className="relative z-20"
-    >
-      <Play className="mr-1 h-3.5 w-3.5" />
-      Wake up
-    </Button>
-  );
-}
-
-function ProjectCard({
+export function ProjectCard({
   project,
   dragHandle,
+  previewIssues,
 }: {
   project: Project;
   /** Shown right after the title on hover. */
   dragHandle?: ReactNode;
+  /** TEMPORARY, for the card variations demo: fake warnings, no health check. */
+  previewIssues?: string[];
 }) {
   const { org } = useCurrentOrg();
 
@@ -136,19 +72,14 @@ function ProjectCard({
   const isPlatform = useIsPlatform();
   const status = project.appStates[0]?.stateId;
   const isLive = status === ApplicationStatus.Live;
-  const isPaused = status === ApplicationStatus.Paused;
-  // "Waking up" right after the click, until the next refresh brings the real state.
-  const [wakingUp, setWakingUp] = useState(false);
-  const shownStatus =
-    wakingUp && isPaused ? ApplicationStatus.Unpausing : status;
   // Same check as the project's Project health section, only for live projects.
   const { data: health } = useGetProjectServicesHealthQuery({
     variables: { appId: project.id },
-    skip: !isPlatform || !isLive,
+    skip: !isPlatform || !isLive || !!previewIssues,
   });
 
   // Everything that needs attention, one line each for the warning tooltip.
-  const issues: string[] = [];
+  const issues: string[] = [...(previewIssues ?? [])];
   for (const service of health?.getProjectStatus?.services ?? []) {
     const name =
       baseServices[service.name as keyof typeof baseServices]?.displayName ??
@@ -168,11 +99,10 @@ function ProjectCard({
     issues.push('The last deployment failed');
   }
 
-  // The link is a layer under the whole card, not a wrapper: the move icon and
-  // Wake up sit outside it, so dragging or pressing them can never open the
-  // project.
+  // The link is a layer under the whole card, not a wrapper: the move icon
+  // sits outside it, so dragging or pressing it can never open the project.
   return (
-    <div className="group relative flex min-h-44 flex-col rounded-lg transition-colors duration-300">
+    <div className="group relative flex h-full min-h-44 flex-col rounded-lg transition-colors duration-300">
       <Link
         href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
         aria-label={`Open ${project.name}`}
@@ -229,24 +159,21 @@ function ProjectCard({
             )}
           </div>
 
+          {/* Deployments come from GitHub pushes: without a repo there is
+              nothing to show, so the spot stays empty. */}
           <div className="flex flex-1 flex-row items-start gap-2">
-            {showPipelineRun ? (
-              <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
-            ) : (
-              <DeploymentStatusMessage deployment={latestDeployment} />
-            )}
+            {(project.githubRepository ||
+              latestPipelineRun ||
+              latestDeployment) &&
+              (showPipelineRun ? (
+                <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
+              ) : (
+                <DeploymentStatusMessage deployment={latestDeployment} />
+              ))}
           </div>
 
           <div className="flex w-full flex-row items-center justify-between gap-2">
-            {isPaused && !wakingUp ? (
-              <WakeUpButton
-                project={project}
-                onStart={() => setWakingUp(true)}
-                onFail={() => setWakingUp(false)}
-              />
-            ) : (
-              <ProjectStatusPill status={shownStatus} />
-            )}
+            <ProjectStatusPill status={status} />
             {/* Always on the right (even with no status), nudges right on hover. */}
             <ArrowRight className="ml-auto flex-shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
@@ -276,27 +203,32 @@ function SortableProjectCard({ project }: { project: Project }) {
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'group/sortable relative',
+        'group/sortable relative h-full',
         isDragging && 'z-10 scale-[1.02] opacity-90 shadow-lg',
       )}
     >
       <ProjectCard
         project={project}
         dragHandle={
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            {...attributes}
-            {...listeners}
-            aria-label={`Reorder ${project.name}`}
-            // Inside the card's link: a click here must not open the project.
-            className={cn(
-              'flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground hover:text-foreground',
-              isDragging && 'cursor-grabbing',
-            )}
-          >
-            <Move className="h-4 w-4" />
-          </button>
+          // Hidden while dragging, so it doesn't follow the card around.
+          <Tooltip open={isDragging ? false : undefined}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                ref={setActivatorNodeRef}
+                {...attributes}
+                {...listeners}
+                aria-label={`Reorder ${project.name}`}
+                className={cn(
+                  'flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground hover:text-foreground',
+                  isDragging && 'cursor-grabbing',
+                )}
+              >
+                <Move className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Drag to reorder</TooltipContent>
+          </Tooltip>
         }
       />
     </div>
@@ -343,7 +275,8 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           </Link>
         </Button>
       </div>
-      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* auto-rows-fr: every row as tall as the tallest card, deployment or not. */}
+      <div className="mx-auto grid w-full max-w-5xl auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -359,6 +292,8 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           </SortableContext>
         </DndContext>
       </div>
+      {/* TEMPORARY card variations demo, remove after the team review. */}
+      <ProjectCardVariations />
     </div>
   );
 }

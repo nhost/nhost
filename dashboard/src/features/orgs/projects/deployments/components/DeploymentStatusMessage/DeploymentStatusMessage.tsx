@@ -76,5 +76,7 @@ export default function DeploymentStatusMessage({
     );
   }
 
-  return <span className="text-muted-foreground text-sm">No deployments</span>;
+  return (
+    <span className="text-muted-foreground text-sm">No deployments yet</span>
+  );
 }
