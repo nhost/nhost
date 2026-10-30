@@ -1,97 +1,108 @@
 import {
-  getSpatialValueError,
-  isGeographyType,
-  isGeoJSONGeometry,
+  formatSpatialColumnSelect,
+  formatSpatialValue,
+  getSpatialType,
   isSpatialType,
 } from './spatialTypeHelpers';
 
+describe('getSpatialType', () => {
+  it('returns the PostGIS type, schema-qualified or not', () => {
+    expect(getSpatialType('geometry')).toBe('geometry');
+    expect(getSpatialType('geography')).toBe('geography');
+    expect(getSpatialType('extensions.geometry')).toBe('geometry');
+    expect(getSpatialType('"extensions"."geography"')).toBe('geography');
+  });
+
+  it('returns null for native geometric and other types', () => {
+    expect(getSpatialType('point')).toBeNull();
+    expect(getSpatialType('polygon')).toBeNull();
+    expect(getSpatialType('jsonb')).toBeNull();
+    expect(getSpatialType(undefined)).toBeNull();
+    expect(getSpatialType(null)).toBeNull();
+  });
+});
+
 describe('isSpatialType', () => {
-  it('matches PostGIS base types, schema-qualified or not', () => {
+  it('matches geometry and geography only', () => {
     expect(isSpatialType('geometry')).toBe(true);
-    expect(isSpatialType('geography')).toBe(true);
-    expect(isSpatialType('extensions.geometry')).toBe(true);
-    expect(isSpatialType('"extensions"."geography"')).toBe(true);
-  });
-
-  it('does not match native geometric or other types', () => {
+    expect(isSpatialType('extensions.geography')).toBe(true);
     expect(isSpatialType('point')).toBe(false);
-    expect(isSpatialType('polygon')).toBe(false);
-    expect(isSpatialType('jsonb')).toBe(false);
     expect(isSpatialType(undefined)).toBe(false);
-    expect(isSpatialType(null)).toBe(false);
   });
 });
 
-describe('isGeographyType', () => {
-  it('only matches geography', () => {
-    expect(isGeographyType('geography')).toBe(true);
-    expect(isGeographyType('extensions.geography')).toBe(true);
-    expect(isGeographyType('geometry')).toBe(false);
+describe('formatSpatialColumnSelect', () => {
+  it('reads the column as GeoJSON with full precision and the CRS', () => {
+    const sql = formatSpatialColumnSelect('location');
+
+    expect(sql).toContain('ST_AsGeoJSON(location, 15, 4)::json');
+    expect(sql).toMatch(/ AS location$/);
+  });
+
+  it('falls back to EWKT for geometry types GeoJSON cannot represent', () => {
+    const sql = formatSpatialColumnSelect('curve');
+
+    expect(sql).toContain(
+      "CASE WHEN ST_GeometryType(curve::geometry) IN ('ST_CircularString','ST_CompoundCurve','ST_CurvePolygon','ST_MultiCurve','ST_MultiSurface','ST_PolyhedralSurface','ST_Tin','ST_Triangle') THEN to_json(ST_AsEWKT(curve))",
+    );
+  });
+
+  it('quotes column names that need it', () => {
+    const sql = formatSpatialColumnSelect('Shape Col');
+
+    expect(sql).toContain('ST_AsGeoJSON("Shape Col", 15, 4)::json');
+    expect(sql).toMatch(/ AS "Shape Col"$/);
   });
 });
 
-describe('isGeoJSONGeometry', () => {
-  it.each([
-    { type: 'Point', coordinates: [1, 2] },
-    '{"type":"LineString","coordinates":[[0,0],[1,1]]}',
-    {
-      type: 'Point',
-      crs: { type: 'name', properties: { name: 'EPSG:4326' } },
-      coordinates: [1, 2],
-    },
-  ])('accepts %j', (value) => {
-    expect(isGeoJSONGeometry(value)).toBe(true);
-  });
-
-  it.each([
-    { type: 'Feature', geometry: null },
-    '{"type":"Point"',
-    '[1, 2]',
-    'POINT(1 2)',
-    null,
-    42,
-  ])('rejects %j', (value) => {
-    expect(isGeoJSONGeometry(value)).toBe(false);
-  });
-});
-
-describe('getSpatialValueError', () => {
+describe('formatSpatialValue', () => {
   const point = '{"type":"Point","coordinates":[1,2]}';
 
+  it('parses GeoJSON text with ST_GeomFromGeoJSON', () => {
+    expect(formatSpatialValue(point, 'geometry')).toBe(
+      `ST_GeomFromGeoJSON('${point}')`,
+    );
+  });
+
+  it('casts GeoJSON for geography columns', () => {
+    expect(formatSpatialValue(point, 'geography')).toBe(
+      `ST_GeomFromGeoJSON('${point}')::geography`,
+    );
+  });
+
+  it('accepts a GeoJSON object', () => {
+    expect(
+      formatSpatialValue({ type: 'Point', coordinates: [1, 2] }, 'geometry'),
+    ).toBe(`ST_GeomFromGeoJSON('${point}')`);
+  });
+
+  it('ignores whitespace before GeoJSON text', () => {
+    expect(formatSpatialValue(`\n  ${point}`, 'geometry')).toContain(
+      'ST_GeomFromGeoJSON(',
+    );
+  });
+
   it.each([
     'POINT(1 2)',
-    'point z (1 2 3)',
-    'SRID=4326;POINT(1 2)',
-    'MULTIPOLYGON(((0 0,1 0,1 1,0 0)))',
+    'SRID=4326;LINESTRING(0 0,1 1)',
     'POLYGON EMPTY',
     '0101000020E610000000000000000008400000000000001040',
-  ])('accepts %s for both spatial types', (value) => {
-    expect(getSpatialValueError(value, 'geometry')).toBeNull();
-    expect(getSpatialValueError(value, 'geography')).toBeNull();
+  ])('sends %s as a plain literal for both spatial types', (value) => {
+    expect(formatSpatialValue(value, 'geometry')).toBe(`'${value}'`);
+    expect(formatSpatialValue(value, 'geography')).toBe(`'${value}'`);
   });
 
-  it('accepts GeoJSON for geometry', () => {
-    expect(getSpatialValueError(point, 'geometry')).toBeNull();
-  });
-
-  it('explains that geography does not accept GeoJSON', () => {
-    expect(getSpatialValueError(point, 'geography')).toMatch(
-      /Geography columns do not accept GeoJSON/,
-    );
-  });
-
-  it.each([
-    'not a geometry',
-    'POINT',
-    'SRID=4326;',
-    '0101',
-    '{"type":"Feature"}',
-  ])('rejects %s', (value) => {
-    expect(getSpatialValueError(value, 'geometry')).toMatch(
-      /not a valid geometry/,
-    );
-    expect(getSpatialValueError(value, 'geography')).toMatch(
-      /not a valid geography/,
+  it('escapes quotes inside literals', () => {
+    expect(
+      formatSpatialValue("POINT(1 2)'; DROP TABLE t; --", 'geometry'),
+    ).toBe("'POINT(1 2)''; DROP TABLE t; --'");
+    expect(
+      formatSpatialValue(
+        '{"type":"Point","coordinates":[1,2],"x":"\'"}',
+        'geometry',
+      ),
+    ).toBe(
+      'ST_GeomFromGeoJSON(\'{"type":"Point","coordinates":[1,2],"x":"\'\'"}\')',
     );
   });
 });

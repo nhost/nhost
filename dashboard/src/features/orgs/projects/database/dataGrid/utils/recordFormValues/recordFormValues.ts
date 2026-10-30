@@ -6,7 +6,7 @@ import type {
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { serializeTemporalValue } from '@/features/orgs/projects/database/dataGrid/utils/serializeTemporalValue';
 import {
-  isGeoJSONGeometry,
+  getSpatialType,
   isSpatialType,
 } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 
@@ -146,11 +146,20 @@ export function getColumnInsertOptions(
   return {
     value: serializeTemporalValue(value, column.baseType),
     isArray: column.isArray,
+    spatialType: getSpatialType(column.baseType) ?? undefined,
   };
 }
 
 function isObject(value: unknown): value is object {
   return value !== null && typeof value === 'object';
+}
+
+function isSameJsonValue(text: string, value: object): boolean {
+  try {
+    return JSON.stringify(JSON.parse(text)) === JSON.stringify(value);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -172,20 +181,6 @@ export function getColumnUpdateOptions(
 
   let newValue = insertOptions.value;
 
-  // geometry input parses GeoJSON text, so the edited text is sent as-is and
-  // only compared structurally with the GeoJSON object read back by the grid.
-  if (
-    isSpatialType(column.baseType) &&
-    typeof newValue === 'string' &&
-    isObject(originalValue) &&
-    isGeoJSONGeometry(newValue)
-  ) {
-    return JSON.stringify(JSON.parse(newValue)) !==
-      JSON.stringify(originalValue)
-      ? { value: newValue }
-      : null;
-  }
-
   if (isJsonColumn(column) && typeof newValue === 'string') {
     try {
       newValue = JSON.parse(newValue);
@@ -198,6 +193,14 @@ export function getColumnUpdateOptions(
     return JSON.stringify(newValue) !== JSON.stringify(originalValue)
       ? { value: newValue }
       : null;
+  }
+
+  // Values the grid reads as JSON objects, such as PostGIS GeoJSON, are edited
+  // as text, so the text is compared with the object and sent as is.
+  if (typeof newValue === 'string' && isObject(originalValue)) {
+    return isSameJsonValue(newValue, originalValue)
+      ? null
+      : { value: newValue };
   }
 
   return newValue !== originalValue ? { value: newValue } : null;

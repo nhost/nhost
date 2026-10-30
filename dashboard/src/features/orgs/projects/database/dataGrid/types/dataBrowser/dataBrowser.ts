@@ -266,6 +266,12 @@ export interface ColumnUpdateOptions {
 }
 
 /**
+ * PostGIS column types. The data grid reads both as GeoJSON and writes GeoJSON
+ * back through `ST_GeomFromGeoJSON`, casting the result for geography.
+ */
+export type SpatialType = 'geometry' | 'geography';
+
+/**
  * Represents an object that can be used to insert a column in an SQL query.
  */
 export interface ColumnInsertOptions {
@@ -283,6 +289,12 @@ export interface ColumnInsertOptions {
    * column metadata (`isArray`); the mutation never re-parses a type string.
    */
   isArray?: boolean;
+  /**
+   * PostGIS type of the column when it is spatial. GeoJSON values are then
+   * written through `ST_GeomFromGeoJSON` (cast for geography) instead of as a
+   * plain literal. Derived once on the column metadata like `isArray`.
+   */
+  spatialType?: SpatialType;
 }
 
 /**

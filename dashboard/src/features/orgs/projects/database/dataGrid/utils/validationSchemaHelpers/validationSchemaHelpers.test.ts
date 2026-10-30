@@ -151,45 +151,6 @@ describe('json/jsonb columns', () => {
   });
 });
 
-describe('PostGIS columns', () => {
-  it.each([
-    'POINT(1 2)',
-    'SRID=4326;POINT(1 2)',
-    '{"type":"Point","coordinates":[1,2]}',
-    '0101000020E610000000000000000008400000000000001040',
-  ])('accepts %s in a geometry column', async (value) => {
-    const schema = createDynamicValidationSchema([
-      makeColumn('geometry(Point,4326)', { isNullable: false }),
-    ]);
-
-    await expect(schema.validate({ col: value })).resolves.toBeTruthy();
-  });
-
-  it('rejects text that is not a geometry', async () => {
-    const schema = createDynamicValidationSchema([makeColumn('geometry')]);
-
-    await expect(schema.validate({ col: 'somewhere' })).rejects.toThrow(
-      'This is not a valid geometry.',
-    );
-  });
-
-  it('rejects GeoJSON in a geography column', async () => {
-    const schema = createDynamicValidationSchema([
-      makeColumn('geography(Point,4326)'),
-    ]);
-
-    await expect(
-      schema.validate({ col: '{"type":"Point","coordinates":[1,2]}' }),
-    ).rejects.toThrow('Geography columns do not accept GeoJSON.');
-  });
-
-  it('allows empty nullable values', async () => {
-    const schema = createDynamicValidationSchema([makeColumn('geometry')]);
-
-    await expect(schema.validate({ col: null })).resolves.toBeTruthy();
-  });
-});
-
 describe('array columns', () => {
   it.each([
     'integer[]',

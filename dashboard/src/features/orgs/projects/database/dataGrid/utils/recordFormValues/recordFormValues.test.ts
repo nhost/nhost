@@ -46,11 +46,11 @@ describe('recordFormValues', () => {
       );
     });
 
-    it('leaves hex EWKB read from geography columns untouched', () => {
+    it('leaves EWKT read from spatial columns untouched', () => {
       const column = makeColumn({ baseType: 'geography' });
-      const ewkb = '0101000020E610000000000000000008400000000000001040';
+      const ewkt = 'SRID=4326;CIRCULARSTRING(0 0,1 1,2 0)';
 
-      expect(getRecordFormValue(column, ewkb)).toBe(ewkb);
+      expect(getRecordFormValue(column, ewkt)).toBe(ewkt);
     });
 
     it('stringifies JSON objects for editing', () => {
@@ -149,6 +149,28 @@ describe('recordFormValues', () => {
       ).toEqual({
         fallbackValue: 'DEFAULT',
       });
+    });
+
+    it('passes the PostGIS type along so values are written through PostGIS', () => {
+      expect(
+        getColumnInsertOptions(
+          makeColumn({ baseType: 'geography' }),
+          'SRID=4326;POINT(1 2)',
+        ),
+      ).toEqual({
+        value: 'SRID=4326;POINT(1 2)',
+        isArray: false,
+        spatialType: 'geography',
+      });
+      expect(
+        getColumnInsertOptions(
+          makeColumn({ baseType: 'extensions.geometry' }),
+          '{"type":"Point","coordinates":[1,2]}',
+        ).spatialType,
+      ).toBe('geometry');
+      expect(getColumnInsertOptions(makeColumn(), 'hello').spatialType).toBe(
+        undefined,
+      );
     });
   });
 });
