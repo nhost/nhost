@@ -1,24 +1,48 @@
 package customization
 
 import (
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// ReverseOperation rewrites an operation (and its fragments) from customized
-// names back into the connector's native schema, so the wrapped connector
-// executes against the schema it actually introspected. It returns rebuilt AST
+// ReverseOperation accepts published (customized) root names and rewrites an
+// operation (and its fragments) into the connector's native schema, so the
+// wrapped connector executes against the schema it actually introspected. It returns rebuilt AST
 // nodes and never mutates the inputs (the planner shares them across
 // connectors).
 //
 // Two things are undone: the namespace wrapper (each root namespace field is
 // removed and its children lifted to the root) and type renaming (type
 // conditions on fragments and named types in variable definitions are mapped
-// back to native names). Field-name reversal is applied for the root-field
-// prefix/suffix; per-type field_names reversal is not yet implemented (no
-// configuration in use exercises it).
+// back to native names). Distinct namespace response paths receive independent
+// collision-checked native child aliases for database sources. Remote schemas
+// keep unaliased, unmerged children so their validation rejects conflicts.
+// Field-name reversal is applied for
+// root-field prefix/suffix; per-type field_names reversal is not yet implemented
+// (no configuration in use exercises it).
 func (c *Customizer) ReverseOperation(
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables ...map[string]any,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
+	if !c.enabled() || op == nil {
+		return op, fragments
+	}
+
+	selections := c.reverseRootSelections(
+		op.SelectionSet, fragments, c.namespaceLiftAliases(op, fragments), variables...,
+	)
+
+	return c.reverseOperationTypes(op, fragments, selections, true)
+}
+
+// ReverseNativeOperation rewrites only type references in a controller-built
+// database target operation. Its root fields already use GetTypeName's native
+// names and must not be namespace-lifted or stripped of root affixes.
+func (c *Customizer) ReverseNativeOperation(
 	op *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 ) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
@@ -26,12 +50,28 @@ func (c *Customizer) ReverseOperation(
 		return op, fragments
 	}
 
+	return c.reverseOperationTypes(
+		op,
+		fragments,
+		c.reverseSelections(op.SelectionSet, false),
+		false,
+	)
+}
+
+// reverseOperationTypes rebuilds shared operation and fragment type references.
+// Published roots reverse root fields in their fragments; native roots do not.
+func (c *Customizer) reverseOperationTypes(
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	selections ast.SelectionSet,
+	publishedRoots bool,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
 	rebuilt := &ast.OperationDefinition{ //nolint:exhaustruct
 		Operation:           op.Operation,
 		Name:                op.Name,
 		VariableDefinitions: c.reverseVariableDefinitions(op.VariableDefinitions),
 		Directives:          op.Directives,
-		SelectionSet:        c.reverseRootSelections(op.SelectionSet, fragments),
+		SelectionSet:        selections,
 		Position:            op.Position,
 	}
 
@@ -39,22 +79,153 @@ func (c *Customizer) ReverseOperation(
 	if len(fragments) > 0 {
 		rebuiltFragments = make(ast.FragmentDefinitionList, len(fragments))
 		for i, frag := range fragments {
+			rootFields := publishedRoots && c.fragmentCarriesRootFields(frag.TypeCondition)
 			rebuiltFragments[i] = &ast.FragmentDefinition{ //nolint:exhaustruct
 				Name:               frag.Name,
 				VariableDefinition: frag.VariableDefinition,
 				TypeCondition:      c.reverseTypeName(frag.TypeCondition),
 				Directives:         frag.Directives,
-				SelectionSet: c.reverseSelections(
-					frag.SelectionSet,
-					c.fragmentCarriesRootFields(frag.TypeCondition),
-				),
-				Definition: frag.Definition,
-				Position:   frag.Position,
+				SelectionSet:       c.reverseSelections(frag.SelectionSet, rootFields),
+				Definition:         frag.Definition,
+				Position:           frag.Position,
 			}
 		}
 	}
 
 	return rebuilt, rebuiltFragments
+}
+
+// namespaceLiftAliases assigns private native response keys to each database
+// namespace response path and child response key. Remote-schema errors carry
+// native response paths, so their namespace forwarding stays unaliased.
+// Candidates are checked against every client field name and alias: no
+// user-reachable key can shadow a lifted field.
+// An empty map preserves the historical native shape for one namespace key
+// or any remote-schema namespace.
+type namespaceLiftAliases map[string]map[string]string
+
+func (a namespaceLiftAliases) key(namespace, child, fallback string) string {
+	if key := a[namespace][child]; key != "" {
+		return key
+	}
+
+	return fallback
+}
+
+func responseKey(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
+}
+
+func reserveClientResponseKeys(selections ast.SelectionSet, used map[string]bool) {
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			used[sel.Name], used[responseKey(sel)] = true, true
+			reserveClientResponseKeys(sel.SelectionSet, used)
+		case *ast.InlineFragment:
+			reserveClientResponseKeys(sel.SelectionSet, used)
+		}
+	}
+}
+
+func collectNamespaceChildren(
+	selections ast.SelectionSet, namespace string,
+	fragments ast.FragmentDefinitionList, children map[string][]string,
+) {
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			children[namespace] = append(children[namespace], responseKey(sel))
+		case *ast.InlineFragment:
+			collectNamespaceChildren(sel.SelectionSet, namespace, fragments, children)
+		case *ast.FragmentSpread:
+			if def := resolveFragment(sel, fragments); def != nil {
+				collectNamespaceChildren(def.SelectionSet, namespace, fragments, children)
+			}
+		}
+	}
+}
+
+func (c *Customizer) collectNamespaceRoots(
+	selections ast.SelectionSet, fragments ast.FragmentDefinitionList,
+	children map[string][]string,
+) {
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			if sel.Name == c.cfg.RootFieldsNamespace {
+				collectNamespaceChildren(sel.SelectionSet, responseKey(sel), fragments, children)
+			}
+		case *ast.InlineFragment:
+			c.collectNamespaceRoots(sel.SelectionSet, fragments, children)
+		case *ast.FragmentSpread:
+			if def := resolveFragment(sel, fragments); def != nil {
+				c.collectNamespaceRoots(def.SelectionSet, fragments, children)
+			}
+		}
+	}
+}
+
+func (c *Customizer) namespaceLiftAliases(
+	op *ast.OperationDefinition, fragments ast.FragmentDefinitionList,
+) namespaceLiftAliases {
+	if op == nil || c.cfg.RootFieldsNamespace == "" || c.flavor != FlavorDatabase {
+		return nil
+	}
+
+	used := make(map[string]bool)
+	reserveClientResponseKeys(op.SelectionSet, used)
+
+	for _, def := range fragments {
+		reserveClientResponseKeys(def.SelectionSet, used)
+	}
+
+	children := make(map[string][]string)
+	c.collectNamespaceRoots(op.SelectionSet, fragments, children)
+
+	const distinctNamespaceKeys = 2
+	if len(children) < distinctNamespaceKeys {
+		return nil
+	}
+
+	aliases := make(namespaceLiftAliases, len(children))
+
+	namespaces := make([]string, 0, len(children))
+	for namespace := range children {
+		namespaces = append(namespaces, namespace)
+	}
+
+	slices.Sort(namespaces)
+
+	index := 0
+	for _, namespace := range namespaces {
+		keys := children[namespace]
+
+		aliases[namespace] = make(map[string]string, len(keys))
+		for _, child := range keys {
+			if aliases[namespace][child] != "" {
+				continue
+			}
+
+			for {
+				candidate := "_constellation_ns_" + strconv.Itoa(index)
+				index++
+
+				if !used[candidate] {
+					used[candidate] = true
+					aliases[namespace][child] = candidate
+
+					break
+				}
+			}
+		}
+	}
+
+	return aliases
 }
 
 const argumentPathSelectionSet = ".selectionSet."
@@ -63,16 +234,15 @@ const argumentPathSelectionSet = ".selectionSet."
 // reversed native operation back onto the original client-facing operation.
 // QueryValidationError stores paths without the leading "$.selectionSet" and
 // trailing ".args" (for example, "teams.selectionSet.players"). Reversing a
-// namespaced operation lifts the namespace wrapper before validation, so this
-// method re-inserts the namespace response key while preserving aliases and any
-// remaining nested path. Paths that do not correspond to a namespaced root field
-// are returned unchanged.
+// namespaced operation lifts the namespace wrapper before validation. Restore
+// field names, not response aliases, matching Hasura's validation paths even
+// when multiple namespace occurrences make the field-name path ambiguous.
 func (c *Customizer) ForwardArgumentPath(
 	nativePath string,
 	op *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 ) string {
-	if !c.enabled() || c.cfg.RootFieldsNamespace == "" || op == nil || nativePath == "" {
+	if !c.enabled() || op == nil || nativePath == "" {
 		return nativePath
 	}
 
@@ -84,7 +254,11 @@ func (c *Customizer) ForwardArgumentPath(
 		nativeRest: rest,
 	}
 
-	if mapped := forwarder.rootSelections(op.SelectionSet); mapped != "" {
+	if c.cfg.RootFieldsNamespace == "" {
+		if mapped := forwarder.clientRoots(op.SelectionSet, ""); mapped != "" {
+			return mapped
+		}
+	} else if mapped := forwarder.rootSelections(op.SelectionSet); mapped != "" {
 		return mapped
 	}
 
@@ -107,6 +281,31 @@ func splitArgumentPathRoot(path string) (string, string) {
 	return root, argumentPathSelectionSet + rest
 }
 
+func (f argumentPathForwarder) clientRoots(
+	selections ast.SelectionSet, prefix string,
+) string {
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			if f.customizer.reverseRootFieldName(sel) == f.nativeRoot {
+				return prefix + sel.Name + f.nativeRest
+			}
+		case *ast.InlineFragment:
+			if mapped := f.clientRoots(sel.SelectionSet, prefix); mapped != "" {
+				return mapped
+			}
+		case *ast.FragmentSpread:
+			if def := resolveFragment(sel, f.fragments); def != nil {
+				if mapped := f.clientRoots(def.SelectionSet, prefix); mapped != "" {
+					return mapped
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 func (f argumentPathForwarder) rootSelections(selections ast.SelectionSet) string {
 	for _, selection := range selections {
 		if mapped := f.rootSelection(selection); mapped != "" {
@@ -124,7 +323,7 @@ func (f argumentPathForwarder) rootSelection(selection ast.Selection) string {
 			return ""
 		}
 
-		return f.namespaceSelections(fieldResponseKey(sel), sel.SelectionSet)
+		return f.clientRoots(sel.SelectionSet, sel.Name+argumentPathSelectionSet)
 	case *ast.InlineFragment:
 		return f.rootSelections(sel.SelectionSet)
 	case *ast.FragmentSpread:
@@ -134,60 +333,6 @@ func (f argumentPathForwarder) rootSelection(selection ast.Selection) string {
 	}
 
 	return ""
-}
-
-func (f argumentPathForwarder) namespaceSelections(
-	namespaceKey string,
-	selections ast.SelectionSet,
-) string {
-	for _, selection := range selections {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			if !f.matchesNamespaceRoot(sel) {
-				continue
-			}
-
-			return namespaceKey + argumentPathSelectionSet + fieldResponseKey(sel) + f.nativeRest
-		case *ast.InlineFragment:
-			if mapped := f.namespaceSelections(namespaceKey, sel.SelectionSet); mapped != "" {
-				return mapped
-			}
-		case *ast.FragmentSpread:
-			if def := resolveFragment(sel, f.fragments); def != nil {
-				if mapped := f.namespaceSelections(namespaceKey, def.SelectionSet); mapped != "" {
-					return mapped
-				}
-			}
-		}
-	}
-
-	return ""
-}
-
-func (f argumentPathForwarder) matchesNamespaceRoot(field *ast.Field) bool {
-	if f.nativeRoot == fieldResponseKey(field) {
-		return true
-	}
-
-	nativeName := f.customizer.reverseRootFieldName(field)
-	if f.nativeRoot == nativeName {
-		return true
-	}
-
-	alias := field.Alias
-	if alias == "" && nativeName != field.Name {
-		alias = field.Name
-	}
-
-	return alias != "" && f.nativeRoot == alias
-}
-
-func fieldResponseKey(field *ast.Field) string {
-	if field.Alias != "" {
-		return field.Alias
-	}
-
-	return field.Name
 }
 
 // reverseRootSelections lifts the children of each namespace field onto the
@@ -221,6 +366,8 @@ func fieldResponseKey(field *ast.Field) string {
 func (c *Customizer) reverseRootSelections(
 	selections ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
+	aliases namespaceLiftAliases,
+	variables ...map[string]any,
 ) ast.SelectionSet {
 	if c.cfg.RootFieldsNamespace == "" {
 		return c.reverseSelections(selections, true)
@@ -229,10 +376,39 @@ func (c *Customizer) reverseRootSelections(
 	var lifted ast.SelectionSet
 
 	for _, selection := range selections {
-		lifted = append(lifted, c.liftRootSelection(selection, fragments)...)
+		lifted = append(lifted, c.liftRootSelection(selection, fragments, aliases, variables...)...)
 	}
 
-	return lifted
+	if c.flavor != FlavorDatabase {
+		return lifted
+	}
+
+	// The SQL root executor keeps one value per response key. GraphQL permits
+	// compatible repeated fields, including those selected by wrapper spreads;
+	// combine their selections before the inner connector sees them.
+	merged := make(ast.SelectionSet, 0, len(lifted))
+
+	byKey := make(map[string]*ast.Field)
+	for _, selection := range lifted {
+		field, ok := selection.(*ast.Field)
+		if !ok {
+			merged = append(merged, selection)
+
+			continue
+		}
+
+		key := responseKey(field)
+		if prior := byKey[key]; prior != nil && prior.Name == field.Name {
+			prior.SelectionSet = append(prior.SelectionSet, field.SelectionSet...)
+
+			continue
+		}
+
+		byKey[key] = field
+		merged = append(merged, field)
+	}
+
+	return merged
 }
 
 // liftRootSelection reverses one root-level selection, lifting the children of
@@ -245,13 +421,29 @@ func (c *Customizer) reverseRootSelections(
 func (c *Customizer) liftRootSelection(
 	selection ast.Selection,
 	fragments ast.FragmentDefinitionList,
+	aliases namespaceLiftAliases,
+	variables ...map[string]any,
 ) ast.SelectionSet {
 	switch sel := selection.(type) {
 	case *ast.Field:
 		if sel.Name == c.cfg.RootFieldsNamespace {
 			// The namespace field's children are the real root fields once
 			// lifted, so reverse them as root fields.
-			return c.reverseSelections(sel.SelectionSet, true)
+			selections := sel.SelectionSet
+			if c.flavor == FlavorDatabase {
+				selections = c.liftWrapperFragments(selections, fragments, variables...)
+			}
+
+			children := c.reverseSelections(selections, true)
+			for _, child := range children {
+				if field, ok := child.(*ast.Field); ok {
+					if alias := aliases.key(responseKey(sel), responseKey(field), ""); alias != "" {
+						field.Alias = alias
+					}
+				}
+			}
+
+			return children
 		}
 
 		return ast.SelectionSet{c.reverseSelection(sel, true)}
@@ -260,17 +452,100 @@ func (c *Customizer) liftRootSelection(
 			return ast.SelectionSet{c.reverseSelection(sel, true)}
 		}
 
-		return c.liftRootSelections(sel.SelectionSet, fragments)
+		if !includeWrapperSelection(sel.Directives, variables) {
+			return nil
+		}
+
+		return c.liftRootSelections(sel.SelectionSet, fragments, aliases, variables...)
 	case *ast.FragmentSpread:
+		if !includeWrapperSelection(sel.Directives, variables) {
+			return nil
+		}
+
 		def := resolveFragment(sel, fragments)
 		if def == nil || !c.selectionsContainNamespace(def.SelectionSet, fragments) {
 			return ast.SelectionSet{c.reverseSelection(selection, true)}
 		}
 
-		return c.liftRootSelections(def.SelectionSet, fragments)
+		return c.liftRootSelections(def.SelectionSet, fragments, aliases, variables...)
 	default:
 		return ast.SelectionSet{c.reverseSelection(selection, true)}
 	}
+}
+
+// liftWrapperFragments expands wrapper fragments to root fields: native SQL
+// execution only visits root fields, not spreads or inline fragments. Spread
+// directives are evaluated against the same coerced variables as planning.
+func (c *Customizer) liftWrapperFragments(
+	selections ast.SelectionSet, fragments ast.FragmentDefinitionList,
+	variables ...map[string]any,
+) ast.SelectionSet {
+	out := make(ast.SelectionSet, 0, len(selections))
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.FragmentSpread:
+			frag := resolveFragment(sel, fragments)
+			if frag != nil {
+				if _, wrapper := c.wrapperTypes[frag.TypeCondition]; wrapper {
+					if includeWrapperSelection(sel.Directives, variables) {
+						out = append(
+							out,
+							c.liftWrapperFragments(frag.SelectionSet, fragments, variables...)...)
+					}
+
+					continue
+				}
+			}
+
+			out = append(out, selection)
+		case *ast.InlineFragment:
+			if _, wrapper := c.wrapperTypes[sel.TypeCondition]; wrapper || sel.TypeCondition == "" {
+				if includeWrapperSelection(sel.Directives, variables) {
+					out = append(
+						out,
+						c.liftWrapperFragments(sel.SelectionSet, fragments, variables...)...)
+				}
+
+				continue
+			}
+
+			out = append(out, selection)
+		default:
+			out = append(out, selection)
+		}
+	}
+
+	return out
+}
+
+func includeWrapperSelection(directives ast.DirectiveList, variables []map[string]any) bool {
+	var values map[string]any
+	if len(variables) != 0 {
+		values = variables[0]
+	}
+
+	for _, directive := range directives {
+		if directive.Name != "skip" && directive.Name != "include" {
+			continue
+		}
+
+		argument := directive.Arguments.ForName("if")
+		if argument == nil || argument.Value == nil {
+			continue
+		}
+
+		value, err := argument.Value.Value(values)
+		if err != nil {
+			continue // Validated operations have a Boolean condition.
+		}
+
+		condition, _ := value.(bool)
+		if directive.Name == "skip" && condition || directive.Name == "include" && !condition {
+			return false
+		}
+	}
+
+	return true
 }
 
 // liftRootSelections lifts every selection in a (fragment) selection set,
@@ -278,10 +553,12 @@ func (c *Customizer) liftRootSelection(
 func (c *Customizer) liftRootSelections(
 	selections ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
+	aliases namespaceLiftAliases,
+	variables ...map[string]any,
 ) ast.SelectionSet {
 	lifted := make(ast.SelectionSet, 0, len(selections))
 	for _, inner := range selections {
-		lifted = append(lifted, c.liftRootSelection(inner, fragments)...)
+		lifted = append(lifted, c.liftRootSelection(inner, fragments, aliases, variables...)...)
 	}
 
 	return lifted
@@ -510,9 +787,14 @@ func (c *Customizer) reverseASTType(t *ast.Type) *ast.Type {
 	return rebuilt
 }
 
-// reverseTypeName maps a customized type name back to its native name, leaving
-// unknown names (builtin scalars, namespace wrappers) untouched.
+// reverseTypeName maps customized type conditions back to native names. A
+// wrapper fragment is rooted at the native operation type once its namespace
+// is lifted; retaining the wrapper name would discard its fields at execution.
 func (c *Customizer) reverseTypeName(name string) string {
+	if native, ok := c.wrapperNativeTypes[name]; ok {
+		return native
+	}
+
 	if native, ok := c.typeInverse[name]; ok {
 		return native
 	}

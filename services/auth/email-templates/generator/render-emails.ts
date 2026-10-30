@@ -4,12 +4,21 @@ import prettier from 'prettier';
 import { render } from '@react-email/components';
 import { EmailConfirmChange } from './email-confirm-change';
 import { EmailVerify } from './email-verify';
+import { ElevateOTP } from './elevate-otp';
 import { PasswordReset } from './password-reset';
 import { SignInPasswordless } from './signin-passwordless';
 import { SignInOTP } from './signin-otp';
 
 function renderEmails(targetLocale: string) {
   const emails = [
+    {
+      name: 'elevate-otp',
+      body: prettier.format(render(ElevateOTP()), {
+        parser: 'html',
+        printWidth: 500,
+      }),
+      subject: '<subject>',
+    },
     {
       name: 'email-confirm-change',
       body: prettier.format(render(EmailConfirmChange()), {

@@ -115,7 +115,7 @@ export default function FilesDataGridControls({
           <Button
             variant="outline"
             size="sm"
-            className="border-none text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="border-none bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive"
             loading={deleteLoading}
             onClick={() =>
               openAlertDialog({

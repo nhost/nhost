@@ -12,6 +12,7 @@ import (
 // endpints that send emails.
 func sendsEmail(path string, verifyEmailEnabled bool) bool {
 	base := []string{
+		"/elevate/otp/email",
 		"/signin/passwordless/email",
 		"/signin/otp/email",
 		"/signup/passwordless/email",
@@ -34,6 +35,7 @@ func sendsEmail(path string, verifyEmailEnabled bool) bool {
 // endpoints that send SMS.
 func sendsSMS(path string) bool {
 	return slices.Contains([]string{
+		"/elevate/otp/sms",
 		"/signin/passwordless/sms",
 		"/signup/passwordless/sms",
 		"/user/deanonymize/sms",

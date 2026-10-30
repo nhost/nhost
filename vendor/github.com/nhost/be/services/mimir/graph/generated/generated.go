@@ -177,9 +177,14 @@ type ComplexityRoot struct {
 
 	ConfigAuthMethodOtp struct {
 		Email func(childComplexity int) int
+		Sms   func(childComplexity int) int
 	}
 
 	ConfigAuthMethodOtpEmail struct {
+		Enabled func(childComplexity int) int
+	}
+
+	ConfigAuthMethodOtpSms struct {
 		Enabled func(childComplexity int) int
 	}
 
@@ -1371,6 +1376,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ConfigAuthMethodOtp.Email(childComplexity), true
+	case "ConfigAuthMethodOtp.sms":
+		if e.ComplexityRoot.ConfigAuthMethodOtp.Sms == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigAuthMethodOtp.Sms(childComplexity), true
 
 	case "ConfigAuthMethodOtpEmail.enabled":
 		if e.ComplexityRoot.ConfigAuthMethodOtpEmail.Enabled == nil {
@@ -1378,6 +1389,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ConfigAuthMethodOtpEmail.Enabled(childComplexity), true
+
+	case "ConfigAuthMethodOtpSms.enabled":
+		if e.ComplexityRoot.ConfigAuthMethodOtpSms.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigAuthMethodOtpSms.Enabled(childComplexity), true
 
 	case "ConfigAuthMethodSmsPasswordless.enabled":
 		if e.ComplexityRoot.ConfigAuthMethodSmsPasswordless.Enabled == nil {
@@ -3711,6 +3729,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodOtpEmailComparisonExp,
 		ec.unmarshalInputConfigAuthMethodOtpEmailInsertInput,
 		ec.unmarshalInputConfigAuthMethodOtpInsertInput,
+		ec.unmarshalInputConfigAuthMethodOtpSmsComparisonExp,
+		ec.unmarshalInputConfigAuthMethodOtpSmsInsertInput,
 		ec.unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp,
 		ec.unmarshalInputConfigAuthMethodSmsPasswordlessInsertInput,
 		ec.unmarshalInputConfigAuthMethodWebauthnAttestationComparisonExp,
@@ -4547,6 +4567,9 @@ type ConfigAuthMethod {
     emailPassword: ConfigAuthMethodEmailPassword
     """
     Passwordless sign-in via SMS.
+    Deprecated: use otp.sms instead. The two flags remain independent in
+    config; their values are OR-ed only when generating hasura-auth environment
+    variables.
     """
     smsPasswordless: ConfigAuthMethodSmsPasswordless
     """
@@ -5070,14 +5093,21 @@ type ConfigAuthMethodOtp {
     Enable one-time-password sign-in over email.
     """
     email: ConfigAuthMethodOtpEmail
+    """
+    Enable one-time-password over SMS, for passwordless sign-in and
+    session elevation.
+    """
+    sms: ConfigAuthMethodOtpSms
 }
 
 input ConfigAuthMethodOtpUpdateInput {
     email: ConfigAuthMethodOtpEmailUpdateInput
+    sms: ConfigAuthMethodOtpSmsUpdateInput
 }
 
 input ConfigAuthMethodOtpInsertInput {
     email: ConfigAuthMethodOtpEmailInsertInput
+    sms: ConfigAuthMethodOtpSmsInsertInput
 }
 
 input ConfigAuthMethodOtpComparisonExp {
@@ -5085,6 +5115,7 @@ input ConfigAuthMethodOtpComparisonExp {
     _not: ConfigAuthMethodOtpComparisonExp
     _or: [ConfigAuthMethodOtpComparisonExp!]
     email: ConfigAuthMethodOtpEmailComparisonExp
+    sms: ConfigAuthMethodOtpSmsComparisonExp
 }
 
 """
@@ -5113,7 +5144,36 @@ input ConfigAuthMethodOtpEmailComparisonExp {
 }
 
 """
+Enable one-time-password over SMS, for passwordless sign-in and
+session elevation.
+"""
+type ConfigAuthMethodOtpSms {
+    """
+    Enable this feature.
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsComparisonExp {
+    _and: [ConfigAuthMethodOtpSmsComparisonExp!]
+    _not: ConfigAuthMethodOtpSmsComparisonExp
+    _or: [ConfigAuthMethodOtpSmsComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
 Passwordless sign-in via SMS.
+Deprecated: use otp.sms instead. The two flags remain independent in
+config; their values are OR-ed only when generating hasura-auth environment
+variables.
 """
 type ConfigAuthMethodSmsPasswordless {
     """
@@ -9337,6 +9397,8 @@ func (ec *executionContext) childFields_ConfigAuthMethodOtp(ctx context.Context,
 	switch field.Name {
 	case "email":
 		return ec.fieldContext_ConfigAuthMethodOtp_email(ctx, field)
+	case "sms":
+		return ec.fieldContext_ConfigAuthMethodOtp_sms(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOtp", field.Name)
 }
@@ -9347,6 +9409,14 @@ func (ec *executionContext) childFields_ConfigAuthMethodOtpEmail(ctx context.Con
 		return ec.fieldContext_ConfigAuthMethodOtpEmail_enabled(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOtpEmail", field.Name)
+}
+
+func (ec *executionContext) childFields_ConfigAuthMethodOtpSms(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "enabled":
+		return ec.fieldContext_ConfigAuthMethodOtpSms_enabled(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMethodOtpSms", field.Name)
 }
 
 func (ec *executionContext) childFields_ConfigAuthMethodSmsPasswordless(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -14331,6 +14401,38 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodOtp_email(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuthMethodOtp_sms(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOtp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigAuthMethodOtp_sms(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Sms, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.ConfigAuthMethodOtpSms) graphql.Marshaler {
+			return ec.marshalOConfigAuthMethodOtpSms2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSms(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigAuthMethodOtp_sms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMethodOtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ConfigAuthMethodOtpSms(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuthMethodOtpEmail_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOtpEmail) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14352,6 +14454,29 @@ func (ec *executionContext) _ConfigAuthMethodOtpEmail_enabled(ctx context.Contex
 }
 func (ec *executionContext) fieldContext_ConfigAuthMethodOtpEmail_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("ConfigAuthMethodOtpEmail", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigAuthMethodOtpSms_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodOtpSms) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigAuthMethodOtpSms_enabled(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *bool) graphql.Marshaler {
+			return ec.marshalOBoolean2ᚖbool(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigAuthMethodOtpSms_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigAuthMethodOtpSms", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
 func (ec *executionContext) _ConfigAuthMethodSmsPasswordless_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMethodSmsPasswordless) (ret graphql.Marshaler) {
@@ -26996,7 +27121,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "email"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "email", "sms"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27031,6 +27156,13 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpComparisonExp(ctx c
 				return it, err
 			}
 			it.Email = data
+		case "sms":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sms"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sms = data
 		}
 	}
 	return it, nil
@@ -27128,7 +27260,7 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"email"}
+	fieldsInOrder := [...]string{"email", "sms"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27142,6 +27274,94 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodOtpInsertInput(ctx con
 				return it, err
 			}
 			it.Email = data
+		case "sms":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sms"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpSmsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sms = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpSmsComparisonExp(ctx context.Context, obj any) (model.ConfigAuthMethodOtpSmsComparisonExp, error) {
+	var it model.ConfigAuthMethodOtpSmsComparisonExp
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMethodOtpSmsInsertInput(ctx context.Context, obj any) (model.ConfigAuthMethodOtpSmsInsertInput, error) {
+	var it model.ConfigAuthMethodOtpSmsInsertInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
 		}
 	}
 	return it, nil
@@ -39829,6 +40049,11 @@ func (ec *executionContext) _ConfigAuthMethodOtp(ctx context.Context, sel ast.Se
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
+		case "sms":
+			out.Values[i] = ec._ConfigAuthMethodOtp_sms(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39865,6 +40090,45 @@ func (ec *executionContext) _ConfigAuthMethodOtpEmail(ctx context.Context, sel a
 			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOtpEmail")
 		case "enabled":
 			out.Values[i] = ec._ConfigAuthMethodOtpEmail_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthMethodOtpSmsImplementors = []string{"ConfigAuthMethodOtpSms"}
+
+func (ec *executionContext) _ConfigAuthMethodOtpSms(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthMethodOtpSms) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthMethodOtpSmsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthMethodOtpSms")
+		case "enabled":
+			out.Values[i] = ec._ConfigAuthMethodOtpSms_enabled(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}
@@ -45755,6 +46019,11 @@ func (ec *executionContext) unmarshalNConfigAuthMethodOtpEmailComparisonExp2ᚖg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigAuthMethodOtpSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpSmsComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthMethodOtpSmsComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAuthMethodSmsPasswordlessComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodSmsPasswordlessComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodSmsPasswordlessComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodSmsPasswordlessComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -48219,6 +48488,56 @@ func (ec *executionContext) unmarshalOConfigAuthMethodOtpInsertInput2ᚖgithub�
 	}
 	res, err := ec.unmarshalInputConfigAuthMethodOtpInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthMethodOtpSms2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSms(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthMethodOtpSms) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthMethodOtpSms(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAuthMethodOtpSmsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAuthMethodOtpSmsComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthMethodOtpSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpSmsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsComparisonExp(ctx context.Context, v any) (*model.ConfigAuthMethodOtpSmsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpSmsComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpSmsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsInsertInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpSmsInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMethodOtpSmsInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMethodOtpSmsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpSmsUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpSmsUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthMethodOtpSmsUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigAuthMethodOtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodOtpUpdateInput(ctx context.Context, v any) (*model.ConfigAuthMethodOtpUpdateInput, error) {

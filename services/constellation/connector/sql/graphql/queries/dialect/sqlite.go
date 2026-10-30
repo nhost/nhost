@@ -39,6 +39,20 @@ func (d *SQLiteDialect) TypeCast(placeholder string, _ string) string {
 	return placeholder
 }
 
+func (d *SQLiteDialect) SupportsDependentInsertSteps() bool { return false }
+
+// DependentInsertCapture is unreachable: SQLite rejects the plan before rendering.
+func (d *SQLiteDialect) DependentInsertCapture() string { return "" }
+
+// DependentInsertRowsSource is unreachable for SQLite.
+func (d *SQLiteDialect) DependentInsertRowsSource(_ int) string { return "" }
+
+// DependentInsertRowValue is unreachable for SQLite.
+func (d *SQLiteDialect) DependentInsertRowValue(_ string) string { return "" }
+
+// DependentInsertAffectedRows is unreachable for SQLite.
+func (d *SQLiteDialect) DependentInsertAffectedRows(_ int) string { return "" }
+
 // WriteArrayIn emits a flat "col IN (?, ?, ...)" expansion because SQLite has
 // no array type. The sqlType argument is ignored (no array casts apply). When
 // values is empty SQLite would reject "IN ()" as a syntax error, so we emit
