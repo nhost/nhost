@@ -1,3 +1,33 @@
+## [@nhost/nhost-js@5.0.0] - 2026-10-30
+
+### 🚀 Features
+
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using TOTP (#4612)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using email OTP (#4665)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using SMS OTP (#4831)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Prevent recursive refresh with custom auth URLs (#5243)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update dependencies due to CVEs (#5307)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5103)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+- *(deps)* Update vulnerable dependencies (#5226)
+- *(deps)* Update vulnerable dependencies (#5242)
+- *(deps)* Update vulnerable dependencies (#5256)
+
 ## [@nhost/nhost-js@4.9.0] - 2026-09-30
 
 ### 🚀 Features
