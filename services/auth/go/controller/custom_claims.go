@@ -139,6 +139,10 @@ func extractFilterFields(filter string) []string { //nolint:cyclop,gocognit
 }
 
 func parseClaims(parts []string) map[string]any {
+	if len(parts) == 0 {
+		return map[string]any{}
+	}
+
 	parts[0] = strings.Split(parts[0], "[")[0]
 	switch len(parts) {
 	case 1:
@@ -274,10 +278,13 @@ func NewCustomClaims(
 		}
 	}
 
-	query := fmt.Sprintf(
-		"query GetClaims($id: uuid!) { user(id:$id) %s }",
-		claimsMapToGraphql(claims),
-	)
+	var query string
+	if len(claims) > 0 {
+		query = fmt.Sprintf(
+			"query GetClaims($id: uuid!) { user(id:$id) %s }",
+			claimsMapToGraphql(claims),
+		)
+	}
 
 	return &CustomClaims{
 		graphqlQuery:       query,
@@ -425,6 +432,10 @@ func (c *CustomClaims) makeRequest(ctx context.Context, userID string) (map[stri
 }
 
 func (c *CustomClaims) GetClaims(ctx context.Context, userID string) (map[string]any, error) {
+	if c.graphqlQuery == "" {
+		return c.ExtractClaims(map[string]any{})
+	}
+
 	data, err := c.makeRequest(ctx, userID)
 	if err != nil {
 		return nil, err

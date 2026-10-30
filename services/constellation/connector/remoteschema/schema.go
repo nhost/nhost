@@ -256,10 +256,11 @@ func convertSDLUnion(typ *ast.Definition) *graph.UnionType {
 
 func convertSDLInput(typ *ast.Definition) *graph.InputObjectType {
 	return &graph.InputObjectType{
-		Name:        typ.Name,
-		Description: typ.Description,
-		Fields:      convertInputFields(typ.Fields),
-		Directives:  nil,
+		Name:             typ.Name,
+		Description:      typ.Description,
+		Fields:           convertInputFields(typ.Fields),
+		Directives:       nil,
+		ComputedArgument: false,
 	}
 }
 

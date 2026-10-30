@@ -111,7 +111,18 @@ func TestBuildColumnSelectionsQuotesEmbeddedQuote(t *testing.T) {
 	var b strings.Builder
 
 	first := true
-	tbl.buildColumnSelections(&b, columns, &first)
+	if _, _, err := tbl.buildColumnSelections(
+		&b,
+		columns,
+		&first,
+		nil,
+		nil,
+		nil,
+		1,
+		"",
+	); err != nil {
+		t.Fatal(err)
+	}
 
 	sql := b.String()
 

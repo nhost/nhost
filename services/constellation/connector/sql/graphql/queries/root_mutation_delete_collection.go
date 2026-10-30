@@ -38,7 +38,7 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		return core.SQLOperation{}, fmt.Errorf("failed to parse delete arguments: %w", err)
 	}
 
-	selection, err := t.astToMutationSelection(field, fragments)
+	selection, err := t.astToMutationSelection(field, fragments, role)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
 	}
@@ -70,6 +70,7 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 

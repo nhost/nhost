@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	defaultAdminDBURL = "postgresql://postgres:postgres@localhost:5433/postgres" //nolint:gosec // G101: test DB creds
-	maxDBNameLen      = 50
-	randomRange       = 100000
+	defaultAdminDBURL = "postgresql://postgres:postgres@localhost:5433/" +
+		"postgres?sslmode=disable"
+	maxDBNameLen = 50
+	randomRange  = 100000
 )
 
 // postgresDBURL returns the admin database URL for creating/dropping test databases.
