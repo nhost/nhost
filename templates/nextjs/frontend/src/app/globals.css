@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* One palette, dark, no theme to switch to. The lightness steps sit above
+   shadcn's dark defaults so the page reads as charcoal rather than black.
+   The tokens live on :root because nothing toggles them; the `dark` class the
+   layout puts on <html> is only there for the `dark:` variants inside button
+   and input, which keeps those two files as shadcn ships them. */
+:root {
+  color-scheme: dark;
+  --radius: 0.625rem;
+  --background: oklch(0.23 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.27 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.27 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.23 0 0);
+  --secondary: oklch(0.32 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.32 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.32 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.762 0.154 159.4);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.6 0 0);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* A modal dialog makes the page under it inert but leaves it scrolling. */
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
