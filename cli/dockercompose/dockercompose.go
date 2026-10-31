@@ -15,6 +15,24 @@ import (
 
 const op = "read"
 
+func copyPtyAndWait(cmd *exec.Cmd, f *os.File) error {
+	if n, err := io.Copy(os.Stdout, f); err != nil {
+		var pathError *fs.PathError
+		switch {
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
+			// linux pty returns an error when the process exits
+		default:
+			return fmt.Errorf("failed to copy pty output: %w", err)
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("failed to run hasura-cli: %w", err)
+	}
+
+	return nil
+}
+
 type DockerCompose struct {
 	workingDir  string
 	filepath    string
@@ -184,18 +202,7 @@ func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	if n, err := io.Copy(os.Stdout, f); err != nil {
-		var pathError *fs.PathError
-		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			// linux pty returns an error when the process exits
-			return nil
-		default:
-			return fmt.Errorf("failed to copy pty output: %w", err)
-		}
-	}
-
-	return nil
+	return copyPtyAndWait(cmd, f)
 }
 
 func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) error {
@@ -221,18 +228,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) e
 	}
 	defer f.Close()
 
-	if n, err := io.Copy(os.Stdout, f); err != nil {
-		var pathError *fs.PathError
-		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			// linux pty returns an error when the process exits
-			return nil
-		default:
-			return fmt.Errorf("failed to copy pty output: %w", err)
-		}
-	}
-
-	return nil
+	return copyPtyAndWait(cmd, f)
 }
 
 func (dc *DockerCompose) ApplySeeds(ctx context.Context, endpoint string) error {
@@ -258,16 +254,5 @@ func (dc *DockerCompose) ApplySeeds(ctx context.Context, endpoint string) error 
 	}
 	defer f.Close()
 
-	if n, err := io.Copy(os.Stdout, f); err != nil {
-		var pathError *fs.PathError
-		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			// linux pty returns an error when the process exits
-			return nil
-		default:
-			return fmt.Errorf("failed to copy pty output: %w", err)
-		}
-	}
-
-	return nil
+	return copyPtyAndWait(cmd, f)
 }
