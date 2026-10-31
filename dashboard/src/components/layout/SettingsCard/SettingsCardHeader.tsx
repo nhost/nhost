@@ -31,6 +31,17 @@ export interface SettingsCardHeaderProps
    */
   control?: React.ReactNode;
   /**
+   * `lg` for a page with a few big sections (like project General), where
+   * the card titles act as section headings.
+   */
+  size?: 'default' | 'lg';
+  /**
+   * Content under the title and description, in the same column, so a
+   * `control` on the right stays centred against all of it (e.g. a single
+   * field with its Save button).
+   */
+  children?: React.ReactNode;
+  /**
    * Docs for this section, shown as a help icon right after the title.
    */
   docsLink?: SettingsDocsLinkProps;
@@ -48,6 +59,8 @@ const SettingsCardHeader = React.forwardRef<
       icon,
       actions,
       control,
+      size = 'default',
+      children,
       docsLink,
       ...props
     },
@@ -80,7 +93,14 @@ const SettingsCardHeader = React.forwardRef<
         <div className="grid min-w-0 grid-flow-row gap-0.5">
           <div className="flex items-center gap-1">
             {typeof title === 'string' ? (
-              <h3 className="font-semibold text-lg">{title}</h3>
+              <h3
+                className={cn(
+                  'font-semibold',
+                  size === 'lg' ? 'text-xl' : 'text-lg',
+                )}
+              >
+                {title}
+              </h3>
             ) : (
               title
             )}
@@ -90,6 +110,8 @@ const SettingsCardHeader = React.forwardRef<
           {description && (
             <p className="text-muted-foreground">{description}</p>
           )}
+
+          {children && <div className="mt-2">{children}</div>}
         </div>
       </div>
 

@@ -95,14 +95,12 @@ export default function RemoveApplicationDialog({
           .refine((value) => value === requiredProjectConfirmation, {
             message: 'Value does not match',
           }),
-        acknowledgeIrreversible: z
-          .boolean()
-          .refine((value) => value, { message: '' }),
-        acknowledgeSubscription: z
-          .boolean()
-          .refine((value) => !isPaidPlan || value, { message: '' }),
+        // Not validation errors: an unticked box would turn its label red.
+        // The Delete button stays disabled until they're ticked instead.
+        acknowledgeIrreversible: z.boolean(),
+        acknowledgeSubscription: z.boolean(),
       }),
-    [isPaidPlan, requiredProjectConfirmation],
+    [requiredProjectConfirmation],
   );
 
   const form = useForm<DeleteProjectFormValues>({
@@ -115,7 +113,13 @@ export default function RemoveApplicationDialog({
     },
   });
   const { isValid } = form.formState;
-  const canDeleteProject = isValid && !loadingRemove;
+  const [acknowledgeIrreversible, acknowledgeSubscription] = form.watch([
+    'acknowledgeIrreversible',
+    'acknowledgeSubscription',
+  ]);
+  const acknowledged =
+    acknowledgeIrreversible && (!isPaidPlan || acknowledgeSubscription);
+  const canDeleteProject = isValid && acknowledged && !loadingRemove;
 
   function closeDialog() {
     form.reset();
@@ -135,7 +139,7 @@ export default function RemoveApplicationDialog({
   }
 
   async function handleDelete() {
-    if (loadingRemove) {
+    if (loadingRemove || !acknowledged) {
       return;
     }
 
@@ -186,7 +190,7 @@ export default function RemoveApplicationDialog({
       <AlertDialogContent className="!bg-transparent !shadow-none !p-0 max-w-lg border-none">
         <div
           className={cn(
-            'w-full max-w-lg rounded-lg bg-paper p-12 text-left text-foreground',
+            'w-full max-w-lg rounded-lg bg-background p-12 text-left text-foreground',
             className,
           )}
         >
@@ -197,20 +201,20 @@ export default function RemoveApplicationDialog({
             >
               <div className="flex flex-col gap-2">
                 <AlertDialogTitle className="text-xl">
-                  {title || 'Delete Project'}
+                  {title || (appName ? `Delete ${appName}` : 'Delete project')}
                 </AlertDialogTitle>
 
-                <AlertDialogDescription>
+                {/* The checkboxes below say what matters, so the default
+                    description is only read by screen readers. */}
+                <AlertDialogDescription
+                  className={cn(!description && 'sr-only')}
+                >
                   {description ||
-                    'Are you sure you want to delete this project?'}
+                    'Deleting a project removes its database, files and settings, and cannot be undone.'}
                 </AlertDialogDescription>
-
-                <p className="font-bold text-destructive text-sm">
-                  This cannot be undone.
-                </p>
               </div>
 
-              <div className="flex flex-col gap-6 border-y py-6">
+              <div className="flex flex-col gap-4">
                 <FormCheckbox
                   control={form.control}
                   name="acknowledgeIrreversible"
