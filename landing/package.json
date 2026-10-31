@@ -45,8 +45,8 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "18.11.18",
-    "autoprefixer": "^10.6.1",
-    "postcss": "^8.5.31",
+    "autoprefixer": "^10.6.2",
+    "postcss": "^8.5.32",
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.2.8",
