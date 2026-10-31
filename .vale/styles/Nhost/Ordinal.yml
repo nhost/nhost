@@ -1,0 +1,10 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.errata-ai-Google.
+extends: existence
+message: "Spell out all ordinal numbers ('%s') in text."
+link: 'https://developers.google.com/style/numbers'
+level: warning
+nonword: true
+# Nhost change: percentiles stay numeric ('95th percentile'), as the
+# dashboard labels them.
+tokens:
+  - '\d+(?:st|nd|rd|th)(?! percentile)'

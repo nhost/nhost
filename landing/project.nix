@@ -38,9 +38,14 @@ let
       ../pnpm-workspace.yaml
       ../pnpm-lock.yaml
       ../turbo.json
+      # Shared Vale styles.
+      ../.vale/styles
       ./.
     ];
   };
+
+  # For test:prose.
+  checkDeps = with pkgs; [ vale ];
 
   buildInputs = with pkgs; [ nhost.nodejs ];
 
@@ -61,6 +66,7 @@ rec {
 
     buildInputs = [
     ]
+    ++ checkDeps
     ++ buildInputs
     ++ nativeBuildInputs;
   };
@@ -70,6 +76,7 @@ rec {
       src
       node_modules
       submodule
+      checkDeps
       buildInputs
       nativeBuildInputs
       ;

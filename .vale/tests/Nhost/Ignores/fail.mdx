@@ -1,0 +1,56 @@
+---
+title: Ignores fixture
+# The trailing `};` block catches a run-past regression of the export const ignore.
+---
+
+import { Card, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The import line above is skipped. Imported!
+
+export const article = {
+  title: 'Launch! today',
+  tags: ['release', 'storage'],
+};
+
+The export block above is skipped. Exported!
+
+<Card
+  title="Welcome! aboard"
+  icon="rocket"
+>
+The card body is linted like any paragraph. Rendered!
+</Card>
+
+{/* Draft! note for the editor, kept out of the page. */}
+
+The comment above is skipped. Commented!
+
+<Steps>
+
+1. Open the project settings.
+
+   <Tabs>
+   <TabItem label="Dashboard">
+   ```bash
+   echo "Started! now"
+   ```
+   </TabItem>
+   </Tabs>
+
+</Steps>
+
+The steps above are skipped. Stepped!
+
+```ts
+export const config = {
+  greeting: 'Hello! there',
+} as const;
+```
+
+The fenced block above is code. Fenced!
+
+export const other = {
+  key: 'value',
+};
+
+The second export block above is skipped. Closed!

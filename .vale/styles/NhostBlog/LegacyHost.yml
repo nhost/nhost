@@ -1,0 +1,12 @@
+# console.nhost.io was the v1 dashboard. A warning, since two v1-era posts link
+# it on purpose.
+extends: existence
+message: "'console.nhost.io' is the retired v1 dashboard and no
+  longer resolves; link 'https://app.nhost.io'."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'https?://console\.nhost\.io'

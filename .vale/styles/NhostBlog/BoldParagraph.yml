@@ -1,0 +1,12 @@
+# A bold-only paragraph should be a '###' heading or plain prose. Raw scope and
+# multiline, to match the whole line.
+extends: existence
+message: "A bold-only paragraph is either a heading, which should be
+  '###', or the thesis, which should read as prose."
+level: suggestion
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '(?m)^\*\*[^*\n]+\*\*[:.]?[ \t]*$'

@@ -1,0 +1,1 @@
+.vale/tests/Nhost/EmDash/fail.mdx:5:27:Nhost.EmDash:Em dash; house style allows it.

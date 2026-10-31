@@ -154,7 +154,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 ## Community ❤️
 
-First and foremost: **Star and watch this repository** to stay up-to-date.
+**Star and watch this repository** to stay up-to-date.
 
 Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [X](https://x.com/nhost). You can chat with the team and other members on [Discord](https://nhost.io/discord) and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
 

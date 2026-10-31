@@ -1,0 +1,12 @@
+# Images go in the post's own folder. Raw scope: the paths sit in the article
+# export and JSX.
+extends: existence
+message: "Put the image in the post's own folder,
+  '/images/blog/<slug>/', not flat at '%s'."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '/images/blog/[A-Za-z0-9_.-]+\.(?:png|jpe?g|gif|webp|svg|avif)'

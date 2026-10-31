@@ -1,0 +1,11 @@
+# Raw scope: TokenIgnores drop JSX tags.
+extends: existence
+message: "Use a ':::note', ':::tip' or ':::caution' callout,
+  never the '%s' component."
+level: error
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '<Aside\b'

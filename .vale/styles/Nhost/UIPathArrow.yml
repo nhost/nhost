@@ -1,0 +1,11 @@
+# Raw scope, to see paths inside JSX.
+extends: existence
+message: "Separate the segments of a bold UI path with '→',
+  not '->'."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '\*\*[^*\n]*->[^*\n]*\*\*'

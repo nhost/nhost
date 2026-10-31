@@ -253,6 +253,14 @@
             ;
         };
 
+        valef = import ./tools/vale/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
       in
       {
         checks = {
@@ -282,6 +290,7 @@
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
+          vale = valef.check;
         };
 
         apps.sync-ci = {
@@ -439,6 +448,7 @@
           postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
+          vale = valef.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {

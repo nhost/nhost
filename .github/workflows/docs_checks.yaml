@@ -28,6 +28,9 @@ on:
       - tools/configdocs/**
       - services/postgres/plugins.md
 
+      # prose: the Vale styles, shared with the blog and repository Markdown
+      - .vale/styles/**
+
       # nhost-js
       - packages/nhost-js/**
 
@@ -70,6 +73,7 @@ jobs:
         docs/**
         tools/configdocs/**
         services/postgres/plugins.md
+        .vale/styles/**
         packages/nhost-js/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml

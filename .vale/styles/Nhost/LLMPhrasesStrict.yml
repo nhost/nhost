@@ -1,0 +1,38 @@
+# Words with no hits on main, so they can be errors. Never also in LLMPhrases.
+extends: existence
+message: "Describe what the product does instead of '%s'."
+level: error
+ignorecase: true
+# An accept.txt term inside a wildcard match would hide it, e.g. "that's where
+# Nhost comes in".
+vocab: false
+tokens:
+  # praise adjectives and verbs
+  - effortless(?:ly)?
+  - supercharg(?:e|es|ed|ing)
+  - state[- ]of[- ]the[- ]art
+  - best[- ]in[- ]class
+  - boast(?:s|ed|ing)?
+  - holistic
+  - plethora
+  - myriad
+  - vital
+  - pivotal
+  # padding and throat-clearing
+  - delv(?:e|es|ed|ing)
+  - "let['’]s dive"
+  - "it['’]s worth noting"
+  - needless to say
+  - rest assured
+  - in essence
+  - first and foremost
+  - at the end of the day
+  # rhetorical scaffolding
+  - "that['’]s where .{1,40} comes? in"
+  - "here['’]s the thing"
+  - gone are the days
+  - the beauty of
+  - deep[- ]dive
+  - does the heavy lifting
+  - navigat(?:e|es|ing) the (?:complexit(?:y|ies)|landscape)
+  # Tokens ending in '?' go in RhetoricalQuestion, which sets nonword.

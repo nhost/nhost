@@ -1,0 +1,23 @@
+# Config for .vale/spellcheck.sh. Only add words that are correct in context.
+
+[files]
+extend-exclude = [
+  # Generated; commit hashes read as typos.
+  "CHANGELOG.md",
+  "vendor/",
+]
+
+[default]
+extend-ignore-re = [
+  # Base64 wrapped across lines, e.g. JWTs.
+  "(?m)^[A-Za-z0-9+/=_.-]{40,}$",
+  # API message IDs.
+  "\\bmsg_[A-Za-z0-9]+",
+]
+
+[default.extend-words]
+# Hasura's `_nin` operator.
+nin = "nin"
+
+[default.extend-identifiers]
+OTPs = "OTPs"

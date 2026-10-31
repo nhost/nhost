@@ -1,0 +1,11 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.errata-ai-Google.
+extends: existence
+message: "Put a nonbreaking space between the number and the unit in '%s'."
+link: "https://developers.google.com/style/units-of-measure"
+nonword: true
+level: warning
+tokens:
+  - '\b\d+(?:B|kB|MB|GB|TB)\b'
+  - '\b\d+(?:ns|ms|min|h|d)\b'
+  # Seconds are split out so a decade ('1990s') isn't read as a unit.
+  - '\b\d+s\b(?<!\b(?:19|20)\d\ds\b)'

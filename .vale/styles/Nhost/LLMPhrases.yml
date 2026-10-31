@@ -1,0 +1,41 @@
+# Words with hits on main; zero-hit ones are in LLMPhrasesStrict. Left out on
+# purpose: elevated (an auth term), out of the box, first-class, harness, under
+# the hood, ensure that.
+extends: existence
+message: "Describe what the product does instead of '%s'."
+level: warning
+ignorecase: true
+# An accept.txt term inside a wildcard match would hide it.
+vocab: false
+tokens:
+  # praise adjectives and verbs
+  - seamless(?:ly)?
+  - leverag(?:e|es|ed|ing)
+  - robust
+  - powerful
+  - unlock(?:s|ed|ing)?
+  - unleash(?:es|ed|ing)?
+  - comprehensive
+  - crucial
+  - blazing(?:ly)? fast
+  - cutting[- ]edge
+  - world[- ]class
+  - game[- ]chang(?:er|ers|ing)
+  - revolutionis(?:e|es|ed|ing)
+  - revolutioniz(?:e|es|ed|ing)
+  - streamlin(?:e|es|ed|ing)
+  - empower(?:s|ed|ing)?
+  # hedges and padding
+  - simply
+  - utilis(?:e|es|ed|ing)
+  - utiliz(?:e|es|ed|ing)
+  - facilitat(?:e|es|ed|ing)
+  - when it comes to
+  - "it['’]s important to (?:note|remember|understand)"
+  - keep in mind that
+  - not only .{1,60} but also
+  # framing openers that stand in for a point
+  - "whether you['’]?re"
+  - "in today['’]s"
+  - in the world of
+  - think of (?:it|this) as
