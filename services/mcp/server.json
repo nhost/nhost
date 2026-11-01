@@ -46,6 +46,11 @@
           "isRequired": true
         },
         {
+          "name": "MCP_STORAGE_URL",
+          "description": "Storage URL for the same Nhost project, including /v1; enables file/image upload, download, replacement and deletion tools",
+          "isRequired": false
+        },
+        {
           "name": "MCP_AUTH_URL",
           "description": "Nhost Auth URL used as the OAuth2 authorization server, e.g. https://SUBDOMAIN.auth.REGION.nhost.run/v1",
           "isRequired": true
