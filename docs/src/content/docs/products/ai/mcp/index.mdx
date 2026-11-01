@@ -1,8 +1,8 @@
 ---
 title: Backend MCP Server
 description: >-
-  Expose your application's GraphQL API to AI assistants over the Model
-  Context Protocol (MCP), with per-user authentication through Nhost Auth.
+  Expose your application's GraphQL API and optional file storage to AI assistants
+  over the Model Context Protocol (MCP), with per-user authentication through Nhost Auth.
 keywords: ["MCP", "Model Context Protocol", "AI assistant", "LLM", "Claude", "Cursor", "GraphQL", "agentic", "OAuth2"]
 head:
   - tag: title
@@ -12,9 +12,9 @@ sidebar:
 ---
 import { Card, CardGroup, Example, Prompt } from '@components';
 
-The Backend MCP Server gives your Nhost backend an MCP interface. It exposes your GraphQL API as tools that assistants such as [Claude](/products/ai/mcp/clients/claude), [Cursor](/products/ai/mcp/clients/cursor), and other [MCP](https://modelcontextprotocol.io/) clients can use to query and mutate data.
+The Backend MCP Server gives your Nhost backend an MCP interface. It exposes your GraphQL API as tools that assistants such as [Claude](/products/ai/mcp/clients/claude), [Cursor](/products/ai/mcp/clients/cursor), and other [MCP](https://modelcontextprotocol.io/) clients can use to query and mutate data. You can also enable optional tools to upload, download, replace, and delete files in your project's storage.
 
-Users authenticate through Nhost Auth, and every GraphQL operation runs with that user's existing permissions.
+Users authenticate through Nhost Auth, and every GraphQL or storage operation runs with that user's existing permissions.
 
 <Example label="Example 1">
 
@@ -86,6 +86,8 @@ sequenceDiagram
     MCP-->>Client: Tool result
 ```
 
+When [storage is configured](/products/ai/mcp/configuration#storage), Backend MCP also forwards the same JWT to the storage service. Storage enforces the role's file permissions, including bucket and ownership restrictions.
+
 The assistant discovers the available tools automatically and can inspect your GraphQL schema to understand which queries and mutations are available.
 
 You can also provide application-specific context using `MCP_INSTRUCTIONS`. For example:
@@ -95,7 +97,7 @@ This application manages customer orders. Never cancel an order without first
 confirming the order number and current status with the user.
 ```
 
-These instructions help the assistant understand how your application should be used. GraphQL permissions remain the security boundary for what it is actually allowed to do. You can also override the description of each individual tool — see [Configuration](/products/ai/mcp/configuration#mcp-instructions).
+These instructions help the assistant understand how your application should be used. GraphQL and Storage permissions remain the security boundary for what it is actually allowed to do. You can also override the description of each GraphQL tool — see [Configuration](/products/ai/mcp/configuration#mcp-instructions).
 
 ## Backend MCP vs. CLI MCP
 
@@ -107,7 +109,7 @@ Nhost provides two MCP servers for different use cases:
 | **Runs** | Alongside your backend, typically on Nhost Run | Locally through `nhost mcp start` |
 | **Identity** | The authenticated end user | You, as developer or admin |
 | **Authentication** | Nhost Auth OAuth2 | Admin secret or Personal Access Token |
-| **Tools** | `get-schema`, `graphql-query`, `graphql-mutation` | `get-schema`, `graphql-query`, `manage-graphql`, `cloud-graphql-query`, `search` |
+| **Tools** | `get-schema`, `graphql-query`, `graphql-mutation`; optionally `storage-upload`, `storage-download` (read-only), `storage-update` and `storage-delete` (destructive) | `get-schema`, `graphql-query`, `manage-graphql`, `cloud-graphql-query`, `search` |
 
 Both servers may expose similarly named tools, but they run with very different permissions.
 
@@ -125,13 +127,17 @@ Use **Backend MCP** when you want to expose your application's capabilities to i
 
 ## Tools
 
-Backend MCP exposes three tools:
+Backend MCP provides three GraphQL tools. Setting `MCP_STORAGE_URL` also enables four storage tools; without it, those tools are not listed.
 
-| Tool | What it does | Read-only |
-|---|---|---|
-| `get-schema` | Introspects the GraphQL schema and returns available operations or SDL for selected queries and mutations. | Yes |
-| `graphql-query` | Executes a GraphQL query. Mutations are rejected. | Yes |
-| `graphql-mutation` | Executes a GraphQL mutation to create, update, or delete data. Queries are rejected. | No |
+| Tool | What it does | Read-only | Destructive |
+|---|---|---|---|
+| `get-schema` | Introspects the GraphQL schema and returns available operations or SDL for selected queries and mutations. | Yes | No |
+| `graphql-query` | Executes a GraphQL query. Mutations are rejected. | Yes | No |
+| `graphql-mutation` | Executes a GraphQL mutation to create, update, or delete data. Queries are rejected. | No | Yes |
+| `storage-upload` (optional) | Uploads one or more files, with bucket selection and optional per-file metadata. | No | No |
+| `storage-download` (optional) | Downloads a file, with optional image transformations, conditional requests, and byte ranges. | Yes | No |
+| `storage-update` (optional) | Replaces a file's content while preserving its ID; this is not a metadata patch. | No | Yes |
+| `storage-delete` (optional) | Permanently deletes a file and its metadata. | No | Yes |
 
 Subscriptions are not currently supported.
 
@@ -139,11 +145,13 @@ An assistant will typically use `get-schema` to understand the available data an
 
 You do not need to manually expose individual tables or operations as separate MCP tools. What the assistant can actually access is determined by the GraphQL schema and permissions available to the authenticated user.
 
+Storage tools transfer file bytes as standard base64, not local file paths or source URLs. To enable them, configure the [storage URL](/products/ai/mcp/configuration#storage) and grant the role only the [file and bucket access](/products/ai/mcp/permissions#storage-permissions) the assistant needs.
+
 ## Access control
 
 Every Backend MCP request runs as an authenticated user.
 
-Backend MCP validates the incoming JWT and forwards it to your GraphQL API. The engine then applies the same role, row-level, and column-level permissions that would apply if the user made the GraphQL request directly.
+Backend MCP validates the incoming JWT and forwards it to your GraphQL API and, when enabled, your storage service. The GraphQL engine applies the same role, row-level, and column-level permissions that would apply if the user made the GraphQL request directly. Storage applies its file permissions for the same role.
 
 The assistant can therefore only read or modify data that the user is allowed to access.
 
@@ -179,7 +187,7 @@ MCP_ENFORCE_ROLE=user_mcp
 
 This lets your application give users broader permissions through its normal UI while exposing a narrower set of capabilities to AI assistants.
 
-For production applications, we recommend using a dedicated, least-privilege role and granting mutation permissions deliberately. See [Roles & Permissions](/products/ai/mcp/permissions).
+For production applications, we recommend using a dedicated, least-privilege role and granting mutation permissions deliberately. If storage tools are enabled, configure that role's Storage permissions too, granting replacement and deletion only when intended. See [Roles & Permissions](/products/ai/mcp/permissions).
 
 ## Authentication requirements
 
@@ -209,6 +217,7 @@ You will usually also set:
 - `MCP_REALM` — the public URL of your Backend MCP Server, reported in the `WWW-Authenticate` header.
 - `MCP_INSTRUCTIONS` — application-specific instructions for the assistant.
 - `MCP_ENFORCE_ROLE` — a dedicated GraphQL role to use for AI access.
+- `MCP_STORAGE_URL` — optional storage URL for the same backend, including `/v1`, to enable the four storage tools.
 
 See [Deployment](/products/ai/mcp/deployment) for the one-click installer, a `run-mcp.toml` example, and local development instructions.
 
