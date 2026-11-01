@@ -383,6 +383,62 @@ func TestStorageTools(t *testing.T) {
 	}
 }
 
+func TestStorageDownloadImages(t *testing.T) {
+	t.Parallel()
+
+	tests := []storageTestCase{
+		{
+			name:   "complete image keeps ordinary-size payload out of text and structured content",
+			tool:   "storage-download",
+			args:   map[string]any{"id": "image"},
+			method: http.MethodGet,
+			path:   "/v1/files/image",
+			status: http.StatusOK,
+			body:   strings.Repeat("x", 300<<10),
+			mime:   "image/png",
+			image:  true,
+		},
+		{
+			name:   "complete image with MIME parameters",
+			tool:   "storage-download",
+			args:   map[string]any{"id": "image"},
+			method: http.MethodGet,
+			path:   "/v1/files/image",
+			status: http.StatusOK,
+			body:   "image bytes",
+			mime:   "image/png; charset=binary",
+			image:  true,
+		},
+		{
+			name:   "empty image retains base64 data without image content",
+			tool:   "storage-download",
+			args:   map[string]any{"id": "image"},
+			method: http.MethodGet,
+			path:   "/v1/files/image",
+			status: http.StatusOK,
+			mime:   "image/png",
+		},
+		{
+			name:    "image error retains base64 data without image content",
+			tool:    "storage-download",
+			args:    map[string]any{"id": "image"},
+			method:  http.MethodGet,
+			path:    "/v1/files/image",
+			status:  http.StatusPreconditionFailed,
+			body:    "image bytes",
+			mime:    "image/png",
+			isError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			runStorageCase(t, tt)
+		})
+	}
+}
+
 func checkBatchUpload(t *testing.T, r *http.Request) {
 	t.Helper()
 
@@ -563,15 +619,11 @@ func checkStorageResult(t *testing.T, result *mcp.CallToolResult, tt storageTest
 	}
 
 	if tt.tool == "storage-download" {
-		if response.Data == nil ||
-			*response.Data != base64.StdEncoding.EncodeToString([]byte(tt.body)) {
-			t.Errorf("incorrect base64 download: %s", data)
-		}
+		checkStorageDownload(t, response.Data, response.Headers, tt)
+	}
 
-		if response.Headers.Get("Content-Range") != "bytes 0-2/11" ||
-			response.Headers.Get("X-Error") != "error details" {
-			t.Error("download headers lost")
-		}
+	if tt.image && len(response.Body) != 0 {
+		t.Error("complete image must omit body from structured content")
 	}
 
 	if json.Valid([]byte(tt.body)) {
@@ -592,23 +644,100 @@ func checkStorageResult(t *testing.T, result *mcp.CallToolResult, tt storageTest
 	checkStorageImage(t, result, tt)
 }
 
+func checkStorageDownload(t *testing.T, data *string, headers http.Header, tt storageTestCase) {
+	t.Helper()
+
+	var wantData *string
+	if !tt.image {
+		wantData = new(base64.StdEncoding.EncodeToString([]byte(tt.body)))
+	}
+
+	if !reflect.DeepEqual(wantData, data) {
+		t.Error("download data must be omitted for images and base64 otherwise")
+	}
+
+	if headers.Get("Content-Range") != "bytes 0-2/11" ||
+		headers.Get("X-Error") != "error details" {
+		t.Error("download headers lost")
+	}
+}
+
 func checkStorageImage(t *testing.T, result *mcp.CallToolResult, tt storageTestCase) {
 	t.Helper()
+
+	payload := base64.StdEncoding.EncodeToString([]byte(tt.body))
 
 	imageCount := 0
 	for _, content := range result.Content {
 		if image, ok := content.(mcp.ImageContent); ok {
 			imageCount++
 
-			if image.Data != base64.StdEncoding.EncodeToString([]byte(tt.body)) ||
-				image.MIMEType != tt.mime {
-				t.Errorf("incorrect MCP image: %+v", image)
+			if image.Data != payload ||
+				image.MIMEType != strings.Split(tt.mime, ";")[0] {
+				t.Error("incorrect MCP image data or MIME type")
 			}
 		}
 	}
 
-	if (imageCount == 1) != tt.image {
-		t.Errorf("image content count=%d, want image=%v", imageCount, tt.image)
+	wantImages := 0
+	if tt.image {
+		wantImages = 1
+
+		checkStorageImageSummary(t, result, payload)
+	}
+
+	if imageCount != wantImages {
+		t.Errorf("image content count=%d, want %d", imageCount, wantImages)
+	}
+}
+
+func checkStorageImageSummary(t *testing.T, result *mcp.CallToolResult, payload string) {
+	t.Helper()
+
+	wire, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count := strings.Count(string(wire), payload); count != 1 {
+		t.Errorf("serialized image payload count=%d, want 1", count)
+	}
+
+	data, err := json.Marshal(result.StructuredContent)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var structured any
+	if err := json.Unmarshal(data, &structured); err != nil {
+		t.Fatal(err)
+	}
+
+	textCount := 0
+	for _, content := range result.Content {
+		text, ok := content.(mcp.TextContent)
+		if !ok {
+			continue
+		}
+
+		textCount++
+
+		if strings.Contains(text.Text, payload) {
+			t.Error("image payload leaked into model-visible text")
+		}
+
+		var summary any
+		if err := json.Unmarshal([]byte(text.Text), &summary); err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(summary, structured) {
+			t.Error("image text summary must mirror structured content")
+		}
+	}
+
+	if textCount != 1 {
+		t.Errorf("image summary count=%d, want 1", textCount)
 	}
 }
 

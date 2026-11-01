@@ -181,7 +181,10 @@ func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToo
 	isError := (resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices) &&
 		resp.StatusCode != http.StatusNotModified
 
-	if download {
+	// Partial ranges are not necessarily decodable images; retain them as base64 only.
+	isImage := download && resp.StatusCode == http.StatusOK && len(data) != 0 &&
+		strings.HasPrefix(resp.Header.Get("Content-Type"), "image/")
+	if download && !isImage {
 		response.Data = new(base64.StdEncoding.EncodeToString(data))
 	}
 
@@ -196,11 +199,12 @@ func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToo
 	result := mcp.NewToolResultStructuredOnly(response)
 	result.IsError = isError
 
-	// Partial ranges are not necessarily decodable images; retain them as base64 only.
-	if download && resp.StatusCode == http.StatusOK && len(data) != 0 &&
-		strings.HasPrefix(resp.Header.Get("Content-Type"), "image/") {
+	if isImage {
 		result.Content = append(result.Content, mcp.NewImageContent(
-			*response.Data, strings.Split(resp.Header.Get("Content-Type"), ";")[0],
+			base64.StdEncoding.EncodeToString(
+				data,
+			),
+			strings.Split(resp.Header.Get("Content-Type"), ";")[0],
 		))
 	}
 
