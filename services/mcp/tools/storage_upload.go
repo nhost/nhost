@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
@@ -57,6 +58,7 @@ func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
 			"Upload files or images to the connected storage service (POST /files). "+
 				"Supports batch uploads, bucket selection, custom IDs, names and JSON metadata. "+
 				"Supply file bytes as base64; storage detects MIME types from the bytes. "+
+				"The decoded files must total at most 4 MiB per call; split larger batches. "+
 				"Omit metadata or provide one entry per file in order (use {} for files without overrides). "+
 				"Returns HTTP status, headers and the complete storage response, "+
 				"including processedFiles on partial failure. "+
@@ -73,6 +75,7 @@ func (t *storageTool) registerUpdate(server *mcpserver.MCPServer) {
 		mcp.WithDescription(
 			"Replace a stored file or image with base64-encoded content while preserving its ID (PUT /files/{id}). "+
 				"Supports an optional replacement name and custom JSON metadata. "+
+				"The decoded file must be at most 4 MiB; use the storage API directly for larger files. "+
 				"Returns HTTP status, headers and the complete storage response. "+
 				"Replacement is not atomic and failures may leave intermediate changes; "+
 				"metadata follows storage replacement semantics, not patch semantics.",
@@ -82,9 +85,40 @@ func (t *storageTool) registerUpdate(server *mcpserver.MCPServer) {
 	), mcp.NewTypedToolHandler(t.handleUpdate))
 }
 
+func validateStorageUploadSize(files []storageFile) error {
+	remaining := maxStorageTransferBytes
+
+	for _, file := range files {
+		size := base64.StdEncoding.DecodedLen(len(file.Data))
+		// DecodedLen includes padding; don't reject an exactly-at-limit file or batch.
+		if size > 0 && strings.HasSuffix(file.Data, "=") {
+			size--
+			if strings.HasSuffix(file.Data, "==") {
+				size--
+			}
+		}
+
+		if size > remaining {
+			return fmt.Errorf(
+				"%w: decoded files must total at most %d bytes; split batches or use the storage API directly",
+				errStorageSize,
+				maxStorageTransferBytes,
+			)
+		}
+
+		remaining -= size
+	}
+
+	return nil
+}
+
 func writeStorageFile(writer *multipart.Writer, field string, file storageFile) error {
 	if file.Name == "" {
 		return errStorageFilename
+	}
+
+	if err := validateStorageUploadSize([]storageFile{file}); err != nil {
+		return fmt.Errorf("validating file size: %w", err)
 	}
 
 	data, err := base64.StdEncoding.DecodeString(file.Data)
@@ -153,6 +187,10 @@ func (t *storageTool) handleUpload(
 		return mcp.NewToolResultError(
 			"metadata must have one entry for every file, or be omitted",
 		), nil
+	}
+
+	if err := validateStorageUploadSize(args.Files); err != nil {
+		return mcp.NewToolResultErrorFromErr("preparing upload", err), nil
 	}
 
 	body := &bytes.Buffer{}
