@@ -26,6 +26,7 @@ const (
 	FlagDebug                = "debug"
 	FlagLogFormatTEXT        = "log-format-text"
 	FlagGraphqlEndpoint      = "graphql-endpoint"
+	FlagStorageURL           = "storage-url"
 	FlagMCPInstructions      = "mcp-instructions"
 	FlagQueryInstructions    = "query-instructions"
 	FlagMutationInstructions = "mutation-instructions"
@@ -42,7 +43,7 @@ func Command(version string) *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "mcp",
 		Version: version,
-		Usage:   "Nhost MCP Service - GraphQL tools over HTTP",
+		Usage:   "Nhost MCP Service - GraphQL and storage tools over HTTP",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagListenAddr,
@@ -69,6 +70,12 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Required: true,
 				Sources:  cli.EnvVars("MCP_GRAPHQL_ENDPOINT"),
 				Category: "GraphQL",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagStorageURL,
+				Usage:    "Storage service URL including API prefix (enables storage tools)",
+				Sources:  cli.EnvVars("MCP_STORAGE_URL"),
+				Category: "Storage",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagMCPInstructions,
@@ -155,6 +162,12 @@ func BuildServer(
 	t.RegisterQuery(mcpServer)
 	t.RegisterMutation(mcpServer)
 	t.RegisterSchema(mcpServer)
+
+	if storageURL := cmd.String(FlagStorageURL); storageURL != "" {
+		if err := tools.RegisterStorage(mcpServer, storageURL); err != nil {
+			return nil, fmt.Errorf("registering storage tools: %w", err)
+		}
+	}
 
 	return mcpServer, nil
 }
