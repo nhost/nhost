@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mark3labs/mcp-go/client"
@@ -993,17 +994,61 @@ func TestStorageWithoutAuthorization(t *testing.T) {
 func TestStorageCancellation(t *testing.T) {
 	t.Parallel()
 
-	c := storageClient(t, "http://localhost:1/v1")
+	const timeout = 5 * time.Second
+
+	arrived := make(chan struct{})
+	canceled := make(chan struct{})
+	release := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		close(arrived)
+
+		select {
+		case <-r.Context().Done():
+			close(canceled)
+		case <-release:
+		}
+	}))
+	t.Cleanup(srv.Close)
+	// Release the handler on failure so lost cancellation cannot hang server cleanup.
+	t.Cleanup(func() { close(release) })
+
+	c := storageClient(t, srv.URL+"/v1")
+
 	ctx, cancel := context.WithCancel(t.Context())
-	cancel()
+	defer cancel()
 
 	req := mcp.CallToolRequest{}
 	req.Params.Name = "storage-download"
 	req.Params.Arguments = map[string]any{"id": "id"}
 
-	result, err := c.CallTool(ctx, req)
-	if err == nil && !result.IsError {
-		t.Error("cancellation must not succeed")
+	callFailed := make(chan bool, 1)
+
+	go func() {
+		result, err := c.CallTool(ctx, req)
+		callFailed <- err != nil || (result != nil && result.IsError)
+	}()
+
+	select {
+	case <-arrived:
+	case <-time.After(timeout):
+		t.Fatal("request did not reach storage")
+	}
+
+	cancel()
+
+	select {
+	case <-canceled:
+	case <-time.After(timeout):
+		t.Fatal("storage request context was not canceled")
+	}
+
+	select {
+	case failed := <-callFailed:
+		if !failed {
+			t.Error("cancellation must not succeed")
+		}
+	case <-time.After(timeout):
+		t.Fatal("storage tool call did not return after cancellation")
 	}
 }
 
