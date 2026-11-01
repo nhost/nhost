@@ -16,10 +16,7 @@ import (
 	mcpserver "github.com/mark3labs/mcp-go/server"
 )
 
-// HTTPClient performs requests to the configured storage service.
-//
-//go:generate mockgen -package mock -destination mock/http_client.go . HTTPClient
-type HTTPClient interface {
+type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -29,7 +26,7 @@ const maxStorageTransferBytes = 4 << 20
 
 type storageTool struct {
 	endpoint string
-	client   HTTPClient
+	client   httpClient
 }
 
 type storageResponse struct {

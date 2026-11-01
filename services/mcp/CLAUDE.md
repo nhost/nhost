@@ -31,8 +31,7 @@ services/mcp/
 │   ├── storage.go                   # Storage registration, authenticated HTTP transport and responses
 │   ├── storage_upload.go            # Multipart batch upload and replacement
 │   ├── storage_download.go          # Download transformations, conditions and ranges
-│   ├── storage_test.go              # In-process MCP and HTTP storage contract tests
-│   └── mock/                        # Generated HTTPClient mock
+│   └── storage_test.go              # In-process MCP and HTTP storage contract tests
 ├── project.nix                      # Nix build configuration
 └── Makefile                         # Standard shared Makefile targets
 ```
@@ -127,7 +126,7 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 - Preflight each upload/update's decoded base64 size, and the full batch total, against the same 4 MiB cap before decoding or constructing multipart bodies. Account for base64 padding at the boundary; line breaks count toward the conservative size estimate. Larger individual uploads/replacements must use storage directly.
 - mcp-go reads HTTP bodies before typed handlers run. With storage enabled, `server.storageRequestBodyLimit` caps all MCP POST bodies at 8 MiB (including GraphQL and metadata); keep this guard in front of the MCP transport, not just in storage handlers.
 - Return status, headers and complete bodies within that cap, including partial upload `processedFiles`, conditional 304/412 responses, and partial download bytes. Only full successful nonempty image downloads produce MCP image content; carry their bytes only in that block and omit `data` from the structured response and its JSON text mirror. Other downloads retain base64 `data`. A response-size error after a write does not imply the write failed.
-- `HTTPClient` is the consuming-package boundary; regenerate its mock with `go generate ./services/mcp/...` after interface changes.
+- The private `httpClient` interface allows `storage_limits_internal_test.go` to inject inline stubs for byte-read accounting; `storage_test.go` uses `httptest` servers to exercise the real transport. `RegisterStorage` owns the timeout and no-redirect policy rather than accepting caller-supplied clients.
 
 ## GraphQL Query Validation
 
