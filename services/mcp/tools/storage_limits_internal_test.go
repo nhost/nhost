@@ -11,6 +11,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+const testStorageTransferBytes = 1024
+
 type transferBody struct {
 	remaining int
 	read      int
@@ -57,9 +59,9 @@ func TestStorageCallReadLimit(t *testing.T) {
 	}{
 		{
 			"known oversized download",
-			maxStorageTransferBytes + 1,
+			testStorageTransferBytes + 1,
 			true,
-			maxStorageTransferBytes * 2,
+			testStorageTransferBytes * 2,
 			0,
 			true,
 		},
@@ -67,23 +69,23 @@ func TestStorageCallReadLimit(t *testing.T) {
 			"unknown length download",
 			-1,
 			true,
-			maxStorageTransferBytes * 2,
-			maxStorageTransferBytes + 1,
+			testStorageTransferBytes * 2,
+			testStorageTransferBytes + 1,
 			true,
 		},
 		{
 			"understated download length",
 			1,
 			true,
-			maxStorageTransferBytes * 2,
-			maxStorageTransferBytes + 1,
+			testStorageTransferBytes * 2,
+			testStorageTransferBytes + 1,
 			true,
 		},
 		{
 			"known oversized non-download",
-			maxStorageTransferBytes + 1,
+			testStorageTransferBytes + 1,
 			false,
-			maxStorageTransferBytes * 2,
+			testStorageTransferBytes * 2,
 			0,
 			true,
 		},
@@ -91,24 +93,24 @@ func TestStorageCallReadLimit(t *testing.T) {
 			"unknown length non-download",
 			-1,
 			false,
-			maxStorageTransferBytes * 2,
-			maxStorageTransferBytes + 1,
+			testStorageTransferBytes * 2,
+			testStorageTransferBytes + 1,
 			true,
 		},
 		{
 			"exact limit download",
-			maxStorageTransferBytes,
+			testStorageTransferBytes,
 			true,
-			maxStorageTransferBytes,
-			maxStorageTransferBytes,
+			testStorageTransferBytes,
+			testStorageTransferBytes,
 			false,
 		},
 		{
 			"exact limit unknown length",
 			-1,
 			true,
-			maxStorageTransferBytes,
-			maxStorageTransferBytes,
+			testStorageTransferBytes,
+			testStorageTransferBytes,
 			false,
 		},
 	}
@@ -119,7 +121,8 @@ func TestStorageCallReadLimit(t *testing.T) {
 
 			body := &transferBody{remaining: tt.bodyBytes}
 			tool := &storageTool{
-				endpoint: "http://storage.example/v1",
+				endpoint:         "http://storage.example/v1",
+				maxTransferBytes: testStorageTransferBytes,
 				client: transferHTTPClient{response: &http.Response{
 					StatusCode:    http.StatusOK,
 					Header:        http.Header{},
@@ -160,7 +163,7 @@ func TestStorageCallReadLimit(t *testing.T) {
 func TestValidateStorageUploadSize(t *testing.T) {
 	t.Parallel()
 
-	encoded := strings.Repeat("A", base64.StdEncoding.EncodedLen(maxStorageTransferBytes))
+	encoded := strings.Repeat("A", base64.StdEncoding.EncodedLen(testStorageTransferBytes))
 	atLimit := encoded[:len(encoded)-2] + "=="
 	tests := []struct {
 		name    string
@@ -169,6 +172,16 @@ func TestValidateStorageUploadSize(t *testing.T) {
 	}{
 		{"empty file", []storageFile{{Data: ""}}, false},
 		{"two padding bytes at limit", []storageFile{{Data: atLimit}}, false},
+		{
+			"line breaks between padding",
+			[]storageFile{{Data: atLimit[:len(atLimit)-1] + "\r\n=\n"}},
+			false,
+		},
+		{
+			"line breaks at limit",
+			[]storageFile{{Data: atLimit[:4] + "\r\n" + atLimit[4:] + "\n"}},
+			false,
+		},
 		{
 			"one padding byte exceeds limit",
 			[]storageFile{{Data: encoded[:len(encoded)-1] + "="}},
@@ -183,7 +196,7 @@ func TestValidateStorageUploadSize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateStorageUploadSize(tt.files)
+			err := validateStorageUploadSize(tt.files, testStorageTransferBytes)
 			if errors.Is(err, errStorageSize) != tt.wantErr {
 				t.Errorf("size error=%v, want error=%v", err, tt.wantErr)
 			}
@@ -194,7 +207,7 @@ func TestValidateStorageUploadSize(t *testing.T) {
 func TestStorageUploadSizePreflight(t *testing.T) {
 	t.Parallel()
 
-	oversized := strings.Repeat("A", base64.StdEncoding.EncodedLen(maxStorageTransferBytes+1))
+	oversized := strings.Repeat("A", base64.StdEncoding.EncodedLen(testStorageTransferBytes+1))
 	tests := []struct {
 		name  string
 		files []storageFile
@@ -219,7 +232,7 @@ func TestStorageUploadSizePreflight(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tool := &storageTool{}
+			tool := &storageTool{maxTransferBytes: testStorageTransferBytes}
 
 			result, err := tool.handleUpload(
 				t.Context(),

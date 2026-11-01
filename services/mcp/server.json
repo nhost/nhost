@@ -51,6 +51,16 @@
           "isRequired": false
         },
         {
+          "name": "MCP_STORAGE_MAX_TRANSFER_BYTES",
+          "description": "Maximum decoded storage upload batch or storage response size in bytes; default 50000000 (50 MB)",
+          "isRequired": false
+        },
+        {
+          "name": "MCP_STORAGE_MAX_REQUEST_BYTES",
+          "description": "Maximum MCP POST body in bytes when storage is enabled, including base64 and metadata; default 70000000 (70 MB)",
+          "isRequired": false
+        },
+        {
           "name": "MCP_AUTH_URL",
           "description": "Nhost Auth URL used as the OAuth2 authorization server, e.g. https://SUBDOMAIN.auth.REGION.nhost.run/v1",
           "isRequired": true

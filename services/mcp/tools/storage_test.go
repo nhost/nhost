@@ -24,8 +24,14 @@ import (
 func storageClient(t *testing.T, endpoint string) *client.Client {
 	t.Helper()
 
+	return storageClientWithLimit(t, endpoint, 4<<20)
+}
+
+func storageClientWithLimit(t *testing.T, endpoint string, limit int64) *client.Client {
+	t.Helper()
+
 	s := mcpserver.NewMCPServer("test", "test")
-	if err := tools.RegisterStorage(s, endpoint); err != nil {
+	if err := tools.RegisterStorage(s, endpoint, limit); err != nil {
 		t.Fatal(err)
 	}
 
@@ -768,7 +774,7 @@ func TestRegisterStorage(t *testing.T) {
 
 			s := mcpserver.NewMCPServer("test", "test")
 
-			err := tools.RegisterStorage(s, tt.endpoint)
+			err := tools.RegisterStorage(s, tt.endpoint, 4<<20)
 			if (err == nil) != tt.valid {
 				t.Errorf("RegisterStorage() = %v, want valid=%v", err, tt.valid)
 			}

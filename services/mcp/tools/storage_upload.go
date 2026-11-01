@@ -1,15 +1,10 @@
 package tools
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"mime"
-	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -52,13 +47,17 @@ type storageUpdateRequest struct {
 }
 
 func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
+	limit := fmt.Sprintf(
+		"The decoded files must total at most %d bytes per call; split larger batches. ",
+		t.maxTransferBytes,
+	)
 	server.AddTool(mcp.NewTool(
 		"storage-upload",
 		mcp.WithDescription(
 			"Upload files or images to the connected storage service (POST /files). "+
 				"Supports batch uploads, bucket selection, custom IDs, names and JSON metadata. "+
 				"Supply file bytes as base64; storage detects MIME types from the bytes. "+
-				"The decoded files must total at most 4 MiB per call; split larger batches. "+
+				limit+
 				"Omit metadata or provide one entry per file in order (use {} for files without overrides). "+
 				"Returns HTTP status, headers and the complete storage response, "+
 				"including processedFiles on partial failure. "+
@@ -70,12 +69,16 @@ func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
 }
 
 func (t *storageTool) registerUpdate(server *mcpserver.MCPServer) {
+	limit := fmt.Sprintf(
+		"The decoded file must be at most %d bytes; use the storage API directly for larger files. ",
+		t.maxTransferBytes,
+	)
 	server.AddTool(mcp.NewTool(
 		"storage-update",
 		mcp.WithDescription(
 			"Replace a stored file or image with base64-encoded content while preserving its ID (PUT /files/{id}). "+
 				"Supports an optional replacement name and custom JSON metadata. "+
-				"The decoded file must be at most 4 MiB; use the storage API directly for larger files. "+
+				limit+
 				"Returns HTTP status, headers and the complete storage response. "+
 				"Replacement is not atomic and failures may leave intermediate changes; "+
 				"metadata follows storage replacement semantics, not patch semantics.",
@@ -85,15 +88,19 @@ func (t *storageTool) registerUpdate(server *mcpserver.MCPServer) {
 	), mcp.NewTypedToolHandler(t.handleUpdate))
 }
 
-func validateStorageUploadSize(files []storageFile) error {
-	remaining := maxStorageTransferBytes
+func validateStorageUploadSize(files []storageFile, limit int64) error {
+	remaining := limit
 
 	for _, file := range files {
-		size := base64.StdEncoding.DecodedLen(len(file.Data))
-		// DecodedLen includes padding; don't reject an exactly-at-limit file or batch.
-		if size > 0 && strings.HasSuffix(file.Data, "=") {
+		length := len(file.Data) - strings.Count(file.Data, "\r") - strings.Count(file.Data, "\n")
+		size := int64(base64.StdEncoding.DecodedLen(length))
+		// Base64 accepts CR/LF and padding; neither should reject an exactly-at-limit batch.
+		data := strings.TrimRight(file.Data, "\r\n")
+		if size > 0 && strings.HasSuffix(data, "=") {
 			size--
-			if strings.HasSuffix(file.Data, "==") {
+
+			data = strings.TrimRight(data[:len(data)-1], "\r\n")
+			if strings.HasSuffix(data, "=") {
 				size--
 			}
 		}
@@ -102,75 +109,11 @@ func validateStorageUploadSize(files []storageFile) error {
 			return fmt.Errorf(
 				"%w: decoded files must total at most %d bytes; split batches or use the storage API directly",
 				errStorageSize,
-				maxStorageTransferBytes,
+				limit,
 			)
 		}
 
 		remaining -= size
-	}
-
-	return nil
-}
-
-func writeStorageFile(writer *multipart.Writer, field string, file storageFile) error {
-	if file.Name == "" {
-		return errStorageFilename
-	}
-
-	if err := validateStorageUploadSize([]storageFile{file}); err != nil {
-		return fmt.Errorf("validating file size: %w", err)
-	}
-
-	data, err := base64.StdEncoding.DecodeString(file.Data)
-	if err != nil {
-		return fmt.Errorf("decoding file %q as base64: %w", file.Name, err)
-	}
-
-	contentType := file.ContentType
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	if _, _, err := mime.ParseMediaType(contentType); err != nil {
-		return fmt.Errorf("parsing content type for file %q: %w", file.Name, err)
-	}
-
-	part, err := writer.CreatePart(textproto.MIMEHeader{
-		"Content-Disposition": {mime.FormatMediaType("form-data", map[string]string{
-			"name": field, "filename": file.Name,
-		})},
-		"Content-Type": {contentType},
-	})
-	if err != nil {
-		return fmt.Errorf("creating multipart file: %w", err)
-	}
-
-	if _, err := part.Write(data); err != nil {
-		return fmt.Errorf("writing multipart file: %w", err)
-	}
-
-	return nil
-}
-
-func writeStorageMetadata(writer *multipart.Writer, field string, metadata any) error {
-	data, err := json.Marshal(metadata)
-	if err != nil {
-		return fmt.Errorf("encoding file metadata: %w", err)
-	}
-
-	// Storage reads metadata from form values, not file parts: no filename here.
-	part, err := writer.CreatePart(textproto.MIMEHeader{
-		"Content-Disposition": {
-			mime.FormatMediaType("form-data", map[string]string{"name": field}),
-		},
-		"Content-Type": {"application/json"},
-	})
-	if err != nil {
-		return fmt.Errorf("creating metadata part: %w", err)
-	}
-
-	if _, err := part.Write(data); err != nil {
-		return fmt.Errorf("writing metadata part: %w", err)
 	}
 
 	return nil
@@ -189,37 +132,22 @@ func (t *storageTool) handleUpload(
 		), nil
 	}
 
-	if err := validateStorageUploadSize(args.Files); err != nil {
+	if err := validateStorageUploadSize(args.Files, t.maxTransferBytes); err != nil {
 		return mcp.NewToolResultErrorFromErr("preparing upload", err), nil
 	}
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	if args.BucketID != nil {
-		if err := writer.WriteField("bucket-id", *args.BucketID); err != nil {
-			return mcp.NewToolResultErrorFromErr("writing bucket ID", err), nil
-		}
+	metadata := make([]any, len(args.Metadata))
+	for i := range args.Metadata {
+		metadata[i] = args.Metadata[i]
 	}
 
-	for i, file := range args.Files {
-		if err := writeStorageFile(writer, "file[]", file); err != nil {
-			return mcp.NewToolResultErrorFromErr("preparing upload", err), nil
-		}
-
-		if len(args.Metadata) != 0 {
-			if err := writeStorageMetadata(writer, "metadata[]", args.Metadata[i]); err != nil {
-				return mcp.NewToolResultErrorFromErr("preparing upload metadata", err), nil
-			}
-		}
-	}
-
-	if err := writer.Close(); err != nil {
-		return mcp.NewToolResultErrorFromErr("closing upload multipart body", err), nil
+	body, err := newStorageMultipart(args.Files, metadata, args.BucketID, true)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("preparing upload", err), nil
 	}
 
 	return t.call(ctx, http.MethodPost, "/files", nil,
-		http.Header{"Content-Type": {writer.FormDataContentType()}}, body, false)
+		http.Header{"Content-Type": {body.contentType}}, body, false)
 }
 
 func (t *storageTool) handleUpdate(
@@ -230,23 +158,21 @@ func (t *storageTool) handleUpdate(
 		return mcp.NewToolResultErrorFromErr("invalid file ID", err), nil
 	}
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	if err := writeStorageFile(writer, "file", args.File); err != nil {
+	files := []storageFile{args.File}
+	if err := validateStorageUploadSize(files, t.maxTransferBytes); err != nil {
 		return mcp.NewToolResultErrorFromErr("preparing replacement", err), nil
 	}
 
+	var metadata []any
 	if args.Metadata != nil {
-		if err := writeStorageMetadata(writer, "metadata", args.Metadata); err != nil {
-			return mcp.NewToolResultErrorFromErr("preparing replacement metadata", err), nil
-		}
+		metadata = []any{args.Metadata}
 	}
 
-	if err := writer.Close(); err != nil {
-		return mcp.NewToolResultErrorFromErr("closing replacement multipart body", err), nil
+	body, err := newStorageMultipart(files, metadata, nil, false)
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("preparing replacement", err), nil
 	}
 
 	return t.call(ctx, http.MethodPut, path, nil,
-		http.Header{"Content-Type": {writer.FormDataContentType()}}, body, false)
+		http.Header{"Content-Type": {body.contentType}}, body, false)
 }

@@ -98,6 +98,8 @@ nhost run config-deploy \
 </TabItem>
 </Tabs>
 
+When enabling storage on the 256 MiB example above, provision memory for the default 50 MB transfers and 70 MB JSON requests, especially concurrent calls, or lower `MCP_STORAGE_MAX_TRANSFER_BYTES` and `MCP_STORAGE_MAX_REQUEST_BYTES`. See [Transfer limits](/products/ai/mcp/configuration#transfer-limits) for the defaults, streaming behavior, and larger-file configuration.
+
 Before enabling storage tools, configure [Storage permissions](/products/ai/mcp/permissions#storage-permissions) for the token's role (for example `user_mcp` when using `MCP_ENFORCE_ROLE`). Grant replacement and deletion only if the assistant should be able to overwrite or permanently delete files.
 
 Once deployed, Backend MCP is reachable at its published port and any MCP-compatible client can connect. See [Connecting clients](/products/ai/mcp/clients).

@@ -2,6 +2,7 @@ package tools
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -37,6 +38,7 @@ type storageDownloadRequest struct {
 }
 
 func (t *storageTool) registerDownload(server *mcpserver.MCPServer) {
+	limit := fmt.Sprintf("Responses are limited to %d bytes; ", t.maxTransferBytes)
 	server.AddTool(mcp.NewTool(
 		"storage-download",
 		mcp.WithDescription(
@@ -45,7 +47,7 @@ func (t *storageTool) registerDownload(server *mcpserver.MCPServer) {
 				"ETag/date conditions and byte ranges. Storage ignores ranges when transformations are requested. "+
 				"Returns HTTP status and response headers (including ETag, caching and Content-Range). "+
 				"Complete images carry bytes only in MCP image content; other downloads return base64 data. "+
-				"Responses are limited to 4 MiB; "+
+				limit+
 				"use range to download larger files in chunks, without transformations. A 304 is a successful bodyless result; "+
 				"a 412 is a precondition failure with headers preserved.",
 		),

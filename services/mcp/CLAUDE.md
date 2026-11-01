@@ -29,9 +29,13 @@ services/mcp/
 │   ├── schema.go                    # Schema introspection and summarization tool
 │   ├── query_internal_test.go       # GraphQL tool handler tests
 │   ├── storage.go                   # Storage registration, authenticated HTTP transport and responses
-│   ├── storage_upload.go            # Multipart batch upload and replacement
+│   ├── storage_upload.go            # Upload/replacement schemas, limits and handlers
+│   ├── storage_multipart.go         # Validated lazy multipart/base64 streams
 │   ├── storage_download.go          # Download transformations, conditions and ranges
-│   └── storage_test.go              # In-process MCP and HTTP storage contract tests
+│   ├── storage_test.go              # In-process MCP and HTTP storage contract tests
+│   ├── storage_limits*_test.go      # Transfer-budget and bounded-read tests
+│   ├── storage_streaming_test.go    # Large configurable transfers and upload preflight
+│   └── storage_multipart_internal_test.go # Multipart encoding and allocation benchmarks
 ├── project.nix                      # Nix build configuration
 └── Makefile                         # Standard shared Makefile targets
 ```
@@ -122,10 +126,11 @@ The auth middleware (`auth/auth.go`) implements OAuth2 with PKCE for MCP clients
 - `tools.RegisterStorage` registers `storage-upload`, `storage-download`, `storage-update`, and `storage-delete`. Keep parity with POST `/files` and GET/PUT/DELETE `/files/{id}` in `services/storage/controller/openapi.yaml`.
 - Forward the caller's Authorization header via the same context/interceptor as GraphQL. Never add admin secrets, accept arbitrary request URLs/headers, or follow upstream redirects.
 - Transfer bytes as base64; do not read server-local paths or fetch user-provided source URLs. Upload/update use real multipart field names (`file[]`/`metadata[]`/`bucket-id`, or `file`/`metadata`). Preserve metadata ordering and explicit empty custom metadata objects.
-- Bound every storage response to 4 MiB (`maxStorageTransferBytes`), checking Content-Length before reading and using `io.LimitReader` for unknown or incorrect lengths. Oversized responses return an MCP error retaining upstream status/headers, without truncated data. Download errors direct callers to `range` (e.g. `bytes=0-4194303`); transformations must be omitted for storage to honor ranges.
-- Preflight each upload/update's decoded base64 size, and the full batch total, against the same 4 MiB cap before decoding or constructing multipart bodies. Account for base64 padding at the boundary; line breaks count toward the conservative size estimate. Larger individual uploads/replacements must use storage directly.
-- mcp-go reads HTTP bodies before typed handlers run. With storage enabled, `server.storageRequestBodyLimit` caps all MCP POST bodies at 8 MiB (including GraphQL and metadata); keep this guard in front of the MCP transport, not just in storage handlers.
-- Return status, headers and complete bodies within that cap, including partial upload `processedFiles`, conditional 304/412 responses, and partial download bytes. Only full successful nonempty image downloads produce MCP image content; carry their bytes only in that block and omit `data` from the structured response and its JSON text mirror. Other downloads retain base64 `data`. A response-size error after a write does not imply the write failed.
+- `--storage-max-transfer-bytes` / `MCP_STORAGE_MAX_TRANSFER_BYTES` sets the decoded upload batch and upstream response budget (default 50,000,000 bytes). `--storage-max-request-bytes` / `MCP_STORAGE_MAX_REQUEST_BYTES` sets the MCP POST body budget (default 70,000,000 bytes). Both must be positive and less than MaxInt64. Keep flags, environment variables, registry metadata, public docs and tool descriptions synchronized; descriptions/errors must show the configured budget, not a hard-coded value.
+- `RegisterStorage` receives the transfer budget. Check Content-Length before reading and use `io.LimitReader` for unknown or incorrect lengths. Successful downloads encode directly into a base64 builder rather than retaining raw-file bytes. Oversized responses retain upstream status/headers, without truncated data; direct download callers to ranges within their configured budget, without transformations.
+- Preflight each upload/update's decoded size and the full batch total before contacting storage; account for base64 padding and CR/LF. Validate all base64 before sending any part, then decode lazily through multipart readers with known Content-Length. Do not buffer decoded files or a complete multipart payload, start producer goroutines, or read local files. Metadata retains its original multipart field semantics and order.
+- mcp-go reads HTTP bodies before typed handlers run. With storage enabled, `server.storageRequestBodyLimit` enforces the configured request budget for all MCP POST calls (including GraphQL and metadata); keep it ahead of MCP parsing. JSON input and final responses are still buffered, so deployments must size memory/concurrency appropriately. The byte budgets are not a total process-memory guarantee.
+- Return status, headers and complete bodies within the configured budget, including partial upload `processedFiles`, conditional 304/412 responses, and partial download bytes. Only full successful nonempty image downloads produce MCP image content; carry their bytes only in that block and omit `data` from the structured response and its JSON text mirror. Other downloads retain base64 `data`. A response-size error after a write does not imply the write failed.
 - The private `httpClient` interface allows `storage_limits_internal_test.go` to inject inline stubs for byte-read accounting; `storage_test.go` uses `httptest` servers to exercise the real transport. `RegisterStorage` owns the timeout and no-redirect policy rather than accepting caller-supplied clients.
 
 ## GraphQL Query Validation

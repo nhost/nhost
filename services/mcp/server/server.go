@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 	"os/signal"
 	"strings"
@@ -19,27 +20,35 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var ErrGraphqlEndpointRequired = errors.New("graphql-endpoint is required")
+var (
+	ErrGraphqlEndpointRequired = errors.New("graphql-endpoint is required")
+	errStorageRequestLimit     = errors.New(
+		"storage-max-request-bytes must be positive and less than MaxInt64",
+	)
+)
 
 const (
-	FlagListenAddr           = "listen-addr"
-	FlagDebug                = "debug"
-	FlagLogFormatTEXT        = "log-format-text"
-	FlagGraphqlEndpoint      = "graphql-endpoint"
-	FlagStorageURL           = "storage-url"
-	FlagMCPInstructions      = "mcp-instructions"
-	FlagQueryInstructions    = "query-instructions"
-	FlagMutationInstructions = "mutation-instructions"
-	FlagSchemaInstructions   = "schema-instructions"
-	FlagAuthURL              = "auth-url"
-	FlagRealm                = "realm"
-	FlagEnforceRole          = "enforce-role"
-	FlagBrowserHTML          = "browser-html"
+	FlagListenAddr              = "listen-addr"
+	FlagDebug                   = "debug"
+	FlagLogFormatTEXT           = "log-format-text"
+	FlagGraphqlEndpoint         = "graphql-endpoint"
+	FlagStorageURL              = "storage-url"
+	FlagStorageMaxTransferBytes = "storage-max-transfer-bytes"
+	FlagStorageMaxRequestBytes  = "storage-max-request-bytes"
+	FlagMCPInstructions         = "mcp-instructions"
+	FlagQueryInstructions       = "query-instructions"
+	FlagMutationInstructions    = "mutation-instructions"
+	FlagSchemaInstructions      = "schema-instructions"
+	FlagAuthURL                 = "auth-url"
+	FlagRealm                   = "realm"
+	FlagEnforceRole             = "enforce-role"
+	FlagBrowserHTML             = "browser-html"
 
 	shutdownTimeout = 5 * time.Second
 
-	// Allow base64 for a 4 MiB storage transfer plus JSON arguments and metadata.
-	maxStorageRequestBytes = 8 << 20
+	defaultStorageMaxTransferBytes = 50_000_000
+	// Base64 for 50 MB of files leaves about 3.3 MB for JSON arguments and metadata.
+	defaultStorageMaxRequestBytes = 70_000_000
 )
 
 func Command(version string) *cli.Command { //nolint:funlen
@@ -78,6 +87,20 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Name:     FlagStorageURL,
 				Usage:    "Storage service URL including API prefix (enables storage tools)",
 				Sources:  cli.EnvVars("MCP_STORAGE_URL"),
+				Category: "Storage",
+			},
+			&cli.Int64Flag{ //nolint:exhaustruct
+				Name:     FlagStorageMaxTransferBytes,
+				Usage:    "Maximum decoded upload batch or storage response size in bytes",
+				Value:    defaultStorageMaxTransferBytes,
+				Sources:  cli.EnvVars("MCP_STORAGE_MAX_TRANSFER_BYTES"),
+				Category: "Storage",
+			},
+			&cli.Int64Flag{ //nolint:exhaustruct
+				Name:     FlagStorageMaxRequestBytes,
+				Usage:    "Maximum MCP POST body size in bytes when storage is enabled (including base64 and metadata)",
+				Value:    defaultStorageMaxRequestBytes,
+				Sources:  cli.EnvVars("MCP_STORAGE_MAX_REQUEST_BYTES"),
 				Category: "Storage",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -167,7 +190,16 @@ func BuildServer(
 	t.RegisterSchema(mcpServer)
 
 	if storageURL := cmd.String(FlagStorageURL); storageURL != "" {
-		if err := tools.RegisterStorage(mcpServer, storageURL); err != nil {
+		requestLimit := cmd.Int64(FlagStorageMaxRequestBytes)
+		if requestLimit <= 0 || requestLimit == math.MaxInt64 {
+			return nil, errStorageRequestLimit
+		}
+
+		if err := tools.RegisterStorage(
+			mcpServer,
+			storageURL,
+			cmd.Int64(FlagStorageMaxTransferBytes),
+		); err != nil {
 			return nil, fmt.Errorf("registering storage tools: %w", err)
 		}
 	}
@@ -242,8 +274,15 @@ func buildRouter(
 		cmd.String(FlagBrowserHTML),
 	)
 
-	router.POST("/", authMiddleware,
-		storageRequestBodyLimit(cmd.String(FlagStorageURL) != ""), mcpHandler)
+	router.POST(
+		"/",
+		authMiddleware,
+		storageRequestBodyLimit(
+			cmd.String(FlagStorageURL) != "",
+			cmd.Int64(FlagStorageMaxRequestBytes),
+		),
+		mcpHandler,
+	)
 	router.GET("/", browserMiddleware, authMiddleware, mcpHandler)
 	router.DELETE("/", authMiddleware, mcpHandler)
 
@@ -297,18 +336,21 @@ func browserMiddleware(html string) gin.HandlerFunc {
 
 // mcp-go buffers request bodies before invoking typed handlers. Bound them before
 // parsing, including chunked bodies and oversized metadata, when storage is enabled.
-func storageRequestBodyLimit(enabled bool) gin.HandlerFunc {
+func storageRequestBodyLimit(enabled bool, maxBytes int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if enabled {
-			if c.Request.ContentLength > maxStorageRequestBytes {
+			if c.Request.ContentLength > maxBytes {
 				c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, gin.H{
-					"error": "MCP request exceeds the 8 MiB limit for storage-enabled servers",
+					"error": fmt.Sprintf(
+						"MCP request exceeds the %d-byte limit for storage-enabled servers",
+						maxBytes,
+					),
 				})
 
 				return
 			}
 
-			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxStorageRequestBytes)
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBytes)
 		}
 
 		c.Next()

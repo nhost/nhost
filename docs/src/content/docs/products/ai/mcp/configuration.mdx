@@ -2,8 +2,8 @@
 title: Configuration
 description: >-
   Every flag and environment variable for the Backend MCP Server, including the
-  GraphQL endpoint, optional storage URL, OAuth2 auth URL, role enforcement, and tool instructions.
-keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_STORAGE_URL", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
+  GraphQL endpoint, optional storage URL and transfer budgets, OAuth2 auth URL, role enforcement, and tool instructions.
+keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_STORAGE_URL", "MCP_STORAGE_MAX_TRANSFER_BYTES", "MCP_STORAGE_MAX_REQUEST_BYTES", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
 head:
   - tag: title
     content: "Backend MCP Server Flags and Environment Variables | Nhost Docs"
@@ -37,6 +37,19 @@ Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
 The storage URL must be configured explicitly; it is not inferred from the GraphQL endpoint. If omitted, no storage tools are registered. It must be an absolute HTTP(S) URL without embedded credentials, a query, or a fragment; invalid values make startup fail.
 
 Storage tools forward the caller's JWT, so configure [Storage permissions](/products/ai/mcp/permissions#storage-permissions) for the role before enabling file access.
+
+### Transfer limits
+
+| Flag | Environment variable | Default | Description |
+|------|----------------------|---------|-------------|
+| `--storage-max-transfer-bytes` | `MCP_STORAGE_MAX_TRANSFER_BYTES` | `50000000` (50 MB) | Maximum decoded upload batch or upstream storage response in bytes. |
+| `--storage-max-request-bytes` | `MCP_STORAGE_MAX_REQUEST_BYTES` | `70000000` (70 MB) | Maximum MCP HTTP POST body when storage is enabled, including GraphQL calls, base64 file data, JSON, and metadata. |
+
+Both limits are configurable deployment budgets and must be positive integers below `9223372036854775807`; invalid values make startup fail when storage is enabled. The 50 MB transfer default matches storage's default file-size limit, but each bucket's own limits and permissions still apply. Request bodies need about 33% extra space for base64, plus JSON and metadata, so raise the request budget when increasing allowed uploads. For example, use `MCP_STORAGE_MAX_TRANSFER_BYTES=100000000` and `MCP_STORAGE_MAX_REQUEST_BYTES=140000000` for 100 MB transfers.
+
+Uploads stream decoded base64 into multipart requests instead of buffering decoded files and a second full request body. Successful downloads encode directly into their final base64 buffer. MCP JSON parsing and final responses still require memory proportional to the payload: size server memory for the configured budgets and concurrent calls, or reduce the limits on small deployments. These byte limits are not a process-memory guarantee. Client, model-provider, or proxy limits may be smaller.
+
+If a download exceeds the transfer budget, its error preserves the upstream status and headers but returns no truncated file data. Increase the budget or download byte ranges within it; omit image transformations because storage ignores ranges when transforming images. Split oversized upload batches, or raise the budgets or use the storage API directly for larger individual uploads/replacements.
 
 ## Authentication
 

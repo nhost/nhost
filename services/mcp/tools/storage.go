@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,13 +21,10 @@ type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// Base64 and MCP response serialization keep several copies of each transfer live.
-// Leave headroom for concurrent requests in the default 256 MiB deployment.
-const maxStorageTransferBytes = 4 << 20
-
 type storageTool struct {
-	endpoint string
-	client   httpClient
+	endpoint         string
+	client           httpClient
+	maxTransferBytes int64
 }
 
 type storageResponse struct {
@@ -43,11 +41,19 @@ var (
 	errStorageFileID   = errors.New("id must be a nonempty file ID, not a path")
 	errStorageFilename = errors.New("file name is required")
 	errStorageSize     = errors.New("storage transfer exceeds size limit")
+	errStorageLimit    = errors.New(
+		"storage transfer limit must be positive and less than MaxInt64",
+	)
 )
 
 // RegisterStorage registers upload, download, update and delete tools for a
-// storage service URL (including its API prefix, normally /v1).
-func RegisterStorage(server *mcpserver.MCPServer, endpoint string) error {
+// storage service URL (including its API prefix, normally /v1). maxTransferBytes
+// bounds decoded upload batches and upstream response bodies.
+func RegisterStorage(server *mcpserver.MCPServer, endpoint string, maxTransferBytes int64) error {
+	if maxTransferBytes <= 0 || maxTransferBytes == math.MaxInt64 {
+		return errStorageLimit
+	}
+
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return fmt.Errorf("parsing storage-url: %w", err)
@@ -61,7 +67,8 @@ func RegisterStorage(server *mcpserver.MCPServer, endpoint string) error {
 	const timeout = 5 * time.Minute
 
 	t := &storageTool{
-		endpoint: strings.TrimRight(u.String(), "/"),
+		endpoint:         strings.TrimRight(u.String(), "/"),
+		maxTransferBytes: maxTransferBytes,
 		client: &http.Client{ //nolint:exhaustruct // Keep the standard transport and cookie behavior.
 			Timeout: timeout,
 			// Never redirect a credential-bearing request away from the configured service.
@@ -114,6 +121,10 @@ func (t *storageTool) call(
 		return mcp.NewToolResultErrorFromErr("creating storage request", err), nil
 	}
 
+	if multipart, ok := body.(*storageMultipartBody); ok {
+		req.ContentLength = multipart.contentLength
+	}
+
 	if headers != nil {
 		req.Header = headers.Clone()
 	}
@@ -128,32 +139,38 @@ func (t *storageTool) call(
 	}
 	defer resp.Body.Close()
 
-	if resp.ContentLength > maxStorageTransferBytes {
-		return storageSizeError(resp, download), nil
+	if resp.ContentLength > t.maxTransferBytes {
+		return t.storageSizeError(resp, download), nil
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxStorageTransferBytes+1))
+	if download &&
+		((resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices) ||
+			resp.StatusCode == http.StatusNotModified) {
+		return t.downloadResult(resp), nil
+	}
+
+	data, err := io.ReadAll(io.LimitReader(resp.Body, t.maxTransferBytes+1))
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("reading storage response", err), nil
 	}
 
-	if len(data) > maxStorageTransferBytes {
-		return storageSizeError(resp, download), nil
+	if int64(len(data)) > t.maxTransferBytes {
+		return t.storageSizeError(resp, download), nil
 	}
 
 	return storageResult(resp, data, download), nil
 }
 
-func storageSizeError(resp *http.Response, download bool) *mcp.CallToolResult {
+func (t *storageTool) storageSizeError(resp *http.Response, download bool) *mcp.CallToolResult {
 	message := fmt.Sprintf(
 		"Storage response exceeds the %d-byte MCP transfer limit.",
-		maxStorageTransferBytes,
+		t.maxTransferBytes,
 	)
 	if download {
 		message += fmt.Sprintf(
 			" Retry with range (e.g. bytes=0-%d) and download in chunks. "+
 				"Omit transformations, since storage ignores range when transforming images.",
-			maxStorageTransferBytes-1,
+			t.maxTransferBytes-1,
 		)
 	}
 
@@ -178,10 +195,7 @@ func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToo
 	isError := (resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices) &&
 		resp.StatusCode != http.StatusNotModified
 
-	// Partial ranges are not necessarily decodable images; retain them as base64 only.
-	isImage := download && resp.StatusCode == http.StatusOK && len(data) != 0 &&
-		strings.HasPrefix(resp.Header.Get("Content-Type"), "image/")
-	if download && !isImage {
+	if download {
 		response.Data = new(base64.StdEncoding.EncodeToString(data))
 	}
 
@@ -196,12 +210,49 @@ func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToo
 	result := mcp.NewToolResultStructuredOnly(response)
 	result.IsError = isError
 
+	return result
+}
+
+func (t *storageTool) downloadResult(resp *http.Response) *mcp.CallToolResult {
+	const maxPreallocationBytes = math.MaxInt / 4
+
+	var encoded strings.Builder
+	if resp.ContentLength > 0 && resp.ContentLength <= int64(maxPreallocationBytes) {
+		encoded.Grow(base64.StdEncoding.EncodedLen(int(resp.ContentLength)))
+	}
+
+	encoder := base64.NewEncoder(base64.StdEncoding, &encoded)
+
+	size, err := io.Copy(encoder, io.LimitReader(resp.Body, t.maxTransferBytes+1))
+	if err != nil {
+		return mcp.NewToolResultErrorFromErr("reading storage response", err)
+	}
+
+	if err := encoder.Close(); err != nil {
+		return mcp.NewToolResultErrorFromErr("encoding storage response", err)
+	}
+
+	if size > t.maxTransferBytes {
+		return t.storageSizeError(resp, true)
+	}
+
+	response := storageResponse{
+		StatusCode: resp.StatusCode,
+		Headers:    resp.Header,
+		Body:       nil,
+		Data:       nil,
+	}
+	// Partial ranges are not necessarily decodable images; retain them as base64 only.
+	isImage := resp.StatusCode == http.StatusOK && size != 0 &&
+		strings.HasPrefix(resp.Header.Get("Content-Type"), "image/")
+	if !isImage {
+		response.Data = new(encoded.String())
+	}
+
+	result := mcp.NewToolResultStructuredOnly(response)
 	if isImage {
 		result.Content = append(result.Content, mcp.NewImageContent(
-			base64.StdEncoding.EncodeToString(
-				data,
-			),
-			strings.Split(resp.Header.Get("Content-Type"), ";")[0],
+			encoded.String(), strings.Split(resp.Header.Get("Content-Type"), ";")[0],
 		))
 	}
 

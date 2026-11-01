@@ -14,6 +14,8 @@ import (
 func TestStorageRequestBodyLimit(t *testing.T) {
 	t.Parallel()
 
+	const maxStorageRequestBytes = 1024
+
 	const initialize = `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"test"}}}`
 
 	padding := strings.Repeat(" ", maxStorageRequestBytes+1)
@@ -44,7 +46,11 @@ func TestStorageRequestBodyLimit(t *testing.T) {
 
 			router := gin.New()
 			mcpHTTP := mcpserver.NewStreamableHTTPServer(mcpserver.NewMCPServer("test", "test"))
-			router.POST("/", storageRequestBodyLimit(tt.enabled), gin.WrapH(mcpHTTP))
+			router.POST(
+				"/",
+				storageRequestBodyLimit(tt.enabled, maxStorageRequestBytes),
+				gin.WrapH(mcpHTTP),
+			)
 
 			req := httptest.NewRequest(http.MethodPost, "/", io.MultiReader(
 				strings.NewReader(initialize), strings.NewReader(padding[:tt.size-len(initialize)]),

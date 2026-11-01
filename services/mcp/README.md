@@ -60,6 +60,8 @@ All flags can be set via environment variables.
 | `--log-format-text` | `MCP_LOG_FORMAT_TEXT` | Format logs in plain text instead of JSON |
 | `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | GraphQL endpoint URL (**required**) |
 | `--storage-url` | `MCP_STORAGE_URL` | Storage service URL including API prefix, e.g. `https://SUBDOMAIN.storage.REGION.nhost.run/v1`; enables storage tools when set |
+| `--storage-max-transfer-bytes` | `MCP_STORAGE_MAX_TRANSFER_BYTES` | Maximum decoded upload batch or storage response size in bytes (default: `50000000`, 50 MB) |
+| `--storage-max-request-bytes` | `MCP_STORAGE_MAX_REQUEST_BYTES` | Maximum MCP POST body when storage is enabled, including base64 and metadata (default: `70000000`, 70 MB) |
 | `--mcp-instructions` | `MCP_INSTRUCTIONS` | Server-level MCP instructions |
 | `--query-instructions` | `MCP_QUERY_INSTRUCTIONS` | Instructions for the graphql-query tool |
 | `--mutation-instructions` | `MCP_MUTATION_INSTRUCTIONS` | Instructions for the graphql-mutation tool |
@@ -73,9 +75,23 @@ All flags can be set via environment variables.
 
 Set `MCP_STORAGE_URL` to the storage service belonging to the **same backend** as your GraphQL and Auth URLs, including its API prefix (normally `/v1`). It is explicitly configured, not inferred from GraphQL, so custom domains and internal service addresses work too. Without this setting, only the three GraphQL tools are registered. Tool arguments cannot override the service URL, authorization, or arbitrary headers; upstream redirects are not followed.
 
-File content is transferred as standard base64 (not a data URL). The MCP server does not read local files or fetch arbitrary source URLs. To bound per-request memory in small deployments, storage responses and decoded upload/update files are limited to **4 MiB (4,194,304 bytes) per call**, including the combined files in a batch. Base64 size estimates count line breaks toward this limit; supply unwrapped base64. Split larger upload batches; use the storage API directly for individual files larger than this limit (upload/update do not support chunking).
+File content is transferred as standard base64 (not a data URL). The MCP server does not read local files or fetch arbitrary source URLs. The default transfer budget is **50 MB (50,000,000 bytes)** per call: it bounds each storage response and the combined decoded upload/update files. This matches storage's default file-size limit, but storage still enforces the selected bucket's own settings and permissions.
 
-When storage is enabled, HTTP POST bodies for the entire MCP endpoint (including GraphQL calls) are capped at **8 MiB**, before MCP parsing, to allow base64 and JSON metadata without unbounded request buffering. Oversized requests fail with an HTTP error; keep metadata and other arguments within this budget. Base64 increases payload size, so MCP client/proxy limits may be smaller.
+Both budgets are deployment settings, not fixed small-file restrictions:
+
+- `MCP_STORAGE_MAX_TRANSFER_BYTES` controls decoded upload batch and upstream response bytes.
+- `MCP_STORAGE_MAX_REQUEST_BYTES` bounds HTTP POST bodies for the entire MCP endpoint, including GraphQL calls, **only when storage is enabled**. Its default is **70 MB (70,000,000 bytes)**, allowing base64 for 50 MB of files plus JSON and metadata. Oversized requests fail before MCP parsing.
+
+Both settings must be positive integers below `9223372036854775807`; zero does not disable protection. To allow 100 MB transfers, for example:
+
+```dotenv
+MCP_STORAGE_MAX_TRANSFER_BYTES=100000000
+MCP_STORAGE_MAX_REQUEST_BYTES=140000000
+```
+
+Choose request headroom for base64 (about 33% larger), JSON, and metadata when raising the transfer budget. Split batches above your configured budget; raise the limits or use storage directly for larger individual uploads/replacements, which do not support chunking. MCP clients, model providers, proxies, and bucket settings may impose smaller limits.
+
+Uploads validate base64 before contacting storage, then decode it lazily into the outgoing multipart stream without retaining decoded files or a complete multipart payload. Successful downloads encode directly into the final base64 buffer, avoiding a separate raw-file buffer. **MCP request parsing and final responses are still buffered**: provision RAM for the configured sizes and concurrent requests, or lower the budgets on small deployments such as the 256 MiB example below. The budgets are byte-transfer ceilings, not a process-memory guarantee.
 
 ### Upload (`POST /files`)
 
@@ -106,7 +122,7 @@ When storage is enabled, HTTP POST bodies for the entire MCP endpoint (including
 
 Storage enforces its configured transformation limits and supported formats. As with the REST endpoint, ranges are ignored when transformations are requested. Responses include the HTTP status and all response headers, including caching, ETag, last-modified and content-range information. Complete, nonempty image downloads carry their bytes only in MCP image content; the structured response and its JSON text summary omit `data`. Other downloads, including partial and non-image responses and errors, return base64 `data` without image content. A `304` is a successful empty-body result; `412` is an error result with the response details preserved.
 
-Downloads larger than 4 MiB return an MCP error with the upstream `statusCode` and headers (including `Content-Length`, `Accept-Ranges`, and `ETag` when supplied), but no partial `data`. Retry with `range`, for example `{ "id": "large-file", "range": "bytes=0-4194303" }`, then request subsequent chunks and use `Content-Range` to determine the total size. If a transformation exceeds the limit, reduce its output size or omit transformation arguments and download the original in ranges: storage ignores ranges when transformations are requested. All storage response bodies, including upload/update/delete and error bodies, share the 4 MiB cap; a local size error after a write does not imply the write failed, so inspect storage state before retrying.
+Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the upstream `statusCode` and headers (including `Content-Length`, `Accept-Ranges`, and `ETag` when supplied), but no partial `data`. Raise the configured budget or retry with `range`, for example `{ "id": "large-file", "range": "bytes=0-1048575" }`, then request subsequent chunks within the budget and use `Content-Range` to determine the total size. If a transformation exceeds the limit, reduce its output size or omit transformation arguments and download the original in ranges: storage ignores ranges when transformations are requested. All storage response bodies, including upload/update/delete and error bodies, share the configured budget; a local size error after a write does not imply the write failed, so inspect storage state before retrying.
 
 ### Update (`PUT /files/{id}`)
 
