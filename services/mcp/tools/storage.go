@@ -23,6 +23,10 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// Base64 and MCP response serialization keep several copies of each transfer live.
+// Leave headroom for concurrent requests in the default 256 MiB deployment.
+const maxStorageTransferBytes = 4 << 20
+
 type storageTool struct {
 	endpoint string
 	client   HTTPClient
@@ -41,6 +45,7 @@ var (
 	)
 	errStorageFileID   = errors.New("id must be a nonempty file ID, not a path")
 	errStorageFilename = errors.New("file name is required")
+	errStorageSize     = errors.New("storage transfer exceeds size limit")
 )
 
 // RegisterStorage registers upload, download, update and delete tools for a
@@ -126,12 +131,44 @@ func (t *storageTool) call(
 	}
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
+	if resp.ContentLength > maxStorageTransferBytes {
+		return storageSizeError(resp, download), nil
+	}
+
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxStorageTransferBytes+1))
 	if err != nil {
 		return mcp.NewToolResultErrorFromErr("reading storage response", err), nil
 	}
 
+	if len(data) > maxStorageTransferBytes {
+		return storageSizeError(resp, download), nil
+	}
+
 	return storageResult(resp, data, download), nil
+}
+
+func storageSizeError(resp *http.Response, download bool) *mcp.CallToolResult {
+	message := fmt.Sprintf(
+		"Storage response exceeds the %d-byte MCP transfer limit.",
+		maxStorageTransferBytes,
+	)
+	if download {
+		message += fmt.Sprintf(
+			" Retry with range (e.g. bytes=0-%d) and download in chunks. "+
+				"Omit transformations, since storage ignores range when transforming images.",
+			maxStorageTransferBytes-1,
+		)
+	}
+
+	result := mcp.NewToolResultStructuredOnly(storageResponse{
+		StatusCode: resp.StatusCode,
+		Headers:    resp.Header,
+		Body:       message,
+		Data:       nil,
+	})
+	result.IsError = true
+
+	return result
 }
 
 func storageResult(resp *http.Response, data []byte, download bool) *mcp.CallToolResult {

@@ -44,7 +44,8 @@ func (t *storageTool) registerDownload(server *mcpserver.MCPServer) {
 				"Supports image transformations (q/h/w/b/f), Accept format negotiation (accept), "+
 				"ETag/date conditions and byte ranges. Storage ignores ranges when transformations are requested. "+
 				"Returns HTTP status, response headers (including ETag, caching and Content-Range), and base64 data; "+
-				"complete images also return MCP image content. A 304 is a successful bodyless result; "+
+				"complete images also return MCP image content. Responses are limited to 4 MiB; "+
+				"use range to download larger files in chunks, without transformations. A 304 is a successful bodyless result; "+
 				"a 412 is a precondition failure with headers preserved.",
 		),
 		storageAnnotation("Download Storage File", true, false, true),

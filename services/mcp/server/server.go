@@ -37,6 +37,9 @@ const (
 	FlagBrowserHTML          = "browser-html"
 
 	shutdownTimeout = 5 * time.Second
+
+	// Allow base64 for a 4 MiB storage transfer plus JSON arguments and metadata.
+	maxStorageRequestBytes = 8 << 20
 )
 
 func Command(version string) *cli.Command { //nolint:funlen
@@ -239,7 +242,8 @@ func buildRouter(
 		cmd.String(FlagBrowserHTML),
 	)
 
-	router.POST("/", authMiddleware, mcpHandler)
+	router.POST("/", authMiddleware,
+		storageRequestBodyLimit(cmd.String(FlagStorageURL) != ""), mcpHandler)
 	router.GET("/", browserMiddleware, authMiddleware, mcpHandler)
 	router.DELETE("/", authMiddleware, mcpHandler)
 
@@ -285,6 +289,26 @@ func browserMiddleware(html string) gin.HandlerFunc {
 			c.Abort()
 
 			return
+		}
+
+		c.Next()
+	}
+}
+
+// mcp-go buffers request bodies before invoking typed handlers. Bound them before
+// parsing, including chunked bodies and oversized metadata, when storage is enabled.
+func storageRequestBodyLimit(enabled bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if enabled {
+			if c.Request.ContentLength > maxStorageRequestBytes {
+				c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, gin.H{
+					"error": "MCP request exceeds the 8 MiB limit for storage-enabled servers",
+				})
+
+				return
+			}
+
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxStorageRequestBytes)
 		}
 
 		c.Next()
