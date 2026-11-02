@@ -42,18 +42,7 @@ describe('BaseEnvironmentVariableForm', () => {
     expect(screen.queryByLabelText('Name')).not.toBeInTheDocument();
   });
 
-  it('edit can save an empty value', () => {
-    render(
-      <TestForm
-        mode="edit"
-        defaultValues={{ id: 'API_URL', name: 'API_URL', value: '' }}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
-  });
-
-  it('create needs a name before it can be submitted', async () => {
+  it('create shows an error when submitted without a name', async () => {
     const user = new TestUserEvent();
     render(
       <TestForm
@@ -62,10 +51,10 @@ describe('BaseEnvironmentVariableForm', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
-    await user.type(screen.getByLabelText('Name'), 'API_URL');
-
-    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
+    expect(
+      await screen.findByText('Name is a required field'),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -101,10 +101,6 @@ export default function BaseEnvironmentVariableForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  // Create needs a name. Edit can always save, an empty value included.
-  const name = useWatch({ control, name: 'name' });
-  const canSubmit = mode === 'edit' || Boolean(name?.trim());
-
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
@@ -144,11 +140,7 @@ export default function BaseEnvironmentVariableForm({
             Cancel
           </Button>
 
-          <ButtonWithLoading
-            type="submit"
-            loading={isSubmitting}
-            disabled={!canSubmit}
-          >
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
             {submitButtonText}
           </ButtonWithLoading>
         </div>
