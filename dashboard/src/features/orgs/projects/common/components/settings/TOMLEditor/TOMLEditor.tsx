@@ -19,6 +19,7 @@ import {
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -41,6 +42,22 @@ export default function TOMLEditor() {
   // When the cursor moves up with the arrow keys, the editor scrolls to keep it
   // visible. The margin keeps it below the sticky header instead of behind it.
   const headerRef = useRef<HTMLDivElement>(null);
+  // Once the header sticks, it casts a shadow so the code reads as scrolling
+  // under it. The sentinel sits right above the header and leaves the
+  // viewport exactly when the header starts sticking.
+  const stickSentinelRef = useRef<HTMLDivElement>(null);
+  const [isStuck, setIsStuck] = useState(false);
+  useEffect(() => {
+    const sentinel = stickSentinelRef.current;
+    if (!sentinel) {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setIsStuck(!entry.isIntersecting),
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
   const stickyHeaderMargin = useMemo(
     () =>
       EditorView.scrollMargins.of(() => ({
@@ -160,9 +177,13 @@ export default function TOMLEditor() {
     // min-w-0: a very long line scrolls inside the editor instead of
     // stretching the page and pushing Revert and Save off screen.
     <section className="min-w-0 rounded-lg border">
+      <div ref={stickSentinelRef} aria-hidden />
       <div
         ref={headerRef}
-        className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between"
+        className={cn(
+          'sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 transition-shadow sm:flex-row sm:items-center sm:justify-between',
+          isStuck && 'shadow-sticky',
+        )}
       >
         <p className="min-w-0 text-muted-foreground sm:max-w-lg">
           Edit your project&apos;s configuration directly in TOML. Use it for

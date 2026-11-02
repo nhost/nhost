@@ -293,6 +293,9 @@ html.dark .graphiql-themed .graphiql-container {
     /* Small lift for elements that sit just above their surface
        (active tab, empty state boxes). Same in both themes on purpose. */
     --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    /* Below a header that stuck while scrolling: bottom only (the negative
+       spread hides the sides), so content reads as sliding under it. */
+    --shadow-sticky: 0 24px 28px -16px rgb(0 0 0 / 0.1);
     /* Text and icons drawn on a solid color fill (filled buttons,
        checked checkbox, filled badge). White in both themes. */
     --on-solid: 0 0% 100%;
@@ -392,6 +395,7 @@ html.dark .graphiql-themed .graphiql-container {
     --shadow-overlay:
       0 16px 32px -8px rgb(0 0 0 / 0.6), 0 4px 12px -2px rgb(0 0 0 / 0.45);
     --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sticky: 0 24px 28px -16px rgb(0 0 0 / 0.4);
     --on-solid: 0 0% 100%;
     --backdrop: 0 0% 0%;
     --primary-emboss-edge: 217.24 100% 22.75%;
