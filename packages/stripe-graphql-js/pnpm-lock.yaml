@@ -100,8 +100,8 @@ importers:
         specifier: 16.8.1
         version: 16.8.1
       graphql-scalars:
-        specifier: ^1.26.0
-        version: 1.26.0(graphql@16.8.1)
+        specifier: ^2.0.1
+        version: 2.0.1(graphql@16.8.1)
       graphql-yoga:
         specifier: ^5.24.6
         version: 5.24.6(graphql@16.8.1)
@@ -470,11 +470,11 @@ packages:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
     engines: {node: '>= 0.4'}
 
-  graphql-scalars@1.26.0:
-    resolution: {integrity: sha512-o7BnU5yxAFUWTMKpC5yshB12DjzzoxLgEBO9OpOAcxodWrL3sPldD/fqVQoIfcqPH8OclyQilLtg3/7ZRqQUVQ==}
+  graphql-scalars@2.0.1:
+    resolution: {integrity: sha512-/BkY0J5/1L9e+mTfCTzmpV78mNh95ZpiJWfAkaIYHE5B7hrvgRpB5//rXVTFD1aaKGcRUCHj/vpNcgtrenwZNA==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+      graphql: ^16.0.0 || ^17.0.0
 
   graphql-yoga@5.24.6:
     resolution: {integrity: sha512-IpRSnLfxbv1oiNTghzYjb0QPCn4p1y+8uoXJ0MkC5aNJAko2PSba89ByJXHIxoQAILZ3PKZaVcaEtlDJw4YQxw==}
@@ -902,7 +902,7 @@ snapshots:
 
   gopd@1.2.0: {}
 
-  graphql-scalars@1.26.0(graphql@16.8.1):
+  graphql-scalars@2.0.1(graphql@16.8.1):
     dependencies:
       graphql: 16.8.1
       tslib: 2.8.1
