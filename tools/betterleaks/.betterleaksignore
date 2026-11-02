@@ -15,3 +15,4 @@
 # (intentionally public; copied to a real .secrets by the user).
 examples/demos/backend-cats/.secrets.example:private-key:10
 examples/tutorials/backend-notes/.secrets.example:private-key:10
+templates/nextjs/.secrets.example:private-key:4
