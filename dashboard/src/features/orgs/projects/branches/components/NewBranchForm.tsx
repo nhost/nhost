@@ -220,7 +220,7 @@ export default function NewBranchForm() {
         </div>
       </div>
 
-      <Alert variant="info" className="py-3">
+      <Alert variant="default" className="py-3">
         <Info className="size-4" />
         <AlertDescription>
           Only the structure is copied, not the data. The new branch starts

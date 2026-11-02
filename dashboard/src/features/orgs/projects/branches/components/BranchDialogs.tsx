@@ -105,7 +105,7 @@ export function DeleteBranchDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="outline-emboss" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
@@ -156,7 +156,7 @@ export function MergeDialog({
             <span className={mono}>production</span>.
           </DialogDescription>
         </DialogHeader>
-        <Alert variant="info" className="py-3">
+        <Alert variant="default" className="py-3">
           <Info className="size-4" />
           <AlertDescription>
             A preview of the changes isn't available yet. Check them on the
@@ -175,7 +175,7 @@ export function MergeDialog({
           </Label>
         </div>
         <DialogFooter>
-          <Button variant="outline-emboss" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
@@ -231,7 +231,7 @@ export function OpenRequestDialog({
           />
         </div>
         <DialogFooter>
-          <Button variant="outline-emboss" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
