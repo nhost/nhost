@@ -83,7 +83,7 @@ export default function BaseEnvironmentVariableForm({
   submitButtonText = 'Save',
   location,
 }: BaseEnvironmentVariableFormProps) {
-  const { onDirtyStateChange, closeDialog } = useDialog();
+  const { onDirtyStateChange } = useDialog();
   const router = useRouter();
   const secretsPath = `/orgs/${getSingleQueryParam(router.query.orgSlug)}/projects/${getSingleQueryParam(router.query.appSubdomain)}/settings?tab=secrets`;
   const form = useFormContext<BaseEnvironmentVariableFormValues>();
@@ -105,10 +105,7 @@ export default function BaseEnvironmentVariableForm({
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Available to all your services. For API keys and passwords, use{' '}
-        <TextLink href={secretsPath} onClick={closeDialog}>
-          Secrets
-        </TextLink>
-        .
+        <TextLink href={secretsPath}>Secrets</TextLink>.
       </p>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
