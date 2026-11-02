@@ -1,9 +1,8 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
-import { bbedit } from '@uiw/codemirror-theme-bbedit';
-import { githubDark } from '@uiw/codemirror-theme-github';
-import CodeMirror, { EditorView } from '@uiw/react-codemirror';
+import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import CodeMirror, { EditorView, Prec } from '@uiw/react-codemirror';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -27,6 +26,17 @@ const removeTOMLIndentation = (tomlStr: string) => {
   const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
   return trimmedLines.join('\n');
 };
+
+// In dark mode the code sits a step darker than the page, on the console
+// background, so it reads as its own surface under the header. Listed before
+// codeMirrorAppBackground so it wins over it (same precedence, earlier wins).
+const darkEditorBackground = Prec.highest(
+  EditorView.theme({
+    '&, .cm-scroller, .cm-gutters': {
+      backgroundColor: 'hsl(var(--console-background))',
+    },
+  }),
+);
 
 export default function TOMLEditor() {
   const { resolvedTheme } = useThemePreference();
@@ -225,9 +235,10 @@ export default function TOMLEditor() {
             value={tomlCode}
             width="100%"
             minHeight="24rem"
-            theme={resolvedTheme === 'light' ? bbedit : githubDark}
+            theme={resolvedTheme === 'light' ? vscodeLight : vscodeDark}
             extensions={[
               StreamLanguage.define(toml),
+              ...(resolvedTheme === 'light' ? [] : [darkEditorBackground]),
               codeMirrorAppBackground,
               stickyHeaderMargin,
             ]}
