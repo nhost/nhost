@@ -125,9 +125,9 @@
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
     "@graphql-codegen/cli": "^6.3.1",
-    "@graphql-codegen/typescript": "^3.0.4",
-    "@graphql-codegen/typescript-operations": "^3.0.4",
-    "@graphql-codegen/typescript-react-apollo": "^3.3.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-operations": "^4.6.1",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.2",
     "@next/bundle-analyzer": "^12.3.7",
     "@playwright/test": "1.60.0",
     "@tailwindcss/typography": "^0.5.20",

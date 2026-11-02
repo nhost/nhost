@@ -30,6 +30,8 @@ catalog:
   typescript: "5.9.3"
 
 overrides:
+  # GHSA-g3hv-75wg-m249: graphql-config still requests minimatch 10.
+  "graphql-config>minimatch": "^11.0.4"
   typescript: "catalog:"
   "esbuild@<=0.24.2": ">=0.25.0"
   "vite@>=8.0.0 <8.0.6": ">=8.0.6"
@@ -112,6 +114,7 @@ overrides:
   "@vercel/cli-config>zod": "^4.6.6"
 
 minimumReleaseAgeExclude:
+  - minimatch@11.0.4
   - path-to-regexp@6.3.0
   - turbo@2.9.14
   - js-cookie@3.0.6
