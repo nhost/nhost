@@ -20,6 +20,12 @@ const DashboardSidebar = dynamic(
   { ssr: false },
 );
 
+// Client-only too: the person's project colors live in localStorage.
+const ProjectColorBar = dynamic(
+  () => import('@/features/project-colors').then((mod) => mod.ProjectColorBar),
+  { ssr: false },
+);
+
 type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
 
 /**
@@ -40,6 +46,7 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
+      <ProjectColorBar />
       <Header className="shrink-0 py-1" />
 
       <div className="flex min-h-0 flex-1">
