@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -144,14 +143,13 @@ export default function MetricsSettings() {
                   )}
                 />
               }
+              docsLink={{
+                href: 'https://docs.nhost.io/platform/cloud/metrics#alerting',
+                topic: 'enabling or disabling Alerting',
+              }}
             />
 
             <SettingsCardFooter>
-              <SettingsDocsLink
-                href="https://docs.nhost.io/platform/cloud/metrics#alerting"
-                title="enabling or disabling Alerting"
-              />
-
               <ButtonWithLoading
                 type="submit"
                 disabled={!alertingForm.formState.isDirty}

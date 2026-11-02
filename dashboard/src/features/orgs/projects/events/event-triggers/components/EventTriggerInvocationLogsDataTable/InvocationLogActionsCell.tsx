@@ -123,7 +123,7 @@ export default function InvocationLogActionsCell({
       <Tooltip>
         <TooltipTrigger asChild>
           <ButtonWithLoading
-            variant="ghost"
+            variant="subtle"
             size="sm"
             onClick={handleRedeliver}
             className="-ml-1 h-8 w-8 p-0"
@@ -143,7 +143,7 @@ export default function InvocationLogActionsCell({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button
-            variant="ghost"
+            variant="subtle"
             size="sm"
             onClick={() => meta.setSelectedLog(row)}
             className="h-8 w-8 p-0"

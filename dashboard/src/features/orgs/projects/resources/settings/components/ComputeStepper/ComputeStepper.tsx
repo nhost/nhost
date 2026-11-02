@@ -69,7 +69,7 @@ export default function ComputeStepper({
                 <span>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
                     className="h-9 w-9"
                     disabled={disabled || atMin}
@@ -97,7 +97,7 @@ export default function ComputeStepper({
                 <span>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
                     className="h-9 w-9"
                     disabled={disabled || atMax}

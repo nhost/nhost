@@ -1740,7 +1740,7 @@ describe('VisualRuleEditor', () => {
 
       const conditionRow = screen
         .getByRole('button', { name: /delete condition/i })
-        .closest('[class*="transition-colors"]');
+        .parentElement?.closest('[class*="transition-colors"]');
       expect(conditionRow).not.toBeNull();
       expect(conditionRow?.className).toContain('hover:bg-accent');
       expect(conditionRow?.className).toContain('transition-colors');

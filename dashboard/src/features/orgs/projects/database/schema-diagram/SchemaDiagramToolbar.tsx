@@ -225,14 +225,16 @@ export default function SchemaDiagramToolbar({
         </Button>
         <Popover>
           <PopoverTrigger asChild>
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               aria-label="Diagram help"
-              className="flex h-8 items-center gap-1.5 rounded-md border border-border px-2 text-muted-foreground text-xs hover:bg-accent"
+              className="h-8 gap-1.5 px-2 text-xs"
             >
               <Info className="h-4 w-4" />
               <span>Help</span>
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-[320px] text-xs">
             <div className="space-y-3">

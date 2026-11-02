@@ -177,7 +177,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 {member.user.displayName}
               </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
+                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary dark:bg-primary">
                   Me
                 </Badge>
               )}
@@ -197,7 +197,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               asChild
               className="h-fit"
             >
-              <Button variant="ghost" className="h-8 p-2">
+              <Button variant="subtle" size="sm" className="h-8 p-2">
                 <Ellipsis />
               </Button>
             </DropdownMenuTrigger>
@@ -228,14 +228,16 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         open={confirmRemoveMemberDialogOpen}
         onOpenChange={setConfirmRemoveMemberDialogOpen}
       >
-        <AlertDialogContent className="text-foreground">
+        <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Are you sure?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This action will remove the member from organization.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveMemberFromOrg}
@@ -254,11 +256,13 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           setUpdateMemberRoleDialogOpen(value);
         }}
       >
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent className="p-12 text-foreground sm:max-w-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
-                <DialogTitle>Update member role</DialogTitle>
+                <DialogTitle className="text-xl leading-7 tracking-normal">
+                  Update member role
+                </DialogTitle>
                 <DialogDescription>
                   This will affect their permissions and access within the
                   organization.
@@ -314,7 +318,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                   )}
                 />
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-8">
                 <Button
                   variant="outline"
                   type="button"

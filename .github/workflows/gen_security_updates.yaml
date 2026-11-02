@@ -45,7 +45,7 @@ jobs:
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
         with:
-          NAME: ${{ inputs.NAME }}
+          NAME: security-updates
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
@@ -64,6 +64,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#devShells.$system.security-updates" \
+            >> "$NIX_CACHE_ROOTS"
           git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
           nix develop .#security-updates -c bash -c '
             set -euo pipefail
@@ -79,6 +82,9 @@ jobs:
         # exits are tolerated so partial fixes still land; remaining advisories
         # surface on the normal audit-ci-recursive CI check.
         run: |
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#devShells.$system.security-updates" \
+            >> "$NIX_CACHE_ROOTS"
           nix develop .#security-updates -c bash -c '
             set -u
             pnpm -r --include-workspace-root --no-bail --workspace-concurrency=1 \
@@ -113,6 +119,7 @@ jobs:
       - name: "Cache nix store on R2"
         uses: ./.github/actions/cache-nix
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

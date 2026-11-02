@@ -13,18 +13,21 @@ const baseButtonVariants = cva(
         default: 'btn-emboss btn-emboss-primary',
         // "Soft emboss" danger button, same recipe in the destructive reds.
         destructive: 'btn-emboss btn-emboss-danger',
-        // The one outline button. Soft emboss behavior (a 1px press on click)
-        // built only from tokens. Disabled fades to 50% through the base
+        // The one outline button. A translucent fill with a soft edge and a
+        // 1px top highlight, all from the foreground token at low opacity,
+        // so it sits on any surface in both themes. Soft emboss behavior (a
+        // 1px press on click). Disabled fades to 50% through the base
         // classes; loading (data-loading, set by ButtonWithLoading) also
         // mutes the text and border.
         outline:
-          'border border-input bg-transparent text-foreground transition-[color,background-color,border-color,transform] hover:bg-accent hover:text-accent-foreground active:translate-y-px data-[loading=true]:border-border data-[loading=true]:text-muted-foreground',
+          'border border-[hsl(var(--foreground)/0.12)] bg-[hsl(var(--foreground)/0.05)] text-foreground shadow-[inset_0_1px_0_hsl(var(--foreground)/0.06)] transition-[color,background-color,border-color,transform] hover:border-[hsl(var(--foreground)/0.18)] hover:bg-[hsl(var(--foreground)/0.09)] active:translate-y-px data-[loading=true]:border-border data-[loading=true]:text-muted-foreground',
         ghost: 'text-accent-foreground hover:bg-accent',
         // Low-key button: no background, the content turns primary on hover.
         // Meant for icon-only buttons, so it defaults to the `icon-sm` size,
-        // see `defaultSizeByVariant`.
+        // see `defaultSizeByVariant`. At rest a softened foreground: quieter
+        // than text, still clearly clickable (muted-foreground reads disabled).
         subtle:
-          'text-neutral-600 hover:text-primary-main dark:text-sidebar-foreground dark:hover:text-primary-main',
+          'text-[hsl(var(--foreground)/0.58)] hover:text-primary dark:text-[hsl(var(--foreground)/0.72)] dark:hover:text-primary',
         link: 'text-primary underline-offset-4 hover:underline',
         // Rows inside a menu, like the account menu. No border or fill until
         // hover; menu-destructive is the same row in the danger color.

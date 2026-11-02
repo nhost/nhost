@@ -31,7 +31,7 @@ func (r *mutationResolver) updateSecret(
 		resolvedConfig: nil,
 		SystemConfig:   oldApp.SystemConfig,
 		Secrets:        oldApp.Secrets.Clone(),
-		Services:       oldApp.Services,
+		Services:       oldApp.Services.Clone(),
 	}
 
 	j, err := newApp.IndexSecret(input.Name)
@@ -41,7 +41,7 @@ func (r *mutationResolver) updateSecret(
 
 	newApp.Secrets[j].Value = input.Value
 
-	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
+	if err := newApp.validateSecrets(r.schema); err != nil {
 		return nil, err
 	}
 
@@ -58,6 +58,7 @@ func (r *mutationResolver) updateSecret(
 
 	oldApp.resolvedConfig = newApp.resolvedConfig
 	oldApp.Secrets = newApp.Secrets
+	oldApp.Services = newApp.Services
 
 	return newApp.Secrets[j], nil
 }

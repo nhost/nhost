@@ -5,6 +5,16 @@ metadata model used for PostgreSQL sources where SQLite can support the same
 semantics. Some PostgreSQL features have no SQLite equivalent; this page records
 the customer-visible differences that follow from those limits.
 
+SQLite-target cross-source array relationships apply `limit` (with optional
+`offset`) per parent row. `offset` without `limit`, and `distinct_on` (which
+these relationship fields expose although SQLite root fields do not), fail at
+SQL execution.
+
+Cross-source joins into SQLite `JSON`/`JSONB` columns compare stored JSON text,
+not JSON values. A key matches only if it is stored compact, with sorted object
+keys and `<`, `>`, `&` escaped; `1` and `"1"` never match each other. Use
+PostgreSQL `jsonb` join columns when you need JSON equality.
+
 ## SQLite write mutations are not executable yet
 
 Tracked SQLite tables still advertise the full PostgreSQL **write** mutation
@@ -21,8 +31,10 @@ final `SELECT` can shape the GraphQL response — for example
 `WITH mutation_result AS (UPDATE ... RETURNING *) SELECT ...`. Data-modifying
 statements inside a `WITH` clause are a PostgreSQL extension; SQLite (3.45) does
 not support `INSERT` / `UPDATE` / `DELETE` inside a CTE and rejects the statement
-at prepare time with a syntax error such as `near "UPDATE": syntax error`. This
-is independent of the `RETURNING` and `ON CONFLICT` limitations — even a plain
+at prepare time with a syntax error such as `near "UPDATE": syntax error`.
+Nested insert steps instead fail explicitly with `dependent insert steps are
+unsupported by SQLite` before any write. This is independent of the `RETURNING`
+and `ON CONFLICT` limitations — even a plain
 `update`/`delete` with no upsert and no post-mutation permission check fails for
 the same reason.
 
@@ -30,7 +42,7 @@ The affected generated fields, all of which fail at runtime on SQLite, are:
 
 | Generated mutation field | Builder | Failing shape |
 |---|---|---|
-| `insert_<table>`, `insert_<table>_one`, nested inserts | `root_mutation_insert_*.go`, `mutation_insert_nested.go` | `WITH ... AS (INSERT ... RETURNING *)` |
+| `insert_<table>`, `insert_<table>_one`, nested inserts | `root_mutation_insert_*.go`, `mutation_insert_steps.go` | Flat: writable CTE; nested: explicit unsupported-step error |
 | `insert_<table>(... on_conflict: ...)` upserts | `mutation_insert_on_conflict.go` | `WITH ... AS (INSERT ... ON CONFLICT ... RETURNING *)` |
 | `update_<table>` | `root_mutation_update_collection.go` | `WITH ... AS (UPDATE ... RETURNING *)` |
 | `update_<table>_by_pk` | `root_mutation_update_by_pk.go` | `WITH ... AS (UPDATE ... RETURNING *)` |

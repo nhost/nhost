@@ -90,7 +90,7 @@ export default function RolePermissions({
         ) : (
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             className="h-full w-full rounded-none"
             onClick={onActionSelect}

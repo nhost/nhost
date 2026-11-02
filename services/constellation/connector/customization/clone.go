@@ -204,10 +204,11 @@ func cloneInputs(inputs []*graph.InputObjectType) []*graph.InputObjectType {
 		}
 
 		out[i] = &graph.InputObjectType{
-			Name:        in.Name,
-			Description: in.Description,
-			Fields:      fields,
-			Directives:  cloneDirectives(in.Directives),
+			Name:             in.Name,
+			Description:      in.Description,
+			Fields:           fields,
+			Directives:       cloneDirectives(in.Directives),
+			ComputedArgument: in.ComputedArgument,
 		}
 	}
 

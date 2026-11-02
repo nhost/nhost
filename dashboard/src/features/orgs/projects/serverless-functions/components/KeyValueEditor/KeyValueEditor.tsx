@@ -33,9 +33,10 @@ export default function KeyValueEditor({
           />
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="sm"
-            className="shrink-0 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="shrink-0 px-4"
+            aria-label="Remove"
             onClick={() => remove(index)}
           >
             <Trash className="size-4" />

@@ -1,12 +1,11 @@
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import type { PinnedState } from '@/features/orgs/projects/common/metrics/types';
-import TooltipCard from './TooltipCard';
+import TooltipCard, { type TooltipOptions } from './TooltipCard';
 import { toEntries } from './toEntries';
 
-interface PinnedTooltipProps {
+interface PinnedTooltipProps extends TooltipOptions {
   pinned: PinnedState;
   config: ChartConfig;
-  valueFormatter?: (v: number) => string;
   onClose: VoidFunction;
 }
 
@@ -14,13 +13,20 @@ export default function PinnedTooltip({
   pinned,
   config,
   valueFormatter,
+  labelFormatter,
+  matchStackOrder,
+  maxEntries,
+  renderFooter,
   onClose,
 }: PinnedTooltipProps) {
   return (
     <TooltipCard
       label={pinned.label}
-      entries={toEntries(pinned.payload, config)}
+      entries={toEntries(pinned.payload, config, matchStackOrder)}
       valueFormatter={valueFormatter}
+      labelFormatter={labelFormatter}
+      maxEntries={maxEntries}
+      renderFooter={renderFooter}
       onClose={onClose}
       interactive
       className="absolute z-10"

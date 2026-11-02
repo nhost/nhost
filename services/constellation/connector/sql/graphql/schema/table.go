@@ -52,9 +52,29 @@ func generateForTable( //nolint:funlen
 		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums,
 	)
 
+	computedFields := scalarComputedFields(schema, tableMeta, objects, role, caps, usedScalars)
+
+	tableFields := tableComputedFields(
+		schema,
+		tableMeta,
+		objects,
+		md,
+		role,
+		caps,
+		usedScalars,
+		generatedAggregateOrderBy,
+	)
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				selectUsedScalars[field.Type.NamedType] = struct{}{}
+			}
+		}
+	}
+
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
-		objects, generatedAggregateOrderBy, caps,
+		objects, generatedAggregateOrderBy, caps, append(computedFields, tableFields...),
 	)
 
 	generateTableQueryFields(
@@ -88,6 +108,7 @@ func generateForTable( //nolint:funlen
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
 			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
+			computedFields,
 		)
 	}
 
@@ -103,6 +124,8 @@ func generateForTable( //nolint:funlen
 		generatedAggregateBoolExp,
 		selectUsedScalars,
 		caps,
+		computedFields,
+		tableFields,
 	)
 
 	if (tableInfo.IsInsertable || tableInfo.IsUpdatable) &&
@@ -429,6 +452,7 @@ func generateTableObjectType(
 	objects *introspection.Objects,
 	generatedAggregateOrderBy map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
 ) {
 	fields := []*graph.Field{}
 
@@ -458,6 +482,7 @@ func generateTableObjectType(
 		fields = append(fields, field)
 	}
 
+	fields = append(fields, computedFields...)
 	fields = append(
 		fields, generateObjectRelationshipFields(tableMeta, tableInfo, role, md)...,
 	)

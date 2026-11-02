@@ -69,7 +69,7 @@ export default function BasePermissionVariableForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+    <div className="grid grid-flow-row gap-2 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Enter the field name and the path you want to use in this permission
         variable.
@@ -92,14 +92,14 @@ export default function BasePermissionVariableForm({
           addonStart={<span className="shrink-0 pl-2">user.</span>}
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

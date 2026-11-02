@@ -186,7 +186,7 @@ export default function RemoveApplicationDialog({
       <AlertDialogContent className="!bg-transparent !shadow-none !p-0 max-w-lg border-none">
         <div
           className={cn(
-            'w-full max-w-lg rounded-lg bg-paper p-6 text-left text-foreground',
+            'w-full max-w-lg rounded-lg bg-paper p-12 text-left text-foreground',
             className,
           )}
         >
@@ -196,7 +196,9 @@ export default function RemoveApplicationDialog({
               className="flex flex-col gap-6"
             >
               <div className="flex flex-col gap-2">
-                <AlertDialogTitle>{title || 'Delete Project'}</AlertDialogTitle>
+                <AlertDialogTitle className="text-xl">
+                  {title || 'Delete Project'}
+                </AlertDialogTitle>
 
                 <AlertDialogDescription>
                   {description ||
@@ -236,7 +238,7 @@ export default function RemoveApplicationDialog({
                   requiredProjectConfirmation ? (
                     <>
                       Type{' '}
-                      <InlineCode className="max-w-full select-none whitespace-pre-wrap break-words text-sm">
+                      <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
                         {requiredProjectConfirmation}
                       </InlineCode>{' '}
                       to confirm
@@ -252,7 +254,7 @@ export default function RemoveApplicationDialog({
                 }
               />
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <AlertDialogCancel disabled={loadingRemove}>
                   Cancel
                 </AlertDialogCancel>

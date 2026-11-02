@@ -18,30 +18,28 @@ export default function RateLimitField({
   const { control } = useFormContext();
 
   return (
-    <div className="px-4">
+    <div className="px-6">
       {title ? <p className="py-4 font-semibold">{title}</p> : null}
-      <div className="flex flex-col gap-8 lg:flex-row">
-        <div className="flex flex-row items-start gap-2">
-          <span className="flex h-10 items-center">Limit</span>
-          <FormInput
-            control={control}
-            name={`${id}.limit`}
-            disabled={disabled}
-            type="number"
-            placeholder=""
-            containerClassName="max-w-60"
-            autoComplete="off"
-          />
-        </div>
-        <div className="flex flex-row items-start gap-2">
-          <span className="flex h-10 items-center">Interval</span>
+      <div className="flex flex-row items-start gap-4">
+        <FormInput
+          control={control}
+          name={`${id}.limit`}
+          disabled={disabled}
+          type="number"
+          label="Limit"
+          placeholder=""
+          containerClassName="w-28"
+          autoComplete="off"
+        />
+        <div className="flex flex-row items-end gap-2">
           <FormInput
             control={control}
             name={`${id}.interval`}
             disabled={disabled}
             type="number"
+            label="Interval"
             placeholder=""
-            containerClassName="max-w-32"
+            containerClassName="w-28"
             autoComplete="off"
           />
           <FormSelect

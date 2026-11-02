@@ -563,6 +563,13 @@ import (
 				// Enable this feature.
 				enabled: bool | *false
 			}
+
+			// Enable one-time-password over SMS, for passwordless sign-in and
+			// session elevation.
+			sms: {
+				// Enable this feature.
+				enabled: bool | *false
+			}
 		}
 
 		// Email and password sign-in.
@@ -576,6 +583,9 @@ import (
 		}
 
 		// Passwordless sign-in via SMS.
+		// Deprecated: use otp.sms instead. The two flags remain independent in
+		// config; their values are OR-ed only when generating hasura-auth environment
+		// variables.
 		smsPasswordless: {
 			// Enable this feature.
 			enabled: bool | *false

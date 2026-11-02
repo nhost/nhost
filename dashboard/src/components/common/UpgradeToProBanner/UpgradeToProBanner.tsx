@@ -38,7 +38,7 @@ export default function UpgradeToProBanner({
             <p className="text-sm">Available with</p>
             <div className="flex flex-row space-x-2">
               <NhostIcon />
-              <p className="font-semibold text-primary-main text-sm">
+              <p className="font-semibold text-primary text-sm">
                 Nhost Pro & Team
               </p>
             </div>

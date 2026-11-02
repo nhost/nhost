@@ -339,24 +339,29 @@ function DataGridCellContent<
       {id !== 'preview-column' &&
         !isBooleanColumn &&
         isNotEmptyValue(optimisticValue) && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(event) => {
-              event.stopPropagation();
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="subtle"
+                size="icon-sm"
+                onClick={(event) => {
+                  event.stopPropagation();
 
-              const copiableValue =
-                typeof optimisticValue === 'object'
-                  ? JSON.stringify(optimisticValue)
-                  : String(optimisticValue).replace(/\\n/gi, '\n');
+                  const copiableValue =
+                    typeof optimisticValue === 'object'
+                      ? JSON.stringify(optimisticValue)
+                      : String(optimisticValue).replace(/\\n/gi, '\n');
 
-              copy(copiableValue, 'Value');
-            }}
-            className="-ml-px h-6 w-6 border-transparent bg-transparent p-1 text-disabled opacity-0 hover:bg-transparent group-hover:opacity-100"
-            aria-label="Copy value"
-          >
-            <Copy className="size-4" />
-          </Button>
+                  copy(copiableValue, 'Value');
+                }}
+                className="-ml-px shrink-0 opacity-0 group-hover:opacity-100"
+                aria-label="Copy value"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Copy value</TooltipContent>
+          </Tooltip>
         )}
     </div>
   );

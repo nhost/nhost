@@ -55,7 +55,7 @@ func (t *table) buildQueryFunctionAggregateSQL(
 		alias,
 		fnCall.fromClause,
 		fnCall.sourceRef,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -72,5 +72,6 @@ func (t *table) buildQueryFunctionAggregateSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }

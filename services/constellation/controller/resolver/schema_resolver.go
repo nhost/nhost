@@ -221,7 +221,9 @@ func mergeSourceFieldArguments(remoteField *ast.Field, sourceArgs ast.ArgumentLi
 		}
 
 		if !alreadySet {
-			remoteField.Arguments = append(remoteField.Arguments, arg)
+			remoteField.Arguments = append(
+				remoteField.Arguments,
+				resolveArgumentVariables(ast.ArgumentList{arg}, nil)...)
 		}
 	}
 }

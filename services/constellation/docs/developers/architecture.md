@@ -93,14 +93,17 @@ The middleware also stores three things on the request context:
 
 ## Query cache
 
-`controller/querycache.go` wraps `internal/lib/lru.Cache[queryCacheKey, queryCacheEntry]` in a typed alias. The cache:
+`controller/querycache.go` owns an `internal/lib/lru.Cache[queryCacheKey, queryCacheEntry]` and a `singleflight.Group` for in-flight loads. The cache:
 
 - Keys on `(queryString, role)` — different roles have different schemas, so the parsed AST and validation errors are not interchangeable.
 - Stores `*ast.QueryDocument` + `gqlerror.List` — invalid queries are cached too, so repeated bad requests don't re-run the validator.
 - Has a fixed size of 512 entries (`defaultQueryCacheSize`); LRU eviction discards the least-recently-used entries on overflow.
-- Is owned by `controllerState`. A metadata reload produces a fresh cache because the new state has a new `queryCache`. This is the simplest correctness model: schemas changed, all cached validations are stale, throw the whole cache away.
+- Coalesces overlapping misses for the same key through `golang.org/x/sync/singleflight`. The callback rechecks the LRU before parsing and publishes the document and validation errors as one typed result; singleflight owns waiter coordination and cleanup. A length-prefixed role followed by the query makes the string key unambiguous even with embedded separators or NUL bytes. Different keys can load concurrently; warm hits return directly from the LRU before constructing a singleflight key or calling the miss wrapper.
+- Is owned by `controllerState`, including its in-flight loads. A metadata reload produces a fresh cache because the new state has a new `queryCache`; requests against the old state cannot populate or join the new state's cache.
 
-The cache is checked both by HTTP `Resolve` (`controller/resolve.go:438`) and by WebSocket `parseAndValidateQuery` (`controller/websocket.go:247`).
+HTTP `Resolve` and WebSocket `parseAndValidateQuery` both use `loadQuery` in `controller/querycache.go`. Shared documents and errors are read-only: operation selection, variable coercion, directive pruning, permissions, and execution remain request-specific.
+
+The query-cache tests cover deterministic concurrent misses, shared errors, panic recovery and retry, role/state isolation, key-encoding collisions, and the direct warm-hit path. `BenchmarkLoadQueryRealistic` exercises generated table schemas, filters, nested relationships, and fragments with bursts up to 512 requests across 16 distinct queries. Run the cache benchmarks from the repository root with `GOEXPERIMENT=jsonv2 go test ./services/constellation/controller -run '^$' -bench '^BenchmarkLoadQuery' -benchmem`.
 
 ## Raw-bytes response fast path
 
@@ -163,14 +166,14 @@ The HTTP handler maps:
 | Component | Mutation model |
 |---|---|
 | `Controller.state` | Atomic pointer swap on metadata reload |
-| `controllerState.queryCache` | Internal `sync.Mutex` (the LRU is concurrency-safe) |
+| `controllerState.queryCache` | LRU internal `sync.Mutex` for completed entries; per-state `singleflight.Group` makes concurrent cold misses for the same role/query wait for one shared parse and validation result (a leader panic re-panics in waiters); warm hits bypass singleflight |
 | `cohortManager.cohorts` | `sync.RWMutex` on the map; cohort polling under `context.Background()` |
 | `cohort.subscriptions` | `sync.RWMutex` on the map; per-subscription `sendMu` serialises send vs stop |
 | `webSocketHandler.subs` | `syncmap.Map[string, *subscriptionState]` |
 | `connector/sql` connectors | Driver-internal pooling; `Execute` is safe to call concurrently |
 | `connector/remoteschema` | Stateless beyond `httpClient`; safe to call concurrently |
 
-The hot path is therefore lock-free for steady-state reads (atomic pointer load), and only takes locks for short maps inside cohorts / sub registries. No request-path code blocks on metadata reload.
+State snapshot reads are lock-free (atomic pointer load), while warm query-cache hits take the LRU mutex and concurrent cold misses for the same role/query in one state wait for one in-flight parse and validation. Cohort and subscription registries use short map locks. No request-path code blocks on metadata reload.
 
 ## File reference
 
@@ -179,7 +182,7 @@ The hot path is therefore lock-free for steady-state reads (atomic pointer load)
 | `controller/controller.go` | Atomic state pointer, `buildState`, `swapState`, `Run`, `NewFromConnectors` |
 | `controller/handlers.go` | HTTP and WebSocket entry, raw-bytes write |
 | `controller/resolve.go` | Pipeline, fast-path detection (`buildRawResponse`) |
-| `controller/querycache.go` | Per-state LRU type alias |
+| `controller/querycache.go` | Per-state parsed/validated-query LRU and concurrent miss coalescing |
 | `controller/middleware/session.go` | Auth precedence, session context plumbing |
 | `controller/errors.go` | Standard error responses |
 | `internal/requestcontext/context.go` | Request-scoped context keys |

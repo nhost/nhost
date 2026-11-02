@@ -147,6 +147,22 @@ type Dialect interface { //nolint:interfacebloat
 	// SupportsLateral returns whether LEFT JOIN LATERAL is available.
 	SupportsLateral() bool
 
+	// SupportsDependentInsertSteps gates the transactional PostgreSQL insert
+	// planner independently of SELECT's LATERAL support.
+	SupportsDependentInsertSteps() bool
+
+	// DependentInsertCapture aggregates physical RETURNING rows as JSON.
+	DependentInsertCapture() string
+
+	// DependentInsertRowsSource yields the captured JSON array as table rows.
+	DependentInsertRowsSource(index int) string
+
+	// DependentInsertRowValue extracts a catalog column as text from each row.
+	DependentInsertRowValue(column string) string
+
+	// DependentInsertAffectedRows yields one row per additional affected node.
+	DependentInsertAffectedRows(index int) string
+
 	// Like returns the case-sensitive LIKE operator.
 	// PostgreSQL: LIKE    SQLite: LIKE (with PRAGMA case_sensitive_like=ON)
 	Like() string

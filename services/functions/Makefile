@@ -13,13 +13,7 @@ VERSION:=$(NODE_VERSION)-$(VERSION)
 endif
 
 
-.PHONY: build-docker-image
-build-docker-image:  ## Build docker container for native architecture
-	nix build $(docker-build-options) --show-trace \
-		.\#packages.$(ARCH)-linux.$(NAME)-node$(NODE_VERSION)-docker-image \
-		--print-build-logs
-	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
+NIX_DOCKER_ATTR=$(NAME)-node$(NODE_VERSION)-docker-image
 
 
 .PHONY: _dev-env-build

@@ -20,11 +20,11 @@ export default function ProjectStatusIndicator({
       description: 'Project errored',
     },
     [ApplicationStatus.Pausing]: {
-      className: 'bg-primary-main animate-blinking',
+      className: 'bg-primary animate-blinking',
       description: 'Project is pausing',
     },
     [ApplicationStatus.Restoring]: {
-      className: 'bg-primary-main animate-blinking',
+      className: 'bg-primary animate-blinking',
       description: 'Project is restoring',
     },
     [ApplicationStatus.Paused]: {
@@ -32,11 +32,11 @@ export default function ProjectStatusIndicator({
       description: 'Project is paused',
     },
     [ApplicationStatus.Unpausing]: {
-      className: 'bg-primary-main animate-blinking',
+      className: 'bg-primary animate-blinking',
       description: 'Project is unpausing',
     },
     [ApplicationStatus.Live]: {
-      className: 'bg-primary-main',
+      className: 'bg-primary',
       description: 'Project is live',
     },
   };

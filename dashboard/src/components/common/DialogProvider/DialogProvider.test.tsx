@@ -717,7 +717,7 @@ describe('DialogProvider Radix layers', () => {
     );
     const modal = await screen.findByRole('dialog', { name: 'Layer dialog' });
     expect(modal).toHaveClass('max-w-2xl', 'overflow-hidden');
-    expect(modal).not.toHaveClass('max-w-md', 'overflow-y-auto');
+    expect(modal).not.toHaveClass('max-w-xl', 'overflow-y-auto');
   });
 });
 

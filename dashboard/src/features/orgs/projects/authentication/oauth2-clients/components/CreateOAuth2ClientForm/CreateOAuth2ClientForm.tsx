@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import bcrypt from 'bcryptjs';
-import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,6 +7,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   InputGroup,
@@ -176,16 +176,10 @@ export default function CreateOAuth2ClientForm({
             />
             {pendingSecret && (
               <InputGroupAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label="Copy secret"
-                  onClick={() => copy(pendingSecret, 'Client secret')}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
+                <CopyToClipboardButton
+                  textToCopy={pendingSecret}
+                  title="Client secret"
+                />
               </InputGroupAddon>
             )}
           </InputGroup>

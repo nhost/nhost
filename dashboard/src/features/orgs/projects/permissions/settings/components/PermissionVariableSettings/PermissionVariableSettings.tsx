@@ -10,9 +10,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 
 import { Button } from '@/components/ui/v3/button';
@@ -119,7 +117,7 @@ export default function PermissionVariableSettings() {
       component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -135,7 +133,7 @@ export default function PermissionVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -166,10 +164,14 @@ export default function PermissionVariableSettings() {
       <SettingsCardHeader
         title="Permission Variables"
         description="Permission variables are used to define permission rules in the GraphQL API."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/graphql/permissions#permission-variables',
+          topic: 'Permission Variables',
+        }}
       />
 
       <SettingsCardContent className="my-2 px-0">
-        <div className="grid grid-cols-2 border-b-1 px-4 py-3">
+        <div className="grid grid-cols-2 border-b-1 px-6 py-3">
           <p className="font-medium">Field name</p>
           <p className="font-medium">Path</p>
         </div>
@@ -178,14 +180,14 @@ export default function PermissionVariableSettings() {
           <div>
             {availablePermissionVariables.map((permissionVariable, index) => (
               <Fragment key={permissionVariable.id}>
-                <div className="relative grid grid-cols-2 px-4 pr-12">
+                <div className="relative grid grid-cols-2 px-6 pr-12">
                   {permissionVariable.isSystemVariable ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="absolute top-1/2 right-4 inline-flex -translate-y-1/2">
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             disabled
                           >
@@ -202,7 +204,7 @@ export default function PermissionVariableSettings() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
@@ -210,10 +212,10 @@ export default function PermissionVariableSettings() {
                         </Button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-32 p-0">
+                      <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                           onClick={() => handleOpenEditor(permissionVariable)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Edit</span>
                         </DropdownMenuItem>
@@ -222,7 +224,7 @@ export default function PermissionVariableSettings() {
                           onClick={() =>
                             handleConfirmDelete(permissionVariable)
                           }
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         >
                           <span>Delete</span>
                         </DropdownMenuItem>
@@ -262,13 +264,6 @@ export default function PermissionVariableSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/graphql/permissions#permission-variables"
-          title="Permission Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

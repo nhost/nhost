@@ -29,9 +29,10 @@ import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
 import PrimaryKeySelect from './PrimaryKeySelect';
 import TableObjectsSection from './TableObjectsSection';
+import UniqueKeysSection from './UniqueKeysSection';
 
 export interface BaseTableFormValues
-  extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
+  extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn' | 'uniqueKeys'> {
   /**
    * The indices of the primary key columns.
    */
@@ -44,6 +45,24 @@ export interface BaseTableFormValues
    * Foreign keys of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /**
+   * UNIQUE constraints, as indices of their columns. A column's Unique
+   * checkbox adds or removes the constraint on that column alone.
+   */
+  uniqueKeys?: {
+    name?: string;
+    newName?: string;
+    columnIndices: string[];
+    /**
+     * Definition of an existing constraint, from Postgres.
+     */
+    definition?: string;
+  }[];
+  /**
+   * IDs of the columns a unique index keeps unique on their own, without a
+   * UNIQUE constraint the form manages.
+   */
+  uniqueIndexColumnIds?: string[];
 }
 
 export interface BaseTableFormProps extends DialogFormProps {
@@ -114,7 +133,16 @@ export const baseTableValidationSchema = Yup.object({
     .max(
       POSTGRESQL_MAX_IDENTIFIER_LENGTH,
       `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
-    ),
+    )
+    // A UNIQUE constraint creates an index with its name, and an index cannot
+    // share its name with the table.
+    .test({
+      message: 'A unique constraint in this table already uses this name.',
+      test: (name, { parent }) =>
+        !(parent as BaseTableFormValues).uniqueKeys?.some(
+          (uniqueKey) => (uniqueKey.name ?? uniqueKey.newName) === name,
+        ),
+    }),
   columns: Yup.array()
     .of(baseColumnValidationSchema)
     .test({
@@ -151,6 +179,7 @@ const DIRTY_SOURCE_ID = 'base-table-form';
 
 const ACCORDION_SECTION_VALUES = [
   'columns',
+  'uniqueKeys',
   'foreignKeys',
   'constraints',
   'indexes',
@@ -197,6 +226,7 @@ export default function BaseTableForm({
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
+    'uniqueKeys',
     'foreignKeys',
   ]);
   const { setDirtySource } = useDialog();
@@ -264,6 +294,15 @@ export default function BaseTableForm({
                 <PrimaryKeySelect />
                 <IdentityColumnSelect />
               </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="uniqueKeys">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Unique Constraints
+            </AccordionTrigger>
+            <AccordionContent className="pb-3" forceMount>
+              <UniqueKeysSection />
             </AccordionContent>
           </AccordionItem>
 

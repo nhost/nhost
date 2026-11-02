@@ -118,19 +118,13 @@ export default function ActionRelationshipForm({
             <FieldMappingSection outputFieldNames={outputFieldNames} />
           </div>
 
-          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
-            <ButtonWithLoading
-              type="submit"
-              loading={isSubmitting}
-              className="!text-sm+"
-            >
+          <DialogFooter className="mt-6">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <ButtonWithLoading type="submit" loading={isSubmitting}>
               {isEditing ? 'Save Changes' : 'Create Relationship'}
             </ButtonWithLoading>
-            <DialogClose asChild>
-              <Button variant="outline" className="!text-sm+ text-foreground">
-                Cancel
-              </Button>
-            </DialogClose>
           </DialogFooter>
         </form>
       </Form>

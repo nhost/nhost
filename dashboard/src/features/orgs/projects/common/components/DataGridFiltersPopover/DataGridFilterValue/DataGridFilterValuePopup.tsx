@@ -29,7 +29,7 @@ function DataGridFilterValuePopup({
         <PopoverTrigger asChild>
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             title="Expand filter value"
             className="h-6 w-6"

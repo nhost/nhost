@@ -34,6 +34,20 @@ func (s *stubTableForFieldComparison) RelationshipFromGraphqlName(
 	return nil
 }
 
+func (s *stubTableForFieldComparison) ComputedScalarFromGraphqlName(
+	string,
+	string,
+) core.ComputedExpression {
+	return nil
+}
+
+func (s *stubTableForFieldComparison) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
+	return nil
+}
+
 func (s *stubTableForFieldComparison) TableBySchemaName(
 	_, _ string,
 ) where.Table {
@@ -1216,14 +1230,16 @@ func TestParseFieldComparison_WithVariable(t *testing.T) {
 // "no match". The unexported `where.Table` interface is fully satisfied so
 // it can be passed in to where.Parse from this external test package.
 type parseTestTable struct {
-	d            dialect.Dialect
-	schemaName   string
-	fromClause   string
-	columns      map[string]*core.Column
-	relationship map[string]where.Relationship
-	siblings     map[string]where.Table
-	roleHasPerms map[string]bool
-	permsWriter  func(b *strings.Builder, params []any, paramIndex int, sourceRef string) ([]any, int, error)
+	d             dialect.Dialect
+	schemaName    string
+	fromClause    string
+	columns       map[string]*core.Column
+	computed      map[string]core.ComputedExpression
+	computedTable map[string]core.ComputedTableExpression
+	relationship  map[string]where.Relationship
+	siblings      map[string]where.Table
+	roleHasPerms  map[string]bool
+	permsWriter   func(b *strings.Builder, params []any, paramIndex int, sourceRef string) ([]any, int, error)
 }
 
 func (p *parseTestTable) Dialect() dialect.Dialect { return p.d }
@@ -1232,6 +1248,14 @@ func (p *parseTestTable) TableFromClause() string  { return p.fromClause }
 
 func (p *parseTestTable) ColumnFromGraphqlName(name string) *core.Column {
 	return p.columns[name]
+}
+
+func (p *parseTestTable) ComputedScalarFromGraphqlName(name, _ string) core.ComputedExpression {
+	return p.computed[name]
+}
+
+func (p *parseTestTable) ComputedTableFromGraphqlName(name, _ string) core.ComputedTableExpression {
+	return p.computedTable[name]
 }
 
 func (p *parseTestTable) RelationshipFromGraphqlName(name string) where.Relationship {
@@ -1859,6 +1883,100 @@ func TestParse_Exists_WithExplicitSchema(t *testing.T) {
 	sql, _ := renderClause(t, clause)
 	if !strings.Contains(sql, `EXISTS (SELECT 1 FROM "other"."friends" e`) {
 		t.Errorf("expected EXISTS subquery against sibling, got: %s", sql)
+	}
+}
+
+func TestParse_Exists_EmptyWhere(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		where *ast.Value
+	}{
+		{name: "empty object", where: &ast.Value{Kind: ast.ObjectValue}},
+		{
+			name: "empty and list",
+			where: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "_and", Value: &ast.Value{Kind: ast.ListValue}},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			sibling := &parseTestTable{
+				schemaName: "public",
+				fromClause: `"public"."other"`,
+			}
+			tbl := &parseTestTable{
+				schemaName: "public",
+				siblings:   map[string]where.Table{"public.other": sibling},
+			}
+			value := buildExistsValue([2]string{"schema", "public"}, [2]string{"name", "other"})
+			exists := value.Children[0].Value
+			exists.Children = append(
+				exists.Children,
+				&ast.ChildValue{Name: "_where", Value: tt.where},
+			)
+
+			clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.PermissionAliases)
+			if err != nil {
+				t.Fatalf("Parse _exists: %v", err)
+			}
+
+			writers := []struct {
+				name  string
+				write func(*strings.Builder) ([]any, int, error)
+			}{
+				{
+					name: "root clause",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return clause.WriteCondition(b, `"t"`, nil, 1)
+					},
+				},
+				{
+					name: "direct filter",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return clause[0].WriteCondition(b, `"t"`, nil, 1)
+					},
+				},
+				{
+					name: "substituted filter",
+					write: func(b *strings.Builder) ([]any, int, error) {
+						return where.WriteConditionSubstituted(clause, b, `"t"`, nil, 1,
+							where.TableSubstitutions{`"public"."other"`: "replacement"})
+					},
+				},
+			}
+
+			for _, writer := range writers {
+				t.Run(writer.name, func(t *testing.T) {
+					var b strings.Builder
+
+					params, index, err := writer.write(&b)
+					if err != nil {
+						t.Fatalf("WriteCondition: %v", err)
+					}
+
+					if got, want := b.String(), `EXISTS (SELECT 1 FROM "public"."other" h)`; got != want {
+						t.Errorf("SQL = %q, want %q", got, want)
+					}
+
+					if len(params) != 0 || index != 1 {
+						t.Errorf(
+							"params = %v, index = %d; want no params and index 1",
+							params,
+							index,
+						)
+					}
+				})
+			}
+		})
 	}
 }
 

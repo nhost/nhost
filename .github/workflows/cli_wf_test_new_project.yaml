@@ -66,15 +66,15 @@ jobs:
       - name: "Get artifacts"
         uses: actions/download-artifact@v8
         with:
-          path: ~/artifacts
+          path: ${{ runner.temp }}/artifacts
 
       - name: "Inspect artifacts"
-        run: find ~/artifacts
+        run: find "$RUNNER_TEMP/artifacts"
 
       - name: Load docker image
         run: |
           skopeo copy --insecure-policy \
-            dir:/home/runner/artifacts/cli-docker-image-linux-x86_64-0.0.0-dev \
+            "dir:$RUNNER_TEMP/artifacts/cli-docker-image-linux-x86_64-0.0.0-dev" \
             docker-daemon:cli:0.0.0-dev
 
       - name: "Create a new project"
@@ -82,12 +82,12 @@ jobs:
           export NHOST_CLI_AUTH_URL="https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1"
           export NHOST_CLI_GRAPHQL_URL="https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1"
 
-          unzip /home/runner/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip
+          unzip "$RUNNER_TEMP/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip"
 
           mkdir new-project
           cd new-project
-          /home/runner/_work/nhost/nhost/cli/result/bin/cli login --pat ${{ secrets.NHOST_PAT }}
-          /home/runner/_work/nhost/nhost/cli/result/bin/cli init
+          "$GITHUB_WORKSPACE/cli/result/bin/cli" login --pat "$NHOST_PAT"
+          "$GITHUB_WORKSPACE/cli/result/bin/cli" init
 
       # Skipped on `release/dashboard` PRs because the release PR bumps the
       # `nhost/dashboard:<tag>` ref in `cli/cmd/dev/` to a version that isn't
@@ -98,12 +98,13 @@ jobs:
           export NHOST_CONFIGSERVER_IMAGE=cli:0.0.0-dev
 
           cd new-project
-          /home/runner/_work/nhost/nhost/cli/result/bin/cli up --down-on-error
-          /home/runner/_work/nhost/nhost/cli/result/bin/cli down --volumes
+          "$GITHUB_WORKSPACE/cli/result/bin/cli" up --down-on-error
+          "$GITHUB_WORKSPACE/cli/result/bin/cli" down --volumes
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

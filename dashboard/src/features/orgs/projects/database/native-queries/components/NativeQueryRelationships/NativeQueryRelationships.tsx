@@ -231,7 +231,7 @@ export default function NativeQueryRelationships({
                     <TooltipTrigger asChild>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
                         aria-label={`Edit relationship ${relationship.name}`}
                         disabled={
@@ -251,9 +251,8 @@ export default function NativeQueryRelationships({
                     <TooltipTrigger asChild>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
-                        className="text-destructive hover:text-destructive"
                         aria-label={`Delete relationship ${relationship.name}`}
                         onClick={() => {
                           setSelected({ relationship, kind });
@@ -309,17 +308,19 @@ export default function NativeQueryRelationships({
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent
-          className="text-foreground"
+          className="p-12 text-foreground"
           onEscapeKeyDown={(event) => event.stopPropagation()}
         >
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete relationship?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Delete relationship?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This removes <strong>{selected?.relationship.name}</strong> from
               the native query.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               disabled={isPending || !selected}

@@ -66,7 +66,7 @@ export default function StorageFormSection() {
         </div>
 
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add storage"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
@@ -158,9 +158,8 @@ export default function StorageFormSection() {
                 )}
                 <div className="flex">
                   <Button
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="text-destructive hover:text-destructive"
                     aria-label="Remove storage"
                     onClick={() => remove(index)}
                   >
