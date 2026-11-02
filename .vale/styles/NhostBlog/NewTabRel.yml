@@ -1,0 +1,12 @@
+# Raw scope: TokenIgnores drop tags. Unlike Nhost.DeepLinkRel, covers any
+# new-tab link.
+extends: existence
+message: "A link that opens a new tab needs
+  'rel=\"noopener noreferrer\"'."
+level: error
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '<a\s(?![^<>]*\brel="noopener noreferrer")(?=[^<>]*\btarget="_blank")[^<>]*>'

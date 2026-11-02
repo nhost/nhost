@@ -1,0 +1,12 @@
+# Docs pages live under these four sections; any other path is from before
+# the restructure. Keep in step with docs/src/content/docs/.
+extends: existence
+message: "'%s' is not a docs section; docs pages live under
+  getting-started, platform, products or reference."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'https?://docs\.nhost\.io/(?!getting-started|platform|products|reference)[a-z][a-z0-9-]*'

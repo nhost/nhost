@@ -1,0 +1,9 @@
+# Subheads promising what a term "actually" means.
+extends: existence
+message: "Name what the section covers instead of promising what a
+  term '%s'."
+level: warning
+scope: heading
+ignorecase: true
+tokens:
+  - '(?:actually|really) (?:means|is|does|works)'

@@ -1,0 +1,26 @@
+# Globs .vale/lint_markdown.sh skips, matched from the repository root.
+# Every entry needs a reason other than "it has findings".
+
+# Own configs.
+docs/src/content/docs/*
+landing/src/pages/blog/*
+
+# Fixtures with deliberate hits.
+.vale/*
+
+# Agent docs that quote forbidden patterns.
+.claude/*
+
+# Generated.
+CHANGELOG.md
+*/CHANGELOG.md
+
+# Third-party text.
+vendor/*
+CODE_OF_CONDUCT.md
+landing/src/pages/legal/*
+
+# Not prose.
+*/testdata/*
+.github/ISSUE_TEMPLATE/*
+.github/PULL_REQUEST_TEMPLATE.md

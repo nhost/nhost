@@ -1,0 +1,12 @@
+# Raw scope: TokenIgnores drop tags. Matches one <a> tag, attributes in any
+# order.
+extends: existence
+message: "A dashboard link that opens a new tab needs
+  'rel=\"noopener noreferrer\"'."
+level: error
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '<a\s(?![^<>]*\brel="noopener noreferrer")(?=[^<>]*\btarget="_blank")[^<>]*\bhref="https://app\.nhost\.io[^"]*"[^<>]*>'

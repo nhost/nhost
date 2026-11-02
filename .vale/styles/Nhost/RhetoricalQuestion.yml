@@ -1,0 +1,16 @@
+# One-word questions used as transitions. Separate from LLMPhrasesStrict
+# because tokens ending in '?' need nonword. Left out on purpose: "what does
+# this mean?" and headings ending in '?'.
+extends: existence
+message: "Answer the question in a sentence instead of asking
+  '%s'."
+level: error
+ignorecase: true
+nonword: true
+# accept.txt terms would otherwise hide a match.
+vocab: false
+tokens:
+  - 'the (?:result|catch|best part|problem|fix|takeaway|upshot)\?'
+  - 'why does (?:this|that|it) matter\?'
+  - 'sound familiar\?'
+  - 'so what\?'

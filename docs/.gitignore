@@ -20,8 +20,5 @@ pnpm-debug.log*
 .env
 .env.production
 
-# vale - downloaded package styles
-.vale/styles/Google/
-
 # macOS-specific files
 .DS_Store

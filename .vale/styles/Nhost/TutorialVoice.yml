@@ -1,0 +1,11 @@
+# Announcing a plan, inviting the reader along, or recapping. `dive` is left
+# to LLMPhrasesStrict so it's reported once.
+extends: existence
+message: "Give the reader the instruction or the fact instead of
+  '%s'."
+level: warning
+ignorecase: true
+tokens:
+  - "in this (?:section|guide|post|article|tutorial),? we(?: will|['’]ll)"
+  - "let['’]s +(?:explore|look|take a look|see|start|begin|get started|break it down|walk through|build|create|jump|recap|review|move on|wrap up)"
+  - "now that (?:we|you)(?: have|['’]ve| ?re)"

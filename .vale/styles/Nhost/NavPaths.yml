@@ -1,0 +1,13 @@
+# Raw scope, to see paths inside JSX. One swap per moved dashboard location.
+extends: substitution
+message: "The dashboard path is now '%s', not '%s'."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+ignorecase: false
+swap:
+  # dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/graphql/settings.tsx
+  'Settings (?:->|→) Hasura': GraphQL → Settings → Engine
+  # dashboard/src/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/settings.tsx
+  '(?<!Auth (?:->|→) )Settings (?:->|→) Sign-In Methods': Auth → Settings → Sign-In Methods

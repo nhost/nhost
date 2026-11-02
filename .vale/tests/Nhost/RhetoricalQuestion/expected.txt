@@ -1,0 +1,4 @@
+.vale/tests/Nhost/RhetoricalQuestion/fail.mdx:5:36:Nhost.RhetoricalQuestion:Answer the question in a sentence instead of asking 'The catch?'.
+.vale/tests/Nhost/RhetoricalQuestion/fail.mdx:7:1:Nhost.RhetoricalQuestion:Answer the question in a sentence instead of asking 'Why does this matter?'.
+.vale/tests/Nhost/RhetoricalQuestion/fail.mdx:9:1:Nhost.RhetoricalQuestion:Answer the question in a sentence instead of asking 'Sound familiar?'.
+.vale/tests/Nhost/RhetoricalQuestion/fail.mdx:9:17:Nhost.RhetoricalQuestion:Answer the question in a sentence instead of asking 'So what?'.
