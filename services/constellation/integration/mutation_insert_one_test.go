@@ -761,15 +761,11 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// covered by the composite-FK case above; rewiring it here would
 		// duplicate that coverage without exercising any new code path.
 
-		// Nested array-relationship insert through a parent whose CTE is the
-		// substitution target for the child's post-check EXISTS. The child
-		// (note_replies) has insert_check `note.author_id = X-Hasura-User-Id
-		// AND visibility = 'public'` -- visibility is DB-defaulted and absent
-		// from the payload, so requiresPostInsertCheck routes the child
-		// through buildSingleInsertCTEPostCheck. tableSubs must redirect the
-		// note.author_id EXISTS to the parent's in-flight mutation_result CTE;
-		// without that the EXISTS reads the empty public.notes and the insert
-		// silently denies (or diverges from Hasura).
+		// The note_replies check uses note.author_id = X-Hasura-User-Id
+		// AND visibility = 'public'. Visibility is DB-defaulted and absent
+		// from the payload, so the child needs a post-insert check. Its
+		// relationship EXISTS reads the previously inserted parent from
+		// public.notes through the child's note_id.
 		{
 			name: "permissions: nested array insert with single reply through parent CTE",
 			query: query{
@@ -863,14 +859,11 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Direct denial through the SUBSTITUTED child post-check: the parent
-		// pre-check passes (author_id == X-Hasura-User-Id), so the post-check
-		// path runs end-to-end. The child supplies `visibility: "private"`,
-		// which trips ONLY the `visibility _eq "public"` half of the child's
-		// `_and`; the relationship-EXISTS half against the parent's in-flight
-		// mutation_result CTE still passes via tableSubs substitution. Locks
-		// the buildSingleInsertCTEPostCheck dispatch as the actual point of
-		// failure (not the parent's pre-check).
+		// The parent's pre-check passes (author_id == X-Hasura-User-Id).
+		// The child supplies visibility: "private", failing its post-insert
+		// check. The relationship-EXISTS half sees the preceding parent row
+		// in public.notes; only the visibility half of the child's `_and`
+		// denies, not the parent's pre-check.
 		{
 			name: "permissions: nested array insert denied at substituted child post-check (visibility private)",
 			query: query{

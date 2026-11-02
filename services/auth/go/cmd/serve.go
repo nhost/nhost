@@ -96,7 +96,7 @@ const (
 	flagAppleAudience                            = "apple-audience"
 	flagGoogleAudience                           = "google-audience"
 	flagOTPEmailEnabled                          = "otp-email-enabled"
-	flagSMSPasswordlessEnabled                   = "sms-passwordless-enabled"
+	flagOTPSmsEnabled                            = "otp-sms-enabled"
 	flagSMSProvider                              = "sms-provider"
 	flagSMSTwilioAccountSid                      = "sms-twilio-account-sid"
 	flagSMSTwilioAuthToken                       = "sms-twilio-auth-token" //nolint:gosec
@@ -707,10 +707,14 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_OTP_EMAIL_ENABLED"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
-				Name:     flagSMSPasswordlessEnabled,
-				Usage:    "Enable SMS passwordless authentication",
-				Category: "sms",
-				Sources:  cli.EnvVars("AUTH_SMS_PASSWORDLESS_ENABLED"),
+				Name:     flagOTPSmsEnabled,
+				Aliases:  []string{"sms-passwordless-enabled"},
+				Usage:    "Enable OTP via SMS for passwordless authentication and session elevation",
+				Category: "otp",
+				Sources: cli.EnvVars(
+					"AUTH_OTP_SMS_ENABLED",
+					"AUTH_SMS_PASSWORDLESS_ENABLED",
+				),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSProvider,

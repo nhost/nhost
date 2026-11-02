@@ -46,7 +46,8 @@ import (
 const sqliteDriverName = "sqlite3_constellation"
 
 var (
-	errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+	errSequentialNonJSONResult    = errors.New("sequential operation returned non-JSON result")
+	errDependentInsertUnsupported = errors.New("dependent insert steps are unsupported by SQLite")
 	// registerSQLiteDriverOnce guards database/sql's process-wide driver registry.
 	registerSQLiteDriverOnce sync.Once //nolint:gochecknoglobals
 )
@@ -357,6 +358,10 @@ func (c *Client) ExecuteOperations(
 
 // executeOperation executes a single SQL operation and returns the JSON result.
 func executeOperation(ctx context.Context, q Querier, op core.SQLOperation) (any, error) {
+	if op.Insert != nil {
+		return nil, errDependentInsertUnsupported
+	}
+
 	if len(op.Sequential) > 0 {
 		return executeSequentialOperation(ctx, q, op.Sequential)
 	}

@@ -383,16 +383,20 @@ describe('SettingsGeneralPage', () => {
     expect(screen.getByText('nhost config pull')).toBeVisible();
   });
 
-  it('renders the editor without a title or the settings area notice', async () => {
+  it('renders the editor in the settings column, like the other tabs', async () => {
     setTab('editor');
 
     render(SettingsGeneralPage.getLayout(<SettingsGeneralPage />));
 
     expect(
-      await screen.findByRole('heading', { name: 'Configuration Editor' }),
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Configuration Editor',
+      }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
-    expect(screen.queryByText('nhost config pull')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Edit your project's configuration directly in TOML/),
+    ).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 

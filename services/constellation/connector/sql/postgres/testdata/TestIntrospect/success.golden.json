@@ -10,6 +10,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -23,6 +24,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -36,6 +38,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -49,6 +52,7 @@
             {
               "Name": "last_seen",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -62,6 +66,7 @@
             {
               "Name": "disabled",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -75,6 +80,7 @@
             {
               "Name": "display_name",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -88,6 +94,7 @@
             {
               "Name": "avatar_url",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -101,6 +108,7 @@
             {
               "Name": "locale",
               "Type": "varchar",
+              "PhysicalSQLType": "pg_catalog.\"varchar\"",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -114,6 +122,7 @@
             {
               "Name": "email",
               "Type": "citext",
+              "PhysicalSQLType": "public.citext",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -127,6 +136,7 @@
             {
               "Name": "phone_number",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -140,6 +150,7 @@
             {
               "Name": "password_hash",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -153,6 +164,7 @@
             {
               "Name": "email_verified",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -166,6 +178,7 @@
             {
               "Name": "phone_number_verified",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -179,6 +192,7 @@
             {
               "Name": "new_email",
               "Type": "citext",
+              "PhysicalSQLType": "public.citext",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -192,6 +206,7 @@
             {
               "Name": "otp_method_last_used",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -205,6 +220,7 @@
             {
               "Name": "otp_hash",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -218,6 +234,7 @@
             {
               "Name": "otp_hash_expires_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -231,6 +248,7 @@
             {
               "Name": "default_role",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -244,6 +262,7 @@
             {
               "Name": "is_anonymous",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -257,6 +276,7 @@
             {
               "Name": "totp_secret",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -270,6 +290,7 @@
             {
               "Name": "active_mfa_type",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -283,6 +304,7 @@
             {
               "Name": "ticket",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -296,6 +318,7 @@
             {
               "Name": "ticket_expires_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -309,6 +332,7 @@
             {
               "Name": "metadata",
               "Type": "jsonb",
+              "PhysicalSQLType": "pg_catalog.jsonb",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -322,6 +346,7 @@
             {
               "Name": "webauthn_current_challenge",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -372,6 +397,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -385,6 +411,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -398,6 +425,7 @@
             {
               "Name": "expires_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -411,6 +439,7 @@
             {
               "Name": "user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -424,6 +453,7 @@
             {
               "Name": "metadata",
               "Type": "jsonb",
+              "PhysicalSQLType": "pg_catalog.jsonb",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -437,6 +467,7 @@
             {
               "Name": "type",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -450,6 +481,7 @@
             {
               "Name": "refresh_token_hash",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -494,6 +526,7 @@
             {
               "Name": "role",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -523,6 +556,7 @@
             {
               "Name": "id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -552,6 +586,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -565,6 +600,7 @@
             {
               "Name": "user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -578,6 +614,7 @@
             {
               "Name": "credential_id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -591,6 +628,7 @@
             {
               "Name": "credential_public_key",
               "Type": "bytea",
+              "PhysicalSQLType": "pg_catalog.bytea",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -604,6 +642,7 @@
             {
               "Name": "counter",
               "Type": "int8",
+              "PhysicalSQLType": "pg_catalog.int8",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -617,6 +656,7 @@
             {
               "Name": "transports",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -630,6 +670,7 @@
             {
               "Name": "nickname",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -674,6 +715,7 @@
             {
               "Name": "value",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -687,6 +729,7 @@
             {
               "Name": "comment",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -716,6 +759,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -729,6 +773,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -742,6 +787,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -755,6 +801,7 @@
             {
               "Name": "user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -768,6 +815,7 @@
             {
               "Name": "access_token",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -781,6 +829,7 @@
             {
               "Name": "refresh_token",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -794,6 +843,7 @@
             {
               "Name": "provider_id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -807,6 +857,7 @@
             {
               "Name": "provider_user_id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -866,6 +917,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -879,6 +931,7 @@
             {
               "Name": "options",
               "Type": "jsonb",
+              "PhysicalSQLType": "pg_catalog.jsonb",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -908,6 +961,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -921,6 +975,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -934,6 +989,7 @@
             {
               "Name": "user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -947,6 +1003,7 @@
             {
               "Name": "role",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1003,6 +1060,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1016,6 +1074,7 @@
             {
               "Name": "stage_name",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1029,6 +1088,7 @@
             {
               "Name": "created_by",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1070,6 +1130,7 @@
             {
               "Name": "value",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1083,6 +1144,7 @@
             {
               "Name": "comment",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1112,6 +1174,7 @@
             {
               "Name": "id",
               "Type": "int8",
+              "PhysicalSQLType": "pg_catalog.int8",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": true,
@@ -1125,6 +1188,7 @@
             {
               "Name": "owner_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1138,6 +1202,7 @@
             {
               "Name": "note",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1167,6 +1232,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1180,6 +1246,7 @@
             {
               "Name": "file_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1193,6 +1260,7 @@
             {
               "Name": "department_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1206,6 +1274,7 @@
             {
               "Name": "description",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1250,6 +1319,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1263,6 +1333,7 @@
             {
               "Name": "title",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1276,6 +1347,7 @@
             {
               "Name": "summary",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1289,6 +1361,7 @@
             {
               "Name": "content",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1302,6 +1375,7 @@
             {
               "Name": "uploader_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1315,6 +1389,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1328,6 +1403,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1341,6 +1417,7 @@
             {
               "Name": "embeddings",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1354,6 +1431,7 @@
             {
               "Name": "embeddings_outdated",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1391,6 +1469,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1404,6 +1483,7 @@
             {
               "Name": "kb_entry_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1417,6 +1497,7 @@
             {
               "Name": "department_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1469,6 +1550,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1482,6 +1564,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1495,6 +1578,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1508,6 +1592,7 @@
             {
               "Name": "is_public",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1521,6 +1606,7 @@
             {
               "Name": "title",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1534,6 +1620,7 @@
             {
               "Name": "content",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1547,6 +1634,7 @@
             {
               "Name": "department_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1560,6 +1648,7 @@
             {
               "Name": "author_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1611,6 +1700,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1624,6 +1714,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1637,6 +1728,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1650,6 +1742,7 @@
             {
               "Name": "title",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1663,6 +1756,7 @@
             {
               "Name": "content",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1676,6 +1770,7 @@
             {
               "Name": "department_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1689,6 +1784,7 @@
             {
               "Name": "author_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1716,6 +1812,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1729,6 +1826,7 @@
             {
               "Name": "source",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1742,6 +1840,7 @@
             {
               "Name": "title",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1755,6 +1854,7 @@
             {
               "Name": "content",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1768,6 +1868,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1795,6 +1896,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1808,6 +1910,7 @@
             {
               "Name": "name",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1821,6 +1924,7 @@
             {
               "Name": "description",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1834,6 +1938,7 @@
             {
               "Name": "budget",
               "Type": "numeric",
+              "PhysicalSQLType": "pg_catalog.\"numeric\"",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1847,6 +1952,7 @@
             {
               "Name": "has_high_budget",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": true,
               "IsGenerated": true,
               "IsIdentity": false,
@@ -1860,6 +1966,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1873,6 +1980,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1909,6 +2017,7 @@
             {
               "Name": "user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1922,6 +2031,7 @@
             {
               "Name": "department_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1935,6 +2045,7 @@
             {
               "Name": "role",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1948,6 +2059,7 @@
             {
               "Name": "joined_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -1961,6 +2073,7 @@
             {
               "Name": "is_active",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2013,6 +2126,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2026,6 +2140,7 @@
             {
               "Name": "name",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2039,6 +2154,7 @@
             {
               "Name": "geom",
               "Type": "geometry",
+              "PhysicalSQLType": "public.geometry",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2052,6 +2168,7 @@
             {
               "Name": "geog",
               "Type": "geography",
+              "PhysicalSQLType": "public.geography",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2065,6 +2182,7 @@
             {
               "Name": "area",
               "Type": "geometry",
+              "PhysicalSQLType": "public.geometry",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2078,6 +2196,7 @@
             {
               "Name": "nullable_geom",
               "Type": "geometry",
+              "PhysicalSQLType": "public.geometry",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2118,6 +2237,7 @@
             {
               "Name": "id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2131,6 +2251,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2144,6 +2265,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2157,6 +2279,7 @@
             {
               "Name": "download_expiration",
               "Type": "int4",
+              "PhysicalSQLType": "pg_catalog.int4",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2170,6 +2293,7 @@
             {
               "Name": "min_upload_file_size",
               "Type": "int4",
+              "PhysicalSQLType": "pg_catalog.int4",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2183,6 +2307,7 @@
             {
               "Name": "max_upload_file_size",
               "Type": "int4",
+              "PhysicalSQLType": "pg_catalog.int4",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2196,6 +2321,7 @@
             {
               "Name": "cache_control",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2209,6 +2335,7 @@
             {
               "Name": "presigned_urls_enabled",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2238,6 +2365,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2251,6 +2379,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2264,6 +2393,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2277,6 +2407,7 @@
             {
               "Name": "bucket_id",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2290,6 +2421,7 @@
             {
               "Name": "name",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2303,6 +2435,7 @@
             {
               "Name": "size",
               "Type": "int4",
+              "PhysicalSQLType": "pg_catalog.int4",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2316,6 +2449,7 @@
             {
               "Name": "mime_type",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2329,6 +2463,7 @@
             {
               "Name": "etag",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2342,6 +2477,7 @@
             {
               "Name": "is_uploaded",
               "Type": "bool",
+              "PhysicalSQLType": "pg_catalog.bool",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2355,6 +2491,7 @@
             {
               "Name": "uploaded_by_user_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2368,6 +2505,7 @@
             {
               "Name": "metadata",
               "Type": "jsonb",
+              "PhysicalSQLType": "pg_catalog.jsonb",
               "IsNullable": true,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2405,6 +2543,7 @@
             {
               "Name": "id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2418,6 +2557,7 @@
             {
               "Name": "created_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2431,6 +2571,7 @@
             {
               "Name": "updated_at",
               "Type": "timestamptz",
+              "PhysicalSQLType": "pg_catalog.timestamptz",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2444,6 +2585,7 @@
             {
               "Name": "file_id",
               "Type": "uuid",
+              "PhysicalSQLType": "pg_catalog.uuid",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2457,6 +2599,7 @@
             {
               "Name": "filename",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2470,6 +2613,7 @@
             {
               "Name": "virus",
               "Type": "text",
+              "PhysicalSQLType": "pg_catalog.text",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,
@@ -2483,6 +2627,7 @@
             {
               "Name": "user_session",
               "Type": "jsonb",
+              "PhysicalSQLType": "pg_catalog.jsonb",
               "IsNullable": false,
               "IsGenerated": false,
               "IsIdentity": false,

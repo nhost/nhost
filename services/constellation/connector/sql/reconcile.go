@@ -29,17 +29,21 @@ const permissionAllColumns = "*"
 //     InsertPermission.Set / UpdatePermission.Set are dropped when no such
 //     column exists on the introspected table (kind=column).
 //   - Functions: dropped when absent from objects.Functions (kind=function).
+//   - PostgreSQL computed fields: invalid definitions are dropped individually;
+//     invalid grants and unexecutable computed predicates drop their permission.
+//     Malformed _exists operators or untracked targets also drop their containing
+//     permission, including when its predicate has no computed references.
 //   - Object/Array relationships: dropped when the target table (only when
 //     it lives in the same source) does not exist (kind=relationship).
 //   - Raw to_source remote relationships: dropped when relationship_type is
 //     missing or not one of object/array (kind=relationship).
 //
 // Reconciliation is intentionally scoped: Hasura-expression Filter/Check
-// trees inside permissions are not walked because they reference columns
-// through a separate parser; a missing column inside those expressions still
-// surfaces as a query-time error today. Cross-source relationship targets
-// are also not validated here — the composer's relationship layer handles
-// those.
+// trees inside permissions are walked for computed-field dependencies and
+// malformed or untracked _exists references; ordinary unknown keys retain
+// their existing root-construction behavior.
+// Cross-source relationship targets are not validated here — the composer's
+// relationship layer handles those.
 func reconcileMetadata(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -54,6 +58,9 @@ func reconcileMetadata(
 	out := *dbMeta
 
 	out.Tables = reconcileTables(ctx, logger, inc, dbMeta.Name, dbMeta.Tables, objects)
+	if dbMeta.Kind == "postgres" || dbMeta.Kind == "" {
+		reconcileComputedFields(ctx, logger, inc, dbMeta, &out, objects)
+	}
 
 	survivingTables := make(map[string]struct{}, len(out.Tables))
 	for i := range out.Tables {

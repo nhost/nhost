@@ -1,14 +1,55 @@
 [
   {
     "Name": "insert_department_files",
-    "SQL": "WITH check_nested_file AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"bucket_id\") AS data WHERE true), nested_file AS (INSERT INTO \"storage\".\"files\" (\"id\", \"bucket_id\") SELECT check_nested_file.\"id\", check_nested_file.\"bucket_id\" FROM check_nested_file RETURNING *), check_mutation_result AS (SELECT * FROM (SELECT $3::uuid AS \"id\", $4::text AS \"description\", $5::uuid AS \"department_id\", nested_file.\"id\" AS \"file_id\" FROM nested_file) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"department_files\" (\"id\", \"description\", \"department_id\", \"file_id\") SELECT check_mutation_result.\"id\", check_mutation_result.\"description\", check_mutation_result.\"department_id\", nested_file.\"id\" FROM check_mutation_result, nested_file RETURNING *) SELECT json_build_object('affected_rows', ((SELECT COUNT(*) FROM mutation_result) + (SELECT COUNT(*) FROM nested_file)), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\" FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_file) IS NOT NULL) AS \"_e\"))",
-    "Parameters": [
-      "00000000-0000-0000-0000-0000000000ff",
-      "default",
-      "00000000-0000-0000-0000-0000000000fe",
-      "object-rel-affected-rows",
-      "2db9de0a-b9ba-416e-8619-783a399ae2b3"
-    ],
-    "StreamCursors": null
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Insert": {
+      "Root": {
+        "Batch": null,
+        "Objects": [
+          {
+            "Row": {
+              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"description\", $3::uuid AS \"department_id\", $4::text::pg_catalog.uuid AS \"file_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"department_files\" (\"id\", \"description\", \"department_id\", \"file_id\") SELECT check_mutation_result.\"id\", check_mutation_result.\"description\", check_mutation_result.\"department_id\", check_mutation_result.\"file_id\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"file_id\"::text AS \"file_id\", \"department_id\"::text AS \"department_id\", \"description\"::text AS \"description\" FROM mutation_result) AS \"_physical\"",
+              "Parameters": [
+                "00000000-0000-0000-0000-0000000000fe",
+                "object-rel-affected-rows",
+                "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+                {
+                  "Source": "file",
+                  "TableRef": "\"storage\".\"files\"",
+                  "Column": "id"
+                }
+              ],
+              "TableRef": "\"public\".\"department_files\""
+            },
+            "Before": [
+              {
+                "Name": "file",
+                "Level": {
+                  "Batch": {
+                    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"bucket_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"storage\".\"files\" (\"id\", \"bucket_id\") SELECT check_mutation_result.\"id\", check_mutation_result.\"bucket_id\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"created_at\"::text AS \"created_at\", \"updated_at\"::text AS \"updated_at\", \"bucket_id\"::text AS \"bucket_id\", \"name\"::text AS \"name\", \"size\"::text AS \"size\", \"mime_type\"::text AS \"mime_type\", \"etag\"::text AS \"etag\", \"is_uploaded\"::text AS \"is_uploaded\", \"uploaded_by_user_id\"::text AS \"uploaded_by_user_id\", \"metadata\"::text AS \"metadata\" FROM mutation_result) AS \"_physical\"",
+                    "Parameters": [
+                      "00000000-0000-0000-0000-0000000000ff",
+                      "default"
+                    ],
+                    "TableRef": "\"storage\".\"files\""
+                  },
+                  "Objects": null
+                }
+              }
+            ],
+            "Arrays": null,
+            "AfterObjects": null
+          }
+        ]
+      },
+      "FinalSQL": "WITH mutation_result AS (SELECT (value ->> 'id')::text::pg_catalog.uuid AS \"id\", (value ->> 'file_id')::text::pg_catalog.uuid AS \"file_id\", (value ->> 'department_id')::text::pg_catalog.uuid AS \"department_id\", (value ->> 'description')::text::pg_catalog.text AS \"description\" FROM json_array_elements($1::json) AS \"_rows\"(value)), nested_affected_rows AS (SELECT generate_series(1, $2::integer)) SELECT json_build_object('affected_rows', ((SELECT COUNT(*) FROM mutation_result) + (SELECT COUNT(*) FROM nested_affected_rows)), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\" FROM mutation_result) AS \"_e\"))",
+      "FinalParameters": [
+        null,
+        null
+      ],
+      "Collection": true
+    }
   }
 ]

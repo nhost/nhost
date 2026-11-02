@@ -153,6 +153,51 @@ func normalizeOperation(op *core.SQLOperation) {
 	for i := range op.Sequential {
 		normalizeOperation(&op.Sequential[i])
 	}
+
+	if op.Insert != nil {
+		normalizeInsertLevel(&op.Insert.Root)
+
+		for i := range op.Insert.FinalParameters {
+			op.Insert.FinalParameters[i] = normalizeValue(op.Insert.FinalParameters[i])
+		}
+	}
+}
+
+func normalizeInsertLevel(level *core.InsertLevel) {
+	if level.Batch != nil {
+		normalizeInsertStatement(level.Batch)
+	}
+
+	for i := range level.Objects {
+		obj := &level.Objects[i]
+		normalizeInsertStatement(&obj.Row)
+
+		for _, branches := range [][]core.InsertBranch{obj.Before, obj.Arrays, obj.AfterObjects} {
+			for i := range branches {
+				normalizeInsertLevel(&branches[i].Level)
+			}
+		}
+	}
+}
+
+func normalizeInsertStatement(stmt *core.InsertStatement) {
+	for i, value := range stmt.Parameters {
+		if marker, ok := value.(map[string]any); ok {
+			source, sourceOK := marker["Source"].(string)
+			tableRef, tableOK := marker["TableRef"].(string)
+
+			column, columnOK := marker["Column"].(string)
+			if sourceOK && tableOK && columnOK {
+				stmt.Parameters[i] = core.InsertFKValue{
+					Source: source, TableRef: tableRef, Column: column,
+				}
+
+				continue
+			}
+		}
+
+		stmt.Parameters[i] = normalizeValue(value)
+	}
 }
 
 func execureOperation(
@@ -171,6 +216,10 @@ func execureOperation(
 
 func executeOperationRows(t *testing.T, tx pgx.Tx, operation core.SQLOperation) any {
 	t.Helper()
+
+	if operation.Insert != nil {
+		return executeInsertGolden(t, tx, operation)
+	}
 
 	if len(operation.Sequential) > 0 {
 		row := make([]any, 0, len(operation.Sequential))
@@ -218,27 +267,7 @@ func executeOperationRows(t *testing.T, tx pgx.Tx, operation core.SQLOperation) 
 
 	if err := r.Err(); err != nil {
 		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
-			// Convert PgError to a map to ensure proper JSON serialization
-			return map[string]any{
-				"Severity":            pgErr.Severity,
-				"SeverityUnlocalized": pgErr.SeverityUnlocalized,
-				"Code":                pgErr.Code,
-				"Message":             pgErr.Message,
-				"Detail":              pgErr.Detail,
-				"Hint":                pgErr.Hint,
-				"Position":            pgErr.Position,
-				"InternalPosition":    pgErr.InternalPosition,
-				"InternalQuery":       pgErr.InternalQuery,
-				"Where":               pgErr.Where,
-				"SchemaName":          pgErr.SchemaName,
-				"TableName":           pgErr.TableName,
-				"ColumnName":          pgErr.ColumnName,
-				"DataTypeName":        pgErr.DataTypeName,
-				"ConstraintName":      pgErr.ConstraintName,
-				"File":                pgErr.File,
-				"Line":                pgErr.Line,
-				"Routine":             pgErr.Routine,
-			}
+			return postgresErrorGolden(pgErr)
 		}
 
 		return err //nolint:wrapcheck

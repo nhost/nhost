@@ -38,7 +38,7 @@ func (t *table) buildQueryAggregateSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -55,6 +55,7 @@ func (t *table) buildQueryAggregateSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -78,7 +79,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	outerTypenames, aggregateFields, nodesFields, err := t.astToAggregateSelection(
-		field, fragments, variables,
+		field, fragments, variables, role, argumentPath,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -158,6 +159,23 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 
 	b.WriteString(") ")
 
+	operands, expanded := expandedAggregateOperands(aggregateFields, t)
+
+	aggregateSource := baseAlias
+	if len(operands) > 0 {
+		aggregateSource = "_root.expanded"
+
+		params, paramIndex, err = t.writeExpandedAggregateCTE(
+			b, baseAlias, aggregateSource, "", groupedLimitOffset{
+				limit: 0, offset: 0, hasLimit: false, hasOffset: false,
+			}, operands, expanded,
+			variables, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
 	// Build the outer SELECT with json_build_object
 	b.WriteString("SELECT ")
 	b.WriteString(t.dialect.JSONBuildObject())
@@ -176,9 +194,14 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	}
 
 	hasOuterFields := !firstOuter
-	hasOuterFields = t.writeAggregateFieldSelections(
-		b, aggregateFields, baseAlias, hasOuterFields,
+
+	hasOuterFields, params, paramIndex, err = t.writeAggregateFieldSelections(
+		b, aggregateFields, aggregateSource, hasOuterFields,
+		variables, sessionVariables, params, paramIndex, expanded,
 	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	for i := range nodesFields {
 		params, paramIndex, err = t.writeAggregateNodes(
@@ -193,7 +216,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 			distinctOn,
 			nodesFields[i].responseName,
 			nodesFields[i].field,
-			baseAlias,
+			aggregateSource,
 			argumentPath,
 			hasOuterFields,
 		)
@@ -216,7 +239,10 @@ func (t *table) writeAggregateFieldSelections(
 	aggregateFields []aggregateFieldSelection,
 	baseAlias string,
 	hasPrecedingFields bool,
-) bool {
+	variables, sessionVariables map[string]any,
+	params []any, paramIndex int,
+	expanded map[*ast.Field]string,
+) (bool, []any, int, error) {
 	hasOuterFields := hasPrecedingFields
 
 	for i := range aggregateFields {
@@ -241,7 +267,27 @@ func (t *table) writeAggregateFieldSelections(
 				b.WriteString(", ")
 			}
 
-			agg.Write(b)
+			if fn, ok := agg.(*aggregateFunctionSelection); ok {
+				var err error
+
+				params, paramIndex, err = fn.writeBound(
+					b,
+					`"`+baseAlias+`"`,
+					t,
+					variables,
+					sessionVariables,
+					false,
+					"",
+					params,
+					paramIndex,
+					expanded,
+				)
+				if err != nil {
+					return false, nil, 0, err
+				}
+			} else {
+				agg.Write(b)
+			}
 		}
 
 		b.WriteString(`) FROM "`)
@@ -249,7 +295,7 @@ func (t *table) writeAggregateFieldSelections(
 		b.WriteString(`")`)
 	}
 
-	return hasOuterFields
+	return hasOuterFields, params, paramIndex, nil
 }
 
 //nolint:funlen // Keep aggregate-node SQL assembly cohesive with the surrounding CTE builder.
@@ -343,7 +389,7 @@ func (t *table) buildNodesFromCTE(
 	argumentPath string,
 ) ([]any, int, error) {
 	// Note: Remote relationships in aggregate nodes are not supported and are ignored
-	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
+	columns, relationships, err := t.astToQuerySelection(nodesField, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -352,7 +398,13 @@ func (t *table) buildNodesFromCTE(
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
-	first := t.writeNodeColumnSelections(b, columns, cteAlias)
+	first, params, paramIndex, err := t.writeQueryNodeColumns(
+		b, columns, cteAlias, variables, sessionVariables, params, paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building computed aggregate nodes: %w", err)
+	}
 
 	if t.dialect.SupportsLateral() {
 		return t.buildNodesRelationshipsLateral(
@@ -440,7 +492,7 @@ func (t *table) buildNodesRelationshipsLateral(
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
@@ -484,7 +536,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 		b.WriteString(relSel.alias)
 		b.WriteString("', (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
@@ -521,7 +573,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 	argumentPath string,
 	distinctOn *arguments.DistinctOn,
 ) ([]any, int, error) {
-	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
+	columns, relationships, err := t.astToQuerySelection(nodesField, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -530,7 +582,13 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
-	hasColumns := t.writeNodeColumnSelections(b, columns, cteAlias)
+	hasColumns, params, paramIndex, err := t.writeQueryNodeColumns(
+		b, columns, cteAlias, variables, sessionVariables, params, paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building computed aggregate nodes: %w", err)
+	}
 
 	// Relationships (DISTINCT ON is PostgreSQL-only, so always use LATERAL here)
 	for _, relSel := range relationships {
@@ -566,7 +624,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)

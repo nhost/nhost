@@ -44,7 +44,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -167,7 +167,7 @@ describe('user/deanonymize/sms', () => {
 
     await request.post('/change-env').send({
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -221,7 +221,7 @@ describe('user/deanonymize/sms', () => {
 
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     await request
@@ -268,7 +268,7 @@ describe('user/deanonymize/sms', () => {
 
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     await request
@@ -319,7 +319,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -382,7 +382,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -466,7 +466,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const ids: string[] = [];
@@ -564,7 +564,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -626,7 +626,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -731,7 +731,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -808,7 +808,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -892,7 +892,7 @@ describe('user/deanonymize/sms', () => {
 
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const verifySMSOTP = async (): Promise<
@@ -950,7 +950,7 @@ describe('user/deanonymize/sms', () => {
 
     await request.post('/change-env').send({
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -1014,7 +1014,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -1060,13 +1060,13 @@ describe('user/deanonymize/sms', () => {
     expect(rows[0].new_phone_number).toBeNull();
   });
 
-  it('rejects when SMS passwordless is disabled', async () => {
+  it('rejects when SMS OTP is disabled', async () => {
     const phoneNumber = '+15551110002';
 
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: false,
+      AUTH_OTP_SMS_ENABLED: false,
     });
 
     const { body: anonBody }: { body: SignInResponse } = await request
@@ -1090,7 +1090,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     // First user takes the phone via signup AND verifies it.
@@ -1125,7 +1125,7 @@ describe('user/deanonymize/sms', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     const email = 'not-anon@example.com';
