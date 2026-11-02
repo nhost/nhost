@@ -40,7 +40,6 @@ export const baseSecretFormValidationSchema = Yup.object({
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  // Can be empty: some setups need a secret that exists with no value.
   value: Yup.string().label('Value'),
 });
 
