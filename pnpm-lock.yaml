@@ -107,6 +107,11 @@ settings:
 
 overrides:
   graphql-config>minimatch: ^11.0.4
+  '@typescript-eslint/typescript-estree>minimatch': ^11.0.4
+  '@expo/cli>minimatch': ^11.0.4
+  '@expo/fingerprint>minimatch': ^11.0.4
+  '@expo/metro-config>minimatch': ^11.0.4
+  glob@>=9.0.0 <14.0.2: ^14.0.2
   typescript: 5.9.3
   esbuild@<=0.24.2: '>=0.25.0'
   vite@>=8.0.0 <8.0.6: '>=8.0.6'
