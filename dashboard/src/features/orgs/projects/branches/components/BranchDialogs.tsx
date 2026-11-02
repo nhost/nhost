@@ -1,4 +1,3 @@
-import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -157,7 +156,6 @@ export function MergeDialog({
           </DialogDescription>
         </DialogHeader>
         <Alert variant="default" className="py-3">
-          <Info className="size-4" />
           <AlertDescription>
             A preview of the changes isn't available yet. Check them on the
             branch before merging.

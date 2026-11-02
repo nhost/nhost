@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { CheckCircle2, Info, Pencil } from 'lucide-react';
+import { CheckCircle2, Pencil } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
@@ -221,7 +221,6 @@ export default function NewBranchForm() {
       </div>
 
       <Alert variant="default" className="py-3">
-        <Info className="size-4" />
         <AlertDescription>
           Only the structure is copied, not the data. The new branch starts
           empty, so no real user data leaves production.
