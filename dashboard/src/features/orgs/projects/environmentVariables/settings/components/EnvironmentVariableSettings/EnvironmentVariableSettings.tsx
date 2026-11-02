@@ -123,7 +123,6 @@ export default function EnvironmentVariableSettings() {
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
     openDialog({
-      // Long names end in "…" instead of stretching the popup.
       title: (
         <span className="block truncate" title={originalVariable.name}>
           Edit {originalVariable.name}
@@ -147,9 +146,14 @@ export default function EnvironmentVariableSettings() {
       title: 'Delete environment variable',
       payload: (
         <p>
-          Are you sure you want to delete the &quot;
-          <strong>{originalVariable.name}</strong>&quot; environment variable?
-          This cannot be undone.
+          Are you sure you want to delete the{' '}
+          <strong
+            className="inline-block max-w-full truncate align-bottom"
+            title={originalVariable.name}
+          >
+            {originalVariable.name}
+          </strong>{' '}
+          environment variable? This cannot be undone.
         </p>
       ),
       props: {
