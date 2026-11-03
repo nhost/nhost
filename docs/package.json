@@ -30,7 +30,7 @@
     "asciinema-player": "^3.17.0",
     "astro": "^7.4.2",
     "github-slugger": "^2.0.0",
-    "glob": "^13.0.6",
+    "glob": "^14.0.2",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.3.2",
     "mermaid": "^11.17.2",
