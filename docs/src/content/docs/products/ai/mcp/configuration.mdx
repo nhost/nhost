@@ -2,8 +2,8 @@
 title: Configuration
 description: >-
   Every flag and environment variable for the Backend MCP Server, including the
-  GraphQL endpoint, OAuth2 auth URL, role enforcement, and tool instructions.
-keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
+  GraphQL endpoint, optional storage URL, OAuth2 auth URL, role enforcement, and tool instructions.
+keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_STORAGE_URL", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
 head:
   - tag: title
     content: "Backend MCP Server Flags and Environment Variables | Nhost Docs"
@@ -27,6 +27,16 @@ Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
 | Flag | Environment variable | Description |
 |------|----------------------|-------------|
 | `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | **Required.** The GraphQL endpoint the server forwards queries and mutations to. On Nhost Run this is usually the internal endpoint, for example `http://hasura-service:8080/v1/graphql`. |
+
+## Storage
+
+| Flag | Environment variable | Description |
+|------|----------------------|-------------|
+| `--storage-url` | `MCP_STORAGE_URL` | **Optional.** The storage service URL for the **same backend** as the GraphQL and Auth endpoints, including its API prefix (normally `/v1`), for example `https://SUBDOMAIN.storage.REGION.nhost.run/v1`. Enables `storage-upload`, `storage-download`, `storage-update`, and `storage-delete` when set. |
+
+The storage URL must be configured explicitly; it is not inferred from the GraphQL endpoint. If omitted, no storage tools are registered. It must be an absolute HTTP(S) URL without embedded credentials, a query, or a fragment; invalid values make startup fail.
+
+Storage tools forward the caller's JWT, so configure [Storage permissions](/products/ai/mcp/permissions#storage-permissions) for the role before enabling file access.
 
 ## Authentication
 
