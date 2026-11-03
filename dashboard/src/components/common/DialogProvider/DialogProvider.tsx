@@ -368,6 +368,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           >
             <div
               className={cn(
+                'min-w-0',
                 (!alertDialogProps?.hidePrimaryAction ||
                   !alertDialogProps?.hideSecondaryAction) &&
                   'pb-12',
@@ -461,7 +462,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
                 dialogProps?.titleProps?.className,
               )}
             >
-              <DialogTitle className="font-semibold text-xl leading-7 tracking-normal">
+              <DialogTitle className="min-w-0 font-semibold text-xl leading-7 tracking-normal">
                 {dialogTitle}
               </DialogTitle>
               {dialogProps?.titleProps?.onClose && (

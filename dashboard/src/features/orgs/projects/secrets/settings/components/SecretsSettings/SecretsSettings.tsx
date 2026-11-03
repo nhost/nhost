@@ -104,7 +104,11 @@ export default function SecretsSettings() {
 
   function handleOpenEditor(originalSecret: Secret) {
     openDialog({
-      title: `Replace ${originalSecret.name}`,
+      title: (
+        <span className="block truncate" title={originalSecret.name}>
+          Replace {originalSecret.name}
+        </span>
+      ),
       component: <EditSecretForm originalSecret={originalSecret} />,
       props: {
         titleProps: { className: '!pb-0' },
@@ -118,9 +122,14 @@ export default function SecretsSettings() {
       title: 'Delete secret',
       payload: (
         <p>
-          Are you sure you want to delete the &quot;
-          <strong>{originalSecret.name}</strong>&quot; secret? This cannot be
-          undone.
+          Are you sure you want to delete the{' '}
+          <strong
+            className="inline-block max-w-full truncate align-bottom"
+            title={originalSecret.name}
+          >
+            {originalSecret.name}
+          </strong>{' '}
+          secret? This cannot be undone.
         </p>
       ),
       props: {
