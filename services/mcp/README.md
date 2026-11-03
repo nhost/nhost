@@ -14,6 +14,25 @@ The MCP server sits between your AI assistant and your Nhost project's GraphQL A
 
 On startup, the server fetches a schema summary from your GraphQL endpoint and includes it in the MCP instructions, giving the AI assistant immediate context about your data model without any additional configuration.
 
+## Session Variables
+
+Both `graphql-query` and `graphql-mutation` accept an optional `session_variables` object alongside `query` and `variables`. Use string values and keys **without** the `x-hasura-` prefix:
+
+```json
+{
+  "query": "query Users($limit: Int!) { users(limit: $limit) { id } }",
+  "variables": { "limit": 10 },
+  "session_variables": {
+    "role": "facilitator",
+    "something": "else"
+  }
+}
+```
+
+The MCP service forwards these as HTTP headers on that GraphQL request: `x-hasura-role: facilitator` and `x-hasura-something: else`. Session variables are not included in the GraphQL request body and do not persist between tool calls. Omitting the object (or passing `{}`) sends no session-variable headers.
+
+The authenticated user's Authorization header is still forwarded. The upstream GraphQL server validates the requested role and applies its session-variable and permission rules.
+
 ## Authentication with OAuth2
 
 The MCP service integrates with Nhost Auth as an [OAuth2 authorization server](https://docs.nhost.io/products/auth/oauth2-provider/), following the [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization). This means any MCP client that supports OAuth2 can authenticate with your Nhost project automatically.
@@ -33,7 +52,7 @@ IMPORTANT! [CIMD](https://docs.nhost.io/products/auth/oauth2-provider/cimd-clien
 
 The `--enforce-role` flag restricts the MCP server to accept only tokens whose `x-hasura-default-role` claim matches the specified role. Requests with a different default role receive a 403 Forbidden response.
 
-For example, setting `--enforce-role=user_mcp` means only tokens issued with `user_mcp` as the default role will be accepted. If you've configured permissions for that role with limited access (e.g., read-only on certain tables), the AI assistant will be restricted to those permissions.
+For example, setting `--enforce-role=user_mcp` means only tokens issued with `user_mcp` as the default role will be accepted. This checks the token's default role, not the `role` session variable: callers can request another role if the upstream GraphQL server permits it. To restrict AI access to `user_mcp` permissions, ensure the token's allowed roles are also limited to `user_mcp`.
 
 This lets you:
 
