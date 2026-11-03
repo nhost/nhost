@@ -1,24 +1,6 @@
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  rectSortingStrategy,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
-import { ArrowRight, Move, Plus, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Plus, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -36,24 +18,11 @@ import {
   ServiceState,
   useGetProjectServicesHealthQuery,
 } from '@/generated/graphql';
-import { cn } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectCardVariations from './ProjectCardVariations';
-import useProjectOrder from './useProjectOrder';
 
 export type Project = GetProjectsQuery['apps'][0];
 
-export function ProjectCard({
-  project,
-  dragHandle,
-  previewIssues,
-}: {
-  project: Project;
-  /** Shown right after the title on hover. */
-  dragHandle?: ReactNode;
-  /** TEMPORARY, for the card variations demo: fake warnings, no health check. */
-  previewIssues?: string[];
-}) {
+export function ProjectCard({ project }: { project: Project }) {
   const { org } = useCurrentOrg();
 
   const [latestPipelineRun] = project.pipelineRuns;
@@ -75,11 +44,11 @@ export function ProjectCard({
   // Same check as the project's Project health section, only for live projects.
   const { data: health } = useGetProjectServicesHealthQuery({
     variables: { appId: project.id },
-    skip: !isPlatform || !isLive || !!previewIssues,
+    skip: !isPlatform || !isLive,
   });
 
   // Everything that needs attention, one line each for the warning tooltip.
-  const issues: string[] = [...(previewIssues ?? [])];
+  const issues: string[] = [];
   for (const service of health?.getProjectStatus?.services ?? []) {
     const name =
       baseServices[service.name as keyof typeof baseServices]?.displayName ??
@@ -99,8 +68,8 @@ export function ProjectCard({
     issues.push('The last deployment failed');
   }
 
-  // The link is a layer under the whole card, not a wrapper: the move icon
-  // sits outside it, so dragging or pressing it can never open the project.
+  // The link is a layer under the whole card, not a wrapper: the warning icon
+  // sits above it, so its tooltip opens without opening the project.
   return (
     <div className="group relative flex h-full min-h-44 flex-col rounded-lg transition-colors duration-300">
       <Link
@@ -123,12 +92,6 @@ export function ProjectCard({
               <p title={project.name} className="truncate font-bold text-lg">
                 {project.name}
               </p>
-              {/* Right after the title, shown on hover or keyboard focus. */}
-              {dragHandle && (
-                <span className="relative z-20 flex shrink-0 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/sortable:opacity-100">
-                  {dragHandle}
-                </span>
-              )}
               {issues.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -183,86 +146,12 @@ export function ProjectCard({
   );
 }
 
-/**
- * A card that can be dragged by its handle (shown on hover or keyboard focus).
- * While one card moves, the others slide out of its way.
- */
-function SortableProjectCard({ project }: { project: Project }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: project.id });
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        'group/sortable relative h-full',
-        isDragging && 'z-10 scale-[1.02] opacity-90 shadow-lg',
-      )}
-    >
-      <ProjectCard
-        project={project}
-        dragHandle={
-          // Hidden while dragging, so it doesn't follow the card around.
-          <Tooltip open={isDragging ? false : undefined}>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
-                aria-label={`Reorder ${project.name}`}
-                className={cn(
-                  'flex h-6 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground hover:text-foreground',
-                  isDragging && 'cursor-grabbing',
-                )}
-              >
-                <Move className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Drag to reorder</TooltipContent>
-          </Tooltip>
-        }
-      />
-    </div>
-  );
-}
-
 interface ProjectGridProps {
   projects: Project[];
 }
 
 export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
-  const [orderedProjects, saveOrder] = useProjectOrder(org?.slug, projects);
-  // A small move before a drag starts, so clicking a card still opens it.
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  function handleDragEnd({ active, over }: DragEndEvent) {
-    if (!over || active.id === over.id) {
-      return;
-    }
-    const ids = orderedProjects.map((project) => project.id);
-    saveOrder(
-      arrayMove(
-        ids,
-        ids.indexOf(String(active.id)),
-        ids.indexOf(String(over.id)),
-      ),
-    );
-  }
 
   return (
     <div className="mx-auto h-full overflow-auto bg-background pb-16">
@@ -277,28 +166,10 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
       </div>
       {/* auto-rows-fr: every row as tall as the tallest card, deployment or not. */}
       <div className="mx-auto grid w-full max-w-5xl auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={orderedProjects.map((project) => project.id)}
-            strategy={rectSortingStrategy}
-          >
-            {/* One project has nowhere to go, so no drag handle until there are two. */}
-            {orderedProjects.map((project) =>
-              orderedProjects.length > 1 ? (
-                <SortableProjectCard key={project.id} project={project} />
-              ) : (
-                <ProjectCard key={project.id} project={project} />
-              ),
-            )}
-          </SortableContext>
-        </DndContext>
+        {projects.map((project) => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
       </div>
-      {/* TEMPORARY card variations demo, remove after the team review. */}
-      <ProjectCardVariations />
     </div>
   );
 }
