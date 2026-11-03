@@ -77,8 +77,6 @@ export default function BaseSecretForm({
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        {/* A secret can't be read back, so editing only replaces its value.
-            Its name can't change: the configuration refers to it by name. */}
         {mode === 'edit' ? (
           <p className="text-muted-foreground text-sm">
             The current value is hidden. Saving replaces it.
