@@ -333,7 +333,7 @@ describe('SettingsGeneralPage', () => {
     {
       tab: 'environment-variables',
       title: 'Environment Variables',
-      content: { role: 'heading', name: 'Project Environment Variables' },
+      content: { role: 'heading', name: 'Project environment variables' },
     },
     // The secrets card has no title of its own (it would repeat the page
     // title), so its Create button shows the content loaded.
