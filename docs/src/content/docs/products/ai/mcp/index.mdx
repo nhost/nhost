@@ -50,7 +50,7 @@ Backend MCP lets your users interact with your application through MCP-compatibl
 - **Reuse your GraphQL API** — your existing API schema automatically becomes available to the assistant.
 - **Reuse your permission model** — every request runs as the authenticated user, so your existing row-level and column-level permissions continue to apply.
 - **No per-tool integrations** — the assistant discovers the available tools and GraphQL schema through MCP instead of requiring you to implement a separate tool for every operation.
-- **Control how assistants use your backend** — provide application-specific instructions and optionally enforce a dedicated GraphQL role for AI access.
+- **Control how assistants use your backend** — provide application-specific instructions and optionally limit AI access with a dedicated GraphQL role and role-scoped tokens.
 - **Open source** — Backend MCP is a small Go service that you can inspect, extend, and self-host. The [source lives in the monorepo](https://github.com/nhost/nhost/tree/main/services/mcp).
 
 ## How it works
@@ -149,7 +149,7 @@ The assistant can therefore only read or modify data that the user is allowed to
 
 ### Dedicated AI role
 
-For additional control, you can create a GraphQL role specifically for AI access and enforce it when running Backend MCP.
+For additional control, you can create a GraphQL role specifically for AI access and require it as the token's default role when running Backend MCP.
 
 For example:
 
@@ -177,7 +177,9 @@ or:
 MCP_ENFORCE_ROLE=user_mcp
 ```
 
-This lets your application give users broader permissions through its normal UI while exposing a narrower set of capabilities to AI assistants.
+This checks only the token's `x-hasura-default-role`. Both GraphQL tools can select another allowed role per call through `session_variables.role`. To confine the assistant to `user_mcp`, also ensure its token's `x-hasura-allowed-roles` contains only `user_mcp`.
+
+With tokens limited this way, your application can give users broader permissions through its normal UI while exposing a narrower set of capabilities to AI assistants.
 
 For production applications, we recommend using a dedicated, least-privilege role and granting mutation permissions deliberately. See [Roles & Permissions](/products/ai/mcp/permissions).
 
@@ -208,7 +210,7 @@ You will usually also set:
 
 - `MCP_REALM` — the public URL of your Backend MCP Server, reported in the `WWW-Authenticate` header.
 - `MCP_INSTRUCTIONS` — application-specific instructions for the assistant.
-- `MCP_ENFORCE_ROLE` — a dedicated GraphQL role to use for AI access.
+- `MCP_ENFORCE_ROLE` — the required default GraphQL role in tokens used for AI access.
 
 See [Deployment](/products/ai/mcp/deployment) for the one-click installer, a `run-mcp.toml` example, and local development instructions.
 
