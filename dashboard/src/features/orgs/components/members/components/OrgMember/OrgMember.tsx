@@ -39,6 +39,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { RoleBadge } from '@/features/orgs/components/members/components/RoleBadge';
 import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -198,16 +199,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         </div>
 
         <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
-          <Badge
-            variant="outline"
-            className={cn(
-              'px-2 py-0.5 font-medium text-xs',
-              member.role === Organization_Members_Role_Enum.Admin &&
-                'border-primary text-primary',
-            )}
-          >
-            {member.role}
-          </Badge>
+          <RoleBadge role={member.role} />
 
           <div className="flex flex-row items-center gap-1">
             <Tooltip>
@@ -222,7 +214,13 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                     variant="subtle"
                     aria-label="Update role"
                     disabled={!canUpdateRole}
-                    onClick={() => setUpdateMemberRoleDialogOpen(true)}
+                    onClick={() => {
+                      form.reset({
+                        email: member.user.email,
+                        role: member.role,
+                      });
+                      setUpdateMemberRoleDialogOpen(true);
+                    }}
                   >
                     <UserCog />
                   </Button>
@@ -270,8 +268,11 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               <strong className="font-semibold text-foreground">
                 {member.user.displayName}
               </strong>{' '}
-              ({member.user.email}) from {orgName}. They&apos;ll lose access to
-              every project in it.
+              ({member.user.email}) from{' '}
+              <strong className="font-semibold text-foreground">
+                {orgName}
+              </strong>
+              . They&apos;ll lose access to every project in it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8">
@@ -350,7 +351,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Update</Button>
+                <Button
+                  type="submit"
+                  disabled={form.watch('role') === member.role}
+                >
+                  Update
+                </Button>
               </DialogFooter>
             </form>
           </Form>

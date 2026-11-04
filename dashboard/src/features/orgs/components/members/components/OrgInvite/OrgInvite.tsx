@@ -14,7 +14,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -38,6 +37,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { RoleBadge } from '@/features/orgs/components/members/components/RoleBadge';
 import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -159,16 +159,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
         </div>
 
         <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
-          <Badge
-            variant="outline"
-            className={cn(
-              'px-2 py-0.5 font-medium text-xs',
-              invite.role === Organization_Members_Role_Enum.Admin &&
-                'border-primary text-primary',
-            )}
-          >
-            {invite.role}
-          </Badge>
+          <RoleBadge role={invite.role} />
 
           <div className="flex flex-row items-center gap-1">
             <Tooltip>
@@ -238,8 +229,11 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               <strong className="font-semibold text-foreground">
                 {invite.email}
               </strong>
-              . They won&apos;t be able to join {org?.name} using this invite
-              anymore.
+              . They won&apos;t be able to join{' '}
+              <strong className="font-semibold text-foreground">
+                {org?.name}
+              </strong>{' '}
+              using this invite anymore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8">
@@ -323,7 +317,12 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Update</Button>
+                <Button
+                  type="submit"
+                  disabled={form.watch('role') === invite.role}
+                >
+                  Update
+                </Button>
               </DialogFooter>
             </form>
           </Form>

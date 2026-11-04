@@ -1,1 +1,1 @@
-export { default as RoleSelector } from './RoleSelector';
+export { default as RoleSelector, roleOptions } from './RoleSelector';

@@ -2,7 +2,7 @@ import { ShieldCheck, User } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
 import { Organization_Members_Role_Enum } from '@/generated/graphql';
 
-const roleOptions = [
+export const roleOptions = [
   {
     value: Organization_Members_Role_Enum.User,
     label: 'User',

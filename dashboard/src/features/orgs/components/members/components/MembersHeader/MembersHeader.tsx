@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -157,16 +156,16 @@ export default function MembersHeader() {
                 Add member
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-12 text-foreground sm:max-w-xl">
+            <DialogContent
+              aria-describedby={undefined}
+              className="p-12 text-foreground sm:max-w-xl"
+            >
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                   <DialogHeader className="mb-4">
                     <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
                       Add a member
                     </DialogTitle>
-                    <DialogDescription>
-                      Send invite over email (e.g. name@mycompany.com)
-                    </DialogDescription>
                   </DialogHeader>
 
                   <div className="mb-12 flex flex-col gap-4">
