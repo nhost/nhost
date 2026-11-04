@@ -29,7 +29,8 @@ const removeTOMLIndentation = (tomlStr: string) => {
 
 // In dark mode the code sits a step darker than the page, on the console
 // background, so it reads as its own surface under the header. Listed before
-// codeMirrorAppBackground so it wins over it (same precedence, earlier wins).
+// codeMirrorAppBackground so it wins over it: at the same precedence, earlier
+// wins, because EditorView mounts theme styles in reverse order.
 const darkEditorBackground = Prec.highest(
   EditorView.theme({
     '&, .cm-scroller, .cm-gutters': {
