@@ -34,17 +34,11 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -237,10 +231,15 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
         <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
-              Are you sure?
+              Delete invite?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action will delete the invite.
+              This will delete the invite sent to{' '}
+              <strong className="font-semibold text-foreground">
+                {invite.email}
+              </strong>
+              . They won&apos;t be able to join {org?.name} using this invite
+              anymore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8">
@@ -253,7 +252,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               {deleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Delete'
+                'Delete invite'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -305,25 +304,12 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a verified email to display" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(Organization_Members_Role_Enum).map(
-                            (role) => (
-                              <SelectItem key={role[0]} value={role[1]}>
-                                {role[1]}
-                              </SelectItem>
-                            ),
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <RoleSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

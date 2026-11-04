@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Send, ShieldCheck, User } from 'lucide-react';
+import { Plus, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { RouteTabLink, RouteTabs } from '@/components/ui/v3/route-tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
+import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -42,21 +42,6 @@ const sendInviteFormSchema = z.object({
   email: z.string().email(),
   role: z.nativeEnum(Organization_Members_Role_Enum),
 });
-
-const roleOptions = [
-  {
-    value: Organization_Members_Role_Enum.User,
-    label: 'User',
-    description: 'Can view and collaborate on projects',
-    icon: User,
-  },
-  {
-    value: Organization_Members_Role_Enum.Admin,
-    label: 'Admin',
-    description: 'Full access to manage the organization',
-    icon: ShieldCheck,
-  },
-];
 
 export default function MembersHeader() {
   const { org } = useCurrentOrg();
@@ -209,38 +194,10 @@ export default function MembersHeader() {
                         <FormItem>
                           <FormLabel>Role</FormLabel>
                           <FormControl>
-                            <ToggleGroup
-                              type="single"
-                              aria-label="Role"
+                            <RoleSelector
                               value={field.value}
-                              onValueChange={(next) => {
-                                if (next) {
-                                  field.onChange(next);
-                                }
-                              }}
-                              className="w-full items-stretch gap-3"
-                            >
-                              {roleOptions.map(
-                                ({ value, label, description, icon: Icon }) => (
-                                  <ToggleGroupItem
-                                    key={value}
-                                    value={value}
-                                    aria-label={label}
-                                    className="group h-auto flex-1 flex-col items-start justify-start gap-1.5 whitespace-normal rounded-lg border border-input bg-background px-4 py-3 text-left data-[state=on]:border-primary data-[state=on]:bg-background data-[state=off]:hover:border-muted-foreground/50 data-[state=off]:hover:bg-muted/40 [&_svg]:size-6"
-                                  >
-                                    <div className="flex flex-row items-center gap-2.5 text-muted-foreground group-data-[state=on]:text-primary">
-                                      <Icon />
-                                      <span className="font-semibold text-base">
-                                        {label}
-                                      </span>
-                                    </div>
-                                    <p className="text-muted-foreground text-xs">
-                                      {description}
-                                    </p>
-                                  </ToggleGroupItem>
-                                ),
-                              )}
-                            </ToggleGroup>
+                              onChange={field.onChange}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

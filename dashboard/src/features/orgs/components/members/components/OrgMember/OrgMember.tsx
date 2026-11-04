@@ -35,17 +35,11 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -75,8 +69,10 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const user = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
-  const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
-    useCurrentOrg();
+  const {
+    org: { plan: { isFree } = {}, name: orgName } = {},
+    refetch: refetchCurrentOrg,
+  } = useCurrentOrg();
   const [confirmRemoveMemberDialogOpen, setConfirmRemoveMemberDialogOpen] =
     useState(false);
   const [updateMemberRoleDialogOpen, setUpdateMemberRoleDialogOpen] =
@@ -267,10 +263,15 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
-              Are you sure?
+              Remove member?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action will remove the member from organization.
+              This will remove{' '}
+              <strong className="font-semibold text-foreground">
+                {member.user.displayName}
+              </strong>{' '}
+              ({member.user.email}) from {orgName}. They&apos;ll lose access to
+              every project in it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8">
@@ -279,7 +280,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               onClick={handleRemoveMemberFromOrg}
               variant="destructive"
             >
-              Continue
+              Remove member
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -330,25 +331,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="email" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(Organization_Members_Role_Enum).map(
-                            (role) => (
-                              <SelectItem key={role[0]} value={role[1]}>
-                                {role[1]}
-                              </SelectItem>
-                            ),
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <RoleSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
