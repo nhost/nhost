@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis } from 'lucide-react';
+import { Trash2, UserCog } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,12 +26,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import {
   Form,
   FormControl,
   FormField,
@@ -47,6 +41,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -57,6 +56,7 @@ import {
   useUpdateOrganizationMemberMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { cn } from '@/lib/utils';
 import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
@@ -77,13 +77,26 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const { refetch: refetchOrgs } = useOrgs();
   const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
     useCurrentOrg();
-  const [dropDownOpen, setDropDownOpen] = useState(false);
   const [confirmRemoveMemberDialogOpen, setConfirmRemoveMemberDialogOpen] =
     useState(false);
   const [updateMemberRoleDialogOpen, setUpdateMemberRoleDialogOpen] =
     useState(false);
 
   const isSelf = user?.id === member.user.id;
+  const canManage = (isAdmin || isSelf) && !isFree;
+  const canUpdateRole = isAdmin && !isFree;
+
+  const updateRoleTooltip = canUpdateRole
+    ? 'Update role'
+    : isFree
+      ? 'Upgrade your plan to manage member roles.'
+      : 'Only admins can update member roles.';
+
+  const removeMemberTooltip = canManage
+    ? 'Remove from organization'
+    : isFree
+      ? 'Upgrade your plan to manage members.'
+      : 'Only admins can remove other members.';
 
   const [deleteMember] = useDeleteOrganizationMemberMutation({
     variables: {
@@ -165,7 +178,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex min-w-0 flex-row items-center gap-3">
           <Avatar
-            className="shrink-0"
+            className="h-8 w-8 shrink-0"
             alt={member.user.displayName}
             name={member.user.displayName || 'local'}
             src={member.user.avatarUrl}
@@ -177,8 +190,8 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 {member.user.displayName}
               </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary dark:bg-primary">
-                  Me
+                <Badge className="pointer-events-none h-5 shrink-0 border-transparent bg-primary/10 px-1.5 font-bold text-primary text-xs">
+                  You
                 </Badge>
               )}
             </div>
@@ -188,39 +201,62 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-row items-center gap-2 sm:gap-4">
-          <span className="font-medium">{member.role}</span>
+        <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
+          <Badge
+            variant="outline"
+            className={cn(
+              'px-2 py-0.5 font-medium text-xs',
+              member.role === Organization_Members_Role_Enum.Admin &&
+                'border-primary text-primary',
+            )}
+          >
+            {member.role}
+          </Badge>
 
-          <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
-            <DropdownMenuTrigger
-              disabled={(!isAdmin && user?.id !== member.user.id) || isFree}
-              asChild
-              className="h-fit"
-            >
-              <Button variant="subtle" size="sm" className="h-8 p-2">
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
-              <DropdownMenuItem
-                disabled={!isAdmin}
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setUpdateMemberRoleDialogOpen(true);
-                }}
-              >
-                Update role
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setConfirmRemoveMemberDialogOpen(true);
-                }}
-              >
-                Remove from organization
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-row items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !canUpdateRole && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Update role"
+                    disabled={!canUpdateRole}
+                    onClick={() => setUpdateMemberRoleDialogOpen(true)}
+                  >
+                    <UserCog />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{updateRoleTooltip}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !canManage && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Remove from organization"
+                    className="hover:text-destructive dark:hover:text-destructive"
+                    disabled={!canManage}
+                    onClick={() => setConfirmRemoveMemberDialogOpen(true)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{removeMemberTooltip}</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 

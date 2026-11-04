@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis, Loader2 } from 'lucide-react';
+import { formatDistance } from 'date-fns';
+import { Loader2, Mail, Trash2, UserCog } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -22,12 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
 import {
   Form,
   FormControl,
@@ -44,6 +40,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -53,6 +54,7 @@ import {
   useGetOrganizationInvitesLazyQuery,
   useUpdateOrganizationMemberInviteMutation,
 } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 type Invite = GetOrganizationInvitesQuery['organizationMemberInvites'][0];
 
@@ -70,7 +72,6 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
   const { org } = useCurrentOrg();
   const [deleting, setDeleting] = useState(false);
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
-  const [dropDownOpen, setDropDownOpen] = useState(false);
   const [confirmDeleteInviteDialogOpen, setConfirmDeleteInviteDialogOpen] =
     useState(false);
 
@@ -146,38 +147,86 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
 
   return (
     <>
-      <div className="flex w-full flex-row items-center justify-between">
-        <span className="text-foreground text-sm">{invite.email}</span>
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-row items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </div>
 
-        <div className="flex flex-row items-center gap-4 text-foreground">
-          <span className="font-medium">{invite.role}</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-medium">{invite.email}</span>
+            <span className="truncate text-muted-foreground text-sm">
+              Invited{' '}
+              {formatDistance(new Date(invite.createdAt), new Date(), {
+                addSuffix: true,
+              })}
+            </span>
+          </div>
+        </div>
 
-          <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="subtle" size="sm" disabled={!isAdmin}>
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  form.reset({ email: invite.email, role: invite.role });
-                  setUpdateRoleDialogOpen(true);
-                }}
-              >
-                Update role
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setConfirmDeleteInviteDialogOpen(true);
-                }}
-              >
-                Delete invite
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
+          <Badge
+            variant="outline"
+            className={cn(
+              'px-2 py-0.5 font-medium text-xs',
+              invite.role === Organization_Members_Role_Enum.Admin &&
+                'border-primary text-primary',
+            )}
+          >
+            {invite.role}
+          </Badge>
+
+          <div className="flex flex-row items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !isAdmin && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Update role"
+                    disabled={!isAdmin}
+                    onClick={() => {
+                      form.reset({ email: invite.email, role: invite.role });
+                      setUpdateRoleDialogOpen(true);
+                    }}
+                  >
+                    <UserCog />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAdmin ? 'Update role' : 'Only admins can update invites.'}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !isAdmin && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Delete invite"
+                    className="hover:text-destructive dark:hover:text-destructive"
+                    disabled={!isAdmin}
+                    onClick={() => setConfirmDeleteInviteDialogOpen(true)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAdmin ? 'Delete invite' : 'Only admins can delete invites.'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
