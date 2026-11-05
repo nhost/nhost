@@ -13,6 +13,8 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+var errNotSignedIn = errors.New("not signed in")
+
 func Command() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:   "info",
@@ -25,19 +27,25 @@ func commandInfo(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	user, err := getUser(ctx, ce)
-	if err != nil {
+
+	switch {
+	case errors.Is(err, errNotSignedIn):
+		ce.Infoln("User")
+		ce.Println("  Not signed in, run `nhost login` to sign in")
+	case err != nil:
 		return err
+	default:
+		email := "-"
+		if user.Email != nil {
+			email = string(*user.Email)
+		}
+
+		ce.Infoln("User")
+		ce.Println("  Name:      %s", user.DisplayName)
+		ce.Println("  Email:     %s", email)
+		ce.Println("  ID:        %s", user.Id)
 	}
 
-	email := "-"
-	if user.Email != nil {
-		email = string(*user.Email)
-	}
-
-	ce.Infoln("User")
-	ce.Println("  Name:      %s", user.DisplayName)
-	ce.Println("  Email:     %s", email)
-	ce.Println("  ID:        %s", user.Id)
 	ce.Println("")
 
 	var project graphql.AppSummaryFragment
@@ -63,6 +71,10 @@ func commandInfo(ctx context.Context, cmd *cli.Command) error {
 
 func getUser(ctx context.Context, ce *clienv.CliEnv) (*auth.User, error) {
 	interceptor, err := ce.NewCloudInterceptor(ctx)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, errNotSignedIn
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	}

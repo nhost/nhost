@@ -21,6 +21,10 @@ const (
 		"displayName": "Jane Doe",
 		"email": "jane@example.com"
 	}`
+	testUserNoEmail = `{
+		"id": "1c8a47be-9915-4d78-9223-4b9ffcb2aec1",
+		"displayName": "Jane Doe"
+	}`
 	testProject = `{
 		"id": "5f2d1e4a-8b7c-4d3e-9f1a-2b3c4d5e6f70",
 		"name": "my-app",
@@ -40,7 +44,7 @@ func writeJSON(t *testing.T, w http.ResponseWriter, status int, body string) {
 	}
 }
 
-func newAuthServer(t *testing.T, userStatus int) *httptest.Server {
+func newAuthServer(t *testing.T, userStatus int, user string) *httptest.Server {
 	t.Helper()
 
 	mux := http.NewServeMux()
@@ -63,7 +67,7 @@ func newAuthServer(t *testing.T, userStatus int) *httptest.Server {
 			return
 		}
 
-		writeJSON(t, w, http.StatusOK, testUser)
+		writeJSON(t, w, http.StatusOK, user)
 	})
 
 	srv := httptest.NewServer(mux)
@@ -72,8 +76,10 @@ func newAuthServer(t *testing.T, userStatus int) *httptest.Server {
 	return srv
 }
 
+//nolint:tparallel 
 func TestCommand(t *testing.T) {
-	t.Parallel()
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("NHOST_PAT", "")
 
 	userSection := "User\n" +
 		"  Name:      Jane Doe\n" +
@@ -81,37 +87,83 @@ func TestCommand(t *testing.T) {
 		"  ID:        1c8a47be-9915-4d78-9223-4b9ffcb2aec1\n" +
 		"\n"
 
+	linkedProjectSection := "Project\n" +
+		"  Name:      my-app\n" +
+		"  ID:        5f2d1e4a-8b7c-4d3e-9f1a-2b3c4d5e6f70\n" +
+		"  Subdomain: abcdefghijklmnopqrst\n" +
+		"  Region:    eu-central-1\n"
+
+	notLinkedSection := "Project\n" +
+		"  Not linked, run `nhost link` to link one\n"
+
 	tests := []struct {
 		name        string
+		pat         string
 		userStatus  int
+		user        string
 		project     string
 		expected    string
 		expectedErr string
 	}{
 		{
-			name:       "linked project",
-			userStatus: http.StatusOK,
-			project:    testProject,
-			expected: userSection +
-				"Project\n" +
-				"  Name:      my-app\n" +
-				"  ID:        5f2d1e4a-8b7c-4d3e-9f1a-2b3c4d5e6f70\n" +
-				"  Subdomain: abcdefghijklmnopqrst\n" +
-				"  Region:    eu-central-1\n",
+			name:        "linked project",
+			pat:         testPAT,
+			userStatus:  http.StatusOK,
+			user:        testUser,
+			project:     testProject,
+			expected:    userSection + linkedProjectSection,
 			expectedErr: "",
 		},
 		{
-			name:       "no linked project",
+			name:        "no linked project",
+			pat:         testPAT,
+			userStatus:  http.StatusOK,
+			user:        testUser,
+			project:     "",
+			expected:    userSection + notLinkedSection,
+			expectedErr: "",
+		},
+		{
+			name:       "user without email",
+			pat:        testPAT,
 			userStatus: http.StatusOK,
+			user:       testUserNoEmail,
 			project:    "",
-			expected: userSection +
-				"Project\n" +
-				"  Not linked, run `nhost link` to link one\n",
+			expected: "User\n" +
+				"  Name:      Jane Doe\n" +
+				"  Email:     -\n" +
+				"  ID:        1c8a47be-9915-4d78-9223-4b9ffcb2aec1\n" +
+				"\n" +
+				notLinkedSection,
+			expectedErr: "",
+		},
+		{
+			name:       "malformed project file",
+			pat:        testPAT,
+			userStatus: http.StatusOK,
+			user:       testUser,
+			project:    "{not json",
+			expected:   userSection,
+			expectedErr: "failed to read linked project: failed to unmarshal object: " +
+				"invalid character 'n' looking for beginning of object key string",
+		},
+		{
+			name:       "not signed in",
+			pat:        "",
+			userStatus: http.StatusOK,
+			user:       testUser,
+			project:    testProject,
+			expected: "User\n" +
+				"  Not signed in, run `nhost login` to sign in\n" +
+				"\n" +
+				linkedProjectSection,
 			expectedErr: "",
 		},
 		{
 			name:        "auth fails",
+			pat:         testPAT,
 			userStatus:  http.StatusUnauthorized,
+			user:        testUser,
 			project:     "",
 			expected:    "",
 			expectedErr: "failed to get user: 401 Unauthorized",
@@ -122,7 +174,7 @@ func TestCommand(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv := newAuthServer(t, tc.userStatus)
+			srv := newAuthServer(t, tc.userStatus, tc.user)
 
 			dotNhost := t.TempDir()
 			if tc.project != "" {
@@ -145,12 +197,16 @@ func TestCommand(t *testing.T) {
 			cmd.Writer = &out
 			cmd.ErrWriter = &out
 
-			err = cmd.Run(t.Context(), []string{
+			args := []string{
 				"info",
 				"--auth-url", srv.URL,
-				"--pat", testPAT,
 				"--dot-nhost-folder", dotNhost,
-			})
+			}
+			if tc.pat != "" {
+				args = append(args, "--pat", tc.pat)
+			}
+
+			err = cmd.Run(t.Context(), args)
 
 			gotErr := ""
 			if err != nil {
