@@ -165,7 +165,7 @@ export default function PATSettings() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="subtle"
                           size="icon"
                           aria-label={`More options for ${pat.name}`}
                         >
@@ -173,10 +173,10 @@ export default function PATSettings() {
                         </Button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-32 p-0">
+                      <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                           onClick={() => setTokenPendingDeletion(pat)}
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         >
                           <span>Delete</span>
                         </DropdownMenuItem>
@@ -200,9 +200,11 @@ export default function PATSettings() {
               Create Personal Access Token
             </Button>
           </DialogTrigger>
-          <DialogContent className="z-[9999] max-w-md text-foreground">
+          <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
             <DialogHeader>
-              <DialogTitle>Create Personal Access Token</DialogTitle>
+              <DialogTitle className="text-xl leading-7 tracking-normal">
+                Create Personal Access Token
+              </DialogTitle>
               <DialogDescription>
                 Create a token to authenticate with Nhost services.
               </DialogDescription>
@@ -220,16 +222,18 @@ export default function PATSettings() {
           }
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="p-12">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Personal Access Token</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Delete Personal Access Token
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this personal access token? Any
               applications or scripts using this token will no longer be able to
               access the API. You cannot undo this action.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel disabled={isDeletingToken}>
               Cancel
             </AlertDialogCancel>

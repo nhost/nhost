@@ -2,7 +2,6 @@ import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
-import { DialogFooter } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
 import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
 import {
@@ -67,21 +66,23 @@ export default function RestoreBackupModal({
 
   if (isRestoreCompleted) {
     return (
-      <div className="grid grid-flow-row gap-4 px-6 pb-6">
-        <p>{operationCopy.completedMessage}</p>
-        <DialogFooter>
+      <div className="grid grid-flow-row gap-2 px-12 pb-12">
+        <p className="text-muted-foreground text-sm">
+          {operationCopy.completedMessage}
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" onClick={close}>
             Close
           </Button>
-        </DialogFooter>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+    <div className="grid grid-flow-row gap-2 px-12 pb-12">
       {sourceAppId === project?.id ? (
-        <p>
+        <p className="text-muted-foreground text-sm">
           Your current database will be deleted, and the backup created at{' '}
           <span className="font-semibold">
             {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
@@ -89,7 +90,7 @@ export default function RestoreBackupModal({
           will be restored.
         </p>
       ) : (
-        <p>
+        <p className="text-muted-foreground text-sm">
           The current database in{' '}
           <span className="font-semibold">{project?.name}</span> will be deleted
           and replaced with the backup created at{' '}
@@ -120,17 +121,18 @@ export default function RestoreBackupModal({
         </div>
       </div>
 
-      <ButtonWithLoading
-        onClick={handleSubmit}
-        disabled={!isSure}
-        loading={loading}
-      >
-        {operationCopy.submitButtonText}
-      </ButtonWithLoading>
-
-      <Button variant="outline" onClick={close}>
-        Cancel
-      </Button>
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button variant="outline" onClick={close}>
+          Cancel
+        </Button>
+        <ButtonWithLoading
+          onClick={handleSubmit}
+          disabled={!isSure}
+          loading={loading}
+        >
+          {operationCopy.submitButtonText}
+        </ButtonWithLoading>
+      </div>
     </div>
   );
 }

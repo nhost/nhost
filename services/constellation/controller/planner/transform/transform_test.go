@@ -676,7 +676,7 @@ func TestInjectPhantomFields_AtRootPath(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -722,7 +722,7 @@ func TestInjectPhantomFields_AtNestedPath(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	teamsField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -777,7 +777,7 @@ func TestInjectPhantomFields_DeduplicatesExistingFields(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -833,7 +833,7 @@ func TestInjectPhantomFields_InjectsUnaliasedPhantomWhenExistingFieldUsesDiffere
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -874,7 +874,7 @@ func TestInjectPhantomFields_AliasCollisionUsesPhantomAlias(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, specs)
+	transform.InjectPhantomFields(op, specs, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -908,8 +908,8 @@ func TestInjectPhantomFields_NoOpWithEmptySpecs(t *testing.T) {
 		},
 	}
 
-	transform.InjectPhantomFields(op, nil)
-	transform.InjectPhantomFields(op, []transform.PhantomSpec{})
+	transform.InjectPhantomFields(op, nil, nil)
+	transform.InjectPhantomFields(op, []transform.PhantomSpec{}, nil)
 
 	usersField, ok := op.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -919,5 +919,95 @@ func TestInjectPhantomFields_NoOpWithEmptySpecs(t *testing.T) {
 	names := fieldNames(usersField.SelectionSet)
 	if len(names) != 2 {
 		t.Errorf("expected 2 fields unchanged, got %v", names)
+	}
+}
+
+func selectionFieldAt(t *testing.T, selections ast.SelectionSet, index int) *ast.Field {
+	t.Helper()
+
+	field, ok := selections[index].(*ast.Field)
+	if !ok {
+		t.Fatalf("selection %d is not a field: %T", index, selections[index])
+	}
+
+	return field
+}
+
+func selectionInlineAt(t *testing.T, selections ast.SelectionSet, index int) *ast.InlineFragment {
+	t.Helper()
+
+	inline, ok := selections[index].(*ast.InlineFragment)
+	if !ok {
+		t.Fatalf("selection %d is not inline: %T", index, selections[index])
+	}
+
+	return inline
+}
+
+func TestInjectPhantomFieldsSharedFragmentsArePathLocal(t *testing.T) {
+	t.Parallel()
+
+	leaf := &ast.FragmentDefinition{
+		Name:          "Leaf",
+		TypeCondition: "users",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "item", SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}}},
+		},
+	}
+	wrapper := &ast.FragmentDefinition{
+		Name:          "Wrapper",
+		TypeCondition: "query_root",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name:         "users",
+				SelectionSet: ast.SelectionSet{&ast.FragmentSpread{Name: "Leaf"}},
+			},
+		},
+	}
+	op := &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+		&ast.Field{Alias: "first", Name: "box", SelectionSet: ast.SelectionSet{
+			&ast.FragmentSpread{
+				Name:       "Wrapper",
+				Directives: ast.DirectiveList{&ast.Directive{Name: "include"}},
+			},
+		}},
+		&ast.Field{Alias: "second", Name: "box", SelectionSet: ast.SelectionSet{
+			&ast.FragmentSpread{Name: "Wrapper"},
+		}},
+	}}
+	fragments := ast.FragmentDefinitionList{leaf, wrapper}
+	transform.InjectPhantomFields(op, []transform.PhantomSpec{{
+		Path: jsonpath.Path{"first", "users", "item"}, Fields: []string{"secret"},
+	}}, nil, fragments)
+
+	if got := fieldNames(
+		selectionFieldAt(t, leaf.SelectionSet, 0).SelectionSet,
+	); !slices.Equal(
+		got,
+		[]string{"id"},
+	) {
+		t.Fatalf("shared leaf changed: %v", got)
+	}
+
+	if _, ok := selectionFieldAt(t, wrapper.SelectionSet, 0).SelectionSet[0].(*ast.FragmentSpread); !ok {
+		t.Fatal("shared wrapper definition changed")
+	}
+
+	first := selectionInlineAt(t, selectionFieldAt(t, op.SelectionSet, 0).SelectionSet, 0)
+	if first.TypeCondition != "query_root" || len(first.Directives) != 1 {
+		t.Fatalf("spread type/directive lost: %#v", first)
+	}
+
+	local := selectionInlineAt(t, selectionFieldAt(t, first.SelectionSet, 0).SelectionSet, 0)
+	if local.TypeCondition != "users" ||
+		!slices.Equal(
+			fieldNames(selectionFieldAt(t, local.SelectionSet, 0).SelectionSet),
+			[]string{"id", "secret"},
+		) {
+		t.Fatalf("nested path not injected locally: %#v", local)
+	}
+
+	if _, ok := selectionFieldAt(t, op.SelectionSet, 1).SelectionSet[0].(*ast.FragmentSpread); !ok {
+		t.Fatal("unplanned response path was modified")
 	}
 }

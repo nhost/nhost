@@ -65,6 +65,7 @@ let
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
     vale
+    jq # check_broken_links.sh parses the linkinator JSON report with it
   ];
 
   buildInputs = with pkgs; [

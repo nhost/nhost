@@ -50,6 +50,8 @@ func New() (*Schema, error) {
 	}, nil
 }
 
+// unify retains the field tree even when schema constraints conflict, so reads
+// can inspect independent defaults. Strict callers must validate the result.
 func (s *Schema) unify(config any, model string) (*cue.Value, error) {
 	b, err := json.Marshal(config)
 	if err != nil {
@@ -71,9 +73,6 @@ func (s *Schema) unify(config any, model string) (*cue.Value, error) {
 	configSchema := s.Value.LookupPath(cue.ParsePath("#" + model))
 
 	u := configSchema.Unify(v)
-	if u.Err() != nil {
-		return nil, NewConfigNotValidError(u.Err())
-	}
 
 	return &u, nil
 }

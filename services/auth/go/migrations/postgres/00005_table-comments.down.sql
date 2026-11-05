@@ -1,5 +1,5 @@
 -- Remove table comments
-comment on table auth.migrations is null;
+comment on table auth.schema_migrations is null;
 comment on table auth.provider_requests is null;
 comment on table auth.providers is null;
 comment on table auth.roles is null;

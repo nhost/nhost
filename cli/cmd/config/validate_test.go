@@ -109,6 +109,9 @@ func expectedConfig() *model.ConfigConfig {
 					Email: &model.ConfigAuthMethodOtpEmail{
 						Enabled: new(false),
 					},
+					Sms: &model.ConfigAuthMethodOtpSms{
+						Enabled: new(false),
+					},
 				},
 				EmailPasswordless: &model.ConfigAuthMethodEmailPasswordless{
 					Enabled: new(false),

@@ -4,6 +4,11 @@ import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import { Textarea } from '@/components/ui/v3/textarea';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import {
   type RuleNode,
   serializeNode,
   wrapPermissionsInAGroup,
@@ -129,20 +134,25 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
           error && 'border-destructive focus-visible:ring-destructive',
         )}
       />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={handleCopy}
-        aria-label={copied ? 'Copied' : 'Copy JSON'}
-        className="absolute top-1 right-3 h-7 w-7"
-      >
-        {copied ? (
-          <Check className="h-4 w-4 text-green-600" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="subtle"
+            size="icon-sm"
+            onClick={handleCopy}
+            aria-label={copied ? 'Copied' : 'Copy JSON'}
+            className="absolute top-1 right-3"
+          >
+            {copied ? (
+              <Check className="h-4 w-4 text-[hsl(var(--color-success))]" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{copied ? 'Copied' : 'Copy JSON'}</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

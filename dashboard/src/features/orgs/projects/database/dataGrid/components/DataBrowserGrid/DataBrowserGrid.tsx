@@ -431,9 +431,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button
-            variant="ghost"
+            variant="subtle"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8"
             onClick={(e) => {
               e.stopPropagation();
               handleCloneClick(row.original);
@@ -444,9 +444,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
             <Copy className="h-4 w-4" />
           </Button>
           <Button
-            variant="ghost"
+            variant="subtle"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8"
             onClick={(e) => {
               e.stopPropagation();
               handleEditClick(row);
@@ -457,9 +457,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
             <Edit className="h-4 w-4" />
           </Button>
           <Button
-            variant="ghost"
+            variant="subtle"
             size="icon"
-            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="h-8 w-8"
             onClick={(e) => {
               e.stopPropagation();
               handleDeleteClick(row);

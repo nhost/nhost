@@ -11,6 +11,13 @@ import (
 )
 
 func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
+	// uploads write the metadata row before the object, so list s3 first: an object
+	// uploaded in between is then also in the hasura list and isn't seen as an orphan
+	filesInS3, apiErr := ctrl.contentStorage.ListFiles(ctx)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
 	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
 		ctx,
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
@@ -19,24 +26,15 @@ func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
 		return nil, apiErr
 	}
 
-	filesInS3, apiErr := ctrl.contentStorage.ListFiles(ctx)
-	if apiErr != nil {
-		return nil, apiErr
+	hasuraIDs := make(map[string]struct{}, len(filesInHasura))
+	for _, fileHasura := range filesInHasura {
+		hasuraIDs[fileHasura.ID] = struct{}{}
 	}
 
 	missing := make([]string, 0, 10) //nolint: mnd
 
 	for _, fileS3 := range filesInS3 {
-		found := false
-
-		for _, fileHasura := range filesInHasura {
-			if path.Base(fileS3) == fileHasura.ID {
-				found = true
-				break
-			}
-		}
-
-		if !found {
+		if _, found := hasuraIDs[path.Base(fileS3)]; !found {
 			missing = append(missing, fileS3)
 		}
 	}

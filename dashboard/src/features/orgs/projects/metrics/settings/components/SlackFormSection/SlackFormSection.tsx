@@ -29,7 +29,7 @@ export default function SlackFormSection() {
     }
   };
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">Slack</h3>
@@ -46,7 +46,7 @@ export default function SlackFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add Slack channel"
           onClick={() =>
@@ -172,8 +172,9 @@ export default function SlackFormSection() {
                 </Label>
                 <div className="flex">
                   <Button
-                    variant="ghost"
-                    className="h-10 text-destructive hover:text-destructive"
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
                     aria-label="Remove Slack channel"
                     onClick={() => handleRemove(index)}
                   >

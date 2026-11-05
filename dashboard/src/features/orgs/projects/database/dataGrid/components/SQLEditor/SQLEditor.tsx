@@ -253,7 +253,7 @@ export default function SQLEditor({
               <div className="flex shrink-0 items-center justify-between border-b px-4 py-1">
                 <span className="text-muted-foreground text-xs">Result</span>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   size="icon"
                   aria-label="Close results"
                   onClick={reset}

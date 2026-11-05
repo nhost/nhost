@@ -63,7 +63,7 @@ type Query {
     ):ConfigSystemConfig
     systemConfigs(
         where: ConfigSystemConfigComparisonExp
-    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi", "sa:watchtower"])
+    ): [ConfigAppSystemConfig!]! @hasRole(role: ["admin", "sa:factorio", "sa:bragi"])
 
     runServiceConfigRawJSON(
         appID: uuid! @hasAppVisibility,
@@ -130,7 +130,7 @@ type Mutation {
     updateSystemConfig(
         appID: uuid! @hasAppVisibility,
         systemConfig: ConfigSystemConfigUpdateInput!,
-    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:watchtower", "sa:cd"])
+    ): ConfigSystemConfig! @hasRole(role: ["admin", "sa:factorio", "sa:cd"])
 
     insertRunServiceConfig(
         appID: uuid! @hasAppVisibility,

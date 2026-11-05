@@ -1,9 +1,12 @@
-import { useRouter } from 'next/router';
-import { type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
@@ -20,6 +23,15 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
+
+function DatabaseAccessSettings() {
+  return (
+    <div className="grid grid-flow-row gap-y-6">
+      <DatabaseConnectionInfo />
+      <DatabaseAllowedCIDRs />
+    </div>
+  );
+}
 
 function DatabaseCustomDomainSettings() {
   const { org } = useCurrentOrg();
@@ -42,36 +54,40 @@ function DatabaseCustomDomainSettings() {
   );
 }
 
+const DATABASE_SETTINGS_TABS = {
+  version: {
+    title: 'Postgres version',
+    Component: DatabaseServiceVersionSettings,
+  },
+  capacity: { title: 'Capacity', Component: DatabaseStorageCapacity },
+} satisfies Record<string, SettingsTab>;
+
+/** The same as the sidebar, which only links these tabs on the platform. */
+const PLATFORM_DATABASE_SETTINGS_TABS = {
+  ...DATABASE_SETTINGS_TABS,
+  'point-in-time': {
+    title: 'Point-in-Time Recovery',
+    Component: DatabasePiTRSettings,
+  },
+  access: { title: 'Access', Component: DatabaseAccessSettings },
+  'custom-domain': {
+    title: 'Custom Domain',
+    Component: DatabaseCustomDomainSettings,
+  },
+  'reset-password': {
+    title: 'Reset password',
+    Component: ResetDatabasePasswordSettings,
+  },
+} satisfies Record<string, SettingsTab>;
+
 export default function DatabaseSettingsPage() {
-  const router = useRouter();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
-  const tab = router.query.tab;
-  const isValidTab =
-    typeof tab === 'string' &&
-    (tab === 'version' ||
-      tab === 'capacity' ||
-      (isPlatform &&
-        ['point-in-time', 'access', 'custom-domain', 'reset-password'].includes(
-          tab,
-        )));
-
-  useEffect(() => {
-    if (!router.isReady || isValidTab) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'version' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [isValidTab, router]);
 
   const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
-    skip: !project?.id || !isValidTab,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -81,7 +97,7 @@ export default function DatabaseSettingsPage() {
 
   const isInitialLoading = loadingProject || !project?.id || !data;
 
-  if (!isValidTab || isInitialLoading) {
+  if (isInitialLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spinner />
@@ -89,37 +105,14 @@ export default function DatabaseSettingsPage() {
     );
   }
 
-  let content = <DatabaseServiceVersionSettings />;
-
-  if (tab === 'capacity') {
-    content = <DatabaseStorageCapacity />;
-  }
-
-  if (isPlatform) {
-    switch (tab) {
-      case 'point-in-time':
-        content = <DatabasePiTRSettings />;
-        break;
-      case 'access':
-        content = (
-          <div className="grid grid-flow-row gap-y-6">
-            <DatabaseConnectionInfo />
-            <DatabaseAllowedCIDRs />
-          </div>
-        );
-        break;
-      case 'custom-domain':
-        content = <DatabaseCustomDomainSettings />;
-        break;
-      case 'reset-password':
-        content = <ResetDatabasePasswordSettings />;
-        break;
-      default:
-        break;
-    }
-  }
-
-  return content;
+  return (
+    <SettingsTabs
+      tabs={
+        isPlatform ? PLATFORM_DATABASE_SETTINGS_TABS : DATABASE_SETTINGS_TABS
+      }
+      defaultTab="version"
+    />
+  );
 }
 
 DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {

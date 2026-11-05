@@ -36,7 +36,10 @@ func (t *table) buildSubscriptionStreamSQL(
 	}
 
 	// Parse stream-specific arguments
-	streamArgs, err := arguments.ParseStream(t, field.Arguments, variables, role, sessionVariables)
+	streamArgs, err := arguments.ParseStream(
+		t, field.Arguments, variables, role,
+		markSubscriptionTemplateSessionArgument(sessionVariables),
+	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse stream arguments: %w", err)
 	}
@@ -50,13 +53,13 @@ func (t *table) buildSubscriptionStreamSQL(
 		fragments,
 		variables,
 		role,
-		sessionVariables,
+		markSubscriptionTemplateSessionArgument(sessionVariables),
 		roots,
 		[]any{},
 		1,
 		"_root",
 		"_root",
-		rootFieldName(field),
+		errorFieldName(field),
 		streamArgs,
 	)
 	if err != nil {
@@ -73,6 +76,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		Parameters:    params,
 		StreamCursors: streamCursorInfos(streamArgs.Cursors),
 		Sequential:    nil,
+		Insert:        nil,
 	}
 
 	// Convert to multiplexed and build final SQL
@@ -175,7 +179,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Note: Remote relationships are not supported in subscriptions and are ignored
-	columns, relationships, err := t.astToQuerySelection(field, fragments)
+	columns, relationships, err := t.astToQuerySelection(field, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -278,9 +282,18 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 			b.WriteString(", ")
 		}
 
-		if colSel.literal != "" {
+		switch {
+		case colSel.computed != nil:
+			params, paramIndex, err = t.writeComputedScalar(
+				b, colSel, baseAlias, childArgumentPath(argumentPath, colSel.field),
+				variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building computed stream selection: %w", err)
+			}
+		case colSel.literal != "":
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
-		} else {
+		default:
 			expr := core.QuoteIdentifier(baseAlias) + "." +
 				core.QuoteIdentifier(colSel.column.SQLName)
 			t.dialect.WriteJSONRowColumn(
@@ -346,7 +359,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 			b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
-			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+			params, paramIndex, err = relSel.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
 				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)
@@ -371,7 +384,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 			b.WriteString(relSel.alias)
 			b.WriteString("', (")
 
-			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+			params, paramIndex, err = relSel.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
 				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)

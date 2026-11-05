@@ -75,7 +75,7 @@ export default function BaseSecretForm({
   }, [mode, setFocus]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <FormInput
           control={control}
@@ -94,14 +94,14 @@ export default function BaseSecretForm({
           className="min-h-32"
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

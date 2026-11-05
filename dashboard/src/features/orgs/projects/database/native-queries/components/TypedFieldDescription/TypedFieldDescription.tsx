@@ -41,11 +41,11 @@ export default function TypedFieldDescription({
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           title={actionLabel}
           data-testid={`${lowercaseNoun}s.${index}.description`}
-          className="h-8 w-8 hover:bg-accent"
+          className="h-8 w-8"
         >
           <DescriptionIcon strokeWidth={1} className="h-5 w-5" />
         </Button>

@@ -48,6 +48,13 @@ func (c *Client) Introspect(
 
 	objs.Functions = funcs
 
+	computed, err := c.introspectComputedFunctions(ctx, dbMeta)
+	if err != nil {
+		return nil, fmt.Errorf("introspecting computed functions: %w", err)
+	}
+
+	objs.ComputedFunctions = computed
+
 	return objs, nil
 }
 
@@ -364,6 +371,10 @@ func populateTableColumns( //nolint:funlen
 				WHEN t.typcategory = 'A' THEN COALESCE(elem_bt.typname, elem.typname)
 				ELSE COALESCE(bt.typname, t.typname)
 			END as typname,
+			pg_catalog.format('%I.%I', type_ns.nspname, t.typname) AS physical_type,
+			CASE WHEN t.oid = 'pg_catalog.bpchar'::pg_catalog.regtype AND a.atttypmod > 4
+				THEN pg_catalog.format('%I.%I(%s)', type_ns.nspname, t.typname, a.atttypmod - 4)
+				ELSE '' END AS restore_type,
 			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
 			a.attidentity != '' as is_identity,
@@ -379,6 +390,7 @@ func populateTableColumns( //nolint:funlen
 		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
 		JOIN pg_catalog.pg_attribute a ON a.attrelid = cls.oid
 		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+		JOIN pg_catalog.pg_namespace type_ns ON type_ns.oid = t.typnamespace
 		LEFT JOIN pg_catalog.pg_attrdef ad
 			ON ad.adrelid = a.attrelid AND ad.adnum = a.attnum
 		LEFT JOIN pg_catalog.pg_type bt ON bt.oid = t.typbasetype
@@ -408,6 +420,8 @@ func populateTableColumns( //nolint:funlen
 			tableName      string
 			columnName     string
 			typeName       string
+			physicalType   string
+			restoreType    string
 			isNullable     string
 			isGenerated    bool
 			isIdentity     bool
@@ -420,10 +434,20 @@ func populateTableColumns( //nolint:funlen
 		)
 
 		if err := rows.Scan(
-			&tableName, &columnName, &typeName, &isNullable, &isGenerated, &isIdentity,
+			&tableName,
+			&columnName,
+			&typeName,
+			&physicalType,
+			&restoreType,
+			&isNullable,
+			&isGenerated,
+			&isIdentity,
 			&isArray,
-			&supportsMinMax, &supportsInc, &supportsAgg,
-			&columnDefault, &columnComment,
+			&supportsMinMax,
+			&supportsInc,
+			&supportsAgg,
+			&columnDefault,
+			&columnComment,
 		); err != nil {
 			return fmt.Errorf("failed to scan row: %w", err)
 		}
@@ -454,17 +478,19 @@ func populateTableColumns( //nolint:funlen
 		}
 
 		table.Columns = append(table.Columns, introspection.Column{
-			Name:           columnName,
-			Type:           typeName,
-			IsNullable:     isNullable == "YES",
-			IsGenerated:    isGenerated,
-			IsIdentity:     isIdentity,
-			IsArray:        isArray,
-			Default:        columnDefault,
-			Comment:        columnComment,
-			SupportsMinMax: supportsMinMax,
-			SupportsInc:    supportsInc,
-			SupportsAgg:    supportsAgg,
+			Name:            columnName,
+			Type:            typeName,
+			PhysicalSQLType: physicalType,
+			RestoreSQLType:  restoreType,
+			IsNullable:      isNullable == "YES",
+			IsGenerated:     isGenerated,
+			IsIdentity:      isIdentity,
+			IsArray:         isArray,
+			Default:         columnDefault,
+			Comment:         columnComment,
+			SupportsMinMax:  supportsMinMax,
+			SupportsInc:     supportsInc,
+			SupportsAgg:     supportsAgg,
 		})
 	}
 

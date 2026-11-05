@@ -161,11 +161,11 @@ export default function PendingInvites() {
           <DialogTrigger asChild>
             <Button>Add member</Button>
           </DialogTrigger>
-          <DialogContent className="text-foreground sm:max-w-xl">
+          <DialogContent className="p-12 text-foreground sm:max-w-xl">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <DialogHeader className="mb-4">
-                  <DialogTitle className="text-foreground">
+                  <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
                     Add a member
                   </DialogTitle>
                   <DialogDescription>
@@ -173,7 +173,7 @@ export default function PendingInvites() {
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="mb-4 flex flex-col gap-4">
+                <div className="mb-12 flex flex-col gap-4">
                   <FormField
                     control={form.control}
                     name="email"

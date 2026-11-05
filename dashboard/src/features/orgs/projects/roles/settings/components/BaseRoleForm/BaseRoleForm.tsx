@@ -56,7 +56,7 @@ export default function BaseRoleForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-3 px-6 pb-6">
+    <div className="grid grid-flow-row gap-3 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Enter the name for the allowed role below.
       </p>
@@ -79,14 +79,14 @@ export default function BaseRoleForm({
           autoComplete="off"
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

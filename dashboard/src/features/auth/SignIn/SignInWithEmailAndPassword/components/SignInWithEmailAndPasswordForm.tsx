@@ -49,7 +49,7 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
         >
           Sign In
         </ButtonWithLoading>
-        <Button variant="outline" className="gap-2 text-sm+" asChild>
+        <Button variant="outline" className="gap-2" asChild>
           <NextLink href="/signin">
             <SiGithub size={14} />
             Sign in with GitHub

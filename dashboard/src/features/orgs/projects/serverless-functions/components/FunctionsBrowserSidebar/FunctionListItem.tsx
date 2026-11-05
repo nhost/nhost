@@ -54,14 +54,14 @@ export default function FunctionListItem({
             className={cn(
               'flex h-full w-full flex-col items-start px-[0.625rem] py-1.5 text-left',
               {
-                'text-primary-main': isSelected,
+                'text-primary': isSelected,
               },
             )}
           >
             <TextWithTooltip
               containerClassName="w-full"
               className={cn('!truncate text-sm+', {
-                'text-primary-main': isSelected,
+                'text-primary': isSelected,
               })}
               truncateMode="middle"
               tailLength={12}

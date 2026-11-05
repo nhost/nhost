@@ -92,10 +92,7 @@ export default function SigninPage() {
           <Button
             asChild
             variant="outline"
-            className={cn(
-              'w-full gap-2 text-sm+',
-              isEmailLastUsed && lastUsedOutline,
-            )}
+            className={cn('w-full gap-2', isEmailLastUsed && lastUsedOutline)}
             aria-describedby={isEmailLastUsed ? lastUsedBadgeId : undefined}
           >
             <NextLink href="/signin/email">

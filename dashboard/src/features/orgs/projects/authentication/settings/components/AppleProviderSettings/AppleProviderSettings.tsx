@@ -15,7 +15,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -190,11 +189,15 @@ export default function AppleProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-apple',
+              topic: 'how to sign in users with Apple',
+            }}
           />
 
           <SettingsCardContent
             className={twMerge(
-              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 py-2',
               !authEnabled && 'hidden',
             )}
           >
@@ -246,11 +249,6 @@ export default function AppleProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
-              title="how to sign in users with Apple"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

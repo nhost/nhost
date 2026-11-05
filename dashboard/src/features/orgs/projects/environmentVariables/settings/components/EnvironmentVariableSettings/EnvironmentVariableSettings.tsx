@@ -6,9 +6,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 
 import { Button } from '@/components/ui/v3/button';
@@ -120,7 +118,7 @@ export default function EnvironmentVariableSettings() {
       component: <CreateEnvironmentVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -136,7 +134,7 @@ export default function EnvironmentVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -164,6 +162,10 @@ export default function EnvironmentVariableSettings() {
       <SettingsCardHeader
         title="Project Environment Variables"
         description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables',
+          topic: 'Environment Variables',
+        }}
       />
 
       <SettingsCardContent
@@ -172,7 +174,7 @@ export default function EnvironmentVariableSettings() {
           availableEnvironmentVariables.length === 0 && 'gap-2',
         )}
       >
-        <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 border-b-1 px-6 py-3 lg:grid-cols-3">
           <p className="font-medium">Variable Name</p>
         </div>
 
@@ -182,14 +184,14 @@ export default function EnvironmentVariableSettings() {
               {availableEnvironmentVariables.map(
                 (environmentVariable, index) => (
                   <Fragment key={environmentVariable.id}>
-                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12 lg:grid-cols-3">
+                    <div className="relative grid grid-cols-2 gap-2 px-6 pr-12 lg:grid-cols-3">
                       <p className="truncate">{environmentVariable.name}</p>
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="subtle"
                             size="icon"
                             className="absolute top-1/2 right-4 -translate-y-1/2"
                           >
@@ -197,12 +199,12 @@ export default function EnvironmentVariableSettings() {
                           </Button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuContent align="end" className="w-32">
                           <DropdownMenuItem
                             onClick={() =>
                               handleOpenEditor(environmentVariable)
                             }
-                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2"
                           >
                             <span>Edit</span>
                           </DropdownMenuItem>
@@ -211,7 +213,7 @@ export default function EnvironmentVariableSettings() {
                             onClick={() =>
                               handleConfirmDelete(environmentVariable)
                             }
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                           >
                             <span>Delete</span>
                           </DropdownMenuItem>
@@ -243,13 +245,6 @@ export default function EnvironmentVariableSettings() {
           </Button>
         </div>
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/environment-variables"
-          title="Environment Variables"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

@@ -44,9 +44,9 @@ export default function HeadersFormSection() {
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="sm"
-          className="px-4 text-primary hover:bg-muted hover:text-primary"
+          className="px-4"
           onClick={() => append({ name: '', type: 'fromValue', value: '' })}
           data-testid="add-header-button"
         >
@@ -112,9 +112,9 @@ export default function HeadersFormSection() {
             <div className="flex h-10 items-center justify-end self-start">
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="sm"
-                className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="px-4"
                 onClick={() => remove(index)}
               >
                 <Trash className="size-4" />

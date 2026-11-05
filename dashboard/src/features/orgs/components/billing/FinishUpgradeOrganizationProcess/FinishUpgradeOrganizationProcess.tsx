@@ -41,10 +41,12 @@ function FinishUpgradeOrganizationProcess() {
   return (
     <Dialog open={open}>
       <DialogContent
-        className="z-[9999] text-foreground sm:max-w-xl"
+        className="z-[9999] p-12 text-foreground sm:max-w-xl"
         hideCloseButton={hideCloseButton}
       >
-        <DialogTitle>Upgrade Organization {org?.name}</DialogTitle>
+        <DialogTitle className="text-xl leading-7 tracking-normal">
+          Upgrade Organization {org?.name}
+        </DialogTitle>
         <FinishOrganizationProcess
           onCompleted={handleOnCompleted}
           onError={handleOnError}

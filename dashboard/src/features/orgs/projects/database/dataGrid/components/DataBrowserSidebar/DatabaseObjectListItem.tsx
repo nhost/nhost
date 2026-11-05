@@ -125,7 +125,7 @@ export default function DatabaseObjectListItem({
                 className={cn(
                   'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
                   {
-                    'text-primary-main': isSelected,
+                    'text-primary': isSelected,
                   },
                 )}
                 onClick={() => {

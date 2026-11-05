@@ -105,6 +105,7 @@ export default function CreateTableForm({
       ],
       foreignKeyRelations: [],
       primaryKeyIndices: ['0'],
+      uniqueKeys: [],
       identityColumnIndex: null,
     },
     shouldUnregister: false,
@@ -125,6 +126,10 @@ export default function CreateTableForm({
       const table: DatabaseTable = {
         ...values,
         primaryKey,
+        uniqueKeys: values.uniqueKeys?.map(({ newName, columnIndices }) => ({
+          newName,
+          columns: columnIndices.map((index) => values.columns[+index].name),
+        })),
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'

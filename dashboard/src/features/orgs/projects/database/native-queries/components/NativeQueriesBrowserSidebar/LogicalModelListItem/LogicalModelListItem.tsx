@@ -1,4 +1,4 @@
-import { Shapes, SquarePen, Trash2, Users } from 'lucide-react';
+import { Pencil, Shapes, Trash2, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -91,7 +91,7 @@ export default function LogicalModelListItem({
         iconTooltip="Logical model"
         actions={[
           {
-            icon: <SquarePen className="size-4" />,
+            icon: <Pencil className="size-4" />,
             label: 'Edit logical model',
             onSelect: handleEdit,
           },

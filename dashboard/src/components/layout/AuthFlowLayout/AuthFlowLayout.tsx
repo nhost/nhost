@@ -49,7 +49,7 @@ export default function AuthFlowLayout({
                     />
                   </div>
 
-                  <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-3xl" />
+                  <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary opacity-80 blur-3xl" />
 
                   <Image
                     src="/assets/logo.svg"

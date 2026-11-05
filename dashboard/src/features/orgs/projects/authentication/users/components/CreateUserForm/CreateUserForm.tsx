@@ -112,7 +112,7 @@ export default function CreateUserForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleCreateUser}
-        className="grid grid-flow-row gap-4 px-6 pb-6"
+        className="grid grid-flow-row gap-4 px-12 pb-12"
       >
         <FormInput
           control={form.control}
@@ -149,13 +149,13 @@ export default function CreateUserForm({
             </Button>
           </Alert>
         )}
-        <div className="grid grid-flow-row gap-2">
-          <Button type="submit" disabled={isSubmitting}>
-            Create
-          </Button>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={onCancel}>
             Cancel
+          </Button>
+
+          <Button type="submit" disabled={isSubmitting}>
+            Create
           </Button>
         </div>
       </Form>

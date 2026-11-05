@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/jsontmpl_checks.yaml"
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/setup-nix/**"
 
       # common build
       - "flake.nix"
@@ -33,6 +35,8 @@ jobs:
       patterns: |
         .github/workflows/jsontmpl_checks.yaml
         .github/workflows/wf_check.yaml
+        .github/actions/cache-nix/**
+        .github/actions/setup-nix/**
         flake.nix
         flake.lock
         nixops/**
@@ -58,8 +62,9 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'
       NAME: jsontmpl
-      PATH: internal/lib/jsontmpl
+      PROJECT: internal/lib/jsontmpl
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:

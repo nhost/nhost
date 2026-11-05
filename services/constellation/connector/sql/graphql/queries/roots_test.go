@@ -189,8 +189,8 @@ func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 		t.Fatalf("extensions = %T, want map[string]any", gotErr.AsMap()["extensions"])
 	}
 
-	if got := ext["path"]; got != "$.selectionSet.people.args" {
-		t.Fatalf("extensions.path = %v, want $.selectionSet.people.args", got)
+	if got := ext["path"]; got != "$.selectionSet.users.args" {
+		t.Fatalf("extensions.path = %v, want $.selectionSet.users.args", got)
 	}
 }
 

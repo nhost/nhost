@@ -25,6 +25,7 @@ import {
   useDeploymentLogs,
 } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
+import { isCommitSHA } from '@/features/orgs/projects/deployments/utils/isCommitSHA';
 import {
   buildTaskGroups,
   formatTaskDuration,
@@ -188,7 +189,7 @@ function PipelineRunDetails({
     <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
       </div>
 
@@ -205,12 +206,17 @@ function PipelineRunDetails({
           <p className="text-muted-foreground text-xs">Commit</p>
           <div className="mt-0.5">
             <TextLink
-              className="font-medium font-mono text-sm"
+              className="inline-block max-w-full font-medium font-mono text-sm"
               target="_blank"
               rel="noopener noreferrer"
               href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
+              title={input?.commit_sha}
             >
-              {input?.commit_sha?.substring(0, 7)}
+              <span className="block truncate">
+                {isCommitSHA(input?.commit_sha)
+                  ? input.commit_sha.substring(0, 7)
+                  : input?.commit_sha}
+              </span>
             </TextLink>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -345,7 +351,7 @@ function LegacyDeploymentDetailsView({
     <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
         <div className="flex space-x-8">
           <div className="flex items-center space-x-2">
