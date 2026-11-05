@@ -63,7 +63,7 @@ type Config struct {
 	WebauthnRPOrigins                        []string      `json:"AUTH_WEBAUTHN_RP_ORIGINS"`
 	WebauhtnAttestationTimeout               time.Duration `json:"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"`
 	OTPEmailEnabled                          bool          `json:"AUTH_OTP_EMAIL_ENABLED"`
-	SMSPasswordlessEnabled                   bool          `json:"AUTH_SMS_PASSWORDLESS_ENABLED"`
+	OTPSmsEnabled                            bool          `json:"AUTH_OTP_SMS_ENABLED"`
 	SMSProvider                              string        `json:"AUTH_SMS_PROVIDER"`
 	SMSTwilioAccountSid                      string        `json:"AUTH_SMS_TWILIO_ACCOUNT_SID"`
 	SMSTwilioAuthToken                       string        `json:"AUTH_SMS_TWILIO_AUTH_TOKEN"`

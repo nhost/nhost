@@ -1,17 +1,82 @@
 [
   {
     "Name": "insert_user_departments_one",
-    "QueryType": "insert_one",
-    "SQL": "WITH check_nested_department AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\") AS data WHERE true), nested_department AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_nested_department.\"id\", check_nested_department.\"name\", check_nested_department.\"description\", check_nested_department.\"budget\" FROM check_nested_department RETURNING *), check_nested_employees AS (SELECT * FROM (SELECT $5::uuid AS \"user_id\", $6::text AS \"role\", nested_department.\"id\" AS \"department_id\" FROM nested_department) AS data WHERE true), nested_employees AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_nested_employees.\"user_id\", check_nested_employees.\"role\", nested_department.\"id\" FROM check_nested_employees, nested_department RETURNING *), check_mutation_result AS (SELECT * FROM (SELECT $7::uuid AS \"user_id\", $8::text AS \"role\", nested_department.\"id\" AS \"department_id\" FROM nested_department) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result.\"user_id\", check_mutation_result.\"role\", nested_department.\"id\" FROM check_mutation_result, nested_department RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"user_id\" AS \"user_id\", mutation_result.\"department_id\" AS \"department_id\", \"mutation_result.r.user\".\"user\" AS \"user\", (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"id\" AS \"id\", \"name\" AS \"name\", \"description\" AS \"description\", \"budget\" AS \"budget\") AS \"_e\")) FROM nested_department LIMIT 1) AS \"department\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.user.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"mutation_result\".\"user_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.user.base\".\"display_name\" AS \"displayName\") AS \"_e\")) AS \"user\" FROM \"mutation_result.r.user.base\") AS \"mutation_result.r.user\" ON ('true') WHERE (SELECT COUNT(*) FROM nested_department) IS NOT NULL AND (SELECT COUNT(*) FROM nested_employees) IS NOT NULL",
-    "Parameters": [
-      "00000000-0000-0000-0000-000000000123",
-      "New Department",
-      "This is a new department",
-      200000,
-      "550e8400-e29b-41d4-a716-446655440002",
-      "member",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "manager"
-    ]
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Insert": {
+      "Root": {
+        "Batch": null,
+        "Objects": [
+          {
+            "Row": {
+              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"user_id\", $2::text AS \"role\", $3::text::pg_catalog.uuid AS \"department_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result.\"user_id\", check_mutation_result.\"role\", check_mutation_result.\"department_id\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"user_id\"::text AS \"user_id\", \"department_id\"::text AS \"department_id\", \"role\"::text AS \"role\", \"joined_at\"::text AS \"joined_at\", \"is_active\"::text AS \"is_active\" FROM mutation_result) AS \"_physical\"",
+              "Parameters": [
+                "550e8400-e29b-41d4-a716-446655440001",
+                "manager",
+                {
+                  "Source": "department",
+                  "TableRef": "\"public\".\"departments\"",
+                  "Column": "id"
+                }
+              ],
+              "TableRef": "\"public\".\"user_departments\""
+            },
+            "Before": [
+              {
+                "Name": "department",
+                "Level": {
+                  "Batch": null,
+                  "Objects": [
+                    {
+                      "Row": {
+                        "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\", check_mutation_result.\"budget\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"name\"::text AS \"name\", \"description\"::text AS \"description\", \"budget\"::text AS \"budget\", \"has_high_budget\"::text AS \"has_high_budget\", \"created_at\"::text AS \"created_at\", \"updated_at\"::text AS \"updated_at\" FROM mutation_result) AS \"_physical\"",
+                        "Parameters": [
+                          "00000000-0000-0000-0000-000000000123",
+                          "New Department",
+                          "This is a new department",
+                          200000
+                        ],
+                        "TableRef": "\"public\".\"departments\""
+                      },
+                      "Before": null,
+                      "Arrays": [
+                        {
+                          "Name": "employees",
+                          "Level": {
+                            "Batch": {
+                              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"user_id\", $2::text AS \"role\", $3::text::pg_catalog.uuid AS \"department_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result.\"user_id\", check_mutation_result.\"role\", check_mutation_result.\"department_id\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"user_id\"::text AS \"user_id\", \"department_id\"::text AS \"department_id\", \"role\"::text AS \"role\", \"joined_at\"::text AS \"joined_at\", \"is_active\"::text AS \"is_active\" FROM mutation_result) AS \"_physical\"",
+                              "Parameters": [
+                                "550e8400-e29b-41d4-a716-446655440002",
+                                "member",
+                                {
+                                  "Source": "$parent",
+                                  "TableRef": "\"public\".\"departments\"",
+                                  "Column": "id"
+                                }
+                              ],
+                              "TableRef": "\"public\".\"user_departments\""
+                            },
+                            "Objects": null
+                          }
+                        }
+                      ],
+                      "AfterObjects": null
+                    }
+                  ]
+                }
+              }
+            ],
+            "Arrays": null,
+            "AfterObjects": null
+          }
+        ]
+      },
+      "FinalSQL": "WITH mutation_result AS (SELECT (value ->> 'user_id')::text::pg_catalog.uuid AS \"user_id\", (value ->> 'department_id')::text::pg_catalog.uuid AS \"department_id\", (value ->> 'role')::text::pg_catalog.text AS \"role\", (value ->> 'joined_at')::text::pg_catalog.timestamptz AS \"joined_at\", (value ->> 'is_active')::text::pg_catalog.bool AS \"is_active\" FROM json_array_elements($1::json) AS \"_rows\"(value)) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"user_id\" AS \"user_id\", mutation_result.\"department_id\" AS \"department_id\", \"mutation_result.r.user\".\"user\" AS \"user\", \"mutation_result.r.department\".\"department\" AS \"department\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.user.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"mutation_result\".\"user_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.user.base\".\"display_name\" AS \"displayName\") AS \"_e\")) AS \"user\" FROM \"mutation_result.r.user.base\") AS \"mutation_result.r.user\" ON ('true') LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"mutation_result\".\"department_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.department.base\".\"id\" AS \"id\", \"mutation_result.r.department.base\".\"name\" AS \"name\", \"mutation_result.r.department.base\".\"description\" AS \"description\", \"mutation_result.r.department.base\".\"budget\" AS \"budget\") AS \"_e\")) AS \"department\" FROM \"mutation_result.r.department.base\") AS \"mutation_result.r.department\" ON ('true')",
+      "FinalParameters": [
+        null
+      ],
+      "Collection": false
+    }
   }
 ]

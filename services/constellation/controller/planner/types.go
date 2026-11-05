@@ -87,6 +87,10 @@ type PhantomFieldSpec struct {
 	// Path is where the phantom fields should be added (e.g., "users.profile").
 	Path jsonpath.Path
 
+	// SourceType owns the join fields at this path, even when other object
+	// types share the response path in mutually exclusive fragments.
+	SourceType string
+
 	// Fields are the field names to add (e.g., ["user_id", "department_id"]).
 	Fields []string
 
@@ -104,11 +108,18 @@ type RemoteQueryPlan struct {
 	// Name is the relationship name (for identification/logging).
 	Name string
 
+	// SourceType is the object type that owns this relationship.
+	SourceType string
+
 	// SourceConnector is where the parent data comes from.
 	SourceConnector string
 
 	// SourcePath is the path to the parent data in results (e.g., "games.homeTeam").
 	SourcePath jsonpath.Path
+
+	// SourceNamePath is the same selection path using GraphQL field names, not
+	// result aliases. It is used only to render client validation error paths.
+	SourceNamePath jsonpath.Path
 
 	// TargetConnector is where to fetch related data from.
 	TargetConnector string

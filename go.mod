@@ -39,7 +39,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/mark3labs/mcp-go v0.41.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/nhost/be v0.0.0-20261028153011-1097abc7271c
+	github.com/nhost/be v0.0.0-20261029102846-fa942b9f3f1e
 	github.com/oapi-codegen/runtime v1.4.1
 	github.com/openai/openai-go v1.12.0
 	github.com/pb33f/libopenapi v0.21.12
@@ -54,6 +54,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2
 	github.com/vektah/gqlparser/v2 v2.5.34
 	github.com/wI2L/jsondiff v0.7.0
+	github.com/zeebo/xxh3 v1.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v3 v3.0.4

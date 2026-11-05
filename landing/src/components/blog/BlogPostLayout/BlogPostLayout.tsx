@@ -129,6 +129,8 @@ export default function BlogPostLayout({
             <span className="">{article.tags.join(' · ')}</span>
             <span>|</span>
             <span>{format(parseISO(article.date), 'd MMMM yyyy')}</span>
+            <span>|</span>
+            <span>{article.readingMinutes} min read</span>
             {article.updatedAt && article.updatedAt !== article.date && (
               <>
                 <span>|</span>
@@ -148,7 +150,8 @@ export default function BlogPostLayout({
           </h1>
 
           <span className="inline text-white text-opacity-65 sm:hidden">
-            {format(parseISO(article.date), 'd MMMM yyyy')}
+            {format(parseISO(article.date), 'd MMMM yyyy')} ·{' '}
+            {article.readingMinutes} min read
           </span>
 
           {article.updatedAt && article.updatedAt !== article.date && (

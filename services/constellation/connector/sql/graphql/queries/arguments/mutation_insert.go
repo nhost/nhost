@@ -325,23 +325,8 @@ func parseOnConflictUpdateColumnName(value *ast.Value, variables map[string]any)
 	return columnValue.Raw, nil
 }
 
-// NestedFKSource describes where a nested-insert FK column reads its value
-// from. CTEName is the source CTE alias and ColumnName is the column selected
-// from that CTE.
-type NestedFKSource struct {
-	CTEName    string
-	ColumnName string
-}
-
-// NestedFKSources maps the insert-row FK column to the CTE column that supplies
-// its value.
-type NestedFKSources map[string]NestedFKSource
-
 // NestedInsert is a single nested insert spec parsed from a relationship field
-// inside an insert object. The CTE-building method that consumes this lives in
-// the parent queries package because it needs queries-internal table state
-// (buildSingleInsertCTE) — NestedInsert itself is pure data plus the
-// FK-application helper.
+// inside an insert object. The dependent step planner consumes this data.
 //
 // NestedObjects holds one element for object relationships and one-or-more
 // elements for array relationships (Hasura accepts both `data: {...}` and
@@ -355,96 +340,16 @@ type NestedInsert struct {
 	ForeignKeyColumns       []string
 	ForeignKeySourceColumns map[string]string
 	IsArrayRelationship     bool
-}
-
-// ApplyArrayFKColumn appends the FK columns to every nested object (so they
-// appear in the INSERT column list) and registers each one against the parent
-// CTE. Only array relationships need this; for object relationships the parent
-// owns the FK. Composite FKs are handled by iterating every FK/source-column
-// mapping.
-//
-// The FK-index entry is added unconditionally for array relationships, even
-// when ColumnFromSQLName can't resolve a given FK column on the child table.
-// The asymmetry is deliberate, per column: downstream consumers
-// (buildInsertFromClause in the parent queries package) iterate the returned
-// map to add the parent CTE to the FROM clause so that Postgres actually
-// executes it. Skipping the map entry when the column resolution fails would
-// drop the parent CTE from FROM and silently break the nested-insert chain.
-// The buildInsertSelectClause iterates the column list (not the FK index) so
-// a missing FK column there simply produces a SELECT that does not reference
-// the parent — which is the correct outcome when the schema says no such FK
-// column exists.
-func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) (NestedFKSources, error) {
-	nestedFKIndex := make(NestedFKSources)
-	if !n.IsArrayRelationship {
-		return nestedFKIndex, nil
-	}
-
-	for _, fkName := range n.foreignKeyColumnsToPopulate() {
-		sourceColumn, ok := n.ForeignKeySourceColumns[fkName]
-		if !ok || sourceColumn == "" {
-			return nil, fmt.Errorf(
-				"%w: nested insert %s: missing source column for FK %s",
-				ErrInvalidArgument,
-				n.RelationshipName,
-				fkName,
-			)
-		}
-
-		fkColumn := n.TargetTable.ColumnFromSQLName(fkName)
-		if fkColumn != nil {
-			for i := range n.NestedObjects {
-				n.NestedObjects[i].Columns = append(n.NestedObjects[i].Columns, InsertColumn{
-					Column: fkColumn,
-					Value:  nil,
-				})
-			}
-		}
-
-		nestedFKIndex[fkName] = NestedFKSource{
-			CTEName:    parentCTEName,
-			ColumnName: sourceColumn,
-		}
-	}
-
-	return nestedFKIndex, nil
-}
-
-func (n *NestedInsert) foreignKeyColumnsToPopulate() []string {
-	if len(n.ForeignKeySourceColumns) == 0 {
-		return append([]string{}, n.ForeignKeyColumns...)
-	}
-
-	columns := make([]string, 0, len(n.ForeignKeySourceColumns))
-	seen := make(map[string]struct{}, len(n.ForeignKeySourceColumns))
-
-	for _, fkName := range n.ForeignKeyColumns {
-		if _, ok := n.ForeignKeySourceColumns[fkName]; !ok {
-			continue
-		}
-
-		columns = append(columns, fkName)
-		seen[fkName] = struct{}{}
-	}
-
-	extraColumns := make([]string, 0, len(n.ForeignKeySourceColumns)-len(columns))
-	for fkName := range n.ForeignKeySourceColumns {
-		if _, ok := seen[fkName]; ok {
-			continue
-		}
-
-		extraColumns = append(extraColumns, fkName)
-	}
-
-	slices.Sort(extraColumns)
-
-	return append(columns, extraColumns...)
+	InsertAfterParent       bool
 }
 
 // InsertColumn is a column/value pair in an insert object.
 type InsertColumn struct {
 	Column *core.Column
 	Value  any
+	// Preset distinguishes server-supplied values from parsed client fields.
+	// Both may be present when BuildQuery is called without schema validation.
+	Preset bool
 }
 
 // InsertObject is a parsed insert object: the columns to insert plus any
@@ -658,6 +563,7 @@ func parseInsertColumn(
 	return InsertColumn{
 		Column: column,
 		Value:  value,
+		Preset: false,
 	}, nil
 }
 
@@ -714,6 +620,7 @@ func ApplyInsertPresets(
 		insertObj.Columns = append(insertObj.Columns, InsertColumn{
 			Column: col,
 			Value:  value,
+			Preset: true,
 		})
 	}
 
@@ -799,6 +706,7 @@ func parseNestedInsert( //nolint:funlen
 		ForeignKeyColumns:       relationship.FKColumns(),
 		ForeignKeySourceColumns: relationship.FKSourceColumns(),
 		IsArrayRelationship:     isArray,
+		InsertAfterParent:       relationship.InsertAfterParent(),
 	}, nil
 }
 

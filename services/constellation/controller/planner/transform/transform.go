@@ -37,6 +37,10 @@ type PhantomSpec struct {
 	// Path is where the phantom fields should be added (e.g. "users.profile").
 	Path jsonpath.Path
 
+	// SourceType is the object type that owns the join fields. Empty means
+	// the caller does not require type-scoped injection.
+	SourceType string
+
 	// Fields are the field names to add (e.g. ["user_id", "department_id"]).
 	Fields []string
 
@@ -181,28 +185,38 @@ func (t *Transformer) processFragments(
 	}
 
 	t.emptyFragments = make(map[string]struct{})
-
-	var newFragments ast.FragmentDefinitionList
-
 	for _, frag := range fragments {
 		if !t.typeExistsInSchema(frag.TypeCondition) {
-			// Fragment is for a type not owned by this connector. Track it as
-			// "empty" so spreads are removed from operations.
+			// Track cross-connector fragments before stripping their callers.
 			t.emptyFragments[frag.Name] = struct{}{}
-			continue
 		}
-
-		processed := t.processFragment(frag)
-
-		if len(processed.SelectionSet) == 0 {
-			t.emptyFragments[frag.Name] = struct{}{}
-			continue
-		}
-
-		newFragments = append(newFragments, processed)
 	}
 
-	return newFragments
+	// Removing a relationship-only definition can empty a wrapper spread
+	// processed earlier in the list. Repeat until no more definitions vanish.
+	for {
+		previous := len(t.emptyFragments)
+
+		var newFragments ast.FragmentDefinitionList
+
+		for _, frag := range fragments {
+			if _, empty := t.emptyFragments[frag.Name]; empty {
+				continue
+			}
+
+			processed := t.processFragment(frag)
+			if len(processed.SelectionSet) == 0 {
+				t.emptyFragments[frag.Name] = struct{}{}
+				continue
+			}
+
+			newFragments = append(newFragments, processed)
+		}
+
+		if len(t.emptyFragments) == previous {
+			return newFragments
+		}
+	}
 }
 
 // processField processes a field to strip relationship fields from its selection set.
@@ -332,11 +346,14 @@ func (t *Transformer) processFragmentSelectionSet(
 				ObjectDefinition: s.ObjectDefinition,
 				Position:         s.Position,
 			}
-
-			newSelections = append(newSelections, newInline)
+			if len(newInline.SelectionSet) > 0 {
+				newSelections = append(newSelections, newInline)
+			}
 
 		case *ast.FragmentSpread:
-			newSelections = append(newSelections, s)
+			if _, empty := t.emptyFragments[s.Name]; !empty {
+				newSelections = append(newSelections, s)
+			}
 		}
 	}
 
@@ -409,59 +426,236 @@ func BuildSubOperation(
 	}
 }
 
-// InjectPhantomFields mutates the operation in place to include phantom fields
-// at the paths specified by the given specs.
-// This should be called on a clean operation (which is already a clone),
-// so no additional cloning is needed.
-func InjectPhantomFields(operation *ast.OperationDefinition, specs []PhantomSpec) {
+// InjectPhantomFields adds join keys only to the selected response paths.
+// The operation is clean, but named fragment definitions are shared: spreads
+// traversed for injection are inlined at their use site before modification.
+func InjectPhantomFields(
+	operation *ast.OperationDefinition,
+	specs []PhantomSpec,
+	schema *ast.Schema,
+	fragments ...ast.FragmentDefinitionList,
+) {
 	if len(specs) == 0 {
 		return
 	}
 
+	var definitions ast.FragmentDefinitionList
+	if len(fragments) > 0 {
+		definitions = fragments[0]
+	}
+
 	for _, spec := range specs {
-		injectFieldsAtPath(operation.SelectionSet, []string(spec.Path), spec.Fields, spec.Aliases)
+		if len(spec.Path) == 0 || len(spec.Fields) == 0 {
+			continue
+		}
+
+		rootType := ""
+		if schema != nil {
+			switch operation.Operation {
+			case ast.Query:
+				if schema.Query != nil {
+					rootType = schema.Query.Name
+				}
+			case ast.Mutation:
+				if schema.Mutation != nil {
+					rootType = schema.Mutation.Name
+				}
+			case ast.Subscription:
+				if schema.Subscription != nil {
+					rootType = schema.Subscription.Name
+				}
+			}
+		}
+
+		injectTypedFieldsAtPath(
+			&operation.SelectionSet, []string(spec.Path), rootType, spec, schema, definitions,
+		)
 	}
 }
 
-// injectFieldsAtPath injects fields at the given path in the selection set.
-// Path is like ["users", "profile"] meaning inject into users -> profile's selection.
-func injectFieldsAtPath(
+// injectTypedFieldsAtPath tracks the containing GraphQL type as well as the
+// response path; identical paths under disjoint fragments are not interchangeable.
+func injectTypedFieldsAtPath(
+	ss *ast.SelectionSet,
+	path []string,
+	typeName string,
+	spec PhantomSpec,
+	schema *ast.Schema,
+	fragments ast.FragmentDefinitionList,
+) {
+	if len(path) == 0 {
+		injectTerminalTypedFields(ss, typeName, spec, schema)
+
+		return
+	}
+
+	for i, sel := range *ss {
+		switch s := sel.(type) {
+		case *ast.Field:
+			if fieldResponseKey(s) == path[0] {
+				childType := FieldReturnTypeOnType(schema, typeName, s.Name)
+				injectTypedFieldsAtPath(
+					&s.SelectionSet,
+					path[1:],
+					childType,
+					spec,
+					schema,
+					fragments,
+				)
+			}
+		case *ast.InlineFragment:
+			childType := typeName
+			if s.TypeCondition != "" {
+				childType = s.TypeCondition
+			}
+
+			injectTypedFieldsAtPath(&s.SelectionSet, path, childType, spec, schema, fragments)
+		case *ast.FragmentSpread:
+			fragment := fragments.ForName(s.Name)
+			if fragment == nil || !selectionContainsTypedPath(
+				fragment.SelectionSet, path, fragment.TypeCondition, spec, schema, fragments,
+			) {
+				continue
+			}
+
+			// Copy at the use site: other spreads may belong to another path.
+			local := &ast.InlineFragment{ //nolint:exhaustruct
+				TypeCondition: fragment.TypeCondition,
+				Directives: append(
+					append(ast.DirectiveList(nil), fragment.Directives...),
+					s.Directives...,
+				),
+				SelectionSet: copyPhantomSelections(fragment.SelectionSet),
+				Position:     s.Position,
+			}
+			(*ss)[i] = local
+			injectTypedFieldsAtPath(
+				&local.SelectionSet,
+				path,
+				fragment.TypeCondition,
+				spec,
+				schema,
+				fragments,
+			)
+		}
+	}
+}
+
+// injectTerminalTypedFields restores a source-typed selection when stripping the
+// relationship removed its only concrete fragment under an abstract field.
+func injectTerminalTypedFields(
+	ss *ast.SelectionSet, typeName string, spec PhantomSpec, schema *ast.Schema,
+) {
+	if spec.SourceType == "" || typeName == spec.SourceType {
+		field := &ast.Field{SelectionSet: *ss} //nolint:exhaustruct // Temporary selection holder.
+		injectFieldsIntoSelectionSet(field, spec.Fields, spec.Aliases)
+		*ss = field.SelectionSet
+
+		return
+	}
+
+	if !sourceTypePossibleOn(schema, typeName, spec.SourceType) {
+		return
+	}
+
+	field := &ast.Field{ //nolint:exhaustruct // Temporary selection holder.
+		SelectionSet: make(ast.SelectionSet, 0, len(spec.Fields)),
+	}
+	injectFieldsIntoSelectionSet(field, spec.Fields, spec.Aliases)
+	*ss = append(
+		*ss,
+		&ast.InlineFragment{ //nolint:exhaustruct // Only condition and selections are needed.
+			TypeCondition: spec.SourceType,
+			SelectionSet:  field.SelectionSet,
+		},
+	)
+}
+
+func sourceTypePossibleOn(schema *ast.Schema, typeName, sourceType string) bool {
+	if schema != nil {
+		for _, possible := range schema.PossibleTypes[typeName] {
+			if possible.Name == sourceType {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func selectionContainsTypedPath(
 	ss ast.SelectionSet,
 	path []string,
-	fields []string,
-	aliases map[string]string,
-) {
-	if len(path) == 0 || len(fields) == 0 {
-		return
+	typeName string,
+	spec PhantomSpec,
+	schema *ast.Schema,
+	fragments ast.FragmentDefinitionList,
+) bool {
+	if len(path) == 0 {
+		return spec.SourceType == "" || typeName == spec.SourceType ||
+			sourceTypePossibleOn(schema, typeName, spec.SourceType)
 	}
 
 	for _, sel := range ss {
-		field, ok := sel.(*ast.Field)
-		if !ok {
-			continue
+		switch s := sel.(type) {
+		case *ast.Field:
+			if fieldResponseKey(s) == path[0] &&
+				selectionContainsTypedPath(s.SelectionSet, path[1:],
+					FieldReturnTypeOnType(schema, typeName, s.Name), spec, schema, fragments) {
+				return true
+			}
+		case *ast.InlineFragment:
+			childType := typeName
+			if s.TypeCondition != "" {
+				childType = s.TypeCondition
+			}
+
+			if selectionContainsTypedPath(
+				s.SelectionSet,
+				path,
+				childType,
+				spec,
+				schema,
+				fragments,
+			) {
+				return true
+			}
+		case *ast.FragmentSpread:
+			if def := fragments.ForName(s.Name); def != nil &&
+				selectionContainsTypedPath(
+					def.SelectionSet,
+					path,
+					def.TypeCondition,
+					spec,
+					schema,
+					fragments,
+				) {
+				return true
+			}
 		}
-
-		fieldName := field.Name
-		if field.Alias != "" {
-			fieldName = field.Alias
-		}
-
-		if fieldName != path[0] {
-			continue
-		}
-
-		if len(path) == 1 {
-			injectFieldsIntoSelectionSet(field, fields, aliases)
-
-			return
-		}
-
-		if field.SelectionSet != nil {
-			injectFieldsAtPath(field.SelectionSet, path[1:], fields, aliases)
-		}
-
-		return
 	}
+
+	return false
+}
+
+func copyPhantomSelections(ss ast.SelectionSet) ast.SelectionSet {
+	copied := make(ast.SelectionSet, len(ss))
+	for i, sel := range ss {
+		switch s := sel.(type) {
+		case *ast.Field:
+			field := *s
+			field.SelectionSet = copyPhantomSelections(s.SelectionSet)
+			copied[i] = &field
+		case *ast.InlineFragment:
+			inline := *s
+			inline.SelectionSet = copyPhantomSelections(s.SelectionSet)
+			copied[i] = &inline
+		default:
+			copied[i] = sel
+		}
+	}
+
+	return copied
 }
 
 // injectFieldsIntoSelectionSet adds fields to a field's selection set if not already present.

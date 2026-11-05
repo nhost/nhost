@@ -35,6 +35,7 @@ let
       ./connector/sql/graphql/schema/testdata
       ./metadata/internal/hasura/testdata
       ./integration/nhost
+      ./integration/computedfields/testdata
     ];
   };
 
@@ -71,6 +72,7 @@ rec {
 
     preCheck = ''
       export GOEXPERIMENT=jsonv2;
+      export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     '';
   };
 

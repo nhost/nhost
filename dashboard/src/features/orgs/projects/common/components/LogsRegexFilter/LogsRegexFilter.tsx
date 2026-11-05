@@ -18,7 +18,8 @@ type LogsRegexFilterProps = UseFormRegisterReturn<
 const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
   (props, ref) => (
     <div className="relative flex w-full min-w-0 items-center">
-      <Tooltip>
+      {/* Has a link inside, so it stays open while hovered. */}
+      <Tooltip interactive>
         <TooltipTrigger asChild>
           <button
             type="button"
