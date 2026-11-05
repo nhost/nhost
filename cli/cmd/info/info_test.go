@@ -76,7 +76,7 @@ func newAuthServer(t *testing.T, userStatus int, user string) *httptest.Server {
 	return srv
 }
 
-//nolint:tparallel 
+//nolint:tparallel
 func TestCommand(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	t.Setenv("NHOST_PAT", "")
