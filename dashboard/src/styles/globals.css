@@ -47,7 +47,7 @@ html.dark .graphiql-themed .graphiql-container {
   --color-tertiary: 172, 66%, 50%;
   --color-info: 216, 100%, 61%;
   --color-neutral: 210, 17%, 93%;
-  --color-base: 210, 5.71%, 13.73%;
+  --color-base: 210, 5.71%, 11%;
   --color-warning: 32, 100%, 57%;
   --color-success: 149, 55%, 60%;
 }
@@ -268,9 +268,9 @@ html.dark .graphiql-themed .graphiql-container {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
+    --card: var(--background);
     --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
+    --popover: var(--background);
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 216 100% 40%;
     --primary-foreground: 210 40% 98%;
@@ -356,11 +356,11 @@ html.dark .graphiql-themed .graphiql-container {
   }
 
   .dark {
-    --background: 210 5.71% 13.73%;
+    --background: 210 5.71% 11%;
     --foreground: 220 7% 91.6%;
-    --card: 210 5.71% 13.73%;
+    --card: var(--background);
     --card-foreground: 220 7% 91.6%;
-    --popover: 210 5.71% 13.73%;
+    --popover: var(--background);
     --popover-foreground: 220 7% 91.6%;
     /* 68% lightness keeps blue text comfortably above AA on the dark background (5.56:1, was 4.83:1 at 64%). */
     --primary: 217.8 100% 68%;
@@ -378,7 +378,7 @@ html.dark .graphiql-themed .graphiql-container {
     --warning: 32 100% 57%;
     --sidebar-foreground: 220 6.98% 91.57%;
     --sidebar-section-title: 204 2.2% 55.1%;
-    --border: 214.29 5.43% 25.29%;
+    --border: 214.29 5.43% 20.5%;
     --input: 210 4.6% 34.1%;
     --ring: 218.4 10.64% 46.08%;
     --chart-1: 220 70% 50%;
@@ -387,7 +387,7 @@ html.dark .graphiql-themed .graphiql-container {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --paper: 214.29 8.24% 16.67%;
-    --divider: 210deg 12.96% 21.18%;
+    --divider: 210deg 12.96% 17.5%;
     --disabled: 211.58 8.92% 58.24%;
     --primary-text: 220 7% 91.6%;
     --shadow-overlay:
@@ -413,7 +413,7 @@ html.dark .graphiql-themed .graphiql-container {
     --data-cell-bg: 214.7, 24.1%, 15.5%;
     --data-cell-bg-hover: 215 20% 22%;
     --data-cell-bg-disabled: 215, 12%, 19%;
-    --data-table-border-color: 210, 13%, 21.2%;
+    --data-table-border-color: 210, 13%, 17.5%;
     --primary-main: 217.8 100% 64%;
     --table-selected: 214.4 7.2% 19%;
     --primary-highlight: 217.8 100% 64% / 16%;
