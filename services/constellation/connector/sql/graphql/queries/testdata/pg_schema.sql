@@ -396,15 +396,10 @@ CREATE TABLE public.exercise_log_sets (
     REFERENCES public.exercise_logs(id, kind) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- notes / note_replies: nested array-relationship + post-check + parent-CTE
--- substitution fixture. The child's insert check references both a sibling
--- relationship to the parent (notes.author_id) and a DB-defaulted column on
--- the child itself (visibility), so requiresPostInsertCheck fires for the
--- child. When inserted as the nested side of an array relationship,
--- buildSingleInsertCTEPostCheck (single-row) / buildMultiNestedInsertCTEPostCheck
--- (multi-row) must thread tableSubs so the post-check's EXISTS reads from
--- mutation_result (the parent's in-flight CTE) instead of the underlying
--- empty public.notes table.
+-- notes / note_replies: nested array relationship whose child insert check
+-- reads both its DB-defaulted visibility and the parent through a relationship.
+-- The parent is inserted before its child, so the child's post-insert check
+-- reads its own row and sees the parent in the base table.
 CREATE TABLE public.notes (
   id        UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   author_id UUID NOT NULL,

@@ -28,6 +28,10 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 > permission, or a `pool_settings` block, is accepted and thrown away. Treat
 > ⚪/❌ rows as *silently inert*, not *rejected*.
 
+## Computed fields
+
+Constellation serves computed fields from metadata but does not implement the `*_add_computed_field`/`*_drop_computed_field` metadata operations. Author them in the existing Hasura engine; requests are proxied to it when `--hasura-upstream-url` is set. After a change, check the affected role's schema and a sample query: invalid definitions and grants are dropped on reload (see [inconsistencies](./inconsistencies.md)), and a polled `export_metadata` can show metadata before it is served.
+
 ## How Constellation reads Hasura metadata
 
 Three input shapes, one effective support surface (they all funnel through the
@@ -132,6 +136,7 @@ configuration:
 | `configuration.column_config.<col>.comment` | ⚪ | Dropped. |
 | `configuration.comment` | ⚪ | Table comment is dropped. |
 | `configuration.identifier` | ⚪ | Dropped. |
+| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🟡 | PostgreSQL only; SQLite ignores them. Scalar and table-valued fields are served with the limits in [PostgreSQL features](./postgres-features.md#computed-fields-on-tracked-tables). Invalid entries are recorded as `computed_field` [inconsistencies](./inconsistencies.md) without affecting the rest of the source. `constellation metadata export` to TOML fails on invalid entries instead of dropping them. |
 | `apollo_federation_config` | ❌ | No Apollo Federation support. |
 
 ---
@@ -154,14 +159,14 @@ parameterized SQL values.
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
 | `query_root_fields` | ⚪ | Cannot restrict which query root fields a role sees. |
 | `subscription_root_fields` | ⚪ | Same, for subscriptions. |
-| `computed_fields` | ⚪ | Computed fields are unsupported entirely. |
+| `computed_fields` | 🟡 | PostgreSQL: grants scalar computed fields to the role. Table-valued fields follow the returned table's select permission and must not be listed. An invalid grant makes the whole select permission inconsistent. SQLite ignores the list. |
 
 ### Insert permission
 
 | Field | Status | Notes |
 |---|---|---|
 | `columns` | ✅ | Gates which columns the role may set. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. |
-| `check` | ✅ | Per-row boolean check; rows failing it are rejected (all-or-nothing). Evaluated against the input payload by default and switched to a post-INSERT check (against `RETURNING *`) when the predicate references a column whose final value is only known after the row exists — generated columns, identity columns (Postgres `GENERATED AS IDENTITY`, SQLite `INTEGER PRIMARY KEY` rowid alias), or a DB-defaulted column the payload omits. Enforced on Postgres via `RETURNING` + `constellation_throw_error`. |
+| `check` | ✅ | Per-row boolean check; rows failing it are rejected (all-or-nothing). Evaluated against the input payload by default and switched to a post-INSERT check (against `RETURNING *`) when the predicate references a computed field, a `$` root column comparison, or a column whose final value is only known after the row exists — generated columns, identity columns (Postgres `GENERATED AS IDENTITY`, SQLite `INTEGER PRIMARY KEY` rowid alias), or a DB-defaulted column the payload omits. Enforced on Postgres via `RETURNING` + `constellation_throw_error`. |
 | `set` | ✅ | Column presets (incl. session variables) forcibly written on every insert. |
 | `backend_only` | ⚪ | Not honored — the mutation is exposed regardless. |
 | `validate_input` | ⚪ | No input-validation webhook. |
@@ -220,7 +225,7 @@ array_relationships:
 | `foreign_key_constraint_on: { column, table }` | ✅ | FK on the remote table pointing back. |
 | `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ✅ | Composite foreign keys are parsed and consumed. |
 | `using.manual_configuration` (`remote_table`, `column_mapping`) | ✅ | Multi-entry `column_mapping` forms a composite join key. |
-| `using.manual_configuration.insertion_order` (array rels) | ⚪ | Dropped. |
+| `using.manual_configuration.insertion_order` (object rels) | ⚪ | Dropped; explicit `after_parent` remains unsupported. |
 | relationship `comment` | ⚪ | Dropped. |
 
 For every `foreign_key_constraint_on` form—single-column or composite,
@@ -229,7 +234,11 @@ foreign-key constraint whose column set exactly matches the configured column
 or columns. It preserves the configured order when pairing join columns. If no
 exact constraint is available, it falls back to the first introspected
 foreign-key match for each configured column. Every column must resolve, and
-parent-table forms must resolve to one target table.
+parent-table forms must resolve to one target table. For nested PostgreSQL
+inserts, object relationships with a remote-table foreign key (`{table, column}`
+or `{table, columns}`) run after the parent row and its arrays; same-table-FK
+and manual object relationships run before the parent. This implicit timing does
+not implement `manual_configuration.insertion_order`.
 
 ### Remote relationships (table → other source / remote schema)
 
@@ -254,8 +263,10 @@ remote_relationships:
 
 | Field | Status | Notes |
 |---|---|---|
-| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. |
-| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. |
+| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. Array `limit`, `offset` and `distinct_on` apply per parent row (see [SQLite](./sqlite.md) for SQLite targets). PostgreSQL scalar computed fields can be source keys (see below). |
+| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. Text computed fields can be source keys; JSON/JSONB computed fields cannot. |
+
+A computed field can be a relationship source key only if it is a PostgreSQL scalar without user arguments that does not return `SETOF`. Relationships keyed by other computed fields are omitted for every role. The role needs a select grant on the computed field (admin is implicit), and a `to_source` relationship also needs select access to every mapped target column; otherwise the relationship is hidden from that role. These checks are stricter than Hasura's (see [known differences](../../KNOWN_DIFFERENCES.md#computed-fields)). Remote relationships cannot be selected in subscriptions.
 
 See [`docs/developers/remote-relationships.md`](../developers/remote-relationships.md)
 for the planner/resolver mechanics.
@@ -353,7 +364,7 @@ what Constellation serves.
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
 | **RESTified endpoints** | `create_rest_endpoint` | ❌ |
 | **Inherited roles** | `add_inherited_role` | ❌ |
-| **Computed fields** | `*_add_computed_field` | ❌ (on the roadmap) |
+| **Computed field metadata operations** | `*_add_computed_field`, `*_drop_computed_field` | ⚠️ — proxied to `--hasura-upstream-url` when set; `not-supported` otherwise. |
 | **API limits** | `set_api_limits` | ❌ |
 | **Network / TLS allowlist** | `add_host_to_tls_allowlist` | ❌ |
 | **Metrics config** | `set_metrics_config` | ❌ |
@@ -382,8 +393,9 @@ what Constellation serves.
   (`remote_schemas[].definition.customization`): root-field
   namespacing/prefix/suffix and `type_names` renaming. Two carve-outs: database
   `naming_convention` is ignored, and remote-schema `field_names` is **rejected at
-  startup** (not silently dropped). Combining `customization` with remote
-  relationships on the same source is not yet handled.
+  startup** (not silently dropped). Customized database sources can be the
+  source or target of `to_source` relationships; relationships into a
+  type-renamed remote schema are not supported.
 - **`kind` must be `postgres` or `sqlite`;** other backends fail at startup.
 
 ## See also

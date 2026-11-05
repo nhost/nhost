@@ -142,6 +142,23 @@ func (h *webSocketHandler) OnSubscribe(
 		return
 	}
 
+	plan, err := h.state.queryPlanner.Plan(operation, fragments, h.session.Role, validatedVariables)
+	if err != nil {
+		h.sendError(id, fmt.Errorf("planning subscription: %w", err).Error())
+		return
+	}
+
+	if plan.HasRemoteQueries() {
+		// Hasura rejects both physical and computed remote relationships in
+		// subscriptions. Do not register or start a SQL poll that drops them.
+		h.sendErrors(id, []map[string]any{{
+			"message":    "Remote relationships are not allowed in subscriptions",
+			"extensions": map[string]any{"code": "not-supported", "path": "$"},
+		}})
+
+		return
+	}
+
 	dbName := getConnectorForOperation(h.state, operation)
 
 	subHandler := h.state.subHandlers[dbName]

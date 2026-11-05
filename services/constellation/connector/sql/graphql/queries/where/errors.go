@@ -36,7 +36,16 @@ var (
 	errOrMustBeListOrObject        = errors.New("_or must be a list or an object")
 	errIsNullMustBeBoolean         = errors.New("_is_null must be a boolean")
 	errFieldComparisonMustBeObject = errors.New("field comparison must be an object")
-	errUnknownWhereOperator        = errors.New("unknown operator")
+	errColumnReferenceShape        = errors.New(
+		"column reference must be a name or a current/root column path",
+	)
+	errColumnComparisonUnsupported = errors.New("column comparisons require PostgreSQL and a table")
+	errColumnComparisonMismatch    = errors.New(
+		"column comparison requires a physical column of the same type",
+	)
+	errLtreeOperatorUnsupported = errors.New("ltree operator requires PostgreSQL ltree")
+	errLtreeOperand             = errors.New("ltree operand must be a path or query")
+	errUnknownWhereOperator     = errors.New("unknown operator")
 
 	errAggregateOnNonArrayRelationship = errors.New(
 		"aggregate filter is only valid on array relationships",

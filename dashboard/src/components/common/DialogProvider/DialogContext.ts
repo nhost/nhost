@@ -5,7 +5,7 @@ import type { DialogFormProps } from '@/types/common';
 export interface DialogProviderProps {
   PaperProps?: { className?: string };
   titleProps?: { className?: string; onClose?: MouseEventHandler };
-  primaryButtonText?: string;
+  primaryButtonText?: ReactNode;
   secondaryButtonText?: string;
   onPrimaryAction?: VoidFunction;
   onSecondaryAction?: VoidFunction;
