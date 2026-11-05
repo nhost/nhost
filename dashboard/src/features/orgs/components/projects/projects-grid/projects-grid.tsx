@@ -77,69 +77,59 @@ export function ProjectCard({ project }: { project: Project }) {
         aria-label={`Open ${project.name}`}
         className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      <div className="relative flex flex-1 flex-col overflow-hidden rounded-lg p-[2px]">
-        {/* On hover a light sweeps around the border once (card-border-sweep). */}
-        <div
-          className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 [--card-border-angle:0deg] [--card-border-base:hsl(var(--primary)/15%)] [--card-border-glow:hsl(var(--primary)/85%)] group-hover:animate-card-border-sweep group-hover:opacity-100 dark:[--card-border-base:hsl(var(--primary)/20%)] dark:[--card-border-glow:hsl(var(--primary)/90%)]"
-          style={{
-            background:
-              'conic-gradient(from var(--card-border-angle), var(--card-border-base) 80%, var(--card-border-glow) 87%, var(--card-border-base) 96%)',
-          }}
-        />
-        <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-[6px] border bg-background p-4 transition-colors duration-300 group-hover:border-primary/50">
-          <div className="flex flex-col gap-0.5 overflow-hidden">
-            <div className="flex items-center gap-2">
-              <p title={project.name} className="truncate font-bold text-lg">
-                {project.name}
-              </p>
-              {issues.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TriangleAlert
-                      aria-label={issues.join('. ')}
-                      className="relative z-20 ml-auto h-4 w-4 flex-shrink-0 text-warning"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <ul className="flex flex-col gap-1">
-                      {issues.map((issue) => (
-                        <li key={issue}>{issue}</li>
-                      ))}
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-            {project.githubRepository && (
-              <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
-                <GitHubIcon className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">
-                  {project.githubRepository.fullName}
-                  {project.repositoryProductionBranch &&
-                    ` · ${project.repositoryProductionBranch}`}
-                </span>
-              </span>
+      <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-background p-4 transition-[border-color,box-shadow] duration-300 group-hover:border-primary group-hover:shadow-[0_0_12px_hsl(var(--primary)/20%)]">
+        <div className="flex flex-col gap-0.5 overflow-hidden">
+          <div className="flex items-center gap-2">
+            <p title={project.name} className="truncate font-bold text-lg">
+              {project.name}
+            </p>
+            {issues.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TriangleAlert
+                    aria-label={issues.join('. ')}
+                    className="relative z-20 ml-auto h-4 w-4 flex-shrink-0 text-warning"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <ul className="flex flex-col gap-1">
+                    {issues.map((issue) => (
+                      <li key={issue}>{issue}</li>
+                    ))}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
+          {project.githubRepository && (
+            <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
+              <GitHubIcon className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">
+                {project.githubRepository.fullName}
+                {project.repositoryProductionBranch &&
+                  ` · ${project.repositoryProductionBranch}`}
+              </span>
+            </span>
+          )}
+        </div>
 
-          {/* Deployments come from GitHub pushes: without a repo there is
-              nothing to show, so the spot stays empty. */}
-          <div className="flex flex-1 flex-row items-start gap-2">
-            {(project.githubRepository ||
-              latestPipelineRun ||
-              latestDeployment) &&
-              (showPipelineRun ? (
-                <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
-              ) : (
-                <DeploymentStatusMessage deployment={latestDeployment} />
-              ))}
-          </div>
+        {/* Deployments come from GitHub pushes: without a repo there is
+            nothing to show, so the spot stays empty. */}
+        <div className="flex flex-1 flex-row items-start gap-2">
+          {(project.githubRepository ||
+            latestPipelineRun ||
+            latestDeployment) &&
+            (showPipelineRun ? (
+              <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
+            ) : (
+              <DeploymentStatusMessage deployment={latestDeployment} />
+            ))}
+        </div>
 
-          <div className="flex w-full flex-row items-center justify-between gap-2">
-            <ProjectStatusPill status={status} />
-            {/* Always on the right (even with no status), nudges right on hover. */}
-            <ArrowRight className="ml-auto flex-shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
-          </div>
+        <div className="flex w-full flex-row items-center justify-between gap-2">
+          <ProjectStatusPill status={status} />
+          {/* Always on the right (even with no status), nudges right on hover. */}
+          <ArrowRight className="ml-auto flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
         </div>
       </div>
     </div>
