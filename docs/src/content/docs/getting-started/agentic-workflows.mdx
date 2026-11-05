@@ -1,0 +1,107 @@
+---
+title: Agentic workflows
+description: "Connect an AI assistant to Nhost over MCP. Two servers: the CLI's, pointed at a local or cloud project, and a hosted one for your organizations and deployments."
+keywords: ["agentic workflows", "MCP", "AI assistant", "Claude", "Cursor", "Codex", "agents", "Nhost Cloud"]
+head:
+  - tag: title
+    content: "Connect AI Agents to Nhost | Nhost Docs"
+sidebar:
+  label: Agentic Workflows
+---
+import { Card, CardGroup, CopyText, Prompt } from '@components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Nhost speaks the [Model Context Protocol](https://modelcontextprotocol.io/) through two MCP servers. They are not two ways to install the same thing: each does a different job, and you can use either or both.
+
+| | CLI MCP server | Hosted MCP server |
+|---|---|---|
+| **Use it to** | Work on a project: read the schema, run queries, write migrations and permission rules | Ask about your organizations, projects, and deployments |
+| **Points at** | One project, local or on Nhost Cloud | Your Nhost Cloud account |
+| **Access** | Scoped by you, up to full access | Read-only |
+| **Runs** | On your machine, as part of the Nhost CLI | On Nhost's servers, nothing to install |
+
+## Work on a project (CLI MCP server)
+
+Hand the onboarding file to your assistant and it sets up the CLI MCP server for you:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+It asks whether the project is local or on Nhost Cloud, then configures that one. A local project needs to be running first: see [the CLI quickstart](/getting-started/local-development/cli) if you don't have one.
+
+Then ask for what you want, for example:
+
+<Prompt copy="Add a published_at column to posts, allow the user role to read only published rows, and show me the migration before applying it.">
+Add a `published_at` column to `posts`, allow the `user` role to read only published rows, and show me the migration before applying it.
+</Prompt>
+
+### Keep it in bounds
+
+The CLI MCP server acts with whatever credentials you hand it.
+
+- **Full access locally, least access everywhere else.** Start a cloud project at `allow_mutations = []` and widen deliberately.
+- **Admin secrets stay on local projects.** They bypass permissions entirely. Use a [PAT](/platform/cli/mcp/cloud-setup#authenticate) against real data so your permission rules still apply.
+- **Read what it writes.** Migrations and permission rules are code.
+
+[Scoping access](/platform/cli/mcp/cloud-setup#scoping-access) covers the rest, including why `manage_metadata` is broader than it looks.
+
+## Ask about your account (Hosted MCP server)
+
+Nhost runs a read-only MCP server at <CopyText text="https://mcp.nhost.io" /> for questions about your organizations, projects, and deployments. It cannot change configuration or reach your project's data, so it does not replace the CLI MCP server.
+
+<Steps>
+
+1. In your client, add a custom connector or remote MCP server with that URL.
+2. Authorize the request on the Nhost consent page.
+3. Ask the assistant about your projects.
+
+</Steps>
+
+See [Hosted MCP server](/platform/cloud/hosted-mcp-server) for details.
+
+## Backend MCP for your users
+
+Both servers above are for *you*. [Backend MCP](/products/ai/mcp) is the service behind the hosted one, and it is also what you deploy in front of your own project to give your **application's users** an AI interface. Same service, your backend.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Build with an assistant" icon="robot" href="/getting-started/build-with-an-assistant">
+    The loop once it's connected
+  </Card>
+  <Card title="Local Development Setup" icon="terminal" href="/platform/cli/mcp/local-development-setup">
+    Manual steps for a local project
+  </Card>
+  <Card title="Cloud Setup" icon="cloud" href="/platform/cli/mcp/cloud-setup">
+    Manual steps for a cloud project, and scoping
+  </Card>
+  <Card title="MCP Configuration" icon="gear" href="/platform/cli/mcp/configuration">
+    Every option in mcp-nhost.toml
+  </Card>
+  <Card title="Backend MCP" icon="robot" href="/products/ai/mcp">
+    Give your own users an AI interface to your app
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/platform/cli/mcp/troubleshooting">
+    When the server or a tool call fails
+  </Card>
+</CardGroup>
