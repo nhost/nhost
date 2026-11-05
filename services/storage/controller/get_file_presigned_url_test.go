@@ -1,8 +1,10 @@
 package controller_test
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/controller/mock"
+	"github.com/nhost/nhost/services/storage/middleware"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -116,6 +119,154 @@ func TestGetFilePresignedURL(t *testing.T) {
 			} else {
 				assert(t, "*controller.APIError", fmt.Sprintf("%T", resp))
 			}
+		})
+	}
+}
+
+func TestGetFilePresignedURLExpirationOverride(t *testing.T) {
+	t.Parallel()
+
+	const (
+		fileID      = "55af1e60-0f28-454e-885e-ea6aab2bb288"
+		adminSecret = "asdasd"
+	)
+
+	ptr := func(i int) *int { return &i }
+
+	cases := []struct {
+		name               string
+		headers            http.Header
+		expiresIn          *int
+		expectedExpiration int
+		expectedErr        *expectedAPIError
+	}{
+		{
+			name:               "admin overrides the bucket expiration",
+			headers:            http.Header{"X-Hasura-Admin-Secret": {adminSecret}},
+			expiresIn:          ptr(86400),
+			expectedExpiration: 86400,
+		},
+		{
+			name:               "admin can use the S3 maximum",
+			headers:            http.Header{"X-Hasura-Admin-Secret": {adminSecret}},
+			expiresIn:          ptr(604800),
+			expectedExpiration: 604800,
+		},
+		{
+			name:               "admin without override gets the bucket expiration",
+			headers:            http.Header{"X-Hasura-Admin-Secret": {adminSecret}},
+			expiresIn:          nil,
+			expectedExpiration: 30,
+		},
+		{
+			name:      "user cannot override",
+			headers:   http.Header{"Authorization": {"Bearer some-jwt"}},
+			expiresIn: ptr(86400),
+			expectedErr: &expectedAPIError{
+				StatusCode: http.StatusForbidden,
+				Message:    "overriding the presigned URL expiration requires the admin secret",
+			},
+		},
+		{
+			name:      "wrong admin secret cannot override",
+			headers:   http.Header{"X-Hasura-Admin-Secret": {"not-the-secret"}},
+			expiresIn: ptr(86400),
+			expectedErr: &expectedAPIError{
+				StatusCode: http.StatusForbidden,
+				Message:    "overriding the presigned URL expiration requires the admin secret",
+			},
+		},
+		{
+			name:      "above the S3 maximum",
+			headers:   http.Header{"X-Hasura-Admin-Secret": {adminSecret}},
+			expiresIn: ptr(604801),
+			expectedErr: &expectedAPIError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "expiresIn must be between 1 and 604800 seconds",
+			},
+		},
+		{
+			name:      "zero",
+			headers:   http.Header{"X-Hasura-Admin-Secret": {adminSecret}},
+			expiresIn: ptr(0),
+			expectedErr: &expectedAPIError{
+				StatusCode: http.StatusBadRequest,
+				Message:    "expiresIn must be between 1 and 604800 seconds",
+			},
+		},
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
+
+			// A rejected override must fail before any metadata is fetched.
+			if tc.expectedErr == nil {
+				metadataStorage.EXPECT().GetFileByID(
+					gomock.Any(), fileID, gomock.Any(),
+				).Return(api.FileMetadata{
+					Id:         fileID,
+					Name:       "my-file.txt",
+					BucketId:   "default",
+					IsUploaded: true,
+				}, nil)
+
+				metadataStorage.EXPECT().GetBucketByID(
+					gomock.Any(), "default", gomock.Any(),
+				).Return(controller.BucketMetadata{
+					ID:                   "default",
+					PresignedURLsEnabled: true,
+					DownloadExpiration:   30,
+				}, nil)
+
+				contentStorage.EXPECT().CreatePresignedURL(
+					gomock.Any(), fileID, time.Duration(tc.expectedExpiration)*time.Second,
+				).Return("this-is-the-signature", nil)
+			}
+
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				adminSecret,
+				metadataStorage,
+				contentStorage,
+				nil,
+				nil,
+				logger,
+			)
+
+			//nolint:staticcheck // the middleware stores headers under this string key.
+			ctx := context.WithValue(t.Context(), middleware.HeadersContextKey, tc.headers)
+
+			resp, err := ctrl.GetFilePresignedURL(
+				ctx,
+				api.GetFilePresignedURLRequestObject{
+					Id:     fileID,
+					Params: api.GetFilePresignedURLParams{ExpiresIn: tc.expiresIn},
+				},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tc.expectedErr != nil {
+				assertAPIError(t, resp, *tc.expectedErr)
+
+				return
+			}
+
+			assert(t, resp, api.GetFilePresignedURL200JSONResponse{
+				Url:        "http://asd/v1/files/" + fileID + "/presignedurl/contents?this-is-the-signature",
+				Expiration: tc.expectedExpiration,
+			})
 		})
 	}
 }
