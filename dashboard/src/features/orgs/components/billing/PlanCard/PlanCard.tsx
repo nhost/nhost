@@ -20,7 +20,7 @@ export interface PlanCardProps
   name: string;
   /** Main price text, for example `Free`, `$25` or `Custom`. */
   price?: string;
-  /** Adds `/month` after the price. */
+  /** Adds `/month` after the price (`month` on compact cards). */
   isMonthly?: boolean;
   description?: string;
   /** Feature list under a divider. Not shown on compact cards. */
@@ -153,7 +153,7 @@ const PlanCard = forwardRef(
               compact ? 'text-xs' : 'text-sm',
             )}
           >
-            /month
+            {compact ? 'month' : '/month'}
           </span>
         )}
       </div>
