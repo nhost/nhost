@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -551,7 +552,17 @@ func up( //nolint:funlen
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
+
+	info := printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
+	if err := os.WriteFile( //nolint:gosec
+		filepath.Join(ce.Path.DotNhostFolder(), devInfoFileName),
+		[]byte(info),
+		0o644, //nolint:mnd
+	); err != nil {
+		ce.Warnln("failed to save service URLs: %s", err.Error())
+	}
+
+	fmt.Fprint(os.Stdout, info)
 
 	return nil
 }
@@ -561,54 +572,51 @@ func printInfo(
 	httpPort, postgresPort uint,
 	useTLS bool,
 	runServices []*dockercompose.RunService,
-) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
+) string {
+	var buf bytes.Buffer
+
+	w := tabwriter.NewWriter(&buf, 0, 0, 4, ' ', 0) //nolint:mnd
 	fmt.Fprintf(w, "URLs:\n")
 	fmt.Fprintf(
 		w,
 		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
 		postgresPort,
 	)
-	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL(
-		subdomain, "graphql", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL(
-		subdomain, "auth", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL(
-		subdomain, "storage", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL(
-		subdomain, "functions", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS,
-	))
-	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL(
-		subdomain, "mailhog", httpPort, useTLS,
-	))
+
+	for _, svc := range []struct{ label, name string }{
+		{"Hasura", "hasura"},
+		{"GraphQL", "graphql"},
+		{"Auth", "auth"},
+		{"Storage", "storage"},
+		{"Functions", "functions"},
+		{"Dashboard", "dashboard"},
+		{"Mailhog", "mailhog"},
+	} {
+		fmt.Fprintf(w, "- %s:\t\t%s\n", svc.label, dockercompose.URL(
+			subdomain, svc.name, httpPort, useTLS,
+		))
+	}
 
 	for _, svc := range runServices {
 		for _, port := range svc.Config.GetPorts() {
-			if deptr(port.GetPublish()) {
-				fmt.Fprintf(
-					w,
-					"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
-					svc.Config.Name,
-					port.GetType(),
-					port.GetPort(),
-				)
-				fmt.Fprintf(
-					w,
-					"\t\tFrom services:\t%s://run-%s:%d\n",
-					port.GetType(),
-					svc.Config.Name,
-					port.GetPort(),
-				)
+			if !deptr(port.GetPublish()) {
+				continue
 			}
+
+			fmt.Fprintf(
+				w,
+				"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
+				svc.Config.Name,
+				port.GetType(),
+				port.GetPort(),
+			)
+			fmt.Fprintf(
+				w,
+				"\t\tFrom services:\t%s://run-%s:%d\n",
+				port.GetType(),
+				svc.Config.Name,
+				port.GetPort(),
+			)
 		}
 	}
 
@@ -622,6 +630,8 @@ func printInfo(
 	fmt.Fprintf(w, "Run `nhost logs` to watch the logs\n")
 
 	w.Flush()
+
+	return buf.String()
 }
 
 func upErr(
