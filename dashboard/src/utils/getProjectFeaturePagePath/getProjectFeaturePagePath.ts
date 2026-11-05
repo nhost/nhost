@@ -9,6 +9,7 @@ const featurePathOverrides: Record<string, string> = {
   '/database/schema': '/database/schema/default',
   '/database/native-queries': '/database/native-queries/default',
   '/database/console': '/database/console/default',
+  '/database/extensions': '/database/extensions/default',
 };
 
 /**
