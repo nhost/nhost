@@ -1,0 +1,10 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+import type { Props } from '@astrojs/starlight/props';
+import PageFeedback from './PageFeedback.astro';
+---
+
+<PageFeedback />
+<Default {...Astro.props}>
+  <slot />
+</Default>

@@ -2,6 +2,7 @@
 import Default from '@astrojs/starlight/components/Head.astro';
 import type { Props } from '@astrojs/starlight/props';
 import { getBreadcrumb, getDisplayTitle } from '../utils/og-helpers';
+import Analytics from './Analytics.astro';
 
 // Keywords for SEO: Renders <meta name="keywords"> in <head> for external search engines (Google, etc.)
 // Note: This is NOT searchable by Pagefind since <head> is outside <main data-pagefind-body>.
@@ -26,6 +27,7 @@ if (description) ogUrl.searchParams.set('description', description);
 ---
 
 <Default {...Astro.props}><slot /></Default>
+<Analytics />
 
 <!-- Open Graph / Social media preview -->
 <meta property="og:image" content={ogUrl.href} />
