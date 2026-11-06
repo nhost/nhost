@@ -105,7 +105,7 @@ test('should be able to upgrade an organization', async () => {
   await upgradeButton.click();
 
   await expect(
-    page.getByRole('heading', { name: /upgrade organization/i }),
+    page.getByRole('heading', { name: /upgrade your plan/i }),
   ).toBeVisible();
 
   await page.getByText('Pro', { exact: true }).click();
