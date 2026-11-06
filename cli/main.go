@@ -13,6 +13,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/dev"
 	"github.com/nhost/nhost/cli/cmd/dockercredentials"
 	nhostdocs "github.com/nhost/nhost/cli/cmd/docs"
+	"github.com/nhost/nhost/cli/cmd/info"
 	"github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/cmd/run"
@@ -46,6 +47,7 @@ func main() {
 			dev.CommandDown(),
 			dev.CommandLogs(),
 			dockercredentials.Command(),
+			info.Command(),
 			mcp.Command(),
 			project.CommandInit(),
 			project.CommandList(),
