@@ -98,6 +98,10 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	}
 	defer form.RemoveAll() //nolint:errcheck
 
+	if file.Name == "" {
+		file.Name = originalMetadata.Name
+	}
+
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
