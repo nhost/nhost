@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { DataBrowserGridRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getBaseType } from '@/features/orgs/projects/database/dataGrid/utils/getBaseType';
 import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import updateRecord from './updateRecord';
 
@@ -32,6 +33,7 @@ function makeRow(cells: RowCell[]): DataBrowserGridRow {
               id: c.id,
               isPrimary: c.isPrimary ?? false,
               specificType: c.specificType,
+              baseType: getBaseType(c.specificType),
               isArray: isArray(c.specificType),
             },
           },
@@ -249,5 +251,89 @@ describe('updateRecord', () => {
         columnsToUpdate: { name: { value: 'Bob' } },
       }),
     ).rejects.toThrow();
+  });
+
+  describe('PostGIS columns', () => {
+    const point = '{"type":"Point","coordinates":[3,4]}';
+
+    function makeSpatialRow(specificType: string) {
+      return makeRow([
+        { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+        {
+          id: 'location',
+          specificType,
+          value: { type: 'Point', coordinates: [1, 2] },
+        },
+      ]);
+    }
+
+    test('writes GeoJSON to a geometry column through ST_GeomFromGeoJSON', async () => {
+      await updateRecord({
+        ...defaultOptions,
+        row: makeSpatialRow('geometry(Point,4326)'),
+        columnsToUpdate: { location: { value: point } },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain(`location = ST_GeomFromGeoJSON('${point}')`);
+      expect(sql).not.toContain('::geography');
+    });
+
+    test('casts GeoJSON for a geography column', async () => {
+      await updateRecord({
+        ...defaultOptions,
+        row: makeSpatialRow('geography(Point,4326)'),
+        columnsToUpdate: { location: { value: point } },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain(
+        `location = ST_GeomFromGeoJSON('${point}')::geography`,
+      );
+    });
+
+    test('writes WKT to a spatial column as a plain literal', async () => {
+      await updateRecord({
+        ...defaultOptions,
+        row: makeSpatialRow('extensions.geometry'),
+        columnsToUpdate: { location: { value: 'SRID=4326;POINT(3 4)' } },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+      expect(sql).toContain("location = 'SRID=4326;POINT(3 4)'");
+      expect(sql).not.toContain('ST_GeomFromGeoJSON');
+    });
+
+    test('reads the updated row back with spatial columns as GeoJSON', async () => {
+      await updateRecord({
+        ...defaultOptions,
+        row: makeSpatialRow('geography(Point,4326)'),
+        columnsToUpdate: { location: { value: point } },
+      });
+
+      const sql = (capturedBody as CapturedRequest).args[1].args.sql;
+      expect(sql).toContain(
+        'SELECT row_to_json(table_data) AS data FROM (SELECT id, CASE WHEN ST_GeometryType(location::geometry)',
+      );
+      expect(sql).toContain(
+        'ELSE ST_AsGeoJSON(location, 15, 4)::json END AS location FROM public.users WHERE id=1 LIMIT 1) table_data',
+      );
+    });
+
+    test('leaves spatial arrays to row_to_json when reading the row back', async () => {
+      await updateRecord({
+        ...defaultOptions,
+        row: makeRow([
+          { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+          { id: 'shapes', specificType: 'geometry[]', value: [] },
+        ]),
+        columnsToUpdate: { shapes: { value: '["POINT(1 2)"]' } },
+      });
+
+      const update = (capturedBody as CapturedRequest).args[0].args.sql;
+      const select = (capturedBody as CapturedRequest).args[1].args.sql;
+      expect(update).toContain("shapes = ARRAY['POINT(1 2)']");
+      expect(select).toContain('(SELECT id, shapes FROM public.users');
+    });
   });
 });

@@ -13,7 +13,10 @@ import type {
   ColumnUpdateOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
-import { getEditRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
+import {
+  getColumnUpdateOptions,
+  getEditRecordFormDefaultValues,
+} from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { triggerToast } from '@/utils/toast';
@@ -59,47 +62,14 @@ export default function EditRecordForm({
           continue;
         }
 
-        const originalValue = row.original[key];
+        const updateOptions = getColumnUpdateOptions(
+          column,
+          insertOptions,
+          row.original[key],
+        );
 
-        if (insertOptions.fallbackValue === 'DEFAULT') {
-          columnsToUpdate[key] = { reset: 'default' };
-          continue;
-        }
-
-        if (insertOptions.fallbackValue === 'NULL') {
-          if (originalValue !== null) {
-            columnsToUpdate[key] = { reset: 'null' };
-          }
-          continue;
-        }
-
-        let newValue = insertOptions.value;
-
-        const isJson =
-          column.baseType === 'json' || column.baseType === 'jsonb';
-
-        if (isJson && typeof newValue === 'string') {
-          try {
-            newValue = JSON.parse(newValue);
-          } catch {
-            // Keep as string if parsing fails
-          }
-        }
-
-        if (
-          typeof newValue === 'object' &&
-          newValue !== null &&
-          typeof originalValue === 'object' &&
-          originalValue !== null
-        ) {
-          if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
-            columnsToUpdate[key] = { value: newValue };
-          }
-          continue;
-        }
-
-        if (newValue !== originalValue) {
-          columnsToUpdate[key] = { value: newValue };
+        if (updateOptions) {
+          columnsToUpdate[key] = updateOptions;
         }
       }
 

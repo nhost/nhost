@@ -10,6 +10,7 @@ import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { isSpatialType } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 import {
   isDateType,
   isTimestampType,
@@ -132,7 +133,8 @@ export default function DatabaseRecordInputGroup({
             baseType === 'character' ||
             baseType === 'character varying' ||
             baseType === 'json' ||
-            baseType === 'jsonb';
+            baseType === 'jsonb' ||
+            isSpatialType(baseType);
 
           const inputLabel = (
             <span className="inline-grid grid-flow-col gap-1">
