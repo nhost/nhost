@@ -1,5 +1,6 @@
-import { FolderX } from 'lucide-react';
+import { HardDriveIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
@@ -39,16 +40,17 @@ export default function Bucket() {
 
   if (!data?.bucket) {
     return (
-      <div className="grid w-full place-content-center gap-2 px-4 py-16 text-center">
-        <FolderX className="mx-auto h-[72px] w-[72px] text-muted-foreground" />
-        <h1 className="!leading-6 font-medium text-[1.125rem]">
-          Bucket not found
-        </h1>
-        <p>
-          Bucket <InlineCode className="px-1.5 text-sm">{bucketId}</InlineCode>{' '}
-          does not exist.
-        </p>
-      </div>
+      <EmptyState
+        icon={HardDriveIcon}
+        title="Bucket not found"
+        description={
+          <p>
+            Bucket{' '}
+            <InlineCode className="px-1.5 text-sm">{bucketId}</InlineCode> does
+            not exist.
+          </p>
+        }
+      />
     );
   }
 

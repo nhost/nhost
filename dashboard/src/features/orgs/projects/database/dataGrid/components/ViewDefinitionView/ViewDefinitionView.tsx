@@ -1,6 +1,7 @@
+import { Database } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useViewDefinitionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useViewDefinitionQuery';
 import { getDatabaseObjectDefinitionSQL } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectDefinitionSQL';
@@ -61,7 +62,8 @@ export default function ViewDefinitionView({
 
   if (status === 'error' || viewError) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Error loading view"
         description={
           <span>
@@ -76,7 +78,8 @@ export default function ViewDefinitionView({
 
   if (!viewDefinition) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="View not found"
         description={
           <span>

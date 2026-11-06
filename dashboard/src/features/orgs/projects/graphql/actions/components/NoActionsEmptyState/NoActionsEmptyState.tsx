@@ -1,5 +1,7 @@
-import { ArrowUpRight, Plus, Workflow } from 'lucide-react';
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
+import { ArrowUpRight, Plus } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/v3/button';
 import { CreateActionForm } from '@/features/orgs/projects/graphql/actions/components/CreateActionForm';
 
@@ -7,47 +9,39 @@ export default function NoActionsEmptyState() {
   const { openDrawer } = useDialog();
 
   return (
-    <div className="flex h-full w-full flex-col items-center bg-background px-4 py-16">
-      <div className="flex max-w-md flex-col items-center text-center">
-        <div className="mb-7 flex size-16 items-center justify-center rounded-2xl border shadow-sm">
-          <Workflow className="size-8 text-primary" />
-        </div>
-
-        <h3 className="text-balance font-semibold text-2xl tracking-tight">
-          Create your first action
-        </h3>
-
-        <p className="mt-3 text-muted-foreground leading-relaxed">
+    <EmptyState
+      icon={GraphQLIcon}
+      title="Create your first action"
+      description={
+        <>
           Actions let you extend your GraphQL API with custom business logic
-          running behind an HTTP webhook handler.
-        </p>
-
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <Button
-            size="sm"
-            className="gap-2"
-            onClick={() =>
-              openDrawer({
-                title: 'Create a New Action',
-                component: <CreateActionForm />,
-              })
-            }
-          >
-            <Plus className="size-4" />
-            New Action
-          </Button>
-
+          running behind an HTTP webhook handler.{' '}
           <a
             href="https://docs.nhost.io/products/graphql"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1 font-medium text-primary text-sm hover:underline"
+            className="group inline-flex items-center gap-1 font-medium text-primary hover:underline"
           >
             Learn more about the GraphQL API
             <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      action={
+        <Button
+          size="sm"
+          className="gap-2"
+          onClick={() =>
+            openDrawer({
+              title: 'Create a New Action',
+              component: <CreateActionForm />,
+            })
+          }
+        >
+          <Plus className="size-4" />
+          New Action
+        </Button>
+      }
+    />
   );
 }

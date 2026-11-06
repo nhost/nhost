@@ -1,5 +1,7 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import { InfoIcon, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { EmptyState } from '@/components/common/EmptyState';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
@@ -8,7 +10,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { RemoteSchemaHeadersTable } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaHeadersTable';
 import { RemoteSchemaPreview } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
@@ -32,7 +33,8 @@ export default function RemoteSchemaDetails() {
 
   if (status === 'loading' || !remoteSchema) {
     return (
-      <RemoteSchemaEmptyState
+      <EmptyState
+        icon={GraphQLIcon}
         title="Remote schema not found"
         description={
           <span>
