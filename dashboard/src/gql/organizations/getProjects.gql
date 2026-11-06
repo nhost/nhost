@@ -9,6 +9,10 @@ query getProjects($orgSlug: String!) {
       id
       name
     }
+    githubRepository {
+      fullName
+    }
+    repositoryProductionBranch
     deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
       id
       commitSHA
