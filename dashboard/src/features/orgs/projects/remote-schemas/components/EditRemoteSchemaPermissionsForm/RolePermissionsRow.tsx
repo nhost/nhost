@@ -1,6 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
@@ -80,23 +79,21 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid h-full w-full items-center border-0 p-0 text-center',
-          disabled && 'justify-center',
+          'inline-grid h-full w-full items-center justify-center border-0 p-0 text-center',
           cellProps.className,
         )}
       >
         {disabled ? (
           <AccessLevelIcon level={accessLevel} />
         ) : (
-          <Button
+          <button
             type="button"
-            variant="subtle"
-            size="icon"
-            className="h-full w-full rounded-none"
+            aria-label={`Edit permissions for ${name}`}
+            className="flex h-full w-full items-center justify-center rounded-none p-2 hover:bg-muted/50"
             onClick={onActionSelect}
           >
             <AccessLevelIcon level={accessLevel} />
-          </Button>
+          </button>
         )}
       </TableCell>
     </TableRow>

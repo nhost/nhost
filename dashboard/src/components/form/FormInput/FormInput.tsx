@@ -159,7 +159,7 @@ function InnerFormInput<
             >
               <FormControl>
                 {hasAddon ? (
-                  <InputGroup className="h-10 bg-transparent dark:bg-transparent">
+                  <InputGroup className="bg-transparent dark:bg-transparent">
                     {!!addonStart && (
                       <InputGroupAddon align="inline-start">
                         {addonStart}

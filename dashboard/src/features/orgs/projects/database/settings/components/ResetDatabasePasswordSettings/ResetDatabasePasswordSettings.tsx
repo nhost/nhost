@@ -126,7 +126,8 @@ export default function ResetDatabasePasswordSettings() {
                 <Button
                   onClick={handleGenerateRandomPassword}
                   variant="link"
-                  className="h-auto p-0 text-xs underline underline-offset-2 hover:underline"
+                  size="inline"
+                  className="text-xs underline underline-offset-2 hover:underline"
                 >
                   Generate a password
                 </Button>

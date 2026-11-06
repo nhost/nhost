@@ -219,7 +219,7 @@ function DataBrowserSidebarContent({
               placeholder="Search objects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 pl-8 text-sm"
+              className="pl-8"
             />
           </div>
           <DatabaseObjectTypeFilterBar

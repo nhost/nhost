@@ -195,13 +195,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
             <DropdownMenuTrigger
               disabled={(!isAdmin && user?.id !== member.user.id) || isFree}
               asChild
-              className="h-fit"
             >
-              <Button variant="subtle" size="sm" className="h-8 p-2">
+              <Button variant="subtle" size="icon-sm">
                 <Ellipsis />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
+            <DropdownMenuContent side="bottom" align="end">
               <DropdownMenuItem
                 disabled={!isAdmin}
                 onSelect={() => {

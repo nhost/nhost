@@ -1,7 +1,6 @@
 import { formatDistance } from 'date-fns';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { Button } from '@/components/ui/v3/button';
 import {
   GetAnnouncementsDocument,
   type GetAnnouncementsQuery,
@@ -54,37 +53,32 @@ export default function Announcement({ announcement }: AnnouncementProps) {
 
   return (
     <div className="flex h-fit w-full flex-row items-start gap-2 rounded-md text-left hover:bg-accent">
-      <Button
-        variant="ghost"
-        asChild
-        className="h-fit min-w-0 flex-1 items-start justify-start gap-2 rounded-md p-2 text-left hover:bg-transparent"
+      <Link
+        target="_blank"
+        rel="noopener noreferrer"
+        href={announcement.href}
+        shallow
+        onClick={() => {
+          if (isUnread) {
+            handleSetRead();
+          }
+        }}
+        className="flex min-w-0 flex-1 items-start gap-2 rounded-md p-2 text-left font-medium text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Link
-          target="_blank"
-          rel="noopener noreferrer"
-          href={announcement.href}
-          shallow
-          onClick={() => {
-            if (isUnread) {
-              handleSetRead();
-            }
-          }}
-        >
-          {isUnread ? (
-            <span className="mt-[5px] h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
-          ) : (
-            <span className="mt-[5px] h-2 w-2 flex-shrink-0" />
-          )}
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-muted-foreground text-xs">
-              {formatDistance(new Date(announcement.createdAt), new Date(), {
-                addSuffix: true,
-              })}
-            </span>
-            <p className="whitespace-normal text-sm">{announcement.content}</p>
-          </div>
-        </Link>
-      </Button>
+        {isUnread ? (
+          <span className="mt-[5px] h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+        ) : (
+          <span className="mt-[5px] h-2 w-2 flex-shrink-0" />
+        )}
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-muted-foreground text-xs">
+            {formatDistance(new Date(announcement.createdAt), new Date(), {
+              addSuffix: true,
+            })}
+          </span>
+          <p className="text-sm">{announcement.content}</p>
+        </div>
+      </Link>
       <AnnouncementMenu
         isUnread={isUnread}
         onSetRead={handleSetRead}

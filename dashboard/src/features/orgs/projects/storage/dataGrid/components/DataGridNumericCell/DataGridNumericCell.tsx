@@ -92,7 +92,7 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           wrapperClassName="h-full w-full"
-          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 md:h-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           step={step}
         />
         {(isNullable || hasDefault) && (
