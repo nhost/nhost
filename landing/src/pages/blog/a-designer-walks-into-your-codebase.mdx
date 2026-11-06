@@ -1,0 +1,178 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'A designer walks into your codebase',
+  description:
+    'A senior product designer with 25 years of pixels on how AI changed his work at Nhost. A Storybook built by Claude, prototypes you can click, learning Git, and where the line between design and development sits.',
+  image: '/images/blog/a-designer-walks-into-your-codebase/cover.png',
+  date: '2026-10-26',
+  seoTitle: 'A designer walks into your codebase',
+  seoDescription:
+    "How AI changed a senior product designer's work at Nhost. Auditing a design system with Claude, prototypes you can click, learning Git and shipping real UI.",
+  authors: [
+    {
+      name: 'Rui Almeida',
+      title: 'Senior Product Designer',
+      avatarUrl: '/images/avatars/rui.jpeg',
+      url: 'https://github.com/Rui-V-Almeida',
+    },
+  ],
+  tags: ['Company', 'Design'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+I'm Rui 🇵🇹, a Portuguese senior product designer, and a few months ago I joined Nhost. It's a small team where everyone does a little bit of everything and there's real hunger to do more. Exactly my "type of beach", as we say in Portugal. (Sorry, Portuguese expression. It means my kind of thing. It works better with grilled sardines.)
+
+I was hired for two jobs.
+
+1. Clean up what was already there and make it look good.
+2. Help build new features and improve the UX.
+
+## A beautiful mess
+
+About job number one. I have to admit the design system was a bit of a mess. No documentation, no guidelines, low consistency. The usual stuff. But in the real world it's never a perfect situation. You ship features, fix bugs, talk to stakeholders, and in a small team you choose your battles. Pixel consistency is rarely the battle that wins.
+
+What got me excited is that the team was humble enough to say "this can't go on like this". On day one, Nuno (the founder) said the sweet golden words every designer wants to hear.
+
+> Rui, you have complete freedom to go to every screen and change whatever you want to improve the UX.
+
+I was in heaven. Valhalla. Nirvana. Whatever floats your boat.
+
+This wasn't my first rodeo, so I did what I always do. I opened Figma, started documenting everything and building a new design system, ready to send tickets to the frontend developers. Two problems. It takes a lot of time, and I would need a frontend developer just for me for many months. In a small team, nobody gets to kidnap a frontend dev.
+
+So after a few days of the typical Figma routine, I stopped and changed the game completely.
+
+## The evil master plan
+
+_What if... what if I asked AI to build a kind of Storybook of our app?_ One place where I could see everything, without opening the browser inspector every five minutes to check if that thing is a checkbox or just a very confident square.
+
+I did some research on what I needed and this is what I came up with.
+
+- **Foundations.** Colors, spacing, radius, borders, typography, shadows, resolutions.
+- **Components.** Individual components and grouped components.
+- **Assets.** Images, icons, animations.
+
+Then I pulled a branch of the project (more about that adventure later) and asked Claude (yes, I call Claude "him") to flag, for every single element:
+
+- what technology is behind it
+- where it's being used
+- whether it uses hardcoded values or tokens
+- the component name and its variations
+- and a lot more
+
+He built me an app with all of that, and I have to admit it was impressive. He got about 95% of everything right, and I really mean everything. An audit like that would take months the old fashioned way. To this day there's a small voice in my head saying _something's fishy here, this was way too easy_.
+
+![The design system audit Claude built for me. Every component, its variants, where it's used and how clean it is.](/images/blog/a-designer-walks-into-your-codebase/design-system-audit.jpg)
+
+The audit showed Material UI, Tailwind and hardcoded styles all living together, not always happily. So the goal became clear. Say goodbye to MUI and go full Tailwind, with proper tokens.
+
+## A normal day
+
+So what does a normal day look like now? Mostly a conversation.
+
+> Hey Claude, I noticed we're not consistent with the edit button. Sometimes we use X, sometimes Y, and there's no value in having both. Please replace every X with Y and update the Storybook.
+
+Then I check. Then I complain. Then he fixes it. Then I check again. It's less "AI magic" and more like working next to a very fast, very literal colleague who never gets tired and is sometimes very confidently wrong.
+
+Funny enough, I rarely open Figma now. Only for icons and some vector work. I'm even afraid to ask my boss to cancel our Figma subscription. The free version would be more than enough, but cancelling it feels like disconnecting from my safe harbor. If you know, you know.
+
+## Prototypes you can actually click
+
+Now job number two, new features. This is where AI changed my workflow the most.
+
+The classic way is a Figma prototype. First, it takes a lot of time to build. Second, it's hard for the person on the other side, a developer or a stakeholder, to understand what's clickable and what isn't. Let's be honest, a Figma prototype is basically a PowerPoint with links.
+
+Now I use [Lovable](https://lovable.dev) for the first draft. When it's ready, I share a link. And on that link everything is clickable and everything has a behavior. It's not a finished product, but it behaves like one. Nobody has to imagine what happens when they click something, how they go back, or how many steps a flow really has. They just try it.
+
+And AI is surprisingly good at edge cases. Take a simple sign in. If you have experience, you know it's never just a form with a username and a password. What if the username isn't recognized? What if the password is wrong? How do you recover it? In Figma, every one of those is another screen to draw and connect. AI covers that kind of thing very well, often before I even ask.
+
+## 25 years of "one more step"
+
+A bit of context. I've been doing this for almost 25 years. I watched Netscape die. I designed for Internet Explorer only, with tables. I saw CSS and divs arrive and save us all. Then everything was Photoshop, then Flash (rest in peace), then vector tools like Adobe XD and Figma, and then tokens.
+
+Every one of those steps was good. Every one of them was a slow transition, and I adapted. That's the job. So AI doesn't scare me as an idea. It's just one more Photoshop.
+
+The only thing that makes me uncomfortable is the speed. The other transitions took years. This one feels like it changes every couple of weeks. Way, way too fast.
+
+And there's a second kind of speed, the one on my side of the screen.
+
+When I moved from Photoshop to Figma, I got faster. A lot faster. At the time, it felt like a huge jump.
+
+With AI, it's a different story. Some days it feels like fifty times faster, maybe more.
+
+Seeing an idea live in minutes is addictive, and that's exactly the problem. When things move this fast, it's easy to skip a step. _Did I check the edge cases? Did I ask why we need this at all? Did I look at it twice?_
+
+So sometimes I force myself to stop, step back and slow down. Not because the tool needs it. Because the design does.
+
+## Git, my new second language
+
+Now the humble part. GitHub is a world I don't master. It was built by developers, for developers, and I'm a guest in their house.
+
+In my first days I would read my colleagues' messages and nod along. "Pull the latest main, create a branch, open a PR and we'll review it." I knew the basics, but some of it sounded like a secret language.
+
+My designer brain translated it like this. Download the latest version. Make my small changes. Upload them so someone can check them. Same idea, different words. And I learned quickly that nobody here says "download" or "upload".
+
+I'll be honest, even the setup was new to me. Pulling, pushing, configuring everything. More than once I asked Claude what exactly to type in the terminal, what a branch actually is, and whether pressing enter was going to break something important.
+
+It's still a learning curve. I'd be lying if I said I feel super comfortable. It's not scary, but it is a bit daunting. And the funny thing is, I'm enjoying it.
+
+The emails were the other problem. Every comment, every review, every failed check, every request to merge, all landing in my inbox. I was drowning, and I'm sure I missed things that mattered.
+
+So I did what I do now with every problem. I asked Claude to build me something. A small widget that lives on my desktop and handles everything Git and GitHub for me. Today I do 100% of my daily work through it, without typing a single command. For me this was the real breakthrough.
+
+For the developers reading this, here's what it does under the hood.
+
+- Every branch gets its own folder (a git worktree), so I can have several features going at once and switching never loses anything.
+- One click starts the dev server for any branch and opens it in the browser.
+- Commit, with a suggested message in our commit format.
+- Run checks runs the full test suite (types, Biome, Vitest) and then a code review by Claude. Push only unlocks when both pass on that exact version. Small follow up fixes skip the review.
+- Our end to end tests on staging run one PR at a time, so the widget queues my pushes and sends them when the other PR's checks are done.
+- Update from main does a dry run first and tells me if anything would conflict.
+- Each PR card shows GitHub's checks as they progress, the preview link (it turns blue when a new one is ready) and unread review comments, right on the card.
+- Issues assigned to me, mentions, review requests and replies in threads I'm part of, all in one tab. I stopped reading GitHub emails.
+- When a PR is ready for review, it moves the card on our project board by itself.
+- It talks to GitHub with conditional requests (ETags), so checking every minute costs almost nothing against the rate limit. Yes, I now know what an ETag is.
+- And a small to-do list, where any idea becomes a branch with one click.
+
+![My Git widget. My branches, what's assigned to me and my to-do list.](/images/blog/a-designer-walks-into-your-codebase/widget.webp)
+
+One thing I'm sure about. The developers shouldn't make a special case for me. If I'm shipping code, even if it's "just" a new button (is a new button a feature? I still don't know), it goes through the same pipeline as everyone else's. Same branches, same reviews, same rules. One day at a time.
+
+## So what am I now?
+
+I know my title. I'm a senior product designer. But more and more I find myself with Claude, actually shipping things. Which makes me wonder if I'm slowly becoming something else.
+
+There's already a name for it, design engineer. Someone who lives between design and frontend, and ships real UI instead of handing over pictures of it. Some companies already hire for it. _Am I one? Not yet, I think. Is that where my role is going? Maybe._ Ask me again in six months. At this speed, anything is possible.
+
+## Where is the line?
+
+Design system work is easy to justify. Make the buttons consistent, fix the colors, align the spacing. But where's the line?
+
+Here's an example. A popup with a form inside. You click outside and it closes. Normal behavior. But if some of the fields already have content, I want a warning. "You have unsaved changes. Discard them or keep editing?" The typical thing.
+
+That's not design system work. That's behavior. That's development. _So if I build it, am I crossing into a developer's job, something that should be done by a proper engineer?_
+
+You could say it's a tiny example and any LLM will do it perfectly. True. But then where do you put the line? What's "fine, a designer can ship that" and what's "please, let a developer own this"? I don't have a clean answer yet. For now my rule is simple. If it changes how a feature works, and not just how it looks, I flag it and talk to the developers before touching it.
+
+## Is it still mine?
+
+The other uncomfortable part is more of an ethical one. For most of my career I did everything by hand. Every line of CSS. Every Photoshop layer. Every single Figma component.
+
+Now I don't, and I feel like I lost some control. _So can I still say that design is mine?_
+
+This blog post is a good example. I wrote the first draft myself, with my Portuguese expressions and my creative English, and then I asked Claude to help clean it up and give it some structure. _Was this written by a human? I think so._ The ideas, the opinions and the jokes that didn't land are all mine. But I'd be lying if I said I don't think about it.
+
+## Can anyone do this?
+
+Short answer, no. At least in my opinion.
+
+The tool is different. The way you produce the output is very different. But the job is still the same. You still need to know why a feature exists, whether it makes sense on that screen, what users are actually telling you, and which design guidelines you're following. Claude will happily build whatever you ask. Knowing what to ask, and when to say "no, that's wrong", is still the design part.
+
+So no, I'm not being replaced. I'm just designing in a new way. Again. Like I've done every few years since Netscape. I would just appreciate it if the next step waited a little before showing up.
+
+## The punchline
+
+So, a designer walks into your codebase. The punchline? He opens a pull request, waits for the review and fixes what you asked for. Just like everyone else.
+
+Twenty five years ago I was building layouts with tables for Internet Explorer. Today I'm asking Claude what a branch is. I don't know what the next step will be, but I know I'll adapt, like every other time. I'd just like a little more time to finish my coffee first.
