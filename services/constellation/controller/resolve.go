@@ -56,7 +56,8 @@ func (c *Controller) Resolve(
 ) (*GraphQLResponse, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	state := c.state.Load()
+	state, release := c.acquireState()
+	defer release()
 
 	session := middleware.SessionFromContext(ctx)
 	if session == nil {

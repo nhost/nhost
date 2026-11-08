@@ -34,7 +34,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-const shutdownTimeout = 30 * time.Second
+const (
+	shutdownTimeout  = 30 * time.Second
+	idlePollInterval = 10 * time.Millisecond
+)
 
 // subscriptionCapableConnector is the optional interface a connector satisfies
 // when it can serve GraphQL subscriptions. buildState probes each connector
@@ -49,8 +52,9 @@ type subscriptionCapableConnector interface {
 }
 
 // controllerState holds all mutable state that is rebuilt on metadata changes.
-// Handler methods load a snapshot via c.state.Load() once per request so they
-// see a consistent view even while a reload is in progress.
+// HTTP requests take a snapshot via acquireState and WebSocket connections via
+// c.state.Load(), so each sees a consistent view even while a reload is in
+// progress.
 type controllerState struct {
 	validatedSchemas           map[string]*ast.Schema
 	connectors                 map[string]connector.Connector
@@ -67,6 +71,9 @@ type controllerState struct {
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
 	done chan struct{}
+	// inflight counts HTTP requests registered through acquireState. A
+	// reload closes this state's connectors only once it drops to zero.
+	inflight atomic.Int64
 }
 
 // newControllerState assembles a controllerState with the always-zero
@@ -93,6 +100,7 @@ func newControllerState(
 		queryCache:                 newQueryCache(),
 		inconsistencies:            inconsistencies,
 		done:                       make(chan struct{}),
+		inflight:                   atomic.Int64{},
 	}
 }
 
@@ -104,6 +112,20 @@ func (s *controllerState) shutdown(ctx context.Context) {
 	for _, handler := range s.subHandlers {
 		if handler != nil {
 			handler.Shutdown(ctx)
+		}
+	}
+}
+
+// waitIdle blocks until no request holds this state or ctx is done.
+func (s *controllerState) waitIdle(ctx context.Context) {
+	ticker := time.NewTicker(idlePollInterval)
+	defer ticker.Stop()
+
+	for s.inflight.Load() > 0 {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
 		}
 	}
 }
@@ -312,8 +334,26 @@ func (c *Controller) swapState(
 		defer cancel()
 
 		oldState.shutdown(shutdownCtx)
+		oldState.waitIdle(shutdownCtx)
 		oldState.closeConnectors()
 	}()
+}
+
+// acquireState returns the current state registered as in use until release
+// is called. Re-checking the pointer after registering ensures swapState
+// cannot observe zero in-flight requests and close a state a request is
+// about to use.
+func (c *Controller) acquireState() (*controllerState, func()) {
+	for {
+		state := c.state.Load()
+		state.inflight.Add(1)
+
+		if c.state.Load() == state {
+			return state, func() { state.inflight.Add(-1) }
+		}
+
+		state.inflight.Add(-1)
+	}
 }
 
 // shutdownState tears down the current state on controller exit.
