@@ -260,7 +260,7 @@ func TestReplaceFile_StartReplaceRejected(t *testing.T) {
 			name:               "another replace of the same file is in progress",
 			currentIsUploaded:  false,
 			expectedStatusCode: http.StatusConflict,
-			expectedMessage:    "file is already being replaced",
+			expectedMessage:    "file is being replaced or a previous replace did not complete",
 		},
 		{
 			name:               "caller is not allowed to update the file",

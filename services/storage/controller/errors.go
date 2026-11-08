@@ -60,8 +60,8 @@ var (
 	}
 	ErrFileBeingReplaced = &APIError{
 		http.StatusConflict,
-		"file is already being replaced",
-		errors.New("file is already being replaced"), //nolint
+		"file is being replaced or a previous replace did not complete",
+		errors.New("file is being replaced or a previous replace did not complete"), //nolint
 		nil,
 	}
 )
