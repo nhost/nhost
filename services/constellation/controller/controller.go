@@ -360,8 +360,12 @@ func (c *Controller) acquireState() (*controllerState, func()) {
 func (c *Controller) shutdownState(ctx context.Context, logger *slog.Logger) {
 	logger.InfoContext(ctx, "shutting down controller")
 
+	drainCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+	defer cancel()
+
 	state := c.state.Load()
 	state.shutdown(ctx)
+	state.waitIdle(drainCtx)
 	state.closeConnectors()
 }
 
