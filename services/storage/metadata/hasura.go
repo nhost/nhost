@@ -245,6 +245,22 @@ func (h *Hasura) SetIsUploaded(
 	return nil
 }
 
+// StartFileReplace marks an uploaded file as not uploaded and reports whether
+// it did. It returns false when the file is not currently uploaded, for
+// instance because another replace is in progress, or when the caller is not
+// allowed to update it.
+func (h *Hasura) StartFileReplace(
+	ctx context.Context, fileID string, headers http.Header,
+) (bool, *controller.APIError) {
+	resp, err := h.cl.StartFileReplace(ctx, fileID, WithHeaders(headers))
+	if err != nil {
+		aerr := parseGraphqlError(err)
+		return false, aerr.ExtendError("problem marking file as being replaced")
+	}
+
+	return resp.GetUpdateFiles().GetAffectedRows() > 0, nil
+}
+
 func (h *Hasura) DeleteFileByID(
 	ctx context.Context,
 	fileID string,

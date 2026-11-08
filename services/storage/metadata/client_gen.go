@@ -201,6 +201,17 @@ func (t *InsertFile_InsertFiles) GetAffectedRows() int64 {
 	return t.AffectedRows
 }
 
+type StartFileReplace_UpdateFiles struct {
+	AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
+}
+
+func (t *StartFileReplace_UpdateFiles) GetAffectedRows() int64 {
+	if t == nil {
+		t = &StartFileReplace_UpdateFiles{}
+	}
+	return t.AffectedRows
+}
+
 type DeleteFile_DeleteFile struct {
 	ID string "json:\"id\" graphql:\"id\""
 }
@@ -276,6 +287,17 @@ func (t *UpdateFile) GetUpdateFile() *FileMetadataFragment {
 		t = &UpdateFile{}
 	}
 	return t.UpdateFile
+}
+
+type StartFileReplace struct {
+	UpdateFiles *StartFileReplace_UpdateFiles "json:\"updateFiles,omitempty\" graphql:\"updateFiles\""
+}
+
+func (t *StartFileReplace) GetUpdateFiles() *StartFileReplace_UpdateFiles {
+	if t == nil {
+		t = &StartFileReplace{}
+	}
+	return t.UpdateFiles
 }
 
 type DeleteFile struct {
@@ -461,6 +483,30 @@ func (c *Client) UpdateFile(ctx context.Context, id string, set FilesSetInput, i
 	return &res, nil
 }
 
+const StartFileReplaceDocument = `mutation StartFileReplace ($id: uuid!) {
+	updateFiles(where: {id:{_eq:$id},isUploaded:{_eq:true}}, _set: {isUploaded:false}) {
+		affected_rows
+	}
+}
+`
+
+func (c *Client) StartFileReplace(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*StartFileReplace, error) {
+	vars := map[string]any{
+		"id": id,
+	}
+
+	var res StartFileReplace
+	if err := c.Client.Post(ctx, "StartFileReplace", StartFileReplaceDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const DeleteFileDocument = `mutation DeleteFile ($id: uuid!) {
 	deleteFile(id: $id) {
 		id
@@ -515,6 +561,7 @@ var DocumentOperationNames = map[string]string{
 	ListFilesSummaryDocument: "ListFilesSummary",
 	InsertFileDocument:       "InsertFile",
 	UpdateFileDocument:       "UpdateFile",
+	StartFileReplaceDocument: "StartFileReplace",
 	DeleteFileDocument:       "DeleteFile",
 	InsertVirusDocument:      "InsertVirus",
 }

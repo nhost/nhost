@@ -162,9 +162,9 @@ func TestReplaceFile(t *testing.T) {
 				nil,
 			)
 
-			metadataStorage.EXPECT().SetIsUploaded(
-				gomock.Any(), fileID, false, gomock.Any(),
-			).Return(nil)
+			metadataStorage.EXPECT().StartFileReplace(
+				gomock.Any(), fileID, gomock.Any(),
+			).Return(true, nil)
 
 			contentStorage.EXPECT().PutFile(
 				gomock.Any(),
@@ -243,6 +243,123 @@ func TestReplaceFile(t *testing.T) {
 				}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
+		})
+	}
+}
+
+func TestReplaceFile_StartReplaceRejected(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name               string
+		currentIsUploaded  bool
+		expectedStatusCode int
+		expectedMessage    string
+	}{
+		{
+			name:               "another replace of the same file is in progress",
+			currentIsUploaded:  false,
+			expectedStatusCode: http.StatusConflict,
+			expectedMessage:    "file is already being replaced",
+		},
+		{
+			name:               "caller is not allowed to update the file",
+			currentIsUploaded:  true,
+			expectedStatusCode: http.StatusNotFound,
+			expectedMessage:    "file not found",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			logger := slog.New(
+				slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+			)
+
+			fileID := uuid.New().String()
+
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
+			av := mock.NewMockAntivirus(c)
+
+			gomock.InOrder(
+				metadataStorage.EXPECT().GetFileByID(
+					gomock.Any(), fileID, gomock.Any(),
+				).Return(
+					api.FileMetadata{
+						Id:         fileID,
+						Name:       "original.txt",
+						BucketId:   "blah",
+						IsUploaded: true,
+					},
+					nil,
+				),
+				metadataStorage.EXPECT().StartFileReplace(
+					gomock.Any(), fileID, gomock.Any(),
+				).Return(false, nil),
+				metadataStorage.EXPECT().GetFileByID(
+					gomock.Any(), fileID, gomock.Any(),
+				).Return(
+					api.FileMetadata{
+						Id:         fileID,
+						Name:       "original.txt",
+						BucketId:   "blah",
+						IsUploaded: tc.currentIsUploaded,
+					},
+					nil,
+				),
+			)
+			metadataStorage.EXPECT().GetBucketByID(
+				gomock.Any(), "blah", gomock.Any(),
+			).Return(
+				controller.BucketMetadata{
+					ID:                   "blah",
+					MinUploadFile:        0,
+					MaxUploadFile:        2 << 20,
+					PresignedURLsEnabled: false,
+					DownloadExpiration:   30,
+					CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+					UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+				},
+				nil,
+			)
+
+			av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
+
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				av,
+				logger,
+			)
+
+			resp, err := ctrl.ReplaceFile(
+				t.Context(),
+				api.ReplaceFileRequestObject{
+					Id:   fileID,
+					Body: createReplaceMultiForm(t, "upload.txt", "some content", ""),
+				},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			apiErr, ok := resp.(*controller.APIError)
+			if !ok {
+				t.Fatalf("expected *controller.APIError, got %T", resp)
+			}
+
+			assert(t, apiErr.StatusCode(), tc.expectedStatusCode)
+			assert(t, apiErr.PublicMessage(), tc.expectedMessage)
 		})
 	}
 }

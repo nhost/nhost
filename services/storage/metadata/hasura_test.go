@@ -484,6 +484,56 @@ func TestSetIsUploaded(t *testing.T) {
 	}
 }
 
+func TestStartFileReplace(t *testing.T) {
+	t.Parallel()
+
+	hasura := metadata.NewHasura(hasuraURL)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(
+		context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader(),
+	); err != nil {
+		panic(err)
+	}
+
+	if err := hasura.SetIsUploaded(context.Background(), fileID, true, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	cases := []struct {
+		name            string
+		fileID          string
+		expectedStarted bool
+	}{
+		{
+			name:            "uploaded file",
+			fileID:          fileID,
+			expectedStarted: true,
+		},
+		{
+			name:            "replace already in progress",
+			fileID:          fileID,
+			expectedStarted: false,
+		},
+		{
+			name:            "file not found",
+			fileID:          "aaaaaaaa-1111-bbbb-2222-cccccccccccc",
+			expectedStarted: false,
+		},
+	}
+
+	for _, tc := range cases {
+		started, err := hasura.StartFileReplace(context.Background(), tc.fileID, getAuthHeader())
+		if err != nil {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+
+		if started != tc.expectedStarted {
+			t.Errorf("%s: started = %v, want %v", tc.name, started, tc.expectedStarted)
+		}
+	}
+}
+
 func TestDeleteFileByID(t *testing.T) {
 	t.Parallel()
 
