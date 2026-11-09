@@ -284,6 +284,10 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
     --warning: 32 100% 57%;
+    /* Readable warning text on light tinted backgrounds (plan tags). */
+    --warning-foreground: 32.13 94.62% 43.73%;
+    /* Team plan tag color. */
+    --brand-violet: 262.12 83.26% 57.84%;
     --border: 220 13.04% 90.98%;
     --input: 0 0% 83.1%;
     --ring: 216 100% 40%;
@@ -375,6 +379,8 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
     --warning: 32 100% 57%;
+    --warning-foreground: 45.94 96.69% 64.51%;
+    --brand-violet: 252.5 94.74% 85.1%;
     --sidebar-foreground: 220 6.98% 91.57%;
     --sidebar-section-title: 204 2.2% 55.1%;
     --border: 214.29 5.43% 25.29%;
