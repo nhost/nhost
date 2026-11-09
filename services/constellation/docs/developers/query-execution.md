@@ -167,6 +167,16 @@ results, err := c.driver.ExecuteOperations(ctx, operations, logger)
 
 Values returned from SQL drivers are usually `jsontext.Value` (raw JSON) so the controller can avoid double-marshalling on the response.
 
+A PostgreSQL nested insert is a `core.SQLOperation.Insert` plan (`core.InsertPlan`,
+built in `queries/mutation_insert_steps.go`). `postgres.Client.ExecuteOperations`
+runs its steps in the same transaction as sibling root fields. A level without
+relationships is one multirow statement; otherwise each input row runs its
+before-parent objects, the row and its insert check, arrays depth-first, then
+after-parent objects. Sibling relationships follow Hasura's hash order (see
+`KNOWN_DIFFERENCES.md`). Returned columns are captured as text and cast back to
+their catalog types before they feed child rows and the final `returning`.
+SQLite rejects these plans.
+
 ### Remote schema connector
 
 `connector/remoteschema.Connector.Execute` (`connector/remoteschema/connector.go:180`):
@@ -178,27 +188,19 @@ Values returned from SQL drivers are usually `jsontext.Value` (raw JSON) so the 
 
 ## 10. Remote relationship resolution
 
-If the plan contains remote queries, `resolveRemoteRelationships` (`controller/resolve.go:353`) runs:
-
-```go
-resolver.UnmarshalRawResults(results)
-pending := resolver.BuildRemoteQueriesFromPlan(results, plan, fragments, typeNameResolver)
-state.remoteRelationshipResolver.Resolve(ctx, results, pending, ...)
-```
-
-`UnmarshalRawResults` materialises any `jsontext.Value` entries into nested Go maps so `jsonpath` can traverse them. `BuildRemoteQueriesFromPlan` (`controller/resolver/remote_query_builder.go:20`) walks `plan.RemoteQueries`, extracts join values from the parent results, deduplicates by join key hash, and selects the right resolver strategy:
+If the plan contains remote queries, `resolveRemoteRelationships` materialises `jsontext.Value` parent results into maps with `controller.unmarshalRawResults` (`controller/results.go`), then calls `state.remoteRelationshipResolver.ResolvePlanned(ctx, results, plan, fragments, typeNameResolver, ...)`. It walks `plan.RemoteQueries` in dependency order, building each query with `buildRemoteQueryFromPlan` **after** its parent has been stitched. That builder extracts current join values, deduplicates keys, and selects the target strategy:
 
 - `planner.ResolverKindDatabase` → `DatabaseResolver` (`controller/resolver/database_resolver.go`) — translates to a `WHERE col IN (...)` query against the target connector.
 - `planner.ResolverKindSchema` → `SchemaResolver` (`controller/resolver/schema_resolver.go`) — renders an aliased GraphQL field against the remote schema.
 - `IsArrayAggregate` plans skip the resolver entirely and instead carry an `AggregateInfo` payload that dispatches to the connector's `groupedaggregate.Executor`.
 
-`RemoteRelationshipResolver.Resolve` (`controller/resolver/remote_relationship_resolver.go:45`) executes each pending query, stitches results into the parent map, and removes remote phantom fields immediately. After all queries finish, it removes the local phantom fields it added to the source query.
+`ResolvePlanned` executes and stitches each query, stripping target join-column phantoms from that query's own result maps immediately. Source and child join-key phantoms remain available for descendants; local phantoms are removed after all plans finish. `BuildRemoteQueriesFromPlan` and `Resolve` retain the former eager-build path only as compatibility helpers, not production execution.
 
 See [remote-relationships.md](./remote-relationships.md) for the full mechanics.
 
 ## 11. Phantom field cleanup
 
-`resolver.RemovePhantomFieldsFromPlan` (`controller/resolver/remote_relationship_resolver.go:200`) sweeps the result map a final time, removing every phantom field recorded in `plan.AllPhantomFieldSpecs()`. This is the catch-all that ensures phantom columns from primary queries are gone even when no remote relationship ended up needing them (e.g. all parent rows had null join keys).
+The controller calls `controller.removePhantomFieldsFromPlan` (`controller/results.go`) after `ResolvePlanned` to remove any remaining primary-query phantoms, including fields left when all parent keys were null. Target-result phantoms were already stripped per query; descendant join keys are only removed after their last consumer.
 
 ## 12. Response assembly
 

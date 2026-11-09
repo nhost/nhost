@@ -355,6 +355,15 @@ func (c *Client) executeOperation(
 	q Querier,
 	op core.SQLOperation,
 ) (any, error) {
+	if op.Insert != nil {
+		result, err := executeInsertPlan(ctx, q, op.Insert)
+		if err != nil || result == nil {
+			return nil, err
+		}
+
+		return result, nil
+	}
+
 	if len(op.Sequential) > 0 {
 		return c.executeSequentialOperation(ctx, q, op.Sequential)
 	}

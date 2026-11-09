@@ -1,18 +1,60 @@
 [
   {
     "Name": "insert_department_files_one",
-    "QueryType": "insert_one",
-    "SQL": "WITH check_nested_file AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"bucket_id\", $3::uuid AS \"uploaded_by_user_id\") AS data WHERE data.\"bucket_id\" = ANY($4::text[])), nested_file_check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_nested_file) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), nested_file AS (INSERT INTO \"storage\".\"files\" (\"id\", \"bucket_id\", \"uploaded_by_user_id\") SELECT check_nested_file.\"id\", check_nested_file.\"bucket_id\", check_nested_file.\"uploaded_by_user_id\" FROM check_nested_file WHERE (SELECT status FROM nested_file_check_count) = 1 RETURNING *), check_mutation_result AS (SELECT * FROM (SELECT $5::uuid AS \"department_id\", nested_file.\"id\" AS \"file_id\" FROM nested_file) AS data WHERE data.\"department_id\" = ANY($6::uuid[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"department_files\" (\"department_id\", \"file_id\") SELECT check_mutation_result.\"department_id\", nested_file.\"id\" FROM check_mutation_result, nested_file WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"id\" AS \"id\", \"bucket_id\" AS \"bucketId\") AS \"_e\")) FROM nested_file LIMIT 1) AS \"file\", \"mutation_result.r.department\".\"department\" AS \"department\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"mutation_result\".\"department_id\" = \"id\" AND \"public\".\"departments\".\"id\" = ANY($7::uuid[]) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"mutation_result.r.department.base\") AS \"mutation_result.r.department\" ON ('true') WHERE (SELECT COUNT(*) FROM nested_file) IS NOT NULL",
-    "Parameters": [
-      "62abc701-2a54-4c3e-aa7e-2c800d3b1a19",
-      "profile_pics",
-      "550e8400-e29b-41d4-a716-446655440001",
-      [
-        "profile_pics"
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Insert": {
+      "Root": {
+        "Batch": null,
+        "Objects": [
+          {
+            "Row": {
+              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"department_id\", $2::text::pg_catalog.uuid AS \"file_id\") AS data WHERE data.\"department_id\" = ANY($3::uuid[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"department_files\" (\"department_id\", \"file_id\") SELECT check_mutation_result.\"department_id\", check_mutation_result.\"file_id\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"file_id\"::text AS \"file_id\", \"department_id\"::text AS \"department_id\", \"description\"::text AS \"description\" FROM mutation_result) AS \"_physical\"",
+              "Parameters": [
+                "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+                {
+                  "Source": "file",
+                  "TableRef": "\"storage\".\"files\"",
+                  "Column": "id"
+                },
+                "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+              ],
+              "TableRef": "\"public\".\"department_files\""
+            },
+            "Before": [
+              {
+                "Name": "file",
+                "Level": {
+                  "Batch": {
+                    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"bucket_id\", $3::uuid AS \"uploaded_by_user_id\") AS data WHERE data.\"bucket_id\" = ANY($4::text[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"storage\".\"files\" (\"id\", \"bucket_id\", \"uploaded_by_user_id\") SELECT check_mutation_result.\"id\", check_mutation_result.\"bucket_id\", check_mutation_result.\"uploaded_by_user_id\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"created_at\"::text AS \"created_at\", \"updated_at\"::text AS \"updated_at\", \"bucket_id\"::text AS \"bucket_id\", \"name\"::text AS \"name\", \"size\"::text AS \"size\", \"mime_type\"::text AS \"mime_type\", \"etag\"::text AS \"etag\", \"is_uploaded\"::text AS \"is_uploaded\", \"uploaded_by_user_id\"::text AS \"uploaded_by_user_id\", \"metadata\"::text AS \"metadata\" FROM mutation_result) AS \"_physical\"",
+                    "Parameters": [
+                      "62abc701-2a54-4c3e-aa7e-2c800d3b1a19",
+                      "profile_pics",
+                      "550e8400-e29b-41d4-a716-446655440001",
+                      [
+                        "profile_pics"
+                      ]
+                    ],
+                    "TableRef": "\"storage\".\"files\""
+                  },
+                  "Objects": null
+                }
+              }
+            ],
+            "Arrays": null,
+            "AfterObjects": null
+          }
+        ]
+      },
+      "FinalSQL": "WITH mutation_result AS (SELECT (value ->> 'id')::text::pg_catalog.uuid AS \"id\", (value ->> 'file_id')::text::pg_catalog.uuid AS \"file_id\", (value ->> 'department_id')::text::pg_catalog.uuid AS \"department_id\", (value ->> 'description')::text::pg_catalog.text AS \"description\" FROM json_array_elements($1::json) AS \"_rows\"(value)) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.file\".\"file\" AS \"file\", \"mutation_result.r.department\".\"department\" AS \"department\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.file.base\" AS (SELECT * FROM \"storage\".\"files\" WHERE \"mutation_result\".\"file_id\" = \"id\" AND (\"storage\".\"files\".\"uploaded_by_user_id\" = $2::uuid OR \"storage\".\"files\".\"bucket_id\" = $3::text) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.file.base\".\"id\" AS \"id\", \"mutation_result.r.file.base\".\"bucket_id\" AS \"bucketId\") AS \"_e\")) AS \"file\" FROM \"mutation_result.r.file.base\") AS \"mutation_result.r.file\" ON ('true') LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"mutation_result\".\"department_id\" = \"id\" AND \"public\".\"departments\".\"id\" = ANY($4::uuid[]) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"mutation_result.r.department.base\") AS \"mutation_result.r.department\" ON ('true')",
+      "FinalParameters": [
+        null,
+        "550e8400-e29b-41d4-a716-446655440001",
+        "profile_pics",
+        "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
       ],
-      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
-      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
-      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
-    ]
+      "Collection": false
+    }
   }
 ]

@@ -5,6 +5,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"log/slog"
+	"reflect"
 	"testing"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/parser"
 )
 
 // fakeSubHandler is an inline subscription.Handler stub: it records the request
@@ -280,6 +282,106 @@ func TestCustomizedSubscriptionHandlerReversesAndReshapes(t *testing.T) {
 
 	if _, open := <-out; open {
 		t.Errorf("forwarded channel should close when inner channel closes")
+	}
+}
+
+func TestCustomizedSubscriptionHandlerIncludesWrapperFragmentsWithVariables(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name  string
+		query string
+	}{
+		{
+			name: "inline fragment",
+			query: `subscription S($on: Boolean!) {
+				league { ... on league_subscription @include(if: $on) { teams { id } } }
+			}`,
+		},
+		{
+			name: "named spread",
+			query: `subscription S($on: Boolean!) {
+				league { ...W @include(if: $on) }
+			}
+			fragment W on league_subscription { teams { id } }`,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			schema := teamSchema()
+			subscriptionName := "Subscription"
+			schema.SubscriptionType = &subscriptionName
+			schema.Types = append(schema.Types, &graph.ObjectType{
+				Name: "Subscription",
+				Fields: []*graph.Field{
+					{Name: "teams", Type: graph.NewNonNullListType(graph.NewNonNullType("Team"))},
+				},
+			})
+
+			customizer := customization.New(metadata.Customization{
+				RootFieldsNamespace: "league",
+			}, customization.FlavorDatabase)
+			customizer.Apply(schema)
+
+			doc, err := parser.ParseQuery(&ast.Source{Input: tt.query})
+			if err != nil {
+				t.Fatalf("parse subscription: %v", err)
+			}
+
+			fake := &fakeSubHandler{ch: make(chan subscription.Update, 1)}
+			handler := &customizedSubscriptionHandler{inner: fake, customizer: customizer}
+
+			out, err := handler.Start(t.Context(), subscription.Request{
+				ID:        "sub-1",
+				Operation: doc.Operations[0],
+				Fragments: doc.Fragments,
+				Variables: map[string]any{"on": true},
+			}, slog.Default())
+			if err != nil {
+				t.Fatalf("start subscription: %v", err)
+			}
+
+			if fake.startedOp == nil || len(fake.startedOp.SelectionSet) != 1 {
+				t.Fatalf("native root selections = %#v, want teams", fake.startedOp)
+			}
+
+			root, ok := fake.startedOp.SelectionSet[0].(*ast.Field)
+			if !ok || root.Name != "teams" || len(root.SelectionSet) != 1 {
+				t.Fatalf(
+					"native root selection = %#v, want teams { id }",
+					fake.startedOp.SelectionSet[0],
+				)
+			}
+
+			id, ok := root.SelectionSet[0].(*ast.Field)
+			if !ok || id.Name != "id" {
+				t.Fatalf("native child selection = %#v, want id", root.SelectionSet[0])
+			}
+
+			fake.ch <- subscription.NewUpdateData("sub-1", jsontext.Value(`{"teams":[{"id":"one"}]}`))
+
+			update := <-out
+			if update.Error != nil {
+				t.Fatalf("forwarded update: %v", update.Error)
+			}
+
+			var got map[string]any
+			if err := json.Unmarshal(update.Data, &got); err != nil {
+				t.Fatalf("decode forwarded update: %v", err)
+			}
+
+			want := map[string]any{
+				"league": map[string]any{
+					"teams": []any{map[string]any{"id": "one"}},
+				},
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("forwarded update = %#v, want %#v", got, want)
+			}
+
+			close(fake.ch)
+		})
 	}
 }
 

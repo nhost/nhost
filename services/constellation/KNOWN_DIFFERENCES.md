@@ -9,6 +9,60 @@
 
 3. If all columns of a table are non-aggregatable (e.g. only jsonb columns), the `max`/`min` fields are omitted from the `_aggregate_fields` type entirely rather than exposing empty types.
 
+# PostgreSQL nested inserts
+
+Nested inserts run as ordered statements in one transaction. Sibling
+relationships are inserted in the order Hasura v2.50.3-ce derives from hashing
+relationship names, not in input order; other Hasura versions may differ.
+Explicit `manual_configuration.insertion_order` on object relationships is
+ignored. At a level with nested relationships, each input row needs its own
+statement, so deep or wide nested inserts take more round trips than flat ones.
+
+A failed insert or update permission check keeps Constellation's existing error
+(SQLSTATE `ZZ901` message) instead of Hasura's `permission-error` code and path.
+A nested insert in which a row with dependent inserts affects zero rows fails
+with Constellation's error instead of Hasura's `not-supported`. Both roll back
+the whole mutation.
+
+# Computed fields
+
+Computed fields are served for PostgreSQL sources only. Differences from Hasura
+v2.50.3-ce:
+
+- **Remote-relationship keys are stricter.** Using a computed field as a
+  relationship source key requires the role's select grant on that field. A
+  `to_source` relationship also requires select access to every mapped target
+  column; otherwise the relationship is hidden from the role. Hasura joins on
+  values the role cannot read. Relationships keyed by `SETOF` computed fields
+  are hidden for every role, including admin.
+- **Conflicting definitions are dropped individually.** Hasura either rejects
+  the whole metadata (for example an invalid argument name, or a computed
+  argument type or `_args` input that clashes with another type) or serves
+  duplicate or unusable fields (for example a computed field named like a
+  relationship's `<rel>_aggregate`). Constellation instead drops only the
+  conflicting computed field and records an inconsistency. It also drops a
+  computed field whose `_args` input name is used by a tracked function with
+  non-null arguments, where Hasura shares the input.
+- **Unknown filter keys.** A permission filter key that is neither a column nor
+  a defined or granted computed field makes the whole source unavailable, as an
+  unknown column does. Hasura marks only that permission inconsistent.
+- **Custom argument types** in non-public schemas work. Hasura accepts them in
+  the schema but fails at runtime with `type "…" does not exist`.
+- **Aggregates** of computed fields follow Hasura's fixed type list, not the
+  discovery used for columns (see
+  [Aggregates on non-aggregatable types](#aggregates-on-non-aggregatable-types)).
+  As in Hasura, `uuid` `min`/`max` fail with SQLSTATE `42883` when PostgreSQL
+  has no such aggregate.
+
+# Database error details and quoted `Int` inputs
+
+In production, database errors (for example a failed domain check or an invalid
+cast) return `internal server error (trace id: …)`; with `devMode` they return
+the raw error chain. Neither includes Hasura's `extensions.code` or `path`.
+GraphQL `Int` inputs are validated strictly: a quoted value such as `"3"` is
+rejected where Hasura accepts it, and out-of-range values fail at execution
+rather than during parsing.
+
 # Mutations with no update permissions
 
 Update mutations are not generated for tables where the role has no update column permissions (i.e. the `_update_column` enum only contains `_PLACEHOLDER`). Hasura generates these mutations but they cannot actually update any columns, making them no-ops.
@@ -35,7 +89,7 @@ Hasura handles the same input inconsistently:
 
 A single explicit validation error is more consistent than Hasura's mix of silent
 no-op, empty object, and leaked SQL syntax error, so Constellation does not
-reproduce those behaviors. This is the one deliberate divergence: Constellation
+reproduce those behaviors. For empty update operators, Constellation
 rejects where Hasura no-ops.
 
 Requesting the **same column in more than one operator** (e.g. `_set` and `_inc`

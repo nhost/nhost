@@ -1,0 +1,6 @@
+- "!include cf_insert_order_after_0.yaml"
+- "!include cf_insert_order_after_1.yaml"
+- "!include cf_insert_order_before_object.yaml"
+- "!include cf_insert_order_child.yaml"
+- "!include cf_insert_order_events.yaml"
+- "!include cf_insert_order_parent.yaml"
