@@ -9,7 +9,7 @@ const PLAN_TONES: Record<string, string> = {
   Pro: 'border-primary/20 bg-primary/[0.07] text-primary',
   Team: 'border-brand-violet/20 bg-brand-violet/[0.08] text-brand-violet',
   Enterprise: 'border-warning/20 bg-warning/[0.08] text-warning-foreground',
-  Legacy: 'border-transparent bg-warning/30 text-foreground dark:bg-warning',
+  Legacy: 'border-transparent bg-warning/20 text-foreground',
 };
 
 export interface OrganizationPlanBadgeProps {

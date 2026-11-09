@@ -138,7 +138,9 @@ function TransferProjectForm({
                       placeholder={
                         <span className="flex items-center">
                           {currentOrg?.name}
-                          <OrganizationPlanBadge plan={currentOrg?.plan.name} />
+                          {currentOrg && (
+                            <OrganizationPlanBadge plan={currentOrg.plan.name} />
+                          )}
                         </span>
                       }
                     />
