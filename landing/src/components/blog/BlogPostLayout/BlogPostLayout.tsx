@@ -86,8 +86,8 @@ function Share({ title }: { title: string }) {
 }
 
 const defaultEndCtaText =
-  'Give your app a backend with Postgres, auth and storage where AI agents can build without breaking anything'
-const defaultEndCtaButton = 'Start building for free'
+  'Build your next agentic application with Nhost. Get a PostgreSQL database, GraphQL API, authentication, and file storage in one platform.'
+const defaultEndCtaButton = 'Get started for free'
 
 function EndCta({
   text,
@@ -98,6 +98,8 @@ function EndCta({
 }) {
   return (
     <div className="mx-auto mt-16 grid w-full max-w-prose grid-flow-row justify-items-center gap-6 rounded-lg border border-divider bg-paper p-8 text-base">
+      <h3 className="text-center text-xl font-semibold">Ready to build?</h3>
+
       <p className="text-center text-base font-medium">
         {text || defaultEndCtaText}
       </p>
