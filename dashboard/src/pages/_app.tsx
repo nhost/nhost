@@ -1,6 +1,8 @@
+import { CookieConsent } from '@/components/common/CookieConsent';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
+import { loadAnalytics } from '@/lib/segment';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
@@ -14,6 +16,7 @@ import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import { THEME_STORAGE_KEY } from '@/utils/constants/common';
+import { isPlatform } from '@/utils/env';
 import { nhost } from '@/utils/nhost';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
@@ -70,6 +73,8 @@ function MyApp({ Component, pageProps }: MyAppProps) {
                       options={{ showSpinner: false }}
                     />
                     {getLayout(<Component {...pageProps} />)}
+                    {/* Segment, and the Google Ads tag it loads, only start after consent. */}
+                    {isPlatform() && <CookieConsent onAccept={loadAnalytics} />}
                   </DialogProvider>
                 </TooltipProvider>
               </RetryableErrorBoundary>
