@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   staticLoad: vi.fn(),
   load: vi.fn(),
   reset: vi.fn(),
+  instanceReset: vi.fn(),
 }))
 
 vi.mock('@segment/analytics-next', () => ({
@@ -11,13 +12,14 @@ vi.mock('@segment/analytics-next', () => ({
     static load = mocks.staticLoad
     load = mocks.load
     reset = mocks.reset
+    instance = { reset: mocks.instanceReset }
   },
 }))
 
 describe('segment', () => {
   beforeEach(() => {
     vi.resetModules()
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   afterEach(() => {
@@ -32,7 +34,9 @@ describe('segment', () => {
 
       loadAnalytics()
 
-      expect(mocks.load).toHaveBeenCalledWith(expect.anything(), { disable: true })
+      expect(mocks.load).toHaveBeenCalledWith(expect.anything(), {
+        disable: true,
+      })
     },
   )
 
@@ -42,7 +46,9 @@ describe('segment', () => {
 
     loadAnalytics()
 
-    expect(mocks.load).toHaveBeenCalledWith(expect.anything(), { disable: false })
+    expect(mocks.load).toHaveBeenCalledWith(expect.anything(), {
+      disable: false,
+    })
   })
 
   it('does not load Segment when imported, so nothing runs before consent', async () => {
@@ -64,11 +70,33 @@ describe('segment', () => {
   it('only resets Segment if it was loaded', async () => {
     const { loadAnalytics, resetAnalytics } = await import('@/lib/segment')
 
-    await resetAnalytics()
-    expect(mocks.reset).not.toHaveBeenCalled()
+    resetAnalytics()
+    expect(mocks.instanceReset).not.toHaveBeenCalled()
 
     loadAnalytics()
-    await resetAnalytics()
-    expect(mocks.reset).toHaveBeenCalledTimes(1)
+    resetAnalytics()
+    expect(mocks.instanceReset).toHaveBeenCalledTimes(1)
+    expect(mocks.reset).not.toHaveBeenCalled()
   })
+
+  it.each(['pending', 'rejected'])(
+    'settles without calling the %s buffered reset when Segment has no instance',
+    async (state) => {
+      const { analytics, loadAnalytics, resetAnalytics } = await import(
+        '@/lib/segment'
+      )
+      analytics.instance = undefined
+      mocks.reset.mockImplementationOnce(() =>
+        state === 'pending'
+          ? new Promise<void>(() => {})
+          : Promise.reject(new Error('Reset failed')),
+      )
+      loadAnalytics()
+
+      expect(resetAnalytics()).toBeUndefined()
+
+      expect(mocks.reset).not.toHaveBeenCalled()
+      expect(mocks.instanceReset).not.toHaveBeenCalled()
+    },
+  )
 })

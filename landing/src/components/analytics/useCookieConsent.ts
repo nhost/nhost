@@ -38,8 +38,13 @@ export function useCookieConsent() {
 }
 
 /** Forgets the visitor's choice and reloads, so the banner is shown again. */
-export async function resetCookieConsent() {
-  await resetAnalytics()
-  deleteConsentCookie()
-  window.location.reload()
+export function resetCookieConsent() {
+  try {
+    resetAnalytics()
+  } catch (error: unknown) {
+    console.error('Failed to reset analytics:', error)
+  } finally {
+    deleteConsentCookie()
+    window.location.reload()
+  }
 }

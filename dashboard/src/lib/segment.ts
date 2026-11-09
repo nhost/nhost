@@ -68,11 +68,12 @@ export function clearAnalyticsStorage() {
   }
 }
 
-export async function resetAnalytics() {
+export function resetAnalytics() {
   clearAnalyticsStorage();
   if (loaded) {
     try {
-      await analytics.reset();
+      // The buffered reset never settles if Segment fails to load.
+      analytics.instance?.reset();
     } finally {
       clearAnalyticsStorage();
     }
