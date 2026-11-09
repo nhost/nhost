@@ -1,5 +1,9 @@
 import { Download } from 'lucide-react';
 import { useState } from 'react';
+import {
+  SettingsCard,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -58,31 +62,23 @@ export default function Soc2Download() {
   }
 
   return (
-    <div className="flex w-full flex-col rounded-md border bg-background">
-      <div className="w-full border-b p-4 font-medium">
-        SOC2 Compliance Report
-      </div>
-
-      <div className="flex w-full flex-col gap-4 p-4">
-        <div className="flex flex-col gap-2">
-          <p className="text-muted-foreground text-sm">
-            Download Nhost&apos;s SOC2 Type II compliance report. This report
-            demonstrates our commitment to security controls.
-          </p>
-        </div>
-
-        <div className="flex justify-start">
+    <SettingsCard>
+      <SettingsCardHeader
+        size="lg"
+        title="SOC2 compliance report"
+        description="Download Nhost's SOC2 Type II compliance report. This report demonstrates our commitment to security controls."
+        control={
           <Button
             onClick={handleDownload}
             disabled={downloading}
             variant="outline"
-            className="flex items-center gap-2"
+            className="w-full gap-2 sm:w-auto"
           >
             <Download className="h-4 w-4" />
-            {downloading ? 'Downloading...' : 'Download SOC2 Report'}
+            {downloading ? 'Downloading...' : 'Download report'}
           </Button>
-        </div>
-      </div>
-    </div>
+        }
+      />
+    </SettingsCard>
   );
 }

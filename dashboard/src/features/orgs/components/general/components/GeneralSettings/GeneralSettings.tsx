@@ -4,15 +4,14 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormInput } from '@/components/form/FormInput';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+} from '@/components/layout/SettingsCard';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Form, FormItem } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import {
@@ -84,35 +83,25 @@ export default function GeneralSettings() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex w-full flex-col rounded-md border bg-background">
-          <div className="w-full border-b p-4 font-medium">
-            General Settings
-          </div>
-
-          <div className="flex w-full flex-col gap-4 p-4 sm:max-w-lg">
-            <FormField
+      <SettingsCard asChild>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <SettingsCardContent className="sm:grid-cols-2">
+            <FormInput
               control={form.control}
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Organization name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Acme Inc" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Organization name"
+              placeholder="Acme Inc"
             />
 
-            <div className="flex flex-col gap-2">
+            {/* Same form item as the name field, so both line up. */}
+            <FormItem>
               <Label htmlFor="slug">Organization slug</Label>
               <div className="relative">
                 <Input
                   id="slug"
                   disabled
                   value={org?.slug ?? ''}
-                  className="disabled:opacity-100"
+                  className="pr-10 disabled:opacity-100"
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -130,20 +119,21 @@ export default function GeneralSettings() {
                   <TooltipContent>Copy slug</TooltipContent>
                 </Tooltip>
               </div>
-            </div>
-          </div>
+            </FormItem>
+          </SettingsCardContent>
 
-          <div className="flex justify-end gap-2 border-t p-2">
+          <SettingsCardFooter>
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}
               loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
             >
               Save
             </ButtonWithLoading>
-          </div>
-        </div>
-      </form>
+          </SettingsCardFooter>
+        </form>
+      </SettingsCard>
     </Form>
   );
 }
