@@ -2,16 +2,10 @@ import { Fingerprint } from 'lucide-react';
 import { memo } from 'react';
 import { SettingsCardContent } from '@/components/layout/SettingsCard';
 import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import RemoveSecurityKeyButton from '@/features/account/settings/components/SecurityKeysSettings/components/RemoveSecurityKeyButton';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 
 type SecurityKeyProps = {
   id: string;
@@ -20,15 +14,17 @@ type SecurityKeyProps = {
 
 function SecurityKey({ id, nickname }: SecurityKeyProps) {
   return (
-    <TableRow>
-      <TableCell className="pl-6">
+    <TableRow className="group">
+      <TableCell>
         <span className="flex min-w-0 items-center gap-3">
           <Fingerprint className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="truncate">{nickname || id}</span>
         </span>
       </TableCell>
-      <TableCell className="pr-6 text-right">
-        <RemoveSecurityKeyButton id={id} />
+      <TableCell className="w-24">
+        <div className="flex justify-end">
+          <RemoveSecurityKeyButton id={id} />
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -41,7 +37,7 @@ function SecurityKeyList() {
 
   if (loading) {
     return (
-      <SettingsCardContent className="mt-6">
+      <SettingsCardContent className="mt-2">
         <Spinner />
       </SettingsCardContent>
     );
@@ -54,20 +50,13 @@ function SecurityKeyList() {
   }
 
   return (
-    <SettingsCardContent className="mt-6 px-0">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="pl-6">Name</TableHead>
-            <TableHead className="w-12 pr-6" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {securityKeys.map(({ id, nickname }) => (
-            <MemoizedSecurityKey key={id} id={id} nickname={nickname} />
-          ))}
-        </TableBody>
-      </Table>
+    // Same box as the environment variables and secrets lists.
+    <SettingsCardContent className="mt-2">
+      <VariableGroup>
+        {securityKeys.map(({ id, nickname }) => (
+          <MemoizedSecurityKey key={id} id={id} nickname={nickname} />
+        ))}
+      </VariableGroup>
     </SettingsCardContent>
   );
 }

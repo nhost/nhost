@@ -5,7 +5,7 @@ import SecurityKeyList from '@/features/account/settings/components/SecurityKeys
 
 function SecurityKeysSettings() {
   return (
-    <AccountSettingsCard className="gap-0">
+    <AccountSettingsCard>
       <SettingsCardHeader
         className="sm:items-start"
         title={null}

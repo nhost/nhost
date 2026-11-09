@@ -21,14 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import {
   Tooltip,
   TooltipContent,
@@ -36,6 +29,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
@@ -99,7 +93,7 @@ export default function PATSettings() {
   }
 
   return (
-    <AccountSettingsCard className="gap-0">
+    <AccountSettingsCard>
       <SettingsCardHeader
         className="sm:items-start"
         title={null}
@@ -116,47 +110,47 @@ export default function PATSettings() {
         }
       />
 
+      {/* Same box as the environment variables and secrets lists. */}
       {availablePersonalAccessTokens.length > 0 && (
-        <SettingsCardContent className="mt-6 px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-6">Name</TableHead>
-                <TableHead>Expires at</TableHead>
-                <TableHead>Created at</TableHead>
-                <TableHead className="w-12 pr-6" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {availablePersonalAccessTokens.map((pat) => {
-                const tokenHasExpired = new Date(pat.expiresAt) < new Date();
-                const textClassName = cn(
-                  'truncate',
-                  tokenHasExpired && 'text-warning',
-                );
+        <SettingsCardContent className="mt-2">
+          <VariableGroup>
+            {availablePersonalAccessTokens.map((pat) => {
+              const tokenHasExpired = new Date(pat.expiresAt) < new Date();
 
-                return (
-                  <TableRow key={pat.id}>
-                    <TableCell className={cn('pl-6', textClassName)}>
-                      <span className="mr-2">{pat.name}</span>
-                      {tokenHasExpired && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <WarningIcon className="inline h-4 w-4" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            This personal access token is expired.
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </TableCell>
-                    <TableCell className={textClassName}>
-                      {new Date(pat.expiresAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className={textClassName}>
-                      {new Date(pat.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
+              return (
+                <TableRow key={pat.id} className="group">
+                  <TableCell
+                    className={cn(
+                      'truncate font-medium',
+                      tokenHasExpired && 'text-warning',
+                    )}
+                  >
+                    <span className="mr-2">{pat.name}</span>
+                    {tokenHasExpired && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <WarningIcon className="inline h-4 w-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          This personal access token is expired.
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                  <TableCell
+                    className={cn(
+                      'truncate text-muted-foreground',
+                      tokenHasExpired && 'text-warning',
+                    )}
+                  >
+                    {tokenHasExpired ? 'Expired' : 'Expires'}{' '}
+                    {new Date(pat.expiresAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="truncate text-muted-foreground">
+                    Created {new Date(pat.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="w-24">
+                    <div className="flex justify-end">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -171,12 +165,12 @@ export default function PATSettings() {
                         </TooltipTrigger>
                         <TooltipContent>Delete</TooltipContent>
                       </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </VariableGroup>
         </SettingsCardContent>
       )}
 

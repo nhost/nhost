@@ -284,6 +284,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
     --warning: 32 100% 57%;
+    --success: 149 70% 30%;
     --border: 220 13.04% 90.98%;
     --input: 0 0% 83.1%;
     --ring: 216 100% 40%;
@@ -375,6 +376,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
     --warning: 32 100% 57%;
+    --success: 149 55% 60%;
     --sidebar-foreground: 220 6.98% 91.57%;
     --sidebar-section-title: 204 2.2% 55.1%;
     --border: 214.29 5.43% 25.29%;

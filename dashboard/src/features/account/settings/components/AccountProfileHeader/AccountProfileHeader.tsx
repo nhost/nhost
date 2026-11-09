@@ -42,7 +42,7 @@ function ProfileChip({ icon: Icon, active, tab, children }: ProfileChipProps) {
     >
       <Icon
         aria-hidden="true"
-        className={cn('h-3.5 w-3.5', active && 'text-primary')}
+        className={cn('h-3.5 w-3.5', active && 'text-success')}
       />
       {children}
     </NextLink>
@@ -92,12 +92,12 @@ export default function AccountProfileHeader() {
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <UserAvatar className="h-20 w-20 shrink-0 text-2xl" />
 
-          <div className="grid min-w-0 gap-1">
-            <h2 className="truncate font-semibold text-2xl">
+          <div className="grid min-w-0">
+            <h2 className="truncate font-semibold text-2xl leading-tight">
               {user?.displayName || user?.email}
             </h2>
 
-            <p className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+            <p className="flex min-w-0 items-center gap-1.5 text-muted-foreground leading-tight">
               <span className="truncate">{user?.email}</span>
               {user?.emailVerified && (
                 <Tooltip>
@@ -115,7 +115,7 @@ export default function AccountProfileHeader() {
             {/* Each pill waits for its own data, so it never flashes the
                 wrong state. */}
             {providersData && (
-              <div className="mt-1 flex">
+              <div className="mt-2 flex">
                 <ProfileChip
                   icon={SiGithub}
                   active={isGithubConnected}

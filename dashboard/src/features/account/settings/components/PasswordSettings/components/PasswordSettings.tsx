@@ -1,5 +1,8 @@
 import { FormPasswordInput } from '@/components/form/FormPasswordInput';
-import { SettingsCardHeader } from '@/components/layout/SettingsCard';
+import {
+  SettingsCardContent,
+  SettingsCardFooter,
+} from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
@@ -16,36 +19,31 @@ export default function PasswordSettings() {
     <Form {...form}>
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <SettingsCardHeader
-            size="lg"
-            title="Password"
-            className="sm:items-end"
-            control={
-              <ButtonWithLoading
-                type="submit"
-                disabled={!form.formState.isDirty}
-                loading={form.formState.isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                Save
-              </ButtonWithLoading>
-            }
-          >
-            <div className="grid gap-4">
-              <FormPasswordInput
-                control={form.control}
-                name="newPassword"
-                label="New password"
-                containerClassName="w-full sm:w-96"
-              />
-              <FormPasswordInput
-                control={form.control}
-                name="confirmPassword"
-                label="Confirm password"
-                containerClassName="w-full sm:w-96"
-              />
-            </div>
-          </SettingsCardHeader>
+          {/* Same shape as the organization settings form: the fields
+              share the full width, Save sits in the footer. */}
+          <SettingsCardContent className="sm:grid-cols-2">
+            <FormPasswordInput
+              control={form.control}
+              name="newPassword"
+              label="New password"
+            />
+            <FormPasswordInput
+              control={form.control}
+              name="confirmPassword"
+              label="Confirm password"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
         </form>
       </AccountSettingsCard>
     </Form>

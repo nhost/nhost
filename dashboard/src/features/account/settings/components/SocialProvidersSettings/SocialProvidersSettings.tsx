@@ -2,6 +2,7 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { Unlink } from 'lucide-react';
 import { useState } from 'react';
 import { SettingsCardHeader } from '@/components/layout/SettingsCard';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -148,14 +149,19 @@ export default function SocialProvidersSettings() {
           <span className="flex items-center gap-2 font-medium">
             <GitHubIcon className="h-5 w-5" aria-hidden="true" />
             GitHub
+            {/* The status as a tag next to the name, the same green as
+                the GitHub pill in the profile band. */}
+            <Badge
+              variant="outline"
+              className={
+                isGithubConnected
+                  ? 'border-success/40 text-success'
+                  : 'text-muted-foreground'
+              }
+            >
+              {isGithubConnected ? 'Linked' : 'Not linked'}
+            </Badge>
           </span>
-        }
-        description={
-          isGithubConnected ? (
-            <span className="text-primary">Linked</span>
-          ) : (
-            'Not linked'
-          )
         }
         control={
           isGithubConnected ? (
