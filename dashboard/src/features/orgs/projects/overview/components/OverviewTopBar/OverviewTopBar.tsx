@@ -31,11 +31,7 @@ export default function OverviewTopBar() {
   }
 
   const creatorName = project.creator?.displayName || project.creator?.email;
-  const createdBy = project.creator
-    ? `Created by ${creatorName} ${formatDistanceToNowStrict(
-        parseISO(project.createdAt),
-      )} ago`
-    : null;
+  const createdAgo = `${formatDistanceToNowStrict(parseISO(project.createdAt))} ago`;
 
   const hasStatus = services.some((service) => service.status);
   let projectStatus: { label: string; state: ServiceState } | null = null;
@@ -53,8 +49,8 @@ export default function OverviewTopBar() {
   return (
     <div className="flex flex-col gap-4 pb-5 md:flex-row md:items-start md:justify-between md:py-5">
       <div className="flex flex-col gap-2">
-        <h1 className="font-semibold text-3xl">{project.name}</h1>
         <div className="flex flex-wrap items-center gap-3">
+          <h1 className="font-semibold text-3xl">{project.name}</h1>
           {projectStatus && (
             <ServiceStateIndicator
               state={projectStatus.state}
@@ -62,10 +58,14 @@ export default function OverviewTopBar() {
               className="h-6 rounded-full border px-2.5 font-medium text-xs"
             />
           )}
-          {createdBy && (
-            <p className="text-muted-foreground text-sm">{createdBy}</p>
-          )}
         </div>
+        {creatorName && (
+          <p className="text-muted-foreground text-sm">
+            Created by{' '}
+            <span className="font-medium text-foreground">{creatorName}</span>{' '}
+            {createdAgo}
+          </p>
+        )}
       </div>
       {isFreeProject && (
         <div className="flex gap-4">

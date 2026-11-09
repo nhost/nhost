@@ -1,4 +1,4 @@
-import { LockIcon } from 'lucide-react';
+import { GlobeIcon, LockIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -9,6 +9,18 @@ import {
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import {
+  useGetResourcesQuery,
+  useGetServerlessFunctionsSettingsQuery,
+} from '@/generated/graphql';
+
+// Path each service answers on when it has a custom domain (see the custom
+// domains docs). Storage can't have one, so it always uses the default URL.
+const customDomainPaths: Partial<Record<NhostService, string>> = {
+  graphql: '/v1/graphql',
+  auth: '/v1',
+  functions: '/v1',
+};
 
 const endpoints: { service: NhostService; label: string }[] = [
   { service: 'graphql', label: 'GraphQL' },
@@ -43,6 +55,27 @@ export default function OverviewConnect() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
+  const { data: resourcesData } = useGetResourcesQuery({
+    variables: { appId: project?.id },
+    skip: !project?.id,
+  });
+  const { data: functionsData } = useGetServerlessFunctionsSettingsQuery({
+    variables: { appId: project?.id },
+    skip: !project?.id,
+  });
+
+  const customDomains: Partial<Record<NhostService, string>> = {
+    graphql:
+      resourcesData?.config?.hasura?.resources?.networking?.ingresses?.[0]
+        ?.fqdn?.[0],
+    auth: resourcesData?.config?.auth?.resources?.networking?.ingresses?.[0]
+      ?.fqdn?.[0],
+    functions:
+      functionsData?.config?.functions?.resources?.networking?.ingresses?.[0]
+        ?.fqdn?.[0],
+  };
+  const hasCustomDomain = Object.values(customDomains).some(Boolean);
+
   if (!project) {
     return null;
   }
@@ -60,7 +93,7 @@ export default function OverviewConnect() {
         </ConnectRow>
 
         {region?.name && (
-          <ConnectRow label="Region">
+          <ConnectRow label="Region" copyValue={region.name}>
             {hasRegionDetails ? (
               <span className="flex items-center gap-1.5">
                 <Image
@@ -78,8 +111,18 @@ export default function OverviewConnect() {
           </ConnectRow>
         )}
 
+        {hasCustomDomain && (
+          <div className="flex items-center gap-2 border-b px-4 py-2.5 text-muted-foreground text-xs">
+            <GlobeIcon className="h-3.5 w-3.5 shrink-0" />
+            <span>Showing your custom domains</span>
+          </div>
+        )}
+
         {endpoints.map(({ service, label }) => {
-          const url = generateAppServiceUrl(subdomain, region, service);
+          const customDomain = customDomains[service];
+          const url = customDomain
+            ? `https://${customDomain}${customDomainPaths[service] ?? ''}`
+            : generateAppServiceUrl(subdomain, region, service);
 
           return (
             <ConnectRow key={service} label={label} copyValue={url}>
@@ -96,7 +139,7 @@ export default function OverviewConnect() {
             The admin secret and keys live in{' '}
             <Link
               href={`/orgs/${org?.slug}/projects/${subdomain}/settings?tab=environment-variables`}
-              className="font-medium text-primary hover:underline"
+              className="font-medium text-foreground underline underline-offset-2"
             >
               Settings › Environment variables
             </Link>

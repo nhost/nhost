@@ -31,6 +31,7 @@ export default function OverviewMetrics() {
   const dailyActiveUsers = data?.dailyActiveUsers?.aggregate?.count ?? 0;
   const monthlyActiveUsers = data?.monthlyActiveUsers?.aggregate?.count ?? 0;
   const totalStorage = data?.filesAggregate?.aggregate?.sum?.size ?? 0;
+  const totalFiles = data?.filesAggregate?.aggregate?.count ?? 0;
 
   const {
     data: {
@@ -48,9 +49,10 @@ export default function OverviewMetrics() {
 
   const {
     data: {
-      functionsDuration: { value: functionsDuration = 0 } = {},
+      functionInvocations: { value: functionInvocations = 0 } = {},
       totalRequests: { value: totalRequests = 0 } = {},
       postgresVolumeUsage: { value: postgresVolumeUsage = 0 } = {},
+      postgresVolumeCapacity: { value: postgresVolumeCapacity = 0 } = {},
       egressVolume: { value: egressVolume = 0 } = {},
     } = {},
     loading,
@@ -64,35 +66,24 @@ export default function OverviewMetrics() {
     skip: !project,
   });
 
+  const requestsPerSecond = totalRequestsInLastFiveMinutes / 300;
+
   const cardElements: MetricsCardProps[] = [
     {
-      label: 'Daily active users',
-      tooltip: 'Unique users active today',
-      value: prettifyNumber(dailyActiveUsers),
-    },
-    {
-      label: 'Monthly active users',
-      tooltip: 'Unique users active this month',
-      value: prettifyNumber(monthlyActiveUsers),
-    },
-    {
-      label: 'All users',
+      label: 'Users',
       tooltip: 'Total registered users',
       value: prettifyNumber(allUsers),
+      detail: `${prettifyNumber(dailyActiveUsers)} active today · ${prettifyNumber(monthlyActiveUsers)} this month`,
     },
     {
-      label: 'Requests per second',
-      tooltip: 'Requests per second (RPS) measured in the last 5 minutes',
-      value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
-        numberOfDecimals: 2,
-      }),
-    },
-    {
-      label: 'Total requests',
+      label: 'Requests',
       tooltip: 'Total service requests this month so far (excluding functions)',
       value: prettifyNumber(totalRequests || 0, {
         numberOfDecimals: totalRequests > 1000 ? 2 : 0,
       }),
+      detail: `About ${prettifyNumber(requestsPerSecond, {
+        numberOfDecimals: requestsPerSecond < 10 ? 2 : 0,
+      })} per second right now`,
     },
     {
       label: 'Egress',
@@ -100,19 +91,28 @@ export default function OverviewMetrics() {
       value: prettifySize(egressVolume),
     },
     {
-      label: 'Functions duration',
-      tooltip: 'Total Functions execution this month so far',
-      value: prettifyNumber(functionsDuration),
+      label: 'Functions',
+      tooltip: 'Function invocations this month so far',
+      value: prettifyNumber(functionInvocations),
+      detail: 'Invocations',
     },
     {
       label: 'Storage',
       tooltip: 'Total size of stored files in the storage service',
       value: prettifySize(totalStorage || 0),
+      detail: `${prettifyNumber(totalFiles)} ${totalFiles === 1 ? 'file' : 'files'}`,
     },
     {
-      label: 'Postgres volume usage',
+      label: 'Postgres volume',
       tooltip: 'Used storage in the Postgres database',
       value: prettifySize(postgresVolumeUsage),
+      usage:
+        postgresVolumeCapacity > 0
+          ? {
+              percent: (postgresVolumeUsage / postgresVolumeCapacity) * 100,
+              limitLabel: prettifySize(postgresVolumeCapacity),
+            }
+          : null,
     },
   ];
 

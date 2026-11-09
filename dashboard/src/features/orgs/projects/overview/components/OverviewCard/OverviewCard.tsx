@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from 'lucide-react';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -91,13 +92,19 @@ export default function OverviewCard({
   // the hover state lives on the card's own border instead of on a separate
   // "Learn more" link. Without a link it stays a plain, non-interactive div.
   const cardClassName = cn(
-    'flex h-full flex-col gap-3 rounded-lg border p-4 shadow-sm transition-colors',
-    link && 'hover:border-primary',
+    'relative flex h-full flex-col gap-3 rounded-lg border p-4 shadow-sm transition-colors',
+    link && 'group hover:border-foreground/40',
     className,
   );
 
   const content = (
     <>
+      {link && (
+        <ExternalLinkIcon
+          aria-hidden
+          className="absolute top-4 right-4 h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground"
+        />
+      )}
       <div
         {...(slotProps.iconWrapper || {})}
         className={cn(
@@ -120,7 +127,7 @@ export default function OverviewCard({
         })}
       </div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-semibold text-sm">{title}</h3>
+        <h3 className="pr-6 font-semibold text-sm">{title}</h3>
         <p className="text-muted-foreground text-xs">{description}</p>
       </div>
     </>

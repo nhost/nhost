@@ -1,9 +1,10 @@
 import { ChevronRightIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
-import { NavLink } from '@/components/common/NavLink';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { OverviewBackupStatus } from '@/features/orgs/projects/overview/components/OverviewBackupStatus';
 import { ServiceDetailsSheet } from '@/features/orgs/projects/overview/components/ServiceDetailsSheet';
 import { ServiceIcon } from '@/features/orgs/projects/overview/components/ServiceIcon';
 import { ServiceIssueAlert } from '@/features/orgs/projects/overview/components/ServiceIssueAlert';
@@ -14,6 +15,7 @@ import {
   useOverviewServices,
 } from '@/features/orgs/projects/overview/hooks/useOverviewServices';
 import { ServiceState } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 function pluralize(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;
@@ -57,6 +59,10 @@ function ServiceRow({
 }) {
   const replicas = service.status?.replicas ?? [];
   const readyReplicas = replicas.filter((replica) => replica.ready).length;
+  const hasUnreadyReplicas = readyReplicas < replicas.length;
+  // "1/1 ready" repeats the state dot, so the count only shows when it tells
+  // something new: several copies, or some of them not ready.
+  const showReplicas = replicas.length > 1 || hasUnreadyReplicas;
 
   return (
     <li className="border-b last:border-b-0">
@@ -69,12 +75,19 @@ function ServiceRow({
           <ServiceIcon serviceKey={service.serviceKey} />
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="truncate font-medium text-sm">{service.name}</span>
-            <span className="truncate text-muted-foreground text-xs">
-              {service.version && (
-                <span className="font-mono">{service.version} · </span>
-              )}
-              {readyReplicas}/{replicas.length} ready
-            </span>
+            {(service.version || showReplicas) && (
+              <span className="truncate text-muted-foreground text-xs">
+                {service.version && (
+                  <span className="font-mono">{service.version}</span>
+                )}
+                {service.version && showReplicas && ' · '}
+                {showReplicas && (
+                  <span className={cn(hasUnreadyReplicas && 'text-warning')}>
+                    {readyReplicas}/{replicas.length} ready
+                  </span>
+                )}
+              </span>
+            )}
           </span>
           <ServiceStateIndicator
             state={service.status?.state}
@@ -103,15 +116,13 @@ export default function OverviewServices() {
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-semibold text-lg">Services</h2>
-        <NavLink
+        <Link
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/logs`}
-          variant="ghost"
-          className="text-primary"
-          underline="none"
+          className="inline-flex items-center gap-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           Logs
-          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
-        </NavLink>
+          <ChevronRightIcon className="h-4 w-4" />
+        </Link>
       </div>
 
       <div className="overflow-hidden rounded-lg border shadow-sm">
@@ -139,6 +150,7 @@ export default function OverviewServices() {
                 />
               ))}
             </ul>
+            <OverviewBackupStatus />
           </>
         )}
       </div>

@@ -5,9 +5,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { OverviewConnect } from '@/features/orgs/projects/overview/components/OverviewConnect';
 import { OverviewDeployments } from '@/features/orgs/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/orgs/projects/overview/components/OverviewDocumentation';
+import { OverviewFailedDeploymentAlert } from '@/features/orgs/projects/overview/components/OverviewFailedDeploymentAlert';
+import { OverviewGettingStarted } from '@/features/orgs/projects/overview/components/OverviewGettingStarted';
 import { OverviewMetrics } from '@/features/orgs/projects/overview/components/OverviewMetrics';
 import { OverviewProjectInfo } from '@/features/orgs/projects/overview/components/OverviewProjectInfo';
-import { OverviewRepository } from '@/features/orgs/projects/overview/components/OverviewRepository';
 import { OverviewServices } from '@/features/orgs/projects/overview/components/OverviewServices';
 import { OverviewTopBar } from '@/features/orgs/projects/overview/components/OverviewTopBar';
 
@@ -25,7 +26,7 @@ export default function ApplicationLive({
 
   if (!isPlatform) {
     return (
-      <Container>
+      <Container className="pb-9">
         {errorMessage && (
           <Alert variant="destructive">
             <AlertDescription>{errorMessage}</AlertDescription>
@@ -46,7 +47,7 @@ export default function ApplicationLive({
   }
 
   return (
-    <Container>
+    <Container className="pb-9">
       {errorMessage && (
         <Alert variant="destructive">
           <AlertDescription>{errorMessage}</AlertDescription>
@@ -55,8 +56,16 @@ export default function ApplicationLive({
 
       <OverviewTopBar />
 
+      <RetryableErrorBoundary>
+        <OverviewFailedDeploymentAlert />
+      </RetryableErrorBoundary>
+
       <div className="grid grid-cols-1 gap-10 pt-3 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-10 lg:col-span-2">
+          <RetryableErrorBoundary>
+            <OverviewGettingStarted />
+          </RetryableErrorBoundary>
+
           <RetryableErrorBoundary>
             <OverviewMetrics />
           </RetryableErrorBoundary>
@@ -73,7 +82,6 @@ export default function ApplicationLive({
             <OverviewServices />
           </RetryableErrorBoundary>
           <OverviewConnect />
-          <OverviewRepository />
         </div>
 
         <OverviewDocumentation className="lg:hidden" />

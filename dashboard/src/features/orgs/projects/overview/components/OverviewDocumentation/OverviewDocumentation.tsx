@@ -20,7 +20,7 @@ export default function OverviewDocumentation({
           href="https://docs.nhost.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-medium text-primary text-sm hover:underline"
+          className="inline-flex items-center gap-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           All docs
           <ExternalLinkIcon className="h-4 w-4" />
