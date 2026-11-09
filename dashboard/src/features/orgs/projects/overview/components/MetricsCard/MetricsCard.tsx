@@ -32,14 +32,14 @@ export default function MetricsCard({
   return (
     <div
       className={cn(
-        'grid grid-flow-row gap-2 rounded-md bg-muted px-4 py-3',
+        'grid grid-flow-row content-start gap-2 bg-background px-4 py-3',
         className,
       )}
       {...props}
     >
       <div className="grid grid-flow-col items-center justify-between gap-2">
         {label && (
-          <span className="truncate font-medium text-muted-foreground">
+          <span className="truncate text-muted-foreground text-sm">
             {label}
           </span>
         )}

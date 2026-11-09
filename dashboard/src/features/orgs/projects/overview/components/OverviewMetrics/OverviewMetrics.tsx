@@ -66,29 +66,29 @@ export default function OverviewMetrics() {
 
   const cardElements: MetricsCardProps[] = [
     {
-      label: 'Daily Active Users',
+      label: 'Daily active users',
       tooltip: 'Unique users active today',
       value: prettifyNumber(dailyActiveUsers),
     },
     {
-      label: 'Monthly Active Users',
+      label: 'Monthly active users',
       tooltip: 'Unique users active this month',
       value: prettifyNumber(monthlyActiveUsers),
     },
     {
-      label: 'All Users',
+      label: 'All users',
       tooltip: 'Total registered users',
       value: prettifyNumber(allUsers),
     },
     {
-      label: 'RPS',
-      tooltip: 'Requests Per Second (RPS) measured in the last 5 minutes',
+      label: 'Requests per second',
+      tooltip: 'Requests per second (RPS) measured in the last 5 minutes',
       value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
         numberOfDecimals: 2,
       }),
     },
     {
-      label: 'Total Requests',
+      label: 'Total requests',
       tooltip: 'Total service requests this month so far (excluding functions)',
       value: prettifyNumber(totalRequests || 0, {
         numberOfDecimals: totalRequests > 1000 ? 2 : 0,
@@ -100,7 +100,7 @@ export default function OverviewMetrics() {
       value: prettifySize(egressVolume),
     },
     {
-      label: 'Functions Duration',
+      label: 'Functions duration',
       tooltip: 'Total Functions execution this month so far',
       value: prettifyNumber(functionsDuration),
     },
@@ -110,7 +110,7 @@ export default function OverviewMetrics() {
       value: prettifySize(totalStorage || 0),
     },
     {
-      label: 'Postgres Volume Usage',
+      label: 'Postgres volume usage',
       tooltip: 'Used storage in the Postgres database',
       value: prettifySize(postgresVolumeUsage),
     },
@@ -121,8 +121,9 @@ export default function OverviewMetrics() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-4">
-      <div className="grid grid-cols-1 xs:grid-cols-2 justify-start gap-4 md:grid-cols-3">
+    <section className="flex flex-col gap-4">
+      <h2 className="font-semibold text-lg">Usage this month</h2>
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border shadow-sm md:grid-cols-3">
         {cardElements.map(({ label, value, tooltip, className, ...props }) => (
           <MetricsCard
             {...props}
@@ -130,18 +131,10 @@ export default function OverviewMetrics() {
             label={!loading ? label : null}
             value={!loading ? value : null}
             tooltip={!loading ? tooltip : null}
-            className={cn(
-              'min-h-[92px]',
-              loading && 'animate-pulse',
-              className,
-            )}
+            className={cn('min-h-24', loading && 'animate-pulse', className)}
           />
         ))}
       </div>
-
-      <p className="text-disabled">
-        Your resource usage since the beginning of the month.
-      </p>
-    </div>
+    </section>
   );
 }

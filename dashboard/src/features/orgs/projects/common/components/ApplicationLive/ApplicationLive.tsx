@@ -1,17 +1,15 @@
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
-import { Separator } from '@/components/ui/v3/separator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { OverviewConnect } from '@/features/orgs/projects/overview/components/OverviewConnect';
 import { OverviewDeployments } from '@/features/orgs/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/orgs/projects/overview/components/OverviewDocumentation';
 import { OverviewMetrics } from '@/features/orgs/projects/overview/components/OverviewMetrics';
-import { OverviewProjectHealth } from '@/features/orgs/projects/overview/components/OverviewProjectHealth';
 import { OverviewProjectInfo } from '@/features/orgs/projects/overview/components/OverviewProjectInfo';
 import { OverviewRepository } from '@/features/orgs/projects/overview/components/OverviewRepository';
+import { OverviewServices } from '@/features/orgs/projects/overview/components/OverviewServices';
 import { OverviewTopBar } from '@/features/orgs/projects/overview/components/OverviewTopBar';
-import { features } from '@/features/orgs/projects/overview/features';
-import { frameworks } from '@/features/orgs/projects/overview/frameworks';
 
 export interface ApplicationLiveProps {
   /**
@@ -36,22 +34,10 @@ export default function ApplicationLive({
 
         <OverviewTopBar />
 
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
-          <div className="order-2 grid grid-flow-row gap-12 lg:order-1 lg:col-span-2">
-            <OverviewDocumentation
-              title="Pick your favorite framework and start learning"
-              description="Nhost integrates smoothly with all of the frameworks you already know."
-              cardElements={frameworks}
-            />
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+          <OverviewDocumentation className="order-2 lg:order-1 lg:col-span-2" />
 
-            <OverviewDocumentation
-              title="Platform Documentation"
-              description="More in-depth documentation for key features."
-              cardElements={features}
-            />
-          </div>
-
-          <div className="order-1 grid grid-flow-row content-start gap-8 lg:order-2 lg:col-span-1 lg:gap-12">
+          <div className="order-1 flex flex-col gap-10 lg:order-2">
             <OverviewProjectInfo />
           </div>
         </div>
@@ -69,8 +55,8 @@ export default function ApplicationLive({
 
       <OverviewTopBar />
 
-      <div className="grid grid-cols-1 gap-12 pt-3 lg:grid-cols-3">
-        <div className="grid grid-flow-row gap-12 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-10 pt-3 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-10 lg:col-span-2">
           <RetryableErrorBoundary>
             <OverviewMetrics />
           </RetryableErrorBoundary>
@@ -79,42 +65,18 @@ export default function ApplicationLive({
             <OverviewDeployments />
           </RetryableErrorBoundary>
 
-          <OverviewDocumentation
-            title="Pick your favorite framework and start learning"
-            description="Nhost integrates smoothly with all of the frameworks you already know."
-            cardElements={frameworks}
-            className="hidden lg:block"
-          />
-
-          <OverviewDocumentation
-            title="Platform Documentation"
-            description="More in-depth documentation for key features."
-            cardElements={features}
-            className="hidden lg:block"
-          />
+          <OverviewDocumentation className="hidden lg:flex" />
         </div>
 
-        <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
-          <OverviewProjectHealth />
-          <Separator />
-          <OverviewProjectInfo />
-          <Separator />
+        <div className="flex min-w-0 flex-col gap-10">
+          <RetryableErrorBoundary>
+            <OverviewServices />
+          </RetryableErrorBoundary>
+          <OverviewConnect />
           <OverviewRepository />
         </div>
 
-        <OverviewDocumentation
-          title="Pick your favorite framework and start learning"
-          description="Nhost integrates smoothly with all of the frameworks you already know."
-          cardElements={frameworks}
-          className="lg:hidden"
-        />
-
-        <OverviewDocumentation
-          title="Platform Documentation"
-          description="More in-depth documentation for key features."
-          cardElements={features}
-          className="lg:hidden"
-        />
+        <OverviewDocumentation className="lg:hidden" />
       </div>
     </Container>
   );

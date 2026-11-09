@@ -1,38 +1,40 @@
+import { ExternalLinkIcon } from 'lucide-react';
+import Link from 'next/link';
 import type { HTMLAttributes } from 'react';
 import { OverviewCard } from '@/features/orgs/projects/overview/components/OverviewCard';
-import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
+import { features } from '@/features/orgs/projects/overview/features';
+import { frameworks } from '@/features/orgs/projects/overview/frameworks';
+import { cn } from '@/lib/utils';
 
-export interface OverviewDocumentationProps
-  extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * The title of the documentation section.
-   */
-  title: string;
-  /**
-   * Description of the documentation section
-   */
-  description: string;
-  /**
-   * The elements to display in the card.
-   */
-  cardElements: CardProps[];
-}
+export type OverviewDocumentationProps = HTMLAttributes<HTMLElement>;
 
 export default function OverviewDocumentation({
-  title,
-  description,
-  cardElements,
+  className,
   ...props
 }: OverviewDocumentationProps) {
   return (
-    <section {...props}>
-      <div className="grid grid-flow-row gap-1">
-        <h2 className="font-semibold text-lg">{title}</h2>
-        <p className="text-muted-foreground">{description}</p>
+    <section className={cn('flex flex-col gap-4', className)} {...props}>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-semibold text-lg">Learn</h2>
+        <Link
+          href="https://docs.nhost.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-primary text-sm hover:underline"
+        >
+          All docs
+          <ExternalLinkIcon className="h-4 w-4" />
+        </Link>
       </div>
 
-      <div className="mt-6 grid grid-flow-row xs:grid-cols-2 items-center gap-6 lg:gap-4 xl:grid-cols-4">
-        {cardElements.map((cardElement) => (
+      <div className="grid gap-3 sm:grid-cols-3">
+        {frameworks.map((cardElement) => (
+          <OverviewCard key={cardElement.title} {...cardElement} />
+        ))}
+      </div>
+
+      <div className="grid xs:grid-cols-2 gap-3 xl:grid-cols-4">
+        {features.map((cardElement) => (
           <OverviewCard key={cardElement.title} {...cardElement} />
         ))}
       </div>

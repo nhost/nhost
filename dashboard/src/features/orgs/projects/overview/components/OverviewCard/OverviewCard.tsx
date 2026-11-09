@@ -1,8 +1,7 @@
-import { ArrowRightIcon } from 'lucide-react';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { HTMLAttributes, ReactElement } from 'react';
+import type { AnchorHTMLAttributes, HTMLAttributes, ReactElement } from 'react';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 import { cn } from '@/lib/utils';
 
@@ -86,56 +85,66 @@ export default function OverviewCard({
   slotProps = {},
   ...props
 }: OverviewCardProps) {
-  const imageSize = disableIconBackground ? 42 : 32;
+  const imageSize = disableIconBackground ? 36 : 24;
+
+  // The whole card is the click target (it links out to the docs page), so
+  // the hover state lives on the card's own border instead of on a separate
+  // "Learn more" link. Without a link it stays a plain, non-interactive div.
+  const cardClassName = cn(
+    'flex h-full flex-col gap-3 rounded-lg border p-4 shadow-sm transition-colors',
+    link && 'hover:border-primary',
+    className,
+  );
+
+  const content = (
+    <>
+      <div
+        {...(slotProps.iconWrapper || {})}
+        className={cn(
+          disableIconBackground
+            ? 'inline-flex h-10 items-center'
+            : 'inline-flex h-10 w-10 items-center justify-center rounded-full border bg-background shadow-md',
+          slotProps.iconWrapper?.className,
+        )}
+      >
+        {renderIcon({
+          icon,
+          lightIcon,
+          title,
+          iconIsComponent,
+          imageProps: {
+            width: imageSize,
+            height: imageSize,
+            ...slotProps.imgIcon,
+          },
+        })}
+      </div>
+      <div className="flex flex-col gap-1">
+        <h3 className="font-semibold text-sm">{title}</h3>
+        <p className="text-muted-foreground text-xs">{description}</p>
+      </div>
+    </>
+  );
+
+  if (link) {
+    return (
+      <Link
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cardClassName}
+        // `props` is typed for the plain-div fallback below; none of the card
+        // data passes div-specific handlers, so this narrowing is safe.
+        {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}
+      >
+        {content}
+      </Link>
+    );
+  }
 
   return (
-    <div
-      className={cn(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg border bg-muted px-4 py-3 shadow-sm',
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex flex-col gap-4">
-        <div
-          {...(slotProps.iconWrapper || {})}
-          className={cn(
-            disableIconBackground
-              ? 'inline-flex h-12 w-12 items-center'
-              : 'inline-flex h-12 w-12 items-center justify-center rounded-full border bg-background shadow-xl',
-            slotProps.iconWrapper?.className,
-          )}
-        >
-          {renderIcon({
-            icon,
-            lightIcon,
-            title,
-            iconIsComponent,
-            imageProps: {
-              width: imageSize,
-              height: imageSize,
-              ...slotProps.imgIcon,
-            },
-          })}
-        </div>
-        <div className="grid grid-flow-row gap-1">
-          <h3 className="font-bold text-lg">{title}</h3>
-          <p className="font-medium text-muted-foreground text-sm">
-            {description}
-          </p>
-        </div>
-      </div>
-      {link && (
-        <Link
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
-        >
-          Learn more
-          <ArrowRightIcon className="h-4 w-4" />
-        </Link>
-      )}
+    <div className={cardClassName} {...props}>
+      {content}
     </div>
   );
 }

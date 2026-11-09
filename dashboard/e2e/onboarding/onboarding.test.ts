@@ -61,7 +61,7 @@ test('user should be able to finish onboarding', async () => {
   await expect(page.getByText('Internal info')).toBeVisible();
 
   await expect(
-    page.getByRole('heading', { name: 'Project Health' }),
+    page.getByRole('heading', { name: 'Services' }),
   ).toBeVisible({ timeout: 180000 });
 });
 

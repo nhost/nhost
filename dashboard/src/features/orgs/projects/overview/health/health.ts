@@ -6,8 +6,6 @@ import {
 export type ServiceHealthInfo =
   GetProjectServicesHealthQuery['getProjectStatus']['services'][number];
 
-export type ServiceStateTone = 'success' | 'error' | 'warning' | 'secondary';
-
 export const baseServices = {
   'hasura-auth': {
     displayName: 'Auth',
@@ -35,25 +33,27 @@ export const serviceStateToIndicatorClassName = new Map<
   ServiceState | undefined,
   string
 >([
-  [ServiceState.Running, 'bg-emerald-600'],
+  [ServiceState.Running, 'bg-success'],
   [ServiceState.Error, 'bg-destructive'],
   [ServiceState.UpdateError, 'bg-destructive'],
-  [ServiceState.Updating, 'bg-amber-500'],
+  [ServiceState.Updating, 'bg-warning'],
   [ServiceState.None, 'bg-destructive'],
-  [undefined, 'bg-grey-500'],
+  [undefined, 'bg-muted-foreground'],
 ]);
 
-export const serviceStateToBadgeColor = new Map<
-  ServiceState | undefined,
-  ServiceStateTone
->([
-  [ServiceState.Running, 'success'],
-  [ServiceState.Error, 'error'],
-  [ServiceState.UpdateError, 'error'],
-  [ServiceState.Updating, 'warning'],
-  [ServiceState.None, 'error'],
-  [undefined, 'secondary'],
+export const serviceStateToLabel = new Map<ServiceState | undefined, string>([
+  [ServiceState.Running, 'Running'],
+  [ServiceState.Error, 'Error'],
+  [ServiceState.UpdateError, 'Update failed'],
+  [ServiceState.Updating, 'Updating'],
+  [ServiceState.None, 'Not running'],
+  [undefined, 'Unknown'],
 ]);
+
+export const isServiceDown = (state?: ServiceState) =>
+  state === ServiceState.Error ||
+  state === ServiceState.UpdateError ||
+  state === ServiceState.None;
 
 /**
  * Returns the highest importance state from a list of service states

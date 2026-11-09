@@ -1,5 +1,13 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { PencilIcon } from 'lucide-react';
+import Link from 'next/link';
 import { NavLink } from '@/components/common/NavLink';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -8,15 +16,16 @@ export default function OverviewRepository() {
   const { org } = useCurrentOrg();
 
   return (
-    <section>
+    <section className="flex flex-col gap-4">
       <h2 className="font-semibold text-lg">Repository</h2>
-      <p className="mt-2 font-medium text-muted-foreground">
-        {!project?.githubRepository
-          ? 'Connect your project with a GitHub repository to create your first deployment.'
-          : 'GitHub is connected.'}
-      </p>
+      {!project?.githubRepository && (
+        <p className="text-muted-foreground text-sm">
+          Connect your project with a GitHub repository to create your first
+          deployment.
+        </p>
+      )}
       {!project?.githubRepository ? (
-        <div className="mt-6 flex flex-row place-content-between rounded-lg">
+        <div className="flex flex-row place-content-between rounded-lg">
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
             variant="outline"
@@ -27,23 +36,24 @@ export default function OverviewRepository() {
           </NavLink>
         </div>
       ) : (
-        <div className="mt-6 flex flex-row place-content-between rounded-lg bg-muted p-2">
-          <div className="ml-2 grid grid-flow-col gap-1.5">
-            <GitHubIcon className="h-4 w-4 self-center" />
-            <span className="self-center font-normal">
-              {project?.githubRepository.fullName}
-            </span>
-          </div>
-
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            className="text-primary"
-            variant="ghost"
-            underline="none"
-            size="sm"
-          >
-            Edit
-          </NavLink>
+        <div className="flex items-center gap-2 rounded-lg border py-1.5 pr-1.5 pl-4 shadow-sm">
+          <GitHubIcon className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-sm">
+            {project?.githubRepository.fullName}
+          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="subtle" asChild>
+                <Link
+                  href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+                  aria-label="Edit repository"
+                >
+                  <PencilIcon />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
         </div>
       )}
     </section>
