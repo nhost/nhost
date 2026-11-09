@@ -139,7 +139,9 @@ function TransferProjectForm({
                         <span className="flex items-center">
                           {currentOrg?.name}
                           {currentOrg && (
-                            <OrganizationPlanBadge plan={currentOrg.plan.name} />
+                            <OrganizationPlanBadge
+                              plan={currentOrg.plan.name}
+                            />
                           )}
                         </span>
                       }
