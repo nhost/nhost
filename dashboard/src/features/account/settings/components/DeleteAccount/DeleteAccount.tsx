@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  SettingsCardFooter,
-  SettingsCardHeader,
-} from '@/components/layout/SettingsCard';
+import { SettingsCardHeader } from '@/components/layout/SettingsCard';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -68,68 +65,68 @@ export default function DeleteAccount() {
   return (
     <AccountSettingsCard>
       <SettingsCardHeader
-        title="Delete Account"
-        description="Please proceed with caution as the removal of your Personal Account and its contents from the Nhost platform is irreversible. This action will permanently delete your account and all associated data."
+        size="lg"
+        title="Delete account"
+        description="Permanently delete your account and all its data. This can't be undone."
+        control={
+          <AlertDialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) {
+                setRemove(false);
+              }
+            }}
+          >
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full sm:w-auto">
+                Delete account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="z-[9999] p-12 text-foreground">
+              <AlertDialogHeader className="text-left">
+                <AlertDialogTitle className="text-xl">
+                  Delete account?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action is permanent and cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <div className="my-2 flex items-center gap-2">
+                <Checkbox
+                  id="confirm-delete-account"
+                  checked={remove}
+                  onCheckedChange={(checked) => setRemove(checked === true)}
+                  aria-label="Confirm delete account"
+                />
+                <Label
+                  htmlFor="confirm-delete-account"
+                  className="cursor-pointer font-normal text-foreground"
+                >
+                  I&apos;m sure I want to delete my account
+                </Label>
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <AlertDialogCancel disabled={loadingRemove}>
+                  Cancel
+                </AlertDialogCancel>
+
+                <ButtonWithLoading
+                  type="button"
+                  variant="destructive"
+                  onClick={onClickConfirm}
+                  disabled={!remove}
+                  loading={loadingRemove}
+                >
+                  Delete
+                </ButtonWithLoading>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        }
       />
-
-      <SettingsCardFooter>
-        <AlertDialog
-          open={dialogOpen}
-          onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) {
-              setRemove(false);
-            }
-          }}
-        >
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="w-full sm:w-auto">
-              Delete Personal Account
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="z-[9999] p-12 text-foreground">
-            <AlertDialogHeader className="text-left">
-              <AlertDialogTitle className="text-xl">
-                Delete Account?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                This action is permanent and cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <div className="my-2 flex items-center gap-2">
-              <Checkbox
-                id="confirm-delete-account"
-                checked={remove}
-                onCheckedChange={(checked) => setRemove(checked === true)}
-                aria-label="Confirm Delete Account"
-              />
-              <Label
-                htmlFor="confirm-delete-account"
-                className="cursor-pointer font-normal text-foreground"
-              >
-                I&apos;m sure I want to delete my account
-              </Label>
-            </div>
-
-            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <AlertDialogCancel disabled={loadingRemove}>
-                Cancel
-              </AlertDialogCancel>
-
-              <ButtonWithLoading
-                type="button"
-                variant="destructive"
-                onClick={onClickConfirm}
-                disabled={!remove}
-                loading={loadingRemove}
-              >
-                Delete
-              </ButtonWithLoading>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-      </SettingsCardFooter>
     </AccountSettingsCard>
   );
 }

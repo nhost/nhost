@@ -8,16 +8,14 @@ import {
 import DeleteAccount from './DeleteAccount';
 
 async function openDeleteDialog(user: TestUserEvent) {
-  await user.click(
-    screen.getByRole('button', { name: 'Delete Personal Account' }),
-  );
+  await user.click(screen.getByRole('button', { name: 'Delete account' }));
 
   return screen.findByRole('alertdialog');
 }
 
 function getConfirmationCheckbox(dialog: HTMLElement) {
   return within(dialog).getByRole('checkbox', {
-    name: 'Confirm Delete Account',
+    name: 'Confirm delete account',
   });
 }
 

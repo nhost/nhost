@@ -1,46 +1,22 @@
-import {
-  SettingsCardFooter,
-  SettingsCardHeader,
-} from '@/components/layout/SettingsCard';
-import { Badge } from '@/components/ui/v3/badge';
+import { SettingsCardHeader } from '@/components/layout/SettingsCard';
 import DisableMfaButton from '@/features/account/settings/components/AccountMfaSettings/components/DisableMfaButton/DisableMfaButton';
 import EnableMfaButton from '@/features/account/settings/components/AccountMfaSettings/components/EnableMfaButton/EnableMfaButton';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 
-function MFaEnabledBadge() {
-  return (
-    <Badge variant="outline" className="border-green-400 text-green-400">
-      Enabled
-    </Badge>
-  );
-}
-
-function MFaDisabledBadge() {
-  return (
-    <Badge variant="outline" className="border-destructive text-destructive">
-      Disabled
-    </Badge>
-  );
-}
-
 function AccountMfaSettings() {
   const { isMfaEnabled } = useMfaEnabled();
 
+  // The on/off status lives in the profile header, so the card is just a
+  // description with the enable or disable button on the right.
   return (
     <AccountSettingsCard>
       <SettingsCardHeader
-        title={
-          <h3 className="flex items-center font-semibold text-lg">
-            <span className="mr-4">Multi-Factor Authentication</span>
-            {isMfaEnabled ? <MFaEnabledBadge /> : <MFaDisabledBadge />}
-          </h3>
-        }
+        className="sm:items-start"
+        title={null}
+        description="Add a second step when you sign in, using a code from an authenticator app."
+        control={isMfaEnabled ? <DisableMfaButton /> : <EnableMfaButton />}
       />
-
-      <SettingsCardFooter className="justify-start sm:justify-start">
-        {isMfaEnabled ? <DisableMfaButton /> : <EnableMfaButton />}
-      </SettingsCardFooter>
     </AccountSettingsCard>
   );
 }

@@ -17,7 +17,7 @@ export default function CreatedPATAlert({
       </AlertDescription>
 
       <div className="flex items-center justify-center gap-2 bg-transparent">
-        <code className="break-all rounded bg-primary-light px-1.5 py-0.5 font-display font-semibold text-foreground text-xs dark:bg-[#2f363d]">
+        <code className="break-all rounded bg-muted px-1.5 py-0.5 font-display font-semibold text-foreground text-xs">
           {personalAccessToken}
         </code>
 

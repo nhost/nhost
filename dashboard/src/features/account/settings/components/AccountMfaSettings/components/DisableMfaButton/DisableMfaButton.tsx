@@ -30,7 +30,7 @@ function DisableMfaButton() {
         activeMfaType: '',
       });
       toast.success(
-        'Multi-factor authentication has been disabled.',
+        'Two-factor authentication has been disabled.',
         getToastStyleProps(),
       );
       await refetch();
@@ -45,17 +45,17 @@ function DisableMfaButton() {
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
           <ShieldOff className="mr-2 h-4 w-4" />
-          Disable multi-factor authentication
+          Disable two-factor authentication
         </Button>
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-xl leading-7 tracking-normal">
-            Disable multi-factor authentication
+            Disable two-factor authentication
           </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
-          Disable multi-factor authentication
+          Disable two-factor authentication
         </DialogDescription>
 
         <MfaOtpForm loading={isDisabling} sendMfaOtp={onSendMfaOtp} />

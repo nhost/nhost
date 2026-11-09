@@ -36,9 +36,8 @@ test('should be able to create then delete a personal access token', async ({
   await expect(page.getByText(patName)).toBeVisible();
 
   await page
-    .getByRole('button', { name: `More options for ${patName}`, exact: true })
+    .getByRole('button', { name: `Delete ${patName}`, exact: true })
     .click();
-  await page.getByRole('menuitem', { name: /delete/i }).click();
 
   const deletePATDialog = page.getByRole('alertdialog', {
     name: /delete personal access token/i,

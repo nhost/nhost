@@ -35,7 +35,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
         activeMfaType: 'totp',
       });
       toast.success(
-        'Multi-factor authentication has been enabled.',
+        'Two-factor authentication has been enabled.',
         getToastStyleProps(),
       );
       onSuccess();
@@ -55,7 +55,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
         <>
           <div className="flex flex-col justify-center gap-4">
             <p className="text-base">
-              Scan the QR Code with your authenticator app
+              Scan the QR code with your authenticator app
             </p>
             {/** biome-ignore lint/performance/noImgElement: used for qrcode */}
             <img alt="qrcode" src={qrCodeDataUrl} className="mx-auto w-64" />

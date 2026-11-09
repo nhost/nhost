@@ -2,11 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { FormInput } from '@/components/form/FormInput';
-import {
-  SettingsCardContent,
-  SettingsCardFooter,
-  SettingsCardHeader,
-} from '@/components/layout/SettingsCard';
+import { SettingsCardHeader } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
@@ -56,30 +52,30 @@ export default function EmailSetting() {
     <Form {...form}>
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <SettingsCardHeader title="Update your email" />
-
-          <SettingsCardContent className="lg:grid-cols-5">
+          <SettingsCardHeader
+            size="lg"
+            title="Email"
+            control={
+              <ButtonWithLoading
+                type="submit"
+                disabled={!form.formState.isDirty}
+                loading={form.formState.isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                Save
+              </ButtonWithLoading>
+            }
+          >
             <FormInput
               control={form.control}
               name="email"
-              label="Email"
+              aria-label="Email"
               type="email"
               spellCheck={false}
               autoCapitalize="none"
-              containerClassName="col-span-2"
+              containerClassName="w-full sm:w-96"
             />
-          </SettingsCardContent>
-
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="submit"
-              disabled={!form.formState.isDirty}
-              loading={form.formState.isSubmitting}
-              className="w-full sm:w-auto"
-            >
-              Save
-            </ButtonWithLoading>
-          </SettingsCardFooter>
+          </SettingsCardHeader>
         </form>
       </AccountSettingsCard>
     </Form>
