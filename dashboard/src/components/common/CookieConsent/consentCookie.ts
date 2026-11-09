@@ -55,7 +55,10 @@ export function deleteConsentCookie() {
   document.cookie = `${CONSENT_COOKIE}=${attributes(0)}`;
 }
 
-/** Moves a choice saved in local storage before the cookie existed into the cookie. */
+/**
+ * Carries over only legacy rejections. Acceptances are dropped so the new banner
+ * disclosing use on both properties and advertising is shown again.
+ */
 export function migrateLegacyConsent() {
   try {
     const legacy = window.localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -65,11 +68,8 @@ export function migrateLegacyConsent() {
 
     window.localStorage.removeItem(LEGACY_STORAGE_KEY);
 
-    if (
-      readConsentCookie() === null &&
-      (legacy === 'true' || legacy === 'false')
-    ) {
-      writeConsentCookie(legacy === 'true');
+    if (readConsentCookie() === null && legacy === 'false') {
+      writeConsentCookie(false);
     }
   } catch {
     // Local storage unavailable: nothing to migrate.

@@ -137,13 +137,13 @@ describe('useCookieConsent', () => {
     expectAnalyticsStorageCleared();
   });
 
-  it('moves a choice saved in local storage into the cookie', () => {
+  it('drops a legacy acceptance so the new banner is shown again', () => {
     window.localStorage.setItem('cookie-consent', 'true');
 
     const { result } = renderHook(() => useCookieConsent());
 
-    expect(result.current[0]).toBe(true);
-    expect(document.cookie).toContain('nhost-cookie-consent=accepted');
+    expect(result.current[0]).toBeNull();
+    expect(document.cookie).not.toContain('nhost-cookie-consent=');
     expect(window.localStorage.getItem('cookie-consent')).toBeNull();
   });
 });
