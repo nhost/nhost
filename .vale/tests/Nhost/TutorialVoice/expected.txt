@@ -7,3 +7,5 @@
 .vale/tests/Nhost/TutorialVoice/fail.mdx:11:62:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'let's review'.
 .vale/tests/Nhost/TutorialVoice/fail.mdx:13:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'Now that we have'.
 .vale/tests/Nhost/TutorialVoice/fail.mdx:13:31:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'now that you've'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:15:1:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'Now that you're'.
+.vale/tests/Nhost/TutorialVoice/fail.mdx:15:29:Nhost.TutorialVoice:Give the reader the instruction or the fact instead of 'now that we're'.

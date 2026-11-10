@@ -8,4 +8,4 @@ ignorecase: true
 tokens:
   - "in this (?:section|guide|post|article|tutorial),? we(?: will|['’]ll)"
   - "let['’]s +(?:explore|look|take a look|see|start|begin|get started|break it down|walk through|build|create|jump|recap|review|move on|wrap up)"
-  - "now that (?:we|you)(?: have|['’]ve| ?re)"
+  - "now that (?:we|you)(?: have|['’]ve|['’]re)"
