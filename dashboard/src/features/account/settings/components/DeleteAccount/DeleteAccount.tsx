@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -27,7 +29,13 @@ export default function DeleteAccount() {
   const userData = useUserData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [remove, setRemove] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
   const [loadingRemove, setLoadingRemove] = useState(false);
+
+  // Same as deleting a project: tick the box and type something you have to
+  // read off the screen, so it can't happen with a stray click.
+  const email = userData?.email;
+  const canDelete = remove && !!email && confirmation === email;
 
   const [deleteUserAccount] = useDeleteUserAccountMutation({
     variables: { id: userData?.id },
@@ -75,6 +83,7 @@ export default function DeleteAccount() {
               setDialogOpen(open);
               if (!open) {
                 setRemove(false);
+                setConfirmation('');
               }
             }}
           >
@@ -93,19 +102,40 @@ export default function DeleteAccount() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
 
-              <div className="my-2 flex items-center gap-2">
-                <Checkbox
-                  id="confirm-delete-account"
-                  checked={remove}
-                  onCheckedChange={(checked) => setRemove(checked === true)}
-                  aria-label="Confirm delete account"
-                />
-                <Label
-                  htmlFor="confirm-delete-account"
-                  className="cursor-pointer font-normal text-foreground"
-                >
-                  I&apos;m sure I want to delete my account
-                </Label>
+              <div className="my-2 flex flex-col gap-6">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="confirm-delete-account"
+                    checked={remove}
+                    onCheckedChange={(checked) => setRemove(checked === true)}
+                  />
+                  <Label
+                    htmlFor="confirm-delete-account"
+                    className="cursor-pointer font-normal text-foreground"
+                  >
+                    I understand this action cannot be undone
+                  </Label>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label
+                    htmlFor="delete-account-confirmation"
+                    className="font-normal text-foreground"
+                  >
+                    Type{' '}
+                    <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
+                      {email}
+                    </InlineCode>{' '}
+                    to confirm
+                  </Label>
+                  <Input
+                    id="delete-account-confirmation"
+                    autoComplete="off"
+                    className="border-border font-mono"
+                    value={confirmation}
+                    onChange={(event) => setConfirmation(event.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -117,7 +147,7 @@ export default function DeleteAccount() {
                   type="button"
                   variant="destructive"
                   onClick={onClickConfirm}
-                  disabled={!remove}
+                  disabled={!canDelete}
                   loading={loadingRemove}
                 >
                   Delete
