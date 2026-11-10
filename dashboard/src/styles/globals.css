@@ -47,7 +47,7 @@ html.dark .graphiql-themed .graphiql-container {
   --color-tertiary: 172, 66%, 50%;
   --color-info: 216, 100%, 61%;
   --color-neutral: 210, 17%, 93%;
-  --color-base: 210, 5.71%, 13.73%;
+  --color-base: 210, 5.71%, 11%;
   --color-warning: 32, 100%, 57%;
   --color-success: 149, 55%, 60%;
 }
@@ -268,9 +268,9 @@ html.dark .graphiql-themed .graphiql-container {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
+    --card: var(--background);
     --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
+    --popover: var(--background);
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 216 100% 40%;
     --primary-foreground: 210 40% 98%;
@@ -297,6 +297,9 @@ html.dark .graphiql-themed .graphiql-container {
     /* Small lift for elements that sit just above their surface
        (active tab, empty state boxes). Same in both themes on purpose. */
     --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    /* Below a header that stuck while scrolling: bottom only (the negative
+       spread hides the sides), so content reads as sliding under it. */
+    --shadow-sticky: 0 24px 28px -16px rgb(0 0 0 / 0.1);
     /* Text and icons drawn on a solid color fill (filled buttons,
        checked checkbox, filled badge). White in both themes. */
     --on-solid: 0 0% 100%;
@@ -360,13 +363,13 @@ html.dark .graphiql-themed .graphiql-container {
   }
 
   .dark {
-    --background: 210 5.71% 13.73%;
+    --background: 210 5.71% 11%;
     --foreground: 220 7% 91.6%;
-    --card: 210 5.71% 13.73%;
+    --card: var(--background);
     --card-foreground: 220 7% 91.6%;
-    --popover: 210 5.71% 13.73%;
+    --popover: var(--background);
     --popover-foreground: 220 7% 91.6%;
-    --primary: 217.8 100% 64%;
+    --primary: 217.8 100% 68%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 216 17.07% 40.2%;
     --secondary-foreground: 0, 0%, 85%;
@@ -383,7 +386,7 @@ html.dark .graphiql-themed .graphiql-container {
     --brand-violet: 252.5 94.74% 85.1%;
     --sidebar-foreground: 220 6.98% 91.57%;
     --sidebar-section-title: 204 2.2% 55.1%;
-    --border: 214.29 5.43% 25.29%;
+    --border: 214.29 5.43% 20.5%;
     --input: 210 4.6% 34.1%;
     --ring: 218.4 10.64% 46.08%;
     --chart-1: 220 70% 50%;
@@ -392,12 +395,13 @@ html.dark .graphiql-themed .graphiql-container {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --paper: 214.29 8.24% 16.67%;
-    --divider: 210deg 12.96% 21.18%;
+    --divider: 210deg 12.96% 17.5%;
     --disabled: 211.58 8.92% 58.24%;
     --primary-text: 220 7% 91.6%;
     --shadow-overlay:
       0 16px 32px -8px rgb(0 0 0 / 0.6), 0 4px 12px -2px rgb(0 0 0 / 0.45);
     --shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sticky: 0 24px 28px -16px rgb(0 0 0 / 0.4);
     --on-solid: 0 0% 100%;
     --backdrop: 0 0% 0%;
     --primary-emboss-edge: 217.24 100% 22.75%;
@@ -418,7 +422,7 @@ html.dark .graphiql-themed .graphiql-container {
     --data-cell-bg: 214.7, 24.1%, 15.5%;
     --data-cell-bg-hover: 215 20% 22%;
     --data-cell-bg-disabled: 215, 12%, 19%;
-    --data-table-border-color: 210, 13%, 21.2%;
+    --data-table-border-color: 210, 13%, 17.5%;
     --primary-main: 217.8 100% 64%;
     --table-selected: 214.4 7.2% 19%;
     --primary-highlight: 217.8 100% 64% / 16%;

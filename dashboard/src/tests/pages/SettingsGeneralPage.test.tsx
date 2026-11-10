@@ -334,7 +334,7 @@ describe('SettingsGeneralPage', () => {
     {
       tab: 'environment-variables',
       title: 'Environment Variables',
-      heading: 'Project Environment Variables',
+      heading: 'Project environment variables',
     },
     { tab: 'secrets', title: 'Secrets', heading: 'Secrets' },
   ])(

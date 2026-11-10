@@ -105,6 +105,7 @@ module.exports = {
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
         overlay: 'var(--shadow-overlay)',
         raised: 'var(--shadow-raised)',
+        sticky: 'var(--shadow-sticky)',
       },
       zIndex: {
         '-1': '-1',
