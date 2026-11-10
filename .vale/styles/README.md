@@ -60,7 +60,7 @@ to it only for a false positive, never to silence a real typo. It keeps the
 name `typos` looks for, so a bare `typos` run and editor plugins read it too.
 
 The spellcheck is not yet part of any Nix check: main has 33 misspellings in
-25 files at `f528abb090`. Once they are fixed, it joins the `vale` Nix check
+25 files at `edefb8f2bc`. Once they are fixed, it joins the `vale` Nix check
 at zero.
 
 ## Severity tiers
@@ -101,7 +101,7 @@ and exclude generated pages.
 | `Vale.Repetition` | warning | 4 in 3 pages | 6 hits before the ignores; 2 were a code fence directly under `<TabItem>`, read as HTML until the JSX ignore. Promote once the pages are fixed |
 | `Vale.Avoid` | error | 0 | Flags words in `config/vocabularies/Nhost/reject.txt`, which is empty |
 | `Vale.Terms` | warning | 67 in 35 pages | Lowercase product names in prose: `nhost`, `postgres`, `graphql`, `hasura` and a few more. Moves to `error` once `accept.txt` and a sweep bring it to zero |
-| `Vale.Spelling` | off | 639 in 152 pages (`8c8def5300`) | Disabled; the hits are mostly code identifiers and product names in prose |
+| `Vale.Spelling` | off | 646 in 153 pages | Disabled; the hits are mostly code identifiers and product names in prose. Counted with the `Vale.Spelling = NO` line deleted from `docs/.vale.ini`, not set to a level, which would also spell the generated pages |
 | `Nhost.Exclamation` | warning | 8 in 7 pages | 5 of them the tutorial welcome lines |
 | `Nhost.Ellipses` | warning | 3 in 3 pages | Two are the overflow menu, written **⋯** elsewhere in the docs |
 | `Nhost.Spacing` | error | 0 | |
@@ -173,10 +173,14 @@ suggestions in 86 files, so `pnpm --dir landing test:prose` passes on main.
 ## Repository Markdown rules
 
 The root `.vale.ini` runs the `Vale.*` built-ins and the `Nhost` style over
-the 97 files `.vale/lint_markdown.sh` selects at `a6941826cd`, with the same
-five docs-only rules switched off as on the blog. No shared rule needed
-relaxing: the two error-tier hits on main, `First and foremost` in
-`README.md` and `Rest assured` in `SECURITY.md`, were rewritten instead.
+the 97 files `.vale/lint_markdown.sh` selects, with the same five docs-only
+rules switched off as on the blog. Unlike the docs and blog counts, these were
+taken on the branch of #5323 at `bfa67dafd5`, a branch commit that the squash
+merge does not keep. No commit on main could serve, because the selection
+includes files the branch adds, this README among them. Re-measure on main
+once the branch is merged. No shared rule needed relaxing: the two error-tier
+hits on main, `First and foremost` in `README.md` and `Rest assured` in
+`SECURITY.md`, were rewritten instead.
 
 Counts: `EmDash` 401 in 44, `Colons` 136 in 37, `Latin` 41 in 22,
 `Vale.Terms` 36 in 21, `LLMPhrases` 20 in 15, `OxfordComma` 17 in 11,
@@ -277,17 +281,17 @@ missing `expected.txt` that a plain run reports as a failure.
 
 ## Heading case
 
-No rule yet. Over the `## ` and `### ` headings outside code fences in the 208
-non-generated pages at `8c8def5300`: 729 Title Case, 173 sentence case, 223
-undecidable. Classification ignores the first word, inline code and the minor
-words `a an the and or but nor for of on in to with at by from as vs via into
-per is are`; a heading is Title Case when every remaining word is capitalised,
-sentence case when any is lowercase, and undecidable when none remain
-(`## Dashboard`). Proper nouns count as capitalised, so some sentence-case
-headings land in the Title Case column.
+No rule yet. Over the `## ` and `### ` headings outside code fences in the 209
+non-generated pages at `edefb8f2bc`: 739 Title Case, 172 sentence case, 225
+undecidable. Classification ignores the first word, inline code, words that do
+not start with a letter, and the minor words `a an the and or but nor for of
+on in to with at by from as vs via into per is are`; a heading is Title Case
+when every remaining word is capitalised, sentence case when any is lowercase,
+and undecidable when none remain (`## Dashboard`). Proper nouns count as
+capitalised, so some sentence-case headings land in the Title Case column.
 
-The same classification over the 86 blog posts at `68f5050eb7`: 250 Title
-Case, 291 sentence case, 99 undecidable. The blog leans the opposite way to
+The same classification over the 86 blog posts at `edefb8f2bc`: 261 Title
+Case, 284 sentence case, 95 undecidable. The blog leans the opposite way to
 the docs, but neither corpus is consistent enough to assert a house case, so
 the vendored `Headings` and `WordListCase` rules stay out of both styles and
 there is still no rule here.
