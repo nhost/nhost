@@ -12,11 +12,11 @@ import {
   getAccountSettingsHref,
 } from '@/features/account/settings/accountSettingsTabs';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
+import { StatusDot } from '@/features/account/settings/components/StatusDot';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
-import { cn } from '@/lib/utils';
 
 interface ProfileStatusProps {
   active: boolean;
@@ -32,13 +32,7 @@ function ProfileStatus({ active, section, children }: ProfileStatusProps) {
       href={getAccountSettingsHref('authentication', section)}
       className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
     >
-      <span
-        aria-hidden="true"
-        className={cn(
-          'h-2 w-2 shrink-0 rounded-full',
-          active ? 'bg-success' : 'bg-muted-foreground/40',
-        )}
-      />
+      <StatusDot active={active} />
       {children}
     </NextLink>
   );
@@ -82,7 +76,9 @@ export default function AccountProfileHeader() {
     : null;
 
   return (
-    <div className="shrink-0 border-b bg-muted/50">
+    // Hidden on phones: it repeats what the pages show and pushes the
+    // settings below the fold. Same breakpoint as the sidebar dropdown.
+    <div className="hidden shrink-0 border-b bg-muted/50 md:block">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <UserAvatar className="h-20 w-20 shrink-0 text-2xl" />

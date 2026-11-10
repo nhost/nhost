@@ -45,7 +45,7 @@ function DisableMfaButton() {
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
           <ShieldOff className="mr-2 h-4 w-4" />
-          Disable two-factor authentication
+          Disable
         </Button>
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">

@@ -1,8 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { Unlink } from 'lucide-react';
 import { useState } from 'react';
-import { SettingsCardHeader } from '@/components/layout/SettingsCard';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -14,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
-import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
+import { AccountSettingsTile } from '@/features/account/settings/components/AccountSettingsTile';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useDeleteAuthUserProviderMutation,
@@ -143,53 +141,38 @@ export default function SocialProvidersSettings() {
   }
 
   return (
-    <AccountSettingsCard>
-      <SettingsCardHeader
-        title={
-          <span className="flex items-center gap-2 font-medium">
-            <GitHubIcon className="h-5 w-5" aria-hidden="true" />
-            GitHub
-            {/* The status as a tag next to the name, the same green as
-                the GitHub pill in the profile band. */}
-            <Badge
-              variant="outline"
-              className={
-                isGithubConnected
-                  ? 'border-success/40 text-success'
-                  : 'text-muted-foreground'
-              }
-            >
-              {isGithubConnected ? 'Linked' : 'Not linked'}
-            </Badge>
-          </span>
-        }
-        control={
-          isGithubConnected ? (
-            <Dialog
-              open={disconnectDialogOpen}
-              onOpenChange={setDisconnectDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button variant="outline" disabled={deletingGitHubUserProvider}>
-                  <Unlink className="mr-2 h-4 w-4" />
-                  Unlink
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="z-[9999] p-12 text-foreground">
-                <ConfirmDisconnectGithubModal
-                  close={() => setDisconnectDialogOpen(false)}
-                  onDisconnect={handleDisconnectGithub}
-                />
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <Button variant="outline" onClick={handleConnectGithub}>
-              <GitHubIcon className="mr-2 h-4 w-4" aria-hidden="true" />
-              Link GitHub
-            </Button>
-          )
-        }
-      />
-    </AccountSettingsCard>
+    <AccountSettingsTile
+      icon={<GitHubIcon className="h-5 w-5" aria-hidden="true" />}
+      title="GitHub"
+      active={isGithubConnected}
+      status={isGithubConnected ? 'Linked' : 'Not linked'}
+      description="Sign in with GitHub and connect repositories to your projects."
+      action={
+        isGithubConnected ? (
+          <Dialog
+            open={disconnectDialogOpen}
+            onOpenChange={setDisconnectDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={deletingGitHubUserProvider}>
+                <Unlink className="mr-2 h-4 w-4" />
+                Unlink
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="z-[9999] p-12 text-foreground">
+              <ConfirmDisconnectGithubModal
+                close={() => setDisconnectDialogOpen(false)}
+                onDisconnect={handleDisconnectGithub}
+              />
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Button variant="outline" onClick={handleConnectGithub}>
+            <GitHubIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+            Link GitHub
+          </Button>
+        )
+      }
+    />
   );
 }

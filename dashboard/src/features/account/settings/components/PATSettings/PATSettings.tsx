@@ -146,7 +146,9 @@ export default function PATSettings() {
                     {tokenHasExpired ? 'Expired' : 'Expires'}{' '}
                     {new Date(pat.expiresAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="truncate text-muted-foreground">
+                  {/* On phones the expiry matters more, so the created
+                      date is hidden. */}
+                  <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
                     Created {new Date(pat.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="w-24">

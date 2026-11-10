@@ -6,29 +6,53 @@ import { AccountMfaSettings } from '@/features/account/settings/components/Accou
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { SecurityKeysSettings } from '@/features/account/settings/components/SecurityKeysSettings';
 import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
+import { cn } from '@/lib/utils';
 
-const SECTIONS: {
+interface Section {
   id: AuthenticationSection;
   title: string;
   Card: ComponentType;
-}[] = [
-  { id: 'password', title: 'Password', Card: PasswordSettings },
-  {
-    id: 'two-factor-authentication',
-    title: 'Two-factor authentication',
-    Card: AccountMfaSettings,
-  },
-  { id: 'security-keys', title: 'Security keys', Card: SecurityKeysSettings },
-  {
-    id: 'connected-accounts',
-    title: 'Connected accounts',
-    Card: SocialProvidersSettings,
-  },
+}
+
+// Each row is a list of sections side by side. The two on/off tiles share a
+// row, the others take the full width.
+const ROWS: Section[][] = [
+  [{ id: 'password', title: 'Password', Card: PasswordSettings }],
+  [
+    {
+      id: 'two-factor-authentication',
+      title: 'Two-factor authentication',
+      Card: AccountMfaSettings,
+    },
+    {
+      id: 'connected-accounts',
+      title: 'Connected accounts',
+      Card: SocialProvidersSettings,
+    },
+  ],
+  [{ id: 'security-keys', title: 'Security keys', Card: SecurityKeysSettings }],
 ];
 
+function AuthenticationSectionBlock({ id, title, Card }: Section) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={`${id}-title`}
+      className="grid scroll-mt-6 grid-rows-[auto_1fr] gap-3"
+    >
+      <h2 id={`${id}-title`} className="font-semibold text-lg">
+        {title}
+      </h2>
+      <RetryableErrorBoundary>
+        <Card />
+      </RetryableErrorBoundary>
+    </section>
+  );
+}
+
 /**
- * Every way to sign in on one page: password, two-factor, security keys and
- * connected accounts. Each card keeps its own logic and gets a heading with
+ * Every way to sign in on one page: password, then two-factor and connected
+ * accounts side by side, then security keys. Each card keeps its own logic and gets a heading with
  * an anchor, so the profile header can link straight to it.
  */
 export default function AuthenticationSettings() {
@@ -45,20 +69,18 @@ export default function AuthenticationSettings() {
 
   return (
     <div className="grid grid-flow-row gap-8">
-      {SECTIONS.map(({ id, title, Card }) => (
-        <section
-          key={id}
-          id={id}
-          aria-labelledby={`${id}-title`}
-          className="grid scroll-mt-6 grid-flow-row gap-3"
+      {ROWS.map((row) => (
+        <div
+          key={row[0].id}
+          className={cn(
+            'grid gap-8 sm:gap-6',
+            row.length > 1 && 'sm:grid-cols-2',
+          )}
         >
-          <h2 id={`${id}-title`} className="font-semibold text-lg">
-            {title}
-          </h2>
-          <RetryableErrorBoundary>
-            <Card />
-          </RetryableErrorBoundary>
-        </section>
+          {row.map((section) => (
+            <AuthenticationSectionBlock key={section.id} {...section} />
+          ))}
+        </div>
       ))}
     </div>
   );

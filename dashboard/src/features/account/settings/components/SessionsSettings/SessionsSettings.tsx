@@ -105,7 +105,9 @@ export default function SessionsSettings() {
                     <TableCell className="truncate text-muted-foreground">
                       Signed in {formatDateTime(createdAt)}
                     </TableCell>
-                    <TableCell className="truncate text-muted-foreground">
+                    {/* On phones only the sign in date fits next to the
+                        name. */}
+                    <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
                       Expires {formatDateTime(expiresAt)}
                     </TableCell>
                   </TableRow>

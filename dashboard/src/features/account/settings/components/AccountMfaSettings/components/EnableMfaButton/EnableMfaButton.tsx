@@ -27,7 +27,7 @@ function EnableMfaButton() {
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
           <ShieldCheck className="mr-2 h-4 w-4" />
-          Enable two-factor authentication
+          Enable
         </Button>
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
