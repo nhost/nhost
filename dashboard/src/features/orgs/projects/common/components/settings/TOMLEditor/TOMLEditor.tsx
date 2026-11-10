@@ -54,7 +54,8 @@ export default function TOMLEditor() {
   // visible. The margin keeps it below the sticky header instead of behind it.
   const headerRef = useRef<HTMLDivElement>(null);
   // Once the header sticks, it casts a shadow so the code reads as scrolling
-  // under it. The sentinel sits right above the header and leaves the
+  // under it, and its bottom edge catches the light with a soft glow. The
+  // header is frosted glass, so the code shows through as it passes under. The sentinel sits right above the header and leaves the
   // viewport exactly when the header starts sticking.
   const stickSentinelRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
@@ -192,8 +193,8 @@ export default function TOMLEditor() {
       <div
         ref={headerRef}
         className={cn(
-          'sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 transition-shadow sm:flex-row sm:items-center sm:justify-between',
-          isStuck && 'shadow-sticky',
+          'sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background/60 px-6 py-6 backdrop-blur-md backdrop-saturate-150 transition-shadow duration-200 before:pointer-events-none before:absolute before:inset-x-0 before:-bottom-1 before:h-2 before:bg-gradient-to-r before:from-transparent before:via-foreground/10 before:to-transparent before:opacity-0 before:blur-sm before:transition-opacity before:duration-200 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-gradient-to-r after:from-transparent after:via-foreground/30 after:to-transparent after:opacity-0 after:transition-opacity after:duration-200 motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between',
+          isStuck && 'shadow-sticky before:opacity-100 after:opacity-100',
         )}
       >
         <p className="min-w-0 text-muted-foreground sm:max-w-lg">
