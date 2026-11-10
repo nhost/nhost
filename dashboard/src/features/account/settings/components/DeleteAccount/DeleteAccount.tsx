@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SettingsCardHeader } from '@/components/layout/SettingsCard';
+import { Alert } from '@/components/ui/v3/alert';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -10,7 +11,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -28,14 +28,13 @@ export default function DeleteAccount() {
   const { signout } = useAuth();
   const userData = useUserData();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [remove, setRemove] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [loadingRemove, setLoadingRemove] = useState(false);
 
-  // Same as deleting a project: tick the box and type something you have to
-  // read off the screen, so it can't happen with a stray click.
+  // Like deleting a project, you type something you have to read off the
+  // screen, so it can't happen with a stray click.
   const email = userData?.email;
-  const canDelete = remove && !!email && confirmation === email;
+  const canDelete = !!email && confirmation === email;
 
   const [deleteUserAccount] = useDeleteUserAccountMutation({
     variables: { id: userData?.id },
@@ -82,7 +81,6 @@ export default function DeleteAccount() {
             onOpenChange={(open) => {
               setDialogOpen(open);
               if (!open) {
-                setRemove(false);
                 setConfirmation('');
               }
             }}
@@ -97,26 +95,15 @@ export default function DeleteAccount() {
                 <AlertDialogTitle className="text-xl">
                   Delete account?
                 </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action is permanent and cannot be undone.
-                </AlertDialogDescription>
               </AlertDialogHeader>
 
-              <div className="my-2 flex flex-col gap-6">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="confirm-delete-account"
-                    checked={remove}
-                    onCheckedChange={(checked) => setRemove(checked === true)}
-                  />
-                  <Label
-                    htmlFor="confirm-delete-account"
-                    className="cursor-pointer font-normal text-foreground"
-                  >
-                    I understand this action cannot be undone
-                  </Label>
-                </div>
+              <AlertDialogDescription asChild>
+                <Alert variant="warning">
+                  This action is permanent and cannot be undone.
+                </Alert>
+              </AlertDialogDescription>
 
+              <div className="my-2">
                 <div className="grid gap-2">
                   <Label
                     htmlFor="delete-account-confirmation"
