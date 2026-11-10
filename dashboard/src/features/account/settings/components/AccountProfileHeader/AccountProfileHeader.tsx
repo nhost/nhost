@@ -1,12 +1,6 @@
-import { SiGithub } from '@icons-pack/react-simple-icons';
-import {
-  BadgeCheck,
-  FingerprintPattern,
-  ShieldCheck,
-  ShieldOff,
-} from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 import NextLink from 'next/link';
-import type { ComponentType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import UserAvatar from '@/components/layout/AccountMenu/UserAvatar';
 import {
   Tooltip,
@@ -14,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import {
-  type AccountSettingsTab,
+  type AuthenticationSection,
   getAccountSettingsHref,
 } from '@/features/account/settings/accountSettingsTabs';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
@@ -24,25 +18,26 @@ import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { cn } from '@/lib/utils';
 
-interface ProfileChipProps {
-  icon: ComponentType<{ className?: string; 'aria-hidden'?: 'true' }>;
+interface ProfileStatusProps {
   active: boolean;
-  tab: AccountSettingsTab;
+  section: AuthenticationSection;
   children: ReactNode;
 }
 
-// A small status pill that links to the page where that setting lives.
-function ProfileChip({ icon: Icon, active, tab, children }: ProfileChipProps) {
+// A status dot and its label, linking to the card where that setting lives.
+// No border or padding, so it lines up with the name and email above it.
+function ProfileStatus({ active, section, children }: ProfileStatusProps) {
   return (
     <NextLink
-      href={getAccountSettingsHref(tab)}
-      shallow
-      scroll={false}
-      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:text-foreground"
+      href={getAccountSettingsHref('authentication', section)}
+      className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
     >
-      <Icon
+      <span
         aria-hidden="true"
-        className={cn('h-3.5 w-3.5', active && 'text-success')}
+        className={cn(
+          'h-2 w-2 shrink-0 rounded-full',
+          active ? 'bg-success' : 'bg-muted-foreground/40',
+        )}
       />
       {children}
     </NextLink>
@@ -116,13 +111,12 @@ export default function AccountProfileHeader() {
                 wrong state. */}
             {providersData && (
               <div className="mt-2 flex">
-                <ProfileChip
-                  icon={SiGithub}
+                <ProfileStatus
                   active={isGithubConnected}
-                  tab="connected-accounts"
+                  section="connected-accounts"
                 >
                   {isGithubConnected ? 'GitHub linked' : 'GitHub not linked'}
-                </ProfileChip>
+                </ProfileStatus>
               </div>
             )}
           </div>
@@ -141,26 +135,24 @@ export default function AccountProfileHeader() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:justify-end">
+          <div className="flex flex-wrap gap-x-5 gap-y-2 sm:justify-end">
             {!loadingMfa && (
-              <ProfileChip
-                icon={isMfaEnabled ? ShieldCheck : ShieldOff}
+              <ProfileStatus
                 active={isMfaEnabled}
-                tab="two-factor-authentication"
+                section="two-factor-authentication"
               >
                 {isMfaEnabled ? 'Two-factor on' : 'Two-factor off'}
-              </ProfileChip>
+              </ProfileStatus>
             )}
             {securityKeysData && (
-              <ProfileChip
-                icon={FingerprintPattern}
+              <ProfileStatus
                 active={securityKeyCount > 0}
-                tab="security-keys"
+                section="security-keys"
               >
                 {securityKeyCount > 0
                   ? pluralize(securityKeyCount, 'security key')
                   : 'No security keys'}
-              </ProfileChip>
+              </ProfileStatus>
             )}
           </div>
         </div>

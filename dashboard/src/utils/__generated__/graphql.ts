@@ -27868,6 +27868,11 @@ export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never
 
 export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, createdAt: any, expiresAt: any }> };
 
+export type GetUserSessionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUserSessionsQuery = { __typename?: 'query_root', sessions: Array<{ __typename?: 'authRefreshTokens', id: any, createdAt: any, expiresAt: any }> };
+
 export type SecurityKeysQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
@@ -29583,6 +29588,48 @@ export type GetPersonalAccessTokensLazyQueryHookResult = ReturnType<typeof useGe
 export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>;
 export function refetchGetPersonalAccessTokensQuery(variables?: GetPersonalAccessTokensQueryVariables) {
       return { query: GetPersonalAccessTokensDocument, variables: variables }
+    }
+export const GetUserSessionsDocument = gql`
+    query GetUserSessions {
+  sessions: authRefreshTokens(
+    where: {type: {_eq: regular}}
+    order_by: {createdAt: desc}
+  ) {
+    id
+    createdAt
+    expiresAt
+  }
+}
+    `;
+
+/**
+ * __useGetUserSessionsQuery__
+ *
+ * To run a query within a React component, call `useGetUserSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSessionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetUserSessionsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserSessionsQuery, GetUserSessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserSessionsQuery, GetUserSessionsQueryVariables>(GetUserSessionsDocument, options);
+      }
+export function useGetUserSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserSessionsQuery, GetUserSessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserSessionsQuery, GetUserSessionsQueryVariables>(GetUserSessionsDocument, options);
+        }
+export type GetUserSessionsQueryHookResult = ReturnType<typeof useGetUserSessionsQuery>;
+export type GetUserSessionsLazyQueryHookResult = ReturnType<typeof useGetUserSessionsLazyQuery>;
+export type GetUserSessionsQueryResult = Apollo.QueryResult<GetUserSessionsQuery, GetUserSessionsQueryVariables>;
+export function refetchGetUserSessionsQuery(variables?: GetUserSessionsQueryVariables) {
+      return { query: GetUserSessionsDocument, variables: variables }
     }
 export const SecurityKeysDocument = gql`
     query securityKeys($userId: uuid!) {

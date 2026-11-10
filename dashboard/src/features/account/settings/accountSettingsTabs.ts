@@ -1,19 +1,15 @@
 import {
-  FingerprintPattern,
   KeySquare,
-  Link2,
-  Lock,
   type LucideIcon,
+  MonitorSmartphone,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
 
 export type AccountSettingsTab =
   | 'general'
-  | 'password'
-  | 'two-factor-authentication'
-  | 'security-keys'
-  | 'connected-accounts'
+  | 'authentication'
+  | 'sessions'
   | 'personal-access-tokens';
 
 export const ACCOUNT_SETTINGS_DEFAULT_TAB: AccountSettingsTab = 'general';
@@ -23,13 +19,8 @@ export const ACCOUNT_SETTINGS_TABS: Record<
   { title: string; icon: LucideIcon }
 > = {
   general: { title: 'General', icon: UserRound },
-  password: { title: 'Password', icon: Lock },
-  'two-factor-authentication': {
-    title: 'Two-factor authentication',
-    icon: ShieldCheck,
-  },
-  'security-keys': { title: 'Security keys', icon: FingerprintPattern },
-  'connected-accounts': { title: 'Connected accounts', icon: Link2 },
+  authentication: { title: 'Authentication', icon: ShieldCheck },
+  sessions: { title: 'Sessions', icon: MonitorSmartphone },
   'personal-access-tokens': {
     title: 'Personal access tokens',
     icon: KeySquare,
@@ -45,19 +36,24 @@ export const ACCOUNT_SETTINGS_GROUPS: {
   tabs: AccountSettingsTab[];
 }[] = [
   { label: 'Account', tabs: ['general'] },
-  {
-    label: 'Security',
-    tabs: [
-      'password',
-      'two-factor-authentication',
-      'security-keys',
-      'connected-accounts',
-    ],
-  },
+  { label: 'Security', tabs: ['authentication', 'sessions'] },
   { label: 'Developer', tabs: ['personal-access-tokens'] },
 ];
 
-/** Same `?tab=` links as the project settings pages. */
-export function getAccountSettingsHref(tab: AccountSettingsTab) {
-  return `/account?tab=${tab}`;
+/** The sections of the Authentication page, used as anchors. */
+export type AuthenticationSection =
+  | 'password'
+  | 'two-factor-authentication'
+  | 'security-keys'
+  | 'connected-accounts';
+
+/**
+ * Same `?tab=` links as the project settings pages. A section adds an anchor
+ * so the link scrolls to that card on the Authentication page.
+ */
+export function getAccountSettingsHref(
+  tab: AccountSettingsTab,
+  section?: AuthenticationSection,
+) {
+  return `/account?tab=${tab}${section ? `#${section}` : ''}`;
 }

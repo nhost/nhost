@@ -1,4 +1,4 @@
-import type { ComponentType, ReactElement } from 'react';
+import type { ComponentType, ReactElement, ReactNode } from 'react';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -14,19 +14,16 @@ import {
   type AccountSettingsTab,
   getAccountSettingsHref,
 } from '@/features/account/settings/accountSettingsTabs';
-import { AccountMfaSettings } from '@/features/account/settings/components/AccountMfaSettings';
 import { AccountProfileHeader } from '@/features/account/settings/components/AccountProfileHeader';
 import { AccountSettingsLayout } from '@/features/account/settings/components/AccountSettingsLayout';
+import { AuthenticationSettings } from '@/features/account/settings/components/AuthenticationSettings';
 import { DeleteAccount } from '@/features/account/settings/components/DeleteAccount';
 import { DisplayNameSetting } from '@/features/account/settings/components/DisplayNameSetting';
 import { EmailSetting } from '@/features/account/settings/components/EmailSetting';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
-import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
-import { SecurityKeysSettings } from '@/features/account/settings/components/SecurityKeysSettings';
-import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
+import { SessionsSettings } from '@/features/account/settings/components/SessionsSettings';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import useActiveSettingsTab from '@/features/orgs/projects/common/components/settings/SettingsTabs/hooks/useActiveSettingsTab';
-import { AreaSidebarLayout } from '@/features/orgs/projects/common/layout/AreaSidebarLayout';
 import {
   useGetAuthUserProvidersQuery,
   useGetPersonalAccessTokensQuery,
@@ -50,10 +47,8 @@ function GeneralSettings() {
 
 const ACCOUNT_SETTINGS_PAGES: Record<AccountSettingsTab, ComponentType> = {
   general: GeneralSettings,
-  password: PasswordSettings,
-  'two-factor-authentication': AccountMfaSettings,
-  'security-keys': SecurityKeysSettings,
-  'connected-accounts': SocialProvidersSettings,
+  authentication: AuthenticationSettings,
+  sessions: SessionsSettings,
   'personal-access-tokens': PATSettings,
 };
 
@@ -77,6 +72,33 @@ function AccountSettingsNavigation() {
         ))}
       </AreaSidebarNav>
     </AreaSidebarRoot>
+  );
+}
+
+/**
+ * Same columns as `AreaSidebarLayout`, but the whole area under the profile
+ * header scrolls as one, so the wheel works over the menu too. The menu is
+ * sticky, so it stays in view while the page scrolls.
+ */
+function AccountSettingsColumns({
+  sidebar,
+  children,
+}: {
+  sidebar: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="h-full overflow-y-auto">
+      <div className="flex flex-col md:grid md:grid-cols-[1fr_14rem_minmax(0,58rem)_1fr]">
+        <div className="sticky top-0 z-10 bg-background py-4 md:col-span-2 md:flex md:justify-end md:self-start md:bg-transparent md:py-8">
+          {sidebar}
+        </div>
+
+        <div className="md:col-span-2 md:pt-8">
+          <div className="max-w-[58rem] pb-8">{children}</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -120,7 +142,7 @@ export default function AccountSettingsPage() {
     <>
       <AccountProfileHeader />
       <div className="min-h-0 flex-1">
-        <AreaSidebarLayout sidebar={<AccountSettingsNavigation />}>
+        <AccountSettingsColumns sidebar={<AccountSettingsNavigation />}>
           <SettingsArea className="py-0">
             {/* Only the settings wait for the first load: the profile and
                 the menu show right away. */}
@@ -132,7 +154,7 @@ export default function AccountSettingsPage() {
               <AccountSettingsContent />
             )}
           </SettingsArea>
-        </AreaSidebarLayout>
+        </AccountSettingsColumns>
       </div>
     </>
   );

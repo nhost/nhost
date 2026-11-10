@@ -130,7 +130,7 @@ export default function SocialProvidersSettings() {
     const url = nhost.auth.signInProviderURL('github', {
       connect: token,
       redirectTo: appendPkceId(
-        `${window.location.origin}/account?tab=connected-accounts&signinProvider=github`,
+        `${window.location.origin}/account?tab=authentication&signinProvider=github`,
         id,
       ),
       codeChallenge: challenge,
