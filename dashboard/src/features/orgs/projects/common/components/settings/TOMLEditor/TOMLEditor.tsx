@@ -53,10 +53,14 @@ export default function TOMLEditor() {
   // When the cursor moves up with the arrow keys, the editor scrolls to keep it
   // visible. The margin keeps it below the sticky header instead of behind it.
   const headerRef = useRef<HTMLDivElement>(null);
-  // Once the header sticks, it casts a shadow so the code reads as scrolling
-  // under it, and its bottom edge catches the light with a soft glow. The
-  // header is frosted glass, so the code shows through as it passes under. The sentinel sits right above the header and leaves the
-  // viewport exactly when the header starts sticking.
+  const stickyHeaderMargin = useMemo(
+    () =>
+      EditorView.scrollMargins.of(() => ({
+        top: headerRef.current?.offsetHeight ?? 0,
+      })),
+    [],
+  );
+
   const stickSentinelRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
   useEffect(() => {
@@ -70,13 +74,6 @@ export default function TOMLEditor() {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, []);
-  const stickyHeaderMargin = useMemo(
-    () =>
-      EditorView.scrollMargins.of(() => ({
-        top: headerRef.current?.offsetHeight ?? 0,
-      })),
-    [],
-  );
 
   const { project } = useProject();
 
