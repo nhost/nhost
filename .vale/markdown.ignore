@@ -6,10 +6,7 @@ docs/src/content/docs/*
 landing/src/pages/blog/*
 
 # Fixtures with deliberate hits.
-.vale/*
-
-# Agent docs that quote forbidden patterns.
-.claude/*
+.vale/tests/*
 
 # Generated.
 CHANGELOG.md

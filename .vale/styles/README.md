@@ -173,17 +173,17 @@ suggestions in 86 files, so `pnpm --dir landing test:prose` passes on main.
 ## Repository Markdown rules
 
 The root `.vale.ini` runs the `Vale.*` built-ins and the `Nhost` style over
-the 93 files `.vale/lint_markdown.sh` selects at `edefb8f2bc`, with the same
+the 97 files `.vale/lint_markdown.sh` selects at `a6941826cd`, with the same
 five docs-only rules switched off as on the blog. No shared rule needed
 relaxing: the two error-tier hits on main, `First and foremost` in
 `README.md` and `Rest assured` in `SECURITY.md`, were rewritten instead.
 
-Counts: `EmDash` 380 in 41, `Colons` 123 in 35, `Latin` 39 in 21,
-`Vale.Terms` 33 in 18, `LLMPhrases` 20 in 15, `FillerHeadings` 15 in 9,
-`WordList` 11 in 8, `Units` 10 in 6, `OxfordComma` 8 in 8, `Quotes` 5 in 3,
-`Exclamation` 4 in 4, `LyHyphens` 4 in 3, `Ellipses` 2 in 2, `Ordinal` 1 in
-1, and every error-tier rule 0. At the suggestion level that is 0 errors, 97
-warnings and 558 suggestions in 93 files.
+Counts: `EmDash` 401 in 44, `Colons` 136 in 37, `Latin` 41 in 22,
+`Vale.Terms` 36 in 21, `LLMPhrases` 20 in 15, `OxfordComma` 17 in 11,
+`FillerHeadings` 15 in 9, `WordList` 12 in 9, `Units` 10 in 6, `Exclamation`
+4 in 4, `Quotes` 4 in 2, `LyHyphens` 4 in 3, `Ellipses` 3 in 3, `Ordinal` 1
+in 1, and every error-tier rule 0. At the suggestion level that is 0 errors,
+110 warnings, and 594 suggestions in 97 files.
 
 ## Nhost rules
 
