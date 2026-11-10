@@ -14,6 +14,7 @@ import {
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
 import { StatusDot } from '@/features/account/settings/components/StatusDot';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
+import highlightSection from '@/features/account/settings/utils/highlightSection';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
@@ -32,6 +33,9 @@ function ProfileStatus({ active, section, children }: ProfileStatusProps) {
   return (
     <NextLink
       href={getAccountSettingsHref('authentication', section)}
+      // Already on that link, the URL doesn't change and nothing would
+      // happen, so light the card up again by hand.
+      onClick={() => highlightSection(section)}
       className="group/status inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
     >
       <StatusDot active={active} />

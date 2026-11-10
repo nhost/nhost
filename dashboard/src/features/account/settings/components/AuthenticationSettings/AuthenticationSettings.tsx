@@ -6,6 +6,7 @@ import { AccountMfaSettings } from '@/features/account/settings/components/Accou
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { SecurityKeysSettings } from '@/features/account/settings/components/SecurityKeysSettings';
 import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
+import highlightSection from '@/features/account/settings/utils/highlightSection';
 import { cn } from '@/lib/utils';
 
 interface Section {
@@ -35,10 +36,12 @@ const ROWS: Section[][] = [
 
 function AuthenticationSectionBlock({ id, title, Card }: Section) {
   return (
+    // The card is the last child. `highlightSection` sets data-highlighted
+    // for a moment, giving it a ring and a soft blue tint that fade out.
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="grid scroll-mt-[calc(var(--account-header-height)+1.5rem)] grid-rows-[auto_1fr] gap-3"
+      className="grid scroll-mt-[calc(var(--account-header-height)+1.5rem)] grid-rows-[auto_1fr] gap-3 [&>:last-child]:transition-[box-shadow,background-color] [&>:last-child]:duration-700 motion-reduce:[&>:last-child]:transition-none [&[data-highlighted=true]>:last-child]:bg-primary/5 [&[data-highlighted=true]>:last-child]:shadow-[0_0_0_2px_hsl(var(--primary)/0.6)]"
     >
       <h2 id={`${id}-title`} className="font-semibold text-lg">
         {title}
@@ -60,10 +63,10 @@ export default function AuthenticationSettings() {
   const hash = asPath.split('#')[1];
 
   // The page scrolls inside its own container and the cards render after
-  // the tab switch, so scroll to the linked card once it is on screen.
+  // the tab switch, so go to the linked card once it is on screen.
   useEffect(() => {
     if (hash) {
-      document.getElementById(hash)?.scrollIntoView({ block: 'start' });
+      highlightSection(hash);
     }
   }, [hash]);
 
