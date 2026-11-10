@@ -40,7 +40,6 @@ export const baseSecretFormValidationSchema = Yup.object({
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  // Can be empty: some setups need a secret that exists with no value.
   value: Yup.string().label('Value'),
 });
 
@@ -78,8 +77,6 @@ export default function BaseSecretForm({
   return (
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        {/* A secret can't be read back, so editing only replaces its value.
-            Its name can't change: the configuration refers to it by name. */}
         {mode === 'edit' ? (
           <p className="text-muted-foreground text-sm">
             The current value is hidden. Saving replaces it.
