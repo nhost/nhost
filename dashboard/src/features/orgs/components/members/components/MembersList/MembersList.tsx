@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pagination } from '@/components/common/Pagination';
 import { OrgMember } from '@/features/orgs/components/members/components/OrgMember';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
@@ -8,7 +8,15 @@ const MEMBERS_PER_PAGE = 25;
 
 export default function MembersList() {
   const { org } = useCurrentOrg();
-  const members = org?.members ?? [];
+  const members = useMemo(
+    () =>
+      [...(org?.members ?? [])].sort(
+        (a, b) =>
+          a.user.displayName.localeCompare(b.user.displayName) ||
+          (a.user.email ?? '').localeCompare(b.user.email ?? ''),
+      ),
+    [org?.members],
+  );
   const isAdmin = useIsOrgAdmin();
   const [currentPage, setCurrentPage] = useState(1);
 
