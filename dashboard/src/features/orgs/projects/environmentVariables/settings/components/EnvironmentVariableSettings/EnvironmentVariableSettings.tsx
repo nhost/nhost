@@ -168,7 +168,7 @@ export default function EnvironmentVariableSettings() {
     <SettingsCard>
       <SettingsCardHeader
         title="Project environment variables"
-        description="Key-value pairs available to all your services, kept outside your source code. Use them for API keys and values that change between environments."
+        description="Key-value pairs for configuration settings, available to all your services, including Run services and Functions."
         docsLink={{
           href: 'https://docs.nhost.io/platform/cloud/environment-variables',
           topic: 'Environment Variables',

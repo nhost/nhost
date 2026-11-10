@@ -105,12 +105,13 @@ export default function BaseEnvironmentVariableForm({
     <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Available to all your services. For API keys and passwords, use{' '}
-        <TextLink href={secretsPath}>Secrets</TextLink>.
+        <TextLink href={secretsPath} external>
+          Secrets
+        </TextLink>
+        .
       </p>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        {/* The name can't change once created, and it's already in the popup
-            title, so editing only shows the value. */}
         {mode === 'create' && (
           <FormInput
             control={control}

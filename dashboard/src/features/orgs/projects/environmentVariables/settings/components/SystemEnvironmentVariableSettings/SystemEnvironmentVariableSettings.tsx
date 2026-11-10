@@ -127,19 +127,25 @@ export default function SystemEnvironmentVariableSettings() {
 
         <VariableGroup label="Secrets">
           <TableRow className="group">
-            <TableCell className="font-mono">NHOST_ADMIN_SECRET</TableCell>
+            <TableCell className="break-all font-mono">
+              NHOST_ADMIN_SECRET
+            </TableCell>
             <TableCell>
               <MaskedValue name="NHOST_ADMIN_SECRET" value={adminSecret} />
             </TableCell>
           </TableRow>
           <TableRow className="group">
-            <TableCell className="font-mono">NHOST_WEBHOOK_SECRET</TableCell>
+            <TableCell className="break-all font-mono">
+              NHOST_WEBHOOK_SECRET
+            </TableCell>
             <TableCell>
               <MaskedValue name="NHOST_WEBHOOK_SECRET" value={webhookSecret} />
             </TableCell>
           </TableRow>
           <TableRow className="group">
-            <TableCell className="font-mono">NHOST_JWT_SECRET</TableCell>
+            <TableCell className="break-all font-mono">
+              NHOST_JWT_SECRET
+            </TableCell>
             <TableCell>
               <Button
                 type="button"
@@ -160,7 +166,7 @@ export default function SystemEnvironmentVariableSettings() {
 function ValueRow({ name, value }: { name: string; value: string }) {
   return (
     <TableRow className="group">
-      <TableCell className="font-mono">{name}</TableCell>
+      <TableCell className="break-all font-mono">{name}</TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <span className="min-w-0 break-all text-muted-foreground">
