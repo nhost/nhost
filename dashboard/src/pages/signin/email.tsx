@@ -1,17 +1,18 @@
 import type { ReactElement } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import { SignInWithEmailAndPassword } from '@/features/auth/SignIn/SignInWithEmailAndPassword';
 
 function SigninPage() {
   return (
-    <div className="grid gap-12 font-[Inter]">
+    <div className="grid gap-12">
       <div className="text-center">
         <h1 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
           Welcome back
         </h1>
-        <p className="mx-auto max-w-md text-[#A2B3BE] text-lg">
+        <p className="mx-auto max-w-md text-lg text-muted-foreground">
           Continue building amazing things with Nhost
         </p>
       </div>
@@ -20,24 +21,21 @@ function SigninPage() {
         <SignInWithEmailAndPassword />
       </div>
 
-      <p className="text-center text-base lg:text-lg">
+      <div className="rounded-md border bg-transparent p-4 text-center text-base lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NavLink href="/signup" className="px-0 text-[1.125rem] text-inherit">
+        <NavLink href="/signup" className="px-0 text-lg">
           Sign Up
         </NavLink>
-      </p>
+      </div>
     </div>
   );
 }
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
-      title="Sign In"
-      rightColumnContent={<SignInRightColumn />}
-    >
-      {page}
-    </UnauthenticatedLayout>
+    <AuthFlowLayout title="Sign In" rightColumnContent={<SignInRightColumn />}>
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };
 

@@ -45,7 +45,7 @@ function DataGridFilterColumn({
         }
       }}
     >
-      <SelectTrigger className="h-8 w-[8rem]" ref={selectRef}>
+      <SelectTrigger className="h-8 w-32" ref={selectRef}>
         <span
           className="!inline-block w-4/5 overflow-ellipsis text-left"
           title={value}
@@ -57,7 +57,7 @@ function DataGridFilterColumn({
         {columns.map((column) => (
           <SelectItem key={column.id} value={column.id}>
             {column.id}{' '}
-            <Badge className="rounded-sm+ bg-secondary p-1 font-normal text-[0.75rem] leading-[0.75]">
+            <Badge className="rounded-sm bg-secondary px-1 py-0.5 font-normal text-xs leading-none">
               {column.columnDef.meta?.displayType}
             </Badge>
           </SelectItem>

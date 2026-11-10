@@ -18,8 +18,8 @@ func (ctrl *Controller) postUserMfaDeactivate( //nolint:ireturn
 ) api.VerifyChangeUserMfaResponseObject {
 	logger.InfoContext(ctx, "deactivating mfa")
 
-	if user.ActiveMfaType.String != string(api.Totp) {
-		logger.WarnContext(ctx, "user does not have totp mfa enabled")
+	if user.ActiveMfaType.String != string(api.UserMfaRequestActiveMfaTypeTotp) {
+		logger.WarnContext(ctx, "user does not have totp enabled")
 		return ctrl.sendError(ErrDisabledMfaTotp)
 	}
 
@@ -61,8 +61,8 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 ) api.VerifyChangeUserMfaResponseObject {
 	logger.InfoContext(ctx, "activating mfa")
 
-	if user.ActiveMfaType.String == string(api.Totp) {
-		logger.WarnContext(ctx, "user already has totp mfa active")
+	if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) {
+		logger.WarnContext(ctx, "user already has totp active")
 		return ctrl.sendError(ErrTotpAlreadyActive)
 	}
 
@@ -86,7 +86,7 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 	if err := ctrl.wf.db.UpdateUserActiveMFAType(
 		ctx, sql.UpdateUserActiveMFATypeParams{
 			ID:            user.ID,
-			ActiveMfaType: sql.Text(api.Totp),
+			ActiveMfaType: sql.Text(api.UserMfaRequestActiveMfaTypeTotp),
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "failed to update TOTP secret", logError(err))
@@ -101,8 +101,8 @@ func (ctrl *Controller) VerifyChangeUserMfa( //nolint:ireturn
 ) (api.VerifyChangeUserMfaResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	if !ctrl.config.MfaEnabled {
-		logger.WarnContext(ctx, "mfa disabled")
+	if !ctrl.config.TOTPEnabled {
+		logger.WarnContext(ctx, "totp disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -114,7 +114,7 @@ func (ctrl *Controller) VerifyChangeUserMfa( //nolint:ireturn
 	switch {
 	case req.Body.ActiveMfaType == nil || *req.Body.ActiveMfaType == "":
 		return ctrl.postUserMfaDeactivate(ctx, req, user, logger), nil
-	case *req.Body.ActiveMfaType == api.Totp:
+	case *req.Body.ActiveMfaType == api.UserMfaRequestActiveMfaTypeTotp:
 		return ctrl.postUserMfaActivate(ctx, req, user, logger), nil
 	}
 

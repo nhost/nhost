@@ -17,19 +17,16 @@ function AddSecurityKeyButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-        >
+        <Button type="button" variant="outline" size="sm" className="gap-2">
           <Plus className="h-5 w-5" />
           Add New Security Key
         </Button>
       </DialogTrigger>
-      <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
+      <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add a Security Key</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Add a Security Key
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="sr-only">
           Add a Security Key

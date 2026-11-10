@@ -1,14 +1,14 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
-import { useTheme } from '@mui/material';
 import { bbedit } from '@uiw/codemirror-theme-bbedit';
 import { githubDark } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useEffect, useState } from 'react';
+import CodeMirror, { EditorView } from '@uiw/react-codemirror';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import { SettingsDocsLink } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -18,6 +18,8 @@ import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const removeTOMLIndentation = (tomlStr: string) => {
@@ -26,7 +28,7 @@ const removeTOMLIndentation = (tomlStr: string) => {
 };
 
 export default function TOMLEditor() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
 
   const [tomlCode, setTOMLCode] = useState('');
@@ -35,6 +37,17 @@ export default function TOMLEditor() {
   const [isSaving, setIsSaving] = useState(false); // used to show loading spinner on save
 
   const { openDialog } = useDialog();
+
+  // When the cursor moves up with the arrow keys, the editor scrolls to keep it
+  // visible. The margin keeps it below the sticky header instead of behind it.
+  const headerRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderMargin = useMemo(
+    () =>
+      EditorView.scrollMargins.of(() => ({
+        top: headerRef.current?.offsetHeight ?? 0,
+      })),
+    [],
+  );
 
   const { project } = useProject();
 
@@ -141,44 +154,66 @@ export default function TOMLEditor() {
   };
 
   return (
-    <>
-      <div className="flex w-full flex-col space-y-2 border-b p-4">
-        <p className="font-semibold">Configuration Editor</p>
+    // Not a SettingsCard: that is for settings forms and clips its content,
+    // which would stop the header from sticking. Same border, radius and
+    // spacing, so it reads like the other settings cards.
+    // min-w-0: a very long line scrolls inside the editor instead of
+    // stretching the page and pushing Revert and Save off screen.
+    <section className="min-w-0 rounded-lg border">
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background px-6 py-6 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p className="min-w-0 text-muted-foreground sm:max-w-lg">
+          Edit your project&apos;s configuration directly in TOML. Use it for
+          settings that don&apos;t have their own page yet.{' '}
+          <span className="inline-flex align-middle">
+            <SettingsDocsLink
+              href="https://docs.nhost.io/reference/configuration"
+              topic="the configuration file"
+            />
+          </span>
+        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading || !isDirty}
+            onClick={handleRevert}
+          >
+            Revert changes
+          </Button>
+          <ButtonWithLoading
+            type="submit"
+            disabled={loading || !isDirty}
+            loading={isSaving}
+            onClick={handleSave}
+          >
+            Save
+          </ButtonWithLoading>
+        </div>
       </div>
-      <div className="h-full overflow-auto">
+
+      {/* Clips the corners without becoming a scroll container, so the
+          search panel (Cmd+F) can stick to the bottom of the window. */}
+      <div className="overflow-clip rounded-b-lg">
         {loading ? (
-          <div className="h-full w-full animate-pulse bg-muted" />
+          <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
           <CodeMirror
             value={tomlCode}
-            height="100%"
             width="100%"
-            theme={theme.palette.mode === 'light' ? bbedit : githubDark}
-            extensions={[StreamLanguage.define(toml)]}
+            minHeight="24rem"
+            theme={resolvedTheme === 'light' ? bbedit : githubDark}
+            extensions={[
+              StreamLanguage.define(toml),
+              codeMirrorAppBackground,
+              stickyHeaderMargin,
+            ]}
             onChange={onChange}
           />
         )}
       </div>
-      <div className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading || !isDirty}
-          onClick={handleRevert}
-        >
-          Revert changes
-        </Button>
-
-        <ButtonWithLoading
-          type="submit"
-          disabled={loading || !isDirty}
-          loading={isSaving}
-          className="justify-self-end"
-          onClick={handleSave}
-        >
-          Save
-        </ButtonWithLoading>
-      </div>
-    </>
+    </section>
   );
 }

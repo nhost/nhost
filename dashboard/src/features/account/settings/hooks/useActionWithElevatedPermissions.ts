@@ -1,6 +1,7 @@
 import { toast } from 'react-hot-toast';
 import useElevatedPermissions from '@/features/account/settings/hooks/useElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 // biome-ignore lint/suspicious/noExplicitAny: TODO
 type Action = (...args: any[]) => Promise<any>;
@@ -40,7 +41,10 @@ function useActionWithElevatedPermissions<F extends Action>({
       // Don't guess a branch when the count is indeterminate: neither silently
       // skip elevation nor fire a WebAuthn challenge the user may not be able to
       // complete. Surface the failure so they can retry.
-      toast.error('Could not verify your security settings. Please try again.');
+      toast.error(
+        'Could not verify your security settings. Please try again.',
+        getToastStyleProps(),
+      );
       return false;
     }
 
@@ -59,11 +63,14 @@ function useActionWithElevatedPermissions<F extends Action>({
     }
     try {
       const response = await actionFn(...args);
-      toast.success(successMessage || 'Success.');
+      toast.success(successMessage || 'Success.', getToastStyleProps());
       onSuccess?.(response as UnwrapPromise<ReturnType<F>>);
       isSuccess = true;
     } catch (error) {
-      toast.error(error?.message || 'Something went wrong.');
+      toast.error(
+        error?.message || 'Something went wrong.',
+        getToastStyleProps(),
+      );
       onError?.();
     }
 

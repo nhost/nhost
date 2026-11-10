@@ -2,7 +2,7 @@
 *.DS_Store
 
 # Logs
-logs/
+/logs/
 *.log
 
 # Cache

@@ -1,3 +1,13 @@
+import {
+  format,
+  formatDistance,
+  parseISO,
+  startOfDay,
+  subMinutes,
+} from 'date-fns';
+import { ChevronDownIcon, ClockIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { DateTimePicker } from '@/components/common/DateTimePicker';
 import { Button } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
@@ -14,10 +24,6 @@ import {
   type LogsCustomInterval,
 } from '@/features/orgs/projects/logs/utils/constants/intervals';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { format, formatDistance, parseISO, startOfDay, subMinutes } from 'date-fns';
-import { ChevronDownIcon, ClockIcon } from 'lucide-react';
-import { useState } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
 
 function isDayOutsideRange(day: Date, minDate: Date, maxDate: Date) {
   const target = startOfDay(day);
@@ -55,9 +61,7 @@ function LogsToDatePickerLiveButton() {
     <div className="flex flex-col">
       {!isLive && (
         <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3">
-          <Label className="text-sm+ font-normal text-muted-foreground">
-            To
-          </Label>
+          <Label className="font-normal text-muted-foreground">To</Label>
           <DateTimePicker
             key={to}
             dateTime={to}
@@ -143,9 +147,7 @@ function LogsRangeSelectorIntervalPickers({
     <div className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-4">
         <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3">
-          <Label className="text-sm+ font-normal text-muted-foreground">
-            From
-          </Label>
+          <Label className="font-normal text-muted-foreground">From</Label>
           <DateTimePicker
             key={from}
             dateTime={from}

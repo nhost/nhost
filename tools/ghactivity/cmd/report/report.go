@@ -23,11 +23,13 @@ const (
 	flagOutput        = "output"
 	flagStatusField   = "status-field"
 	flagReadyStatus   = "ready-status"
+	flagMergeStatus   = "merge-status"
 	flagWaitingStatus = "waiting-status"
 
 	timestampLayout = "20060102-1504"
 
 	defaultReadyStatus   = "Ready for review"
+	defaultMergeStatus   = "Ready to merge"
 	defaultWaitingStatus = "Waiting"
 )
 
@@ -77,6 +79,12 @@ func Flags() []cli.Flag {
 			Usage:   "GitHub Project status name that means 'ready for review'",
 			Value:   defaultReadyStatus,
 			Sources: cli.EnvVars("GHACTIVITY_READY_STATUS"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagMergeStatus,
+			Usage:   "GitHub Project status name that means 'ready to merge'",
+			Value:   defaultMergeStatus,
+			Sources: cli.EnvVars("GHACTIVITY_MERGE_STATUS"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagWaitingStatus,
@@ -130,6 +138,7 @@ func Action(ctx context.Context, c *cli.Command) error {
 		Until:         until,
 		StatusField:   c.String(flagStatusField),
 		ReadyStatus:   c.String(flagReadyStatus),
+		MergeStatus:   c.String(flagMergeStatus),
 		WaitingStatus: c.String(flagWaitingStatus),
 	})
 	if err != nil {

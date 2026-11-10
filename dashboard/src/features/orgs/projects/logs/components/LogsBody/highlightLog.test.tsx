@@ -1,9 +1,9 @@
+import { createElement, Fragment, type ReactNode } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import {
   highlightLog,
   type SearchRange,
 } from '@/features/orgs/projects/logs/components/LogsBody/highlightLog';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { Fragment, createElement, type ReactNode } from 'react';
 
 function render(node: ReactNode): string {
   return renderToStaticMarkup(createElement(Fragment, null, node));
@@ -39,25 +39,19 @@ describe('highlightLog', () => {
     it('highlights a UUID', () => {
       const uuid = '123e4567-e89b-12d3-a456-426614174000';
       const html = highlight(`id ${uuid} end`);
-      expect(html).toBe(
-        `id <span class="${ACCENT}">${uuid}</span> end`,
-      );
+      expect(html).toBe(`id <span class="${ACCENT}">${uuid}</span> end`);
     });
 
     it('highlights a 32-hex trace ID', () => {
       const trace = '0af7651916cd43dd8448eb211c80319c';
       const html = highlight(`trace ${trace} end`);
-      expect(html).toBe(
-        `trace <span class="${ACCENT}">${trace}</span> end`,
-      );
+      expect(html).toBe(`trace <span class="${ACCENT}">${trace}</span> end`);
     });
 
     it('highlights a 16-hex span ID', () => {
       const span = 'b7ad6b7169203331';
       const html = highlight(`span ${span} end`);
-      expect(html).toBe(
-        `span <span class="${ACCENT}">${span}</span> end`,
-      );
+      expect(html).toBe(`span <span class="${ACCENT}">${span}</span> end`);
     });
 
     it('highlights a JSON key including quotes', () => {
@@ -84,17 +78,13 @@ describe('highlightLog', () => {
       'highlights HTTP method %s',
       (method) => {
         const html = highlight(`req ${method} /path`);
-        expect(html).toBe(
-          `req <span class="${ACCENT}">${method}</span> /path`,
-        );
+        expect(html).toBe(`req <span class="${ACCENT}">${method}</span> /path`);
       },
     );
 
     it('highlights an HTTP status after whitespace', () => {
       const html = highlight('status 404 not found');
-      expect(html).toBe(
-        `status <span class="${ACCENT}">404</span> not found`,
-      );
+      expect(html).toBe(`status <span class="${ACCENT}">404</span> not found`);
     });
   });
 

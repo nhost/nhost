@@ -1,4 +1,4 @@
-import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import { MetricChart } from '@/features/orgs/projects/common/metrics/components/MetricChart';
 import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
 import {

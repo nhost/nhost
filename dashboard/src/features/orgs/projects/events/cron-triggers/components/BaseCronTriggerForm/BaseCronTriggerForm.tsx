@@ -415,8 +415,7 @@ export default function BaseCronTriggerForm({
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
                 <Button
-                  variant="ghost"
-                  className="text-foreground"
+                  variant="outline"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel

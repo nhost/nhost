@@ -3,6 +3,7 @@ import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormPasswordInput } from '@/components/form/FormPasswordInput';
 import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
 import {
   Select,
   SelectContent,
@@ -30,7 +31,7 @@ export default function WebhookFormSection() {
     setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">Webhook</h3>
@@ -47,7 +48,7 @@ export default function WebhookFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add webhook"
           onClick={() =>
@@ -69,7 +70,7 @@ export default function WebhookFormSection() {
       {fields?.length > 0 ? (
         <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex w-full items-center space-x-2">
+            <div key={field.id} className="flex w-full items-start space-x-2">
               <div className="grid flex-grow gap-4 lg:grid-cols-9">
                 <FormInput
                   control={control}
@@ -80,13 +81,8 @@ export default function WebhookFormSection() {
                   autoComplete="off"
                 />
 
-                <div className="grid gap-1 lg:col-span-2">
-                  <label
-                    htmlFor={`${field.id}-httpMethod`}
-                    className="font-medium text-sm+"
-                  >
-                    HTTP Method
-                  </label>
+                <div className="space-y-2 self-start lg:col-span-2">
+                  <Label htmlFor={`${field.id}-httpMethod`}>HTTP Method</Label>
                   <Select
                     value={formValues.webhook?.at(index)?.httpMethod || ''}
                     onValueChange={(value) => onChangeHttpMethod(value, index)}
@@ -118,7 +114,7 @@ export default function WebhookFormSection() {
                   name={`webhook.${index}.password`}
                   label="Password"
                   placeholder="Enter password"
-                  containerClassName="w-full lg:col-span-4"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
                 <FormInput
@@ -127,7 +123,7 @@ export default function WebhookFormSection() {
                   label="Max Alerts (0 means no limit)"
                   placeholder="Enter max alerts"
                   type="number"
-                  containerClassName="w-full lg:col-span-2"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
 
@@ -149,14 +145,22 @@ export default function WebhookFormSection() {
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                aria-label="Remove webhook"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-6 w-4" />
-              </Button>
+              <div className="space-y-2">
+                <Label aria-hidden="true" className="invisible">
+                  {'\u00A0'}
+                </Label>
+                <div className="flex">
+                  <Button
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
+                    aria-label="Remove webhook"
+                    onClick={() => remove(index)}
+                  >
+                    <TrashIcon className="h-6 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

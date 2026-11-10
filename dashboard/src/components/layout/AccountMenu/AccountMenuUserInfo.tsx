@@ -13,7 +13,7 @@ export default function AccountMenuUserInfo() {
   return (
     <div
       className={cn(
-        'grid grid-flow-col items-center justify-start gap-3 p-0 sm:p-4',
+        'grid grid-flow-col items-center justify-start gap-3 p-3',
         !isPlatform && 'gap-4',
       )}
     >

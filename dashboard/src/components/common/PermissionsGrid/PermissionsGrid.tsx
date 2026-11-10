@@ -55,7 +55,7 @@ export default function PermissionsGrid<TAction extends string>({
           </tr>
         </thead>
 
-        <tbody className="block rounded-sm+ border-1">
+        <tbody className="block rounded-sm border-1">
           <tr
             className={`grid ${gridCols} items-center justify-items-stretch border-b-1`}
           >

@@ -154,15 +154,14 @@ export default function DataBrowserGridControls({
           <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
-              className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
+              className="!bg-primary-highlight text-primary"
             >
               {`${numberOfSelectedRows} selected`}
             </Badge>
 
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
-              className="border-none text-destructive hover:bg-[#f131541a] hover:text-destructive"
               loading={status === 'loading'}
               onClick={() =>
                 openAlertDialog({

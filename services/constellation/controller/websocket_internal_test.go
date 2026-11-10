@@ -15,9 +15,11 @@ import (
 	"github.com/nhost/nhost/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	subscriptionmock "github.com/nhost/nhost/services/constellation/subscription/mock"
+	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/mock/gomock"
 )
@@ -137,6 +139,9 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 			},
 			subHandlers: map[string]subscription.Handler{"db": mockHandler},
 			queryCache:  newQueryCache(),
+			queryPlanner: planner.New(wsTestSchemas(t), map[string]string{
+				schemamerge.FieldKey(ast.Subscription, "users"): "db",
+			}, nil, nil),
 		},
 		adminSecret:     "",
 		jwtAuth:         nil,
@@ -160,6 +165,192 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 		t.Fatalf("unexpected websocket message: %+v", msg)
 	default:
 	}
+}
+
+//nolint:cyclop,tparallel,gocognit // Directive matrix shares one WebSocket handler and mock; subtests cannot run in parallel.
+func TestWebSocketHandlerRejectsRemoteRelationships(t *testing.T) {
+	t.Parallel()
+
+	schema, err := gqlparser.LoadSchema(&ast.Source{Input: `
+		type query_root { users: [User!]! }
+		type User { id: ID! item_label: String computedRemote: User physicalRemote: User }
+		schema { query: query_root subscription: query_root }
+	`})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deniedSchema, err := gqlparser.LoadSchema(&ast.Source{Input: `
+		type query_root { users: [User!]! }
+		type User { id: ID! }
+		schema { query: query_root subscription: query_root }
+	`})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	schemas := map[string]*ast.Schema{"admin": schema, "denied": deniedSchema}
+	owners := map[string]string{schemamerge.FieldKey(ast.Subscription, "users"): "db"}
+	rels := map[string][]*planner.RelationshipMetadata{"db": {
+		{
+			Name:            "computedRemote",
+			SourceType:      "User",
+			TargetConnector: "other",
+			TargetTable:     "users",
+			JoinMapping:     map[string]string{"item_label": "id"},
+			IsRemote:        true,
+		},
+		{
+			Name:            "physicalRemote",
+			SourceType:      "User",
+			TargetConnector: "other",
+			TargetTable:     "users",
+			JoinMapping:     map[string]string{"id": "id"},
+			IsRemote:        true,
+		},
+	}}
+	mockHandler := subscriptionmock.NewMockHandler(gomock.NewController(t))
+	updates := make(chan subscription.Update)
+	starts := 0
+	mockHandler.EXPECT().
+		Start(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(context.Context, subscription.Request, *slog.Logger) (<-chan subscription.Update, error) {
+			starts++
+			return updates, nil
+		}).
+		AnyTimes()
+	mockHandler.EXPECT().Stop(gomock.Any(), gomock.Any()).AnyTimes()
+
+	sendCh := make(chan *websocket.Message, 2)
+	h := &webSocketHandler{
+		state: &controllerState{
+			validatedSchemas: schemas,
+			queryCache:       newQueryCache(),
+			queryPlanner:     planner.New(schemas, owners, nil, rels),
+			fieldToConnector: owners,
+			subHandlers:      map[string]subscription.Handler{"db": mockHandler},
+		},
+		logger:  slog.New(slog.DiscardHandler),
+		session: &middleware.SessionVariables{Role: "admin"},
+		sendCh:  sendCh, subs: syncmap.New[string, *subscriptionState](),
+	}
+
+	for _, name := range []string{"computedRemote", "physicalRemote"} {
+		h.OnSubscribe(t.Context(), name, websocket.SubscribePayload{
+			Query: `subscription { users { id ` + name + ` { id } } }`,
+		})
+
+		errs := firstErrorPayload(t, sendCh)
+		if errs[0]["message"] != "Remote relationships are not allowed in subscriptions" {
+			t.Fatalf("%s: unexpected error: %v", name, errs)
+		}
+
+		if ext, ok := errs[0]["extensions"].(map[string]any); !ok ||
+			ext["code"] != "not-supported" {
+			t.Fatalf("%s: missing not-supported code: %v", name, errs)
+		}
+
+		if _, exists := h.subs.Load(name); exists {
+			t.Fatalf("%s registered a subscription", name)
+		}
+	}
+
+	for _, tc := range []struct { //nolint:paralleltest // All cases share one WebSocket handler and subscription mock.
+		name, selection string
+		variables       map[string]any
+		rejected        bool
+	}{
+		{"field include true", `physicalRemote @include(if:$x) { id }`, map[string]any{"x": true}, true},
+		{"field include false", `physicalRemote @include(if:$x) { id }`, map[string]any{"x": false}, false},
+		{"field skip false", `physicalRemote @skip(if:$x) { id }`, map[string]any{"x": false}, true},
+		{"field skip true", `physicalRemote @skip(if:$x) { id }`, map[string]any{"x": true}, false},
+		{"inline include true", `... on User @include(if:$x) { physicalRemote { id } }`, map[string]any{"x": true}, true},
+		{"inline include false", `... on User @include(if:$x) { physicalRemote { id } }`, map[string]any{"x": false}, false},
+		{"inline skip false", `... on User @skip(if:$x) { physicalRemote { id } }`, map[string]any{"x": false}, true},
+		{"inline skip true", `... on User @skip(if:$x) { physicalRemote { id } }`, map[string]any{"x": true}, false},
+		{"spread include true", `...Remote @include(if:$x)`, map[string]any{"x": true}, true},
+		{"spread include false", `...Remote @include(if:$x)`, map[string]any{"x": false}, false},
+		{"spread skip false", `...Remote @skip(if:$x)`, map[string]any{"x": false}, true},
+		{"spread skip true", `...Remote @skip(if:$x)`, map[string]any{"x": true}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			id := tc.name
+
+			query := `subscription($x:Boolean!) { users { id ` + tc.selection + ` } }`
+			if strings.Contains(tc.selection, "...Remote") {
+				query += ` fragment Remote on User { physicalRemote { id } }`
+			}
+
+			before := starts
+
+			h.OnSubscribe(t.Context(), id, websocket.SubscribePayload{
+				Query: query, Variables: tc.variables,
+			})
+
+			if tc.rejected {
+				if starts != before {
+					t.Fatal("rejected subscription started a SQL poll")
+				}
+
+				errs := firstErrorPayload(t, sendCh)
+				if errs[0]["message"] != "Remote relationships are not allowed in subscriptions" {
+					t.Fatalf("remote relationship not rejected: %v", errs)
+				}
+
+				if _, exists := h.subs.Load(id); exists {
+					t.Fatal("rejected subscription registered")
+				}
+
+				return
+			}
+
+			if starts != before+1 {
+				t.Fatal("excluded relationship did not start ordinary subscription")
+			}
+
+			select {
+			case msg := <-sendCh:
+				t.Fatalf("excluded relationship rejected: %+v", msg)
+			default:
+			}
+		})
+	}
+
+	h.OnSubscribe(t.Context(), "ordinary", websocket.SubscribePayload{
+		Query: `subscription { users { id } }`,
+	})
+
+	select {
+	case msg := <-sendCh:
+		t.Fatalf("ordinary subscription rejected: %+v", msg)
+	default:
+	}
+
+	before := starts
+	h.session.Role = "denied"
+	h.OnSubscribe(t.Context(), "denied", websocket.SubscribePayload{
+		Query: `subscription { users { physicalRemote { id } } }`,
+	})
+
+	if message := firstErrorMessage(
+		t,
+		sendCh,
+	); !strings.Contains(
+		message,
+		`Cannot query field "physicalRemote"`,
+	) {
+		t.Fatalf("role denial validation: %s", message)
+	}
+
+	if starts != before {
+		t.Fatal("denied remote field started a SQL poll")
+	}
+
+	if _, exists := h.subs.Load("denied"); exists {
+		t.Fatal("denied remote field registered a subscription")
+	}
+
+	h.OnClose(t.Context())
 }
 
 func TestGetConnectorForOperation(t *testing.T) {

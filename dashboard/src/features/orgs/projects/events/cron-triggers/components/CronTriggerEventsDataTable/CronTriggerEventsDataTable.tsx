@@ -94,7 +94,7 @@ export default function CronTriggerEventsDataTable({
                 <TableHead
                   key={header.id}
                   className={cn(
-                    'group relative bg-paper font-bold font-display text-primary-text text-xs',
+                    'group relative bg-background font-bold font-display text-primary-text text-xs',
                     '!h-8 p-0',
                     index === 0 ? 'pl-2' : '',
                     'border-b-1',
@@ -122,9 +122,8 @@ export default function CronTriggerEventsDataTable({
                         'absolute top-0 right-0 z-20 h-full w-2',
                         'cursor-col-resize touch-none select-none',
                         'border-0 bg-transparent p-0',
-                        'group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors',
-                        header.column.getIsResizing() &&
-                          'bg-slate-900 bg-opacity-20',
+                        'group-hover:bg-border group-active:bg-border motion-safe:transition-colors',
+                        header.column.getIsResizing() && 'bg-border',
                       )}
                     />
                   )}
@@ -139,7 +138,7 @@ export default function CronTriggerEventsDataTable({
           skeletonRowKeys.map((key) => (
             <TableRow
               key={`skeleton-${key}`}
-              className="hover:!bg-data-cell-bg-hover border-0 odd:bg-data-cell-bg-odd even:bg-data-cell-bg"
+              className="border-0 hover:bg-muted/60 [&:last-child>td]:border-b-0 [&>td]:border-b-1 [&>td]:border-b-data-table-border-color"
             >
               {table.getAllLeafColumns().map((col) => (
                 <TableCell
@@ -161,7 +160,9 @@ export default function CronTriggerEventsDataTable({
                 aria-expanded={row.getIsExpanded()}
                 className={cn(
                   'border-0',
-                  'hover:!bg-data-cell-bg-hover odd:bg-data-cell-bg-odd even:bg-data-cell-bg',
+                  'hover:bg-muted/60 [&:last-child>td]:border-b-0 [&>td]:border-b-1 [&>td]:border-b-data-table-border-color',
+                  row.getIsExpanded() &&
+                    'bg-table-selected hover:bg-table-selected',
                 )}
               >
                 {row.getVisibleCells().map((cell) => (

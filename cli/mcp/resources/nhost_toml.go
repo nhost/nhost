@@ -29,8 +29,8 @@ func (t *NhostToml) Register(server *server.MCPServer) {
 			URI:  NhostTomlResourceURI,
 			Name: "nhost.toml",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{"agent"},
-				Priority: 9.0, //nolint:mnd
+				Audience: []mcp.Role{mcp.RoleAssistant},
+				Priority: 1.0,
 			},
 			Description: NhostTomlResourceDescription,
 			MIMEType:    "text/plain",

@@ -14,7 +14,7 @@ function SupportPage() {
       </div>
 
       <div className="flex flex-col items-center justify-center">
-        <div className="mb-10 flex h-64 w-full flex-col items-center justify-center gap-10 border-b-1 bg-background-default px-4">
+        <div className="mb-10 flex h-64 w-full flex-col items-center justify-center gap-10 border-b-1 px-4">
           <div>
             <h4 className="font-medium text-base">Nhost Support</h4>
             <h2 className="font-medium text-2xl">How can we help?</h2>

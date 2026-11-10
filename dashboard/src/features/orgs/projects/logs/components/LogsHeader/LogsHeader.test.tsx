@@ -1,3 +1,5 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
@@ -7,8 +9,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import LogsHeader from './LogsHeader';
 
 const server = setupServer(tokenQuery);

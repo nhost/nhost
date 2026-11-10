@@ -26,9 +26,11 @@ function ThemePreferenceProvider({
   const [themePreference, setThemePreference] =
     useState<ThemePreference>('system');
   const [prefersDark, setPrefersDark] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setThemePreference(readStoredThemePreference(storageKey));
+    setIsLoaded(true);
   }, [storageKey]);
 
   useEffect(() => {
@@ -73,8 +75,9 @@ function ThemePreferenceProvider({
         prefersDark ? 'dark' : 'light',
       ),
       storageKey,
+      isLoaded,
     }),
-    [themePreference, updateThemePreference, prefersDark, storageKey],
+    [themePreference, updateThemePreference, prefersDark, storageKey, isLoaded],
   );
 
   return (

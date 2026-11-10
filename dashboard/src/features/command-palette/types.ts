@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { PageGate } from '@/components/layout/MainNav/nav-config';
+import type { PaletteGate } from '@/features/command-palette/catalog';
 
 export type NodeKind = 'page' | 'group' | 'setting' | 'org' | 'project' | 'doc';
 
@@ -16,7 +16,10 @@ export interface CommandNode {
   // header breadcrumb levels.
   breadcrumb?: string[];
   children?: CommandNode[];
-  gate?: PageGate;
+  gate?: PaletteGate;
+  // Gates only the node's own path; its children keep their own gates, so a
+  // gated-off group still lets them through as a drill-only container.
+  pathGate?: PaletteGate;
   // Search flattening stops here; drilling still descends into children.
   searchBoundary?: boolean;
   // Present only on runtime clones (recents, org/project switch nodes);

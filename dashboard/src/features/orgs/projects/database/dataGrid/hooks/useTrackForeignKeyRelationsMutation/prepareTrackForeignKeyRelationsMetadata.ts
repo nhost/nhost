@@ -1,4 +1,5 @@
 import { plural, singular } from 'pluralize';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
@@ -51,6 +52,15 @@ function findNonUniqueNameIndexes(
   return duplicateIndexes.sort((a, b) => a - b);
 }
 
+function getRelationshipColumnsSuffix(
+  operation: CreateRelationshipOperation,
+): string {
+  const constraint = operation.args.using.foreign_key_constraint_on;
+  const columns = constraint ? getForeignKeyConstraintColumns(constraint) : [];
+
+  return columns.join('_');
+}
+
 function updateDuplicateRelationshipNames(
   operations: CreateRelationshipOperation[],
 ): CreateRelationshipOperation[] {
@@ -65,12 +75,9 @@ function updateDuplicateRelationshipNames(
       return op;
     }
 
-    const columnName =
-      typeof op.args.using.foreign_key_constraint_on === 'string'
-        ? op.args.using.foreign_key_constraint_on
-        : op.args.using.foreign_key_constraint_on?.column;
+    const columnsSuffix = getRelationshipColumnsSuffix(op);
 
-    if (!columnName) {
+    if (!columnsSuffix) {
       return op;
     }
 
@@ -78,7 +85,7 @@ function updateDuplicateRelationshipNames(
       ...op,
       args: {
         ...op.args,
-        name: `${op.args.name}_${columnName}`,
+        name: `${op.args.name}_${columnsSuffix}`,
       },
     };
   });
@@ -110,6 +117,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
 
   const newRelationshipsOperations: CreateRelationshipOperation[] =
     unTrackedForeignKeyRelations.flatMap((newForeignKeyRelation) => {
+      const { columns } = newForeignKeyRelation;
       const createOwnRelationshipOperation: CreateRelationshipOperation = {
         type: 'pg_create_object_relationship',
         args: {
@@ -120,7 +128,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema,
           },
           using: {
-            foreign_key_constraint_on: newForeignKeyRelation.columnName,
+            foreign_key_constraint_on: columns,
           },
         },
       };
@@ -140,7 +148,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           },
           using: {
             foreign_key_constraint_on: {
-              column: newForeignKeyRelation.columnName,
+              columns,
               table: {
                 name: table,
                 schema,
@@ -162,17 +170,14 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
       deduplicatedRelationshipsOperations.map((relationshipOperation) => {
         const relationshipKey = `${relationshipOperation.args.table.schema}.${relationshipOperation.args.table.name}.${relationshipOperation.args.name}`;
         if (existingRelationshipMaps.has(relationshipKey)) {
-          const columnName =
-            typeof relationshipOperation.args.using
-              .foreign_key_constraint_on === 'string'
-              ? relationshipOperation.args.using.foreign_key_constraint_on
-              : relationshipOperation.args.using.foreign_key_constraint_on
-                  ?.column;
+          const columnsSuffix = getRelationshipColumnsSuffix(
+            relationshipOperation,
+          );
           return {
             ...relationshipOperation,
             args: {
               ...relationshipOperation.args,
-              name: `${relationshipOperation.args.name}_${columnName}`,
+              name: `${relationshipOperation.args.name}_${columnsSuffix}`,
             },
           };
         }

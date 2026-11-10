@@ -1,4 +1,3 @@
-import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
@@ -44,7 +43,6 @@ export default function RatioBanner() {
   if (balanced) {
     return (
       <Alert variant="success" role="status">
-        <CheckCircle2 className="size-5" />
         <AlertDescription className="text-muted-foreground">
           Total memory matches total vCPU at the 1:2 ratio.
         </AlertDescription>
@@ -54,7 +52,6 @@ export default function RatioBanner() {
 
   return (
     <Alert variant="warning" role="status">
-      <AlertTriangle className="size-9" />
       {underAllocated ? (
         <>
           <AlertTitle>{prettifyMemory(delta)} of memory unallocated</AlertTitle>

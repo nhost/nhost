@@ -1,5 +1,5 @@
 import { useMeasure } from '@uidotdev/usehooks';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useCallback } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
@@ -16,7 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import MetricsTimeRangeFilter from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
+import { MetricsTimeRangeFilter } from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
 import { useMetricsTimeRangeUrlState } from '@/features/orgs/projects/common/metrics/hooks/useMetricsTimeRangeUrlState';
 import { resolveTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
 import ExpandedMetricPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel';
@@ -106,7 +106,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   }, [range, setRange]);
 
   return (
-    <div className="relative flex h-full flex-col bg-accent-background">
+    <div className="relative flex h-full flex-col bg-background">
       <div
         aria-hidden
         className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
@@ -148,13 +148,12 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-6">
           {error && (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
               <AlertTitle>Couldn't load metrics</AlertTitle>
               <AlertDescription className="mt-2 flex flex-col gap-3">
                 <span>
                   Please try again in a few minutes. This is usually temporary.
                 </span>
-                <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+                <div className="rounded bg-muted py-2">
                   <CodeBlock
                     copyToClipboardToastTitle="Error details"
                     className="!mt-0 text-sm"

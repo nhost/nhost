@@ -14,7 +14,7 @@ func validateAndFillConfig(
 	sch *schema.Schema,
 	app *App,
 ) (*model.ConfigConfig, *model.ConfigSystemConfig, error) {
-	if _, err := app.ResolveConfig(sch, true); err != nil {
+	if err := app.validateConfig(sch); err != nil {
 		return nil, nil, err
 	}
 

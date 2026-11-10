@@ -152,9 +152,9 @@ export default function TableRelationshipDetails() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="col-span-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="col-span-1"
                 onClick={() => removeFieldMapping(index)}
                 disabled={fieldMappingFields.length === 0}
               >
@@ -166,7 +166,7 @@ export default function TableRelationshipDetails() {
           <div className="flex justify-start">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="flex items-center gap-2"
               onClick={() =>

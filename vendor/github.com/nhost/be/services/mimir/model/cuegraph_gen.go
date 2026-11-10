@@ -1886,6 +1886,9 @@ type ConfigAuthMethod struct {
 	// Email and password sign-in.
 	EmailPassword *ConfigAuthMethodEmailPassword `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
 	// Passwordless sign-in via SMS.
+	// Deprecated: use otp.sms instead. The two flags remain independent in
+	// config; their values are OR-ed only when generating hasura-auth environment
+	// variables.
 	SmsPasswordless *ConfigAuthMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
 	// OAuth social sign-in providers.
 	Oauth *ConfigAuthMethodOauth `json:"oauth,omitempty" toml:"oauth,omitempty"`
@@ -5638,12 +5641,18 @@ func (exp *ConfigAuthMethodOauthWorkosComparisonExp) Matches(o *ConfigAuthMethod
 type ConfigAuthMethodOtp struct {
 	// Enable one-time-password sign-in over email.
 	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty" toml:"email,omitempty"`
+	// Enable one-time-password over SMS, for passwordless sign-in and
+	// session elevation.
+	Sms *ConfigAuthMethodOtpSms `json:"sms,omitempty" toml:"sms,omitempty"`
 }
 
 func (o *ConfigAuthMethodOtp) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Email != nil {
 		m["email"] = o.Email
+	}
+	if o.Sms != nil {
+		m["sms"] = o.Sms
 	}
 	return json.Marshal(m)
 }
@@ -5655,9 +5664,18 @@ func (o *ConfigAuthMethodOtp) GetEmail() *ConfigAuthMethodOtpEmail {
 	return o.Email
 }
 
+func (o *ConfigAuthMethodOtp) GetSms() *ConfigAuthMethodOtpSms {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
 type ConfigAuthMethodOtpUpdateInput struct {
 	Email      *ConfigAuthMethodOtpEmailUpdateInput `json:"email,omitempty" toml:"email,omitempty"`
 	IsSetEmail bool                                 `json:"-"`
+	Sms        *ConfigAuthMethodOtpSmsUpdateInput   `json:"sms,omitempty" toml:"sms,omitempty"`
+	IsSetSms   bool                                 `json:"-"`
 }
 
 func (o *ConfigAuthMethodOtpUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -5674,6 +5692,16 @@ func (o *ConfigAuthMethodOtpUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Email = t
 		}
 		o.IsSetEmail = true
+	}
+	if x, ok := m["sms"]; ok {
+		if x != nil {
+			t := &ConfigAuthMethodOtpSmsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Sms = t
+		}
+		o.IsSetSms = true
 	}
 
 	return nil
@@ -5693,6 +5721,13 @@ func (o *ConfigAuthMethodOtpUpdateInput) GetEmail() *ConfigAuthMethodOtpEmailUpd
 	return o.Email
 }
 
+func (o *ConfigAuthMethodOtpUpdateInput) GetSms() *ConfigAuthMethodOtpSmsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
 func (s *ConfigAuthMethodOtp) Update(v *ConfigAuthMethodOtpUpdateInput) {
 	if v == nil {
 		return
@@ -5707,10 +5742,21 @@ func (s *ConfigAuthMethodOtp) Update(v *ConfigAuthMethodOtpUpdateInput) {
 			s.Email.Update(v.Email)
 		}
 	}
+	if v.IsSetSms || v.Sms != nil {
+		if v.Sms == nil {
+			s.Sms = nil
+		} else {
+			if s.Sms == nil {
+				s.Sms = &ConfigAuthMethodOtpSms{}
+			}
+			s.Sms.Update(v.Sms)
+		}
+	}
 }
 
 type ConfigAuthMethodOtpInsertInput struct {
 	Email *ConfigAuthMethodOtpEmailInsertInput `json:"email,omitempty" toml:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSmsInsertInput   `json:"sms,omitempty" toml:"sms,omitempty"`
 }
 
 func (o *ConfigAuthMethodOtpInsertInput) GetEmail() *ConfigAuthMethodOtpEmailInsertInput {
@@ -5720,12 +5766,25 @@ func (o *ConfigAuthMethodOtpInsertInput) GetEmail() *ConfigAuthMethodOtpEmailIns
 	return o.Email
 }
 
+func (o *ConfigAuthMethodOtpInsertInput) GetSms() *ConfigAuthMethodOtpSmsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
 func (s *ConfigAuthMethodOtp) Insert(v *ConfigAuthMethodOtpInsertInput) {
 	if v.Email != nil {
 		if s.Email == nil {
 			s.Email = &ConfigAuthMethodOtpEmail{}
 		}
 		s.Email.Insert(v.Email)
+	}
+	if v.Sms != nil {
+		if s.Sms == nil {
+			s.Sms = &ConfigAuthMethodOtpSms{}
+		}
+		s.Sms.Insert(v.Sms)
 	}
 }
 
@@ -5736,6 +5795,7 @@ func (s *ConfigAuthMethodOtp) Clone() *ConfigAuthMethodOtp {
 
 	v := &ConfigAuthMethodOtp{}
 	v.Email = s.Email.Clone()
+	v.Sms = s.Sms.Clone()
 	return v
 }
 
@@ -5744,6 +5804,7 @@ type ConfigAuthMethodOtpComparisonExp struct {
 	Not   *ConfigAuthMethodOtpComparisonExp      `json:"_not,omitempty"`
 	Or    []*ConfigAuthMethodOtpComparisonExp    `json:"_or,omitempty"`
 	Email *ConfigAuthMethodOtpEmailComparisonExp `json:"email,omitempty"`
+	Sms   *ConfigAuthMethodOtpSmsComparisonExp   `json:"sms,omitempty"`
 }
 
 func (exp *ConfigAuthMethodOtpComparisonExp) Matches(o *ConfigAuthMethodOtp) bool {
@@ -5754,9 +5815,13 @@ func (exp *ConfigAuthMethodOtpComparisonExp) Matches(o *ConfigAuthMethodOtp) boo
 	if o == nil {
 		o = &ConfigAuthMethodOtp{
 			Email: &ConfigAuthMethodOtpEmail{},
+			Sms:   &ConfigAuthMethodOtpSms{},
 		}
 	}
 	if !exp.Email.Matches(o.Email) {
+		return false
+	}
+	if !exp.Sms.Matches(o.Sms) {
 		return false
 	}
 
@@ -5909,7 +5974,145 @@ func (exp *ConfigAuthMethodOtpEmailComparisonExp) Matches(o *ConfigAuthMethodOtp
 	return true
 }
 
+// Enable one-time-password over SMS, for passwordless sign-in and
+// session elevation.
+type ConfigAuthMethodOtpSms struct {
+	// Enable this feature.
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthMethodOtpSms) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMethodOtpSms) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpSms{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthMethodOtpSmsUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthMethodOtpSmsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthMethodOtpSmsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthMethodOtpSmsUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpSmsUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthMethodOtpSms) Update(v *ConfigAuthMethodOtpSmsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthMethodOtpSmsInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthMethodOtpSmsInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthMethodOtpSmsInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthMethodOtpSms) Insert(v *ConfigAuthMethodOtpSmsInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthMethodOtpSms) Clone() *ConfigAuthMethodOtpSms {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthMethodOtpSms{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthMethodOtpSmsComparisonExp struct {
+	And     []*ConfigAuthMethodOtpSmsComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthMethodOtpSmsComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthMethodOtpSmsComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp            `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthMethodOtpSmsComparisonExp) Matches(o *ConfigAuthMethodOtpSms) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthMethodOtpSms{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 // Passwordless sign-in via SMS.
+// Deprecated: use otp.sms instead. The two flags remain independent in
+// config; their values are OR-ed only when generating hasura-auth environment
+// variables.
 type ConfigAuthMethodSmsPasswordless struct {
 	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`

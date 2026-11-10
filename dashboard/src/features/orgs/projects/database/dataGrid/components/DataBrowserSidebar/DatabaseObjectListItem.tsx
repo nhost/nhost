@@ -1,5 +1,6 @@
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -38,6 +39,8 @@ export default function DatabaseObjectListItem({
       functionOID,
     },
   } = useRouter();
+
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const {
     removableObject,
@@ -100,7 +103,10 @@ export default function DatabaseObjectListItem({
 
   return (
     <li className="group pb-1">
-      <Tooltip open={isUntracked ? undefined : false}>
+      <Tooltip
+        open={isUntracked && isTooltipOpen}
+        onOpenChange={setIsTooltipOpen}
+      >
         <TooltipTrigger asChild>
           <Button
             asChild
@@ -119,7 +125,7 @@ export default function DatabaseObjectListItem({
                 className={cn(
                   'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
                   {
-                    'text-primary-main': isSelected,
+                    'text-primary': isSelected,
                   },
                 )}
                 onClick={() => {

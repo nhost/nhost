@@ -33,7 +33,7 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 	case errors.Is(apiError, ErrUserEmailNotFound):
 	case apiError != nil:
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiError))
-		return sql.AuthUser{}, false, false, ErrInternalServerError
+		return sql.AuthUser{}, false, false, apiError
 	default:
 		return user, true, false, nil
 	}

@@ -13336,13 +13336,17 @@ input workspaces_updates {
 type Query {
   """fetch data from the table: "announcements_read" using primary key columns"""
 announcementRead(id: uuid!): announcements_read
-  """fetch data from the table: "announcements""""
+  """fetch data from the table: "announcements"
+  """
 announcements(distinct_on: [announcements_select_column!], limit: Int, offset: Int, order_by: [announcements_order_by!], where: announcements_bool_exp): [announcements!]!
-  """fetch data from the table: "announcements_read""""
+  """fetch data from the table: "announcements_read"
+  """
 announcementsRead(distinct_on: [announcements_read_select_column!], limit: Int, offset: Int, order_by: [announcements_read_order_by!], where: announcements_read_bool_exp): [announcements_read!]!
-  """fetch aggregated fields from the table: "announcements_read""""
+  """fetch aggregated fields from the table: "announcements_read"
+  """
 announcementsReadAggregate(distinct_on: [announcements_read_select_column!], limit: Int, offset: Int, order_by: [announcements_read_order_by!], where: announcements_read_bool_exp): announcements_read_aggregate!
-  """fetch aggregated fields from the table: "announcements""""
+  """fetch aggregated fields from the table: "announcements"
+  """
 announcements_aggregate(distinct_on: [announcements_select_column!], limit: Int, offset: Int, order_by: [announcements_order_by!], where: announcements_bool_exp): announcements_aggregate!
   """fetch data from the table: "announcements" using primary key columns"""
 announcements_by_pk(id: uuid!): announcements
@@ -13351,72 +13355,95 @@ app(id: uuid!): apps
   appSecrets(appID: uuid!): [ConfigEnvironmentVariable!]!
   """fetch data from the table: "app_states" using primary key columns"""
 appState(id: Int!): appStates
-  """fetch data from the table: "app_state_history""""
+  """fetch data from the table: "app_state_history"
+  """
 appStateHistories(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): [appStateHistory!]!
   """fetch data from the table: "app_state_history" using primary key columns"""
 appStateHistory(id: uuid!): appStateHistory
-  """fetch aggregated fields from the table: "app_state_history""""
+  """fetch aggregated fields from the table: "app_state_history"
+  """
 appStateHistoryAggregate(distinct_on: [appStateHistory_select_column!], limit: Int, offset: Int, order_by: [appStateHistory_order_by!], where: appStateHistory_bool_exp): appStateHistory_aggregate!
-  """fetch data from the table: "app_states""""
+  """fetch data from the table: "app_states"
+  """
 appStates(distinct_on: [appStates_select_column!], limit: Int, offset: Int, order_by: [appStates_order_by!], where: appStates_bool_exp): [appStates!]!
-  """fetch aggregated fields from the table: "app_states""""
+  """fetch aggregated fields from the table: "app_states"
+  """
 appStatesAggregate(distinct_on: [appStates_select_column!], limit: Int, offset: Int, order_by: [appStates_order_by!], where: appStates_bool_exp): appStates_aggregate!
   """An array relationship"""
 apps(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): [apps!]!
-  """fetch aggregated fields from the table: "apps""""
+  """fetch aggregated fields from the table: "apps"
+  """
 appsAggregate(distinct_on: [apps_select_column!], limit: Int, offset: Int, order_by: [apps_order_by!], where: apps_bool_exp): apps_aggregate!
   appsSecrets: [ConfigAppSecrets!]
   """fetch data from the table: "auth.providers" using primary key columns"""
 authProvider(id: String!): authProviders
   """fetch data from the table: "auth.provider_requests" using primary key columns"""
 authProviderRequest(id: uuid!): authProviderRequests
-  """fetch data from the table: "auth.provider_requests""""
+  """fetch data from the table: "auth.provider_requests"
+  """
 authProviderRequests(distinct_on: [authProviderRequests_select_column!], limit: Int, offset: Int, order_by: [authProviderRequests_order_by!], where: authProviderRequests_bool_exp): [authProviderRequests!]!
-  """fetch aggregated fields from the table: "auth.provider_requests""""
+  """fetch aggregated fields from the table: "auth.provider_requests"
+  """
 authProviderRequestsAggregate(distinct_on: [authProviderRequests_select_column!], limit: Int, offset: Int, order_by: [authProviderRequests_order_by!], where: authProviderRequests_bool_exp): authProviderRequests_aggregate!
-  """fetch data from the table: "auth.providers""""
+  """fetch data from the table: "auth.providers"
+  """
 authProviders(distinct_on: [authProviders_select_column!], limit: Int, offset: Int, order_by: [authProviders_order_by!], where: authProviders_bool_exp): [authProviders!]!
-  """fetch aggregated fields from the table: "auth.providers""""
+  """fetch aggregated fields from the table: "auth.providers"
+  """
 authProvidersAggregate(distinct_on: [authProviders_select_column!], limit: Int, offset: Int, order_by: [authProviders_order_by!], where: authProviders_bool_exp): authProviders_aggregate!
   """fetch data from the table: "auth.refresh_tokens" using primary key columns"""
 authRefreshToken(id: uuid!): authRefreshTokens
   """fetch data from the table: "auth.refresh_token_types" using primary key columns"""
 authRefreshTokenType(value: String!): authRefreshTokenTypes
-  """fetch data from the table: "auth.refresh_token_types""""
+  """fetch data from the table: "auth.refresh_token_types"
+  """
 authRefreshTokenTypes(distinct_on: [authRefreshTokenTypes_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokenTypes_order_by!], where: authRefreshTokenTypes_bool_exp): [authRefreshTokenTypes!]!
-  """fetch aggregated fields from the table: "auth.refresh_token_types""""
+  """fetch aggregated fields from the table: "auth.refresh_token_types"
+  """
 authRefreshTokenTypesAggregate(distinct_on: [authRefreshTokenTypes_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokenTypes_order_by!], where: authRefreshTokenTypes_bool_exp): authRefreshTokenTypes_aggregate!
-  """fetch data from the table: "auth.refresh_tokens""""
+  """fetch data from the table: "auth.refresh_tokens"
+  """
 authRefreshTokens(distinct_on: [authRefreshTokens_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokens_order_by!], where: authRefreshTokens_bool_exp): [authRefreshTokens!]!
-  """fetch aggregated fields from the table: "auth.refresh_tokens""""
+  """fetch aggregated fields from the table: "auth.refresh_tokens"
+  """
 authRefreshTokensAggregate(distinct_on: [authRefreshTokens_select_column!], limit: Int, offset: Int, order_by: [authRefreshTokens_order_by!], where: authRefreshTokens_bool_exp): authRefreshTokens_aggregate!
   """fetch data from the table: "auth.roles" using primary key columns"""
 authRole(role: String!): authRoles
-  """fetch data from the table: "auth.roles""""
+  """fetch data from the table: "auth.roles"
+  """
 authRoles(distinct_on: [authRoles_select_column!], limit: Int, offset: Int, order_by: [authRoles_order_by!], where: authRoles_bool_exp): [authRoles!]!
-  """fetch aggregated fields from the table: "auth.roles""""
+  """fetch aggregated fields from the table: "auth.roles"
+  """
 authRolesAggregate(distinct_on: [authRoles_select_column!], limit: Int, offset: Int, order_by: [authRoles_order_by!], where: authRoles_bool_exp): authRoles_aggregate!
   """fetch data from the table: "auth.user_providers" using primary key columns"""
 authUserProvider(id: uuid!): authUserProviders
-  """fetch data from the table: "auth.user_providers""""
+  """fetch data from the table: "auth.user_providers"
+  """
 authUserProviders(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): [authUserProviders!]!
-  """fetch aggregated fields from the table: "auth.user_providers""""
+  """fetch aggregated fields from the table: "auth.user_providers"
+  """
 authUserProvidersAggregate(distinct_on: [authUserProviders_select_column!], limit: Int, offset: Int, order_by: [authUserProviders_order_by!], where: authUserProviders_bool_exp): authUserProviders_aggregate!
   """fetch data from the table: "auth.user_roles" using primary key columns"""
 authUserRole(id: uuid!): authUserRoles
-  """fetch data from the table: "auth.user_roles""""
+  """fetch data from the table: "auth.user_roles"
+  """
 authUserRoles(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): [authUserRoles!]!
-  """fetch aggregated fields from the table: "auth.user_roles""""
+  """fetch aggregated fields from the table: "auth.user_roles"
+  """
 authUserRolesAggregate(distinct_on: [authUserRoles_select_column!], limit: Int, offset: Int, order_by: [authUserRoles_order_by!], where: authUserRoles_bool_exp): authUserRoles_aggregate!
   """fetch data from the table: "auth.user_security_keys" using primary key columns"""
 authUserSecurityKey(id: uuid!): authUserSecurityKeys
-  """fetch data from the table: "auth.user_security_keys""""
+  """fetch data from the table: "auth.user_security_keys"
+  """
 authUserSecurityKeys(distinct_on: [authUserSecurityKeys_select_column!], limit: Int, offset: Int, order_by: [authUserSecurityKeys_order_by!], where: authUserSecurityKeys_bool_exp): [authUserSecurityKeys!]!
-  """fetch aggregated fields from the table: "auth.user_security_keys""""
+  """fetch aggregated fields from the table: "auth.user_security_keys"
+  """
 authUserSecurityKeysAggregate(distinct_on: [authUserSecurityKeys_select_column!], limit: Int, offset: Int, order_by: [authUserSecurityKeys_order_by!], where: authUserSecurityKeys_bool_exp): authUserSecurityKeys_aggregate!
-  """fetch data from the table: "auth.migrations""""
+  """fetch data from the table: "auth.migrations"
+  """
 auth_migrations(distinct_on: [auth_migrations_select_column!], limit: Int, offset: Int, order_by: [auth_migrations_order_by!], where: auth_migrations_bool_exp): [auth_migrations!]!
-  """fetch aggregated fields from the table: "auth.migrations""""
+  """fetch aggregated fields from the table: "auth.migrations"
+  """
 auth_migrations_aggregate(distinct_on: [auth_migrations_select_column!], limit: Int, offset: Int, order_by: [auth_migrations_order_by!], where: auth_migrations_bool_exp): auth_migrations_aggregate!
   """fetch data from the table: "auth.migrations" using primary key columns"""
 auth_migrations_by_pk(id: Int!): auth_migrations
@@ -13424,77 +13451,99 @@ auth_migrations_by_pk(id: Int!): auth_migrations
 backup(id: uuid!): backups
   """An array relationship"""
 backups(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!], where: backups_bool_exp): [backups!]!
-  """fetch aggregated fields from the table: "backups""""
+  """fetch aggregated fields from the table: "backups"
+  """
 backupsAggregate(distinct_on: [backups_select_column!], limit: Int, offset: Int, order_by: [backups_order_by!], where: backups_bool_exp): backups_aggregate!
   """fetch data from the table: "billing.dedicated_compute" using primary key columns"""
 billingDedicatedCompute(id: uuid!): billing_dedicated_compute
-  """fetch aggregated fields from the table: "billing.dedicated_compute""""
+  """fetch aggregated fields from the table: "billing.dedicated_compute"
+  """
 billingDedicatedComputeAggregate(distinct_on: [billing_dedicated_compute_select_column!], limit: Int, offset: Int, order_by: [billing_dedicated_compute_order_by!], where: billing_dedicated_compute_bool_exp): billing_dedicated_compute_aggregate!
-  """fetch data from the table: "billing.dedicated_compute""""
+  """fetch data from the table: "billing.dedicated_compute"
+  """
 billingDedicatedComputes(distinct_on: [billing_dedicated_compute_select_column!], limit: Int, offset: Int, order_by: [billing_dedicated_compute_order_by!], where: billing_dedicated_compute_bool_exp): [billing_dedicated_compute!]!
   billingGetNextInvoice(organizationID: uuid!): InvoiceSummary
   billingOrganizationCustomePortal(organizationID: uuid!): String!
   """fetch data from the table: "billing.reports" using primary key columns"""
 billingReport(id: uuid!): billing_reports
-  """fetch data from the table: "billing.reports""""
+  """fetch data from the table: "billing.reports"
+  """
 billingReports(distinct_on: [billing_reports_select_column!], limit: Int, offset: Int, order_by: [billing_reports_order_by!], where: billing_reports_bool_exp): [billing_reports!]!
-  """fetch aggregated fields from the table: "billing.reports""""
+  """fetch aggregated fields from the table: "billing.reports"
+  """
 billingReportsAggregate(distinct_on: [billing_reports_select_column!], limit: Int, offset: Int, order_by: [billing_reports_order_by!], where: billing_reports_bool_exp): billing_reports_aggregate!
   """fetch data from the table: "billing.resources" using primary key columns"""
 billingResource(id: uuid!): billing_resources
-  """fetch data from the table: "billing.resources""""
+  """fetch data from the table: "billing.resources"
+  """
 billingResources(distinct_on: [billing_resources_select_column!], limit: Int, offset: Int, order_by: [billing_resources_order_by!], where: billing_resources_bool_exp): [billing_resources!]!
-  """fetch aggregated fields from the table: "billing.resources""""
+  """fetch aggregated fields from the table: "billing.resources"
+  """
 billingResourcesAggregate(distinct_on: [billing_resources_select_column!], limit: Int, offset: Int, order_by: [billing_resources_order_by!], where: billing_resources_bool_exp): billing_resources_aggregate!
   """fetch data from the table: "billing.subscriptions" using primary key columns"""
 billingSubscription(id: uuid!): billing_subscriptions
-  """fetch data from the table: "billing.subscriptions""""
+  """fetch data from the table: "billing.subscriptions"
+  """
 billingSubscriptions(distinct_on: [billing_subscriptions_select_column!], limit: Int, offset: Int, order_by: [billing_subscriptions_order_by!], where: billing_subscriptions_bool_exp): [billing_subscriptions!]!
-  """fetch aggregated fields from the table: "billing.subscriptions""""
+  """fetch aggregated fields from the table: "billing.subscriptions"
+  """
 billingSubscriptionsAggregate(distinct_on: [billing_subscriptions_select_column!], limit: Int, offset: Int, order_by: [billing_subscriptions_order_by!], where: billing_subscriptions_bool_exp): billing_subscriptions_aggregate!
   billingVerifySubscriptions: VerifySubscriptionsResponse!
-  """fetch data from the table: "billing.report_resource_type""""
+  """fetch data from the table: "billing.report_resource_type"
+  """
 billing_report_resource_type(distinct_on: [billing_report_resource_type_select_column!], limit: Int, offset: Int, order_by: [billing_report_resource_type_order_by!], where: billing_report_resource_type_bool_exp): [billing_report_resource_type!]!
-  """fetch aggregated fields from the table: "billing.report_resource_type""""
+  """fetch aggregated fields from the table: "billing.report_resource_type"
+  """
 billing_report_resource_type_aggregate(distinct_on: [billing_report_resource_type_select_column!], limit: Int, offset: Int, order_by: [billing_report_resource_type_order_by!], where: billing_report_resource_type_bool_exp): billing_report_resource_type_aggregate!
   """fetch data from the table: "billing.report_resource_type" using primary key columns"""
 billing_report_resource_type_by_pk(value: String!): billing_report_resource_type
-  """fetch data from the table: "billing.report_type""""
+  """fetch data from the table: "billing.report_type"
+  """
 billing_report_type(distinct_on: [billing_report_type_select_column!], limit: Int, offset: Int, order_by: [billing_report_type_order_by!], where: billing_report_type_bool_exp): [billing_report_type!]!
-  """fetch aggregated fields from the table: "billing.report_type""""
+  """fetch aggregated fields from the table: "billing.report_type"
+  """
 billing_report_type_aggregate(distinct_on: [billing_report_type_select_column!], limit: Int, offset: Int, order_by: [billing_report_type_order_by!], where: billing_report_type_bool_exp): billing_report_type_aggregate!
   """fetch data from the table: "billing.report_type" using primary key columns"""
 billing_report_type_by_pk(value: String!): billing_report_type
-  """fetch data from the table: "billing.reports_resources""""
+  """fetch data from the table: "billing.reports_resources"
+  """
 billing_reports_resources(distinct_on: [billing_reports_resources_select_column!], limit: Int, offset: Int, order_by: [billing_reports_resources_order_by!], where: billing_reports_resources_bool_exp): [billing_reports_resources!]!
-  """fetch aggregated fields from the table: "billing.reports_resources""""
+  """fetch aggregated fields from the table: "billing.reports_resources"
+  """
 billing_reports_resources_aggregate(distinct_on: [billing_reports_resources_select_column!], limit: Int, offset: Int, order_by: [billing_reports_resources_order_by!], where: billing_reports_resources_bool_exp): billing_reports_resources_aggregate!
   """fetch data from the table: "billing.reports_resources" using primary key columns"""
 billing_reports_resources_by_pk(id: uuid!): billing_reports_resources
-  """fetch data from the table: "billing.subscription_items""""
+  """fetch data from the table: "billing.subscription_items"
+  """
 billing_subscription_items(distinct_on: [billing_subscription_items_select_column!], limit: Int, offset: Int, order_by: [billing_subscription_items_order_by!], where: billing_subscription_items_bool_exp): [billing_subscription_items!]!
-  """fetch aggregated fields from the table: "billing.subscription_items""""
+  """fetch aggregated fields from the table: "billing.subscription_items"
+  """
 billing_subscription_items_aggregate(distinct_on: [billing_subscription_items_select_column!], limit: Int, offset: Int, order_by: [billing_subscription_items_order_by!], where: billing_subscription_items_bool_exp): billing_subscription_items_aggregate!
   """fetch data from the table: "billing.subscription_items" using primary key columns"""
 billing_subscription_items_by_pk(id: uuid!): billing_subscription_items
   """fetch data from the table: "storage.buckets" using primary key columns"""
 bucket(id: String!): buckets
-  """fetch data from the table: "storage.buckets""""
+  """fetch data from the table: "storage.buckets"
+  """
 buckets(distinct_on: [buckets_select_column!], limit: Int, offset: Int, order_by: [buckets_order_by!], where: buckets_bool_exp): [buckets!]!
-  """fetch aggregated fields from the table: "storage.buckets""""
+  """fetch aggregated fields from the table: "storage.buckets"
+  """
 bucketsAggregate(distinct_on: [buckets_select_column!], limit: Int, offset: Int, order_by: [buckets_order_by!], where: buckets_bool_exp): buckets_aggregate!
   """fetch data from the table: "cli_tokens" using primary key columns"""
 cliToken(id: uuid!): cliTokens
   """An array relationship"""
 cliTokens(distinct_on: [cliTokens_select_column!], limit: Int, offset: Int, order_by: [cliTokens_order_by!], where: cliTokens_bool_exp): [cliTokens!]!
-  """fetch aggregated fields from the table: "cli_tokens""""
+  """fetch aggregated fields from the table: "cli_tokens"
+  """
 cliTokensAggregate(distinct_on: [cliTokens_select_column!], limit: Int, offset: Int, order_by: [cliTokens_order_by!], where: cliTokens_bool_exp): cliTokens_aggregate!
   config(appID: uuid!, resolve: Boolean!): ConfigConfig
   configRawJSON(appID: uuid!, resolve: Boolean!): String!
   configs(resolve: Boolean!, where: ConfigConfigComparisonExp): [ConfigAppConfig!]!
-  """fetch data from the table: "continents""""
+  """fetch data from the table: "continents"
+  """
 continents(distinct_on: [continents_select_column!], limit: Int, offset: Int, order_by: [continents_order_by!], where: continents_bool_exp): [continents!]!
-  """fetch aggregated fields from the table: "continents""""
+  """fetch aggregated fields from the table: "continents"
+  """
 continents_aggregate(distinct_on: [continents_select_column!], limit: Int, offset: Int, order_by: [continents_order_by!], where: continents_bool_exp): continents_aggregate!
   """fetch data from the table: "continents" using primary key columns"""
 continents_by_pk(code: bpchar!): continents
@@ -13510,11 +13559,13 @@ deployment(id: uuid!): deployments
 deploymentLog(id: uuid!): deploymentLogs
   """An array relationship"""
 deploymentLogs(distinct_on: [deploymentLogs_select_column!], limit: Int, offset: Int, order_by: [deploymentLogs_order_by!], where: deploymentLogs_bool_exp): [deploymentLogs!]!
-  """fetch aggregated fields from the table: "deployment_logs""""
+  """fetch aggregated fields from the table: "deployment_logs"
+  """
 deploymentLogsAggregate(distinct_on: [deploymentLogs_select_column!], limit: Int, offset: Int, order_by: [deploymentLogs_order_by!], where: deploymentLogs_bool_exp): deploymentLogs_aggregate!
   """An array relationship"""
 deployments(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!], where: deployments_bool_exp): [deployments!]!
-  """fetch aggregated fields from the table: "deployments""""
+  """fetch aggregated fields from the table: "deployments"
+  """
 deploymentsAggregate(distinct_on: [deployments_select_column!], limit: Int, offset: Int, order_by: [deployments_order_by!], where: deployments_bool_exp): deployments_aggregate!
   """Returns the CNAME the hostname resolves to.
 If the hostname cannot be resolved or isn't a CNAME, returns empty"""
@@ -13523,13 +13574,15 @@ dnsLookupCNAME(hostname: String!): String!
 featureFlag(id: uuid!): featureFlags
   """An array relationship"""
 featureFlags(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!], where: featureFlags_bool_exp): [featureFlags!]!
-  """fetch aggregated fields from the table: "feature_flags""""
+  """fetch aggregated fields from the table: "feature_flags"
+  """
 featureFlagsAggregate(distinct_on: [featureFlags_select_column!], limit: Int, offset: Int, order_by: [featureFlags_order_by!], where: featureFlags_bool_exp): featureFlags_aggregate!
   """fetch data from the table: "storage.files" using primary key columns"""
 file(id: uuid!): files
   """An array relationship"""
 files(distinct_on: [files_select_column!], limit: Int, offset: Int, order_by: [files_order_by!], where: files_bool_exp): [files!]!
-  """fetch aggregated fields from the table: "storage.files""""
+  """fetch aggregated fields from the table: "storage.files"
+  """
 filesAggregate(distinct_on: [files_select_column!], limit: Int, offset: Int, order_by: [files_order_by!], where: files_bool_exp): files_aggregate!
   getBackupPresignedURL(appID: String!, backupID: String!, expireInMinutes: Int): BackupPresignedURL!
   getCPUSecondsUsage(appID: String!, from: Timestamp, to: Timestamp): Metrics!
@@ -13550,13 +13603,16 @@ getServiceLabelValues(appID: String!): [String!]!
   getUsageForOrganization(from: Timestamp, organizationID: String!, to: Timestamp): UsageSummary!
   """fetch data from the table: "github_app_installations" using primary key columns"""
 githubAppInstallation(id: uuid!): githubAppInstallations
-  """fetch data from the table: "github_app_installations""""
+  """fetch data from the table: "github_app_installations"
+  """
 githubAppInstallations(distinct_on: [githubAppInstallations_select_column!], limit: Int, offset: Int, order_by: [githubAppInstallations_order_by!], where: githubAppInstallations_bool_exp): [githubAppInstallations!]!
-  """fetch aggregated fields from the table: "github_app_installations""""
+  """fetch aggregated fields from the table: "github_app_installations"
+  """
 githubAppInstallationsAggregate(distinct_on: [githubAppInstallations_select_column!], limit: Int, offset: Int, order_by: [githubAppInstallations_order_by!], where: githubAppInstallations_bool_exp): githubAppInstallations_aggregate!
   """An array relationship"""
 githubRepositories(distinct_on: [githubRepositories_select_column!], limit: Int, offset: Int, order_by: [githubRepositories_order_by!], where: githubRepositories_bool_exp): [githubRepositories!]!
-  """fetch aggregated fields from the table: "github_repositories""""
+  """fetch aggregated fields from the table: "github_repositories"
+  """
 githubRepositoriesAggregate(distinct_on: [githubRepositories_select_column!], limit: Int, offset: Int, order_by: [githubRepositories_order_by!], where: githubRepositories_bool_exp): githubRepositories_aggregate!
   """fetch data from the table: "github_repositories" using primary key columns"""
 githubRepository(id: uuid!): githubRepositories
@@ -13569,57 +13625,75 @@ organization(id: uuid!): organizations
 organizationMember(id: uuid!): organization_members
   """fetch data from the table: "organization_member_invites" using primary key columns"""
 organizationMemberInvite(id: uuid!): organization_member_invites
-  """fetch data from the table: "organization_member_invites""""
+  """fetch data from the table: "organization_member_invites"
+  """
 organizationMemberInvites(distinct_on: [organization_member_invites_select_column!], limit: Int, offset: Int, order_by: [organization_member_invites_order_by!], where: organization_member_invites_bool_exp): [organization_member_invites!]!
-  """fetch aggregated fields from the table: "organization_member_invites""""
+  """fetch aggregated fields from the table: "organization_member_invites"
+  """
 organizationMemberInvitesAggregate(distinct_on: [organization_member_invites_select_column!], limit: Int, offset: Int, order_by: [organization_member_invites_order_by!], where: organization_member_invites_bool_exp): organization_member_invites_aggregate!
-  """fetch data from the table: "organization_members""""
+  """fetch data from the table: "organization_members"
+  """
 organizationMembers(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): [organization_members!]!
-  """fetch aggregated fields from the table: "organization_members""""
+  """fetch aggregated fields from the table: "organization_members"
+  """
 organizationMembersAggregate(distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): organization_members_aggregate!
   """fetch data from the table: "organization_new_request" using primary key columns"""
 organizationNewRequest(id: uuid!): organization_new_request
-  """fetch data from the table: "organization_new_request""""
+  """fetch data from the table: "organization_new_request"
+  """
 organizationNewRequests(distinct_on: [organization_new_request_select_column!], limit: Int, offset: Int, order_by: [organization_new_request_order_by!], where: organization_new_request_bool_exp): [organization_new_request!]!
-  """fetch aggregated fields from the table: "organization_new_request""""
+  """fetch aggregated fields from the table: "organization_new_request"
+  """
 organizationNewRequestsAggregate(distinct_on: [organization_new_request_select_column!], limit: Int, offset: Int, order_by: [organization_new_request_order_by!], where: organization_new_request_bool_exp): organization_new_request_aggregate!
-  """fetch data from the table: "organization_costs_thresholds""""
+  """fetch data from the table: "organization_costs_thresholds"
+  """
 organization_costs_thresholds(distinct_on: [organization_costs_thresholds_select_column!], limit: Int, offset: Int, order_by: [organization_costs_thresholds_order_by!], where: organization_costs_thresholds_bool_exp): [organization_costs_thresholds!]!
-  """fetch aggregated fields from the table: "organization_costs_thresholds""""
+  """fetch aggregated fields from the table: "organization_costs_thresholds"
+  """
 organization_costs_thresholds_aggregate(distinct_on: [organization_costs_thresholds_select_column!], limit: Int, offset: Int, order_by: [organization_costs_thresholds_order_by!], where: organization_costs_thresholds_bool_exp): organization_costs_thresholds_aggregate!
   """fetch data from the table: "organization_costs_thresholds" using primary key columns"""
 organization_costs_thresholds_by_pk(value: String!): organization_costs_thresholds
-  """fetch data from the table: "organization_members_role""""
+  """fetch data from the table: "organization_members_role"
+  """
 organization_members_role(distinct_on: [organization_members_role_select_column!], limit: Int, offset: Int, order_by: [organization_members_role_order_by!], where: organization_members_role_bool_exp): [organization_members_role!]!
-  """fetch aggregated fields from the table: "organization_members_role""""
+  """fetch aggregated fields from the table: "organization_members_role"
+  """
 organization_members_role_aggregate(distinct_on: [organization_members_role_select_column!], limit: Int, offset: Int, order_by: [organization_members_role_order_by!], where: organization_members_role_bool_exp): organization_members_role_aggregate!
   """fetch data from the table: "organization_members_role" using primary key columns"""
 organization_members_role_by_pk(value: String!): organization_members_role
-  """fetch data from the table: "organization_status""""
+  """fetch data from the table: "organization_status"
+  """
 organization_status(distinct_on: [organization_status_select_column!], limit: Int, offset: Int, order_by: [organization_status_order_by!], where: organization_status_bool_exp): [organization_status!]!
-  """fetch aggregated fields from the table: "organization_status""""
+  """fetch aggregated fields from the table: "organization_status"
+  """
 organization_status_aggregate(distinct_on: [organization_status_select_column!], limit: Int, offset: Int, order_by: [organization_status_order_by!], where: organization_status_bool_exp): organization_status_aggregate!
   """fetch data from the table: "organization_status" using primary key columns"""
 organization_status_by_pk(value: String!): organization_status
   """An array relationship"""
 organizations(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): [organizations!]!
-  """fetch aggregated fields from the table: "organizations""""
+  """fetch aggregated fields from the table: "organizations"
+  """
 organizationsAggregate(distinct_on: [organizations_select_column!], limit: Int, offset: Int, order_by: [organizations_order_by!], where: organizations_bool_exp): organizations_aggregate!
   """fetch data from the table: "payment_methods" using primary key columns"""
 paymentMethod(id: uuid!): paymentMethods
   """An array relationship"""
 paymentMethods(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): [paymentMethods!]!
-  """fetch aggregated fields from the table: "payment_methods""""
+  """fetch aggregated fields from the table: "payment_methods"
+  """
 paymentMethodsAggregate(distinct_on: [paymentMethods_select_column!], limit: Int, offset: Int, order_by: [paymentMethods_order_by!], where: paymentMethods_bool_exp): paymentMethods_aggregate!
   """fetch data from the table: "plans" using primary key columns"""
 plan(id: uuid!): plans
-  """fetch data from the table: "plans""""
+  """fetch data from the table: "plans"
+  """
 plans(distinct_on: [plans_select_column!], limit: Int, offset: Int, order_by: [plans_order_by!], where: plans_bool_exp): [plans!]!
-  """fetch aggregated fields from the table: "plans""""
+  """fetch aggregated fields from the table: "plans"
+  """
 plansAggregate(distinct_on: [plans_select_column!], limit: Int, offset: Int, order_by: [plans_order_by!], where: plans_bool_exp): plans_aggregate!
-  """fetch data from the table: "region_type""""
+  """fetch data from the table: "region_type"
+  """
 region_type(distinct_on: [region_type_select_column!], limit: Int, offset: Int, order_by: [region_type_order_by!], where: region_type_bool_exp): [region_type!]!
-  """fetch aggregated fields from the table: "region_type""""
+  """fetch aggregated fields from the table: "region_type"
+  """
 region_type_aggregate(distinct_on: [region_type_select_column!], limit: Int, offset: Int, order_by: [region_type_order_by!], where: region_type_bool_exp): region_type_aggregate!
   """fetch data from the table: "region_type" using primary key columns"""
 region_type_by_pk(type: String!): region_type
@@ -13627,9 +13701,11 @@ region_type_by_pk(type: String!): region_type
 regions(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): [regions!]!
   """fetch data from the table: "regions_allowed_organization" using primary key columns"""
 regionsAllowedOrganization(id: uuid!): regions_allowed_organization
-  """fetch data from the table: "regions_allowed_organization""""
+  """fetch data from the table: "regions_allowed_organization"
+  """
 regionsAllowedOrganizations(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): [regions_allowed_organization!]!
-  """fetch aggregated fields from the table: "regions_allowed_organization""""
+  """fetch aggregated fields from the table: "regions_allowed_organization"
+  """
 regionsAllowedOrganizationsAggregate(distinct_on: [regions_allowed_organization_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_organization_order_by!], where: regions_allowed_organization_bool_exp): regions_allowed_organization_aggregate!
   """An aggregate relationship"""
 regions_aggregate(distinct_on: [regions_select_column!], limit: Int, offset: Int, order_by: [regions_order_by!], where: regions_bool_exp): regions_aggregate!
@@ -13643,25 +13719,32 @@ runService(id: uuid!): run_service
   runServiceConfigsAll(resolve: Boolean!, where: ConfigRunServiceConfigComparisonExp): [ConfigRunServiceConfigWithID!]!
   """An array relationship"""
 runServices(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!], where: run_service_bool_exp): [run_service!]!
-  """fetch aggregated fields from the table: "run_service""""
+  """fetch aggregated fields from the table: "run_service"
+  """
 runServicesAggregate(distinct_on: [run_service_select_column!], limit: Int, offset: Int, order_by: [run_service_order_by!], where: run_service_bool_exp): run_service_aggregate!
   """fetch data from the table: "regions_allowed_workspace" using primary key columns"""
 selectRegionsAllowedWorkspace(id: uuid!): regions_allowed_workspace
-  """fetch data from the table: "regions_allowed_workspace""""
+  """fetch data from the table: "regions_allowed_workspace"
+  """
 selectRegionsAllowedWorkspaces(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): [regions_allowed_workspace!]!
-  """fetch aggregated fields from the table: "regions_allowed_workspace""""
+  """fetch aggregated fields from the table: "regions_allowed_workspace"
+  """
 selectRegionsAllowedWorkspacesAggregate(distinct_on: [regions_allowed_workspace_select_column!], limit: Int, offset: Int, order_by: [regions_allowed_workspace_order_by!], where: regions_allowed_workspace_bool_exp): regions_allowed_workspace_aggregate!
   """fetch data from the table: "software_type" using primary key columns"""
 softwareType(type: String!): software_type
-  """fetch data from the table: "software_type""""
+  """fetch data from the table: "software_type"
+  """
 softwareTypes(distinct_on: [software_type_select_column!], limit: Int, offset: Int, order_by: [software_type_order_by!], where: software_type_bool_exp): [software_type!]!
-  """fetch aggregated fields from the table: "software_type""""
+  """fetch aggregated fields from the table: "software_type"
+  """
 softwareTypesAggregate(distinct_on: [software_type_select_column!], limit: Int, offset: Int, order_by: [software_type_order_by!], where: software_type_bool_exp): software_type_aggregate!
   """fetch data from the table: "software_versions" using primary key columns"""
 softwareVersion(id: uuid!): software_versions
-  """fetch data from the table: "software_versions""""
+  """fetch data from the table: "software_versions"
+  """
 softwareVersions(distinct_on: [software_versions_select_column!], limit: Int, offset: Int, order_by: [software_versions_order_by!], where: software_versions_bool_exp): [software_versions!]!
-  """fetch aggregated fields from the table: "software_versions""""
+  """fetch aggregated fields from the table: "software_versions"
+  """
 softwareVersionsAggregate(distinct_on: [software_versions_select_column!], limit: Int, offset: Int, order_by: [software_versions_order_by!], where: software_versions_bool_exp): software_versions_aggregate!
   """Returns lists of apps that have some live traffic in the give time range.
 From defaults to 24 hours ago and to defaults to now.
@@ -13674,15 +13757,19 @@ statsLiveApps(from: Timestamp, to: Timestamp): StatsLiveApps!
 systemLogs(action: String!, appID: String!, from: Timestamp, to: Timestamp): [Log!]!
   """fetch data from the table: "auth.users" using primary key columns"""
 user(id: uuid!): users
-  """fetch data from the table: "auth.users""""
+  """fetch data from the table: "auth.users"
+  """
 users(distinct_on: [users_select_column!], limit: Int, offset: Int, order_by: [users_order_by!], where: users_bool_exp): [users!]!
-  """fetch aggregated fields from the table: "auth.users""""
+  """fetch aggregated fields from the table: "auth.users"
+  """
 usersAggregate(distinct_on: [users_select_column!], limit: Int, offset: Int, order_by: [users_order_by!], where: users_bool_exp): users_aggregate!
   """fetch data from the table: "storage.virus" using primary key columns"""
 virus(id: uuid!): virus
-  """fetch data from the table: "storage.virus""""
+  """fetch data from the table: "storage.virus"
+  """
 viruses(distinct_on: [virus_select_column!], limit: Int, offset: Int, order_by: [virus_order_by!], where: virus_bool_exp): [virus!]!
-  """fetch aggregated fields from the table: "storage.virus""""
+  """fetch aggregated fields from the table: "storage.virus"
+  """
 virusesAggregate(distinct_on: [virus_select_column!], limit: Int, offset: Int, order_by: [virus_order_by!], where: virus_bool_exp): virus_aggregate!
   """fetch data from the table: "workspaces" using primary key columns"""
 workspace(id: uuid!): workspaces
@@ -13692,15 +13779,18 @@ workspaceMember(id: uuid!): workspaceMembers
 workspaceMemberInvite(id: uuid!): workspaceMemberInvites
   """An array relationship"""
 workspaceMemberInvites(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): [workspaceMemberInvites!]!
-  """fetch aggregated fields from the table: "workspace_member_invites""""
+  """fetch aggregated fields from the table: "workspace_member_invites"
+  """
 workspaceMemberInvitesAggregate(distinct_on: [workspaceMemberInvites_select_column!], limit: Int, offset: Int, order_by: [workspaceMemberInvites_order_by!], where: workspaceMemberInvites_bool_exp): workspaceMemberInvites_aggregate!
   """An array relationship"""
 workspaceMembers(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): [workspaceMembers!]!
-  """fetch aggregated fields from the table: "workspace_members""""
+  """fetch aggregated fields from the table: "workspace_members"
+  """
 workspaceMembersAggregate(distinct_on: [workspaceMembers_select_column!], limit: Int, offset: Int, order_by: [workspaceMembers_order_by!], where: workspaceMembers_bool_exp): workspaceMembers_aggregate!
   """An array relationship"""
 workspaces(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): [workspaces!]!
-  """fetch aggregated fields from the table: "workspaces""""
+  """fetch aggregated fields from the table: "workspaces"
+  """
 workspacesAggregate(distinct_on: [workspaces_select_column!], limit: Int, offset: Int, order_by: [workspaces_order_by!], where: workspaces_bool_exp): workspaces_aggregate!
 }
 
@@ -13730,445 +13820,662 @@ backupApplicationDatabasePiTR(appID: String!): Boolean!
   billingUpdateReports: Boolean!
   billingUploadReports: Boolean!
   changeDatabaseVersion(appID: uuid!, force: Boolean, version: String!): Boolean!
-  """delete single row from the table: "announcements_read""""
+  """delete single row from the table: "announcements_read"
+  """
 deleteAnnouncementRead(id: uuid!): announcements_read
-  """delete data from the table: "announcements_read""""
+  """delete data from the table: "announcements_read"
+  """
 deleteAnnouncementsRead(where: announcements_read_bool_exp!): announcements_read_mutation_response
-  """delete single row from the table: "apps""""
+  """delete single row from the table: "apps"
+  """
 deleteApp(id: uuid!): apps
-  """delete single row from the table: "app_states""""
+  """delete single row from the table: "app_states"
+  """
 deleteAppState(id: Int!): appStates
-  """delete data from the table: "app_state_history""""
+  """delete data from the table: "app_state_history"
+  """
 deleteAppStateHistories(where: appStateHistory_bool_exp!): appStateHistory_mutation_response
-  """delete single row from the table: "app_state_history""""
+  """delete single row from the table: "app_state_history"
+  """
 deleteAppStateHistory(id: uuid!): appStateHistory
-  """delete data from the table: "app_states""""
+  """delete data from the table: "app_states"
+  """
 deleteAppStates(where: appStates_bool_exp!): appStates_mutation_response
-  """delete data from the table: "apps""""
+  """delete data from the table: "apps"
+  """
 deleteApps(where: apps_bool_exp!): apps_mutation_response
-  """delete single row from the table: "auth.providers""""
+  """delete single row from the table: "auth.providers"
+  """
 deleteAuthProvider(id: String!): authProviders
-  """delete single row from the table: "auth.provider_requests""""
+  """delete single row from the table: "auth.provider_requests"
+  """
 deleteAuthProviderRequest(id: uuid!): authProviderRequests
-  """delete data from the table: "auth.provider_requests""""
+  """delete data from the table: "auth.provider_requests"
+  """
 deleteAuthProviderRequests(where: authProviderRequests_bool_exp!): authProviderRequests_mutation_response
-  """delete data from the table: "auth.providers""""
+  """delete data from the table: "auth.providers"
+  """
 deleteAuthProviders(where: authProviders_bool_exp!): authProviders_mutation_response
-  """delete single row from the table: "auth.refresh_tokens""""
+  """delete single row from the table: "auth.refresh_tokens"
+  """
 deleteAuthRefreshToken(id: uuid!): authRefreshTokens
-  """delete single row from the table: "auth.refresh_token_types""""
+  """delete single row from the table: "auth.refresh_token_types"
+  """
 deleteAuthRefreshTokenType(value: String!): authRefreshTokenTypes
-  """delete data from the table: "auth.refresh_token_types""""
+  """delete data from the table: "auth.refresh_token_types"
+  """
 deleteAuthRefreshTokenTypes(where: authRefreshTokenTypes_bool_exp!): authRefreshTokenTypes_mutation_response
-  """delete data from the table: "auth.refresh_tokens""""
+  """delete data from the table: "auth.refresh_tokens"
+  """
 deleteAuthRefreshTokens(where: authRefreshTokens_bool_exp!): authRefreshTokens_mutation_response
-  """delete single row from the table: "auth.roles""""
+  """delete single row from the table: "auth.roles"
+  """
 deleteAuthRole(role: String!): authRoles
-  """delete data from the table: "auth.roles""""
+  """delete data from the table: "auth.roles"
+  """
 deleteAuthRoles(where: authRoles_bool_exp!): authRoles_mutation_response
-  """delete single row from the table: "auth.user_providers""""
+  """delete single row from the table: "auth.user_providers"
+  """
 deleteAuthUserProvider(id: uuid!): authUserProviders
-  """delete data from the table: "auth.user_providers""""
+  """delete data from the table: "auth.user_providers"
+  """
 deleteAuthUserProviders(where: authUserProviders_bool_exp!): authUserProviders_mutation_response
-  """delete single row from the table: "auth.user_roles""""
+  """delete single row from the table: "auth.user_roles"
+  """
 deleteAuthUserRole(id: uuid!): authUserRoles
-  """delete data from the table: "auth.user_roles""""
+  """delete data from the table: "auth.user_roles"
+  """
 deleteAuthUserRoles(where: authUserRoles_bool_exp!): authUserRoles_mutation_response
-  """delete single row from the table: "auth.user_security_keys""""
+  """delete single row from the table: "auth.user_security_keys"
+  """
 deleteAuthUserSecurityKey(id: uuid!): authUserSecurityKeys
-  """delete data from the table: "auth.user_security_keys""""
+  """delete data from the table: "auth.user_security_keys"
+  """
 deleteAuthUserSecurityKeys(where: authUserSecurityKeys_bool_exp!): authUserSecurityKeys_mutation_response
-  """delete single row from the table: "backups""""
+  """delete single row from the table: "backups"
+  """
 deleteBackup(id: uuid!): backups
-  """delete data from the table: "backups""""
+  """delete data from the table: "backups"
+  """
 deleteBackups(where: backups_bool_exp!): backups_mutation_response
-  """delete single row from the table: "billing.dedicated_compute""""
+  """delete single row from the table: "billing.dedicated_compute"
+  """
 deleteBillingDedicatedCompute(id: uuid!): billing_dedicated_compute
-  """delete data from the table: "billing.dedicated_compute""""
+  """delete data from the table: "billing.dedicated_compute"
+  """
 deleteBillingDedicatedComputes(where: billing_dedicated_compute_bool_exp!): billing_dedicated_compute_mutation_response
-  """delete single row from the table: "billing.reports""""
+  """delete single row from the table: "billing.reports"
+  """
 deleteBillingReport(id: uuid!): billing_reports
-  """delete data from the table: "billing.reports""""
+  """delete data from the table: "billing.reports"
+  """
 deleteBillingReports(where: billing_reports_bool_exp!): billing_reports_mutation_response
-  """delete single row from the table: "billing.resources""""
+  """delete single row from the table: "billing.resources"
+  """
 deleteBillingResource(id: uuid!): billing_resources
-  """delete data from the table: "billing.resources""""
+  """delete data from the table: "billing.resources"
+  """
 deleteBillingResources(where: billing_resources_bool_exp!): billing_resources_mutation_response
-  """delete data from the table: "billing.subscriptions""""
+  """delete data from the table: "billing.subscriptions"
+  """
 deleteBillingSubscription(where: billing_subscriptions_bool_exp!): billing_subscriptions_mutation_response
-  """delete single row from the table: "billing.subscriptions""""
+  """delete single row from the table: "billing.subscriptions"
+  """
 deleteBillingSubscriptions(id: uuid!): billing_subscriptions
-  """delete single row from the table: "storage.buckets""""
+  """delete single row from the table: "storage.buckets"
+  """
 deleteBucket(id: String!): buckets
-  """delete data from the table: "storage.buckets""""
+  """delete data from the table: "storage.buckets"
+  """
 deleteBuckets(where: buckets_bool_exp!): buckets_mutation_response
-  """delete single row from the table: "cli_tokens""""
+  """delete single row from the table: "cli_tokens"
+  """
 deleteCliToken(id: uuid!): cliTokens
-  """delete data from the table: "cli_tokens""""
+  """delete data from the table: "cli_tokens"
+  """
 deleteCliTokens(where: cliTokens_bool_exp!): cliTokens_mutation_response
   deleteConfig(appID: uuid!): ConfigConfig
-  """delete single row from the table: "deployments""""
+  """delete single row from the table: "deployments"
+  """
 deleteDeployment(id: uuid!): deployments
-  """delete single row from the table: "deployment_logs""""
+  """delete single row from the table: "deployment_logs"
+  """
 deleteDeploymentLog(id: uuid!): deploymentLogs
-  """delete data from the table: "deployment_logs""""
+  """delete data from the table: "deployment_logs"
+  """
 deleteDeploymentLogs(where: deploymentLogs_bool_exp!): deploymentLogs_mutation_response
-  """delete data from the table: "deployments""""
+  """delete data from the table: "deployments"
+  """
 deleteDeployments(where: deployments_bool_exp!): deployments_mutation_response
-  """delete single row from the table: "feature_flags""""
+  """delete single row from the table: "feature_flags"
+  """
 deleteFeatureFlag(id: uuid!): featureFlags
-  """delete data from the table: "feature_flags""""
+  """delete data from the table: "feature_flags"
+  """
 deleteFeatureFlags(where: featureFlags_bool_exp!): featureFlags_mutation_response
-  """delete single row from the table: "storage.files""""
+  """delete single row from the table: "storage.files"
+  """
 deleteFile(id: uuid!): files
-  """delete data from the table: "storage.files""""
+  """delete data from the table: "storage.files"
+  """
 deleteFiles(where: files_bool_exp!): files_mutation_response
-  """delete single row from the table: "github_app_installations""""
+  """delete single row from the table: "github_app_installations"
+  """
 deleteGithubAppInstallation(id: uuid!): githubAppInstallations
-  """delete data from the table: "github_app_installations""""
+  """delete data from the table: "github_app_installations"
+  """
 deleteGithubAppInstallations(where: githubAppInstallations_bool_exp!): githubAppInstallations_mutation_response
-  """delete data from the table: "github_repositories""""
+  """delete data from the table: "github_repositories"
+  """
 deleteGithubRepositories(where: githubRepositories_bool_exp!): githubRepositories_mutation_response
-  """delete single row from the table: "github_repositories""""
+  """delete single row from the table: "github_repositories"
+  """
 deleteGithubRepository(id: uuid!): githubRepositories
-  """delete single row from the table: "organizations""""
+  """delete single row from the table: "organizations"
+  """
 deleteOrganization(id: uuid!): organizations
-  """delete single row from the table: "organization_members""""
+  """delete single row from the table: "organization_members"
+  """
 deleteOrganizationMember(id: uuid!): organization_members
-  """delete single row from the table: "organization_member_invites""""
+  """delete single row from the table: "organization_member_invites"
+  """
 deleteOrganizationMemberInvite(id: uuid!): organization_member_invites
-  """delete data from the table: "organization_member_invites""""
+  """delete data from the table: "organization_member_invites"
+  """
 deleteOrganizationMemberInvites(where: organization_member_invites_bool_exp!): organization_member_invites_mutation_response
-  """delete data from the table: "organization_members""""
+  """delete data from the table: "organization_members"
+  """
 deleteOrganizationMembers(where: organization_members_bool_exp!): organization_members_mutation_response
-  """delete single row from the table: "organization_new_request""""
+  """delete single row from the table: "organization_new_request"
+  """
 deleteOrganizationNewRequest(id: uuid!): organization_new_request
-  """delete data from the table: "organization_new_request""""
+  """delete data from the table: "organization_new_request"
+  """
 deleteOrganizationNewRequests(where: organization_new_request_bool_exp!): organization_new_request_mutation_response
-  """delete data from the table: "organizations""""
+  """delete data from the table: "organizations"
+  """
 deleteOrganizations(where: organizations_bool_exp!): organizations_mutation_response
-  """delete single row from the table: "payment_methods""""
+  """delete single row from the table: "payment_methods"
+  """
 deletePaymentMethod(id: uuid!): paymentMethods
-  """delete data from the table: "payment_methods""""
+  """delete data from the table: "payment_methods"
+  """
 deletePaymentMethods(where: paymentMethods_bool_exp!): paymentMethods_mutation_response
-  """delete single row from the table: "plans""""
+  """delete single row from the table: "plans"
+  """
 deletePlan(id: uuid!): plans
-  """delete data from the table: "plans""""
+  """delete data from the table: "plans"
+  """
 deletePlans(where: plans_bool_exp!): plans_mutation_response
-  """delete single row from the table: "regions_allowed_organization""""
+  """delete single row from the table: "regions_allowed_organization"
+  """
 deleteRegionsAllowedOrganization(id: uuid!): regions_allowed_organization
-  """delete data from the table: "regions_allowed_organization""""
+  """delete data from the table: "regions_allowed_organization"
+  """
 deleteRegionsAllowedOrganizations(where: regions_allowed_organization_bool_exp!): regions_allowed_organization_mutation_response
-  """delete single row from the table: "regions_allowed_workspace""""
+  """delete single row from the table: "regions_allowed_workspace"
+  """
 deleteRegionsAllowedWorkspace(id: uuid!): regions_allowed_workspace
-  """delete data from the table: "regions_allowed_workspace""""
+  """delete data from the table: "regions_allowed_workspace"
+  """
 deleteRegionsAllowedWorkspaces(where: regions_allowed_workspace_bool_exp!): regions_allowed_workspace_mutation_response
-  """delete single row from the table: "run_service""""
+  """delete single row from the table: "run_service"
+  """
 deleteRunService(id: uuid!): run_service
   deleteRunServiceConfig(appID: uuid!, serviceID: uuid!): ConfigRunServiceConfig
-  """delete data from the table: "run_service""""
+  """delete data from the table: "run_service"
+  """
 deleteRunServices(where: run_service_bool_exp!): run_service_mutation_response
   deleteSecret(appID: uuid!, key: String!): ConfigEnvironmentVariable
-  """delete single row from the table: "software_type""""
+  """delete single row from the table: "software_type"
+  """
 deleteSoftwareType(type: String!): software_type
-  """delete data from the table: "software_type""""
+  """delete data from the table: "software_type"
+  """
 deleteSoftwareTypes(where: software_type_bool_exp!): software_type_mutation_response
-  """delete single row from the table: "software_versions""""
+  """delete single row from the table: "software_versions"
+  """
 deleteSoftwareVersion(id: uuid!): software_versions
-  """delete data from the table: "software_versions""""
+  """delete data from the table: "software_versions"
+  """
 deleteSoftwareVersions(where: software_versions_bool_exp!): software_versions_mutation_response
-  """delete single row from the table: "auth.users""""
+  """delete single row from the table: "auth.users"
+  """
 deleteUser(id: uuid!): users
-  """delete data from the table: "auth.users""""
+  """delete data from the table: "auth.users"
+  """
 deleteUsers(where: users_bool_exp!): users_mutation_response
-  """delete single row from the table: "storage.virus""""
+  """delete single row from the table: "storage.virus"
+  """
 deleteVirus(id: uuid!): virus
-  """delete data from the table: "storage.virus""""
+  """delete data from the table: "storage.virus"
+  """
 deleteViruses(where: virus_bool_exp!): virus_mutation_response
-  """delete single row from the table: "workspaces""""
+  """delete single row from the table: "workspaces"
+  """
 deleteWorkspace(id: uuid!): workspaces
-  """delete single row from the table: "workspace_members""""
+  """delete single row from the table: "workspace_members"
+  """
 deleteWorkspaceMember(id: uuid!): workspaceMembers
-  """delete single row from the table: "workspace_member_invites""""
+  """delete single row from the table: "workspace_member_invites"
+  """
 deleteWorkspaceMemberInvite(id: uuid!): workspaceMemberInvites
-  """delete data from the table: "workspace_member_invites""""
+  """delete data from the table: "workspace_member_invites"
+  """
 deleteWorkspaceMemberInvites(where: workspaceMemberInvites_bool_exp!): workspaceMemberInvites_mutation_response
-  """delete data from the table: "workspace_members""""
+  """delete data from the table: "workspace_members"
+  """
 deleteWorkspaceMembers(where: workspaceMembers_bool_exp!): workspaceMembers_mutation_response
-  """delete data from the table: "workspaces""""
+  """delete data from the table: "workspaces"
+  """
 deleteWorkspaces(where: workspaces_bool_exp!): workspaces_mutation_response
-  """delete data from the table: "announcements""""
+  """delete data from the table: "announcements"
+  """
 delete_announcements(where: announcements_bool_exp!): announcements_mutation_response
-  """delete single row from the table: "announcements""""
+  """delete single row from the table: "announcements"
+  """
 delete_announcements_by_pk(id: uuid!): announcements
-  """delete data from the table: "auth.migrations""""
+  """delete data from the table: "auth.migrations"
+  """
 delete_auth_migrations(where: auth_migrations_bool_exp!): auth_migrations_mutation_response
-  """delete single row from the table: "auth.migrations""""
+  """delete single row from the table: "auth.migrations"
+  """
 delete_auth_migrations_by_pk(id: Int!): auth_migrations
-  """delete data from the table: "billing.report_resource_type""""
+  """delete data from the table: "billing.report_resource_type"
+  """
 delete_billing_report_resource_type(where: billing_report_resource_type_bool_exp!): billing_report_resource_type_mutation_response
-  """delete single row from the table: "billing.report_resource_type""""
+  """delete single row from the table: "billing.report_resource_type"
+  """
 delete_billing_report_resource_type_by_pk(value: String!): billing_report_resource_type
-  """delete data from the table: "billing.report_type""""
+  """delete data from the table: "billing.report_type"
+  """
 delete_billing_report_type(where: billing_report_type_bool_exp!): billing_report_type_mutation_response
-  """delete single row from the table: "billing.report_type""""
+  """delete single row from the table: "billing.report_type"
+  """
 delete_billing_report_type_by_pk(value: String!): billing_report_type
-  """delete data from the table: "billing.reports_resources""""
+  """delete data from the table: "billing.reports_resources"
+  """
 delete_billing_reports_resources(where: billing_reports_resources_bool_exp!): billing_reports_resources_mutation_response
-  """delete single row from the table: "billing.reports_resources""""
+  """delete single row from the table: "billing.reports_resources"
+  """
 delete_billing_reports_resources_by_pk(id: uuid!): billing_reports_resources
-  """delete data from the table: "billing.subscription_items""""
+  """delete data from the table: "billing.subscription_items"
+  """
 delete_billing_subscription_items(where: billing_subscription_items_bool_exp!): billing_subscription_items_mutation_response
-  """delete single row from the table: "billing.subscription_items""""
+  """delete single row from the table: "billing.subscription_items"
+  """
 delete_billing_subscription_items_by_pk(id: uuid!): billing_subscription_items
-  """delete data from the table: "continents""""
+  """delete data from the table: "continents"
+  """
 delete_continents(where: continents_bool_exp!): continents_mutation_response
-  """delete single row from the table: "continents""""
+  """delete single row from the table: "continents"
+  """
 delete_continents_by_pk(code: bpchar!): continents
-  """delete data from the table: "countries""""
+  """delete data from the table: "countries"
+  """
 delete_countries(where: countries_bool_exp!): countries_mutation_response
-  """delete single row from the table: "countries""""
+  """delete single row from the table: "countries"
+  """
 delete_countries_by_pk(code: bpchar!): countries
-  """delete data from the table: "organization_costs_thresholds""""
+  """delete data from the table: "organization_costs_thresholds"
+  """
 delete_organization_costs_thresholds(where: organization_costs_thresholds_bool_exp!): organization_costs_thresholds_mutation_response
-  """delete single row from the table: "organization_costs_thresholds""""
+  """delete single row from the table: "organization_costs_thresholds"
+  """
 delete_organization_costs_thresholds_by_pk(value: String!): organization_costs_thresholds
-  """delete data from the table: "organization_members_role""""
+  """delete data from the table: "organization_members_role"
+  """
 delete_organization_members_role(where: organization_members_role_bool_exp!): organization_members_role_mutation_response
-  """delete single row from the table: "organization_members_role""""
+  """delete single row from the table: "organization_members_role"
+  """
 delete_organization_members_role_by_pk(value: String!): organization_members_role
-  """delete data from the table: "organization_status""""
+  """delete data from the table: "organization_status"
+  """
 delete_organization_status(where: organization_status_bool_exp!): organization_status_mutation_response
-  """delete single row from the table: "organization_status""""
+  """delete single row from the table: "organization_status"
+  """
 delete_organization_status_by_pk(value: String!): organization_status
-  """delete data from the table: "region_type""""
+  """delete data from the table: "region_type"
+  """
 delete_region_type(where: region_type_bool_exp!): region_type_mutation_response
-  """delete single row from the table: "region_type""""
+  """delete single row from the table: "region_type"
+  """
 delete_region_type_by_pk(type: String!): region_type
-  """delete data from the table: "regions""""
+  """delete data from the table: "regions"
+  """
 delete_regions(where: regions_bool_exp!): regions_mutation_response
-  """delete single row from the table: "regions""""
+  """delete single row from the table: "regions"
+  """
 delete_regions_by_pk(id: uuid!): regions
-  """insert a single row into the table: "announcements_read""""
+  """insert a single row into the table: "announcements_read"
+  """
 insertAnnouncementRead(object: announcements_read_insert_input!, on_conflict: announcements_read_on_conflict): announcements_read
-  """insert data into the table: "announcements_read""""
+  """insert data into the table: "announcements_read"
+  """
 insertAnnouncementsRead(objects: [announcements_read_insert_input!]!, on_conflict: announcements_read_on_conflict): announcements_read_mutation_response
-  """insert a single row into the table: "apps""""
+  """insert a single row into the table: "apps"
+  """
 insertApp(object: apps_insert_input!, on_conflict: apps_on_conflict): apps
-  """insert a single row into the table: "app_states""""
+  """insert a single row into the table: "app_states"
+  """
 insertAppState(object: appStates_insert_input!, on_conflict: appStates_on_conflict): appStates
-  """insert data into the table: "app_state_history""""
+  """insert data into the table: "app_state_history"
+  """
 insertAppStateHistories(objects: [appStateHistory_insert_input!]!, on_conflict: appStateHistory_on_conflict): appStateHistory_mutation_response
-  """insert a single row into the table: "app_state_history""""
+  """insert a single row into the table: "app_state_history"
+  """
 insertAppStateHistory(object: appStateHistory_insert_input!, on_conflict: appStateHistory_on_conflict): appStateHistory
-  """insert data into the table: "app_states""""
+  """insert data into the table: "app_states"
+  """
 insertAppStates(objects: [appStates_insert_input!]!, on_conflict: appStates_on_conflict): appStates_mutation_response
-  """insert data into the table: "apps""""
+  """insert data into the table: "apps"
+  """
 insertApps(objects: [apps_insert_input!]!, on_conflict: apps_on_conflict): apps_mutation_response
-  """insert a single row into the table: "auth.providers""""
+  """insert a single row into the table: "auth.providers"
+  """
 insertAuthProvider(object: authProviders_insert_input!, on_conflict: authProviders_on_conflict): authProviders
-  """insert a single row into the table: "auth.provider_requests""""
+  """insert a single row into the table: "auth.provider_requests"
+  """
 insertAuthProviderRequest(object: authProviderRequests_insert_input!, on_conflict: authProviderRequests_on_conflict): authProviderRequests
-  """insert data into the table: "auth.provider_requests""""
+  """insert data into the table: "auth.provider_requests"
+  """
 insertAuthProviderRequests(objects: [authProviderRequests_insert_input!]!, on_conflict: authProviderRequests_on_conflict): authProviderRequests_mutation_response
-  """insert data into the table: "auth.providers""""
+  """insert data into the table: "auth.providers"
+  """
 insertAuthProviders(objects: [authProviders_insert_input!]!, on_conflict: authProviders_on_conflict): authProviders_mutation_response
-  """insert a single row into the table: "auth.refresh_tokens""""
+  """insert a single row into the table: "auth.refresh_tokens"
+  """
 insertAuthRefreshToken(object: authRefreshTokens_insert_input!, on_conflict: authRefreshTokens_on_conflict): authRefreshTokens
-  """insert a single row into the table: "auth.refresh_token_types""""
+  """insert a single row into the table: "auth.refresh_token_types"
+  """
 insertAuthRefreshTokenType(object: authRefreshTokenTypes_insert_input!, on_conflict: authRefreshTokenTypes_on_conflict): authRefreshTokenTypes
-  """insert data into the table: "auth.refresh_token_types""""
+  """insert data into the table: "auth.refresh_token_types"
+  """
 insertAuthRefreshTokenTypes(objects: [authRefreshTokenTypes_insert_input!]!, on_conflict: authRefreshTokenTypes_on_conflict): authRefreshTokenTypes_mutation_response
-  """insert data into the table: "auth.refresh_tokens""""
+  """insert data into the table: "auth.refresh_tokens"
+  """
 insertAuthRefreshTokens(objects: [authRefreshTokens_insert_input!]!, on_conflict: authRefreshTokens_on_conflict): authRefreshTokens_mutation_response
-  """insert a single row into the table: "auth.roles""""
+  """insert a single row into the table: "auth.roles"
+  """
 insertAuthRole(object: authRoles_insert_input!, on_conflict: authRoles_on_conflict): authRoles
-  """insert data into the table: "auth.roles""""
+  """insert data into the table: "auth.roles"
+  """
 insertAuthRoles(objects: [authRoles_insert_input!]!, on_conflict: authRoles_on_conflict): authRoles_mutation_response
-  """insert a single row into the table: "auth.user_providers""""
+  """insert a single row into the table: "auth.user_providers"
+  """
 insertAuthUserProvider(object: authUserProviders_insert_input!, on_conflict: authUserProviders_on_conflict): authUserProviders
-  """insert data into the table: "auth.user_providers""""
+  """insert data into the table: "auth.user_providers"
+  """
 insertAuthUserProviders(objects: [authUserProviders_insert_input!]!, on_conflict: authUserProviders_on_conflict): authUserProviders_mutation_response
-  """insert a single row into the table: "auth.user_roles""""
+  """insert a single row into the table: "auth.user_roles"
+  """
 insertAuthUserRole(object: authUserRoles_insert_input!, on_conflict: authUserRoles_on_conflict): authUserRoles
-  """insert data into the table: "auth.user_roles""""
+  """insert data into the table: "auth.user_roles"
+  """
 insertAuthUserRoles(objects: [authUserRoles_insert_input!]!, on_conflict: authUserRoles_on_conflict): authUserRoles_mutation_response
-  """insert a single row into the table: "auth.user_security_keys""""
+  """insert a single row into the table: "auth.user_security_keys"
+  """
 insertAuthUserSecurityKey(object: authUserSecurityKeys_insert_input!, on_conflict: authUserSecurityKeys_on_conflict): authUserSecurityKeys
-  """insert data into the table: "auth.user_security_keys""""
+  """insert data into the table: "auth.user_security_keys"
+  """
 insertAuthUserSecurityKeys(objects: [authUserSecurityKeys_insert_input!]!, on_conflict: authUserSecurityKeys_on_conflict): authUserSecurityKeys_mutation_response
-  """insert a single row into the table: "backups""""
+  """insert a single row into the table: "backups"
+  """
 insertBackup(object: backups_insert_input!, on_conflict: backups_on_conflict): backups
-  """insert data into the table: "backups""""
+  """insert data into the table: "backups"
+  """
 insertBackups(objects: [backups_insert_input!]!, on_conflict: backups_on_conflict): backups_mutation_response
-  """insert a single row into the table: "billing.dedicated_compute""""
+  """insert a single row into the table: "billing.dedicated_compute"
+  """
 insertBillingDedicatedCompute(object: billing_dedicated_compute_insert_input!, on_conflict: billing_dedicated_compute_on_conflict): billing_dedicated_compute
-  """insert data into the table: "billing.dedicated_compute""""
+  """insert data into the table: "billing.dedicated_compute"
+  """
 insertBillingDedicatedComputes(objects: [billing_dedicated_compute_insert_input!]!, on_conflict: billing_dedicated_compute_on_conflict): billing_dedicated_compute_mutation_response
-  """insert a single row into the table: "billing.reports""""
+  """insert a single row into the table: "billing.reports"
+  """
 insertBillingReport(object: billing_reports_insert_input!, on_conflict: billing_reports_on_conflict): billing_reports
-  """insert data into the table: "billing.reports""""
+  """insert data into the table: "billing.reports"
+  """
 insertBillingReports(objects: [billing_reports_insert_input!]!, on_conflict: billing_reports_on_conflict): billing_reports_mutation_response
-  """insert a single row into the table: "billing.resources""""
+  """insert a single row into the table: "billing.resources"
+  """
 insertBillingResource(object: billing_resources_insert_input!, on_conflict: billing_resources_on_conflict): billing_resources
-  """insert data into the table: "billing.resources""""
+  """insert data into the table: "billing.resources"
+  """
 insertBillingResources(objects: [billing_resources_insert_input!]!, on_conflict: billing_resources_on_conflict): billing_resources_mutation_response
-  """insert data into the table: "billing.subscriptions""""
+  """insert data into the table: "billing.subscriptions"
+  """
 insertBillingSubscription(objects: [billing_subscriptions_insert_input!]!, on_conflict: billing_subscriptions_on_conflict): billing_subscriptions_mutation_response
-  """insert a single row into the table: "billing.subscriptions""""
+  """insert a single row into the table: "billing.subscriptions"
+  """
 insertBillingSubscriptions(object: billing_subscriptions_insert_input!, on_conflict: billing_subscriptions_on_conflict): billing_subscriptions
-  """insert a single row into the table: "storage.buckets""""
+  """insert a single row into the table: "storage.buckets"
+  """
 insertBucket(object: buckets_insert_input!, on_conflict: buckets_on_conflict): buckets
-  """insert data into the table: "storage.buckets""""
+  """insert data into the table: "storage.buckets"
+  """
 insertBuckets(objects: [buckets_insert_input!]!, on_conflict: buckets_on_conflict): buckets_mutation_response
-  """insert a single row into the table: "cli_tokens""""
+  """insert a single row into the table: "cli_tokens"
+  """
 insertCliToken(object: cliTokens_insert_input!, on_conflict: cliTokens_on_conflict): cliTokens
-  """insert data into the table: "cli_tokens""""
+  """insert data into the table: "cli_tokens"
+  """
 insertCliTokens(objects: [cliTokens_insert_input!]!, on_conflict: cliTokens_on_conflict): cliTokens_mutation_response
   insertConfig(appID: uuid!, config: ConfigConfigInsertInput!, secrets: [ConfigEnvironmentVariableInsertInput!], systemConfig: ConfigSystemConfigInsertInput!): ConfigInsertConfigResponse!
-  """insert a single row into the table: "deployments""""
+  """insert a single row into the table: "deployments"
+  """
 insertDeployment(object: deployments_insert_input!, on_conflict: deployments_on_conflict): deployments
-  """insert a single row into the table: "deployment_logs""""
+  """insert a single row into the table: "deployment_logs"
+  """
 insertDeploymentLog(object: deploymentLogs_insert_input!, on_conflict: deploymentLogs_on_conflict): deploymentLogs
-  """insert data into the table: "deployment_logs""""
+  """insert data into the table: "deployment_logs"
+  """
 insertDeploymentLogs(objects: [deploymentLogs_insert_input!]!, on_conflict: deploymentLogs_on_conflict): deploymentLogs_mutation_response
-  """insert data into the table: "deployments""""
+  """insert data into the table: "deployments"
+  """
 insertDeployments(objects: [deployments_insert_input!]!, on_conflict: deployments_on_conflict): deployments_mutation_response
-  """insert a single row into the table: "feature_flags""""
+  """insert a single row into the table: "feature_flags"
+  """
 insertFeatureFlag(object: featureFlags_insert_input!, on_conflict: featureFlags_on_conflict): featureFlags
-  """insert data into the table: "feature_flags""""
+  """insert data into the table: "feature_flags"
+  """
 insertFeatureFlags(objects: [featureFlags_insert_input!]!, on_conflict: featureFlags_on_conflict): featureFlags_mutation_response
-  """insert a single row into the table: "storage.files""""
+  """insert a single row into the table: "storage.files"
+  """
 insertFile(object: files_insert_input!, on_conflict: files_on_conflict): files
-  """insert data into the table: "storage.files""""
+  """insert data into the table: "storage.files"
+  """
 insertFiles(objects: [files_insert_input!]!, on_conflict: files_on_conflict): files_mutation_response
-  """insert a single row into the table: "github_app_installations""""
+  """insert a single row into the table: "github_app_installations"
+  """
 insertGithubAppInstallation(object: githubAppInstallations_insert_input!, on_conflict: githubAppInstallations_on_conflict): githubAppInstallations
-  """insert data into the table: "github_app_installations""""
+  """insert data into the table: "github_app_installations"
+  """
 insertGithubAppInstallations(objects: [githubAppInstallations_insert_input!]!, on_conflict: githubAppInstallations_on_conflict): githubAppInstallations_mutation_response
-  """insert data into the table: "github_repositories""""
+  """insert data into the table: "github_repositories"
+  """
 insertGithubRepositories(objects: [githubRepositories_insert_input!]!, on_conflict: githubRepositories_on_conflict): githubRepositories_mutation_response
-  """insert a single row into the table: "github_repositories""""
+  """insert a single row into the table: "github_repositories"
+  """
 insertGithubRepository(object: githubRepositories_insert_input!, on_conflict: githubRepositories_on_conflict): githubRepositories
-  """insert a single row into the table: "organizations""""
+  """insert a single row into the table: "organizations"
+  """
 insertOrganization(object: organizations_insert_input!, on_conflict: organizations_on_conflict): organizations
-  """insert a single row into the table: "organization_members""""
+  """insert a single row into the table: "organization_members"
+  """
 insertOrganizationMember(object: organization_members_insert_input!, on_conflict: organization_members_on_conflict): organization_members
-  """insert a single row into the table: "organization_member_invites""""
+  """insert a single row into the table: "organization_member_invites"
+  """
 insertOrganizationMemberInvite(object: organization_member_invites_insert_input!, on_conflict: organization_member_invites_on_conflict): organization_member_invites
-  """insert data into the table: "organization_member_invites""""
+  """insert data into the table: "organization_member_invites"
+  """
 insertOrganizationMemberInvites(objects: [organization_member_invites_insert_input!]!, on_conflict: organization_member_invites_on_conflict): organization_member_invites_mutation_response
-  """insert data into the table: "organization_members""""
+  """insert data into the table: "organization_members"
+  """
 insertOrganizationMembers(objects: [organization_members_insert_input!]!, on_conflict: organization_members_on_conflict): organization_members_mutation_response
-  """insert a single row into the table: "organization_new_request""""
+  """insert a single row into the table: "organization_new_request"
+  """
 insertOrganizationNewRequest(object: organization_new_request_insert_input!, on_conflict: organization_new_request_on_conflict): organization_new_request
-  """insert data into the table: "organization_new_request""""
+  """insert data into the table: "organization_new_request"
+  """
 insertOrganizationNewRequests(objects: [organization_new_request_insert_input!]!, on_conflict: organization_new_request_on_conflict): organization_new_request_mutation_response
-  """insert data into the table: "organizations""""
+  """insert data into the table: "organizations"
+  """
 insertOrganizations(objects: [organizations_insert_input!]!, on_conflict: organizations_on_conflict): organizations_mutation_response
-  """insert a single row into the table: "payment_methods""""
+  """insert a single row into the table: "payment_methods"
+  """
 insertPaymentMethod(object: paymentMethods_insert_input!, on_conflict: paymentMethods_on_conflict): paymentMethods
-  """insert data into the table: "payment_methods""""
+  """insert data into the table: "payment_methods"
+  """
 insertPaymentMethods(objects: [paymentMethods_insert_input!]!, on_conflict: paymentMethods_on_conflict): paymentMethods_mutation_response
-  """insert a single row into the table: "plans""""
+  """insert a single row into the table: "plans"
+  """
 insertPlan(object: plans_insert_input!, on_conflict: plans_on_conflict): plans
-  """insert data into the table: "plans""""
+  """insert data into the table: "plans"
+  """
 insertPlans(objects: [plans_insert_input!]!, on_conflict: plans_on_conflict): plans_mutation_response
-  """insert a single row into the table: "regions_allowed_organization""""
+  """insert a single row into the table: "regions_allowed_organization"
+  """
 insertRegionsAllowedOrganization(object: regions_allowed_organization_insert_input!, on_conflict: regions_allowed_organization_on_conflict): regions_allowed_organization
-  """insert data into the table: "regions_allowed_organization""""
+  """insert data into the table: "regions_allowed_organization"
+  """
 insertRegionsAllowedOrganizations(objects: [regions_allowed_organization_insert_input!]!, on_conflict: regions_allowed_organization_on_conflict): regions_allowed_organization_mutation_response
-  """insert a single row into the table: "regions_allowed_workspace""""
+  """insert a single row into the table: "regions_allowed_workspace"
+  """
 insertRegionsAllowedWorkspace(object: regions_allowed_workspace_insert_input!, on_conflict: regions_allowed_workspace_on_conflict): regions_allowed_workspace
-  """insert data into the table: "regions_allowed_workspace""""
+  """insert data into the table: "regions_allowed_workspace"
+  """
 insertRegionsAllowedWorkspaces(objects: [regions_allowed_workspace_insert_input!]!, on_conflict: regions_allowed_workspace_on_conflict): regions_allowed_workspace_mutation_response
-  """insert a single row into the table: "run_service""""
+  """insert a single row into the table: "run_service"
+  """
 insertRunService(object: run_service_insert_input!, on_conflict: run_service_on_conflict): run_service
   insertRunServiceConfig(appID: uuid!, config: ConfigRunServiceConfigInsertInput!): InsertRunServiceConfigResponse!
-  """insert data into the table: "run_service""""
+  """insert data into the table: "run_service"
+  """
 insertRunServices(objects: [run_service_insert_input!]!, on_conflict: run_service_on_conflict): run_service_mutation_response
   insertSecret(appID: uuid!, secret: ConfigEnvironmentVariableInsertInput!): ConfigEnvironmentVariable!
-  """insert a single row into the table: "software_type""""
+  """insert a single row into the table: "software_type"
+  """
 insertSoftwareType(object: software_type_insert_input!, on_conflict: software_type_on_conflict): software_type
-  """insert data into the table: "software_type""""
+  """insert data into the table: "software_type"
+  """
 insertSoftwareTypes(objects: [software_type_insert_input!]!, on_conflict: software_type_on_conflict): software_type_mutation_response
-  """insert a single row into the table: "software_versions""""
+  """insert a single row into the table: "software_versions"
+  """
 insertSoftwareVersion(object: software_versions_insert_input!, on_conflict: software_versions_on_conflict): software_versions
-  """insert data into the table: "software_versions""""
+  """insert data into the table: "software_versions"
+  """
 insertSoftwareVersions(objects: [software_versions_insert_input!]!, on_conflict: software_versions_on_conflict): software_versions_mutation_response
-  """insert a single row into the table: "auth.users""""
+  """insert a single row into the table: "auth.users"
+  """
 insertUser(object: users_insert_input!, on_conflict: users_on_conflict): users
-  """insert data into the table: "auth.users""""
+  """insert data into the table: "auth.users"
+  """
 insertUsers(objects: [users_insert_input!]!, on_conflict: users_on_conflict): users_mutation_response
-  """insert a single row into the table: "storage.virus""""
+  """insert a single row into the table: "storage.virus"
+  """
 insertVirus(object: virus_insert_input!, on_conflict: virus_on_conflict): virus
-  """insert data into the table: "storage.virus""""
+  """insert data into the table: "storage.virus"
+  """
 insertViruses(objects: [virus_insert_input!]!, on_conflict: virus_on_conflict): virus_mutation_response
-  """insert a single row into the table: "workspaces""""
+  """insert a single row into the table: "workspaces"
+  """
 insertWorkspace(object: workspaces_insert_input!, on_conflict: workspaces_on_conflict): workspaces
-  """insert a single row into the table: "workspace_members""""
+  """insert a single row into the table: "workspace_members"
+  """
 insertWorkspaceMember(object: workspaceMembers_insert_input!, on_conflict: workspaceMembers_on_conflict): workspaceMembers
-  """insert a single row into the table: "workspace_member_invites""""
+  """insert a single row into the table: "workspace_member_invites"
+  """
 insertWorkspaceMemberInvite(object: workspaceMemberInvites_insert_input!, on_conflict: workspaceMemberInvites_on_conflict): workspaceMemberInvites
-  """insert data into the table: "workspace_member_invites""""
+  """insert data into the table: "workspace_member_invites"
+  """
 insertWorkspaceMemberInvites(objects: [workspaceMemberInvites_insert_input!]!, on_conflict: workspaceMemberInvites_on_conflict): workspaceMemberInvites_mutation_response
-  """insert data into the table: "workspace_members""""
+  """insert data into the table: "workspace_members"
+  """
 insertWorkspaceMembers(objects: [workspaceMembers_insert_input!]!, on_conflict: workspaceMembers_on_conflict): workspaceMembers_mutation_response
-  """insert data into the table: "workspaces""""
+  """insert data into the table: "workspaces"
+  """
 insertWorkspaces(objects: [workspaces_insert_input!]!, on_conflict: workspaces_on_conflict): workspaces_mutation_response
-  """insert data into the table: "announcements""""
+  """insert data into the table: "announcements"
+  """
 insert_announcements(objects: [announcements_insert_input!]!, on_conflict: announcements_on_conflict): announcements_mutation_response
-  """insert a single row into the table: "announcements""""
+  """insert a single row into the table: "announcements"
+  """
 insert_announcements_one(object: announcements_insert_input!, on_conflict: announcements_on_conflict): announcements
-  """insert data into the table: "auth.migrations""""
+  """insert data into the table: "auth.migrations"
+  """
 insert_auth_migrations(objects: [auth_migrations_insert_input!]!, on_conflict: auth_migrations_on_conflict): auth_migrations_mutation_response
-  """insert a single row into the table: "auth.migrations""""
+  """insert a single row into the table: "auth.migrations"
+  """
 insert_auth_migrations_one(object: auth_migrations_insert_input!, on_conflict: auth_migrations_on_conflict): auth_migrations
-  """insert data into the table: "billing.report_resource_type""""
+  """insert data into the table: "billing.report_resource_type"
+  """
 insert_billing_report_resource_type(objects: [billing_report_resource_type_insert_input!]!, on_conflict: billing_report_resource_type_on_conflict): billing_report_resource_type_mutation_response
-  """insert a single row into the table: "billing.report_resource_type""""
+  """insert a single row into the table: "billing.report_resource_type"
+  """
 insert_billing_report_resource_type_one(object: billing_report_resource_type_insert_input!, on_conflict: billing_report_resource_type_on_conflict): billing_report_resource_type
-  """insert data into the table: "billing.report_type""""
+  """insert data into the table: "billing.report_type"
+  """
 insert_billing_report_type(objects: [billing_report_type_insert_input!]!, on_conflict: billing_report_type_on_conflict): billing_report_type_mutation_response
-  """insert a single row into the table: "billing.report_type""""
+  """insert a single row into the table: "billing.report_type"
+  """
 insert_billing_report_type_one(object: billing_report_type_insert_input!, on_conflict: billing_report_type_on_conflict): billing_report_type
-  """insert data into the table: "billing.reports_resources""""
+  """insert data into the table: "billing.reports_resources"
+  """
 insert_billing_reports_resources(objects: [billing_reports_resources_insert_input!]!, on_conflict: billing_reports_resources_on_conflict): billing_reports_resources_mutation_response
-  """insert a single row into the table: "billing.reports_resources""""
+  """insert a single row into the table: "billing.reports_resources"
+  """
 insert_billing_reports_resources_one(object: billing_reports_resources_insert_input!, on_conflict: billing_reports_resources_on_conflict): billing_reports_resources
-  """insert data into the table: "billing.subscription_items""""
+  """insert data into the table: "billing.subscription_items"
+  """
 insert_billing_subscription_items(objects: [billing_subscription_items_insert_input!]!, on_conflict: billing_subscription_items_on_conflict): billing_subscription_items_mutation_response
-  """insert a single row into the table: "billing.subscription_items""""
+  """insert a single row into the table: "billing.subscription_items"
+  """
 insert_billing_subscription_items_one(object: billing_subscription_items_insert_input!, on_conflict: billing_subscription_items_on_conflict): billing_subscription_items
-  """insert data into the table: "continents""""
+  """insert data into the table: "continents"
+  """
 insert_continents(objects: [continents_insert_input!]!, on_conflict: continents_on_conflict): continents_mutation_response
-  """insert a single row into the table: "continents""""
+  """insert a single row into the table: "continents"
+  """
 insert_continents_one(object: continents_insert_input!, on_conflict: continents_on_conflict): continents
-  """insert data into the table: "countries""""
+  """insert data into the table: "countries"
+  """
 insert_countries(objects: [countries_insert_input!]!, on_conflict: countries_on_conflict): countries_mutation_response
-  """insert a single row into the table: "countries""""
+  """insert a single row into the table: "countries"
+  """
 insert_countries_one(object: countries_insert_input!, on_conflict: countries_on_conflict): countries
-  """insert data into the table: "organization_costs_thresholds""""
+  """insert data into the table: "organization_costs_thresholds"
+  """
 insert_organization_costs_thresholds(objects: [organization_costs_thresholds_insert_input!]!, on_conflict: organization_costs_thresholds_on_conflict): organization_costs_thresholds_mutation_response
-  """insert a single row into the table: "organization_costs_thresholds""""
+  """insert a single row into the table: "organization_costs_thresholds"
+  """
 insert_organization_costs_thresholds_one(object: organization_costs_thresholds_insert_input!, on_conflict: organization_costs_thresholds_on_conflict): organization_costs_thresholds
-  """insert data into the table: "organization_members_role""""
+  """insert data into the table: "organization_members_role"
+  """
 insert_organization_members_role(objects: [organization_members_role_insert_input!]!, on_conflict: organization_members_role_on_conflict): organization_members_role_mutation_response
-  """insert a single row into the table: "organization_members_role""""
+  """insert a single row into the table: "organization_members_role"
+  """
 insert_organization_members_role_one(object: organization_members_role_insert_input!, on_conflict: organization_members_role_on_conflict): organization_members_role
-  """insert data into the table: "organization_status""""
+  """insert data into the table: "organization_status"
+  """
 insert_organization_status(objects: [organization_status_insert_input!]!, on_conflict: organization_status_on_conflict): organization_status_mutation_response
-  """insert a single row into the table: "organization_status""""
+  """insert a single row into the table: "organization_status"
+  """
 insert_organization_status_one(object: organization_status_insert_input!, on_conflict: organization_status_on_conflict): organization_status
-  """insert data into the table: "region_type""""
+  """insert data into the table: "region_type"
+  """
 insert_region_type(objects: [region_type_insert_input!]!, on_conflict: region_type_on_conflict): region_type_mutation_response
-  """insert a single row into the table: "region_type""""
+  """insert a single row into the table: "region_type"
+  """
 insert_region_type_one(object: region_type_insert_input!, on_conflict: region_type_on_conflict): region_type
-  """insert data into the table: "regions""""
+  """insert data into the table: "regions"
+  """
 insert_regions(objects: [regions_insert_input!]!, on_conflict: regions_on_conflict): regions_mutation_response
-  """insert a single row into the table: "regions""""
+  """insert a single row into the table: "regions"
+  """
 insert_regions_one(object: regions_insert_input!, on_conflict: regions_on_conflict): regions
-  """execute VOLATILE function "organization_member_invite_accept" which returns "organization_members""""
+  """execute VOLATILE function "organization_member_invite_accept" which returns "organization_members"
+  """
 organizationMemberInviteAccept(args: organizationMemberInviteAccept_args!, distinct_on: [organization_members_select_column!], limit: Int, offset: Int, order_by: [organization_members_order_by!], where: organization_members_bool_exp): [organization_members!]!
   pauseInactiveApps: [String!]!
   pauseOrganizationsExceedUsage: [String!]!
@@ -14185,333 +14492,495 @@ restoreApplicationDatabasePiTR(appID: String!, baseBackupName: String, fromAppID
   sendEmailOrganizationStatusChange(newStatus: String!, oldStatus: String!, organizationID: uuid!): Boolean!
   sendEmailOrganizationThreshold(organizationID: uuid!, threshold: String!): Boolean!
   sendEmailTemplate(from: String!, templateAlias: String!, templateModel: map, to: String!): Boolean!
-  """update single row of the table: "announcements_read""""
+  """update single row of the table: "announcements_read"
+  """
 updateAnnouncementRead(_set: announcements_read_set_input, pk_columns: announcements_read_pk_columns_input!): announcements_read
-  """update data of the table: "announcements_read""""
+  """update data of the table: "announcements_read"
+  """
 updateAnnouncementsRead(_set: announcements_read_set_input, where: announcements_read_bool_exp!): announcements_read_mutation_response
-  """update multiples rows of table: "announcements_read""""
+  """update multiples rows of table: "announcements_read"
+  """
 updateAnnouncementsReadMany(updates: [announcements_read_updates!]!): [announcements_read_mutation_response]
-  """update single row of the table: "apps""""
+  """update single row of the table: "apps"
+  """
 updateApp(_append: apps_append_input, _delete_at_path: apps_delete_at_path_input, _delete_elem: apps_delete_elem_input, _delete_key: apps_delete_key_input, _inc: apps_inc_input, _prepend: apps_prepend_input, _set: apps_set_input, pk_columns: apps_pk_columns_input!): apps
-  """update single row of the table: "app_states""""
+  """update single row of the table: "app_states"
+  """
 updateAppState(_inc: appStates_inc_input, _set: appStates_set_input, pk_columns: appStates_pk_columns_input!): appStates
-  """update data of the table: "app_state_history""""
+  """update data of the table: "app_state_history"
+  """
 updateAppStateHistories(_inc: appStateHistory_inc_input, _set: appStateHistory_set_input, where: appStateHistory_bool_exp!): appStateHistory_mutation_response
-  """update single row of the table: "app_state_history""""
+  """update single row of the table: "app_state_history"
+  """
 updateAppStateHistory(_inc: appStateHistory_inc_input, _set: appStateHistory_set_input, pk_columns: appStateHistory_pk_columns_input!): appStateHistory
-  """update data of the table: "app_states""""
+  """update data of the table: "app_states"
+  """
 updateAppStates(_inc: appStates_inc_input, _set: appStates_set_input, where: appStates_bool_exp!): appStates_mutation_response
-  """update data of the table: "apps""""
+  """update data of the table: "apps"
+  """
 updateApps(_append: apps_append_input, _delete_at_path: apps_delete_at_path_input, _delete_elem: apps_delete_elem_input, _delete_key: apps_delete_key_input, _inc: apps_inc_input, _prepend: apps_prepend_input, _set: apps_set_input, where: apps_bool_exp!): apps_mutation_response
-  """update single row of the table: "auth.providers""""
+  """update single row of the table: "auth.providers"
+  """
 updateAuthProvider(_set: authProviders_set_input, pk_columns: authProviders_pk_columns_input!): authProviders
-  """update single row of the table: "auth.provider_requests""""
+  """update single row of the table: "auth.provider_requests"
+  """
 updateAuthProviderRequest(_append: authProviderRequests_append_input, _delete_at_path: authProviderRequests_delete_at_path_input, _delete_elem: authProviderRequests_delete_elem_input, _delete_key: authProviderRequests_delete_key_input, _prepend: authProviderRequests_prepend_input, _set: authProviderRequests_set_input, pk_columns: authProviderRequests_pk_columns_input!): authProviderRequests
-  """update data of the table: "auth.provider_requests""""
+  """update data of the table: "auth.provider_requests"
+  """
 updateAuthProviderRequests(_append: authProviderRequests_append_input, _delete_at_path: authProviderRequests_delete_at_path_input, _delete_elem: authProviderRequests_delete_elem_input, _delete_key: authProviderRequests_delete_key_input, _prepend: authProviderRequests_prepend_input, _set: authProviderRequests_set_input, where: authProviderRequests_bool_exp!): authProviderRequests_mutation_response
-  """update data of the table: "auth.providers""""
+  """update data of the table: "auth.providers"
+  """
 updateAuthProviders(_set: authProviders_set_input, where: authProviders_bool_exp!): authProviders_mutation_response
-  """update single row of the table: "auth.refresh_tokens""""
+  """update single row of the table: "auth.refresh_tokens"
+  """
 updateAuthRefreshToken(_append: authRefreshTokens_append_input, _delete_at_path: authRefreshTokens_delete_at_path_input, _delete_elem: authRefreshTokens_delete_elem_input, _delete_key: authRefreshTokens_delete_key_input, _prepend: authRefreshTokens_prepend_input, _set: authRefreshTokens_set_input, pk_columns: authRefreshTokens_pk_columns_input!): authRefreshTokens
-  """update single row of the table: "auth.refresh_token_types""""
+  """update single row of the table: "auth.refresh_token_types"
+  """
 updateAuthRefreshTokenType(_set: authRefreshTokenTypes_set_input, pk_columns: authRefreshTokenTypes_pk_columns_input!): authRefreshTokenTypes
-  """update data of the table: "auth.refresh_token_types""""
+  """update data of the table: "auth.refresh_token_types"
+  """
 updateAuthRefreshTokenTypes(_set: authRefreshTokenTypes_set_input, where: authRefreshTokenTypes_bool_exp!): authRefreshTokenTypes_mutation_response
-  """update data of the table: "auth.refresh_tokens""""
+  """update data of the table: "auth.refresh_tokens"
+  """
 updateAuthRefreshTokens(_append: authRefreshTokens_append_input, _delete_at_path: authRefreshTokens_delete_at_path_input, _delete_elem: authRefreshTokens_delete_elem_input, _delete_key: authRefreshTokens_delete_key_input, _prepend: authRefreshTokens_prepend_input, _set: authRefreshTokens_set_input, where: authRefreshTokens_bool_exp!): authRefreshTokens_mutation_response
-  """update single row of the table: "auth.roles""""
+  """update single row of the table: "auth.roles"
+  """
 updateAuthRole(_set: authRoles_set_input, pk_columns: authRoles_pk_columns_input!): authRoles
-  """update data of the table: "auth.roles""""
+  """update data of the table: "auth.roles"
+  """
 updateAuthRoles(_set: authRoles_set_input, where: authRoles_bool_exp!): authRoles_mutation_response
-  """update single row of the table: "auth.user_providers""""
+  """update single row of the table: "auth.user_providers"
+  """
 updateAuthUserProvider(_set: authUserProviders_set_input, pk_columns: authUserProviders_pk_columns_input!): authUserProviders
-  """update data of the table: "auth.user_providers""""
+  """update data of the table: "auth.user_providers"
+  """
 updateAuthUserProviders(_set: authUserProviders_set_input, where: authUserProviders_bool_exp!): authUserProviders_mutation_response
-  """update single row of the table: "auth.user_roles""""
+  """update single row of the table: "auth.user_roles"
+  """
 updateAuthUserRole(_set: authUserRoles_set_input, pk_columns: authUserRoles_pk_columns_input!): authUserRoles
-  """update data of the table: "auth.user_roles""""
+  """update data of the table: "auth.user_roles"
+  """
 updateAuthUserRoles(_set: authUserRoles_set_input, where: authUserRoles_bool_exp!): authUserRoles_mutation_response
-  """update single row of the table: "auth.user_security_keys""""
+  """update single row of the table: "auth.user_security_keys"
+  """
 updateAuthUserSecurityKey(_inc: authUserSecurityKeys_inc_input, _set: authUserSecurityKeys_set_input, pk_columns: authUserSecurityKeys_pk_columns_input!): authUserSecurityKeys
-  """update data of the table: "auth.user_security_keys""""
+  """update data of the table: "auth.user_security_keys"
+  """
 updateAuthUserSecurityKeys(_inc: authUserSecurityKeys_inc_input, _set: authUserSecurityKeys_set_input, where: authUserSecurityKeys_bool_exp!): authUserSecurityKeys_mutation_response
-  """update single row of the table: "backups""""
+  """update single row of the table: "backups"
+  """
 updateBackup(_inc: backups_inc_input, _set: backups_set_input, pk_columns: backups_pk_columns_input!): backups
-  """update data of the table: "backups""""
+  """update data of the table: "backups"
+  """
 updateBackups(_inc: backups_inc_input, _set: backups_set_input, where: backups_bool_exp!): backups_mutation_response
-  """update single row of the table: "billing.dedicated_compute""""
+  """update single row of the table: "billing.dedicated_compute"
+  """
 updateBillingDedicatedCompute(_inc: billing_dedicated_compute_inc_input, _set: billing_dedicated_compute_set_input, pk_columns: billing_dedicated_compute_pk_columns_input!): billing_dedicated_compute
-  """update data of the table: "billing.dedicated_compute""""
+  """update data of the table: "billing.dedicated_compute"
+  """
 updateBillingDedicatedComputes(_inc: billing_dedicated_compute_inc_input, _set: billing_dedicated_compute_set_input, where: billing_dedicated_compute_bool_exp!): billing_dedicated_compute_mutation_response
-  """update single row of the table: "billing.reports""""
+  """update single row of the table: "billing.reports"
+  """
 updateBillingReport(_inc: billing_reports_inc_input, _set: billing_reports_set_input, pk_columns: billing_reports_pk_columns_input!): billing_reports
-  """update data of the table: "billing.reports""""
+  """update data of the table: "billing.reports"
+  """
 updateBillingReports(_inc: billing_reports_inc_input, _set: billing_reports_set_input, where: billing_reports_bool_exp!): billing_reports_mutation_response
-  """update single row of the table: "billing.resources""""
+  """update single row of the table: "billing.resources"
+  """
 updateBillingResource(_inc: billing_resources_inc_input, _set: billing_resources_set_input, pk_columns: billing_resources_pk_columns_input!): billing_resources
-  """update data of the table: "billing.resources""""
+  """update data of the table: "billing.resources"
+  """
 updateBillingResources(_inc: billing_resources_inc_input, _set: billing_resources_set_input, where: billing_resources_bool_exp!): billing_resources_mutation_response
-  """update single row of the table: "billing.subscriptions""""
+  """update single row of the table: "billing.subscriptions"
+  """
 updateBillingSubscription(_set: billing_subscriptions_set_input, pk_columns: billing_subscriptions_pk_columns_input!): billing_subscriptions
-  """update data of the table: "billing.subscriptions""""
+  """update data of the table: "billing.subscriptions"
+  """
 updateBillingSubscriptions(_set: billing_subscriptions_set_input, where: billing_subscriptions_bool_exp!): billing_subscriptions_mutation_response
-  """update single row of the table: "storage.buckets""""
+  """update single row of the table: "storage.buckets"
+  """
 updateBucket(_inc: buckets_inc_input, _set: buckets_set_input, pk_columns: buckets_pk_columns_input!): buckets
-  """update data of the table: "storage.buckets""""
+  """update data of the table: "storage.buckets"
+  """
 updateBuckets(_inc: buckets_inc_input, _set: buckets_set_input, where: buckets_bool_exp!): buckets_mutation_response
-  """update single row of the table: "cli_tokens""""
+  """update single row of the table: "cli_tokens"
+  """
 updateCliToken(_set: cliTokens_set_input, pk_columns: cliTokens_pk_columns_input!): cliTokens
-  """update data of the table: "cli_tokens""""
+  """update data of the table: "cli_tokens"
+  """
 updateCliTokens(_set: cliTokens_set_input, where: cliTokens_bool_exp!): cliTokens_mutation_response
   updateConfig(appID: uuid!, config: ConfigConfigUpdateInput!): ConfigConfig!
-  """update single row of the table: "deployments""""
+  """update single row of the table: "deployments"
+  """
 updateDeployment(_set: deployments_set_input, pk_columns: deployments_pk_columns_input!): deployments
-  """update single row of the table: "deployment_logs""""
+  """update single row of the table: "deployment_logs"
+  """
 updateDeploymentLog(_set: deploymentLogs_set_input, pk_columns: deploymentLogs_pk_columns_input!): deploymentLogs
-  """update data of the table: "deployment_logs""""
+  """update data of the table: "deployment_logs"
+  """
 updateDeploymentLogs(_set: deploymentLogs_set_input, where: deploymentLogs_bool_exp!): deploymentLogs_mutation_response
-  """update data of the table: "deployments""""
+  """update data of the table: "deployments"
+  """
 updateDeployments(_set: deployments_set_input, where: deployments_bool_exp!): deployments_mutation_response
-  """update single row of the table: "feature_flags""""
+  """update single row of the table: "feature_flags"
+  """
 updateFeatureFlag(_set: featureFlags_set_input, pk_columns: featureFlags_pk_columns_input!): featureFlags
-  """update data of the table: "feature_flags""""
+  """update data of the table: "feature_flags"
+  """
 updateFeatureFlags(_set: featureFlags_set_input, where: featureFlags_bool_exp!): featureFlags_mutation_response
-  """update single row of the table: "storage.files""""
+  """update single row of the table: "storage.files"
+  """
 updateFile(_append: files_append_input, _delete_at_path: files_delete_at_path_input, _delete_elem: files_delete_elem_input, _delete_key: files_delete_key_input, _inc: files_inc_input, _prepend: files_prepend_input, _set: files_set_input, pk_columns: files_pk_columns_input!): files
-  """update data of the table: "storage.files""""
+  """update data of the table: "storage.files"
+  """
 updateFiles(_append: files_append_input, _delete_at_path: files_delete_at_path_input, _delete_elem: files_delete_elem_input, _delete_key: files_delete_key_input, _inc: files_inc_input, _prepend: files_prepend_input, _set: files_set_input, where: files_bool_exp!): files_mutation_response
-  """update single row of the table: "github_app_installations""""
+  """update single row of the table: "github_app_installations"
+  """
 updateGithubAppInstallation(_append: githubAppInstallations_append_input, _delete_at_path: githubAppInstallations_delete_at_path_input, _delete_elem: githubAppInstallations_delete_elem_input, _delete_key: githubAppInstallations_delete_key_input, _inc: githubAppInstallations_inc_input, _prepend: githubAppInstallations_prepend_input, _set: githubAppInstallations_set_input, pk_columns: githubAppInstallations_pk_columns_input!): githubAppInstallations
-  """update data of the table: "github_app_installations""""
+  """update data of the table: "github_app_installations"
+  """
 updateGithubAppInstallations(_append: githubAppInstallations_append_input, _delete_at_path: githubAppInstallations_delete_at_path_input, _delete_elem: githubAppInstallations_delete_elem_input, _delete_key: githubAppInstallations_delete_key_input, _inc: githubAppInstallations_inc_input, _prepend: githubAppInstallations_prepend_input, _set: githubAppInstallations_set_input, where: githubAppInstallations_bool_exp!): githubAppInstallations_mutation_response
-  """update data of the table: "github_repositories""""
+  """update data of the table: "github_repositories"
+  """
 updateGithubRepositories(_set: githubRepositories_set_input, where: githubRepositories_bool_exp!): githubRepositories_mutation_response
-  """update single row of the table: "github_repositories""""
+  """update single row of the table: "github_repositories"
+  """
 updateGithubRepository(_set: githubRepositories_set_input, pk_columns: githubRepositories_pk_columns_input!): githubRepositories
-  """update multiples rows of table: "billing.reports""""
+  """update multiples rows of table: "billing.reports"
+  """
 updateManyBillingReports(updates: [billing_reports_updates!]!): [billing_reports_mutation_response]
-  """update multiples rows of table: "billing.resources""""
+  """update multiples rows of table: "billing.resources"
+  """
 updateManyBillingResources(updates: [billing_resources_updates!]!): [billing_resources_mutation_response]
-  """update multiples rows of table: "software_type""""
+  """update multiples rows of table: "software_type"
+  """
 updateManySoftwareType(updates: [software_type_updates!]!): [software_type_mutation_response]
-  """update multiples rows of table: "software_versions""""
+  """update multiples rows of table: "software_versions"
+  """
 updateManySoftwareVersions(updates: [software_versions_updates!]!): [software_versions_mutation_response]
-  """update single row of the table: "organizations""""
+  """update single row of the table: "organizations"
+  """
 updateOrganization(_inc: organizations_inc_input, _set: organizations_set_input, pk_columns: organizations_pk_columns_input!): organizations
-  """update single row of the table: "organization_members""""
+  """update single row of the table: "organization_members"
+  """
 updateOrganizationMember(_set: organization_members_set_input, pk_columns: organization_members_pk_columns_input!): organization_members
-  """update single row of the table: "organization_member_invites""""
+  """update single row of the table: "organization_member_invites"
+  """
 updateOrganizationMemberInvite(_set: organization_member_invites_set_input, pk_columns: organization_member_invites_pk_columns_input!): organization_member_invites
-  """update data of the table: "organization_member_invites""""
+  """update data of the table: "organization_member_invites"
+  """
 updateOrganizationMemberInvites(_set: organization_member_invites_set_input, where: organization_member_invites_bool_exp!): organization_member_invites_mutation_response
-  """update multiples rows of table: "organization_member_invites""""
+  """update multiples rows of table: "organization_member_invites"
+  """
 updateOrganizationMemberInvitesMany(updates: [organization_member_invites_updates!]!): [organization_member_invites_mutation_response]
-  """update data of the table: "organization_members""""
+  """update data of the table: "organization_members"
+  """
 updateOrganizationMembers(_set: organization_members_set_input, where: organization_members_bool_exp!): organization_members_mutation_response
-  """update multiples rows of table: "organization_members""""
+  """update multiples rows of table: "organization_members"
+  """
 updateOrganizationMembersMany(updates: [organization_members_updates!]!): [organization_members_mutation_response]
-  """update single row of the table: "organization_new_request""""
+  """update single row of the table: "organization_new_request"
+  """
 updateOrganizationNewRequest(_set: organization_new_request_set_input, pk_columns: organization_new_request_pk_columns_input!): organization_new_request
-  """update data of the table: "organization_new_request""""
+  """update data of the table: "organization_new_request"
+  """
 updateOrganizationNewRequests(_set: organization_new_request_set_input, where: organization_new_request_bool_exp!): organization_new_request_mutation_response
-  """update multiples rows of table: "organization_new_request""""
+  """update multiples rows of table: "organization_new_request"
+  """
 updateOrganizationNewRequestsMany(updates: [organization_new_request_updates!]!): [organization_new_request_mutation_response]
-  """update data of the table: "organizations""""
+  """update data of the table: "organizations"
+  """
 updateOrganizations(_inc: organizations_inc_input, _set: organizations_set_input, where: organizations_bool_exp!): organizations_mutation_response
-  """update multiples rows of table: "organizations""""
+  """update multiples rows of table: "organizations"
+  """
 updateOrganizationsMany(updates: [organizations_updates!]!): [organizations_mutation_response]
-  """update single row of the table: "payment_methods""""
+  """update single row of the table: "payment_methods"
+  """
 updatePaymentMethod(_inc: paymentMethods_inc_input, _set: paymentMethods_set_input, pk_columns: paymentMethods_pk_columns_input!): paymentMethods
-  """update data of the table: "payment_methods""""
+  """update data of the table: "payment_methods"
+  """
 updatePaymentMethods(_inc: paymentMethods_inc_input, _set: paymentMethods_set_input, where: paymentMethods_bool_exp!): paymentMethods_mutation_response
-  """update single row of the table: "plans""""
+  """update single row of the table: "plans"
+  """
 updatePlan(_inc: plans_inc_input, _set: plans_set_input, pk_columns: plans_pk_columns_input!): plans
-  """update data of the table: "plans""""
+  """update data of the table: "plans"
+  """
 updatePlans(_inc: plans_inc_input, _set: plans_set_input, where: plans_bool_exp!): plans_mutation_response
-  """update single row of the table: "regions_allowed_organization""""
+  """update single row of the table: "regions_allowed_organization"
+  """
 updateRegionsAllowedOrganization(_set: regions_allowed_organization_set_input, pk_columns: regions_allowed_organization_pk_columns_input!): regions_allowed_organization
-  """update data of the table: "regions_allowed_organization""""
+  """update data of the table: "regions_allowed_organization"
+  """
 updateRegionsAllowedOrganizations(_set: regions_allowed_organization_set_input, where: regions_allowed_organization_bool_exp!): regions_allowed_organization_mutation_response
-  """update multiples rows of table: "regions_allowed_organization""""
+  """update multiples rows of table: "regions_allowed_organization"
+  """
 updateRegionsAllowedOrganizationsMany(updates: [regions_allowed_organization_updates!]!): [regions_allowed_organization_mutation_response]
-  """update single row of the table: "regions_allowed_workspace""""
+  """update single row of the table: "regions_allowed_workspace"
+  """
 updateRegionsAllowedWorkspace(_set: regions_allowed_workspace_set_input, pk_columns: regions_allowed_workspace_pk_columns_input!): regions_allowed_workspace
-  """update data of the table: "regions_allowed_workspace""""
+  """update data of the table: "regions_allowed_workspace"
+  """
 updateRegionsAllowedWorkspaces(_set: regions_allowed_workspace_set_input, where: regions_allowed_workspace_bool_exp!): regions_allowed_workspace_mutation_response
-  """update single row of the table: "run_service""""
+  """update single row of the table: "run_service"
+  """
 updateRunService(_set: run_service_set_input, pk_columns: run_service_pk_columns_input!): run_service
   updateRunServiceConfig(appID: uuid!, config: ConfigRunServiceConfigUpdateInput!, serviceID: uuid!): ConfigRunServiceConfig!
-  """update data of the table: "run_service""""
+  """update data of the table: "run_service"
+  """
 updateRunServices(_set: run_service_set_input, where: run_service_bool_exp!): run_service_mutation_response
   updateSecret(appID: uuid!, secret: ConfigEnvironmentVariableInsertInput!): ConfigEnvironmentVariable!
-  """update single row of the table: "software_type""""
+  """update single row of the table: "software_type"
+  """
 updateSoftwareType(_set: software_type_set_input, pk_columns: software_type_pk_columns_input!): software_type
-  """update data of the table: "software_type""""
+  """update data of the table: "software_type"
+  """
 updateSoftwareTypes(_set: software_type_set_input, where: software_type_bool_exp!): software_type_mutation_response
-  """update single row of the table: "software_versions""""
+  """update single row of the table: "software_versions"
+  """
 updateSoftwareVersion(_set: software_versions_set_input, pk_columns: software_versions_pk_columns_input!): software_versions
-  """update data of the table: "software_versions""""
+  """update data of the table: "software_versions"
+  """
 updateSoftwareVersions(_set: software_versions_set_input, where: software_versions_bool_exp!): software_versions_mutation_response
   updateSystemConfig(appID: uuid!, systemConfig: ConfigSystemConfigUpdateInput!): ConfigSystemConfig!
-  """update single row of the table: "auth.users""""
+  """update single row of the table: "auth.users"
+  """
 updateUser(_append: users_append_input, _delete_at_path: users_delete_at_path_input, _delete_elem: users_delete_elem_input, _delete_key: users_delete_key_input, _prepend: users_prepend_input, _set: users_set_input, pk_columns: users_pk_columns_input!): users
-  """update data of the table: "auth.users""""
+  """update data of the table: "auth.users"
+  """
 updateUsers(_append: users_append_input, _delete_at_path: users_delete_at_path_input, _delete_elem: users_delete_elem_input, _delete_key: users_delete_key_input, _prepend: users_prepend_input, _set: users_set_input, where: users_bool_exp!): users_mutation_response
-  """update single row of the table: "storage.virus""""
+  """update single row of the table: "storage.virus"
+  """
 updateVirus(_append: virus_append_input, _delete_at_path: virus_delete_at_path_input, _delete_elem: virus_delete_elem_input, _delete_key: virus_delete_key_input, _prepend: virus_prepend_input, _set: virus_set_input, pk_columns: virus_pk_columns_input!): virus
-  """update data of the table: "storage.virus""""
+  """update data of the table: "storage.virus"
+  """
 updateViruses(_append: virus_append_input, _delete_at_path: virus_delete_at_path_input, _delete_elem: virus_delete_elem_input, _delete_key: virus_delete_key_input, _prepend: virus_prepend_input, _set: virus_set_input, where: virus_bool_exp!): virus_mutation_response
-  """update single row of the table: "workspaces""""
+  """update single row of the table: "workspaces"
+  """
 updateWorkspace(_set: workspaces_set_input, pk_columns: workspaces_pk_columns_input!): workspaces
-  """update single row of the table: "workspace_members""""
+  """update single row of the table: "workspace_members"
+  """
 updateWorkspaceMember(_set: workspaceMembers_set_input, pk_columns: workspaceMembers_pk_columns_input!): workspaceMembers
-  """update single row of the table: "workspace_member_invites""""
+  """update single row of the table: "workspace_member_invites"
+  """
 updateWorkspaceMemberInvite(_set: workspaceMemberInvites_set_input, pk_columns: workspaceMemberInvites_pk_columns_input!): workspaceMemberInvites
-  """update data of the table: "workspace_member_invites""""
+  """update data of the table: "workspace_member_invites"
+  """
 updateWorkspaceMemberInvites(_set: workspaceMemberInvites_set_input, where: workspaceMemberInvites_bool_exp!): workspaceMemberInvites_mutation_response
-  """update data of the table: "workspace_members""""
+  """update data of the table: "workspace_members"
+  """
 updateWorkspaceMembers(_set: workspaceMembers_set_input, where: workspaceMembers_bool_exp!): workspaceMembers_mutation_response
-  """update data of the table: "workspaces""""
+  """update data of the table: "workspaces"
+  """
 updateWorkspaces(_set: workspaces_set_input, where: workspaces_bool_exp!): workspaces_mutation_response
-  """update data of the table: "announcements""""
+  """update data of the table: "announcements"
+  """
 update_announcements(_set: announcements_set_input, where: announcements_bool_exp!): announcements_mutation_response
-  """update single row of the table: "announcements""""
+  """update single row of the table: "announcements"
+  """
 update_announcements_by_pk(_set: announcements_set_input, pk_columns: announcements_pk_columns_input!): announcements
-  """update multiples rows of table: "announcements""""
+  """update multiples rows of table: "announcements"
+  """
 update_announcements_many(updates: [announcements_updates!]!): [announcements_mutation_response]
-  """update multiples rows of table: "app_state_history""""
+  """update multiples rows of table: "app_state_history"
+  """
 update_appStateHistory_many(updates: [appStateHistory_updates!]!): [appStateHistory_mutation_response]
-  """update multiples rows of table: "app_states""""
+  """update multiples rows of table: "app_states"
+  """
 update_appStates_many(updates: [appStates_updates!]!): [appStates_mutation_response]
-  """update multiples rows of table: "apps""""
+  """update multiples rows of table: "apps"
+  """
 update_apps_many(updates: [apps_updates!]!): [apps_mutation_response]
-  """update multiples rows of table: "auth.provider_requests""""
+  """update multiples rows of table: "auth.provider_requests"
+  """
 update_authProviderRequests_many(updates: [authProviderRequests_updates!]!): [authProviderRequests_mutation_response]
-  """update multiples rows of table: "auth.providers""""
+  """update multiples rows of table: "auth.providers"
+  """
 update_authProviders_many(updates: [authProviders_updates!]!): [authProviders_mutation_response]
-  """update multiples rows of table: "auth.refresh_token_types""""
+  """update multiples rows of table: "auth.refresh_token_types"
+  """
 update_authRefreshTokenTypes_many(updates: [authRefreshTokenTypes_updates!]!): [authRefreshTokenTypes_mutation_response]
-  """update multiples rows of table: "auth.refresh_tokens""""
+  """update multiples rows of table: "auth.refresh_tokens"
+  """
 update_authRefreshTokens_many(updates: [authRefreshTokens_updates!]!): [authRefreshTokens_mutation_response]
-  """update multiples rows of table: "auth.roles""""
+  """update multiples rows of table: "auth.roles"
+  """
 update_authRoles_many(updates: [authRoles_updates!]!): [authRoles_mutation_response]
-  """update multiples rows of table: "auth.user_providers""""
+  """update multiples rows of table: "auth.user_providers"
+  """
 update_authUserProviders_many(updates: [authUserProviders_updates!]!): [authUserProviders_mutation_response]
-  """update multiples rows of table: "auth.user_roles""""
+  """update multiples rows of table: "auth.user_roles"
+  """
 update_authUserRoles_many(updates: [authUserRoles_updates!]!): [authUserRoles_mutation_response]
-  """update multiples rows of table: "auth.user_security_keys""""
+  """update multiples rows of table: "auth.user_security_keys"
+  """
 update_authUserSecurityKeys_many(updates: [authUserSecurityKeys_updates!]!): [authUserSecurityKeys_mutation_response]
-  """update data of the table: "auth.migrations""""
+  """update data of the table: "auth.migrations"
+  """
 update_auth_migrations(_inc: auth_migrations_inc_input, _set: auth_migrations_set_input, where: auth_migrations_bool_exp!): auth_migrations_mutation_response
-  """update single row of the table: "auth.migrations""""
+  """update single row of the table: "auth.migrations"
+  """
 update_auth_migrations_by_pk(_inc: auth_migrations_inc_input, _set: auth_migrations_set_input, pk_columns: auth_migrations_pk_columns_input!): auth_migrations
-  """update multiples rows of table: "auth.migrations""""
+  """update multiples rows of table: "auth.migrations"
+  """
 update_auth_migrations_many(updates: [auth_migrations_updates!]!): [auth_migrations_mutation_response]
-  """update multiples rows of table: "backups""""
+  """update multiples rows of table: "backups"
+  """
 update_backups_many(updates: [backups_updates!]!): [backups_mutation_response]
-  """update multiples rows of table: "billing.dedicated_compute""""
+  """update multiples rows of table: "billing.dedicated_compute"
+  """
 update_billing_dedicated_compute_many(updates: [billing_dedicated_compute_updates!]!): [billing_dedicated_compute_mutation_response]
-  """update data of the table: "billing.report_resource_type""""
+  """update data of the table: "billing.report_resource_type"
+  """
 update_billing_report_resource_type(_set: billing_report_resource_type_set_input, where: billing_report_resource_type_bool_exp!): billing_report_resource_type_mutation_response
-  """update single row of the table: "billing.report_resource_type""""
+  """update single row of the table: "billing.report_resource_type"
+  """
 update_billing_report_resource_type_by_pk(_set: billing_report_resource_type_set_input, pk_columns: billing_report_resource_type_pk_columns_input!): billing_report_resource_type
-  """update multiples rows of table: "billing.report_resource_type""""
+  """update multiples rows of table: "billing.report_resource_type"
+  """
 update_billing_report_resource_type_many(updates: [billing_report_resource_type_updates!]!): [billing_report_resource_type_mutation_response]
-  """update data of the table: "billing.report_type""""
+  """update data of the table: "billing.report_type"
+  """
 update_billing_report_type(_set: billing_report_type_set_input, where: billing_report_type_bool_exp!): billing_report_type_mutation_response
-  """update single row of the table: "billing.report_type""""
+  """update single row of the table: "billing.report_type"
+  """
 update_billing_report_type_by_pk(_set: billing_report_type_set_input, pk_columns: billing_report_type_pk_columns_input!): billing_report_type
-  """update multiples rows of table: "billing.report_type""""
+  """update multiples rows of table: "billing.report_type"
+  """
 update_billing_report_type_many(updates: [billing_report_type_updates!]!): [billing_report_type_mutation_response]
-  """update data of the table: "billing.reports_resources""""
+  """update data of the table: "billing.reports_resources"
+  """
 update_billing_reports_resources(_inc: billing_reports_resources_inc_input, _set: billing_reports_resources_set_input, where: billing_reports_resources_bool_exp!): billing_reports_resources_mutation_response
-  """update single row of the table: "billing.reports_resources""""
+  """update single row of the table: "billing.reports_resources"
+  """
 update_billing_reports_resources_by_pk(_inc: billing_reports_resources_inc_input, _set: billing_reports_resources_set_input, pk_columns: billing_reports_resources_pk_columns_input!): billing_reports_resources
-  """update multiples rows of table: "billing.reports_resources""""
+  """update multiples rows of table: "billing.reports_resources"
+  """
 update_billing_reports_resources_many(updates: [billing_reports_resources_updates!]!): [billing_reports_resources_mutation_response]
-  """update data of the table: "billing.subscription_items""""
+  """update data of the table: "billing.subscription_items"
+  """
 update_billing_subscription_items(_set: billing_subscription_items_set_input, where: billing_subscription_items_bool_exp!): billing_subscription_items_mutation_response
-  """update single row of the table: "billing.subscription_items""""
+  """update single row of the table: "billing.subscription_items"
+  """
 update_billing_subscription_items_by_pk(_set: billing_subscription_items_set_input, pk_columns: billing_subscription_items_pk_columns_input!): billing_subscription_items
-  """update multiples rows of table: "billing.subscription_items""""
+  """update multiples rows of table: "billing.subscription_items"
+  """
 update_billing_subscription_items_many(updates: [billing_subscription_items_updates!]!): [billing_subscription_items_mutation_response]
-  """update multiples rows of table: "storage.buckets""""
+  """update multiples rows of table: "storage.buckets"
+  """
 update_buckets_many(updates: [buckets_updates!]!): [buckets_mutation_response]
-  """update multiples rows of table: "cli_tokens""""
+  """update multiples rows of table: "cli_tokens"
+  """
 update_cliTokens_many(updates: [cliTokens_updates!]!): [cliTokens_mutation_response]
-  """update data of the table: "continents""""
+  """update data of the table: "continents"
+  """
 update_continents(_set: continents_set_input, where: continents_bool_exp!): continents_mutation_response
-  """update single row of the table: "continents""""
+  """update single row of the table: "continents"
+  """
 update_continents_by_pk(_set: continents_set_input, pk_columns: continents_pk_columns_input!): continents
-  """update multiples rows of table: "continents""""
+  """update multiples rows of table: "continents"
+  """
 update_continents_many(updates: [continents_updates!]!): [continents_mutation_response]
-  """update data of the table: "countries""""
+  """update data of the table: "countries"
+  """
 update_countries(_inc: countries_inc_input, _set: countries_set_input, where: countries_bool_exp!): countries_mutation_response
-  """update single row of the table: "countries""""
+  """update single row of the table: "countries"
+  """
 update_countries_by_pk(_inc: countries_inc_input, _set: countries_set_input, pk_columns: countries_pk_columns_input!): countries
-  """update multiples rows of table: "countries""""
+  """update multiples rows of table: "countries"
+  """
 update_countries_many(updates: [countries_updates!]!): [countries_mutation_response]
-  """update multiples rows of table: "deployment_logs""""
+  """update multiples rows of table: "deployment_logs"
+  """
 update_deploymentLogs_many(updates: [deploymentLogs_updates!]!): [deploymentLogs_mutation_response]
-  """update multiples rows of table: "deployments""""
+  """update multiples rows of table: "deployments"
+  """
 update_deployments_many(updates: [deployments_updates!]!): [deployments_mutation_response]
-  """update multiples rows of table: "feature_flags""""
+  """update multiples rows of table: "feature_flags"
+  """
 update_featureFlags_many(updates: [featureFlags_updates!]!): [featureFlags_mutation_response]
-  """update multiples rows of table: "storage.files""""
+  """update multiples rows of table: "storage.files"
+  """
 update_files_many(updates: [files_updates!]!): [files_mutation_response]
-  """update multiples rows of table: "github_app_installations""""
+  """update multiples rows of table: "github_app_installations"
+  """
 update_githubAppInstallations_many(updates: [githubAppInstallations_updates!]!): [githubAppInstallations_mutation_response]
-  """update multiples rows of table: "github_repositories""""
+  """update multiples rows of table: "github_repositories"
+  """
 update_githubRepositories_many(updates: [githubRepositories_updates!]!): [githubRepositories_mutation_response]
-  """update multiples rows of table: "billing.subscriptions""""
+  """update multiples rows of table: "billing.subscriptions"
+  """
 update_many_billing_subscriptions(updates: [billing_subscriptions_updates!]!): [billing_subscriptions_mutation_response]
-  """update data of the table: "organization_costs_thresholds""""
+  """update data of the table: "organization_costs_thresholds"
+  """
 update_organization_costs_thresholds(_set: organization_costs_thresholds_set_input, where: organization_costs_thresholds_bool_exp!): organization_costs_thresholds_mutation_response
-  """update single row of the table: "organization_costs_thresholds""""
+  """update single row of the table: "organization_costs_thresholds"
+  """
 update_organization_costs_thresholds_by_pk(_set: organization_costs_thresholds_set_input, pk_columns: organization_costs_thresholds_pk_columns_input!): organization_costs_thresholds
-  """update multiples rows of table: "organization_costs_thresholds""""
+  """update multiples rows of table: "organization_costs_thresholds"
+  """
 update_organization_costs_thresholds_many(updates: [organization_costs_thresholds_updates!]!): [organization_costs_thresholds_mutation_response]
-  """update data of the table: "organization_members_role""""
+  """update data of the table: "organization_members_role"
+  """
 update_organization_members_role(_set: organization_members_role_set_input, where: organization_members_role_bool_exp!): organization_members_role_mutation_response
-  """update single row of the table: "organization_members_role""""
+  """update single row of the table: "organization_members_role"
+  """
 update_organization_members_role_by_pk(_set: organization_members_role_set_input, pk_columns: organization_members_role_pk_columns_input!): organization_members_role
-  """update multiples rows of table: "organization_members_role""""
+  """update multiples rows of table: "organization_members_role"
+  """
 update_organization_members_role_many(updates: [organization_members_role_updates!]!): [organization_members_role_mutation_response]
-  """update data of the table: "organization_status""""
+  """update data of the table: "organization_status"
+  """
 update_organization_status(_set: organization_status_set_input, where: organization_status_bool_exp!): organization_status_mutation_response
-  """update single row of the table: "organization_status""""
+  """update single row of the table: "organization_status"
+  """
 update_organization_status_by_pk(_set: organization_status_set_input, pk_columns: organization_status_pk_columns_input!): organization_status
-  """update multiples rows of table: "organization_status""""
+  """update multiples rows of table: "organization_status"
+  """
 update_organization_status_many(updates: [organization_status_updates!]!): [organization_status_mutation_response]
-  """update multiples rows of table: "payment_methods""""
+  """update multiples rows of table: "payment_methods"
+  """
 update_paymentMethods_many(updates: [paymentMethods_updates!]!): [paymentMethods_mutation_response]
-  """update multiples rows of table: "plans""""
+  """update multiples rows of table: "plans"
+  """
 update_plans_many(updates: [plans_updates!]!): [plans_mutation_response]
-  """update data of the table: "region_type""""
+  """update data of the table: "region_type"
+  """
 update_region_type(_set: region_type_set_input, where: region_type_bool_exp!): region_type_mutation_response
-  """update single row of the table: "region_type""""
+  """update single row of the table: "region_type"
+  """
 update_region_type_by_pk(_set: region_type_set_input, pk_columns: region_type_pk_columns_input!): region_type
-  """update multiples rows of table: "region_type""""
+  """update multiples rows of table: "region_type"
+  """
 update_region_type_many(updates: [region_type_updates!]!): [region_type_mutation_response]
-  """update data of the table: "regions""""
+  """update data of the table: "regions"
+  """
 update_regions(_set: regions_set_input, where: regions_bool_exp!): regions_mutation_response
-  """update multiples rows of table: "regions_allowed_workspace""""
+  """update multiples rows of table: "regions_allowed_workspace"
+  """
 update_regions_allowed_workspace_many(updates: [regions_allowed_workspace_updates!]!): [regions_allowed_workspace_mutation_response]
-  """update single row of the table: "regions""""
+  """update single row of the table: "regions"
+  """
 update_regions_by_pk(_set: regions_set_input, pk_columns: regions_pk_columns_input!): regions
-  """update multiples rows of table: "regions""""
+  """update multiples rows of table: "regions"
+  """
 update_regions_many(updates: [regions_updates!]!): [regions_mutation_response]
-  """update multiples rows of table: "run_service""""
+  """update multiples rows of table: "run_service"
+  """
 update_run_service_many(updates: [run_service_updates!]!): [run_service_mutation_response]
-  """update multiples rows of table: "auth.users""""
+  """update multiples rows of table: "auth.users"
+  """
 update_users_many(updates: [users_updates!]!): [users_mutation_response]
-  """update multiples rows of table: "storage.virus""""
+  """update multiples rows of table: "storage.virus"
+  """
 update_virus_many(updates: [virus_updates!]!): [virus_mutation_response]
-  """update multiples rows of table: "workspace_member_invites""""
+  """update multiples rows of table: "workspace_member_invites"
+  """
 update_workspaceMemberInvites_many(updates: [workspaceMemberInvites_updates!]!): [workspaceMemberInvites_mutation_response]
-  """update multiples rows of table: "workspace_members""""
+  """update multiples rows of table: "workspace_members"
+  """
 update_workspaceMembers_many(updates: [workspaceMembers_updates!]!): [workspaceMembers_mutation_response]
-  """update multiples rows of table: "workspaces""""
+  """update multiples rows of table: "workspaces"
+  """
 update_workspaces_many(updates: [workspaces_updates!]!): [workspaces_mutation_response]
 }
 

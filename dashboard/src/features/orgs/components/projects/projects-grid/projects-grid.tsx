@@ -65,7 +65,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-accent-background">
+    <div className="mx-auto h-full overflow-auto bg-background">
       <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b bg-background p-2">
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>

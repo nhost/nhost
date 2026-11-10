@@ -2,6 +2,7 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
 import {
   Tooltip,
   TooltipContent,
@@ -17,7 +18,7 @@ export default function EmailsFormSection() {
   });
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 px-6 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
           <h3 className="font-semibold">Email</h3>
@@ -34,7 +35,7 @@ export default function EmailsFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add email"
           onClick={() => append({ email: '' })}
@@ -46,7 +47,7 @@ export default function EmailsFormSection() {
       {fields?.length > 0 ? (
         <div className="flex flex-col gap-6">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex w-full items-center gap-2">
+            <div key={field.id} className="flex w-full items-start gap-2">
               <FormInput
                 control={control}
                 name={`emails.${index}.email`}
@@ -55,14 +56,22 @@ export default function EmailsFormSection() {
                 containerClassName="w-full"
                 autoComplete="off"
               />
-              <Button
-                variant="ghost"
-                className="h-10 self-end text-destructive hover:text-destructive"
-                aria-label="Remove email"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-6 w-4" />
-              </Button>
+              <div className="space-y-2">
+                <Label aria-hidden="true" className="invisible">
+                  {'\u00A0'}
+                </Label>
+                <div className="flex">
+                  <Button
+                    variant="subtle"
+                    size="icon"
+                    className="h-10"
+                    aria-label="Remove email"
+                    onClick={() => remove(index)}
+                  >
+                    <TrashIcon className="h-6 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

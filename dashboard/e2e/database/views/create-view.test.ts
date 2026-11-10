@@ -32,7 +32,9 @@ test('should create a view and display its definition', async ({
   await page.getByRole('link', { name: viewName, exact: true }).click();
 
   await page
-    .locator(`li:has-text("${viewName}") #view-management-menu-${viewName}`)
+    .locator(
+      `li:has-text("${viewName}") [data-testid="view-management-menu-${viewName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit view/i }).click();
@@ -70,7 +72,7 @@ test('should create a materialized view and display its definition', async ({
 
   await page
     .locator(
-      `li:has-text("${matViewName}") #view-management-menu-${matViewName}`,
+      `li:has-text("${matViewName}") [data-testid="view-management-menu-${matViewName}"]`,
     )
     .click();
 

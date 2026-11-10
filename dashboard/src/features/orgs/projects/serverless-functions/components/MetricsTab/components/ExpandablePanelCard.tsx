@@ -22,7 +22,7 @@ export default function ExpandablePanelCard({
 }: ExpandablePanelCardProps) {
   const canExpand = expandable && !!slug && !!onExpand;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm">
+    <div className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-h-10 space-y-1">
           <h3 className="font-medium text-foreground text-sm">{title}</h3>
@@ -33,9 +33,9 @@ export default function ExpandablePanelCard({
         {canExpand ? (
           <Button
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
-            className="-mt-1 h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+            className="-mt-1 h-7 w-7 shrink-0"
             onClick={() => onExpand(slug)}
             aria-label={`Expand ${title}`}
           >

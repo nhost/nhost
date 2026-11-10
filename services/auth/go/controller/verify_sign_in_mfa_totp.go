@@ -12,8 +12,8 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 ) (api.VerifySignInMfaTotpResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	if !ctrl.config.MfaEnabled {
-		logger.WarnContext(ctx, "mfa disabled")
+	if !ctrl.config.TOTPEnabled {
+		logger.WarnContext(ctx, "totp disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -22,8 +22,8 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if user.ActiveMfaType.String != string(api.Totp) {
-		logger.WarnContext(ctx, "user does not have totp mfa enabled")
+	if user.ActiveMfaType.String != string(api.UserMfaRequestActiveMfaTypeTotp) {
+		logger.WarnContext(ctx, "user does not have totp enabled")
 		return ctrl.sendError(ErrDisabledMfaTotp), nil
 	}
 

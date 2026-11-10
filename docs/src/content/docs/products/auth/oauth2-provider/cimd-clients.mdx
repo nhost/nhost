@@ -18,13 +18,13 @@ Client ID Metadata Document (CIMD) clients use a **URL as their client ID** inst
 
 CIMD is for scenarios where:
 
-- The third-party app cannot pre-register a client (e.g. an MCP tool connecting to many different auth providers)
+- The third-party app cannot [pre-register a client](/products/auth/oauth2-provider/managing-clients) (e.g. an MCP tool connecting to many different auth providers)
 - You want to support dynamic clients without manual registration
 - The tool follows RFC 9728 for client metadata discovery
 
 ## Enabling CIMD
 
-CIMD must be explicitly enabled. Go to your project's dashboard, then **Settings** → **OAuth2 Provider** and toggle **Client ID Metadata Document**, or add it to your `nhost.toml`:
+CIMD must be explicitly enabled. Go to your project's dashboard, then **Auth** → **Settings** → **OAuth2 Provider** and toggle **Client ID Metadata Document**, or add it to your `nhost.toml`:
 
 <Tabs>
 <TabItem label="Dashboard">

@@ -40,7 +40,7 @@ export const sessionRefreshMiddleware = (
   return (next: FetchFunction): FetchFunction =>
     async (url: string, options: RequestInit = {}): Promise<Response> => {
       // Skip token handling for certain requests
-      if (shouldSkipTokenHandling(url, options)) {
+      if (shouldSkipTokenHandling(url, options, `${auth.baseURL}/token`)) {
         return next(url, options);
       }
 
@@ -58,9 +58,14 @@ export const sessionRefreshMiddleware = (
  *
  * @param url - Request URL
  * @param options - Request options
+ * @param refreshTokenUrl - URL the auth client uses to refresh the session
  * @returns True if token handling should be skipped, false otherwise
  */
-function shouldSkipTokenHandling(url: string, options: RequestInit): boolean {
+function shouldSkipTokenHandling(
+  url: string,
+  options: RequestInit,
+  refreshTokenUrl: string,
+): boolean {
   const headers = new Headers(options.headers || {});
 
   // If Authorization header is explicitly set, skip token handling
@@ -69,7 +74,7 @@ function shouldSkipTokenHandling(url: string, options: RequestInit): boolean {
   }
 
   // If calling the token endpoint, skip to avoid infinite loops
-  if (url.endsWith('/v1/token')) {
+  if (url === refreshTokenUrl) {
     return true;
   }
 

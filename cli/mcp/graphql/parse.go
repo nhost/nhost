@@ -369,6 +369,20 @@ func renderArgs(
 	return "(" + strings.Join(argStrings, ", ") + ")"
 }
 
+// renderDescription renders description as a GraphQL block string. Triple
+// quotes inside it are escaped, and when it ends in a quote or a backslash the
+// closing delimiter goes on its own line so the two cannot merge into a longer
+// quote run or an escape. Block string values drop trailing blank lines, so
+// the parsed description is unchanged.
+func renderDescription(description string) string {
+	escaped := strings.ReplaceAll(description, `"""`, `\"""`)
+	if strings.HasSuffix(escaped, `"`) || strings.HasSuffix(escaped, `\`) {
+		escaped += "\n  "
+	}
+
+	return `"""` + escaped + `"""`
+}
+
 func renderFields(
 	fields []Field, neededTypes map[string]Type,
 ) string {
@@ -387,7 +401,7 @@ func renderFields(
 
 		fieldStr += ": " + getTypeName(field.Type)
 		if field.Description != nil {
-			fieldStr = `"""` + *field.Description + `"""` + "\n" + fieldStr
+			fieldStr = renderDescription(*field.Description) + "\n" + fieldStr
 		}
 
 		fieldStrings = append(fieldStrings, fieldStr)
@@ -413,7 +427,7 @@ func renderInputFields(
 		}
 
 		if field.Description != nil {
-			fieldStr = `"""` + *field.Description + `"""` + "\n  " + fieldStr
+			fieldStr = renderDescription(*field.Description) + "\n  " + fieldStr
 		}
 
 		fieldStrings = append(fieldStrings, fieldStr)

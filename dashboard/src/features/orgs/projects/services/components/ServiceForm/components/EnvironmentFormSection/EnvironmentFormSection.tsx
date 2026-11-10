@@ -43,7 +43,7 @@ export default function EnvironmentFormSection() {
           </Tooltip>
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add environment variable"
           onClick={() => append({ name: '', value: '' })}
@@ -94,9 +94,8 @@ export default function EnvironmentFormSection() {
                 </div>
               </div>
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="text-destructive hover:text-destructive"
                 aria-label="Remove environment variable"
                 onClick={() => remove(index)}
               >

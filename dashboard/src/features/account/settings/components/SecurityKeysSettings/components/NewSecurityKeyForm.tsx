@@ -41,11 +41,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          variant="outline"
-          className="w-full border-primary-main bg-primary-highlight text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-        >
+        <Button type="submit" className="mt-8 justify-self-end">
           Add new security key
         </Button>
       </form>

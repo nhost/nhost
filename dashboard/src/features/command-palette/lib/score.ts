@@ -231,7 +231,12 @@ export const scoreNode = (query: string, node: CommandNode): ScoreResult => {
   // normalized string, which only lines up with the raw title because titles
   // carry no leading whitespace.
   const title = normalize(node.title);
-  const keywords = (node.keywords ?? []).map(normalize);
+  // Rows render as "Area › Title", so a query may span both; the qualified
+  // label competes like a keyword and never drives title highlighting.
+  const qualifiedTitle = node.breadcrumb?.length
+    ? [[...node.breadcrumb, node.title].join(' ')]
+    : [];
+  const keywords = [...(node.keywords ?? []), ...qualifiedTitle].map(normalize);
 
   for (const matcher of bandMatchers) {
     const titleRanges = matcher.getRanges(title, normalizedQuery, tokens);

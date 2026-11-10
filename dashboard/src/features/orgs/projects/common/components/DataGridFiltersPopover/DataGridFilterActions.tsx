@@ -39,7 +39,7 @@ function DataGridFilterActions({ isFetching }: DataGridFilterActionsProps) {
         <Button variant="outline" size="sm" onClick={handleAddFilter}>
           Add filter
         </Button>
-        <Button variant="secondary" size="sm" onClick={handleClearAllFilters}>
+        <Button variant="outline" size="sm" onClick={handleClearAllFilters}>
           Clear filters
         </Button>
       </ButtonGroup>

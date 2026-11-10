@@ -41,7 +41,7 @@ export default function Bucket() {
     return (
       <div className="grid w-full place-content-center gap-2 px-4 py-16 text-center">
         <FolderX className="mx-auto h-[72px] w-[72px] text-muted-foreground" />
-        <h1 className="!leading-6 font-inter-var font-medium text-[1.125rem]">
+        <h1 className="!leading-6 font-medium text-[1.125rem]">
           Bucket not found
         </h1>
         <p>

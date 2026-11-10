@@ -114,6 +114,9 @@ func (r *Router) FindRoute(req *http.Request) (*routers.Route, map[string]string
 			route := *r.routes[i]
 			route.Method = req.Method
 			route.Operation = route.Spec.Paths.Value(route.Path).GetOperation(route.Method)
+			if route.Operation == nil {
+				return nil, nil, routers.ErrMethodNotAllowed
+			}
 			return &route, vars, nil
 		}
 		switch match.MatchErr {

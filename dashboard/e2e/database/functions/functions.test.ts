@@ -55,7 +55,7 @@ test.describe
 
       await page
         .locator(
-          `li:has-text("${functionName}") #function-management-menu-${functionName}`,
+          `li:has-text("${functionName}") [data-testid="function-management-menu-${functionName}"]`,
         )
         .click();
 

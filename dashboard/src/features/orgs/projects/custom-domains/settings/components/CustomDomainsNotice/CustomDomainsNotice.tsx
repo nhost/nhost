@@ -1,0 +1,30 @@
+import {
+  SettingsCard,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { useHasCustomDomain } from '@/features/orgs/projects/custom-domains/settings/hooks/useHasCustomDomain';
+
+/**
+ * The flat fee is charged once per project, so the pitch only shows while
+ * the project has no custom domain on any service.
+ */
+export default function CustomDomainsNotice() {
+  const { hasCustomDomain, loading } = useHasCustomDomain();
+
+  if (loading || hasCustomDomain) {
+    return null;
+  }
+
+  return (
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Custom Domains"
+        description="Add a custom domain to your project for only a $10 flat fee 🚀"
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/custom-domains',
+          topic: 'Custom Domains',
+        }}
+      />
+    </SettingsCard>
+  );
+}

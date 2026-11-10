@@ -99,10 +99,14 @@ jobs:
         include:
           - suite: main
             nix-attr: dashboard-e2e-staging-main
+            runner-size: "2c4g"
           - suite: onboarding
             nix-attr: dashboard-e2e-staging-onboarding
+            runner-size: "2c4g"
           - suite: local
             nix-attr: dashboard-e2e-staging-local
+            # Runs the local Nhost container stack alongside the browser.
+            runner-size: "4c8g"
             needs-cli: true
 
     defaults:
@@ -111,8 +115,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: write
-      actions: read
+      contents: read
 
     steps:
       - name: "Check out repository"
@@ -120,11 +123,6 @@ jobs:
         with:
           ref: ${{ inputs.GIT_REF }}
           allow-unsafe-pr-checkout: true
-
-      - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@v2
-        with:
-          comment_on_pr: false
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
@@ -147,6 +145,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          nix path-info --derivation --impure ".#${{ matrix.nix-attr }}" \
+            >> "$NIX_CACHE_ROOTS"
           stderr_log="$(mktemp)"
           if ! nix build --dry-run ".#${{ matrix.nix-attr }}" 2>"$stderr_log"; then
             cat "$stderr_log" >&2
@@ -246,6 +246,7 @@ jobs:
         uses: ./.github/actions/cache-nix
         if: ${{ always() && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

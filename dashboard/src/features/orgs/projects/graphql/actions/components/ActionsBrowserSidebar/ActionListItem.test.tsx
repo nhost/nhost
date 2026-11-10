@@ -98,14 +98,14 @@ describe('ActionListItem', () => {
       'href',
       '/orgs/xyz/projects/test-project/graphql/actions/login',
     );
-    expect(screen.getByRole('link')).toHaveClass('text-primary-main');
+    expect(screen.getByRole('link')).toHaveClass('text-primary');
   });
 
   it('does not highlight when a different action is selected', () => {
     mockRouter('getProfile');
     renderItem();
 
-    expect(screen.getByRole('link')).not.toHaveClass('text-primary-main');
+    expect(screen.getByRole('link')).not.toHaveClass('text-primary');
   });
 
   it('opens the edit drawer from the dropdown menu', async () => {

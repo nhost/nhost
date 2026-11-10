@@ -14,6 +14,8 @@
 //
 // OpenAPI 3.2 Features:
 //   - Media Type Object itemSchema for streaming sequential media types
+//   - Path Item Object query field for the HTTP QUERY method
+//   - Path Item Object additionalOperations for custom HTTP methods
 //
 // The implementation maintains 100% backward compatibility with OpenAPI 3.0.
 //

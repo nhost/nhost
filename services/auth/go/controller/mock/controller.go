@@ -740,21 +740,6 @@ func (mr *MockDBClientMockRecorder) ConsumePKCEAuthorizationCode(ctx, arg any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).ConsumePKCEAuthorizationCode), ctx, arg)
 }
 
-// CountSecurityKeysUser mocks base method.
-func (m *MockDBClient) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountSecurityKeysUser", ctx, userID)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountSecurityKeysUser indicates an expected call of CountSecurityKeysUser.
-func (mr *MockDBClientMockRecorder) CountSecurityKeysUser(ctx, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSecurityKeysUser", reflect.TypeOf((*MockDBClient)(nil).CountSecurityKeysUser), ctx, userID)
-}
-
 // DeleteExpiredOAuth2AuthRequests mocks base method.
 func (m *MockDBClient) DeleteExpiredOAuth2AuthRequests(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -922,6 +907,21 @@ func (m *MockDBClient) FindUserProviderByProviderId(ctx context.Context, arg sql
 func (mr *MockDBClientMockRecorder) FindUserProviderByProviderId(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserProviderByProviderId", reflect.TypeOf((*MockDBClient)(nil).FindUserProviderByProviderId), ctx, arg)
+}
+
+// GetElevationMethods mocks base method.
+func (m *MockDBClient) GetElevationMethods(ctx context.Context, id uuid.UUID) (sql.GetElevationMethodsRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetElevationMethods", ctx, id)
+	ret0, _ := ret[0].(sql.GetElevationMethodsRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetElevationMethods indicates an expected call of GetElevationMethods.
+func (mr *MockDBClientMockRecorder) GetElevationMethods(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetElevationMethods", reflect.TypeOf((*MockDBClient)(nil).GetElevationMethods), ctx, id)
 }
 
 // GetOAuth2AuthRequest mocks base method.

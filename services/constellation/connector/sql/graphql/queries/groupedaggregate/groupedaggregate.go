@@ -1,8 +1,7 @@
-// Package groupedaggregate exposes the side-channel SQL builder for
-// cross-database aggregate relationships. It deliberately lives outside the
-// queries package's Roots.BuildQuery dispatch because grouped aggregates are
-// not user-facing GraphQL operations — they are batched fetches initiated by
-// the cross-connector resolver.
+// Package groupedaggregate exposes the side-channel SQL builder for batched
+// cross-database aggregate and remote-array relationship fetches. It lives
+// outside the queries package's Roots.BuildQuery dispatch because these
+// fetches are initiated by the cross-connector resolver, not GraphQL roots.
 package groupedaggregate
 
 import (
@@ -15,18 +14,18 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
-// ErrTableNotRegistered is returned by Ops.BuildGroupedAggregateSQL when the
-// requested schema.table has no registered Builder.
+// ErrTableNotRegistered is returned when a grouped build requests a table
+// without a registered Builder.
 var ErrTableNotRegistered = errors.New("table not registered for grouped aggregate builds")
 
 // ResultJoinKeyField is the internal JSON field used to carry each grouped
-// aggregate row's join key from the SQL builder to the SQL connector parser.
+// result's join key from the SQL builder to the SQL connector parser.
 // It is reserved for this transport contract and must not be emitted as a
 // GraphQL response field.
 const ResultJoinKeyField = "_join_key"
 
-// BuildInput bundles the inputs to a grouped-aggregate SQL build. The
-// dispatcher and the per-table Builder both take this single value so callers
+// BuildInput bundles the inputs to a grouped SQL build. The dispatcher and
+// the per-table Builder both take this single value so callers
 // initialise fields by name; this prevents silent argument swaps among the
 // same-typed fields (two map[string]any, three string) that the previous
 // positional signature exposed.
@@ -64,11 +63,18 @@ type BuildInput struct {
 	// JoinValues are the distinct join keys to filter on; the build returns
 	// one aggregate row per value (empty groups included).
 	JoinValues []any
+	// JoinColumns and JoinTuples transport collection keys in source-column
+	// order. Each JoinColumns entry is a target GraphQL field name (SQL names
+	// are accepted as a fallback); each tuple has one value per target column.
+	// Collection builds resolve JoinColumnSQLName the same way when JoinColumns
+	// is empty. Grouped-aggregate builds still require a SQL name there.
+	JoinColumns []string
+	JoinTuples  [][]any
 }
 
-// Builder builds a grouped-aggregate SQL statement for a single target table.
-// The parent connector/sql/graphql/queries package declares a compile-time
-// assertion that its *table type satisfies this interface.
+// Builder builds grouped-aggregate and grouped-collection SQL for one target
+// table. The parent connector/sql/graphql/queries package declares a
+// compile-time assertion that its *table type satisfies this interface.
 //
 // Builder implementations must be safe for concurrent use; Ops calls into
 // them from multiple goroutines without serialisation (see Ops godoc).
@@ -76,10 +82,14 @@ type BuildInput struct {
 //go:generate mockgen -package mock -destination mock/builder.go . Builder
 type Builder interface {
 	BuildGroupedAggregateSQL(in BuildInput) (core.SQLOperation, error)
+	BuildGroupedCollectionSQL(
+		in BuildInput,
+		roots map[string]core.Operation,
+	) (core.SQLOperation, error)
 }
 
-// Ops dispatches grouped-aggregate SQL builds to the per-table Builder for
-// the requested schema.table.
+// Ops dispatches grouped-aggregate and grouped-collection SQL builds to the
+// per-table Builder for the requested schema.table.
 //
 // Ops is safe for concurrent use after New returns: the builder map is frozen
 // at construction (see New) and post-construction the map is only read.
@@ -96,6 +106,35 @@ type Ops struct {
 // internal state of an implementor after New returns are visible to dispatch.
 func New(builders map[string]Builder) *Ops {
 	return &Ops{builders: maps.Clone(builders)}
+}
+
+// BuildGroupedCollectionSQL uses the registered table builder for a bounded,
+// per-key remote array fetch. roots is the connector's query-root registry for
+// nested relationships; the request role comes from in.Role.
+func (o *Ops) BuildGroupedCollectionSQL(
+	in BuildInput, roots map[string]core.Operation,
+) (core.SQLOperation, error) {
+	builder, ok := o.builders[in.TableSchema+"."+in.TableName]
+	if !ok {
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: %s.%s",
+			ErrTableNotRegistered,
+			in.TableSchema,
+			in.TableName,
+		)
+	}
+
+	op, err := builder.BuildGroupedCollectionSQL(in, roots)
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf(
+			"grouped collection build for %s.%s: %w",
+			in.TableSchema,
+			in.TableName,
+			err,
+		)
+	}
+
+	return op, nil
 }
 
 // BuildGroupedAggregateSQL builds a grouped aggregate SQL operation for the

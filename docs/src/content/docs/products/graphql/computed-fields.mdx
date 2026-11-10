@@ -62,7 +62,7 @@ $$;
 
 ### Per-user state
 
-Read a session variable for per-user state, bound with the **Session Argument** setting. The function below reports whether the current session's user has liked the post.
+Read a [session variable](/products/graphql/permissions/permission-variables) for per-user state, bound with the **Session Argument** setting. The function below reports whether the current session's user has liked the post.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.post_is_liked_by_me(

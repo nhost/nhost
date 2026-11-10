@@ -39,7 +39,7 @@ export default function DataGridHeaderButton<
         role="columnheader"
         variant="ghost"
         className={cn(
-          'h-fit w-full rounded-none p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
+          'h-fit w-full rounded-none p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-accent',
         )}
         disabled={!canSort}
         onClick={column.getToggleSortingHandler()}
@@ -62,7 +62,7 @@ export default function DataGridHeaderButton<
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
           onClick={(event) => event.stopPropagation()}
-          className="absolute top-0 -right-0.5 bottom-0 z-10 h-full w-2 cursor-col-resize rounded-none group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
+          className="absolute top-0 -right-0.5 bottom-0 z-10 h-full w-2 cursor-col-resize rounded-none group-hover:bg-border group-active:bg-border motion-safe:transition-colors"
         />
       )}
     </div>

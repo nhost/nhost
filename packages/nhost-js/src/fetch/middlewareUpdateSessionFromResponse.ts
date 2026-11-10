@@ -76,12 +76,20 @@ export const updateSessionFromResponseMiddleware = (
           return response;
         }
 
-        // Check if this is an auth-related endpoint that might return session data
+        // Check if this is an auth-related endpoint that might return session data.
+        // The `/elevate/` endpoints (`/elevate/totp`, `/elevate/webauthn/verify`,
+        // `/elevate/otp/email/verify` and `/elevate/otp/sms/verify`) return a new
+        // session carrying the elevated claim; persisting it is what lets a following
+        // sensitive call (e.g. changing the password) be sent with the elevated token.
+        // `/elevate/webauthn` only returns a challenge and `/elevate/otp/email` and
+        // `/elevate/otp/sms` only an OK, so the extractor below finds no session for
+        // them and nothing is stored.
         if (
           url.endsWith('/token') ||
           url.includes('/token/exchange') ||
           url.includes('/signin/') ||
-          url.includes('/signup/')
+          url.includes('/signup/') ||
+          url.includes('/elevate/')
         ) {
           // Clone the response to avoid consuming it
           const clonedResponse = response.clone();

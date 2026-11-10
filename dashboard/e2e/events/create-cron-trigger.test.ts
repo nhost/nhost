@@ -88,7 +88,7 @@ test('should create and delete a cron trigger with transforms', async ({
   await page.getByText('Request Options').click();
 
   await page.getByRole('button', { name: /add options transform/i }).click();
-  await page.getByLabel('PUT').click();
+  await page.getByRole('radio', { name: 'PUT' }).click();
   await page.getByPlaceholder(/url template/i).fill('/api/webhook');
 
   await page.getByRole('button', { name: /add payload transform/i }).click();

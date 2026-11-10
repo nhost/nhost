@@ -5,13 +5,15 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { AuthArea } from '@/features/orgs/projects/authentication/layout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import {
@@ -229,7 +231,7 @@ function UsersPageContent() {
         </Button>
       </div>
       {usersCount === 0 ? (
-        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-raised sm:px-48">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -239,7 +241,7 @@ function UsersPageContent() {
               All users for your project will be listed here.
             </p>
           </div>
-          <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
+          <div className="flex flex-row place-content-between rounded-lg lg:w-56">
             <Button className="w-full" onClick={openCreateUserDialog}>
               <PlusIcon className="mr-2 h-4 w-4" />
               Create User
@@ -307,5 +309,11 @@ function UsersPageContent() {
 }
 
 UsersPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <AuthArea>{page}</AuthArea>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

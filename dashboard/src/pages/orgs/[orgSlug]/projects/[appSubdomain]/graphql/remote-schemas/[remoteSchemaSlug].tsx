@@ -1,8 +1,10 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaDetails } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaDetails';
@@ -28,16 +30,17 @@ export default function RemoteSchemaDetailsPage() {
 
 RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <RemoteSchemaBrowserSidebar />
-
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <GraphQLArea>
+          <div className="flex h-full">
+            <RemoteSchemaBrowserSidebar />
+            <div className="flex w-full flex-auto flex-col overflow-x-hidden">
+              {page}
+            </div>
+          </div>
+        </GraphQLArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

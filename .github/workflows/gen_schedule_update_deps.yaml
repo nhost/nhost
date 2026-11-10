@@ -7,6 +7,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 240
 
     permissions:
       contents: write
@@ -28,7 +29,7 @@ jobs:
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
         with:
-          NAME: ${{ inputs.NAME }}
+          NAME: nixops
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
@@ -36,6 +37,14 @@ jobs:
 
       - name: Update nix flakes
         run: nix flake update
+
+      - name: Record updated development shell cache roots
+        run: |
+          nix flake archive --json --dry-run |
+            jq -r '.inputs | .. | .path? // empty' >> "$NIX_CACHE_ROOTS"
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#devShells.$system.default" \
+            >> "$NIX_CACHE_ROOTS"
 
       - name: Update dependencies
         run: |
@@ -63,11 +72,14 @@ jobs:
           draft: false
 
       - name: "Build dev shell"
-        run: nix build .\#devShells.x86_64-linux.default
+        run: |
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix build ".#devShells.$system.default"
 
       - name: "Cache nix store on R2"
         uses: ./.github/actions/cache-nix
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

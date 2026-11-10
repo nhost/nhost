@@ -114,7 +114,7 @@ function ActionsBrowserSidebarContent() {
           className={cn(
             '!text-sm+ flex rounded-none border text-foreground hover:bg-accent hover:no-underline',
             {
-              'bg-table-selected text-primary-main': asPath === customTypesHref,
+              'bg-table-selected text-primary': asPath === customTypesHref,
             },
           )}
         >

@@ -1,4 +1,4 @@
-import { Anchor, DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
+import { Anchor, DatabaseSearchIcon, Pencil, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -88,7 +88,7 @@ export default function NativeQueryListItem({
         iconTooltip="Native query"
         actions={[
           {
-            icon: <SquarePen className="size-4" />,
+            icon: <Pencil className="size-4" />,
             label: 'Edit native query',
             onSelect: handleEdit,
           },

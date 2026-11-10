@@ -50,24 +50,23 @@ export default function DiscardChangesDialog({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent
-        className="text-foreground"
+        className="p-12 text-foreground"
         onOpenAutoFocus={rememberFocus}
         onCloseAutoFocus={restoreFocus}
         onEscapeKeyDown={onEscapeKeyDown}
       >
         <AlertDialogHeader>
-          <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+          <AlertDialogTitle className="text-xl">
+            Unsaved changes
+          </AlertDialogTitle>
           <AlertDialogDescription>
             You have unsaved local changes. Are you sure you want to discard
             them?
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="mt-8">
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onDiscardChanges}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+          <AlertDialogAction onClick={onDiscardChanges} variant="destructive">
             Discard
           </AlertDialogAction>
         </AlertDialogFooter>

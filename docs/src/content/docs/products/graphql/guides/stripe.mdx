@@ -266,7 +266,7 @@ The `isAllowed` function receives:
 - **`stripeCustomerId`**: The Stripe customer ID being accessed
 - **`context`**: An object containing:
   - `isAdmin` — Whether the request has admin privileges
-  - `userClaims` — The decoded JWT claims (includes `x-hasura-user-id`, `x-hasura-default-role`, `x-hasura-allowed-roles`).
+  - `userClaims` — The decoded [JWT claims](/products/auth/jwt) (includes `x-hasura-user-id`, `x-hasura-default-role`, `x-hasura-allowed-roles`).
 
 The function is called for customer-scoped queries and mutations. Admin-only queries like `connectedAccounts` check `isAdmin` directly.
 

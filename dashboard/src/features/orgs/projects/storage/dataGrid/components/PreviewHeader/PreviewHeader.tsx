@@ -13,8 +13,8 @@ export default function PreviewHeader() {
       <div className="flex h-8 items-center justify-between px-3">
         Preview
         <Switch
-          className="h-[1.15rem] w-8 self-center"
-          thumbClassName="h-4 w-4 "
+          className="h-5 w-9 self-center"
+          thumbClassName="h-4 w-4"
           checked={previewEnabled}
           onCheckedChange={handleChange}
         />

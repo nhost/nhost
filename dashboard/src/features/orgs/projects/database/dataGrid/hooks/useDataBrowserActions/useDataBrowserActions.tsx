@@ -324,7 +324,7 @@ export function useDataBrowserActions({
           {typeLabel}
           <Badge
             variant="secondary"
-            className="bg-[#ebf3ff] text-primary dark:bg-[#1b2534]"
+            className="bg-primary-highlight text-primary"
           >
             Preview
           </Badge>

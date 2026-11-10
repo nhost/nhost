@@ -193,7 +193,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 			name: "mfa disabled",
 			config: func() *controller.Config {
 				c := getConfig()
-				c.MfaEnabled = false
+				c.TOTPEnabled = false
 
 				return c
 			},

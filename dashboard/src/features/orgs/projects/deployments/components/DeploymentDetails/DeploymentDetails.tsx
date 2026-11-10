@@ -25,6 +25,7 @@ import {
   useDeploymentLogs,
 } from '@/features/orgs/projects/deployments/hooks/useDeploymentLogs';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
+import { isCommitSHA } from '@/features/orgs/projects/deployments/utils/isCommitSHA';
 import {
   buildTaskGroups,
   formatTaskDuration,
@@ -185,10 +186,10 @@ function PipelineRunDetails({
   }, [taskGroups]);
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
       </div>
 
@@ -205,12 +206,17 @@ function PipelineRunDetails({
           <p className="text-muted-foreground text-xs">Commit</p>
           <div className="mt-0.5">
             <TextLink
-              className="font-medium font-mono text-sm"
+              className="inline-block max-w-full font-medium font-mono text-sm"
               target="_blank"
               rel="noopener noreferrer"
               href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
+              title={input?.commit_sha}
             >
-              {input?.commit_sha?.substring(0, 7)}
+              <span className="block truncate">
+                {isCommitSHA(input?.commit_sha)
+                  ? input.commit_sha.substring(0, 7)
+                  : input?.commit_sha}
+              </span>
             </TextLink>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -264,7 +270,7 @@ function PipelineRunDetails({
       </div>
 
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {logsLoading && taskGroups.length === 0 && (
             <span className="font-mono">Loading logs...</span>
           )}
@@ -342,10 +348,10 @@ function LegacyDeploymentDetailsView({
     : '';
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <div className="flex justify-between">
         <div>
-          <h1 className="font-medium text-2xl">Deployment Details</h1>
+          <h1 className="font-semibold text-2.5xl">Deployment Details</h1>
         </div>
         <div className="flex space-x-8">
           <div className="flex items-center space-x-2">
@@ -403,7 +409,7 @@ function LegacyDeploymentDetailsView({
         </div>
       </div>
       <div>
-        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
+        <div className="rounded-lg bg-console-background p-4 text-sm- text-white">
           {deployment.deploymentLogs.length === 0 && (
             <span className="font-mono">No message.</span>
           )}
@@ -430,7 +436,7 @@ function DeploymentDetails() {
 
   if (loading || legacyLoading) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
           <span className="text-muted-foreground text-xs">
             Loading deployment...
@@ -453,7 +459,7 @@ function DeploymentDetails() {
   }
 
   return (
-    <Container>
+    <Container className="pt-8 pb-8">
       <h1 className="font-semibold text-4xl">Not found</h1>
       <p className="text-disabled text-sm">This deployment does not exist.</p>
     </Container>
