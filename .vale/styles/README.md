@@ -303,11 +303,13 @@ vendored from the errata-ai Google package
 (<https://github.com/errata-ai/Google>), tag `v0.7.1`, commit `56b01fed25`,
 under the MIT licence in `Nhost/LICENSE.errata-ai-Google`. No `NhostBlog` rule
 is vendored. Each file keeps its upstream name, message and body; the changes
-are a header naming the source, the `level:` set to the tier above, the
-lookahead in `Ordinal.yml` and the false-positive guards in `OxfordComma.yml`,
-each commented in place. Vendored: `Exclamation`, `Ellipses`, `Spacing`,
-`Units`, `Ordinal`, `LyHyphens`, `OptionalPlurals`, `OxfordComma`, `Colons`,
-`Latin`, `Quotes`, `WordList`. Deliberately not vendored: `Headings`,
+are a header naming the source, the `level:` set to the tier above where it
+differs from upstream, the lookahead in `Ordinal.yml`, commented in place, and
+a one-line comment in `WordList.yml` pointing back here for `WordListCase`.
+The false-positive guards in `OxfordComma.yml` are upstream text, not a local
+change. Vendored: `Exclamation`, `Ellipses`, `Spacing`, `Units`, `Ordinal`,
+`LyHyphens`, `OptionalPlurals`, `OxfordComma`, `Colons`, `Latin`, `Quotes`,
+`WordList`. Deliberately not vendored: `Headings`,
 `HeadingPunctuation`, `We`, `Will`, `FirstPerson` and `WordListCase`, which
 contradict how the docs read, and `EmDash`, which is house style and has the
 Nhost rule `EmDash` instead. The rest of the package, `meta.json` and
