@@ -1,1 +1,2 @@
 .vale/tests/NhostBlog/DocsLinkPath/fail.mdx:3:21:NhostBlog.DocsLinkPath:'https://docs.nhost.io/storage' is not a docs section; docs pages live under getting-started, platform, products or reference.
+.vale/tests/NhostBlog/DocsLinkPath/fail.mdx:6:22:NhostBlog.DocsLinkPath:'https://docs.nhost.io/platformx' is not a docs section; docs pages live under getting-started, platform, products or reference.
