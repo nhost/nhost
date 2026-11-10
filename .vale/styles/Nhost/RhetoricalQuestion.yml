@@ -1,6 +1,11 @@
 # One-word questions used as transitions. Separate from LLMPhrasesStrict
-# because tokens ending in '?' need nonword. Left out on purpose: "what does
-# this mean?" and headings ending in '?'.
+# because tokens ending in '?' need nonword. The lookbehind anchors each
+# token to the start of a block (\A, because ^ also matches the start of
+# every hard-wrapped line) or to the whitespace after a sentence end, so an
+# ordinary question that happens to end in one ("what is the problem?")
+# passes. Emphasis reaches the rule as spaces and a closing quote or bracket
+# may follow the full stop, so both are allowed before a token. Left out on
+# purpose: "what does this mean?" and headings ending in '?'.
 extends: existence
 message: "Answer the question in a sentence instead of asking
   '%s'."
@@ -10,7 +15,9 @@ nonword: true
 # accept.txt terms would otherwise hide a match.
 vocab: false
 tokens:
-  - 'the (?:result|catch|best part|problem|fix|takeaway|upshot)\?'
-  - 'why does (?:this|that|it) matter\?'
-  - 'sound familiar\?'
-  - 'so what\?'
+  # YAML folds the line break into the space after 'the'.
+  - '(?<=\A\s*|[.!?:]["'')”’]*\s+)the
+    (?:result|catch|best part|problem|fix|takeaway|upshot)\?'
+  - '(?<=\A\s*|[.!?:]["'')”’]*\s+)why does (?:this|that|it) matter\?'
+  - '(?<=\A\s*|[.!?:]["'')”’]*\s+)sound familiar\?'
+  - '(?<=\A\s*|[.!?:]["'')”’]*\s+)so what\?'
