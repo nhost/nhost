@@ -20,6 +20,7 @@ import { useScheduleDeployment } from '@/features/orgs/projects/deployments/hook
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import CommitRef from './CommitRef';
 
 export interface DeploymentListItemProps {
@@ -40,6 +41,10 @@ export default function DeploymentListItem({
   const { schedule, scheduling } = useScheduleDeployment();
 
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
+  const isFailed =
+    deployment.status === 'failed' || deployment.status === 'FAILED';
+  const isSucceeded =
+    deployment.status === 'succeeded' || deployment.status === 'DEPLOYED';
   const relativeDateOfDeployment = deploymentDate
     ? formatDistanceToNowStrict(parseISO(deploymentDate), {
         addSuffix: true,
@@ -53,7 +58,12 @@ export default function DeploymentListItem({
   }
 
   return (
-    <li className="flex w-full list-none">
+    <li
+      className={cn(
+        'flex w-full list-none',
+        isFailed && 'border-l-2 border-l-destructive bg-destructive/5',
+      )}
+    >
       <NavLink
         variant="ghost"
         underline="none"
@@ -81,42 +91,43 @@ export default function DeploymentListItem({
               {relativeDateOfDeployment}
             </span>
           </div>
-        </div>
 
-        <div className="grid grid-flow-col items-center justify-end gap-2">
           {showRedeploy && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
+                    variant="subtle"
                     disabled={disableRedeploy || scheduling}
                     onClick={redeploy}
-                    className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"
                   >
-                    <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
-                    Redeploy
+                    <ArrowCounterclockwiseIcon />
                   </Button>
                 </span>
               </TooltipTrigger>
-              {disableRedeploy && (
-                <TooltipContent>
-                  Deployments cannot be re-triggered when a deployment is in
-                  progress.
-                </TooltipContent>
-              )}
+              <TooltipContent>
+                {disableRedeploy
+                  ? 'Deployments cannot be re-triggered when a deployment is in progress.'
+                  : 'Redeploy'}
+              </TooltipContent>
             </Tooltip>
+          )}
+        </div>
+
+        <div className="grid grid-flow-col items-center justify-end gap-2">
+          {isFailed && (
+            <div className="hidden justify-end sm:flex">
+              <Badge variant="error" className="h-6">
+                Failed
+              </Badge>
+            </div>
           )}
 
           {isLive && (
             <div className="hidden w-12 justify-end sm:flex">
-              <Badge
-                variant="outline"
-                className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-              >
+              <Badge variant="success" className="h-6">
                 Live
               </Badge>
             </div>
@@ -131,7 +142,14 @@ export default function DeploymentListItem({
             />
           </div>
 
-          <StatusCircle status={deployment.status as PipelineRunStatus} />
+          {/* Success is the normal case and a dot next to Live read like a
+              second live marker. Only other states get a dot; the spacer
+              keeps the columns aligned. */}
+          {isSucceeded ? (
+            <span aria-hidden className="w-1.5" />
+          ) : (
+            <StatusCircle status={deployment.status as PipelineRunStatus} />
+          )}
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>

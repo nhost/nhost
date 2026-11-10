@@ -1,6 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ChevronRightIcon, RocketIcon } from 'lucide-react';
-import { NavLink } from '@/components/common/NavLink';
+import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
@@ -23,22 +23,20 @@ function OverviewDeploymentsTopBar() {
     <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
       <h2 className="font-semibold text-lg">Deployments</h2>
 
-      <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
-        disabled={!isGitHubConnected}
-        variant="ghost"
-        className="text-primary"
-        underline="none"
-      >
-        View all
-        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
-      </NavLink>
+      {isGitHubConnected && (
+        <Link
+          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
+          className="inline-flex items-center gap-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+        >
+          View all
+          <ChevronRightIcon className="h-4 w-4" />
+        </Link>
+      )}
     </div>
   );
 }
 
 function OverviewDeploymentList() {
-  const { org } = useCurrentOrg();
   const { project } = useProject();
 
   const { data, loading } = useGetUnifiedDeploymentsSubSubscription({
@@ -61,7 +59,7 @@ function OverviewDeploymentList() {
 
   if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
-      <div className="h-[323px] rounded-lg border p-2">
+      <div className="h-80 rounded-lg border p-2">
         <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
           <span className="text-muted-foreground text-xs">
             Loading deployments...
@@ -77,31 +75,14 @@ function OverviewDeploymentList() {
 
   if (!deployments.length) {
     return (
-      <div className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border px-4 py-12 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10 text-foreground" />
-        <div className="grid grid-flow-row gap-2">
-          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
-          <p className="max-w-md text-center text-muted-foreground">
-            We&apos;ll deploy changes automatically when you push to the
-            deployment branch in your connected GitHub repository
-          </p>
-        </div>
-        <div className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg bg-muted px-2 py-2">
-          <div className="ml-2 grid grid-flow-col gap-1.5">
-            <GitHubIcon className="h-4 w-4 self-center" />
-            <span className="self-center font-normal">
-              {project?.githubRepository?.fullName}
-            </span>
-          </div>
-
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            variant="ghost"
-            className="text-primary"
-            underline="none"
-          >
-            Edit
-          </NavLink>
+      <div className="flex items-center gap-3 rounded-lg border px-4 py-5 shadow-sm">
+        <RocketIcon className="h-5 w-5 shrink-0" />
+        <div className="flex flex-1 flex-col gap-0.5">
+          <span className="font-medium">No deployments yet</span>
+          <span className="text-muted-foreground text-sm">
+            We&apos;ll deploy automatically when you push to your deployment
+            branch
+          </span>
         </div>
       </div>
     );
@@ -150,23 +131,17 @@ export default function OverviewDeployments() {
     <section className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <div className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border px-4 py-12 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10" />
-
-        <div className="grid grid-flow-row gap-1">
-          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
-          <p className="max-w-sm text-center text-muted-foreground">
-            Connect your project with a GitHub repository to create your first
-            deployment
-          </p>
+      <div className="flex flex-col gap-3 rounded-lg border px-4 py-5 shadow-sm sm:flex-row sm:items-center">
+        <div className="flex flex-1 flex-col gap-0.5">
+          <span className="font-medium">No deployments yet</span>
+          <span className="text-muted-foreground text-sm">
+            Connect a GitHub repository to deploy on every push
+          </span>
         </div>
-
-        <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-          <Button className="w-full" onClick={openGitHubModal}>
-            <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
-            Connect to GitHub
-          </Button>
-        </div>
+        <Button variant="outline" className="gap-2" onClick={openGitHubModal}>
+          <GitHubIcon />
+          Connect GitHub
+        </Button>
       </div>
     </section>
   );

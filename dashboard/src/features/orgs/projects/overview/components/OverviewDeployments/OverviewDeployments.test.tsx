@@ -97,7 +97,7 @@ test('should render an empty state when GitHub is not connected', async () => {
 
   expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
   expect(
-    await screen.findByRole('button', { name: /connect to github/i }),
+    await screen.findByRole('button', { name: /connect github/i }),
   ).toBeInTheDocument();
 });
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
@@ -137,11 +137,10 @@ test('should render an empty state when GitHub is connected, but there are no de
   ).toBeInTheDocument();
 
   expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
-  expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
-  expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
-    'href',
-    '/orgs/xyz/projects/test-project/deployments/settings',
-  );
+  expect(
+    await screen.findByText(/deploy automatically when you push/i),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole('link', { name: /edit/i })).not.toBeInTheDocument();
 });
 
 test('should render a list of deployments', async () => {

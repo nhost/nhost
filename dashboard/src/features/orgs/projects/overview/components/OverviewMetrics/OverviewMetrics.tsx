@@ -14,6 +14,13 @@ import { prettifySize } from '@/utils/prettifySize';
 
 const now = new Date();
 
+// Short units everywhere on the page ("0 B", not "0 Bytes").
+const sizeLabels = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+function formatSize(size: number) {
+  return prettifySize(size, { labels: sizeLabels });
+}
+
 export default function OverviewMetrics() {
   const { project } = useProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -31,6 +38,7 @@ export default function OverviewMetrics() {
   const dailyActiveUsers = data?.dailyActiveUsers?.aggregate?.count ?? 0;
   const monthlyActiveUsers = data?.monthlyActiveUsers?.aggregate?.count ?? 0;
   const totalStorage = data?.filesAggregate?.aggregate?.sum?.size ?? 0;
+  const totalFiles = data?.filesAggregate?.aggregate?.count ?? 0;
 
   const {
     data: {
@@ -48,9 +56,10 @@ export default function OverviewMetrics() {
 
   const {
     data: {
-      functionsDuration: { value: functionsDuration = 0 } = {},
+      functionInvocations: { value: functionInvocations = 0 } = {},
       totalRequests: { value: totalRequests = 0 } = {},
       postgresVolumeUsage: { value: postgresVolumeUsage = 0 } = {},
+      postgresVolumeCapacity: { value: postgresVolumeCapacity = 0 } = {},
       egressVolume: { value: egressVolume = 0 } = {},
     } = {},
     loading,
@@ -64,55 +73,58 @@ export default function OverviewMetrics() {
     skip: !project,
   });
 
+  const requestsPerSecond = totalRequestsInLastFiveMinutes / 300;
+
   const cardElements: MetricsCardProps[] = [
     {
-      label: 'Daily Active Users',
-      tooltip: 'Unique users active today',
-      value: prettifyNumber(dailyActiveUsers),
-    },
-    {
-      label: 'Monthly Active Users',
-      tooltip: 'Unique users active this month',
-      value: prettifyNumber(monthlyActiveUsers),
-    },
-    {
-      label: 'All Users',
-      tooltip: 'Total registered users',
+      label: 'Total users',
+      tooltip: 'Everyone who has signed up, since the project was created',
       value: prettifyNumber(allUsers),
+      detail: `${prettifyNumber(dailyActiveUsers)} active today · ${prettifyNumber(monthlyActiveUsers)} active this month`,
     },
     {
-      label: 'RPS',
-      tooltip: 'Requests Per Second (RPS) measured in the last 5 minutes',
-      value: prettifyNumber(totalRequestsInLastFiveMinutes / 300, {
-        numberOfDecimals: 2,
-      }),
-    },
-    {
-      label: 'Total Requests',
+      label: 'Requests',
       tooltip: 'Total service requests this month so far (excluding functions)',
       value: prettifyNumber(totalRequests || 0, {
         numberOfDecimals: totalRequests > 1000 ? 2 : 0,
       }),
+      // Below one per second ("About 0.01 per second") it reads oddly and
+      // says nothing useful, so it only shows for busier projects.
+      detail:
+        requestsPerSecond >= 1
+          ? `About ${prettifyNumber(requestsPerSecond, {
+              numberOfDecimals: requestsPerSecond < 10 ? 1 : 0,
+            })} per second right now`
+          : null,
     },
     {
       label: 'Egress',
       tooltip: 'Total outgoing data transfer this month so far',
-      value: prettifySize(egressVolume),
+      value: formatSize(egressVolume),
     },
     {
-      label: 'Functions Duration',
-      tooltip: 'Total Functions execution this month so far',
-      value: prettifyNumber(functionsDuration),
+      label: 'Functions',
+      tooltip: 'Function invocations this month so far',
+      value: prettifyNumber(functionInvocations),
+      detail: 'Invocations',
     },
     {
-      label: 'Storage',
-      tooltip: 'Total size of stored files in the storage service',
-      value: prettifySize(totalStorage || 0),
+      label: 'Files',
+      tooltip: 'Total size of the files in Storage',
+      value: formatSize(totalStorage || 0),
+      detail: `${prettifyNumber(totalFiles)} ${totalFiles === 1 ? 'file' : 'files'}`,
     },
     {
-      label: 'Postgres Volume Usage',
-      tooltip: 'Used storage in the Postgres database',
-      value: prettifySize(postgresVolumeUsage),
+      label: 'Database size',
+      tooltip: 'Disk space used by your Postgres database',
+      value: formatSize(postgresVolumeUsage),
+      usage:
+        postgresVolumeCapacity > 0
+          ? {
+              percent: (postgresVolumeUsage / postgresVolumeCapacity) * 100,
+              limitLabel: formatSize(postgresVolumeCapacity),
+            }
+          : null,
     },
   ];
 
@@ -121,8 +133,9 @@ export default function OverviewMetrics() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-4">
-      <div className="grid grid-cols-1 xs:grid-cols-2 justify-start gap-4 md:grid-cols-3">
+    <section className="flex flex-col gap-4">
+      <h2 className="font-semibold text-lg">Usage this month</h2>
+      <div className="grid grid-cols-1 xs:grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border shadow-sm md:grid-cols-3">
         {cardElements.map(({ label, value, tooltip, className, ...props }) => (
           <MetricsCard
             {...props}
@@ -130,18 +143,10 @@ export default function OverviewMetrics() {
             label={!loading ? label : null}
             value={!loading ? value : null}
             tooltip={!loading ? tooltip : null}
-            className={cn(
-              'min-h-[92px]',
-              loading && 'animate-pulse',
-              className,
-            )}
+            className={cn('min-h-24', loading && 'animate-pulse', className)}
           />
         ))}
       </div>
-
-      <p className="text-disabled">
-        Your resource usage since the beginning of the month.
-      </p>
-    </div>
+    </section>
   );
 }

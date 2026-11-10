@@ -17,7 +17,7 @@ const alertVariants = cva('relative w-full rounded-lg border p-4', {
       destructive:
         'border-destructive/50 text-destructive dark:border-destructive',
       warning: 'border-warning/30 bg-warning/10 text-foreground',
-      success: 'border-emerald-500/30 bg-emerald-500/10 text-foreground',
+      success: 'border-success/30 bg-success/10 text-foreground',
     },
   },
   defaultVariants: {
@@ -33,7 +33,7 @@ const alertIcons: Record<AlertVariant, { icon: LucideIcon; color: string }> = {
   default: { icon: Info, color: 'text-foreground' },
   destructive: { icon: OctagonAlert, color: 'text-destructive' },
   warning: { icon: TriangleAlert, color: 'text-warning' },
-  success: { icon: CircleCheck, color: 'text-emerald-500' },
+  success: { icon: CircleCheck, color: 'text-success' },
 };
 
 export interface AlertProps

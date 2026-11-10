@@ -27,20 +27,20 @@ export default function StatusCircle({ status }: StatusCircleProps) {
   const base = 'w-1.5 h-1.5 rounded-full';
 
   if (status === 'running' || status === 'DEPLOYING') {
-    return <span className={cn(base, 'animate-pulse bg-blue-500')} />;
+    return <span className={cn(base, 'animate-pulse bg-primary')} />;
   }
 
   if (status === 'pending' || status === 'PENDING' || status === 'SCHEDULED') {
-    return <span className={cn(base, 'animate-pulse bg-yellow-500')} />;
+    return <span className={cn(base, 'animate-pulse bg-warning')} />;
   }
 
   if (status === 'succeeded' || status === 'DEPLOYED') {
-    return <span className={cn(base, 'bg-green-500')} />;
+    return <span className={cn(base, 'bg-success')} />;
   }
 
   if (status === 'failed' || status === 'FAILED') {
-    return <span className={cn(base, 'bg-red-500')} />;
+    return <span className={cn(base, 'bg-destructive')} />;
   }
 
-  return <span className={cn(base, 'bg-gray-400')} />;
+  return <span className={cn(base, 'bg-muted-foreground')} />;
 }

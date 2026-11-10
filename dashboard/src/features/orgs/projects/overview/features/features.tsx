@@ -10,30 +10,26 @@ import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 const features: CardProps[] = [
   {
     title: 'Database',
-    description: 'Learn how to use Postgres with Nhost',
-    icon: <DatabaseIcon className="h-8 w-8 text-muted-foreground" />,
-    disableIconBackground: true,
+    description: 'Design tables and query Postgres',
+    icon: <DatabaseIcon className="text-muted-foreground" />,
     link: 'https://docs.nhost.io/products/database',
   },
   {
     title: 'GraphQL API',
-    description: 'Learn how to interact with the GraphQL API',
-    icon: <GraphQLIcon className="h-8 w-8 text-muted-foreground" />,
-    disableIconBackground: true,
+    description: 'Read and write data with GraphQL',
+    icon: <GraphQLIcon className="text-muted-foreground" />,
     link: 'https://docs.nhost.io/products/graphql',
   },
   {
     title: 'Authentication',
-    description: 'Learn how to authenticate users with Nhost',
-    icon: <UserIcon className="h-8 w-8 text-muted-foreground" />,
-    disableIconBackground: true,
+    description: 'Sign users in to your app',
+    icon: <UserIcon className="text-muted-foreground" />,
     link: 'https://docs.nhost.io/products/auth',
   },
   {
     title: 'Storage',
-    description: 'Learn how to use Storage with Nhost',
-    icon: <StorageIcon className="h-8 w-8 text-muted-foreground" />,
-    disableIconBackground: true,
+    description: 'Upload and serve files',
+    icon: <StorageIcon className="text-muted-foreground" />,
     link: 'https://docs.nhost.io/products/storage',
   },
 ];
