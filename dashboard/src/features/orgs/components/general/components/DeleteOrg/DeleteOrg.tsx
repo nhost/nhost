@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -112,15 +112,16 @@ export default function DeleteOrg() {
           Proceed with caution, as this action is irreversible and will
           permanently remove the organization.
         </p>
+        {!isOrgAdmin && (
+          <Alert className="mt-2 font-normal">
+            <AlertDescription>
+              Only organization admins can delete this organization.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2 px-4 py-2">
-        {!isOrgAdmin && (
-          <p className="mr-auto flex items-center gap-2 text-muted-foreground text-sm">
-            <Lock className="h-4 w-4 shrink-0" />
-            Only organization admins can delete this organization.
-          </p>
-        )}
         <AlertDialog
           open={open}
           onOpenChange={(nextOpen) => {
