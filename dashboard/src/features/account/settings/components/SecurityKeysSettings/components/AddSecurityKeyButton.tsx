@@ -19,18 +19,16 @@ function AddSecurityKeyButton() {
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
           <PlusIcon className="mr-2 h-4 w-4" />
-          Add new security key
+          Add passkey
         </Button>
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-xl leading-7 tracking-normal">
-            Add a security key
+            Add a passkey
           </DialogTitle>
         </DialogHeader>
-        <DialogDescription className="sr-only">
-          Add a security key
-        </DialogDescription>
+        <DialogDescription className="sr-only">Add a passkey</DialogDescription>
         <SecurityKeyForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>

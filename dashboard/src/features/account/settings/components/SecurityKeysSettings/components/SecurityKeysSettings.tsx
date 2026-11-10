@@ -9,7 +9,7 @@ function SecurityKeysSettings() {
       <SettingsCardHeader
         className="sm:items-start"
         title={null}
-        description="Use a security key or a passkey on your device to sign in to Nhost."
+        description="Sign in to Nhost with Touch ID, Face ID, your phone or a hardware key, no password needed."
         control={<AddSecurityKeyButton />}
       />
 

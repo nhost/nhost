@@ -30,7 +30,7 @@ const ROWS: Section[][] = [
       Card: SocialProvidersSettings,
     },
   ],
-  [{ id: 'security-keys', title: 'Security keys', Card: SecurityKeysSettings }],
+  [{ id: 'passkeys', title: 'Passkeys', Card: SecurityKeysSettings }],
 ];
 
 function AuthenticationSectionBlock({ id, title, Card }: Section) {
@@ -38,7 +38,7 @@ function AuthenticationSectionBlock({ id, title, Card }: Section) {
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="grid scroll-mt-6 grid-rows-[auto_1fr] gap-3"
+      className="grid scroll-mt-[calc(var(--account-header-height)+1.5rem)] grid-rows-[auto_1fr] gap-3"
     >
       <h2 id={`${id}-title`} className="font-semibold text-lg">
         {title}
@@ -52,7 +52,7 @@ function AuthenticationSectionBlock({ id, title, Card }: Section) {
 
 /**
  * Every way to sign in on one page: password, then two-factor and connected
- * accounts side by side, then security keys. Each card keeps its own logic and gets a heading with
+ * accounts side by side, then passkeys. Each card keeps its own logic and gets a heading with
  * an anchor, so the profile header can link straight to it.
  */
 export default function AuthenticationSettings() {

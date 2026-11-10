@@ -18,7 +18,7 @@ export const ACCOUNT_SETTINGS_TABS: Record<
   AccountSettingsTab,
   { title: string; icon: LucideIcon }
 > = {
-  general: { title: 'General', icon: UserRound },
+  general: { title: 'Profile', icon: UserRound },
   authentication: { title: 'Authentication', icon: ShieldCheck },
   sessions: { title: 'Sessions', icon: MonitorSmartphone },
   'personal-access-tokens': {
@@ -28,23 +28,42 @@ export const ACCOUNT_SETTINGS_TABS: Record<
 };
 
 /**
- * The account settings menu, shared by the page sidebar (with the labels) and
- * the avatar menu (separators only).
+ * The account settings sidebar menu, in groups.
  */
 export const ACCOUNT_SETTINGS_GROUPS: {
   label: string;
   tabs: AccountSettingsTab[];
 }[] = [
   { label: 'Account', tabs: ['general'] },
-  { label: 'Security', tabs: ['authentication', 'sessions'] },
-  { label: 'Developer', tabs: ['personal-access-tokens'] },
+  // Tokens sign in as you, so they sit with the other ways in.
+  {
+    label: 'Security',
+    tabs: ['authentication', 'sessions', 'personal-access-tokens'],
+  },
+];
+
+/**
+ * The avatar menu: one door per sidebar group, named by what you find there.
+ * Each one lights up on every page of its group.
+ */
+export const ACCOUNT_MENU_LINKS: {
+  title: string;
+  tab: AccountSettingsTab;
+  activeTabs: AccountSettingsTab[];
+}[] = [
+  { title: 'Profile', tab: 'general', activeTabs: ['general'] },
+  {
+    title: 'Security',
+    tab: 'authentication',
+    activeTabs: ['authentication', 'sessions', 'personal-access-tokens'],
+  },
 ];
 
 /** The sections of the Authentication page, used as anchors. */
 export type AuthenticationSection =
   | 'password'
   | 'two-factor-authentication'
-  | 'security-keys'
+  | 'passkeys'
   | 'connected-accounts';
 
 /**

@@ -8,6 +8,7 @@ test('should be able to create then delete a personal access token', async ({
     page.getByRole('banner').getByRole('button').last(),
   ).toBeVisible();
   await page.getByRole('banner').getByRole('button').last().click();
+  await page.getByRole('link', { name: /^security$/i }).click();
   await page.getByRole('link', { name: /personal access tokens/i }).click();
   await page
     .getByRole('button', { name: /create personal access token/i })

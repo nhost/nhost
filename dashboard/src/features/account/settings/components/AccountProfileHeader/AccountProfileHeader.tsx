@@ -1,4 +1,4 @@
-import { BadgeCheck } from 'lucide-react';
+import { ArrowRight, BadgeCheck } from 'lucide-react';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import UserAvatar from '@/components/layout/AccountMenu/UserAvatar';
@@ -25,15 +25,23 @@ interface ProfileStatusProps {
 }
 
 // A status dot and its label, linking to the card where that setting lives.
-// No border or padding, so it lines up with the name and email above it.
+// No border or padding, so it lines up with the name and email above it. At
+// rest it reads as a flag; on hover the label underlines and an arrow slides
+// in, so it's clear it's a link.
 function ProfileStatus({ active, section, children }: ProfileStatusProps) {
   return (
     <NextLink
       href={getAccountSettingsHref('authentication', section)}
-      className="inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+      className="group/status inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
     >
       <StatusDot active={active} />
-      {children}
+      <span className="underline-offset-4 group-hover/status:underline">
+        {children}
+      </span>
+      <ArrowRight
+        aria-hidden
+        className="-ml-1 h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/status:translate-x-0 group-hover/status:opacity-100 motion-reduce:transition-none"
+      />
     </NextLink>
   );
 }
@@ -78,8 +86,11 @@ export default function AccountProfileHeader() {
   return (
     // Hidden on phones: it repeats what the pages show and pushes the
     // settings below the fold. Same breakpoint as the sidebar dropdown.
-    <div className="hidden shrink-0 border-b bg-muted/50 md:block">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:flex-row sm:items-center">
+    // Frosted glass: the pages show through as they scroll under it. Once
+    // the page scrolls (`data-scrolled` on the sticky wrapper) it lifts with
+    // a shadow and its bottom edge catches the light, with a soft glow.
+    <div className="relative hidden border-b bg-muted/50 shadow-none backdrop-blur-md backdrop-saturate-150 transition-shadow duration-200 before:pointer-events-none before:absolute before:inset-x-0 before:-bottom-1 before:h-2 before:bg-gradient-to-r before:from-transparent before:via-foreground/10 before:to-transparent before:opacity-0 before:blur-sm before:transition-opacity before:duration-200 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-gradient-to-r after:from-transparent after:via-foreground/30 after:to-transparent after:opacity-0 after:transition-opacity after:duration-200 group-data-[scrolled=true]/account-header:shadow-lg group-data-[scrolled=true]/account-header:after:opacity-100 group-data-[scrolled=true]/account-header:before:opacity-100 motion-reduce:transition-none md:block">
+      <div className="mx-auto flex w-full max-w-6xl flex-row items-center gap-6 px-5 py-6">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <UserAvatar className="h-20 w-20 shrink-0 text-2xl" />
 
@@ -103,7 +114,7 @@ export default function AccountProfileHeader() {
               )}
             </p>
 
-            {/* Each pill waits for its own data, so it never flashes the
+            {/* Each status waits for its own data, so it never flashes the
                 wrong state. */}
             {providersData && (
               <div className="mt-2 flex">
@@ -118,7 +129,7 @@ export default function AccountProfileHeader() {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-5 sm:items-end">
+        <div className="grid shrink-0 justify-items-end gap-5">
           <div className="flex divide-x">
             {!loadingOrgs && (
               <>
@@ -141,13 +152,10 @@ export default function AccountProfileHeader() {
               </ProfileStatus>
             )}
             {securityKeysData && (
-              <ProfileStatus
-                active={securityKeyCount > 0}
-                section="security-keys"
-              >
+              <ProfileStatus active={securityKeyCount > 0} section="passkeys">
                 {securityKeyCount > 0
-                  ? pluralize(securityKeyCount, 'security key')
-                  : 'No security keys'}
+                  ? pluralize(securityKeyCount, 'passkey')
+                  : 'No passkeys'}
               </ProfileStatus>
             )}
           </div>

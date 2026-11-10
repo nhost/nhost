@@ -18,10 +18,10 @@ function RemoveSecurityKeyButton({ id }: Props) {
 
   function handleClick() {
     execPromiseWithErrorToast(async () => removeSecurityKey(id), {
-      loadingMessage: 'Removing security key...',
-      successMessage: 'Security key has been removed successfully.',
+      loadingMessage: 'Removing passkey...',
+      successMessage: 'Passkey removed.',
       errorMessage:
-        'An error occurred while trying to remove security key. Please try again.',
+        'An error occurred while trying to remove the passkey. Please try again.',
     });
   }
 
@@ -32,7 +32,7 @@ function RemoveSecurityKeyButton({ id }: Props) {
           type="button"
           variant="subtle"
           onClick={handleClick}
-          aria-label={`Remove security key ${id}`}
+          aria-label={`Remove passkey ${id}`}
           className="hover:text-destructive dark:hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />

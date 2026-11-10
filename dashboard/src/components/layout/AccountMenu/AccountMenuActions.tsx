@@ -1,14 +1,12 @@
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { Fragment } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { Separator } from '@/components/ui/v3/separator';
 import {
-  ACCOUNT_SETTINGS_GROUPS,
+  ACCOUNT_MENU_LINKS,
+  ACCOUNT_SETTINGS_DEFAULT_TAB,
   ACCOUNT_SETTINGS_TABS,
   getAccountSettingsHref,
 } from '@/features/account/settings/accountSettingsTabs';
-import { isLinkActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 interface AccountMenuActionsProps {
@@ -16,51 +14,48 @@ interface AccountMenuActionsProps {
 }
 
 /**
- * One link per account settings page, in the same groups as the page menu,
- * split by separators instead of group labels.
+ * Links into account settings, one per sidebar group: Profile and Security.
+ * The one for the page you are on is highlighted, like in the page menu.
  */
 export default function AccountMenuActions({
   onNavigate,
 }: AccountMenuActionsProps) {
   const router = useRouter();
+  const isAccountPage = router.pathname === '/account';
+  const currentTab =
+    typeof router.query.tab === 'string'
+      ? router.query.tab
+      : ACCOUNT_SETTINGS_DEFAULT_TAB;
 
   return (
-    <>
-      {ACCOUNT_SETTINGS_GROUPS.map(({ label, tabs }, index) => (
-        <Fragment key={label}>
-          {index > 0 && <Separator />}
-          <div className="grid grid-flow-row gap-1 p-2">
-            {tabs.map((tab) => {
-              const { title, icon: Icon } = ACCOUNT_SETTINGS_TABS[tab];
-              const href = getAccountSettingsHref(tab);
-              // The page you are on, with the same look as the active item
-              // in the page menu.
-              const active = isLinkActive(router, href, true);
+    <div className="grid grid-flow-row gap-1 p-2">
+      {ACCOUNT_MENU_LINKS.map(({ title, tab, activeTabs }) => {
+        const { icon: Icon } = ACCOUNT_SETTINGS_TABS[tab];
+        const active =
+          isAccountPage &&
+          activeTabs.some((activeTab) => activeTab === currentTab);
 
-              return (
-                <Button
-                  key={tab}
-                  asChild
-                  variant="menu"
-                  className={cn(
-                    active &&
-                      'bg-accent text-primary hover:bg-accent hover:text-primary',
-                  )}
-                >
-                  <NextLink
-                    href={href}
-                    onClick={onNavigate}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {title}
-                  </NextLink>
-                </Button>
-              );
-            })}
-          </div>
-        </Fragment>
-      ))}
-    </>
+        return (
+          <Button
+            key={tab}
+            asChild
+            variant="menu"
+            className={cn(
+              active &&
+                'bg-accent text-primary hover:bg-accent hover:text-primary',
+            )}
+          >
+            <NextLink
+              href={getAccountSettingsHref(tab)}
+              onClick={onNavigate}
+              aria-current={active ? 'page' : undefined}
+            >
+              <Icon className="h-4 w-4" />
+              {title}
+            </NextLink>
+          </Button>
+        );
+      })}
+    </div>
   );
 }

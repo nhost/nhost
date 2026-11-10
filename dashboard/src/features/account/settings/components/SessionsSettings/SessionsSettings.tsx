@@ -1,3 +1,4 @@
+import { formatDistanceToNow } from 'date-fns';
 import { Monitor } from 'lucide-react';
 import { useState } from 'react';
 import { Pagination } from '@/components/common/Pagination';
@@ -8,6 +9,11 @@ import {
 import { Badge } from '@/components/ui/v3/badge';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TableCell, TableRow } from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { useGetUserSessionsQuery } from '@/generated/graphql';
@@ -20,6 +26,25 @@ function formatDateTime(value: string) {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
+}
+
+interface RelativeTimeProps {
+  label: string;
+  value: string;
+}
+
+// "Signed in 13 hours ago", with the exact date and time on hover.
+function RelativeTime({ label, value }: RelativeTimeProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span>
+          {label} {formatDistanceToNow(new Date(value), { addSuffix: true })}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{formatDateTime(value)}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 /**
@@ -103,12 +128,12 @@ export default function SessionsSettings() {
                       </span>
                     </TableCell>
                     <TableCell className="truncate text-muted-foreground">
-                      Signed in {formatDateTime(createdAt)}
+                      <RelativeTime label="Signed in" value={createdAt} />
                     </TableCell>
                     {/* On phones only the sign in date fits next to the
                         name. */}
                     <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
-                      Expires {formatDateTime(expiresAt)}
+                      <RelativeTime label="Expires" value={expiresAt} />
                     </TableCell>
                   </TableRow>
                 );

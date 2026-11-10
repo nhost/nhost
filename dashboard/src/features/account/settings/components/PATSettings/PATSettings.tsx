@@ -47,6 +47,7 @@ type PersonalAccessToken = {
 
 export default function PATSettings() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [tokenCreated, setTokenCreated] = useState(false);
   const [tokenPendingDeletion, setTokenPendingDeletion] =
     useState<PersonalAccessToken | null>(null);
   const [isDeletingToken, setIsDeletingToken] = useState(false);
@@ -102,7 +103,12 @@ export default function PATSettings() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={() => {
+              // Reset on open, not on close, so the title doesn't flip while
+              // the dialog fades out.
+              setTokenCreated(false);
+              setCreateDialogOpen(true);
+            }}
           >
             <PlusIcon className="mr-2 h-4 w-4" />
             Create personal access token
@@ -137,6 +143,11 @@ export default function PATSettings() {
                       </Tooltip>
                     )}
                   </TableCell>
+                  {/* On phones the expiry matters more, so the created
+                      date is hidden. */}
+                  <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
+                    Created {new Date(pat.createdAt).toLocaleDateString()}
+                  </TableCell>
                   <TableCell
                     className={cn(
                       'truncate text-muted-foreground',
@@ -145,11 +156,6 @@ export default function PATSettings() {
                   >
                     {tokenHasExpired ? 'Expired' : 'Expires'}{' '}
                     {new Date(pat.expiresAt).toLocaleDateString()}
-                  </TableCell>
-                  {/* On phones the expiry matters more, so the created
-                      date is hidden. */}
-                  <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
-                    Created {new Date(pat.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="w-24">
                     <div className="flex justify-end">
@@ -180,13 +186,18 @@ export default function PATSettings() {
         <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-xl leading-7 tracking-normal">
-              Create personal access token
+              {tokenCreated ? 'Token created' : 'Create personal access token'}
             </DialogTitle>
             <DialogDescription>
-              Create a token to authenticate with Nhost services.
+              {tokenCreated
+                ? 'Use it to sign in to the Nhost CLI or from your CI.'
+                : 'Create a token to authenticate with Nhost services.'}
             </DialogDescription>
           </DialogHeader>
-          <CreatePATForm onCancel={() => setCreateDialogOpen(false)} />
+          <CreatePATForm
+            onCancel={() => setCreateDialogOpen(false)}
+            onCreated={() => setTokenCreated(true)}
+          />
         </DialogContent>
       </Dialog>
 

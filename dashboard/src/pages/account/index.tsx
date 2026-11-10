@@ -1,4 +1,12 @@
-import type { ComponentType, ReactElement, ReactNode } from 'react';
+import {
+  type ComponentType,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   AreaSidebarGroup,
   AreaSidebarLink,
@@ -76,21 +84,56 @@ function AccountSettingsNavigation() {
 }
 
 /**
- * Same columns as `AreaSidebarLayout`, but the whole area under the profile
- * header scrolls as one, so the wheel works over the menu too. The menu is
- * sticky, so it stays in view while the page scrolls.
+ * Same columns as `AreaSidebarLayout`, but the whole area scrolls as one, so
+ * the wheel works over the menu too. The profile header and the menu are
+ * sticky, and the pages slide under the frosted header while you scroll.
  */
 function AccountSettingsColumns({
+  header,
   sidebar,
   children,
 }: {
+  header: ReactNode;
   sidebar: ReactNode;
   children: ReactNode;
 }) {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  // The header height changes with the screen size (it is hidden on phones)
+  // so the sticky menu and the anchor offsets follow it.
+  useEffect(() => {
+    const element = headerRef.current;
+    if (!element) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() =>
+      setHeaderHeight(element.offsetHeight),
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="h-full overflow-y-auto">
+    <div
+      className="h-full overflow-y-auto"
+      onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}
+      style={
+        { '--account-header-height': `${headerHeight}px` } as CSSProperties
+      }
+    >
+      {/* `data-scrolled` turns on the header shadow and glowing edge. */}
+      <div
+        data-scrolled={scrolled}
+        className="group/account-header sticky top-0 z-20"
+        ref={headerRef}
+      >
+        {header}
+      </div>
+
       <div className="flex flex-col md:grid md:grid-cols-[1fr_14rem_minmax(0,58rem)_1fr]">
-        <div className="sticky top-0 z-10 bg-background py-4 md:col-span-2 md:flex md:justify-end md:self-start md:bg-transparent md:py-8">
+        <div className="sticky top-[var(--account-header-height)] z-10 bg-background py-4 md:col-span-2 md:flex md:justify-end md:self-start md:bg-transparent md:py-8">
           {sidebar}
         </div>
 
@@ -139,24 +182,24 @@ export default function AccountSettingsPage() {
     (!authUserProvidersData && loadingAuthUserProviders);
 
   return (
-    <>
-      <AccountProfileHeader />
-      <div className="min-h-0 flex-1">
-        <AccountSettingsColumns sidebar={<AccountSettingsNavigation />}>
-          <SettingsArea className="py-0">
-            {/* Only the settings wait for the first load: the profile and
+    <div className="min-h-0 flex-1">
+      <AccountSettingsColumns
+        header={<AccountProfileHeader />}
+        sidebar={<AccountSettingsNavigation />}
+      >
+        <SettingsArea className="py-0">
+          {/* Only the settings wait for the first load: the profile and
                 the menu show right away. */}
-            {isInitialLoading ? (
-              <Spinner size="medium" wrapperClassName="gap-2">
-                Loading account settings...
-              </Spinner>
-            ) : (
-              <AccountSettingsContent />
-            )}
-          </SettingsArea>
-        </AccountSettingsColumns>
-      </div>
-    </>
+          {isInitialLoading ? (
+            <Spinner size="medium" wrapperClassName="gap-2">
+              Loading account settings...
+            </Spinner>
+          ) : (
+            <AccountSettingsContent />
+          )}
+        </SettingsArea>
+      </AccountSettingsColumns>
+    </div>
   );
 }
 
