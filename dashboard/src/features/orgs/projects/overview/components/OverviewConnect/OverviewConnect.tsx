@@ -32,7 +32,7 @@ const endpoints: { service: NhostService; label: string }[] = [
 /**
  * Splits a URL for display. The subdomain is already in its own row, so the
  * host drops it, and the path stays visible when the host gets cut off:
- * "graphql.eu-central-1.nhos…/v1" instead of "https://ixeikjstugrjtovh…".
+ * "graphql.eu-central-1.nhos…/v1" instead of the cut off subdomain.
  */
 function getDisplayParts(url: string, subdomain: string) {
   let parsed: URL;
