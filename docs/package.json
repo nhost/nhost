@@ -12,7 +12,7 @@
     "lint": "pnpm lint:code",
     "lint:code": "biome check",
     "lint:prose": "vale src/content/docs/",
-    "lint:prose:changed": "./lint_prose_changed.sh",
+    "lint:prose:changed": "../.vale/lint_changed.sh src/content/docs",
     "format": "biome format --write",
     "test": "pnpm test:gen && pnpm build && pnpm lint && pnpm test:prose && pnpm test:check-links",
     "test:check-links": "./check_broken_links.sh",

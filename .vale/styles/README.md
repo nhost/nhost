@@ -33,8 +33,9 @@ dev shells. Outside them every command below fails with
 | repository Markdown | `.vale/lint_markdown.sh --minAlertLevel=error` | `make -C tools/vale lint` | `vale <file>` from the repository root |
 
 Run the `pnpm` scripts inside `nix develop .#docs` or `nix develop .#landing`.
-The `changed` scripts lint pages changed against `origin/main` (or `main`)
-plus uncommitted and untracked ones. Add `--minAlertLevel=suggestion` to any
+The `changed` scripts run `.vale/lint_changed.sh` on the package's content
+directory, which lints pages changed against `origin/main` (or `main`) plus
+uncommitted and untracked ones. Add `--minAlertLevel=suggestion` to any
 `vale` run to see the suggestion tier. `make -C tools/vale test` runs the rule
 fixtures; `make -C tools/vale check` runs the whole `vale` Nix check.
 

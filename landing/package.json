@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:prose": "vale src/pages/blog/",
-    "lint:prose:changed": "./lint_prose_changed.sh",
+    "lint:prose:changed": "../.vale/lint_changed.sh src/pages/blog",
     "generate": "echo \"Nothing to generate\"",
     "test": "next build --webpack && pnpm test:prose",
     "test:prose": "vale --minAlertLevel=error src/pages/blog/"
