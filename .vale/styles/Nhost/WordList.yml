@@ -6,6 +6,7 @@ level: suggestion
 # Case matters here: each key's own capitalization is what's being corrected,
 # so ignorecase would make these match their own replacements. The rest of the
 # word list lives in WordListCase.yml.
+# Nhost change: WordListCase.yml is not vendored; see README.md.
 ignorecase: false
 action:
   name: replace
