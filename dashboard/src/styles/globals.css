@@ -362,7 +362,6 @@ html.dark .graphiql-themed .graphiql-container {
     --card-foreground: 220 7% 91.6%;
     --popover: var(--background);
     --popover-foreground: 220 7% 91.6%;
-    /* 68% lightness keeps blue text comfortably above AA on the dark background (5.56:1, was 4.83:1 at 64%). */
     --primary: 217.8 100% 68%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 216 17.07% 40.2%;
