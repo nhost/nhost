@@ -60,9 +60,9 @@ test('user should be able to finish onboarding', async () => {
 
   await expect(page.getByText('Internal info')).toBeVisible();
 
-  await expect(
-    page.getByRole('heading', { name: 'Services' }),
-  ).toBeVisible({ timeout: 180000 });
+  await expect(page.getByRole('heading', { name: 'Services' })).toBeVisible({
+    timeout: 180000,
+  });
 });
 
 test('should delete the new organization', async () => {
