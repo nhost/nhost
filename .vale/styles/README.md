@@ -116,7 +116,7 @@ and exclude generated pages.
 | `Nhost.WordList` | suggestion | 42 in 17 pages | Mostly `Cloud` in Nhost Cloud, which Google's list maps to Google Cloud Platform; the rest `url` |
 | `Nhost.Aside` | error | 0 | Callouts are `:::note`, `:::tip` or `:::caution`, never `<Aside>`; raw scope, so it sees the JSX the ignores drop |
 | `Nhost.RawDashboardURL` | error | 0 | A URL template (`/orgs/{org}/projects/`) or an `app.nhost.io/orgs/` link that names an organisation instead of `_`; raw scope, code fences included |
-| `Nhost.DeepLinkRel` | error | 0 | An `app.nhost.io` anchor with `target="_blank"` and no `rel="noopener noreferrer"`, by lookahead; raw scope |
+| `Nhost.DeepLinkRel` | error | 0 | An `app.nhost.io` anchor with `target="_blank"` whose `rel` lacks `noopener` or `noreferrer`, by lookahead; the tokens may come in any order, with extras such as `nofollow`, in either quote style; raw scope |
 | `Nhost.UIPathArrow` | warning | 35 in 18 pages | Each `->` in a bold UI path, which should use `→`; raw scope |
 | `Nhost.NavPaths` | error | 0 | Stale dashboard paths, one row per move checked against the dashboard source named in the rule, including `Settings → Sign-In Methods` without the leading `Auth →`; raw scope |
 | `Nhost.FillerHeadings` | warning | 11 in 11 pages | Headings that are exactly Overview, Introduction, Benefits, Summary or Conclusion. Promote once the pages are fixed |
@@ -136,7 +136,7 @@ at `edefb8f2bc`.
 
 | Rule | Tier | Count on main | Note |
 | --- | --- | --- | --- |
-| `NhostBlog.NewTabRel` | error | 0 | Any `target="_blank"` link without `rel="noopener noreferrer"`; wider than `Nhost.DeepLinkRel`, which only guards `app.nhost.io`. All 15 new-tab links in the corpus already carry the `rel` |
+| `NhostBlog.NewTabRel` | error | 0 | Any `target="_blank"` link whose `rel` lacks `noopener` or `noreferrer`, accepted in any order, with extras and in either quote style; wider than `Nhost.DeepLinkRel`, which only guards `app.nhost.io`. All 15 new-tab links in the corpus already carry the `rel` |
 | `NhostBlog.Callout` | error | 0 | `BlogPostLayout` does not render `:::`, so the markup would reach the reader as literal colons |
 | `NhostBlog.ImageFolder` | warning | 25 in 19 posts | Images belong in the post's own folder. 19 hits are the older flat `og-<name>.png` social images, 6 are content images. Promote once the posts move into per-slug folders |
 | `NhostBlog.BoldParagraph` | suggestion | 23 in 8 posts | In the corpus every hit is a bold line standing in for a heading, not the generated-text tell of a bolded thesis. A rule cannot tell the two apart, so it stays at suggestion |

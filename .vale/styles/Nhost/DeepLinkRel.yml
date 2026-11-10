@@ -1,5 +1,6 @@
 # Raw scope: TokenIgnores drop tags. Matches one <a> tag, attributes in any
-# order.
+# order. rel may hold both tokens in any order with extras such as nofollow;
+# either quote style for rel, target and href.
 extends: existence
 message: "A dashboard link that opens a new tab needs
   'rel=\"noopener noreferrer\"'."
@@ -9,4 +10,4 @@ scope: raw
 vocab: false
 nonword: true
 tokens:
-  - '<a\s(?![^<>]*\brel="noopener noreferrer")(?=[^<>]*\btarget="_blank")[^<>]*\bhref="https://app\.nhost\.io[^"]*"[^<>]*>'
+  - '<a\s(?![^<>]*\brel=["''](?=[^"''<>]*\bnoopener\b)(?=[^"''<>]*\bnoreferrer\b))(?=[^<>]*\btarget=["'']_blank["''])[^<>]*\bhref=["'']https://app\.nhost\.io[^"''<>]*["''][^<>]*>'
