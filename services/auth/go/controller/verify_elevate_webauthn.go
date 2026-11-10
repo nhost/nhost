@@ -1,15 +1,10 @@
 package controller
 
 import (
-	"bytes"
 	"context"
-	"log/slog"
 
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) VerifyElevateWebauthn( //nolint:ireturn
@@ -35,14 +30,16 @@ func (ctrl *Controller) VerifyElevateWebauthn( //nolint:ireturn
 		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
-	_, _, apiErr = ctrl.Webauthn.FinishLogin(
-		ctx,
-		credData,
-		ctrl.postElevateWebauthnVerifyUserHandler(ctx, user, credData, logger),
-		logger,
-	)
+	// elevation challenges are never discoverable so we don't pass a user handler
+	_, webauthnUser, apiErr := ctrl.Webauthn.FinishLogin(ctx, credData, nil, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
+	}
+
+	// the challenge must have been issued to the user we are about to elevate
+	if webauthnUser.ID != user.ID {
+		logger.ErrorContext(ctx, "webauthn user ID mismatch")
+		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
 	// Create new session with elevated claim
@@ -60,45 +57,4 @@ func (ctrl *Controller) VerifyElevateWebauthn( //nolint:ireturn
 	return api.VerifyElevateWebauthn200JSONResponse{
 		Session: session,
 	}, nil
-}
-
-func (ctrl *Controller) postElevateWebauthnVerifyUserHandler(
-	ctx context.Context,
-	user sql.AuthUser,
-	response *protocol.ParsedCredentialAssertionData,
-	logger *slog.Logger,
-) webauthn.DiscoverableUserHandler {
-	return func(_, _ []byte) (webauthn.User, error) {
-		// For elevate, we already know the user from the JWT context
-		keys, apiErr := ctrl.wf.GetUserSecurityKeys(ctx, user.ID, logger)
-		if apiErr != nil {
-			return nil, apiErr
-		}
-
-		creds, apiErr := webauthnCredentials(ctx, keys, logger)
-		if apiErr != nil {
-			return nil, apiErr
-		}
-
-		// Update flags from the webauthn response
-		for i, userCreds := range creds {
-			if bytes.Equal(response.RawID, userCreds.ID) {
-				userCreds.Flags = webauthn.CredentialFlags{
-					UserPresent:    response.Response.AuthenticatorData.Flags.UserPresent(),
-					UserVerified:   response.Response.AuthenticatorData.Flags.UserVerified(),
-					BackupEligible: response.Response.AuthenticatorData.Flags.HasBackupEligible(),
-					BackupState:    response.Response.AuthenticatorData.Flags.HasBackupState(),
-				}
-				creds[i] = userCreds
-			}
-		}
-
-		return WebauthnUser{
-			ID:           user.ID,
-			Name:         user.DisplayName,
-			Email:        user.Email.String,
-			Credentials:  creds,
-			Discoverable: false,
-		}, nil
-	}
 }

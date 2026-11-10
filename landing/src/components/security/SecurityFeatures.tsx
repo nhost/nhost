@@ -3,7 +3,7 @@ import { Container } from '@/components/common/Container'
 import { ServiceCard } from '@/components/common/ServiceCard'
 import { CreditCard, Database, Cloud } from "lucide-react"
 import { Button } from "@/components/common/Button"
-import { Mail } from "lucide-react"
+import { ShieldAlert } from "lucide-react"
 import Image from "next/image"
 import { SecurityCard } from "@/components/common/SecurityCard"
 
@@ -168,14 +168,17 @@ export function SecurityFeatures() {
         <h2 className="text-2xl font-bold">Found a Security Vulnerability?</h2>
         <p className="text-muted-foreground max-w-2xl">
           We take security seriously. If you have discovered a security
-          vulnerability, please report it to our security team.
+          vulnerability, please report it privately through GitHub Security
+          Advisories.
         </p>
         <Button
-          href="mailto:security@nhost.io"
+          href="https://github.com/nhost/nhost/security/advisories/new"
+          target="_blank"
+          rel="noopener noreferrer"
           className="mt-4"
           variant="outlined"
         >
-          <Mail size={16} className="mr-2" />
+          <ShieldAlert size={16} className="mr-2" />
           Report Vulnerability
         </Button>
       </Container>
