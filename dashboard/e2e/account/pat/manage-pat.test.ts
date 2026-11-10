@@ -24,13 +24,18 @@ test('should be able to create then delete a personal access token', async ({
   await page.getByRole('option', { name: /7 days/i }).click();
   await createPATDialog.getByRole('button', { name: /create/i }).click();
 
+  // The dialog title changes to "Token created" once the token exists.
+  const tokenCreatedDialog = page.getByRole('dialog', {
+    name: /token created/i,
+  });
+
   await expect(
-    createPATDialog.getByText(
+    tokenCreatedDialog.getByText(
       /this token will not be shown again. make sure to copy it now./i,
     ),
   ).toBeVisible();
 
-  await createPATDialog
+  await tokenCreatedDialog
     .getByRole('button', { name: /close personal access token dialog/i })
     .click();
 
