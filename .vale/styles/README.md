@@ -118,7 +118,7 @@ and exclude generated pages.
 | `Nhost.RawDashboardURL` | error | 0 | A URL template (`/orgs/{org}/projects/`) or an `app.nhost.io/orgs/` link that names an organisation instead of `_`; raw scope, code fences included |
 | `Nhost.DeepLinkRel` | error | 0 | An `app.nhost.io` anchor with `target="_blank"` and no `rel="noopener noreferrer"`, by lookahead; raw scope |
 | `Nhost.UIPathArrow` | warning | 35 in 18 pages | Each `->` in a bold UI path, which should use `→`; raw scope |
-| `Nhost.NavPaths` | warning | 0 | Stale dashboard paths, one row per move checked against the dashboard source named in the rule, including `Settings → Sign-In Methods` without the leading `Auth →`; raw scope. At zero, so it can be promoted to error |
+| `Nhost.NavPaths` | error | 0 | Stale dashboard paths, one row per move checked against the dashboard source named in the rule, including `Settings → Sign-In Methods` without the leading `Auth →`; raw scope |
 | `Nhost.FillerHeadings` | warning | 11 in 11 pages | Headings that are exactly Overview, Introduction, Benefits, Summary or Conclusion. Promote once the pages are fixed |
 | `Nhost.LLMPhrases` | warning | 106 in 61 pages | Praise and hedge words common in generated text (`powerful`, `seamlessly`, `simply`, `comprehensive`, `when it comes to`, ...) with hits on the docs or blog |
 | `Nhost.LLMPhrasesStrict` | error | 0 | The same kind of word or phrase with no hits on the docs, split out so they can fail now. A word is never in both files |

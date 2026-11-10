@@ -1,7 +1,7 @@
 # Raw scope, to see paths inside JSX. One swap per moved dashboard location.
 extends: substitution
 message: "The dashboard path is now '%s', not '%s'."
-level: warning
+level: error
 scope: raw
 # accept.txt terms would otherwise hide a match.
 vocab: false
