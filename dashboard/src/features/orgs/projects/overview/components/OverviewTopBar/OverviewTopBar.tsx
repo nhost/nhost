@@ -5,14 +5,13 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import UpgradeToProButton from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeToProButton';
 import { ServiceStateIndicator } from '@/features/orgs/projects/overview/components/ServiceStateIndicator';
 import { useOverviewServices } from '@/features/orgs/projects/overview/hooks/useOverviewServices';
-import { ServiceState } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { services, summary } = useOverviewServices();
+  const { health } = useOverviewServices();
 
   const isFreeProject = !!org?.plan.isFree;
 
@@ -33,32 +32,22 @@ export default function OverviewTopBar() {
   const creatorName = project.creator?.displayName || project.creator?.email;
   const createdAgo = `${formatDistanceToNowStrict(parseISO(project.createdAt))} ago`;
 
-  const hasStatus = services.some((service) => service.status);
-  let projectStatus: { label: string; state: ServiceState } | null = null;
-
-  if (hasStatus) {
-    if (summary.down.length > 0) {
-      projectStatus = { label: 'Degraded', state: ServiceState.Error };
-    } else if (summary.updating.length > 0) {
-      projectStatus = { label: 'Updating', state: ServiceState.Updating };
-    } else {
-      projectStatus = { label: 'Healthy', state: ServiceState.Running };
-    }
-  }
-
   return (
-    <div className="flex flex-col gap-4 pb-5 md:flex-row md:items-start md:justify-between md:py-5">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-semibold text-3xl">{project.name}</h1>
-          {projectStatus && (
-            <ServiceStateIndicator
-              state={projectStatus.state}
-              label={projectStatus.label}
-              className="h-6 rounded-full border px-2.5 font-medium text-xs"
-            />
-          )}
-        </div>
+    <div className="flex flex-col gap-2 pb-5 md:flex-row md:items-center md:justify-between md:gap-4 md:py-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="font-semibold text-3xl">{project.name}</h1>
+        {/* Short version of the Health header, from the same summary. */}
+        {health && (
+          <ServiceStateIndicator
+            state={health.state}
+            label={health.shortLabel}
+            className="h-6 rounded-full border px-2.5 font-medium text-xs"
+          />
+        )}
+      </div>
+      {/* Who made the project matters less than its name and state, so it
+          sits quietly on the right of the title row. */}
+      <div className="flex items-center gap-4">
         {creatorName && (
           <p className="text-muted-foreground text-sm">
             Created by{' '}
@@ -66,12 +55,8 @@ export default function OverviewTopBar() {
             {createdAgo}
           </p>
         )}
+        {isFreeProject && <UpgradeToProButton />}
       </div>
-      {isFreeProject && (
-        <div className="flex gap-4">
-          <UpgradeToProButton />
-        </div>
-      )}
     </div>
   );
 }

@@ -14,9 +14,8 @@ function getLastError(service: OverviewService) {
 }
 
 /**
- * Explains what is wrong with a service: the last error of a replica, or a
- * version that isn't one of the recommended ones. Renders nothing when the
- * service has no issue.
+ * Shows the last error of a replica. Renders nothing when there is none.
+ * Version updates aren't errors: they show as a small icon by the version.
  */
 export default function ServiceIssueAlert({
   service,
@@ -35,20 +34,6 @@ export default function ServiceIssueAlert({
           Exit code {lastError.exitCode}
           {lastError.message ? `: ${lastError.message}` : ''}
         </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (service.isVersionMismatch) {
-    return (
-      <Alert variant="warning" className={cn('py-2.5 pr-3', className)}>
-        <AlertTitle>Not a recommended version</AlertTitle>
-        {service.recommendedVersion && (
-          <AlertDescription className="text-muted-foreground text-xs">
-            Recommended:{' '}
-            <span className="font-mono">{service.recommendedVersion}</span>
-          </AlertDescription>
-        )}
       </Alert>
     );
   }

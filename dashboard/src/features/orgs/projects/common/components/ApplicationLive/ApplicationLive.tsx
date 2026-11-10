@@ -60,12 +60,12 @@ export default function ApplicationLive({
         <OverviewFailedDeploymentAlert />
       </RetryableErrorBoundary>
 
+      <RetryableErrorBoundary>
+        <OverviewGettingStarted />
+      </RetryableErrorBoundary>
+
       <div className="grid grid-cols-1 gap-10 pt-3 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-10 lg:col-span-2">
-          <RetryableErrorBoundary>
-            <OverviewGettingStarted />
-          </RetryableErrorBoundary>
-
           <RetryableErrorBoundary>
             <OverviewMetrics />
           </RetryableErrorBoundary>

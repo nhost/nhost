@@ -1,8 +1,20 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { startOfDay, startOfMonth } from 'date-fns';
-import { CheckIcon, ChevronRightIcon, XIcon } from 'lucide-react';
+import {
+  CircleCheckIcon,
+  TableIcon,
+  UserIcon,
+  UserPlusIcon,
+  XIcon,
+} from 'lucide-react';
 import Link from 'next/link';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ComponentType, type ReactNode, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
@@ -37,29 +49,39 @@ interface Step {
   id: string;
   title: string;
   description: string;
+  icon: ComponentType<{ className?: string }>;
   done: boolean;
   href?: string;
   onClick?: () => void;
 }
 
-function StepRow({ step }: { step: Step }) {
+function StepCard({ step }: { step: Step }) {
+  const Icon = step.done ? CircleCheckIcon : step.icon;
+
+  // Open steps are white cards with a light primary stroke; done steps get a
+  // light success tint so it's clear at a glance what's left.
+  const className = cn(
+    'flex h-full w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors',
+    step.done
+      ? 'border-success/25 bg-success/[0.08]'
+      : 'border-primary/15 bg-background/70 hover:border-primary/35 hover:bg-primary/[0.08]',
+  );
+
   const content: ReactNode = (
     <>
       <span
         className={cn(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2',
-          step.done
-            ? 'border-success bg-success text-background'
-            : 'border-border',
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border bg-background',
+          step.done ? 'text-success' : 'text-primary',
         )}
       >
-        {step.done && <CheckIcon className="h-3 w-3" strokeWidth={3} />}
+        <Icon className="h-4 w-4" />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-col gap-0.5">
         <span
           className={cn(
             'font-medium text-sm',
-            step.done && 'text-muted-foreground line-through',
+            step.done && 'text-muted-foreground',
           )}
         >
           {step.title}
@@ -68,18 +90,20 @@ function StepRow({ step }: { step: Step }) {
           {step.description}
         </span>
       </span>
-      {!step.done && (
-        <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-      )}
     </>
   );
 
-  const className =
-    'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50';
-
-  if (step.onClick && !step.done) {
+  if (step.done) {
     return (
-      <li className="border-b last:border-b-0">
+      <li>
+        <div className={className}>{content}</div>
+      </li>
+    );
+  }
+
+  if (step.onClick) {
+    return (
+      <li>
         <button type="button" onClick={step.onClick} className={className}>
           {content}
         </button>
@@ -88,7 +112,7 @@ function StepRow({ step }: { step: Step }) {
   }
 
   return (
-    <li className="border-b last:border-b-0">
+    <li>
       <Link href={step.href ?? '#'} className={className}>
         {content}
       </Link>
@@ -97,9 +121,9 @@ function StepRow({ step }: { step: Step }) {
 }
 
 /**
- * A small helper for new projects. It never hides anything else on the
- * page: it sits on top, goes away once every step is done, and anyone can
- * close it.
+ * A small helper for new projects, across the full width right under the
+ * title so it reads as "do this first". It never hides anything else on the
+ * page, goes away once every step is done, and anyone can close it.
  */
 export default function OverviewGettingStarted() {
   const { org } = useCurrentOrg();
@@ -141,6 +165,7 @@ export default function OverviewGettingStarted() {
       id: 'table',
       title: 'Create your first table',
       description: 'Add a table in the Database editor',
+      icon: TableIcon,
       done: hasOwnTable,
       href: `${projectPath}/database/browser/default`,
     },
@@ -148,6 +173,7 @@ export default function OverviewGettingStarted() {
       id: 'user',
       title: 'Add your first user',
       description: 'Sign up from your app, or create one in Auth › Users',
+      icon: UserIcon,
       done: (userMetrics?.allUsers?.aggregate?.count ?? 0) > 0,
       href: `${projectPath}/auth/users`,
     },
@@ -155,6 +181,7 @@ export default function OverviewGettingStarted() {
       id: 'github',
       title: 'Connect a GitHub repository',
       description: 'Deploy migrations and functions on every push',
+      icon: GitHubIcon,
       done: !!project.githubRepository,
       onClick: openGitHubModal,
     },
@@ -162,6 +189,7 @@ export default function OverviewGettingStarted() {
       id: 'team',
       title: 'Invite your team',
       description: 'Work on this project together',
+      icon: UserPlusIcon,
       done: (org.members?.length ?? 0) > 1,
       href: `/orgs/${org.slug}/members`,
     },
@@ -179,21 +207,29 @@ export default function OverviewGettingStarted() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="mb-5 flex flex-col gap-4 rounded-lg border border-primary/30 bg-primary/5 p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-semibold text-lg">Getting started</h2>
-        <Button
-          variant="subtle"
-          onClick={dismiss}
-          aria-label="Hide getting started"
-        >
-          <XIcon />
-        </Button>
+        {/* The icon button is taller than the heading; the negative margin
+            keeps the header at the heading's height. */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="subtle"
+              className="-my-1 -mr-1"
+              onClick={dismiss}
+              aria-label="Hide getting started. It won't show up again"
+            >
+              <XIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Hide. It won&apos;t show up again</TooltipContent>
+        </Tooltip>
       </div>
 
-      <ul className="overflow-hidden rounded-lg border shadow-sm">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step) => (
-          <StepRow key={step.id} step={step} />
+          <StepCard key={step.id} step={step} />
         ))}
       </ul>
     </section>

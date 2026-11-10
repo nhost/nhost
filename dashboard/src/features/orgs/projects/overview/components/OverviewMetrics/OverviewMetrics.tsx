@@ -14,6 +14,13 @@ import { prettifySize } from '@/utils/prettifySize';
 
 const now = new Date();
 
+// Short units everywhere on the page ("0 B", not "0 Bytes").
+const sizeLabels = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+function formatSize(size: number) {
+  return prettifySize(size, { labels: sizeLabels });
+}
+
 export default function OverviewMetrics() {
   const { project } = useProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -70,10 +77,10 @@ export default function OverviewMetrics() {
 
   const cardElements: MetricsCardProps[] = [
     {
-      label: 'Users',
-      tooltip: 'Total registered users',
+      label: 'Total users',
+      tooltip: 'Everyone who has signed up, since the project was created',
       value: prettifyNumber(allUsers),
-      detail: `${prettifyNumber(dailyActiveUsers)} active today · ${prettifyNumber(monthlyActiveUsers)} this month`,
+      detail: `${prettifyNumber(dailyActiveUsers)} active today · ${prettifyNumber(monthlyActiveUsers)} active this month`,
     },
     {
       label: 'Requests',
@@ -81,14 +88,19 @@ export default function OverviewMetrics() {
       value: prettifyNumber(totalRequests || 0, {
         numberOfDecimals: totalRequests > 1000 ? 2 : 0,
       }),
-      detail: `About ${prettifyNumber(requestsPerSecond, {
-        numberOfDecimals: requestsPerSecond < 10 ? 2 : 0,
-      })} per second right now`,
+      // Below one per second ("About 0.01 per second") it reads oddly and
+      // says nothing useful, so it only shows for busier projects.
+      detail:
+        requestsPerSecond >= 1
+          ? `About ${prettifyNumber(requestsPerSecond, {
+              numberOfDecimals: requestsPerSecond < 10 ? 1 : 0,
+            })} per second right now`
+          : null,
     },
     {
       label: 'Egress',
       tooltip: 'Total outgoing data transfer this month so far',
-      value: prettifySize(egressVolume),
+      value: formatSize(egressVolume),
     },
     {
       label: 'Functions',
@@ -97,20 +109,20 @@ export default function OverviewMetrics() {
       detail: 'Invocations',
     },
     {
-      label: 'Storage',
-      tooltip: 'Total size of stored files in the storage service',
-      value: prettifySize(totalStorage || 0),
+      label: 'Files',
+      tooltip: 'Total size of the files in Storage',
+      value: formatSize(totalStorage || 0),
       detail: `${prettifyNumber(totalFiles)} ${totalFiles === 1 ? 'file' : 'files'}`,
     },
     {
-      label: 'Postgres volume',
-      tooltip: 'Used storage in the Postgres database',
-      value: prettifySize(postgresVolumeUsage),
+      label: 'Database size',
+      tooltip: 'Disk space used by your Postgres database',
+      value: formatSize(postgresVolumeUsage),
       usage:
         postgresVolumeCapacity > 0
           ? {
               percent: (postgresVolumeUsage / postgresVolumeCapacity) * 100,
-              limitLabel: prettifySize(postgresVolumeCapacity),
+              limitLabel: formatSize(postgresVolumeCapacity),
             }
           : null,
     },

@@ -29,6 +29,26 @@ const endpoints: { service: NhostService; label: string }[] = [
   { service: 'functions', label: 'Functions' },
 ];
 
+/**
+ * Splits a URL for display. The subdomain is already in its own row, so the
+ * host drops it, and the path stays visible when the host gets cut off:
+ * "graphql.eu-central-1.nhos…/v1" instead of "https://ixeikjstugrjtovh…".
+ */
+function getDisplayParts(url: string, subdomain: string) {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { host: url, path: '' };
+  }
+  const { host, pathname } = parsed;
+  const shortHost = host.startsWith(`${subdomain}.`)
+    ? host.slice(subdomain.length + 1)
+    : host;
+
+  return { host: shortHost, path: pathname === '/' ? '' : pathname };
+}
+
 function ConnectRow({
   label,
   children,
@@ -124,10 +144,13 @@ export default function OverviewConnect() {
             ? `https://${customDomain}${customDomainPaths[service] ?? ''}`
             : generateAppServiceUrl(subdomain, region, service);
 
+          const { host, path } = getDisplayParts(url, subdomain);
+
           return (
             <ConnectRow key={service} label={label} copyValue={url}>
-              <span className="font-mono" title={url}>
-                {url}
+              <span className="flex min-w-0 font-mono" title={url}>
+                <span className="truncate">{host}</span>
+                <span className="shrink-0">{path}</span>
               </span>
             </ConnectRow>
           );

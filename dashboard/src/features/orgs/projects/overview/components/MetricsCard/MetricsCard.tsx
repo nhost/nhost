@@ -1,4 +1,3 @@
-import { InfoIcon } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
 import { Progress } from '@/components/ui/v3/progress';
 import {
@@ -57,28 +56,26 @@ export default function MetricsCard({
       )}
       {...props}
     >
-      <div className="grid grid-flow-col items-center justify-between gap-2">
-        {label && (
-          <span className="truncate text-muted-foreground text-sm">
-            {label}
-          </span>
-        )}
-
-        {tooltip && (
+      {/* The explanation sits on the label itself (dotted underline) instead
+          of a separate info icon on every tile. */}
+      {label &&
+        (tooltip ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className="text-muted-foreground"
-                aria-label={tooltip}
+                className="w-fit max-w-full cursor-help truncate text-left text-muted-foreground text-sm underline decoration-muted-foreground/40 decoration-dotted underline-offset-4"
               >
-                <InfoIcon className="h-4 w-4" />
+                {label}
               </button>
             </TooltipTrigger>
             <TooltipContent>{tooltip}</TooltipContent>
           </Tooltip>
-        )}
-      </div>
+        ) : (
+          <span className="truncate text-muted-foreground text-sm">
+            {label}
+          </span>
+        ))}
 
       {value && <p className="truncate font-semibold text-2xl">{value}</p>}
 

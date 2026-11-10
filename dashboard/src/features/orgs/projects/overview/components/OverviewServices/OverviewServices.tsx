@@ -1,7 +1,12 @@
-import { ChevronRightIcon } from 'lucide-react';
+import { ChevronRightIcon, TriangleAlertIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/v3/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { OverviewBackupStatus } from '@/features/orgs/projects/overview/components/OverviewBackupStatus';
@@ -11,7 +16,6 @@ import { ServiceIssueAlert } from '@/features/orgs/projects/overview/components/
 import { ServiceStateIndicator } from '@/features/orgs/projects/overview/components/ServiceStateIndicator';
 import {
   type OverviewService,
-  type OverviewServicesSummary,
   useOverviewServices,
 } from '@/features/orgs/projects/overview/hooks/useOverviewServices';
 import { ServiceState } from '@/generated/graphql';
@@ -19,35 +23,6 @@ import { cn } from '@/lib/utils';
 
 function pluralize(count: number, singular: string, plural: string) {
   return `${count} ${count === 1 ? singular : plural}`;
-}
-
-function getSummary({
-  down,
-  updating,
-  versionMismatches,
-}: OverviewServicesSummary): { label: string; state: ServiceState } {
-  if (down.length > 0) {
-    return {
-      label: `${pluralize(down.length, 'service', 'services')} down`,
-      state: ServiceState.Error,
-    };
-  }
-
-  if (updating.length > 0) {
-    return {
-      label: `Updating ${updating.map((service) => service.name).join(', ')}`,
-      state: ServiceState.Updating,
-    };
-  }
-
-  if (versionMismatches.length > 0) {
-    return {
-      label: `${pluralize(versionMismatches.length, 'update', 'updates')} recommended`,
-      state: ServiceState.Updating,
-    };
-  }
-
-  return { label: 'All services running', state: ServiceState.Running };
 }
 
 function ServiceRow({
@@ -80,6 +55,27 @@ function ServiceRow({
                 {service.version && (
                   <span className="font-mono">{service.version}</span>
                 )}
+                {service.isUpdateAvailable && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="ml-1.5 inline-flex align-[-2px] text-warning">
+                        <TriangleAlertIcon
+                          aria-hidden
+                          className="h-3.5 w-3.5"
+                        />
+                        <span className="sr-only">
+                          Update available: {service.recommendedVersion}
+                        </span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Update available:{' '}
+                      <span className="font-mono">
+                        {service.recommendedVersion}
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
                 {service.version && showReplicas && ' · '}
                 {showReplicas && (
                   <span className={cn(hasUnreadyReplicas && 'text-warning')}>
@@ -89,10 +85,14 @@ function ServiceRow({
               </span>
             )}
           </span>
-          <ServiceStateIndicator
-            state={service.status?.state}
-            className="shrink-0 text-muted-foreground"
-          />
+          {/* The header already says when everything runs, so a row only
+              shows its state when it's something else. */}
+          {service.status?.state !== ServiceState.Running && (
+            <ServiceStateIndicator
+              state={service.status?.state}
+              className="shrink-0 text-muted-foreground"
+            />
+          )}
           <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
         </span>
         <ServiceIssueAlert service={service} />
@@ -104,18 +104,18 @@ function ServiceRow({
 export default function OverviewServices() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { loading, services, summary } = useOverviewServices();
+  const { loading, services, summary, health } = useOverviewServices();
   const [selectedServiceId, setSelectedServiceId] = useState<string>();
 
   const selectedService = services.find(
     (service) => service.id === selectedServiceId,
   );
-  const { label, state } = getSummary(summary);
+  const updateCount = summary.updatesAvailable.length;
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-semibold text-lg">Services</h2>
+        <h2 className="font-semibold text-lg">Health</h2>
         <Link
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/logs`}
           className="inline-flex items-center gap-1 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -134,12 +134,24 @@ export default function OverviewServices() {
           </div>
         ) : (
           <>
-            <div className="flex items-center border-b px-4 py-3">
-              <ServiceStateIndicator
-                state={state}
-                label={label}
-                className="font-semibold"
-              />
+            <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
+              {health ? (
+                <ServiceStateIndicator
+                  state={health.state}
+                  label={health.label}
+                  className="font-semibold"
+                />
+              ) : (
+                <ServiceStateIndicator
+                  label="Status unavailable"
+                  className="font-semibold text-muted-foreground"
+                />
+              )}
+              {updateCount > 0 && (
+                <span className="text-warning text-xs">
+                  {pluralize(updateCount, 'update', 'updates')} available
+                </span>
+              )}
             </div>
             <ul>
               {services.map((service) => (

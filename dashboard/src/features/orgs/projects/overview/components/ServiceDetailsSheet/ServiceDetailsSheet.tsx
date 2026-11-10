@@ -129,12 +129,13 @@ export default function ServiceDetailsSheet({
                               <span className="font-mono">
                                 {service.version ?? '-'}
                               </span>
-                              {service.isVersionMismatch ? (
+                              {service.isUpdateAvailable && (
                                 <TriangleAlertIcon
-                                  aria-label="Not the recommended version"
+                                  aria-label="Update available"
                                   className="h-3.5 w-3.5 text-warning"
                                 />
-                              ) : (
+                              )}
+                              {!service.isVersionMismatch && (
                                 <CircleCheckIcon
                                   aria-label="Recommended version"
                                   className="h-3.5 w-3.5 text-success"
@@ -142,12 +143,27 @@ export default function ServiceDetailsSheet({
                               )}
                             </span>
                             <span className="text-muted-foreground text-xs">
-                              Recommended:{' '}
-                              <span className="font-mono">
-                                {(service.isVersionMismatch
-                                  ? service.recommendedVersion
-                                  : service.version) ?? '-'}
-                              </span>
+                              {service.isUpdateAvailable && (
+                                <>
+                                  Update available:{' '}
+                                  <span className="font-mono">
+                                    {service.recommendedVersion}
+                                  </span>
+                                </>
+                              )}
+                              {!service.isVersionMismatch &&
+                                'Recommended version'}
+                              {/* Newer than the recommended ones: nothing to
+                                  do, just say what's recommended. */}
+                              {service.isVersionMismatch &&
+                                !service.isUpdateAvailable && (
+                                  <>
+                                    Recommended:{' '}
+                                    <span className="font-mono">
+                                      {service.recommendedVersion ?? '-'}
+                                    </span>
+                                  </>
+                                )}
                             </span>
                           </div>
                         </TableCell>

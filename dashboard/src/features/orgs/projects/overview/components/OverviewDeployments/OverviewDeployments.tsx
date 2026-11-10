@@ -132,14 +132,13 @@ export default function OverviewDeployments() {
       <OverviewDeploymentsTopBar />
 
       <div className="flex flex-col gap-3 rounded-lg border px-4 py-5 shadow-sm sm:flex-row sm:items-center">
-        <GitHubIcon className="h-5 w-5 shrink-0" />
         <div className="flex flex-1 flex-col gap-0.5">
           <span className="font-medium">No deployments yet</span>
           <span className="text-muted-foreground text-sm">
             Connect a GitHub repository to deploy on every push
           </span>
         </div>
-        <Button variant="outline" onClick={openGitHubModal}>
+        <Button variant="outline" className="gap-2" onClick={openGitHubModal}>
           <GitHubIcon />
           Connect GitHub
         </Button>

@@ -43,6 +43,8 @@ export default function DeploymentListItem({
   const deploymentDate = deployment.startedAt ?? deployment.createdAt;
   const isFailed =
     deployment.status === 'failed' || deployment.status === 'FAILED';
+  const isSucceeded =
+    deployment.status === 'succeeded' || deployment.status === 'DEPLOYED';
   const relativeDateOfDeployment = deploymentDate
     ? formatDistanceToNowStrict(parseISO(deploymentDate), {
         addSuffix: true,
@@ -140,7 +142,14 @@ export default function DeploymentListItem({
             />
           </div>
 
-          <StatusCircle status={deployment.status as PipelineRunStatus} />
+          {/* Success is the normal case and a dot next to Live read like a
+              second live marker. Only other states get a dot; the spacer
+              keeps the columns aligned. */}
+          {isSucceeded ? (
+            <span aria-hidden className="w-1.5" />
+          ) : (
+            <StatusCircle status={deployment.status as PipelineRunStatus} />
+          )}
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
