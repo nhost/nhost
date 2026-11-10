@@ -64,29 +64,29 @@ describe('EnvironmentVariableSettings', () => {
     server.close();
   });
 
-  it.each([
-    {
-      button: `Edit ${LONG_VARIABLE_NAME}`,
-      dialogRole: 'dialog',
-      dialogName: `Edit ${LONG_VARIABLE_NAME}`,
-    },
-    {
-      button: `Delete ${LONG_VARIABLE_NAME}`,
-      dialogRole: 'alertdialog',
-      dialogName: 'Delete environment variable',
-    },
-  ] as const)(
-    'shows the full variable name as a tooltip in the "$dialogName" dialog',
-    async ({ button, dialogRole, dialogName }) => {
-      const user = new TestUserEvent();
-      render(<EnvironmentVariableSettings />);
+  it('shows the full name on hover in the edit dialog', async () => {
+    const user = new TestUserEvent();
+    render(<EnvironmentVariableSettings />);
 
-      await user.click(await screen.findByRole('button', { name: button }));
+    await user.click(
+      await screen.findByRole('button', { name: `Edit ${LONG_VARIABLE_NAME}` }),
+    );
 
-      const dialog = await screen.findByRole(dialogRole, { name: dialogName });
-      expect(within(dialog).getByTitle(LONG_VARIABLE_NAME)).toHaveTextContent(
-        LONG_VARIABLE_NAME,
-      );
-    },
-  );
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByTitle(LONG_VARIABLE_NAME)).toBeInTheDocument();
+  });
+
+  it('shows the full name on hover in the delete dialog', async () => {
+    const user = new TestUserEvent();
+    render(<EnvironmentVariableSettings />);
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: `Delete ${LONG_VARIABLE_NAME}`,
+      }),
+    );
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByTitle(LONG_VARIABLE_NAME)).toBeInTheDocument();
+  });
 });

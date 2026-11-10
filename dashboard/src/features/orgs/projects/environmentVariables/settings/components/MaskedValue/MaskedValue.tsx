@@ -53,7 +53,6 @@ export default function MaskedValue({ value, name }: MaskedValueProps) {
         </TooltipContent>
       </Tooltip>
 
-      {/* Shows on row hover (the row is the `group`) or keyboard focus. */}
       <CopyToClipboardButton
         className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
         textToCopy={value}
