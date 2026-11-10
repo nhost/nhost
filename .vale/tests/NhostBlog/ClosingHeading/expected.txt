@@ -1,1 +1,5 @@
 .vale/tests/NhostBlog/ClosingHeading/fail.mdx:3:4:NhostBlog.ClosingHeading:End on a closing paragraph with the call to action, not a 'Wrapping up' section.
+.vale/tests/NhostBlog/ClosingHeading/fail.mdx:7:4:NhostBlog.ClosingHeading:End on a closing paragraph with the call to action, not a 'Wrap up' section.
+.vale/tests/NhostBlog/ClosingHeading/fail.mdx:11:5:NhostBlog.ClosingHeading:End on a closing paragraph with the call to action, not a 'Wrap-up' section.
+.vale/tests/NhostBlog/ClosingHeading/fail.mdx:15:4:NhostBlog.ClosingHeading:End on a closing paragraph with the call to action, not a 'Closing' section.
+.vale/tests/NhostBlog/ClosingHeading/fail.mdx:19:4:NhostBlog.ClosingHeading:End on a closing paragraph with the call to action, not a 'Recap' section.
