@@ -177,6 +177,22 @@ Row-level security has a gap, though. It controls who can read which rows, but a
 
 Replit took a different route and put the rules in its API code. The database itself doesn't block anything, so if one endpoint forgets to check who's asking, the data is exposed. You also can't verify this from the outside. A database policy you can read. API code you have to trust.
 
+## The other route: a coding agent on your own backend
+
+Vibe coding tools are great for getting an idea on screen fast, and most people use them for prototypes. When a team builds an app it plans to run for years, the usual setup looks different: a managed backend for the data, auth and files, and a coding agent like Claude Code writing the code against it.
+
+I tried that setup with Nhost a few weeks before this test, using the same polling prompt.
+
+Claude Code finished in 2 minutes 46 seconds, with no questions. It created the tables, set the permissions, wrote the page, then tested it with two users against the live project. Its only mistake was in its own test script, and it fixed that on its own. The schema and permissions worked the first time.
+
+Votes are readable only by the person who cast them. The rule for signed-in users is `user_id _eq X-Hasura-User-Id`, and anonymous visitors can't reach the table at all. Nobody can change or delete a vote.
+
+The totals come from a separate view, `poll_option_totals`, that counts votes without showing who cast them. That's the same spot where Bolt left its results function open. Claude Code came up with the view by itself.
+
+It handed back a local page and didn't publish anything.
+
+What I liked about this route is that nothing was hidden. Every rule Claude Code wrote ended up in the Nhost dashboard, where I could open the votes table and read exactly who can see what. The tricky part, totals without names, was solved the first time, and the app stayed on my machine until I decided what to do with it. You trade the one-click setup of a vibe coding tool for a terminal, but you get a backend you can inspect and keep building on.
+
 ## Newly: bonus run
 
 [Newly](https://newly.app) isn't in the table for two reasons. I ran it on a paid plan I already had, since there's no free tier. And it builds native iOS and Android apps, with React Native and Expo code under the hood. So it's not a direct competitor to the other five, but I was curious how a mobile-first vibe coding tool would handle the same task.
