@@ -66,7 +66,11 @@ export default function FeatureSidebar({
   const [expanded, setExpanded] = useState(false);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
-  const dragStart = useRef<{ pointerX: number; width: number } | null>(null);
+  const drag = useRef<{
+    startPointerX: number;
+    startWidth: number;
+    width: number;
+  } | null>(null);
   const isResizable = Boolean(resizeStorageKey);
 
   useEffect(() => {
@@ -86,29 +90,49 @@ export default function FeatureSidebar({
   function handleResizePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragStart.current = { pointerX: event.clientX, width };
+    drag.current = { startPointerX: event.clientX, startWidth: width, width };
     setIsResizing(true);
   }
 
   function handleResizePointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragStart.current) {
+    if (!drag.current) {
       return;
     }
-    setWidth(
-      clampWidth(
-        dragStart.current.width + event.clientX - dragStart.current.pointerX,
-      ),
+    drag.current.width = clampWidth(
+      drag.current.startWidth + event.clientX - drag.current.startPointerX,
+    );
+    setWidth(drag.current.width);
+  }
+
+  function finishResize(
+    event: ReactPointerEvent<HTMLDivElement>,
+    finalWidth: number,
+  ) {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    drag.current = null;
+    setIsResizing(false);
+    commitWidth(finalWidth);
+  }
+
+  // The release position is the final width, even when the last pointermove
+  // has not rendered yet.
+  function handleResizePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!drag.current) {
+      return;
+    }
+    finishResize(
+      event,
+      drag.current.startWidth + event.clientX - drag.current.startPointerX,
     );
   }
 
-  function handleResizePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragStart.current) {
+  // A cancelled pointer carries no usable position, so keep the last dragged
+  // width.
+  function handleResizePointerCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!drag.current) {
       return;
     }
-    event.currentTarget.releasePointerCapture(event.pointerId);
-    dragStart.current = null;
-    setIsResizing(false);
-    commitWidth(width);
+    finishResize(event, drag.current.width);
   }
 
   function handleResizeKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
@@ -182,12 +206,14 @@ export default function FeatureSidebar({
             'sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           mobileBreakpoint === 'md' &&
             'md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          // shrink-0 keeps the rendered width equal to the chosen width, and
+          // pr-1.5 keeps content scrollbars out from under the resize handle.
           isResizable &&
             mobileBreakpoint === 'sm' &&
-            'sm:w-[var(--feature-sidebar-width)] sm:max-w-none',
+            'sm:w-[var(--feature-sidebar-width)] sm:max-w-none sm:shrink-0 sm:pr-1.5',
           isResizable &&
             mobileBreakpoint === 'md' &&
-            'md:w-[var(--feature-sidebar-width)] md:max-w-none',
+            'md:w-[var(--feature-sidebar-width)] md:max-w-none md:shrink-0 md:pr-1.5',
           isResizing && 'select-none',
           expanded && 'translate-x-0',
           !expanded &&
@@ -198,11 +224,7 @@ export default function FeatureSidebar({
             '-translate-x-full md:translate-x-0',
           className,
         )}
-        style={
-          isResizable
-            ? ({ '--feature-sidebar-width': `${width}px` } as CSSProperties)
-            : undefined
-        }
+        style={{ '--feature-sidebar-width': `${width}px` } as CSSProperties}
       >
         {withErrorBoundary ? (
           <RetryableErrorBoundary>{renderedChildren}</RetryableErrorBoundary>
@@ -223,7 +245,7 @@ export default function FeatureSidebar({
             onPointerDown={handleResizePointerDown}
             onPointerMove={handleResizePointerMove}
             onPointerUp={handleResizePointerUp}
-            onPointerCancel={handleResizePointerUp}
+            onPointerCancel={handleResizePointerCancel}
             onKeyDown={handleResizeKeyDown}
             onDoubleClick={() => commitWidth(DEFAULT_WIDTH)}
             className={cn(
