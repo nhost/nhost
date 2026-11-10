@@ -2,8 +2,6 @@ import { Badge } from '@/components/ui/v3/badge';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { cn } from '@/lib/utils';
 
-// One tone per plan tier so Starter, Pro, Team and Enterprise read as
-// visually distinct at a glance.
 const PLAN_TONES: Record<string, string> = {
   Starter: 'border-foreground/15 bg-foreground/[0.06] text-foreground/80',
   Pro: 'border-primary/20 bg-primary/[0.07] text-primary',
@@ -14,12 +12,10 @@ const PLAN_TONES: Record<string, string> = {
 
 export interface OrganizationPlanBadgeProps {
   plan?: string | null;
-  className?: string;
 }
 
 export default function OrganizationPlanBadge({
   plan: planName,
-  className,
 }: OrganizationPlanBadgeProps) {
   const isPlatform = useIsPlatform();
 
@@ -35,7 +31,7 @@ export default function OrganizationPlanBadge({
   return (
     <Badge
       variant="outline"
-      className={cn(tone, 'ml-2 h-5 shrink-0 px-1.5 text-2xs', className)}
+      className={cn(tone, 'ml-2 h-5 shrink-0 px-1.5 text-2xs')}
     >
       {plan}
     </Badge>
