@@ -46,6 +46,23 @@ compare() {
 	fi
 }
 
+# Every content config lints with the TokenIgnores the fixtures prove.
+token_ignores() {
+	awk '/^TokenIgnores[[:space:]]*=/ { p = 1 } p { print; p = /\\$/ }' "$1"
+}
+
+token_ignores "$config" >"$temp_dir/ignores.txt"
+if [[ ! -s $temp_dir/ignores.txt ]]; then
+	fail "$config has no TokenIgnores"
+fi
+for ini in .vale.ini docs/.vale.ini landing/.vale.ini; do
+	token_ignores "$ini" >"$temp_dir/ini.txt"
+	if ! diff -u -L "$config" -L "$ini" \
+		"$temp_dir/ignores.txt" "$temp_dir/ini.txt" >&2; then
+		fail "$ini: TokenIgnores differ from $config; copy the block verbatim"
+	fi
+done
+
 # Every rule that is not vendored has a fixture directory.
 for style in "${styles[@]}"; do
 	for rule_file in "$styles_root/$style"/*.yml; do

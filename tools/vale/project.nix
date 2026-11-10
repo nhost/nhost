@@ -10,10 +10,13 @@ let
   root = ../..;
 
   # Fixtures and repository Markdown; docs and blog pages have their own checks.
+  # Their configs are here for test.sh's TokenIgnores comparison.
   src = fs.toSource {
     inherit root;
     fileset = fs.unions [
       ../../.vale.ini
+      ../../docs/.vale.ini
+      ../../landing/.vale.ini
       ../../.vale
       (fs.difference (fs.fileFilter (file: file.hasExt "md" || file.hasExt "mdx") root) (
         fs.unions [

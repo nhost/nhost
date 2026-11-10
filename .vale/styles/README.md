@@ -251,8 +251,11 @@ is not ours to fix, and the literal `nhost.io` in the token is what keeps
 `.vale/test.sh` runs the fixtures for both styles, as part of the `vale` Nix
 check (`make -C tools/vale test` runs it alone). It lints with
 `.vale/tests/.vale.ini`, which parses like the content configs (same format
-mapping, vocabulary and `TokenIgnores`, kept in step by hand), from the
-repository root so the paths in `--output=line` are stable:
+mapping, vocabulary and `TokenIgnores`), from the repository root so the
+paths in `--output=line` are stable. It fails first if the `TokenIgnores`
+block in `.vale.ini`, `docs/.vale.ini` or `landing/.vale.ini` is not a
+verbatim copy of the one in the test config, so the fixtures prove the
+ignores every config lints with:
 
 - `.vale/tests/<Style>/<Rule>/fail.mdx` must report exactly `expected.txt`
   beside it, every line from `<Style>.<Rule>`, and `pass.mdx` must report
