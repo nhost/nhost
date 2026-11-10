@@ -76,7 +76,11 @@ module.exports = {
           foreground: 'hsl(var(--destructive-foreground))',
           hover: 'hsl(var(--destructive-hover))',
         },
-        warning: 'hsl(var(--warning) / <alpha-value>)',
+        warning: {
+          DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+          foreground: 'hsl(var(--warning-foreground) / <alpha-value>)',
+        },
+        'brand-violet': 'hsl(var(--brand-violet) / <alpha-value>)',
         'on-solid': 'hsl(var(--on-solid) / <alpha-value>)',
         backdrop: 'hsl(var(--backdrop) / <alpha-value>)',
         'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
