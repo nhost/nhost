@@ -23,7 +23,7 @@ const resetEnvironment = async () => {
       AUTH_TOTP_ENABLED: false,
       AUTH_PASSWORD_HIBP_ENABLED: false,
       AUTH_SERVER_URL: 'http://127.0.0.2:4000',
-      AUTH_SMS_PASSWORDLESS_ENABLED: false,
+      AUTH_OTP_SMS_ENABLED: false,
       AUTH_SMS_TEST_PHONE_NUMBERS: '',
       AUTH_WEBAUTHN_ENABLED: false,
       AUTH_WEBAUTHN_RP_NAME: '',

@@ -11,7 +11,7 @@
     "lint:prose": "vale src/pages/blog/",
     "lint:prose:changed": "../.vale/lint_changed.sh src/pages/blog",
     "generate": "echo \"Nothing to generate\"",
-    "test": "next build --webpack && pnpm test:prose",
+    "test": "vitest run && next build --webpack && pnpm test:prose",
     "test:prose": "vale --minAlertLevel=error src/pages/blog/"
   },
   "dependencies": {
@@ -55,6 +55,7 @@
     "prettier-plugin-tailwindcss": "^0.2.8",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^3.4.19",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.12"
   }
 }
