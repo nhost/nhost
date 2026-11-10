@@ -333,8 +333,12 @@ func (c *Controller) swapState(
 		shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 		defer cancel()
 
+		// Controller cancellation must not cut short the drain of HTTP requests.
+		drainCtx, drainCancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+		defer drainCancel()
+
 		oldState.shutdown(shutdownCtx)
-		oldState.waitIdle(shutdownCtx)
+		oldState.waitIdle(drainCtx)
 		oldState.closeConnectors()
 	}()
 }

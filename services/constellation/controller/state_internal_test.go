@@ -96,8 +96,9 @@ func TestSwapState(t *testing.T) {
 		close(shutdownDone)
 	})
 
+	closed := make(chan struct{})
 	oldConn := connectormock.NewMockConnector(ctrl)
-	oldConn.EXPECT().Close()
+	oldConn.EXPECT().Close().Do(func() { close(closed) })
 
 	oldState := &controllerState{
 		subHandlers: map[string]subscription.Handler{"db": oldHandler},
@@ -125,6 +126,13 @@ func TestSwapState(t *testing.T) {
 	case <-shutdownDone:
 	case <-time.After(2 * time.Second):
 		t.Fatal("old handler Shutdown was not called in time")
+	}
+
+	// Connector teardown follows subscription shutdown in the background.
+	select {
+	case <-closed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("old connector Close was not called in time")
 	}
 }
 
@@ -167,35 +175,94 @@ func TestSwapState_WaitsForInflightRequestBeforeClosingConnectors(t *testing.T) 
 	}
 }
 
-func TestSwapState_ClosesConnectorsWhenDrainTimesOut(t *testing.T) {
+func TestSwapState_ParentCancellationDoesNotInterruptDrain(t *testing.T) {
 	t.Parallel()
 
-	ctrl := gomock.NewController(t)
-
-	closed := make(chan struct{})
-	oldConn := connectormock.NewMockConnector(ctrl)
-	oldConn.EXPECT().Close().Do(func() { close(closed) })
-
-	oldState := &controllerState{
-		connectors: map[string]connector.Connector{"db": oldConn},
-		done:       make(chan struct{}),
+	tests := []struct {
+		name             string
+		cancelBeforeSwap bool
+	}{
+		{name: "cancelled before swap", cancelBeforeSwap: true},
+		{name: "cancelled during drain", cancelBeforeSwap: false},
 	}
 
-	c := &Controller{logger: slog.Default()}
-	c.state.Store(oldState)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	_, release := c.acquireState()
-	defer release()
+			ctrl := gomock.NewController(t)
 
-	ctx, cancel := context.WithCancel(t.Context())
-	cancel()
+			shutdownContext := make(chan context.Context, 1)
+			oldHandler := subscriptionmock.NewMockHandler(ctrl)
+			oldHandler.EXPECT().Shutdown(gomock.Any()).Do(func(ctx context.Context) {
+				shutdownContext <- ctx
+			})
 
-	c.swapState(ctx, &controllerState{done: make(chan struct{})}, slog.Default())
+			closed := make(chan struct{})
+			oldConn := connectormock.NewMockConnector(ctrl)
+			oldConn.EXPECT().Close().Do(func() { close(closed) })
 
-	select {
-	case <-closed:
-	case <-time.After(2 * time.Second):
-		t.Fatal("old connectors were not closed after the drain deadline passed")
+			oldState := &controllerState{
+				subHandlers: map[string]subscription.Handler{"db": oldHandler},
+				connectors:  map[string]connector.Connector{"db": oldConn},
+				done:        make(chan struct{}),
+			}
+
+			c := &Controller{logger: slog.Default()}
+			c.state.Store(oldState)
+
+			_, release := c.acquireState()
+
+			release = sync.OnceFunc(release)
+			defer release()
+
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+
+			if tt.cancelBeforeSwap {
+				cancel()
+			}
+
+			c.swapState(ctx, &controllerState{done: make(chan struct{})}, slog.Default())
+
+			var subscriptionCtx context.Context
+
+			select {
+			case subscriptionCtx = <-shutdownContext:
+			case <-time.After(2 * time.Second):
+				t.Fatal("old subscription handler shutdown did not start")
+			}
+
+			select {
+			case <-closed:
+				t.Fatal("old connectors were closed while a request still held the state")
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			cancel()
+
+			select {
+			case <-subscriptionCtx.Done():
+			case <-time.After(2 * time.Second):
+				t.Fatal("parent cancellation did not reach subscription shutdown")
+			}
+
+			select {
+			case <-closed:
+				t.Fatal(
+					"parent cancellation closed old connectors while a request still held the state",
+				)
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			release()
+
+			select {
+			case <-closed:
+			case <-time.After(2 * time.Second):
+				t.Fatal("old connectors were not closed after the request released the state")
+			}
+		})
 	}
 }
 
