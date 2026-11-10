@@ -5,9 +5,14 @@
 // relationships.
 //
 // The package's single source of truth is the atomic.Pointer[controllerState]
-// on Controller: every request loads it once and uses that snapshot for its
-// lifetime. Reloads build a fresh state and swap the pointer; old states are
-// shut down in the background once no in-flight request still holds them.
+// on Controller. HTTP Resolve calls acquireState and defers release for its
+// entire execution; acquisition registers on inflight and rechecks the pointer.
+// WebSockets load the pointer directly and cancel when state.done closes.
+// Reloads build a fresh state and swap the pointer, retiring the old state in
+// the background. Subscription shutdown remains cancellable; connector closure
+// follows an HTTP-registration drain bounded by shutdownTimeout independently
+// of controller cancellation. Holding a state pointer alone does not keep
+// connector resources open, and work outliving the drain can see closed connectors.
 //
 // Subpackages: planner (compile-time analysis), resolver (run-time stitching),
 // middleware (auth and session extraction), introspection (__schema/__type),
@@ -290,9 +295,13 @@ func buildState(
 	), nil
 }
 
-// Run consumes metadata updates from the source and reloads state. It returns
-// when the source channel closes or ctx is cancelled. In serve.go the
-// deferred cancel() ensures the rest of the process shuts down.
+// Run consumes metadata updates and reloads state until the source's watch
+// channel closes. Before returning, it shuts down the current state's
+// subscriptions with ctx, drains HTTP calls registered through acquireState,
+// then closes the current connectors. The drain is bounded by shutdownTimeout
+// (30 seconds) independently of ctx cancellation; this bounds only the HTTP
+// wait, not the entire teardown. Run does not join background cleanup of states
+// replaced by reloads, stop HTTP admission, or wait for every HTTP-server handler.
 func (c *Controller) Run(
 	ctx context.Context,
 	logger *slog.Logger,
