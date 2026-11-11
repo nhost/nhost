@@ -166,9 +166,8 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
-			name: "scalar root mutation next to allowed mutation not allowed",
-			query: `mutation { insert_users(objects: []) { affected_rows } ` +
-				`deleteApp(id: "x") }`,
+			name:             "scalar root mutation next to allowed mutation not allowed",
+			query:            `mutation { insert_users(objects: []) { affected_rows } deleteApp(id: "x") }`,
 			allowedQueries:   []string{},
 			allowedMutations: []string{"insert_users"},
 			expectedError:    graphql.ErrQueryNotAllowed,
@@ -279,27 +278,22 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			expectedError:    nil,
 		},
 		{
-			name: "fragment reused nested and at root checked at root",
-			query: `query { users { ...F } ...F } ` +
-				`fragment F on query_root { appCount }`,
+			name:             "fragment reused nested and at root checked at root",
+			query:            `query { users { ...F } ...F } fragment F on query_root { appCount }`,
 			allowedQueries:   []string{"users"},
 			allowedMutations: []string{},
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
-			name: "chained fragment spreads not allowed",
-			query: `mutation { ...A } ` +
-				`fragment A on mutation_root { ...B } ` +
-				`fragment B on mutation_root { deleteApp(id: "x") { id } }`,
+			name:             "chained fragment spreads not allowed",
+			query:            `mutation { ...A } fragment A on mutation_root { ...B } fragment B on mutation_root { deleteApp(id: "x") { id } }`,
 			allowedQueries:   []string{},
 			allowedMutations: []string{"user"},
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
-			name: "cyclic fragment spreads terminate",
-			query: `query { users { ...A } } ` +
-				`fragment A on users { id ...B } ` +
-				`fragment B on users { name ...A }`,
+			name:             "cyclic fragment spreads terminate",
+			query:            `query { users { ...A } } fragment A on users { id ...B } fragment B on users { name ...A }`,
 			allowedQueries:   []string{"users"},
 			allowedMutations: []string{},
 			expectedError:    nil,
@@ -312,10 +306,8 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
-			name: "duplicate fragment names not allowed",
-			query: `query { ...F } ` +
-				`fragment F on query_root { users { id } } ` +
-				`fragment F on query_root { secrets { value } }`,
+			name:             "duplicate fragment names not allowed",
+			query:            `query { ...F } fragment F on query_root { users { id } } fragment F on query_root { secrets { value } }`,
 			allowedQueries:   []string{"users"},
 			allowedMutations: []string{},
 			expectedError:    graphql.ErrQueryNotAllowed,
@@ -335,9 +327,8 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			expectedError:    nil,
 		},
 		{
-			name: "every operation checked",
-			query: `query Q { users { id } } ` +
-				`mutation M { ... on mutation_root { deleteApp(id: "x") } }`,
+			name:             "every operation checked",
+			query:            `query Q { users { id } } mutation M { ... on mutation_root { deleteApp(id: "x") } }`,
 			allowedQueries:   []string{"users"},
 			allowedMutations: []string{},
 			expectedError:    graphql.ErrQueryNotAllowed,
