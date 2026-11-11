@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -220,38 +219,31 @@ export default function SubscriptionPlan() {
             <div className="flex flex-1 flex-col gap-8 md:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <span className="font-medium">Current plan</span>
-                <div className="flex items-center gap-2">
+                {isCancelled ? (
+                  <span className="font-bold text-destructive text-xl">
+                    Cancelled
+                  </span>
+                ) : (
                   <span className="font-bold text-primary text-xl">
                     {org?.plan?.name}
                   </span>
-                  {isCancelled && (
-                    <Badge
-                      variant="outline"
-                      className="border-destructive/30 bg-destructive/10 text-destructive"
-                    >
-                      Cancelled
-                    </Badge>
-                  )}
-                </div>
+                )}
               </div>
 
-              <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
-                <div
-                  className={cn(
-                    'flex items-center gap-2',
-                    isCancelled && 'text-muted-foreground',
-                  )}
-                >
-                  <span className="font-semibold text-xl">
-                    ${org?.plan?.price}
-                  </span>
-                  <Slash
-                    className="h-5 w-5 text-muted-foreground/40"
-                    strokeWidth={2.5}
-                  />
-                  <span className="font-semibold text-xl">month</span>
+              {!isCancelled && (
+                <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-xl">
+                      ${org?.plan?.price}
+                    </span>
+                    <Slash
+                      className="h-5 w-5 text-muted-foreground/40"
+                      strokeWidth={2.5}
+                    />
+                    <span className="font-semibold text-xl">month</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">

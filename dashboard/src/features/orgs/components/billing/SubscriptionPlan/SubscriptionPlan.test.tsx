@@ -52,12 +52,16 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('SubscriptionPlan', () => {
-  it('marks a cancelled plan and hides Upgrade', async () => {
+  it('shows Cancelled in place of the plan and hides Upgrade', async () => {
     setOrganization(Organization_Status_Enum.Cancelled);
 
     render(<SubscriptionPlan />);
 
     expect(await screen.findByText('Cancelled')).toBeInTheDocument();
+    expect(
+      screen.queryByText(mockOrganization.plan.name),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('month')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Upgrade' }),
     ).not.toBeInTheDocument();

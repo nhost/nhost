@@ -141,6 +141,7 @@ function TransferProjectForm({
                           {currentOrg && (
                             <OrganizationPlanBadge
                               plan={currentOrg.plan.name}
+                              status={currentOrg.status}
                             />
                           )}
                         </span>
@@ -161,7 +162,10 @@ function TransferProjectForm({
                           !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                         }
                       >
-                        <OrganizationPlanBadge plan={org.plan.name} />
+                        <OrganizationPlanBadge
+                          plan={org.plan.name}
+                          status={org.status}
+                        />
                       </SelectItem>
                     ))}
                   <SelectItem key={CREATE_NEW_ORG} value={CREATE_NEW_ORG}>
