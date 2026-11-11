@@ -3,6 +3,9 @@ package controller
 import (
 	"context"
 	"log/slog"
+	"runtime"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -93,8 +96,9 @@ func TestSwapState(t *testing.T) {
 		close(shutdownDone)
 	})
 
+	closed := make(chan struct{})
 	oldConn := connectormock.NewMockConnector(ctrl)
-	oldConn.EXPECT().Close()
+	oldConn.EXPECT().Close().Do(func() { close(closed) })
 
 	oldState := &controllerState{
 		subHandlers: map[string]subscription.Handler{"db": oldHandler},
@@ -122,6 +126,320 @@ func TestSwapState(t *testing.T) {
 	case <-shutdownDone:
 	case <-time.After(2 * time.Second):
 		t.Fatal("old handler Shutdown was not called in time")
+	}
+
+	// Connector teardown follows subscription shutdown in the background.
+	select {
+	case <-closed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("old connector Close was not called in time")
+	}
+}
+
+func TestSwapState_WaitsForInflightRequestBeforeClosingConnectors(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	closed := make(chan struct{})
+	oldConn := connectormock.NewMockConnector(ctrl)
+	oldConn.EXPECT().Close().Do(func() { close(closed) })
+
+	oldState := &controllerState{
+		connectors: map[string]connector.Connector{"db": oldConn},
+		done:       make(chan struct{}),
+	}
+
+	c := &Controller{logger: slog.Default()}
+	c.state.Store(oldState)
+
+	state, release := c.acquireState()
+	if state != oldState {
+		t.Fatal("acquireState did not return the current state")
+	}
+
+	c.swapState(t.Context(), &controllerState{done: make(chan struct{})}, slog.Default())
+
+	select {
+	case <-closed:
+		t.Fatal("old connectors were closed while a request still held the state")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	release()
+
+	select {
+	case <-closed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("old connectors were not closed after the request released the state")
+	}
+}
+
+func TestSwapState_ParentCancellationDoesNotInterruptDrain(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		cancelBeforeSwap bool
+	}{
+		{name: "cancelled before swap", cancelBeforeSwap: true},
+		{name: "cancelled during drain", cancelBeforeSwap: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+
+			shutdownContext := make(chan context.Context, 1)
+			oldHandler := subscriptionmock.NewMockHandler(ctrl)
+			oldHandler.EXPECT().Shutdown(gomock.Any()).Do(func(ctx context.Context) {
+				shutdownContext <- ctx
+			})
+
+			closed := make(chan struct{})
+			oldConn := connectormock.NewMockConnector(ctrl)
+			oldConn.EXPECT().Close().Do(func() { close(closed) })
+
+			oldState := &controllerState{
+				subHandlers: map[string]subscription.Handler{"db": oldHandler},
+				connectors:  map[string]connector.Connector{"db": oldConn},
+				done:        make(chan struct{}),
+			}
+
+			c := &Controller{logger: slog.Default()}
+			c.state.Store(oldState)
+
+			_, release := c.acquireState()
+
+			release = sync.OnceFunc(release)
+			defer release()
+
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+
+			if tt.cancelBeforeSwap {
+				cancel()
+			}
+
+			c.swapState(ctx, &controllerState{done: make(chan struct{})}, slog.Default())
+
+			var subscriptionCtx context.Context
+
+			select {
+			case subscriptionCtx = <-shutdownContext:
+			case <-time.After(2 * time.Second):
+				t.Fatal("old subscription handler shutdown did not start")
+			}
+
+			select {
+			case <-closed:
+				t.Fatal("old connectors were closed while a request still held the state")
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			cancel()
+
+			select {
+			case <-subscriptionCtx.Done():
+			case <-time.After(2 * time.Second):
+				t.Fatal("parent cancellation did not reach subscription shutdown")
+			}
+
+			select {
+			case <-closed:
+				t.Fatal(
+					"parent cancellation closed old connectors while a request still held the state",
+				)
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			release()
+
+			select {
+			case <-closed:
+			case <-time.After(2 * time.Second):
+				t.Fatal("old connectors were not closed after the request released the state")
+			}
+		})
+	}
+}
+
+func TestShutdownState_WaitsForInflightRequestBeforeClosingConnectors(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	closed := make(chan struct{})
+	conn := connectormock.NewMockConnector(ctrl)
+	conn.EXPECT().Close().Do(func() { close(closed) })
+
+	state := &controllerState{
+		connectors: map[string]connector.Connector{"db": conn},
+		done:       make(chan struct{}),
+	}
+
+	c := &Controller{logger: slog.Default()}
+	c.state.Store(state)
+
+	_, release := c.acquireState()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	go c.shutdownState(ctx, slog.Default())
+
+	select {
+	case <-closed:
+		t.Fatal("connectors were closed on shutdown while a request still held the state")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	release()
+
+	select {
+	case <-closed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("connectors were not closed on shutdown after the request released the state")
+	}
+}
+
+func TestControllerState_WaitIdle(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		inflight int64
+		timeout  time.Duration
+		release  bool
+	}{
+		{
+			name:     "returns immediately when no request holds the state",
+			inflight: 0,
+			timeout:  time.Minute,
+			release:  false,
+		},
+		{
+			name:     "returns once the last request releases the state",
+			inflight: 1,
+			timeout:  time.Minute,
+			release:  true,
+		},
+		{
+			name:     "returns when the context ends with requests still in flight",
+			inflight: 1,
+			timeout:  50 * time.Millisecond,
+			release:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			state := &controllerState{}
+			state.inflight.Store(tt.inflight)
+
+			ctx, cancel := context.WithTimeout(t.Context(), tt.timeout)
+			defer cancel()
+
+			if tt.release {
+				time.AfterFunc(20*time.Millisecond, func() { state.inflight.Add(-1) })
+			}
+
+			returned := make(chan struct{})
+
+			go func() {
+				state.waitIdle(ctx)
+				close(returned)
+			}()
+
+			select {
+			case <-returned:
+			case <-time.After(2 * time.Second):
+				t.Fatal("waitIdle did not return")
+			}
+		})
+	}
+}
+
+func TestAcquireState_ConcurrentReloadsNeverExposeClosedConnectors(t *testing.T) {
+	t.Parallel()
+
+	const (
+		reloads  = 50
+		requests = 8
+	)
+
+	ctrl := gomock.NewController(t)
+	logger := slog.New(slog.DiscardHandler)
+
+	states := make([]*controllerState, reloads+1)
+	closed := make(map[*controllerState]*atomic.Bool, reloads+1)
+
+	for i := range states {
+		flag := &atomic.Bool{}
+		conn := connectormock.NewMockConnector(ctrl)
+		conn.EXPECT().Close().Do(func() { flag.Store(true) }).MaxTimes(1)
+
+		states[i] = &controllerState{
+			connectors: map[string]connector.Connector{"db": conn},
+			done:       make(chan struct{}),
+		}
+		closed[states[i]] = flag
+	}
+
+	c := &Controller{logger: logger}
+	c.state.Store(states[0])
+
+	stop := make(chan struct{})
+
+	var wg sync.WaitGroup
+
+	for range requests {
+		wg.Go(func() {
+			for {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+
+				state, release := c.acquireState()
+				if closed[state].Load() {
+					t.Error("request acquired a state whose connectors were closed")
+				}
+
+				runtime.Gosched()
+
+				if closed[state].Load() {
+					t.Error("connectors were closed while a request held the state")
+				}
+
+				release()
+			}
+		})
+	}
+
+	for _, state := range states[1:] {
+		c.swapState(t.Context(), state, logger)
+		runtime.Gosched()
+	}
+
+	close(stop)
+	wg.Wait()
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	for _, state := range states[:reloads] {
+		for !closed[state].Load() {
+			if time.Now().After(deadline) {
+				t.Fatal("old state connectors were not closed after all requests finished")
+			}
+
+			time.Sleep(time.Millisecond)
+		}
 	}
 }
 
