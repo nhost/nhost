@@ -159,6 +159,21 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
+			name:             "scalar root query next to allowed field not allowed",
+			query:            `query { users { id } appCount }`,
+			allowedQueries:   []string{"users"},
+			allowedMutations: []string{},
+			expectedError:    graphql.ErrQueryNotAllowed,
+		},
+		{
+			name: "scalar root mutation next to allowed mutation not allowed",
+			query: `mutation { insert_users(objects: []) { affected_rows } ` +
+				`deleteApp(id: "x") }`,
+			allowedQueries:   []string{},
+			allowedMutations: []string{"insert_users"},
+			expectedError:    graphql.ErrQueryNotAllowed,
+		},
+		{
 			name:             "root typename allowed",
 			query:            `query { __typename users { id } }`,
 			allowedQueries:   []string{"users"},
@@ -177,6 +192,13 @@ func TestCheckAllowedGraphqlQuery(t *testing.T) {
 			query:            `mutation { users: deleteApp(id: "x") { id } }`,
 			allowedQueries:   []string{},
 			allowedMutations: []string{"users"},
+			expectedError:    graphql.ErrQueryNotAllowed,
+		},
+		{
+			name:             "aliased scalar root field checked by name",
+			query:            `mutation { insert_users: deleteApp(id: "x") }`,
+			allowedQueries:   []string{},
+			allowedMutations: []string{"insert_users"},
 			expectedError:    graphql.ErrQueryNotAllowed,
 		},
 		{
