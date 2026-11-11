@@ -27,6 +27,10 @@ exclude = [
   # Fake Zendesk URL used in API route tests
   '^https://nhost-test\.zendesk\.com',
 
+  # Fake domains used in analytics storage domain-matching tests
+  '^https://notnhost\.io',
+  '^https://nhost\.io\.example\.com',
+
   # httpbin.org POST endpoints (return 405 for GET requests, but are valid)
   '^https://httpbin\.org/post',
 

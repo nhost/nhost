@@ -3,7 +3,6 @@ import '@/styles/globals.css'
 import '@code-hike/mdx/dist/index.css'
 import { baseUrl } from '@/utils/utils'
 import { NextPage } from 'next'
-import PlausibleProvider from 'next-plausible'
 import { DefaultSeo } from 'next-seo'
 import type { AppProps } from 'next/app'
 import { ReactElement } from 'react'
@@ -40,16 +39,10 @@ export default function App({ Component, pageProps }: LandingPageProps) {
         }}
       />
 
-      {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && <Analytics />}
+      {/* Shows the cookie banner everywhere; Segment only loads in production. */}
+      <Analytics />
 
-      {getLayout(
-        <PlausibleProvider
-          domain="nhost.io"
-          enabled={process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'}
-        >
-          <Component {...pageProps} />
-        </PlausibleProvider>,
-      )}
+      {getLayout(<Component {...pageProps} />)}
     </AnnouncementProvider>
   )
 }

@@ -1,13 +1,14 @@
 import { CircleCheckBig, Code2, Database } from 'lucide-react';
 import type { ReactElement } from 'react';
-import { useCallback } from 'react';
-import { CookieConsent } from '@/components/common/CookieConsent';
+import { useCallback, useEffect } from 'react';
+import { useCookieConsent } from '@/components/common/CookieConsent';
 import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { Separator } from '@/components/ui/v3/separator';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { GuestGuard } from '@/features/auth/GuestGuard';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
+import { isAnalyticsEnabled } from '@/lib/segment';
 
 declare global {
   interface Window {
@@ -102,60 +103,66 @@ export default function SignUpPage() {
     document.head.appendChild(script);
   }, []);
 
+  // The cookie banner is rendered in _app; load Google Ads once it's accepted,
+  // and, like Segment, only in production.
+  const [consentGiven] = useCookieConsent();
+
+  useEffect(() => {
+    if (consentGiven === true && isAnalyticsEnabled()) {
+      initializeGoogleAds();
+    }
+  }, [consentGiven, initializeGoogleAds]);
+
   return (
-    <>
-      <div className="flex flex-col gap-12 pt-4">
-        <div className="text-center">
-          <h1 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
-            Build. Deploy. Scale.
-          </h1>
-          <p className="mx-auto max-w-md text-lg text-muted-foreground">
-            Join thousands of developers building with Nhost
-          </p>
-        </div>
-
-        <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
-          <SignUpWithGithub />
-
-          <div className="relative py-2">
-            <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-background px-2 text-center text-muted-foreground text-sm">
-              OR
-            </p>
-
-            <Separator />
-          </div>
-          <SignUpTabs />
-          <p className="text-center text-muted-foreground text-sm">
-            By signing up, you agree to our{' '}
-            <TextLink
-              href="https://nhost.io/legal/terms-of-service"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold"
-            >
-              Terms of Service
-            </TextLink>{' '}
-            and{' '}
-            <TextLink
-              href="https://nhost.io/legal/privacy-policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold"
-            >
-              Privacy Policy
-            </TextLink>
-          </p>
-        </div>
-        <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
-          Already have an account?{' '}
-          <TextLink href="/signin" className="font-medium">
-            Sign In
-          </TextLink>
-        </div>
+    <div className="flex flex-col gap-12 pt-4">
+      <div className="text-center">
+        <h1 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
+          Build. Deploy. Scale.
+        </h1>
+        <p className="mx-auto max-w-md text-lg text-muted-foreground">
+          Join thousands of developers building with Nhost
+        </p>
       </div>
 
-      <CookieConsent onAccept={initializeGoogleAds} />
-    </>
+      <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+        <SignUpWithGithub />
+
+        <div className="relative py-2">
+          <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-background px-2 text-center text-muted-foreground text-sm">
+            OR
+          </p>
+
+          <Separator />
+        </div>
+        <SignUpTabs />
+        <p className="text-center text-muted-foreground text-sm">
+          By signing up, you agree to our{' '}
+          <TextLink
+            href="https://nhost.io/legal/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold"
+          >
+            Terms of Service
+          </TextLink>{' '}
+          and{' '}
+          <TextLink
+            href="https://nhost.io/legal/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold"
+          >
+            Privacy Policy
+          </TextLink>
+        </p>
+      </div>
+      <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
+        Already have an account?{' '}
+        <TextLink href="/signin" className="font-medium">
+          Sign In
+        </TextLink>
+      </div>
+    </div>
   );
 }
 

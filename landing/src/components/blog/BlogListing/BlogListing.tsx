@@ -63,9 +63,8 @@ export interface BlogListingProps {
  * the listing, with the ones not shown yet hidden, so crawlers reach them all
  * without JavaScript.
  *
- * Renders its own `Layout` rather than using `getLayout`: `_app.tsx` hands
- * `getLayout` a `PlausibleProvider` element, not the page, so per-page SEO
- * props can't be read there.
+ * Renders its own `Layout`, with the page's SEO props, rather than using
+ * `getLayout`.
  */
 export default function BlogListing({
   seo,
