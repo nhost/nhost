@@ -8,6 +8,7 @@ import {
 import { DashboardNavigation } from '@/components/layout/DashboardNavigation';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { OrgStatusStrip } from '@/features/orgs/components/OrgStatus';
 
 // Client-only: the sidebar restores its collapsed state from localStorage on
 // first render, which the prerendered HTML cannot know, so hydrating it would
@@ -40,6 +41,7 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
+      <OrgStatusStrip />
       <Header className="shrink-0 py-1" />
 
       <div className="flex min-h-0 flex-1">

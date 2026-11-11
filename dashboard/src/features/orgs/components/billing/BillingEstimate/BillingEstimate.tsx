@@ -1,5 +1,7 @@
 import { Separator } from '@/components/ui/v3/separator';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { Organization_Status_Enum } from '@/generated/graphql';
 import { BillingCycle } from './components/BillingCycle';
 import { BillingDetails } from './components/BillingDetails';
 import { Estimate } from './components/Estimate';
@@ -7,6 +9,9 @@ import { SpendingNotifications } from './components/SpendingNotifications';
 
 export default function BillingEstimate() {
   const isOrgAdmin = useIsOrgAdmin();
+  const { org } = useCurrentOrg();
+  // A cancelled subscription has no billing cycle or spending to track.
+  const isCancelled = org?.status === Organization_Status_Enum.Cancelled;
 
   return (
     <div className="">
@@ -15,12 +20,20 @@ export default function BillingEstimate() {
           <span className="font-medium text-xl">Billing Estimate</span>
         </div>
         <div className="flex flex-col">
-          <Separator />
-          <BillingCycle />
+          {!isCancelled && (
+            <>
+              <Separator />
+              <BillingCycle />
+            </>
+          )}
           <Separator />
           <Estimate />
-          <Separator />
-          <SpendingNotifications />
+          {!isCancelled && (
+            <>
+              <Separator />
+              <SpendingNotifications />
+            </>
+          )}
           {isOrgAdmin && (
             <>
               <Separator />

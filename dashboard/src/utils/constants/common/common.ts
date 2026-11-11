@@ -71,3 +71,8 @@ export const MAX_FREE_PROJECTS = 1;
  * Default value in minutes to use for querying the logs
  */
 export const DEFAULT_LOG_INTERVAL = 15;
+
+/**
+ * Where users open a support ticket.
+ */
+export const SUPPORT_TICKET_URL = 'https://app.nhost.io/support';

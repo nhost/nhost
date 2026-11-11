@@ -1,18 +1,17 @@
 import type { PropsWithChildren } from 'react';
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
+import { OrgStatusRedirect } from '@/features/orgs/components/OrgStatus';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { OrganizationGuard } from '@/features/orgs/guards/OrganizationGuard';
 
 /**
  * Everything an organization page needs before it may render: a signed-in
- * session and a loaded organization. The region below the organization status
- * scrolls the page.
+ * session and a loaded organization. Its content region scrolls the page.
  */
 export default function OrganizationScope({ children }: PropsWithChildren) {
   return (
     <AuthGuard>
       <OrganizationGuard>
-        <OrgStatus />
+        <OrgStatusRedirect />
         <div className="relative min-h-0 flex-1 overflow-y-auto">
           {children}
         </div>

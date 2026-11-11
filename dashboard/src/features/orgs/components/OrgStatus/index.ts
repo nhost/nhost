@@ -1,1 +1,2 @@
-export { default as OrgStatus } from './OrgStatus';
+export { default as OrgStatusRedirect } from './OrgStatusRedirect';
+export { default as OrgStatusStrip } from './OrgStatusStrip';

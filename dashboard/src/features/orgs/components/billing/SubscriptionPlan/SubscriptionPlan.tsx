@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -30,6 +31,7 @@ import { planDescriptions } from '@/features/orgs/projects/common/utils/planDesc
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  Organization_Status_Enum,
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
@@ -57,6 +59,8 @@ export default function SubscriptionPlan() {
   const { openUpgradeModal } = query;
 
   const isFreeOrg = org?.plan.isFree;
+  // Only support can restore a cancelled subscription, so it can't upgrade.
+  const isCancelled = org?.status === Organization_Status_Enum.Cancelled;
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
@@ -216,13 +220,28 @@ export default function SubscriptionPlan() {
             <div className="flex flex-1 flex-col gap-8 md:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <span className="font-medium">Current plan</span>
-                <span className="font-bold text-primary text-xl">
-                  {org?.plan?.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-primary text-xl">
+                    {org?.plan?.name}
+                  </span>
+                  {isCancelled && (
+                    <Badge
+                      variant="outline"
+                      className="border-destructive/30 bg-destructive/10 text-destructive"
+                    >
+                      Cancelled
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
-                <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    'flex items-center gap-2',
+                    isCancelled && 'text-muted-foreground',
+                  )}
+                >
                   <span className="font-semibold text-xl">
                     ${org?.plan?.price}
                   </span>
@@ -260,15 +279,17 @@ export default function SubscriptionPlan() {
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button disabled={loading} onClick={() => setOpen(true)}>
-                Upgrade
-              </Button>
+              {!isCancelled && (
+                <Button disabled={loading} onClick={() => setOpen(true)}>
+                  Upgrade
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !isCancelled} onOpenChange={setOpen}>
         <DialogContent
           className={cn(
             'text-foreground sm:max-w-xl',

@@ -8,6 +8,8 @@ import {
   queryClient,
   render,
   screen,
+  TestUserEvent,
+  waitFor,
 } from '@/tests/testUtils';
 import BillingDetails from './BillingDetails';
 
@@ -71,7 +73,7 @@ describe('BillingDetails', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows an error alert when the next invoice query fails', async () => {
+  it('shows a friendly error without the backend message when the next invoice query fails', async () => {
     server.use(
       getOrganization,
       nhostGraphQLLink.query('billingGetNextInvoice', () =>
@@ -82,8 +84,52 @@ describe('BillingDetails', () => {
     render(<BillingDetails />);
 
     expect(
-      await screen.findByText('Failed to load billing details'),
+      await screen.findByText("Couldn't load billing details"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Failed to fetch invoice/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Failed to fetch invoice/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /open a support ticket/ }),
+    ).toHaveAttribute('target', '_blank');
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeEnabled();
+  });
+
+  it('retries the next invoice query when Try again is clicked', async () => {
+    let calls = 0;
+    server.use(
+      getOrganization,
+      nhostGraphQLLink.query('billingGetNextInvoice', () => {
+        calls += 1;
+        return HttpResponse.json({
+          errors: [{ message: 'Failed to fetch invoice' }],
+        });
+      }),
+    );
+
+    render(<BillingDetails />);
+    const user = new TestUserEvent();
+
+    await user.click(await screen.findByRole('button', { name: 'Try again' }));
+
+    await waitFor(() => expect(calls).toBeGreaterThan(1));
+    expect(
+      await screen.findByText("Couldn't load billing details"),
+    ).toBeInTheDocument();
+  });
+
+  it('says no details are available when there is no upcoming invoice', async () => {
+    server.use(
+      getOrganization,
+      nhostGraphQLLink.query('billingGetNextInvoice', () =>
+        HttpResponse.json({ data: { billingGetNextInvoice: null } }),
+      ),
+    );
+
+    render(<BillingDetails />);
+
+    expect(
+      await screen.findByText('No upcoming invoice details are available.'),
+    ).toBeInTheDocument();
   });
 });
