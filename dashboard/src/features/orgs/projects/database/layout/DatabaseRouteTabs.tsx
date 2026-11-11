@@ -35,6 +35,9 @@ export default function DatabaseRouteTabs() {
       <RouteTabLink href={`${projectPath}/database/console/default`} exact>
         SQL Console
       </RouteTabLink>
+      <RouteTabLink href={`${projectPath}/database/extensions/default`} exact>
+        Extensions
+      </RouteTabLink>
       <RouteTabLink
         href={`${projectPath}/database/backups`}
         disabled={!isPlatform}
