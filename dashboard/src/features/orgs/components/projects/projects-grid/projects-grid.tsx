@@ -8,17 +8,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { baseServices } from '@/features/orgs/projects/overview/health';
 import {
   type GetProjectsQuery,
   PipelineRunStatus_Enum,
-  ServiceState,
-  useGetProjectServicesHealthQuery,
 } from '@/generated/graphql';
-import { ApplicationStatus } from '@/types/application';
 
 export type Project = GetProjectsQuery['apps'][0];
 
@@ -38,29 +33,11 @@ export function ProjectCard({ project }: { project: Project }) {
 
   const showPipelineRun = prDate >= depDate && latestPipelineRun;
 
-  const isPlatform = useIsPlatform();
   const status = project.appStates[0]?.stateId;
-  const isLive = status === ApplicationStatus.Live;
-  // Same check as the project's Project health section, only for live projects.
-  const { data: health } = useGetProjectServicesHealthQuery({
-    variables: { appId: project.id },
-    skip: !isPlatform || !isLive,
-  });
 
   // Everything that needs attention, one line each for the warning tooltip.
+  // Only uses data the projects query already has, so it costs no extra requests.
   const issues: string[] = [];
-  for (const service of health?.getProjectStatus?.services ?? []) {
-    const name =
-      baseServices[service.name as keyof typeof baseServices]?.displayName ??
-      service.name;
-    if (service.state === ServiceState.Error) {
-      issues.push(`${name} has an error`);
-    } else if (service.state === ServiceState.UpdateError) {
-      issues.push(`${name} failed to update`);
-    } else if (service.state === ServiceState.None) {
-      issues.push(`${name} isn't running`);
-    }
-  }
   const deploymentFailed = showPipelineRun
     ? latestPipelineRun.status === PipelineRunStatus_Enum.Failed
     : latestDeployment?.deploymentStatus === 'FAILED';
