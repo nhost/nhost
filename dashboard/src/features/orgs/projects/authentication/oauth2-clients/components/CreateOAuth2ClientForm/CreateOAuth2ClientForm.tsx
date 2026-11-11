@@ -142,6 +142,7 @@ export default function CreateOAuth2ClientForm({
           label="Description"
           placeholder="Describe this OAuth2 client"
           autoComplete="off"
+          autoFocus
         />
 
         <FormTextarea

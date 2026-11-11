@@ -3,6 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
+import { skipChoiceControlAutoFocus } from '@/components/ui/v3/choice-auto-focus';
 import { cn } from '@/lib/utils';
 
 const Sheet = SheetPrimitive.Root;
@@ -77,6 +78,12 @@ const SheetContent = React.forwardRef<
         ref={ref}
         className={cn(sheetVariants({ side }), className)}
         {...props}
+        onOpenAutoFocus={(event) => {
+          props.onOpenAutoFocus?.(event);
+          if (!event.defaultPrevented) {
+            skipChoiceControlAutoFocus(event);
+          }
+        }}
       >
         {children}
         {!hideCloseButton && (

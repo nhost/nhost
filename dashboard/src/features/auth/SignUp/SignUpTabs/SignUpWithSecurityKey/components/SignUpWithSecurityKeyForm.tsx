@@ -27,6 +27,7 @@ function SignUpWithSecurityKeyForm() {
           label="Name"
           name="displayName"
           placeholder="Name"
+          autoFocus
         />
         <FormInput
           control={form.control}

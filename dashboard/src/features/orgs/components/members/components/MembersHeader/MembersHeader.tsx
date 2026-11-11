@@ -180,6 +180,7 @@ export default function MembersHeader() {
                               {...field}
                               type="email"
                               placeholder="name@company.com"
+                              autoFocus
                             />
                           </FormControl>
                           <FormMessage />

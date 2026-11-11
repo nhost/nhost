@@ -2,6 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
 
+import { skipChoiceControlAutoFocus } from '@/components/ui/v3/choice-auto-focus';
 import { cn } from '@/lib/utils';
 
 const Dialog = DialogPrimitive.Root;
@@ -63,6 +64,12 @@ const DialogContent = React.forwardRef<
               : props.onInteractOutside
           }
           {...props}
+          onOpenAutoFocus={(event) => {
+            props.onOpenAutoFocus?.(event);
+            if (!event.defaultPrevented) {
+              skipChoiceControlAutoFocus(event);
+            }
+          }}
         >
           {children}
           {!hideCloseButton && (
