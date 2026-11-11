@@ -47,14 +47,16 @@ class ContractsTests(unittest.TestCase):
                                 self.assertIn(name, supplied)
 
     def test_secret_bearing_pr_checks_preserve_approval_and_exact_sha(self):
-        for path in WORKFLOWS.glob("*checks.yaml"):
+        for path in WORKFLOWS.glob("*"):
             workflow = load(path)
             if "pull_request_target" not in triggers(workflow):
                 continue
-            for job in workflow["jobs"].values():
-                if job.get("uses") != "./.github/workflows/wf_check.yaml":
+            for name, job in workflow["jobs"].items():
+                if not job.get("uses", "").startswith("./.github/workflows/"):
                     continue
-                with self.subTest(workflow=path.name):
+                if "GIT_REF" not in job.get("with", {}):
+                    continue
+                with self.subTest(workflow=path.name, job=name):
                     self.assertIn("check-permissions", job["needs"])
                     self.assertIn(
                         "github.event.pull_request.head.sha", job["with"]["GIT_REF"]
