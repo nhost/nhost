@@ -1,13 +1,32 @@
 # CI building blocks
 
-The shared workflow keeps the previous build defaults:
-`blacksmith-4vcpu-ubuntu-2404-arm` (aarch64) and
-`blacksmith-2vcpu-ubuntu-2404` (x86_64). Callers pass explicit `RUNS_ON` lists
-for larger builds, single-platform checks, or native macOS cache warming
-(`blacksmith-6vcpu-macos-latest`). Other jobs use GitHub-hosted or Blacksmith
-runners. npm
-trusted publishing uses GitHub-hosted `ubuntu-latest` because it rejects
-self-hosted runners.
+Linux jobs use the ephemeral Nhost NixOS fleets defined in the backend's
+`infrastructure/docs/github-runners.md`. Labels are
+`nhost-<aarch64|x86_64>-<profile>`; both architectures support `1c1g`, `2c2g`,
+`2c4g`, `4c8g`, `8c16g`, and `16c32g`. Profiles specify minimum vCPU/RAM
+capacity; the fleet can allocate larger instances.
+
+- Metadata, approval, and image-publishing jobs use `nhost-aarch64-1c1g`.
+  Changelog tooling, scans, and dependency updates use `nhost-aarch64-2c2g`.
+- Project builds default to `4c8g` on both Linux architectures. Check-only
+  callers use one ARM runner; frontend checks retain x86_64.
+- PostgreSQL and Nix cache checks use `nhost-aarch64-16c32g` and
+  `nhost-x86_64-8c16g`.
+- Vercel builds use `nhost-x86_64-${{ inputs.RUNNER_SIZE }}`. Dashboard builds
+  request `4c8g`; other sites default to `2c4g`. Browser suites use their
+  matrix's `runner-size`: `2c4g` for main/onboarding and `4c8g` for the local
+  container stack.
+- CLI new-project tests stay on x86_64 to consume their x86_64 artifacts.
+  CodeQL uses `nhost-x86_64-8c16g`; code review uses `nhost-aarch64-4c8g`.
+- No Nhost macOS fleet exists. Native macOS cache warming stays on
+  `blacksmith-6vcpu-macos-latest`.
+- The two npm trusted-publishing jobs stay on GitHub-hosted `ubuntu-latest`;
+  npm rejects self-hosted runner provenance.
+
+Use profile labels alone, not generic `self-hosted` labels. Keep project tools
+in pinned Nix shells: these hosts are not Ubuntu, and job containers are
+unsupported. Preserve the approval gate and exact approved SHA before running
+PR code. The Nhost runner group must allow this repository.
 
 ## Shared check/build workflow
 
@@ -38,10 +57,10 @@ and pass the **approved head SHA**, never a moving PR ref.
 - `LOGIN_ECR` defaults to false; enable it for authenticated ECR access during
   integration checks.
 - `RUNS_ON` is a JSON runner-label list, defaulting to
-  `["blacksmith-4vcpu-ubuntu-2404-arm", "blacksmith-2vcpu-ubuntu-2404"]`.
+  `["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]`.
   Each entry creates one matrix job and is used verbatim as its runner label;
   checks run only on the first entry. Check-only callers pass one runner, for
-  example `RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'`. Larger workloads pass
+  example `RUNS_ON: '["nhost-aarch64-4c8g"]'`. Larger workloads pass
   larger labels; macOS warming passes
   `RUNS_ON: '["blacksmith-6vcpu-macos-latest"]'`.
   Artifact platforms come from the actual host. Select only one runner per
@@ -65,7 +84,7 @@ images into Docker. Build-only callers skip the check phase. Separate
 each phase's output.
 
 Image publishers download only matching image artifacts. The ECR publisher runs
-on `ubuntu-latest` and accepts `ARCHS` (default `["x86_64", "aarch64"]`), optional
+on `nhost-aarch64-1c1g` and accepts `ARCHS` (default `["x86_64", "aarch64"]`), optional
 `GIT_REF`, and `AWS_REGION` (default `eu-central-1`). Single-architecture
 publishing is supported.
 

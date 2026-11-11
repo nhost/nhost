@@ -6,7 +6,7 @@ on:
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-2c2g
     timeout-minutes: 240
 
     permissions:

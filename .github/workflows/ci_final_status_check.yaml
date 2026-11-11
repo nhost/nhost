@@ -21,7 +21,7 @@ permissions:
 jobs:
   final-status:
     name: "ci: final status check"
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: nhost-aarch64-1c1g
     timeout-minutes: 60
     steps:
       - name: Validate PR title

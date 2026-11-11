@@ -7,7 +7,8 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    # Keep the Linux CodeQL toolchain on x86_64 with room for analysis databases.
+    runs-on: nhost-x86_64-8c16g
     permissions:
       actions: read
       contents: read
