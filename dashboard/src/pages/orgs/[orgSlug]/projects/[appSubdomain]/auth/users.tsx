@@ -1,5 +1,11 @@
 import debounce from 'lodash.debounce';
-import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  PlusIcon,
+  SearchIcon,
+  UserIcon,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -17,6 +23,13 @@ import { AuthArea } from '@/features/orgs/projects/authentication/layout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import {
+  DEFAULT_USERS_SORT,
+  getNextUsersSort,
+  getUsersOrderBy,
+  type UsersSort,
+  type UsersSortColumn,
+} from '@/features/orgs/projects/authentication/users/utils/getUsersOrderBy';
+import {
   getPageNumberFromQuery,
   useUrlPagination,
 } from '@/features/orgs/projects/common/hooks/useUrlPagination';
@@ -33,6 +46,31 @@ export type RemoteAppUser = Exclude<
 
 const ELEMENTS_PER_PAGE = 25;
 
+interface SortableHeaderProps {
+  column: UsersSortColumn;
+  label: string;
+  sort: UsersSort;
+  onSort: (column: UsersSortColumn) => void;
+}
+
+function SortableHeader({ column, label, sort, onSort }: SortableHeaderProps) {
+  const isSorted = sort.column === column;
+  const SortIcon = sort.direction === 'asc' ? ArrowUpIcon : ArrowDownIcon;
+  return (
+    <div className="hidden md:block">
+      <button
+        type="button"
+        onClick={() => onSort(column)}
+        aria-label={`Sort by ${label}`}
+        className="flex items-center gap-1 font-medium text-foreground hover:text-muted-foreground"
+      >
+        {label}
+        {isSorted && <SortIcon className="h-4 w-4" aria-hidden />}
+      </button>
+    </div>
+  );
+}
+
 export default function UsersPage() {
   return (
     <RetryableErrorBoundary>
@@ -45,6 +83,7 @@ function UsersPageContent() {
   const { openDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
+  const [sort, setSort] = useState<UsersSort>(DEFAULT_USERS_SORT);
 
   const router = useRouter();
 
@@ -80,8 +119,9 @@ function UsersPageContent() {
             },
       limit: ELEMENTS_PER_PAGE,
       offset,
+      orderBy: getUsersOrderBy(sort),
     }),
-    [router.query.userId, searchString, offset],
+    [router.query.userId, searchString, offset, sort],
   );
 
   const {
@@ -127,6 +167,11 @@ function UsersPageContent() {
       }, 1000),
     [goToPage],
   );
+
+  function handleSort(column: UsersSortColumn) {
+    goToPage(1);
+    setSort((currentSort) => getNextUsersSort(currentSort, column));
+  }
 
   useEffect(
     () => () => handleSearchStringChange.cancel(),
@@ -253,12 +298,18 @@ function UsersPageContent() {
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
             <div className="grid w-full border-b p-2 md:grid-cols-6">
               <p className="font-medium text-foreground md:col-span-2">Name</p>
-              <p className="hidden font-medium text-foreground md:block">
-                Signed up at
-              </p>
-              <p className="hidden font-medium text-foreground md:block">
-                Last Seen
-              </p>
+              <SortableHeader
+                column="createdAt"
+                label="Signed up at"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                column="lastSeen"
+                label="Last Seen"
+                sort={sort}
+                onSort={handleSort}
+              />
               <p className="col-span-2 hidden font-medium text-foreground md:block">
                 OAuth Providers
               </p>

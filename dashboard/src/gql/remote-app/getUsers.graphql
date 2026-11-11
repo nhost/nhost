@@ -26,13 +26,9 @@ query remoteAppGetUsersAndAuthRoles(
   $where: users_bool_exp!
   $limit: Int!
   $offset: Int!
+  $orderBy: [users_order_by!] = [{ createdAt: desc }]
 ) {
-  users(
-    where: $where
-    limit: $limit
-    offset: $offset
-    order_by: { createdAt: desc }
-  ) {
+  users(where: $where, limit: $limit, offset: $offset, order_by: $orderBy) {
     ...RemoteAppGetUsers
   }
   filteredUsersAggreggate: usersAggregate(where: $where) {
