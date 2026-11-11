@@ -171,11 +171,14 @@ export default function SubscriptionPlan() {
       return 'Upgrade';
     }
 
-    const action = selectedPlan.isFree ? 'Downgrade' : 'Upgrade';
+    const isDowngrade =
+      selectedPlan.isFree ||
+      (org?.plan?.price !== undefined && selectedPlan.price < org.plan.price);
+    const action = isDowngrade ? 'Downgrade' : 'Upgrade';
     const price = !selectedPlan.isFree ? `, $${selectedPlan.price}/mo` : '';
 
     return `${action} to ${selectedPlan.name}${price}`;
-  }, [isEnterpriseSelected, selectedPlan]);
+  }, [isEnterpriseSelected, selectedPlan, org?.plan?.price]);
 
   const onSubmit = async (values: z.infer<typeof changeOrgPlanForm>) => {
     const { plan: planID } = values;
@@ -274,7 +277,11 @@ export default function SubscriptionPlan() {
             isSelected={selectedPlanId === plan.id}
             isCurrent={org?.plan?.id === plan.id}
             isPopular={plan.name === POPULAR_PLAN_NAME}
-            disabled={plan.isFree || plan.name === 'Starter'}
+            disabled={
+              plan.isFree ||
+              plan.name === 'Starter' ||
+              org?.plan?.id === plan.id
+            }
           >
             {plan.isFree && !isFreeOrg && (
               <p className="mt-4 text-muted-foreground text-xs">
