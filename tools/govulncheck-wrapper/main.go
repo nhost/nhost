@@ -152,9 +152,10 @@ func runGovulncheck(
 
 	osvMap, findingsMap := parseMessages(stdout)
 
-	cmdErr := cmd.Wait()
-	if len(findingsMap) == 0 && len(osvMap) == 0 && cmdErr != nil {
-		return nil, nil, fmt.Errorf("govulncheck failed: %w", cmdErr)
+	// In JSON mode, vulnerabilities do not cause a non-zero exit. Any failure
+	// means the scan is incomplete, even if it already emitted some findings.
+	if err := cmd.Wait(); err != nil {
+		return nil, nil, fmt.Errorf("govulncheck failed: %w", err)
 	}
 
 	return osvMap, findingsMap, nil
