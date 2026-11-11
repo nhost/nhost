@@ -6,13 +6,18 @@ Read [query-execution.md](./query-execution.md) first if you haven't — most of
 
 ## Atomic state swap
 
-Constellation supports zero-downtime metadata reload. The controller holds an `atomic.Pointer[controllerState]` (`controller/controller.go:99`). Every request — HTTP or WebSocket — loads it once at entry:
+Constellation supports metadata reload without making new requests wait for the old state to drain. The controller holds an `atomic.Pointer[controllerState]` in `controller/controller.go`. HTTP `Resolve` acquires its snapshot with a lifetime registration:
 
 ```go
-state := c.state.Load()
+state, release := c.acquireState()
+defer release()
 ```
 
-…and uses that snapshot for the request's lifetime. `controllerState` carries:
+`acquireState` loads the pointer, increments that state's `inflight` counter, then rechecks the pointer. If a swap intervened, it undoes the registration and retries before using the state. This prevents a request from starting work on a retired state whose connectors may already be closing. `Resolve` keeps the successful registration throughout schema selection, parsing, validation, connector execution, and remote-relationship resolution; the deferred release covers every return path.
+
+WebSocket `HandlerGet` still takes a connection-wide snapshot with `state := c.state.Load()` and listens on `state.done` for retirement. WebSockets do not register in the HTTP counter.
+
+`controllerState` carries:
 
 - `validatedSchemas` — per-role `*ast.Schema`
 - `connectors` — name → `connector.Connector`
@@ -23,10 +28,13 @@ state := c.state.Load()
 - `subHandlers` — per-DB subscription handlers
 - `queryCache` — per-state parsed-query LRU
 - `done` — closed when this state is retired
+- `inflight` — atomic count of HTTP calls registered through `acquireState`, distinct from the query cache's singleflight loads
+
+All published `controllerState` configuration fields, including schemas, connectors, routing, metadata, the planner/resolver, subscription handler maps, and inconsistencies, must be rebuilt through `buildState` — never mutate the published snapshot in place. Only synchronized lifecycle state (`done`/`inflight`) and query-cache internals are exempt from that immutable-snapshot contract; cached ASTs and errors remain read-only.
 
 ### Reload protocol
 
-When `metadata.Source.Watch` emits a new metadata, `Controller.Run` (`controller/controller.go:372`) calls `buildState` to construct a fresh `controllerState` and then `swapState`:
+When `metadata.Source.Watch` emits new metadata, `Controller.Run` calls `buildState` to construct a fresh `controllerState` and then `swapState`. The teardown excerpt is:
 
 ```go
 oldState := c.state.Swap(newState)
@@ -34,32 +42,47 @@ oldState := c.state.Swap(newState)
 go func() {
     shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout) // 30s
     defer cancel()
+
+    drainCtx, drainCancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+    defer drainCancel()
+
     oldState.shutdown(shutdownCtx)
+    oldState.waitIdle(drainCtx)
     oldState.closeConnectors()
 }()
 ```
 
-The new state goes live immediately. Old state shutdown happens on a background goroutine with a 30-second budget:
+The new state goes live immediately. The background goroutine retires the old state in order:
 
 1. `close(oldState.done)` — signals every WebSocket connection holding this snapshot to wind down.
-2. `Handler.Shutdown(ctx)` on every per-DB subscription handler — terminates cohort polling.
-3. `Close()` on every connector — releases pgxpool, closes go-sqlite3 DB, etc.
+2. `Handler.Shutdown(shutdownCtx)` on every per-DB subscription handler — stops subscriptions, with a context that still responds to controller cancellation and has a `shutdownTimeout` deadline.
+3. `waitIdle(drainCtx)` — waits for registered HTTP calls to release the old state, or for the detached 30-second drain deadline to expire. Controller cancellation cannot cut this wait short, even for a state already replaced by a reload.
+4. `Close()` on every connector — releases pgxpool, closes go-sqlite3 DB, etc.
 
-`HandlerGet` (the WebSocket entry) wires `state.done` to `context.CancelCause(errMetadataReloaded)` so a reload propagates as a context cancellation rather than an abrupt close (`controller/handlers.go:94`).
+Both timeout contexts are created before subscription shutdown, so HTTP draining uses the remaining drain budget rather than starting a fresh 30 seconds afterward. The deadline bounds the HTTP wait, not the duration of connector `Close()` calls or the entire teardown.
 
-In-flight HTTP requests have already snapshotted the old state and run to completion against it — their connector references stay valid because `Close()` runs only after the swap has happened, and their loaded pointer keeps everything reachable.
+`HandlerGet` wires `state.done` to the connection's `context.WithCancelCause` cancel function with `errMetadataReloaded`, so retirement propagates as context cancellation (`controller/handlers.go`). Subscriptions are shut down rather than migrated to the new state.
 
-If `buildState` fails (bad metadata, unreachable remote schema, etc.) the current state stays live and the error is logged. There is no fallback to a "partially built" state.
+Registered HTTP calls can finish against the old connectors before the drain deadline. Holding a state pointer alone only keeps Go objects reachable: it does not prevent `Close()` from invalidating a pgx pool or another connector resource. The `inflight` registration and `waitIdle`, not the pointer swap itself, delay connector closure.
+
+If `buildState` cannot produce a usable state, the current state stays live and the error is logged. Per-source or per-role failures can instead yield a usable snapshot with metadata inconsistencies; that snapshot is published normally.
+
+### Controller exit
+
+`Run` consumes updates until the source's watch channel closes. Its deferred `shutdownState` synchronously signals the current state's `done`, shuts down subscriptions with the supplied `ctx`, waits on `inflight`, then closes the current connectors. As on reload, its HTTP drain uses `context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)`, created before subscription shutdown, so even an already-cancelled controller context leaves a bounded drain opportunity.
+
+`Run` does not return until this current-state teardown finishes; the HTTP wait can consume the 30-second drain budget, and subscription shutdown and connector closure are not given an overall timeout by `shutdownState`. It does not join background teardown goroutines for previously replaced states. Nor does it stop HTTP admission or wait for all HTTP-server handlers: registration begins inside `Resolve`, after body parsing, and ends before the HTTP response is written.
 
 ### What this protects
 
-- **Mid-request reload**: requests see a consistent view because every field they touch is reachable from the single `Load()`.
-- **Subscriptions across reloads**: existing subscriptions on the old state continue polling against the old handler until the WebSocket closes; new subscriptions land on the new state.
-- **Connector close on a busy pool**: requests that grabbed the old pool keep using it. The new state's `BuildConnectorsFromMetadata` creates fresh connectors; pgxpool teardown happens once everyone has handed back.
+- **Mid-request reload**: each `Resolve` uses one successfully registered snapshot, so its schemas, routing, and connectors remain consistent.
+- **Subscriptions across reloads**: `state.done` cancels connections using the old snapshot and subscription shutdown stops their handlers; new connections use the new state.
+- **Connector close during registered HTTP work**: connector teardown waits for registrations to reach zero, subject to the drain deadline. The new state's `BuildConnectorsFromMetadata` creates fresh connectors.
 
 ### What this does *not* protect
 
-- **Request that holds the state pointer for >30s**: in theory, a long-running operation could outlive the shutdown timeout. In practice, request timeouts and the HTTP server's own shutdown handling close this.
+- **Work outliving the drain deadline**: connectors are closed after `waitIdle` returns even if registrations remain. A state pointer does not extend the resource lifetime beyond that deadline.
+- **The whole HTTP-server lifecycle**: handlers outside `Resolve` are not counted, and controller teardown does not prevent new requests from entering. This is not an HTTP-server graceful-shutdown guarantee.
 - **Stateful subscription handlers across reload**: a stream subscription on the old handler doesn't "migrate" to the new handler — clients must reconnect.
 
 ### `NewFromConnectors`
@@ -166,6 +189,7 @@ The HTTP handler maps:
 | Component | Mutation model |
 |---|---|
 | `Controller.state` | Atomic pointer swap on metadata reload |
+| `controllerState.inflight` | Atomic registration/release counter for HTTP state acquisition; teardown polls it until idle or the drain deadline |
 | `controllerState.queryCache` | LRU internal `sync.Mutex` for completed entries; per-state `singleflight.Group` makes concurrent cold misses for the same role/query wait for one shared parse and validation result (a leader panic re-panics in waiters); warm hits bypass singleflight |
 | `cohortManager.cohorts` | `sync.RWMutex` on the map; cohort polling under `context.Background()` |
 | `cohort.subscriptions` | `sync.RWMutex` on the map; per-subscription `sendMu` serialises send vs stop |
@@ -173,7 +197,7 @@ The HTTP handler maps:
 | `connector/sql` connectors | Driver-internal pooling; `Execute` is safe to call concurrently |
 | `connector/remoteschema` | Stateless beyond `httpClient`; safe to call concurrently |
 
-State snapshot reads are lock-free (atomic pointer load), while warm query-cache hits take the LRU mutex and concurrent cold misses for the same role/query in one state wait for one in-flight parse and validation. Cohort and subscription registries use short map locks. No request-path code blocks on metadata reload.
+HTTP state acquisition uses atomic pointer loads and a per-state atomic registration counter; WebSocket snapshots use an atomic pointer load. Warm query-cache hits take the LRU mutex and concurrent cold misses for the same role/query in one state wait for one in-flight parse and validation. Cohort and subscription registries use short map locks. No request-path code blocks on metadata reload.
 
 ## File reference
 
