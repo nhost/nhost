@@ -395,6 +395,15 @@ func TestInconsistencies_PerKindHelpers(t *testing.T) {
 			wantSource: "src",
 			wantName:   "users.posts",
 		},
+		{
+			name: "read_replica",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordReadReplica(ctx, logger, "src", 1, "unreachable")
+			},
+			wantKind:   metadata.InconsistencyKindReadReplica,
+			wantSource: "src",
+			wantName:   "read_replicas[1]",
+		},
 	}
 
 	for _, tt := range tests {

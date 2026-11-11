@@ -76,6 +76,7 @@ const (
 	poolMinMaxConnLifetime   = time.Hour
 	poolMinMaxConnIdleTime   = time.Minute * 30
 	poolMinHealthCheckPeriod = time.Minute
+	replicaConnectTimeout    = 5 * time.Second
 )
 
 // Retry configuration for the constellation_throw_error init SQL. Declared as
@@ -191,7 +192,8 @@ func (t *txAdapter) Exec(ctx context.Context, sql string, args ...any) error {
 
 // Client implements the sql.Driver interface for PostgreSQL.
 type Client struct {
-	pool Pool
+	pool     Pool
+	replicas []Pool
 }
 
 const sqlInit = `CREATE OR REPLACE FUNCTION constellation_throw_error(message text, errcode text)
@@ -236,7 +238,7 @@ func execSQLInit(ctx context.Context, q Querier) error {
 // connector/sql/graphql/schema) can build a *Client around a Pool they
 // already own.
 func NewClient(pool Pool) *Client {
-	return &Client{pool: pool}
+	return &Client{pool: pool, replicas: nil}
 }
 
 // Open opens a pgx connection pool against connStr and runs the
@@ -261,12 +263,15 @@ func Open(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,
 
 // New creates a PostgreSQL-backed sql.Connector — convenience for
 // Open + NewClient + csql.NewConnector for callers who just want the full
-// connector wired up from a connection string. inconsistencies receives per-
-// table / per-column / per-function reconciliation entries (pass nil to drop
+// connector wired up from a connection string. replicaURLs holds one entry per
+// metadata read replica, in order; an empty entry marks a replica that was
+// already skipped. inconsistencies receives per-table / per-column /
+// per-function reconciliation entries and skipped replicas (pass nil to drop
 // them on the floor).
 func New(
 	ctx context.Context,
 	connStr string,
+	replicaURLs []string,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
@@ -276,13 +281,65 @@ func New(
 		return nil, err
 	}
 
-	c, err := csql.NewConnector(ctx, NewClient(pool), dbMeta, inconsistencies, logger)
+	client := NewClient(pool)
+	client.replicas = openReplicas(ctx, replicaURLs, dbMeta.Name, inconsistencies, logger)
+
+	c, err := csql.NewConnector(ctx, client, dbMeta, inconsistencies, logger)
 	if err != nil {
-		pool.Close()
+		client.Close()
 		return nil, fmt.Errorf("failed to create sql connector: %w", err)
 	}
 
 	return c, nil
+}
+
+// openReplicas opens a pool for every non-empty replica URL. A replica that
+// cannot be reached is recorded as an inconsistency and left out, so the
+// source keeps serving from its primary.
+func openReplicas(
+	ctx context.Context,
+	replicaURLs []string,
+	source string,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
+) []Pool {
+	var replicas []Pool
+
+	for i, connStr := range replicaURLs {
+		if connStr == "" {
+			continue
+		}
+
+		replica, err := openReplica(ctx, connStr)
+		if err != nil {
+			inconsistencies.RecordReadReplica(ctx, logger, source, i, err.Error())
+			continue
+		}
+
+		replicas = append(replicas, replica)
+	}
+
+	return replicas
+}
+
+// openReplica opens a pool against a read-only replica. Unlike [Open] it runs
+// no init SQL, which would fail on a standby, and instead checks that the
+// replica answers a query.
+func openReplica(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,nolintlint
+	pool, err := newPool(ctx, connStr)
+	if err != nil {
+		return nil, fmt.Errorf("opening read replica: %w", err)
+	}
+
+	pingCtx, cancel := context.WithTimeout(ctx, replicaConnectTimeout)
+	defer cancel()
+
+	if err := pool.Exec(pingCtx, "SELECT 1"); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("connecting to read replica: %w", err)
+	}
+
+	return pool, nil
 }
 
 // Dialect returns the PostgreSQL SQL dialect.
@@ -290,9 +347,13 @@ func (c *Client) Dialect() dialect.Dialect { //nolint:ireturn,nolintlint
 	return dialect.NewPostgresDialect()
 }
 
-// Close releases the underlying connection pool.
+// Close releases the primary and replica connection pools.
 func (c *Client) Close() {
 	c.pool.Close()
+
+	for _, replica := range c.replicas {
+		replica.Close()
+	}
 }
 
 // ExecuteOperations executes a list of SQL operations within a single
