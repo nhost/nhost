@@ -20,10 +20,8 @@ NPM_JOBS = {
 }
 DYNAMIC_RUNNERS = {
     ("wf_check.yaml", "tests"): "${{ matrix.runner }}",
-    ("wf_deploy_vercel.yaml", "deploy-vercel"):
-        "${{ format('nhost-x86_64-{0}', inputs.RUNNER_SIZE) }}",
-    ("dashboard_wf_e2e_staging.yaml", "tests"):
-        "${{ format('nhost-x86_64-{0}', matrix.runner-size) }}",
+    ("wf_deploy_vercel.yaml", "deploy-vercel"): "${{ inputs.RUNS_ON }}",
+    ("dashboard_wf_e2e_staging.yaml", "tests"): "${{ matrix.runner }}",
 }
 
 
@@ -131,7 +129,7 @@ class RunnerSizingTests(unittest.TestCase):
             "nhost-aarch64-4c8g",
         )
 
-    def test_frontend_builds_and_browser_suites_use_the_requested_capacity(self):
+    def test_frontend_builds_use_explicit_runner_labels(self):
         for project in [
             "dashboard", "examples_demos", "examples_guides", "examples_tutorials"
         ]:
@@ -140,24 +138,42 @@ class RunnerSizingTests(unittest.TestCase):
                     runners(project + "_checks.yaml", "tests"),
                     ["nhost-x86_64-4c8g"],
                 )
-        default = inputs("wf_deploy_vercel.yaml")["RUNNER_SIZE"]["default"]
-        self.assertEqual(default, "2c4g")
+
+    def test_vercel_callers_pass_full_runner_labels(self):
+        declared = inputs("wf_deploy_vercel.yaml")
+        self.assertNotIn("RUNNER_SIZE", declared)
+        self.assertEqual(declared["RUNS_ON"]["type"], "string")
+        self.assertTrue(declared["RUNS_ON"]["required"])
+        self.assertNotIn("default", declared["RUNS_ON"])
         for path in WORKFLOWS.glob("*"):
-            for current in load(path)["jobs"].values():
-                if current.get("uses") == "./.github/workflows/wf_deploy_vercel.yaml":
+            for name, current in load(path)["jobs"].items():
+                if current.get("uses") != "./.github/workflows/wf_deploy_vercel.yaml":
+                    continue
+                with self.subTest(workflow=path.name, job=name):
                     settings = current["with"]
-                    selected = settings.get("RUNNER_SIZE", default)
-                    expected = "4c8g" if settings["NAME"] == "dashboard" else "2c4g"
+                    self.assertNotIn("RUNNER_SIZE", settings)
+                    selected = settings["RUNS_ON"]
+                    expected = (
+                        "nhost-x86_64-4c8g" if settings["NAME"] == "dashboard"
+                        else "nhost-x86_64-2c4g"
+                    )
                     self.assertEqual(selected, expected)
-                    self.assertIn(f"nhost-x86_64-{selected}", LINUX_RUNNERS)
+                    self.assertIn(selected, LINUX_RUNNERS)
+
+    def test_browser_suites_select_full_runner_labels(self):
         e2e = job("dashboard_wf_e2e_staging.yaml", "tests")
         suites = e2e["strategy"]["matrix"]["include"]
         self.assertEqual(
-            {suite["suite"]: suite["runner-size"] for suite in suites},
-            {"main": "2c4g", "onboarding": "2c4g", "local": "4c8g"},
+            {suite["suite"]: suite["runner"] for suite in suites},
+            {
+                "main": "nhost-x86_64-2c4g",
+                "onboarding": "nhost-x86_64-2c4g",
+                "local": "nhost-x86_64-4c8g",
+            },
         )
         for suite in suites:
-            self.assertIn(f"nhost-x86_64-{suite['runner-size']}", LINUX_RUNNERS)
+            self.assertNotIn("runner-size", suite)
+            self.assertIn(suite["runner"], LINUX_RUNNERS)
 
     def test_cli_artifact_consumer_stays_on_x86_64(self):
         current = job("cli_wf_test_new_project.yaml", "tests")

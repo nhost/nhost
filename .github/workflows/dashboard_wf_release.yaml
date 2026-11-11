@@ -48,7 +48,7 @@ jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
-      RUNNER_SIZE: "4c8g"
+      RUNS_ON: nhost-x86_64-4c8g
       NAME: dashboard
       GIT_REF: ${{ inputs.GIT_REF }}
       ENVIRONMENT: production

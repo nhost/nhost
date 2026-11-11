@@ -12,10 +12,12 @@ capacity; the fleet can allocate larger instances.
   callers use one ARM runner; frontend checks retain x86_64.
 - PostgreSQL and Nix cache checks use `nhost-aarch64-16c32g` and
   `nhost-x86_64-8c16g`.
-- Vercel builds use `nhost-x86_64-${{ inputs.RUNNER_SIZE }}`. Dashboard builds
-  request `4c8g`; other sites default to `2c4g`. Browser suites use their
-  matrix's `runner-size`: `2c4g` for main/onboarding and `4c8g` for the local
-  container stack.
+- Vercel callers pass a single full runner label through the required `RUNS_ON`
+  input: `nhost-x86_64-4c8g` for Dashboard and `nhost-x86_64-2c4g` for Docs and
+  Landing. Unlike the shared check workflow, this input is not a JSON list.
+  Browser suites select full labels from their matrix's `runner` field:
+  `nhost-x86_64-2c4g` for main/onboarding and `nhost-x86_64-4c8g` for the local
+  container stack. Runner labels are used verbatim, not built from size suffixes.
 - CLI new-project tests stay on x86_64 to consume their x86_64 artifacts.
   CodeQL uses `nhost-x86_64-8c16g`; code review uses `nhost-aarch64-4c8g`.
 - No Nhost macOS fleet exists. Native macOS cache warming stays on
