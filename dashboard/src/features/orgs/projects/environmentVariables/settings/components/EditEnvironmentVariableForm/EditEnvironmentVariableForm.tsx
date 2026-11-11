@@ -1,4 +1,3 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -7,10 +6,7 @@ import type {
   BaseEnvironmentVariableFormProps,
   BaseEnvironmentVariableFormValues,
 } from '@/features/orgs/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
-import {
-  BaseEnvironmentVariableForm,
-  baseEnvironmentVariableFormValidationSchema,
-} from '@/features/orgs/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
+import { BaseEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -47,8 +43,6 @@ export default function EditEnvironmentVariableForm({
       name: originalEnvironmentVariable.name || '',
       value: originalEnvironmentVariable.value || '',
     },
-    reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseEnvironmentVariableFormValidationSchema),
   });
 
   const { project } = useProject();
@@ -69,27 +63,11 @@ export default function EditEnvironmentVariableForm({
     throw error;
   }
 
-  const { setError } = form;
-
   async function handleSubmit({
     id,
     name,
     value,
   }: BaseEnvironmentVariableFormValues) {
-    if (
-      availableEnvironmentVariables.some(
-        (variable) =>
-          variable.name === name &&
-          variable.name !== originalEnvironmentVariable.name,
-      )
-    ) {
-      setError('name', {
-        message: 'This environment variable already exists.',
-      });
-
-      return;
-    }
-
     const updateConfigPromise = updateConfig({
       variables: {
         appId: project?.id,
