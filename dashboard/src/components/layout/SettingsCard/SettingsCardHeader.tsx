@@ -11,7 +11,7 @@ export interface SettingsCardHeaderProps
   /**
    * The title of the section.
    */
-  title: React.ReactNode;
+  title?: React.ReactNode;
   /**
    * The description shown under the title.
    */
