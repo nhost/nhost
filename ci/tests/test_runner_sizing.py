@@ -34,8 +34,7 @@ def inputs(workflow):
 
 
 def runners(workflow, name):
-    default = inputs("wf_check.yaml")["RUNS_ON"]["default"]
-    return json.loads(job(workflow, name)["with"].get("RUNS_ON", default))
+    return json.loads(job(workflow, name)["with"]["RUNS_ON"])
 
 
 class RunnerSizingTests(unittest.TestCase):
@@ -61,7 +60,7 @@ class RunnerSizingTests(unittest.TestCase):
                     else:
                         self.assertIn(runner, LINUX_RUNNERS | {MACOS_RUNNER})
 
-    def test_shared_check_callers_select_supported_unique_platforms(self):
+    def test_shared_check_callers_select_explicit_unique_platforms(self):
         default = inputs("wf_check.yaml")["RUNS_ON"]["default"]
         self.assertEqual(json.loads(default), DEFAULT_RUNNERS)
         for path in WORKFLOWS.glob("*"):
@@ -74,7 +73,8 @@ class RunnerSizingTests(unittest.TestCase):
                         "ARCHS", "RUNNER", "RUNNER_SIZE", "CHECK_RUNNER_SIZE"
                     ]:
                         self.assertNotIn(removed, settings)
-                    selected = json.loads(settings.get("RUNS_ON", default))
+                    self.assertIn("RUNS_ON", settings)
+                    selected = json.loads(settings["RUNS_ON"])
                     self.assertIsInstance(selected, list)
                     self.assertTrue(selected)
                     # One runner per OS/architecture keeps artifact names unique.
@@ -83,7 +83,6 @@ class RunnerSizingTests(unittest.TestCase):
                     for runner in selected:
                         self.assertIn(runner, LINUX_RUNNERS | {MACOS_RUNNER})
                     if not settings.get("BUILD", False):
-                        self.assertIn("RUNS_ON", settings)
                         self.assertEqual(selected, ["nhost-aarch64-4c8g"])
 
     def test_api_metadata_and_transfer_jobs_use_small_arm_fleets(self):

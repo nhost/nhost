@@ -66,6 +66,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
       BUILD: true
       NAME: auth
       PROJECT: services/auth

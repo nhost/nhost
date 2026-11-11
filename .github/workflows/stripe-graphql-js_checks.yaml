@@ -42,6 +42,7 @@ jobs:
     needs:
       - check-permissions
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
       BUILD: true
       NAME: stripe-graphql-js
       PROJECT: packages/stripe-graphql-js

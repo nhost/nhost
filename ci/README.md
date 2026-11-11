@@ -8,8 +8,8 @@ capacity; the fleet can allocate larger instances.
 
 - Metadata, approval, and image-publishing jobs use `nhost-aarch64-1c1g`.
   Changelog tooling, scans, and dependency updates use `nhost-aarch64-2c2g`.
-- Project builds default to `4c8g` on both Linux architectures. Check-only
-  callers use one ARM runner; frontend checks retain x86_64.
+- Standard project builds explicitly select `4c8g` on both Linux architectures.
+  Check-only callers use one ARM runner; frontend checks retain x86_64.
 - PostgreSQL and Nix cache checks use `nhost-aarch64-16c32g` and
   `nhost-x86_64-8c16g`.
 - Vercel callers pass a single full runner label through the required `RUNS_ON`
@@ -38,6 +38,7 @@ uploads artifacts. Project-specific options belong in callers:
 ```yaml
 uses: ./.github/workflows/wf_check.yaml
 with:
+  RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
   NAME: auth
   PROJECT: services/auth
   GIT_REF: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -58,8 +59,9 @@ and pass the **approved head SHA**, never a moving PR ref.
   the target set `SKIP_CACHE_CHECK: true` to bypass the ready-cache gate.
 - `LOGIN_ECR` defaults to false; enable it for authenticated ECR access during
   integration checks.
-- `RUNS_ON` is a JSON runner-label list, defaulting to
-  `["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]`.
+- Every caller in this repository explicitly sets `RUNS_ON`, a JSON runner-label
+  list. The shared interface retains the default
+  `["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]` for external consumers.
   Each entry creates one matrix job and is used verbatim as its runner label;
   checks run only on the first entry. Check-only callers pass one runner, for
   example `RUNS_ON: '["nhost-aarch64-4c8g"]'`. Larger workloads pass

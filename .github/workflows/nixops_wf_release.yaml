@@ -12,6 +12,7 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_check.yaml
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
       BUILD: true
       CHECKS: false
       NAME: nixops
