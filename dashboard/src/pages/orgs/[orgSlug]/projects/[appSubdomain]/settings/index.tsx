@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import type { PropsWithChildren, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -7,7 +7,6 @@ import {
   AreaSidebarNav,
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
@@ -23,12 +22,6 @@ import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/set
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
-/**
- * The configuration editor runs full width, without a title or the settings
- * column, so it is rendered apart from the other tabs.
- */
-const EDITOR_TAB = 'editor';
-
 const PROJECT_SETTINGS_TABS = {
   general: { title: 'General', Component: GeneralSettings },
   'compute-resources': {
@@ -40,6 +33,7 @@ const PROJECT_SETTINGS_TABS = {
     Component: EnvironmentVariablesSettings,
   },
   secrets: { title: 'Secrets', Component: SecretsSettings },
+  editor: { title: 'Configuration Editor', Component: TOMLEditor },
 } satisfies Record<string, SettingsTab>;
 
 function ProjectSettingsSidebar() {
@@ -100,7 +94,7 @@ function ProjectSettingsSidebar() {
             Secrets
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${settingsPath}?tab=${EDITOR_TAB}`}
+            href={`${settingsPath}?tab=editor`}
             exact
             shallow
             scroll={false}
@@ -113,27 +107,7 @@ function ProjectSettingsSidebar() {
   );
 }
 
-function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
-  const router = useRouter();
-
-  if (getSingleQueryParam(router.query.tab) === EDITOR_TAB) {
-    return (
-      <RetryableErrorBoundary resetKeys={[router.asPath]}>
-        {children}
-      </RetryableErrorBoundary>
-    );
-  }
-
-  return <SettingsArea>{children}</SettingsArea>;
-}
-
 export default function SettingsGeneralPage() {
-  const router = useRouter();
-
-  if (getSingleQueryParam(router.query.tab) === EDITOR_TAB) {
-    return <TOMLEditor />;
-  }
-
   return <SettingsTabs tabs={PROJECT_SETTINGS_TABS} defaultTab="general" />;
 }
 
@@ -146,9 +120,7 @@ SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
             <div className="flex h-full min-h-0 flex-col md:flex-row">
               <ProjectSettingsSidebar />
               <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-                <ProjectSettingsContentLayout>
-                  {page}
-                </ProjectSettingsContentLayout>
+                <SettingsArea>{page}</SettingsArea>
               </div>
             </div>
           </SettingsGuard>

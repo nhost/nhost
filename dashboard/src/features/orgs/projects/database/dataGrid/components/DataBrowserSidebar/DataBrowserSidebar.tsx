@@ -281,7 +281,11 @@ export default function DataBrowserSidebar() {
   }
 
   return (
-    <FeatureSidebar toggleOffset="left-8" className="box">
+    <FeatureSidebar
+      toggleOffset="left-8"
+      className="box"
+      resizeStorageKey="data-browser-sidebar-width"
+    >
       {(collapse) => (
         <DataBrowserSidebarContent onSidebarItemClick={collapse} />
       )}

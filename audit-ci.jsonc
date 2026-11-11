@@ -3,6 +3,27 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
   "allowlist": [
+    // GHSA-g3hv-75wg-m249 describes firstPhasePreProcess with optimizationLevel
+    // >= 2. The minimatch 3.1.5/5.1.9 code used by these legacy callers has
+    // neither feature; replacing it with v11 breaks their callable/RegExp API.
+    // Modern glob callers are forced to patched v14 in pnpm-workspace.yaml.
+    // Remove these path exceptions when the callers migrate to minimatch 11.
+    "GHSA-g3hv-75wg-m249|glob>minimatch",
+    "GHSA-g3hv-75wg-m249|*>glob>minimatch",
+    "GHSA-g3hv-75wg-m249|*>test-exclude>minimatch",
+    "GHSA-g3hv-75wg-m249|eslint>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint>minimatch",
+    "GHSA-g3hv-75wg-m249|*>@eslint/config-array>minimatch",
+    "GHSA-g3hv-75wg-m249|*>@eslint/eslintrc>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-import>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-jsx-a11y>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-react>minimatch",
+    // TypeDoc 0.28.20 needs Minimatch#matchOne (removed in v11). All three of
+    // its Minimatch constructors use the default optimization level 1, so the
+    // affected level-2 preprocessing cannot run. Remove when TypeDoc supports
+    // minimatch 11; keep this exception specific to its dependency path.
+    "GHSA-g3hv-75wg-m249|typedoc>minimatch",
+    "GHSA-g3hv-75wg-m249|*>typedoc>minimatch",
     // Expo CLI still requires Zod 3, which has no patched release for this
     // collection-validation DoS. Scope the exception to Expo's local dev CLI;
     // other Zod consumers must use patched v4. Remove when Expo migrates to v4

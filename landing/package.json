@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "generate": "echo \"Nothing to generate\"",
-    "test": "next build --webpack"
+    "test": "vitest run && next build --webpack"
   },
   "dependencies": {
     "@code-hike/mdx": "^0.9.0",
@@ -52,6 +52,7 @@
     "prettier-plugin-tailwindcss": "^0.2.8",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^3.4.19",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.12"
   }
 }

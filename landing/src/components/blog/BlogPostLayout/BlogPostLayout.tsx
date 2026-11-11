@@ -1,6 +1,7 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
+import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { ImageWithLegend } from '@/components/common/ImageWithLegend'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
@@ -84,6 +85,37 @@ function Share({ title }: { title: string }) {
   )
 }
 
+const defaultEndCtaText =
+  'Build your next agentic application with Nhost. Get a PostgreSQL database, GraphQL API, authentication, and file storage in one platform.'
+const defaultEndCtaButton = 'Get started for free'
+
+function EndCta({
+  text,
+  buttonLabel,
+}: {
+  text?: string
+  buttonLabel?: string
+}) {
+  return (
+    <div className="mx-auto mt-16 grid w-full max-w-prose grid-flow-row justify-items-center gap-6 rounded-lg border border-divider bg-paper p-8 text-base">
+      <h3 className="text-center text-xl font-semibold">Ready to build?</h3>
+
+      <p className="text-center text-base font-medium">
+        {text || defaultEndCtaText}
+      </p>
+
+      <Button
+        className="text-base shadow-lg transition-all duration-300 hover:shadow-xl"
+        href="https://app.nhost.io/signup"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {buttonLabel || defaultEndCtaButton} <ArrowRightIcon />
+      </Button>
+    </div>
+  )
+}
+
 export interface BlogPostLayout {
   /**
    * Article to render.
@@ -129,6 +161,8 @@ export default function BlogPostLayout({
             <span className="">{article.tags.join(' · ')}</span>
             <span>|</span>
             <span>{format(parseISO(article.date), 'd MMMM yyyy')}</span>
+            <span>|</span>
+            <span>{article.readingMinutes} min read</span>
             {article.updatedAt && article.updatedAt !== article.date && (
               <>
                 <span>|</span>
@@ -148,7 +182,8 @@ export default function BlogPostLayout({
           </h1>
 
           <span className="inline text-white text-opacity-65 sm:hidden">
-            {format(parseISO(article.date), 'd MMMM yyyy')}
+            {format(parseISO(article.date), 'd MMMM yyyy')} ·{' '}
+            {article.readingMinutes} min read
           </span>
 
           {article.updatedAt && article.updatedAt !== article.date && (
@@ -238,6 +273,8 @@ export default function BlogPostLayout({
         <Container className="prose prose-invert mt-12 max-w-prose text-white text-opacity-65">
           <MDXProvider components={components}>{children}</MDXProvider>
         </Container>
+
+        <EndCta text={article.endCtaText} buttonLabel={article.endCtaButton} />
 
         <Share title={article.title} />
       </Container>
