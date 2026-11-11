@@ -181,8 +181,8 @@ export const ENV = {
   get AUTH_EMAIL_PASSWORDLESS_ENABLED() {
     return castBooleanEnv('AUTH_EMAIL_PASSWORDLESS_ENABLED', false);
   },
-  get AUTH_SMS_PASSWORDLESS_ENABLED() {
-    return castBooleanEnv('AUTH_SMS_PASSWORDLESS_ENABLED', false);
+  get AUTH_OTP_SMS_ENABLED() {
+    return castBooleanEnv('AUTH_OTP_SMS_ENABLED', false);
   },
   get AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
     return castBooleanEnv('AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);

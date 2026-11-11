@@ -125,10 +125,10 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 		},
 
 		{
-			name: "sms passwordless disabled",
+			name: "sms otp disabled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.SMSPasswordlessEnabled = false
+				config.OTPSmsEnabled = false
 
 				return config
 			},
@@ -522,10 +522,10 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 		},
 
 		{
-			name: "sms passwordless disabled",
+			name: "sms otp disabled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.SMSPasswordlessEnabled = false
+				config.OTPSmsEnabled = false
 
 				return config
 			},
