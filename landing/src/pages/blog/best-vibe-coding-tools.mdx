@@ -1,7 +1,7 @@
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-   title: 'Best vibe coding tools in 2026: 5 tested on one prompt',
+  title: 'Best vibe coding tools in 2026: 5 tested on one prompt',
   description:
     'I gave Lovable, Bolt, Base44, Replit and v0 the same prompt with one requirement buried in it, then opened each database to see where the access rules ended up.',
   image: '/images/blog/best-vibe-coding-tools/cover.png',
@@ -96,7 +96,7 @@ REVOKE ALL ON FUNCTION public.poll_option_counts() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.poll_option_counts() TO authenticated, service_role;
 ```
 
-The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That created a new hole, and it closed that too:
+The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That created a new hole, and Lovable closed it as well:
 
 ```sql
 REVOKE UPDATE ON public.poll_options FROM authenticated;
@@ -104,7 +104,7 @@ REVOKE UPDATE ON public.poll_options FROM authenticated;
 
 Without that line, anyone logged in could write to the counter directly and fake the results.
 
-[Lovable](https://lovable.dev) rewrote its own work twice in three minutes, each time closing a way someone could have got at the votes. Its built-in security scanner reported nothing when I opened it afterwards.
+[Lovable](https://lovable.dev) rewrote its own work twice in three minutes, each time closing a way someone could have gotten to the votes. Its built-in security scanner reported nothing when I opened it afterwards.
 
 ![Lovable: the votes_select_own policy in the migration it wrote](/images/blog/best-vibe-coding-tools/lovable.png)
 
@@ -112,7 +112,7 @@ In the same message where it told me individual votes were locked down, it offer
 
 ## One open door in Bolt's build
 
-Three minutes fifty. Before writing any code, [Bolt](https://bolt.new) said it was loading its database guidance, because the task involved schema design and access policies. Then it read the config files and laid out a five-step plan. The migration it wrote opens with a long comment explaining the security model in plain English.
+[Bolt](https://bolt.new) took three minutes fifty. Before writing any code, it said it was loading its database guidance, because the task involved schema design and access policies. Then it read the config files and laid out a five-step plan. The migration it wrote opens with a long comment explaining the security model in plain English.
 
 What it built is almost identical to Lovable's. Row-level security on every table. Votes readable only by the person who cast them. One vote per person enforced by a unique constraint. No updates or deletes on votes at all, so a vote can't be changed once it's in. Nobody can see how you voted.
 
@@ -122,7 +122,7 @@ It skipped one line. `get_poll_results`, the function that returns vote counts, 
 
 Anyone with a poll's id can read its results over the public REST endpoint **without an account**, even though the whole app sits behind a login. Lovable wrote the same function and revoked it. Bolt wrote it and stopped.
 
-Individual votes are still private, only the totals leak. Bolt's scanner caught this, but the agent didn't fix it. It just added an "Ask Bolt to fix" button in the Security tab, so you only find out if you go looking.
+Individual votes are still private. Only the totals leak. Bolt's scanner caught this, but the agent didn't fix it. It just added an "Ask Bolt to fix" button in the Security tab, so you only find out if you go looking.
 
 ![Bolt's security audit: anon can execute the results function](/images/blog/best-vibe-coding-tools/bolt.png)
 
@@ -173,7 +173,7 @@ At fourteen minutes I gave up. There was a login page and a database full of tab
 
 ## Free plan limits
 
-Each tool counts usage differently, so it's not apples to apples. Lovable spent 1.9 of the 5 build credits it gives per day, enough for about two apps like this a day. Bolt used about 100,000 tokens against a 300,000 daily ceiling and a million a month, so about three. Base44 and Replit don't expose a simple per-run figure, and v0's free tier now restricts you to its smallest model.
+Each tool counts usage differently, so it's not apples to apples. Lovable spent 1.9 of the 5 build credits it gives per day, enough for about two apps like this a day. Bolt used about 100,000 tokens against a 300,000 daily ceiling and a million a month, so about three apps a day. Base44 and Replit don't expose a simple per-run figure, and v0's free tier now restricts you to its smallest model.
 
 ## Where the rules ended up
 
@@ -183,7 +183,7 @@ Row-level security has a gap, though. It controls who can read which rows, but a
 
 Replit took a different route and put the rules in its API code. The database itself doesn't block anything, so if one endpoint forgets to check who's asking, the data is exposed. You also can't verify this from the outside. A database policy you can read. API code you have to trust.
 
-## The other route: a coding agent on your own backend
+## Another option: a coding agent on your own backend
 
 Vibe coding tools are great for getting an idea on screen fast, and most people use them for prototypes. When a team builds an app it plans to run for years, the usual setup looks different: a managed backend for the data, auth and files, and a coding agent like Claude Code writing the code against it.
 
