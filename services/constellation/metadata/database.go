@@ -24,4 +24,7 @@ type DatabaseConfiguration struct {
 	// ConnectionInfo holds the connection settings (such as the database
 	// URL) used to dial this database source.
 	ConnectionInfo DatabaseConnectionInfo `json:"connection_info" toml:"connection_info"`
+	// ReadReplicas holds the connection settings of read-only replicas of
+	// this database.
+	ReadReplicas []DatabaseConnectionInfo `json:"read_replicas,omitempty" toml:"read_replicas,omitempty"`
 }

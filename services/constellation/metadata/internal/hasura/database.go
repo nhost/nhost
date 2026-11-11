@@ -179,7 +179,8 @@ type DatabaseConnectionInfo struct {
 
 // DatabaseConfiguration wraps the per-database connection block.
 type DatabaseConfiguration struct {
-	ConnectionInfo DatabaseConnectionInfo `json:"connection_info" yaml:"connection_info"`
+	ConnectionInfo DatabaseConnectionInfo   `json:"connection_info"         yaml:"connection_info"`
+	ReadReplicas   []DatabaseConnectionInfo `json:"read_replicas,omitempty" yaml:"read_replicas,omitempty"`
 
 	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
