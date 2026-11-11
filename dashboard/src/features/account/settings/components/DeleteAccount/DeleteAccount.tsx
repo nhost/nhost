@@ -74,7 +74,6 @@ export default function DeleteAccount() {
   return (
     <AccountSettingsCard>
       <SettingsCardHeader
-        size="lg"
         title="Delete account"
         description="Permanently delete your account and all its data. This can't be undone."
         control={

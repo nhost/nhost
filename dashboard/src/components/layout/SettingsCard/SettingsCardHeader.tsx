@@ -31,8 +31,9 @@ export interface SettingsCardHeaderProps
    */
   control?: React.ReactNode;
   /**
-   * `lg` for a page with a few big sections (like project General), where
-   * the card titles act as section headings.
+   * `lg` for a standalone page made of one big card (password reset, email
+   * verify). Settings cards keep the default size, so titles match on every
+   * settings page.
    */
   size?: 'default' | 'lg';
   /**

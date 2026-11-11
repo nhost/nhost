@@ -10,7 +10,7 @@ function AccountMfaSettings() {
   return (
     <AccountSettingsTile
       icon={<ShieldCheck className="h-5 w-5" aria-hidden="true" />}
-      title="Authenticator app"
+      title="Two-factor authentication"
       active={isMfaEnabled}
       status={isMfaEnabled ? 'On' : 'Off'}
       description="Add a second step when you sign in, using a code from an authenticator app."

@@ -179,7 +179,6 @@ export default function GeneralSettings() {
         <Form onSubmit={handleProjectNameChange}>
           <SettingsCard>
             <SettingsCardHeader
-              size="lg"
               title="Project name"
               control={
                 <ButtonWithLoading
@@ -204,7 +203,7 @@ export default function GeneralSettings() {
       </FormProvider>
 
       <SettingsCard>
-        <SettingsCardHeader size="lg" title="Availability" />
+        <SettingsCardHeader title="Availability" />
 
         <SettingsCardContent>
           {showWakeUpCard ? (
@@ -309,7 +308,6 @@ export default function GeneralSettings() {
       {isPlatform && (
         <SettingsCard>
           <SettingsCardHeader
-            size="lg"
             title="Delete project"
             description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
             control={

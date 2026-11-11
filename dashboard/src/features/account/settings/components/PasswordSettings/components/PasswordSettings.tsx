@@ -2,6 +2,7 @@ import { FormPasswordInput } from '@/components/form/FormPasswordInput';
 import {
   SettingsCardContent,
   SettingsCardFooter,
+  SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
@@ -19,6 +20,8 @@ export default function PasswordSettings() {
     <Form {...form}>
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          <SettingsCardHeader title="Password" />
+
           {/* Same shape as the organization settings form: the fields
               share the full width, Save sits in the footer. */}
           <SettingsCardContent className="sm:grid-cols-2">

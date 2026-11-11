@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 interface Section {
   id: AuthenticationSection;
+  /** Names the section for screen readers. The card shows it visually. */
   title: string;
   Card: ComponentType;
 }
@@ -34,18 +35,17 @@ const ROWS: Section[][] = [
   [{ id: 'passkeys', title: 'Passkeys', Card: SecurityKeysSettings }],
 ];
 
+// Each card has its own title inside, like the other settings pages with
+// several cards, so the section only adds the anchor.
 function AuthenticationSectionBlock({ id, title, Card }: Section) {
   return (
-    // The card is the last child. `highlightSection` sets data-highlighted
+    // The card is the only child. `highlightSection` sets data-highlighted
     // for a moment, giving it a ring and a soft blue tint that fade out.
     <section
       id={id}
-      aria-labelledby={`${id}-title`}
-      className="grid scroll-mt-[calc(var(--account-header-height)+1.5rem)] grid-rows-[auto_1fr] gap-3 [&>:last-child]:transition-[box-shadow,background-color] [&>:last-child]:duration-700 motion-reduce:[&>:last-child]:transition-none [&[data-highlighted=true]>:last-child]:bg-primary/5 [&[data-highlighted=true]>:last-child]:shadow-[0_0_0_2px_hsl(var(--primary)/0.6)]"
+      aria-label={title}
+      className="grid scroll-mt-[calc(var(--account-header-height)+1.5rem)] [&>:last-child]:transition-[box-shadow,background-color] [&>:last-child]:duration-700 motion-reduce:[&>:last-child]:transition-none [&[data-highlighted=true]>:last-child]:bg-primary/5 [&[data-highlighted=true]>:last-child]:shadow-[0_0_0_2px_hsl(var(--primary)/0.6)]"
     >
-      <h2 id={`${id}-title`} className="font-semibold text-lg">
-        {title}
-      </h2>
       <RetryableErrorBoundary>
         <Card />
       </RetryableErrorBoundary>
@@ -71,14 +71,11 @@ export default function AuthenticationSettings() {
   }, [hash]);
 
   return (
-    <div className="grid grid-flow-row gap-8">
+    <div className="grid grid-flow-row gap-6">
       {ROWS.map((row) => (
         <div
           key={row[0].id}
-          className={cn(
-            'grid gap-8 sm:gap-6',
-            row.length > 1 && 'sm:grid-cols-2',
-          )}
+          className={cn('grid gap-6', row.length > 1 && 'sm:grid-cols-2')}
         >
           {row.map((section) => (
             <AuthenticationSectionBlock key={section.id} {...section} />

@@ -85,7 +85,6 @@ export default function EmailSetting() {
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <SettingsCardHeader
-            size="lg"
             title="Email"
             control={
               <ButtonWithLoading

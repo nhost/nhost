@@ -8,7 +8,7 @@ function SecurityKeysSettings() {
     <AccountSettingsCard>
       <SettingsCardHeader
         className="sm:items-start"
-        title={null}
+        title="Passkeys"
         description="Sign in to Nhost with Touch ID, Face ID, your phone or a hardware key, no password needed."
         control={<AddSecurityKeyButton />}
       />

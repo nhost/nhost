@@ -61,7 +61,6 @@ export default function DisplayNameSetting() {
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <SettingsCardHeader
-            size="lg"
             title="Display name"
             control={
               <ButtonWithLoading
