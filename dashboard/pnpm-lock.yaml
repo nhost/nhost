@@ -239,10 +239,10 @@ importers:
       '@uidotdev/usehooks':
         specifier: ^2.4.1
         version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@uiw/codemirror-theme-bbedit':
+      '@uiw/codemirror-theme-github':
         specifier: ^4.25.12
         version: 4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)
-      '@uiw/codemirror-theme-github':
+      '@uiw/codemirror-theme-vscode':
         specifier: ^4.25.12
         version: 4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)
       '@uiw/react-codemirror':
@@ -3109,11 +3109,11 @@ packages:
       '@codemirror/state': '>=6.0.0'
       '@codemirror/view': '>=6.0.0'
 
-  '@uiw/codemirror-theme-bbedit@4.25.12':
-    resolution: {integrity: sha512-1Bm2Gw0OVpMrCiyt45k3Wiw0ilTFC0I6CW/2KBO9ZvlvmXQNretdANXD2G7e+Y/Kp53EtfSMGX82kWbKK2nBlw==}
-
   '@uiw/codemirror-theme-github@4.25.12':
     resolution: {integrity: sha512-ZEdyK7WEmV91HwRs6Twgae63GtE1C2QfS40NlnRvs6vHHTQjyz+wI1Hkpf1uTpWxtrNVUrc35k9KUUXWTmViFg==}
+
+  '@uiw/codemirror-theme-vscode@4.25.12':
+    resolution: {integrity: sha512-sIO/8/hJsT6meSa/d5RQHXw4isago+DP4iVQtqiULvaXaA3cQvtHVw0enbcZdwtVIT6rQEfERxqeoHiX9Psd5w==}
 
   '@uiw/codemirror-themes@4.25.12':
     resolution: {integrity: sha512-3bLX6C+gstr82SmY2FAj2TfHXnl2SnC+whRZJmRsv82wMhG8RZlZVy+o0rLuGRIPD9acuY0gpouHVRNUnzBj3g==}
@@ -8707,7 +8707,7 @@ snapshots:
       '@codemirror/state': 6.7.6
       '@codemirror/view': 6.43.15
 
-  '@uiw/codemirror-theme-bbedit@4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)':
+  '@uiw/codemirror-theme-github@4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)':
     dependencies:
       '@babel/runtime': 7.29.10
       '@lezer/highlight': 1.2.5
@@ -8717,7 +8717,7 @@ snapshots:
       - '@codemirror/state'
       - '@codemirror/view'
 
-  '@uiw/codemirror-theme-github@4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)':
+  '@uiw/codemirror-theme-vscode@4.25.12(@codemirror/language@6.13.1)(@codemirror/state@6.7.6)(@codemirror/view@6.43.15)':
     dependencies:
       '@babel/runtime': 7.29.10
       '@lezer/highlight': 1.2.5
