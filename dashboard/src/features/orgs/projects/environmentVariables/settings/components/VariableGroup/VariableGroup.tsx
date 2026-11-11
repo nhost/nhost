@@ -24,7 +24,7 @@ export default function VariableGroup({ label, children }: VariableGroupProps) {
         </p>
       )}
       <div className="overflow-hidden rounded-md border bg-muted/30">
-        <Table className="table-fixed [&_td:first-child]:w-1/3 [&_td]:py-0 [&_tr]:h-12">
+        <Table className="table-fixed [&_td:first-child]:w-1/3 [&_td]:py-1 [&_tr]:h-12">
           <TableBody>{children}</TableBody>
         </Table>
       </div>

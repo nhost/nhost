@@ -76,8 +76,12 @@ module.exports = {
           foreground: 'hsl(var(--destructive-foreground))',
           hover: 'hsl(var(--destructive-hover))',
         },
-        warning: 'hsl(var(--warning) / <alpha-value>)',
+        warning: {
+          DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+          foreground: 'hsl(var(--warning-foreground) / <alpha-value>)',
+        },
         success: 'hsl(var(--success) / <alpha-value>)',
+        'brand-violet': 'hsl(var(--brand-violet) / <alpha-value>)',
         'on-solid': 'hsl(var(--on-solid) / <alpha-value>)',
         backdrop: 'hsl(var(--backdrop) / <alpha-value>)',
         'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
@@ -102,6 +106,7 @@ module.exports = {
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
         overlay: 'var(--shadow-overlay)',
         raised: 'var(--shadow-raised)',
+        sticky: 'var(--shadow-sticky)',
       },
       zIndex: {
         '-1': '-1',
