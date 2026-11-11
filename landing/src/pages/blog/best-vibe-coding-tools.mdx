@@ -187,13 +187,13 @@ Replit took a different route and put the rules in its API code. The database it
 
 Vibe coding tools are great for getting an idea on screen fast, and most people use them for prototypes. When a team builds an app it plans to run for years, the usual setup looks different: a managed backend for the data, auth and files, and a coding agent like Claude Code writing the code against it.
 
-I tried that setup with Nhost a few weeks before this test, using the same polling prompt.
+I tried that setup with [Nhost](https://nhost.io) a few weeks before this test, using the same polling prompt.
 
-Claude Code finished in 2 minutes 46 seconds, with no questions. It created the tables, set the permissions, wrote the page, then tested it with two users against the live project. Its only mistake was in its own test script, and it fixed that on its own. The schema and permissions worked the first time.
+Claude Code finished in **2 minutes 46 seconds, with no questions.** It created the tables, set the permissions, wrote the page, then tested it with two users against the live project. Its only mistake was in its own test script, and it fixed that on its own. **The schema and permissions worked the first time.**
 
 Votes are readable only by the person who cast them. The rule for signed-in users is `user_id _eq X-Hasura-User-Id`, and anonymous visitors can't reach the table at all. Nobody can change or delete a vote.
 
-The totals come from a separate view, `poll_option_totals`, that counts votes without showing who cast them. That's the same spot where Bolt left its results function open. Claude Code came up with the view by itself.
+The totals come from a separate view, `poll_option_totals`, that counts votes without showing who cast them. That's the same spot where Bolt left its results function open. **Claude Code came up with the view by itself.**
 
 It handed back a local page and didn't publish anything.
 
