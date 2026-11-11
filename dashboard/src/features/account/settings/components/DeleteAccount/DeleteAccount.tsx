@@ -11,6 +11,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -28,13 +29,14 @@ export default function DeleteAccount() {
   const { signout } = useAuth();
   const userData = useUserData();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [loadingRemove, setLoadingRemove] = useState(false);
 
-  // Like deleting a project, you type something you have to read off the
-  // screen, so it can't happen with a stray click.
+  // Same as deleting a project or an organization: tick the box and type
+  // something you have to read off the screen.
   const email = userData?.email;
-  const canDelete = !!email && confirmation === email;
+  const canDelete = acknowledged && !!email && confirmation === email;
 
   const [deleteUserAccount] = useDeleteUserAccountMutation({
     variables: { id: userData?.id },
@@ -81,6 +83,7 @@ export default function DeleteAccount() {
             onOpenChange={(open) => {
               setDialogOpen(open);
               if (!open) {
+                setAcknowledged(false);
                 setConfirmation('');
               }
             }}
@@ -103,7 +106,23 @@ export default function DeleteAccount() {
                 </Alert>
               </AlertDialogDescription>
 
-              <div className="my-2">
+              <div className="my-2 flex flex-col gap-6">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="confirm-delete-account"
+                    checked={acknowledged}
+                    onCheckedChange={(checked) =>
+                      setAcknowledged(checked === true)
+                    }
+                  />
+                  <Label
+                    htmlFor="confirm-delete-account"
+                    className="cursor-pointer font-normal text-foreground"
+                  >
+                    I understand this action cannot be undone
+                  </Label>
+                </div>
+
                 <div className="grid gap-2">
                   <Label
                     htmlFor="delete-account-confirmation"

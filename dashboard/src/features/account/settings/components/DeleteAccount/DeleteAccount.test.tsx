@@ -19,6 +19,12 @@ async function openDeleteDialog(user: TestUserEvent) {
   return screen.findByRole('alertdialog');
 }
 
+function getConfirmationCheckbox(dialog: HTMLElement) {
+  return within(dialog).getByRole('checkbox', {
+    name: 'I understand this action cannot be undone',
+  });
+}
+
 function getConfirmationInput(dialog: HTMLElement) {
   return within(dialog).getByRole('textbox', { name: /to confirm/i });
 }
@@ -28,11 +34,12 @@ function getDeleteAction(dialog: HTMLElement) {
 }
 
 describe('DeleteAccount', () => {
-  it('only enables Delete after typing the exact email', async () => {
+  it('only enables Delete after ticking the box and typing the exact email', async () => {
     const user = new TestUserEvent();
     render(<DeleteAccount />);
 
     const dialog = await openDeleteDialog(user);
+    await user.click(getConfirmationCheckbox(dialog));
     expect(getDeleteAction(dialog)).toBeDisabled();
 
     await user.type(getConfirmationInput(dialog), 'jane@example');
@@ -48,6 +55,9 @@ describe('DeleteAccount', () => {
 
     const dialog = await openDeleteDialog(user);
     await user.type(getConfirmationInput(dialog), EMAIL);
+    expect(getDeleteAction(dialog)).toBeDisabled();
+
+    await user.click(getConfirmationCheckbox(dialog));
     expect(getDeleteAction(dialog)).toBeEnabled();
 
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -57,6 +67,7 @@ describe('DeleteAccount', () => {
 
     const reopenedDialog = await openDeleteDialog(user);
 
+    expect(getConfirmationCheckbox(reopenedDialog)).not.toBeChecked();
     expect(getConfirmationInput(reopenedDialog)).toHaveValue('');
     expect(getDeleteAction(reopenedDialog)).toBeDisabled();
   });
