@@ -123,10 +123,15 @@ class RunnerSizingTests(unittest.TestCase):
                 workflow = project + "_wf_release.yaml"
                 self.assertFalse(job(workflow, "build_artifacts")["with"]["CHECKS"])
                 self.assertEqual(runners(workflow, "build_artifacts"), DEFAULT_RUNNERS)
-        self.assertEqual(
-            job("cli_wf_release.yaml", "build-multiplatform")["runs-on"],
-            "nhost-aarch64-4c8g",
-        )
+
+    def test_cli_multiplatform_build_matches_npm_publisher_system(self):
+        workflow = "cli_wf_release.yaml"
+        self.assertEqual(job(workflow, "publish-npm")["runs-on"], "ubuntu-latest")
+        # ubuntu-latest is x86_64-linux; both jobs must evaluate the same
+        # cli-multiplatform derivation to reuse the cached release binaries.
+        build_runner = job(workflow, "build-multiplatform")["runs-on"]
+        self.assertIn(build_runner, LINUX_RUNNERS)
+        self.assertEqual(build_runner.rsplit("-", 1)[0], "nhost-x86_64")
 
     def test_frontend_builds_use_explicit_runner_labels(self):
         for project in [

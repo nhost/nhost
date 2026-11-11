@@ -19,6 +19,8 @@ capacity; the fleet can allocate larger instances.
   `nhost-x86_64-2c4g` for main/onboarding and `nhost-x86_64-4c8g` for the local
   container stack. Runner labels are used verbatim, not built from size suffixes.
 - CLI new-project tests stay on x86_64 to consume their x86_64 artifacts.
+  CLI `build-multiplatform` also stays on x86_64 to share its cached
+  `cli-multiplatform` derivation with `publish-npm` on `ubuntu-latest`.
   CodeQL uses `nhost-x86_64-8c16g`; code review uses `nhost-aarch64-4c8g`.
 - No Nhost macOS fleet exists. Native macOS cache warming stays on
   `blacksmith-6vcpu-macos-latest`.
@@ -271,3 +273,7 @@ runner availability, OIDC, registry access, or platform integration tests.
 
 For targeted Python runs, use a Nix interpreter built with PyYAML; adding
 `nixpkgs#python3Packages.pyyaml` to `nix shell` alone does not extend its import path.
+
+When verifying cached derivation handoffs with `nix derivation show`, Nix 2.34
+wraps results in `derivations` and uses store basenames in `inputs.drvs`.
+Older output formats use full store paths in `inputDrvs`.
