@@ -11,6 +11,7 @@ let
     fileset = pkgs.lib.fileset.unions [
       ../.github
       ../build/makefiles
+      ../nixops/lib/go/go.nix
       ../services/mcp/Makefile
       ../services/functions/Makefile
       ../services/postgres/Makefile
