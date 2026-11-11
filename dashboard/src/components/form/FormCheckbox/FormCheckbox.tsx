@@ -62,8 +62,6 @@ function InnerFormCheckbox<
         return (
           <FormItem className={cn('flex flex-col gap-2', containerClassName)}>
             <div className="flex items-start gap-2">
-              {/* The slot is one label line tall, so the checkbox stays
-                  centred on the first line even when the label wraps. */}
               <div className="flex h-5 shrink-0 items-center">
                 <FormControl>
                   <Checkbox

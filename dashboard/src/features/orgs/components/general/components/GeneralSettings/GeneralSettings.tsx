@@ -93,7 +93,6 @@ export default function GeneralSettings() {
               placeholder="Acme Inc"
             />
 
-            {/* Same form item as the name field, so both line up. */}
             <FormItem>
               <Label htmlFor="slug">Organization slug</Label>
               <div className="relative">
