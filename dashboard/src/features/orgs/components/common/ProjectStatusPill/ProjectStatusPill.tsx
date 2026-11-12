@@ -59,6 +59,11 @@ const PROJECT_STATUS_STYLES: Partial<
 };
 
 export interface ProjectStatusPillProps {
+  /**
+   * Projects without a state yet show no pill.
+   *
+   * @default ApplicationStatus.Empty
+   */
   status?: ApplicationStatus;
   /**
    * `compact` is the small, icon-free version for tight spots like the
@@ -74,11 +79,10 @@ export interface ProjectStatusPillProps {
  * states without one.
  */
 export default function ProjectStatusPill({
-  status,
+  status = ApplicationStatus.Empty,
   size = 'default',
 }: ProjectStatusPillProps) {
-  const style =
-    status === undefined ? undefined : PROJECT_STATUS_STYLES[status];
+  const style = PROJECT_STATUS_STYLES[status];
 
   if (!style) {
     return null;
