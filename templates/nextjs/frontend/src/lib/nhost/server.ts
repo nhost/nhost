@@ -46,9 +46,10 @@ export const cookieOptions = {
 export const PASSWORD_RESET_KEY = 'nhostPasswordReset';
 const PASSWORD_RESET_LINK_TYPE = 'passwordReset';
 
-// Names a refresh token the proxy has seen rejected once. See "How it works"
-// in the README.
+// Names a refresh token the proxy has seen rejected, and when, as
+// `<refreshTokenId>.<epoch ms>`. See "How it works" in the README.
 const REFRESH_REJECTED_KEY = 'nhostRefreshRejected';
+const REFRESH_REJECTED_GRACE_MS = 5000;
 
 const sessionCookieNames = [
   key,
@@ -311,11 +312,20 @@ export async function handleNhostProxy(
       });
     },
     // Only a rejected refresh gets here. A request that lost a race to rotate
-    // the same token is rejected too, so the first time only signs this
-    // request out, and a second time for the same token clears the cookies.
+    // the same token is rejected too, and so is one the browser sends before
+    // the winner's cookie lands. So a rejection only signs this request out,
+    // until the same token is rejected again after the grace period.
     remove: () => {
       const id = storage.get()?.refreshTokenId;
-      if (!id || request.cookies.get(REFRESH_REJECTED_KEY)?.value === id) {
+      const [markedId, markedAt] = (
+        request.cookies.get(REFRESH_REJECTED_KEY)?.value ?? ''
+      ).split('.');
+      const marked = !!id && markedId === id;
+      if (
+        !id ||
+        (marked &&
+          Date.now() - (Number(markedAt) || 0) >= REFRESH_REJECTED_GRACE_MS)
+      ) {
         clearSessionCookies();
         return;
       }
@@ -323,10 +333,13 @@ export async function handleNhostProxy(
       for (const name of sessionCookieNames) {
         request.cookies.delete(name);
       }
+      if (marked) {
+        return;
+      }
       mutations.push((response) => {
         response.cookies.set({
           name: REFRESH_REJECTED_KEY,
-          value: id,
+          value: `${id}.${Date.now()}`,
           ...cookieOptions,
           maxAge: 60,
         });

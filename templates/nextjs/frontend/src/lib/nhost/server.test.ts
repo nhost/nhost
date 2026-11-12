@@ -178,7 +178,8 @@ describe('session cookies', () => {
 });
 
 // A request that loses a race to rotate the refresh token is rejected like a
-// revoked one, so only a second rejection of the same token signs out.
+// revoked one, so only a second rejection of the same token, after a grace
+// period for the winner's cookie to land, signs out.
 describe('rejected refresh', () => {
   beforeEach(() => {
     fetchMock.mockReset();
@@ -191,6 +192,7 @@ describe('rejected refresh', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -200,6 +202,25 @@ describe('rejected refresh', () => {
     refreshTokenId: 'refresh-token-id',
   });
 
+  // Rejects the token once, then again `laterMs` on with the marker the first
+  // response set.
+  const rejectedTwice = async (laterMs: number): Promise<NextResponse> => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    const first = await proxyResponse(expired);
+    const marker = setCookie(first, 'nhostRefreshRejected').split(';')[0];
+
+    vi.setSystemTime(Date.now() + laterMs);
+    const { applySessionCookies } = await handleNhostProxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: {
+          cookie: `${DEFAULT_SESSION_KEY}=${encodeURIComponent(expired)}; ${marker}`,
+        },
+      }),
+    );
+
+    return applySessionCookies(NextResponse.next());
+  };
+
   it('keeps the cookies and marks the token the first time', async () => {
     const result = await handleNhostProxy(proxyRequest(expired));
     const response = result.applySessionCookies(NextResponse.next());
@@ -208,19 +229,18 @@ describe('rejected refresh', () => {
     expect(setCookie(response, DEFAULT_SESSION_KEY)).toBe('');
     expect(setCookie(response, SIGNED_IN_KEY)).toBe('');
     expect(setCookie(response, 'nhostRefreshRejected')).toMatch(
-      /^nhostRefreshRejected=refresh-token-id;.*HttpOnly/i,
+      /^nhostRefreshRejected=refresh-token-id\.\d+;.*HttpOnly/i,
     );
   });
 
-  it('deletes the cookies when the marked token is rejected again', async () => {
-    const { applySessionCookies } = await handleNhostProxy(
-      new NextRequest('http://localhost:3000/', {
-        headers: {
-          cookie: `${DEFAULT_SESSION_KEY}=${encodeURIComponent(expired)}; nhostRefreshRejected=refresh-token-id`,
-        },
-      }),
-    );
-    const response = applySessionCookies(NextResponse.next());
+  it('keeps the cookies and the marker when rejected again within the grace period', async () => {
+    const response = await rejectedTwice(1000);
+
+    expect(response.headers.getSetCookie()).toEqual([]);
+  });
+
+  it('deletes the cookies when the marked token is rejected again later', async () => {
+    const response = await rejectedTwice(5000);
 
     for (const name of [
       DEFAULT_SESSION_KEY,

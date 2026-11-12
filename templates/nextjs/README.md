@@ -92,8 +92,10 @@ be used once, so prefetches never refresh. Don't turn on `prefetch={true}` or
 the SDK's browser auto-refresh.
 
 If two requests try to refresh at once, the one that loses doesn't sign the
-user out. It sets a short-lived `nhostRefreshRejected` cookie and the page
-retries. Only a second failure signs them out.
+user out. It sets a short-lived `nhostRefreshRejected` cookie with the time,
+and the page retries. Only a second failure more than a few seconds later signs
+them out, so a retry the browser sends before the winner's cookie arrives, such
+as the redirect from a protected page, can't.
 
 ### Links in emails
 
