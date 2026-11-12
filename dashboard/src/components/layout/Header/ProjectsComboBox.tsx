@@ -43,9 +43,9 @@ export default function ProjectsComboBox() {
     value: app.subdomain,
     label: app.name,
     render: (
-      <div className="flex w-full items-center gap-1">
+      <div className="flex w-full min-w-0 items-center gap-1">
         <Box className="h-4 w-4 shrink-0" />
-        <span className="max-w-52 truncate">{app.name}</span>
+        <span className="truncate">{app.name}</span>
         <span className="ml-auto flex shrink-0 items-center gap-2">
           {!!app.githubRepository && (
             <Tooltip>
@@ -105,8 +105,6 @@ export default function ProjectsComboBox() {
       value={selectedProjectFromUrl?.subdomain ?? null}
       placeholder="Select a project"
       searchPlaceholder="Select a project..."
-      // Room for the name, the GitHub mark and the status pill on each row.
-      popoverContentClassName="w-[260px]"
       footerSlot={footerSlot}
       linkHref={
         selectedProjectFromUrl && orgSlug
