@@ -33967,7 +33967,7 @@ export const GetOrganizationsDocument = gql`
       featureMaxDbSize
       slaLevel
     }
-    apps(order_by: {name: asc}) {
+    apps(order_by: {createdAt: asc}) {
       ...ProjectBase
     }
     members {
@@ -34157,7 +34157,7 @@ export function refetchGetProjectStateQuery(variables: GetProjectStateQueryVaria
     }
 export const GetProjectsDocument = gql`
     query getProjects($orgSlug: String!) {
-  apps(where: {organization: {slug: {_eq: $orgSlug}}}) {
+  apps(where: {organization: {slug: {_eq: $orgSlug}}}, order_by: {createdAt: asc}) {
     id
     name
     slug

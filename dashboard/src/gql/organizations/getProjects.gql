@@ -1,5 +1,8 @@
 query getProjects($orgSlug: String!) {
-  apps(where: { organization: { slug: { _eq: $orgSlug } } }) {
+  apps(
+    where: { organization: { slug: { _eq: $orgSlug } } }
+    order_by: { createdAt: asc }
+  ) {
     id
     name
     slug
