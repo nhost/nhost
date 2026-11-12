@@ -148,8 +148,15 @@ Before you deploy:
 - Set the `APP_ORIGIN` (your frontend URL) and `WEBAUTHN_RP_ID` (its hostname)
   secrets with `nhost secrets create`. The OAuth secrets must exist too, even
   with OAuth off. `fixme` is fine.
-- Set `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` and
-  `NEXT_PUBLIC_APP_ORIGIN` before `next build`. See `frontend/.env.example`.
+- Set `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` before
+  `next build`, and `NEXT_PUBLIC_APP_ORIGIN` unless you deploy to Vercel. See
+  `frontend/.env.example`.
+- On Vercel, import the repo and set the project's Root Directory to
+  `frontend`, where the app and its `vercel.json` live. Add
+  `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` and, with OAuth on,
+  `NHOST_OAUTH_PROVIDERS` as environment variables. `NEXT_PUBLIC_APP_ORIGIN`
+  can stay unset: the build falls back to the project's production domain, so
+  set the `APP_ORIGIN` secret to that.
 - For OAuth, use the callback URL
   `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/github/callback`
   and set the client ID and secret with `nhost secrets`.
