@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -65,6 +66,159 @@ func (p *fakePool) BeginTx(context.Context) (Tx, error) { //nolint:ireturn,nolin
 
 func (p *fakePool) Close() {
 	p.closed++
+}
+
+type fakePositionRow struct {
+	position *int64
+}
+
+func (r fakePositionRow) Scan(dest ...any) error {
+	target, _ := dest[0].(**int64)
+	*target = r.position
+
+	return nil
+}
+
+type fakeRows struct{}
+
+func (fakeRows) Close()            {}
+func (fakeRows) Next() bool        { return false }
+func (fakeRows) Scan(...any) error { return nil }
+func (fakeRows) Err() error        { return nil }
+
+type fakePollPool struct {
+	fakePool
+
+	positions []*int64
+	pollErr   error
+	polls     int
+}
+
+func (p *fakePollPool) QueryRow(context.Context, string, ...any) Row { //nolint:ireturn,nolintlint
+	position := p.positions[0]
+	p.positions = p.positions[1:]
+
+	return fakePositionRow{position: position}
+}
+
+func (p *fakePollPool) Query(
+	context.Context,
+	string,
+	...any,
+) (Rows, error) { //nolint:ireturn,nolintlint
+	p.polls++
+
+	if p.pollErr != nil {
+		return nil, p.pollErr
+	}
+
+	return fakeRows{}, nil
+}
+
+func TestExecuteMultiplexedOperation_ReplicaFloor(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		floor        int64
+		primary      *fakePollPool
+		replica      *fakePollPool
+		wantPrimary  int
+		wantReplica  int
+		wantFloor    int64
+		withReplicas bool
+	}{
+		{
+			name:         "no replicas polls the primary without reading positions",
+			floor:        0,
+			primary:      &fakePollPool{positions: nil},
+			replica:      &fakePollPool{positions: nil},
+			wantPrimary:  1,
+			wantReplica:  0,
+			wantFloor:    0,
+			withReplicas: false,
+		},
+		{
+			name:         "replica that has caught up is polled and raises the floor",
+			floor:        100,
+			primary:      &fakePollPool{positions: nil},
+			replica:      &fakePollPool{positions: []*int64{new(int64(100)), new(int64(130))}},
+			wantPrimary:  0,
+			wantReplica:  1,
+			wantFloor:    130,
+			withReplicas: true,
+		},
+		{
+			name:         "replica behind the floor sends the poll to the primary",
+			floor:        100,
+			primary:      &fakePollPool{positions: []*int64{new(int64(150))}},
+			replica:      &fakePollPool{positions: []*int64{new(int64(90))}},
+			wantPrimary:  1,
+			wantReplica:  0,
+			wantFloor:    150,
+			withReplicas: true,
+		},
+		{
+			name:         "server without a replay position sends the poll to the primary",
+			floor:        0,
+			primary:      &fakePollPool{positions: []*int64{new(int64(40))}},
+			replica:      &fakePollPool{positions: []*int64{nil}},
+			wantPrimary:  1,
+			wantReplica:  0,
+			wantFloor:    40,
+			withReplicas: true,
+		},
+		{
+			name:         "replica poll error retries on the primary",
+			floor:        0,
+			primary:      &fakePollPool{positions: []*int64{new(int64(60))}},
+			replica:      &fakePollPool{positions: []*int64{new(int64(50))}, pollErr: errFakeQuery},
+			wantPrimary:  1,
+			wantReplica:  1,
+			wantFloor:    60,
+			withReplicas: true,
+		},
+		{
+			name:         "floor never goes down",
+			floor:        200,
+			primary:      &fakePollPool{positions: nil},
+			replica:      &fakePollPool{positions: []*int64{new(int64(250)), new(int64(180))}},
+			wantPrimary:  0,
+			wantReplica:  1,
+			wantFloor:    200,
+			withReplicas: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := NewClient(tt.primary)
+			if tt.withReplicas {
+				client.replicas = []Pool{tt.replica}
+			}
+
+			client.readFloor.Store(tt.floor)
+
+			if _, err := client.ExecuteMultiplexedOperation(
+				t.Context(), "SELECT 1", nil, slog.New(slog.DiscardHandler),
+			); err != nil {
+				t.Fatalf("ExecuteMultiplexedOperation: %v", err)
+			}
+
+			if tt.primary.polls != tt.wantPrimary || tt.replica.polls != tt.wantReplica {
+				t.Errorf(
+					"primary polled %d times, replica %d times; want %d and %d",
+					tt.primary.polls, tt.replica.polls, tt.wantPrimary, tt.wantReplica,
+				)
+			}
+
+			if got := client.readFloor.Load(); got != tt.wantFloor {
+				t.Errorf("floor = %d, want %d", got, tt.wantFloor)
+			}
+		})
+	}
 }
 
 func TestClientClose_ClosesReplicas(t *testing.T) {
@@ -317,6 +471,147 @@ func TestExecuteReadOperations_LabReplica(t *testing.T) {
 
 	if got := string(asJSON(t, write["standby"])); got != `{"standby" : false}` {
 		t.Errorf("write path ran on %s, want the primary", got)
+	}
+}
+
+const replicaFloorPoll = "SELECT 'order-1', json_build_object('status', status)::text " +
+	"FROM replica_floor_orders WHERE id = 1"
+
+// labClient opens a client against the lab primary and replica, or skips the
+// test when they are not configured.
+func labClient(t *testing.T) (*Client, Pool, Pool) {
+	t.Helper()
+
+	primaryURL := os.Getenv("CONSTELLATION_TEST_READ_REPLICA_PRIMARY_URL")
+	replicaURL := os.Getenv("CONSTELLATION_TEST_READ_REPLICA_URL")
+
+	if primaryURL == "" || replicaURL == "" {
+		t.Skip("CONSTELLATION_TEST_READ_REPLICA_PRIMARY_URL / _URL are not set")
+	}
+
+	primary, err := Open(t.Context(), primaryURL)
+	if err != nil {
+		t.Fatalf("Open primary: %v", err)
+	}
+
+	replica, err := openReplica(t.Context(), replicaURL)
+	if err != nil {
+		primary.Close()
+		t.Fatalf("openReplica: %v", err)
+	}
+
+	client := NewClient(primary)
+	client.replicas = []Pool{replica}
+
+	t.Cleanup(client.Close)
+
+	return client, primary, replica
+}
+
+func mustExec(t *testing.T, q Querier, sql string) {
+	t.Helper()
+
+	if err := q.Exec(context.WithoutCancel(t.Context()), sql); err != nil {
+		t.Fatalf("%s: %v", sql, err)
+	}
+}
+
+func waitUntil(t *testing.T, what string, done func() bool) {
+	t.Helper()
+
+	deadline := time.Now().Add(20 * time.Second)
+
+	for !done() {
+		if time.Now().After(deadline) {
+			t.Fatalf("timed out waiting for %s", what)
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func orderStatus(t *testing.T, results []core.MultiplexedResult) string {
+	t.Helper()
+
+	if len(results) != 1 {
+		t.Fatalf("got %d results, want 1", len(results))
+	}
+
+	return string(results[0].Data)
+}
+
+// delayReplica makes the replica apply changes 5 seconds late and waits until
+// the setting is active.
+func delayReplica(t *testing.T, replica Pool) {
+	t.Helper()
+
+	mustExec(t, replica, "ALTER SYSTEM SET recovery_min_apply_delay = '5s'")
+	mustExec(t, replica, "SELECT pg_reload_conf()")
+
+	waitUntil(t, "recovery_min_apply_delay", func() bool {
+		var delay string
+
+		err := replica.QueryRow(t.Context(), "SHOW recovery_min_apply_delay").Scan(&delay)
+
+		return err == nil && delay == "5s"
+	})
+
+	time.Sleep(time.Second)
+}
+
+func TestExecuteMultiplexedOperation_LaggingReplicaNeverGoesBack(t *testing.T) {
+	t.Parallel()
+
+	client, primary, replica := labClient(t)
+	ctx := t.Context()
+	logger := slog.New(slog.DiscardHandler)
+
+	mustExec(t, primary, "DROP TABLE IF EXISTS replica_floor_orders")
+	mustExec(
+		t, primary,
+		"CREATE TABLE replica_floor_orders (id int PRIMARY KEY, status text NOT NULL)",
+	)
+	mustExec(t, primary, "INSERT INTO replica_floor_orders VALUES (1, 'Order accepted')")
+
+	t.Cleanup(func() {
+		mustExec(t, replica, "ALTER SYSTEM RESET recovery_min_apply_delay")
+		mustExec(t, replica, "SELECT pg_reload_conf()")
+		mustExec(t, primary, "DROP TABLE IF EXISTS replica_floor_orders")
+	})
+
+	waitUntil(t, "the order on the replica", func() bool {
+		results, err := queryMultiplexed(ctx, replica, replicaFloorPoll, nil, logger)
+		return err == nil && len(results) == 1
+	})
+
+	delayReplica(t, replica)
+	mustExec(t, primary, "UPDATE replica_floor_orders SET status = 'Delivered' WHERE id = 1")
+
+	shown, err := client.multiplexedOnPrimary(ctx, replicaFloorPoll, nil, logger)
+	if err != nil {
+		t.Fatalf("poll on primary: %v", err)
+	}
+
+	if got := orderStatus(t, shown); got != `{"status" : "Delivered"}` {
+		t.Fatalf("primary poll = %s, want Delivered", got)
+	}
+
+	stale, err := queryMultiplexed(ctx, replica, replicaFloorPoll, nil, logger)
+	if err != nil {
+		t.Fatalf("direct replica query: %v", err)
+	}
+
+	if got := orderStatus(t, stale); got != `{"status" : "Order accepted"}` {
+		t.Fatalf("replica is not lagging (%s); the test cannot exercise the floor", got)
+	}
+
+	next, err := client.ExecuteMultiplexedOperation(ctx, replicaFloorPoll, nil, logger)
+	if err != nil {
+		t.Fatalf("ExecuteMultiplexedOperation: %v", err)
+	}
+
+	if got := orderStatus(t, next); got != `{"status" : "Delivered"}` {
+		t.Errorf("subscription went back to older data: %s", got)
 	}
 }
 

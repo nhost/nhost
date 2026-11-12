@@ -26,6 +26,13 @@ import (
 var (
 	errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
 	errBeginTransaction        = errors.New("failed to begin transaction")
+	errReplicaBehind           = errors.New("read replica is behind data already delivered")
+	errNoReplayPosition        = errors.New("server reported no WAL replay position")
+)
+
+const (
+	replayPositionSQL  = "SELECT (pg_last_wal_replay_lsn() - '0/0'::pg_lsn)::bigint"
+	primaryPositionSQL = "SELECT (pg_current_wal_insert_lsn() - '0/0'::pg_lsn)::bigint"
 )
 
 // Querier abstracts database query execution. Both Pool and Tx satisfy this
@@ -199,6 +206,10 @@ type Client struct {
 	pool        Pool
 	replicas    []Pool
 	nextReplica atomic.Uint64
+	// readFloor is the newest WAL position whose data a subscription poll may
+	// already have delivered. A replica that has not replayed up to it is
+	// skipped so no subscriber is sent older data than it has seen.
+	readFloor atomic.Int64
 }
 
 const sqlInit = `CREATE OR REPLACE FUNCTION constellation_throw_error(message text, errcode text)
@@ -243,7 +254,12 @@ func execSQLInit(ctx context.Context, q Querier) error {
 // connector/sql/graphql/schema) can build a *Client around a Pool they
 // already own.
 func NewClient(pool Pool) *Client {
-	return &Client{pool: pool, replicas: nil, nextReplica: atomic.Uint64{}}
+	return &Client{
+		pool:        pool,
+		replicas:    nil,
+		nextReplica: atomic.Uint64{},
+		readFloor:   atomic.Int64{},
+	}
 }
 
 // Open opens a pgx connection pool against connStr and runs the
@@ -380,9 +396,7 @@ func (c *Client) ExecuteReadOperations(
 		return c.executeOperationsOn(ctx, c.pool, operations, logger)
 	}
 
-	replica := c.replicas[(c.nextReplica.Add(1)-1)%uint64(len(c.replicas))]
-
-	result, err := c.executeOperationsOn(ctx, replica, operations, logger)
+	result, err := c.executeOperationsOn(ctx, c.pickReplica(), operations, logger)
 	if errors.Is(err, errBeginTransaction) {
 		logger.WarnContext(
 			ctx, "read replica unavailable, running query on primary",
@@ -393,6 +407,12 @@ func (c *Client) ExecuteReadOperations(
 	}
 
 	return result, err
+}
+
+// pickReplica returns the next read replica in turn. The client must have at
+// least one.
+func (c *Client) pickReplica() Pool { //nolint:ireturn,nolintlint
+	return c.replicas[(c.nextReplica.Add(1)-1)%uint64(len(c.replicas))]
 }
 
 // executeOperationsOn executes operations within a single transaction on
@@ -539,7 +559,101 @@ func (c *Client) ExecuteMultiplexedOperation(
 		slog.Int("args", len(args)),
 	)
 
-	rows, err := c.pool.Query(ctx, sqlQuery, args...)
+	if len(c.replicas) == 0 {
+		return queryMultiplexed(ctx, c.pool, sqlQuery, args, logger)
+	}
+
+	results, err := c.multiplexedOnReplica(ctx, c.pickReplica(), sqlQuery, args, logger)
+	if err == nil {
+		return results, nil
+	}
+
+	logger.DebugContext(
+		ctx, "running subscription poll on primary", slog.String("reason", err.Error()),
+	)
+
+	return c.multiplexedOnPrimary(ctx, sqlQuery, args, logger)
+}
+
+// multiplexedOnReplica runs a subscription poll on replica only if the replica
+// has replayed everything a previous poll may have delivered. Its replay
+// position is read before the poll query, to compare with the floor, and
+// after it, to raise the floor: the query saw data between the two.
+func (c *Client) multiplexedOnReplica(
+	ctx context.Context, replica Pool, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	before, err := walPosition(ctx, replica, replayPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	if before < c.readFloor.Load() {
+		return nil, errReplicaBehind
+	}
+
+	results, err := queryMultiplexed(ctx, replica, sqlQuery, args, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := walPosition(ctx, replica, replayPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	c.raiseReadFloor(after)
+
+	return results, nil
+}
+
+// multiplexedOnPrimary runs a subscription poll on the primary and raises the
+// floor to the primary's WAL position read after the query.
+func (c *Client) multiplexedOnPrimary(
+	ctx context.Context, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	results, err := queryMultiplexed(ctx, c.pool, sqlQuery, args, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := walPosition(ctx, c.pool, primaryPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	c.raiseReadFloor(after)
+
+	return results, nil
+}
+
+func (c *Client) raiseReadFloor(position int64) {
+	for {
+		current := c.readFloor.Load()
+		if position <= current || c.readFloor.CompareAndSwap(current, position) {
+			return
+		}
+	}
+}
+
+// walPosition returns the WAL position reported by positionSQL as a byte
+// offset.
+func walPosition(ctx context.Context, q Querier, positionSQL string) (int64, error) {
+	var position *int64
+	if err := q.QueryRow(ctx, positionSQL).Scan(&position); err != nil {
+		return 0, fmt.Errorf("reading WAL position: %w", err)
+	}
+
+	if position == nil {
+		return 0, errNoReplayPosition
+	}
+
+	return *position, nil
+}
+
+func queryMultiplexed(
+	ctx context.Context, q Querier, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	rows, err := q.Query(ctx, sqlQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute multiplexed query: %w", err)
 	}
