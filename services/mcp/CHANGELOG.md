@@ -1,3 +1,9 @@
+## [mcp@0.3.1] - 2026-11-11
+
+### 🐛 Bug Fixes
+
+- *(cli)* Enforce MCP allowlist on scalar root fields and fragments (#5362)
+
 ## [mcp@0.3.0] - 2026-09-18
 
 ### 🚀 Features
