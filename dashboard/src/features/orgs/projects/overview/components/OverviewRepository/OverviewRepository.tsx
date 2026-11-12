@@ -1,5 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
-import { NavLink } from '@/components/common/NavLink';
+import Link from 'next/link';
+import { Button } from '@/components/ui/v3/button';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -17,14 +18,14 @@ export default function OverviewRepository() {
       </p>
       {!project?.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            variant="outline"
-            className="h-9 w-full gap-2"
-          >
-            <GitHubIcon className="h-4 w-4" />
-            Connect to GitHub
-          </NavLink>
+          <Button asChild variant="outline" className="w-full gap-2">
+            <Link
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            >
+              <GitHubIcon className="h-4 w-4" />
+              Connect to GitHub
+            </Link>
+          </Button>
         </div>
       ) : (
         <div className="mt-6 flex flex-row place-content-between rounded-lg bg-muted p-2">
@@ -35,15 +36,13 @@ export default function OverviewRepository() {
             </span>
           </div>
 
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            className="text-primary"
-            variant="ghost"
-            underline="none"
-            size="sm"
-          >
-            Edit
-          </NavLink>
+          <Button asChild variant="ghost" className="text-primary">
+            <Link
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            >
+              Edit
+            </Link>
+          </Button>
         </div>
       )}
     </section>

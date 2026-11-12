@@ -1,4 +1,4 @@
-import NavLink from 'next/link';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -326,24 +326,24 @@ export default function EditFunctionPermissionsForm({
             <AlertDescription className="space-y-2">
               <p>
                 Please go to the{' '}
-                <NavLink
+                <Link
                   href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
                   Settings page
-                </NavLink>{' '}
+                </Link>{' '}
                 to add and delete roles.
               </p>
               <p>
                 To configure infer function permissions, go to{' '}
-                <NavLink
+                <Link
                   href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={closeDrawerWithDirtyGuard}
                 >
                   GraphQL Settings
-                </NavLink>
+                </Link>
                 .
               </p>
             </AlertDescription>
