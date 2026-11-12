@@ -117,6 +117,9 @@ go test ./connector/sql/graphql/schema/... -update
 ```
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
+Query-operation JSON goldens must call the queries test harness's `normalize(ops)`
+before comparison: numeric SQL parameters decode from JSON as `float64`, even
+when the builder originally supplied an integer.
 
 ### Integration comparisons and regression tests
 

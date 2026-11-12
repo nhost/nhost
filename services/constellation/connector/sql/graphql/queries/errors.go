@@ -3,6 +3,9 @@ package queries
 import "errors"
 
 var (
+	errEmptyColumnInsertUnsupported = errors.New(
+		"inserts without columns are not supported by this database backend",
+	)
 	errInvalidDependentInsert = errors.New("invalid dependent insert")
 	errFieldDoesNotExist      = errors.New("field does not exist")
 	errRemoteRelationship     = errors.New(
