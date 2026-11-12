@@ -1,5 +1,8 @@
 query getProjects($orgSlug: String!) {
-  apps(where: { organization: { slug: { _eq: $orgSlug } } }) {
+  apps(
+    where: { organization: { slug: { _eq: $orgSlug } } }
+    order_by: { createdAt: asc }
+  ) {
     id
     name
     slug
@@ -9,6 +12,10 @@ query getProjects($orgSlug: String!) {
       id
       name
     }
+    githubRepository {
+      fullName
+    }
+    repositoryProductionBranch
     deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
       id
       commitSHA

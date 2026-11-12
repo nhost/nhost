@@ -17,6 +17,7 @@ import {
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -204,7 +205,15 @@ export default function GeneralSettings() {
       </FormProvider>
 
       <SettingsCard>
-        <SettingsCardHeader size="lg" title="Availability" />
+        <SettingsCardHeader
+          size="lg"
+          title={
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-xl">Availability</h3>
+              <ProjectStatusPill status={state} />
+            </div>
+          }
+        />
 
         <SettingsCardContent>
           {showWakeUpCard ? (
