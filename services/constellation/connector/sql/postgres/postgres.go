@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	csql "github.com/nhost/nhost/services/constellation/connector/sql"
@@ -88,6 +89,10 @@ const (
 	poolMinMaxConnIdleTime   = time.Minute * 30
 	poolMinHealthCheckPeriod = time.Minute
 	replicaConnectTimeout    = 5 * time.Second
+	replicaAttemptTimeout    = 10 * time.Second
+	// replicaAttemptShareDivisor leaves a replica attempt at most half of the
+	// caller's remaining time, keeping the rest for the primary.
+	replicaAttemptShareDivisor = 2
 )
 
 // Retry configuration for the constellation_throw_error init SQL. Declared as
@@ -103,6 +108,20 @@ var (
 func newPool( //nolint:ireturn,nolintlint
 	ctx context.Context, connStr string,
 ) (Pool, error) {
+	config, err := newPoolConfig(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	pgxPool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	return &poolAdapter{Pool: pgxPool}, nil
+}
+
+func newPoolConfig(connStr string) (*pgxpool.Config, error) {
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database config: %w", err)
@@ -128,12 +147,7 @@ func newPool( //nolint:ireturn,nolintlint
 		config.HealthCheckPeriod = poolMinHealthCheckPeriod
 	}
 
-	pgxPool, err := pgxpool.NewWithConfig(ctx, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	return &poolAdapter{Pool: pgxPool}, nil
+	return config, nil
 }
 
 // poolAdapter wraps *pgxpool.Pool so it implements the local Pool interface
@@ -333,7 +347,7 @@ func openReplicas(
 
 		replica, err := openReplica(ctx, connStr)
 		if err != nil {
-			inconsistencies.RecordReadReplica(ctx, logger, source, i, err.Error())
+			inconsistencies.RecordReadReplica(ctx, logger, source, i, replicaFailureReason(err))
 			continue
 		}
 
@@ -343,24 +357,64 @@ func openReplicas(
 	return replicas
 }
 
-// openReplica opens a pool against a read-only replica. Unlike [Open] it runs
-// no init SQL, which would fail on a standby, and instead checks that the
-// replica answers a query.
+// replicaFailureReason describes why a replica could not be opened without
+// the connection string, which pgx copies into parse errors and can carry a
+// password.
+func replicaFailureReason(err error) string {
+	if _, ok := errors.AsType[*pgconn.ParseConfigError](err); ok {
+		return "invalid read replica connection string"
+	}
+
+	return err.Error()
+}
+
+// openReplica opens a pool against a read-only replica within
+// replicaConnectTimeout. Unlike [Open] it runs no init SQL, which would fail
+// on a standby, and instead checks that the replica answers a query. Every
+// later connection attempt to the replica is bounded by the same timeout.
 func openReplica(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,nolintlint
-	pool, err := newPool(ctx, connStr)
+	config, err := newPoolConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("opening read replica: %w", err)
 	}
 
-	pingCtx, cancel := context.WithTimeout(ctx, replicaConnectTimeout)
+	if config.ConnConfig.ConnectTimeout == 0 ||
+		config.ConnConfig.ConnectTimeout > replicaConnectTimeout {
+		config.ConnConfig.ConnectTimeout = replicaConnectTimeout
+	}
+
+	connectCtx, cancel := context.WithTimeout(ctx, replicaConnectTimeout)
 	defer cancel()
 
-	if err := pool.Exec(pingCtx, "SELECT 1"); err != nil {
+	pgxPool, err := pgxpool.NewWithConfig(connectCtx, config)
+	if err != nil {
+		return nil, fmt.Errorf("opening read replica: %w", err)
+	}
+
+	pool := &poolAdapter{Pool: pgxPool}
+
+	if err := pool.Exec(connectCtx, "SELECT 1"); err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("connecting to read replica: %w", err)
 	}
 
 	return pool, nil
+}
+
+// replicaAttemptContext bounds one attempt on a read replica to
+// replicaAttemptTimeout or half of the caller's remaining time, whichever is
+// shorter, so a replica that stops responding leaves time to retry on the
+// primary.
+func replicaAttemptContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	timeout := replicaAttemptTimeout
+
+	if deadline, ok := ctx.Deadline(); ok {
+		if share := time.Until(deadline) / replicaAttemptShareDivisor; share < timeout {
+			timeout = share
+		}
+	}
+
+	return context.WithTimeout(ctx, timeout)
 }
 
 // Dialect returns the PostgreSQL SQL dialect.
@@ -396,8 +450,13 @@ func (c *Client) ExecuteReadOperations(
 		return c.executeOperationsOn(ctx, c.pool, operations, logger)
 	}
 
-	result, err := c.executeOperationsOn(ctx, c.pickReplica(), operations, logger)
-	if errors.Is(err, errBeginTransaction) {
+	attemptCtx, cancel := replicaAttemptContext(ctx)
+	result, err := c.executeOperationsOn(attemptCtx, c.pickReplica(), operations, logger)
+	timedOut := errors.Is(attemptCtx.Err(), context.DeadlineExceeded) && ctx.Err() == nil
+
+	cancel()
+
+	if errors.Is(err, errBeginTransaction) || (err != nil && timedOut) {
 		logger.WarnContext(
 			ctx, "read replica unavailable, running query on primary",
 			slog.String("error", err.Error()),
@@ -563,7 +622,11 @@ func (c *Client) ExecuteMultiplexedOperation(
 		return queryMultiplexed(ctx, c.pool, sqlQuery, args, logger)
 	}
 
-	results, err := c.multiplexedOnReplica(ctx, c.pickReplica(), sqlQuery, args, logger)
+	attemptCtx, cancel := replicaAttemptContext(ctx)
+	results, err := c.multiplexedOnReplica(attemptCtx, c.pickReplica(), sqlQuery, args, logger)
+
+	cancel()
+
 	if err == nil {
 		return results, nil
 	}

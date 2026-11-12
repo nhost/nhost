@@ -102,6 +102,16 @@ func TestConnectorExecuteOperations_Routing(t *testing.T) {
 			wantPrimary:  1,
 			wantReadPath: 0,
 		},
+		{
+			name: "query on a volatile function uses the primary",
+			operation: &ast.OperationDefinition{
+				Operation:    ast.Query,
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "touch_one"}},
+			},
+			hasReplicas:  true,
+			wantPrimary:  1,
+			wantReadPath: 0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -112,6 +122,8 @@ func TestConnectorExecuteOperations_Routing(t *testing.T) {
 			withoutReplicas := &primaryOnlyDriver{}
 
 			c := &Connector{}
+			c.roots.VolatileQueryFields = map[string]struct{}{"touch_one": {}}
+
 			if tt.hasReplicas {
 				c.driver = withReplicas
 			} else {

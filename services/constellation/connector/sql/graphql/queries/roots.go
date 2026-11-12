@@ -37,10 +37,13 @@ const (
 // StreamFields names the subscription roots that correspond to _stream
 // subscriptions; consumers can answer "is this field a stream subscription?"
 // in O(1) without building any SQL. BuildRoots produces one Roots per database
-// from introspected objects and metadata.
+// from introspected objects and metadata. VolatileQueryFields names the query
+// roots backed by VOLATILE functions (exposed_as: query), which may write and
+// so must not run on a read replica.
 type Roots struct {
-	Operations   map[OperationKind]map[string]core.Operation
-	StreamFields map[string]struct{}
+	Operations          map[OperationKind]map[string]core.Operation
+	StreamFields        map[string]struct{}
+	VolatileQueryFields map[string]struct{}
 }
 
 // BuildRoots builds the per-role SQL operation registry for one database from
@@ -77,7 +80,8 @@ func buildRoots(
 				Operations: map[OperationKind]map[string]core.Operation{
 					OperationQuery: make(map[string]core.Operation),
 				},
-				StreamFields: map[string]struct{}{},
+				StreamFields:        map[string]struct{}{},
+				VolatileQueryFields: map[string]struct{}{},
 			},
 			groupedaggdispatch.New(map[string]groupedaggdispatch.Builder{}),
 			nil
@@ -166,7 +170,11 @@ func buildRoots(
 		builders[k] = t
 	}
 
-	return Roots{Operations: rootsByOperation, StreamFields: streamFields},
+	return Roots{
+			Operations:          rootsByOperation,
+			StreamFields:        streamFields,
+			VolatileQueryFields: volatileQueryFields(tables),
+		},
 		groupedaggdispatch.New(builders),
 		nil
 }
@@ -278,6 +286,57 @@ func childArgumentPath(parentPath string, field *ast.Field) string {
 	}
 
 	return parentPath + ".selectionSet." + child
+}
+
+func volatileQueryFields(tables []*table) map[string]struct{} {
+	fields := map[string]struct{}{}
+
+	for _, t := range tables {
+		for _, fn := range t.functions {
+			if !fn.IsQuery() || fn.volatility != introspection.VolatilityVolatile {
+				continue
+			}
+
+			fields[fn.querySelectName] = struct{}{}
+
+			if fn.isSetOf {
+				fields[fn.queryAggregateName] = struct{}{}
+			}
+		}
+	}
+
+	return fields
+}
+
+// UsesVolatileFunction reports whether operation selects a query root backed
+// by a VOLATILE function. A fragment it cannot resolve counts as volatile.
+func (r Roots) UsesVolatileFunction(operation *ast.OperationDefinition) bool {
+	if operation == nil {
+		return false
+	}
+
+	return r.selectsVolatileRoot(operation.SelectionSet)
+}
+
+func (r Roots) selectsVolatileRoot(selections ast.SelectionSet) bool {
+	for _, selection := range selections {
+		switch s := selection.(type) {
+		case *ast.Field:
+			if _, ok := r.VolatileQueryFields[s.Name]; ok {
+				return true
+			}
+		case *ast.InlineFragment:
+			if r.selectsVolatileRoot(s.SelectionSet) {
+				return true
+			}
+		case *ast.FragmentSpread:
+			if s.Definition == nil || r.selectsVolatileRoot(s.Definition.SelectionSet) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // IsStreamSubscription reports whether field corresponds to a _stream

@@ -36,14 +36,16 @@ func (c *Connector) Execute(
 }
 
 // executeOperations sends queries to the driver's read path when it has one
-// and everything else to the primary.
+// and everything else, including queries on VOLATILE functions, to the
+// primary.
 func (c *Connector) executeOperations(
 	ctx context.Context,
 	operation *ast.OperationDefinition,
 	operations []core.SQLOperation,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	if operation != nil && operation.Operation == ast.Query {
+	if operation != nil && operation.Operation == ast.Query &&
+		!c.roots.UsesVolatileFunction(operation) {
 		if reader, ok := c.driver.(readReplicaDriver); ok {
 			return reader.ExecuteReadOperations(ctx, operations, logger) //nolint:wrapcheck
 		}

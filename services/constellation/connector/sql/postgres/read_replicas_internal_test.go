@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"strings"
 	"testing"
@@ -32,13 +34,28 @@ func (r fakeRow) Scan(...any) error {
 	return r.err
 }
 
+type hangingRow struct {
+	ctx context.Context //nolint:containedctx
+}
+
+func (r hangingRow) Scan(...any) error {
+	<-r.ctx.Done()
+
+	return fmt.Errorf("scanning hanging row: %w", r.ctx.Err())
+}
+
 type fakeTx struct {
 	stubQuerier
 
 	queryErr error
+	hang     bool
 }
 
-func (t *fakeTx) QueryRow(context.Context, string, ...any) Row { //nolint:ireturn,nolintlint
+func (t *fakeTx) QueryRow(ctx context.Context, _ string, _ ...any) Row { //nolint:ireturn,nolintlint
+	if t.hang {
+		return hangingRow{ctx: ctx}
+	}
+
 	return fakeRow{err: t.queryErr}
 }
 
@@ -50,6 +67,7 @@ type fakePool struct {
 
 	beginErr error
 	queryErr error
+	hang     bool
 	begins   int
 	closed   int
 }
@@ -61,7 +79,7 @@ func (p *fakePool) BeginTx(context.Context) (Tx, error) { //nolint:ireturn,nolin
 		return nil, p.beginErr
 	}
 
-	return &fakeTx{stubQuerier: stubQuerier{}, queryErr: p.queryErr}, nil
+	return &fakeTx{stubQuerier: stubQuerier{}, queryErr: p.queryErr, hang: p.hang}, nil
 }
 
 func (p *fakePool) Close() {
@@ -102,17 +120,161 @@ func (p *fakePollPool) QueryRow(context.Context, string, ...any) Row { //nolint:
 }
 
 func (p *fakePollPool) Query(
-	context.Context,
-	string,
-	...any,
+	ctx context.Context,
+	_ string,
+	_ ...any,
 ) (Rows, error) { //nolint:ireturn,nolintlint
 	p.polls++
+
+	if p.hang {
+		<-ctx.Done()
+		return nil, fmt.Errorf("hanging poll: %w", ctx.Err())
+	}
 
 	if p.pollErr != nil {
 		return nil, p.pollErr
 	}
 
 	return fakeRows{}, nil
+}
+
+func TestReplicaAttempts_HungReplicaFallsBackInTime(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog.DiscardHandler)
+	oneQuery := []core.SQLOperation{{Name: "users", SQL: "SELECT 1"}}
+
+	tests := []struct {
+		name string
+		run  func(ctx context.Context, primary, replica *fakePollPool) error
+	}{
+		{
+			name: "query",
+			run: func(ctx context.Context, primary, replica *fakePollPool) error {
+				client := NewClient(primary)
+				client.replicas = []Pool{replica}
+
+				_, err := client.ExecuteReadOperations(ctx, oneQuery, logger)
+
+				return err
+			},
+		},
+		{
+			name: "subscription poll",
+			run: func(ctx context.Context, primary, replica *fakePollPool) error {
+				client := NewClient(primary)
+				client.replicas = []Pool{replica}
+
+				_, err := client.ExecuteMultiplexedOperation(ctx, "SELECT 1", nil, logger)
+
+				return err
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			primary := &fakePollPool{positions: []*int64{new(int64(10))}}
+			replica := &fakePollPool{positions: []*int64{new(int64(10))}}
+			replica.hang = true
+
+			ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+			defer cancel()
+
+			start := time.Now()
+
+			if err := tt.run(ctx, primary, replica); err != nil {
+				t.Fatalf("expected the primary to answer, got %v", err)
+			}
+
+			if elapsed := time.Since(start); elapsed >= 2*time.Second {
+				t.Errorf(
+					"took %s, want the replica attempt bounded within the caller deadline",
+					elapsed,
+				)
+			}
+
+			if primary.begins+primary.polls != 1 {
+				t.Errorf("primary used %d times, want 1", primary.begins+primary.polls)
+			}
+		})
+	}
+}
+
+func TestOpenReplicas_DoesNotLeakPasswords(t *testing.T) {
+	t.Parallel()
+
+	inc := metadata.NewInconsistencies()
+
+	replicas := openReplicas(
+		t.Context(),
+		[]string{"postgres://app@127.0.0.1:1/app?password=s3cret-value&pool_max_conns=bad"},
+		"default",
+		inc,
+		slog.New(slog.DiscardHandler),
+	)
+	if len(replicas) != 0 {
+		t.Fatalf("got %d replica pools, want 0", len(replicas))
+	}
+
+	snap := inc.Snapshot()
+	if len(snap) != 1 {
+		t.Fatalf("got %d inconsistencies, want 1", len(snap))
+	}
+
+	if strings.Contains(snap[0].Reason, "s3cret-value") {
+		t.Errorf("reason leaks the password: %q", snap[0].Reason)
+	}
+
+	if snap[0].Reason != "invalid read replica connection string" {
+		t.Errorf("reason = %q, want the generic parse message", snap[0].Reason)
+	}
+}
+
+func TestOpenReplica_UnresponsiveServerTimesOut(t *testing.T) {
+	t.Parallel()
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+
+	var held []net.Conn
+
+	t.Cleanup(func() {
+		listener.Close()
+
+		for _, conn := range held {
+			conn.Close()
+		}
+	})
+
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+
+			held = append(held, conn)
+		}
+	}()
+
+	start := time.Now()
+
+	_, err = openReplica(
+		t.Context(),
+		"postgres://app:pw@"+listener.Addr().String()+"/app?sslmode=disable",
+	)
+	if err == nil {
+		t.Fatal("openReplica succeeded against a server that never answers")
+	}
+
+	if elapsed := time.Since(start); elapsed > replicaConnectTimeout+3*time.Second {
+		t.Errorf("openReplica took %s, want about %s", elapsed, replicaConnectTimeout)
+	}
 }
 
 func TestExecuteMultiplexedOperation_ReplicaFloor(t *testing.T) {
