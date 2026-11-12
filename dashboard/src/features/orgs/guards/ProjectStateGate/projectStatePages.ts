@@ -14,6 +14,7 @@ const runningProjectPages = toRoutes([
   'database/native-queries/[dataSourceSlug]/models/[modelSlug]',
   'database/native-queries/[dataSourceSlug]/queries/[querySlug]',
   'graphql',
+  'graphql/schema',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
   'graphql/actions',
