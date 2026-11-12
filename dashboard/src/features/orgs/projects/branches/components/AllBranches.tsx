@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { FileText, Pencil, Search } from 'lucide-react';
+import { FileText, GitPullRequest, Pencil, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
@@ -61,8 +61,10 @@ function RowAction({
       <TooltipTrigger asChild>
         {/* The span keeps the tooltip working on disabled buttons. */}
         <span className="inline-flex">
+          {/* The dashboard's icon-only button: no background, the icon
+              turns primary on hover. */}
           <Button
-            variant="outline"
+            variant="subtle"
             size="icon-sm"
             aria-label={label}
             disabled={disabled}
@@ -112,6 +114,7 @@ export default function AllBranches() {
     branchCount,
     branchLimit,
     atLimit,
+    automaticBranching,
     githubConnected,
   } = useDummyBranches();
   const [search, setSearch] = useState('');
@@ -141,9 +144,6 @@ export default function AllBranches() {
         className={cn(
           'relative flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3',
           clickable && 'cursor-pointer hover:bg-accent',
-          // The branch you're on gets the same green as the "on a branch"
-          // strip at the top (not production: there's no strip there).
-          isCurrent && !branch.isProduction && 'bg-success/10',
         )}
       >
         {clickable && (
@@ -168,35 +168,55 @@ export default function AllBranches() {
             {branch.isProduction && <ProductionBadge />}
             {isCurrent && !branch.isProduction && <CurrentBadge />}
           </div>
-          <p className="mt-1 truncate pl-6 text-muted-foreground text-xs">
-            <SiGithub className="mr-1 inline size-3 align-[-2px]" />
-            <span className="font-mono">{branch.gitBranch}</span>
-            {branch.pullRequest && (
-              <>
-                {' · '}
+          {/* What the branch is for: its pull request title, linked to
+              GitHub. The git branch name is nearly the same as the branch
+              name, so it lives in the tooltip instead of repeating it.
+              Production shows the git branch it follows. */}
+          {branch.pullRequest ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <a
                   href={`https://github.com/${repository}/pull/${branch.pullRequest}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="relative z-10 underline-offset-4 hover:text-foreground hover:underline"
+                  className="group relative z-10 mt-1 ml-6 flex min-w-0 max-w-fit items-center gap-1.5 text-muted-foreground text-xs"
                 >
-                  #{branch.pullRequest}
+                  <GitPullRequest className="size-3 shrink-0" />
+                  <span className="shrink-0">#{branch.pullRequest}</span>
+                  <span className="truncate text-foreground/80 underline-offset-4 group-hover:text-foreground group-hover:underline">
+                    {branch.pullRequestTitle ?? branch.gitBranch}
+                  </span>
                 </a>
-              </>
-            )}
-            {!branch.isProduction && (
-              <>
-                {' · '}
-                {branch.createdBy}, {timeAgo(branch.createdAt)}
-              </>
-            )}
-            {' · '}Updated {timeAgo(branch.lastActivityAt)}
-          </p>
+              </TooltipTrigger>
+              <TooltipContent className="font-mono">
+                {branch.gitBranch}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
+              <SiGithub className="size-3 shrink-0" />
+              <span className="font-mono">{branch.gitBranch}</span>
+            </p>
+          )}
         </div>
 
         {/* Status, then the actions as icons. */}
         <div className="relative z-10 flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          <span className="flex w-24 justify-end">
+          {/* The latest push: who on top, when under it. One block, since
+              both describe the same moment. Left aligned in its own column,
+              so it reads as a column and doesn't lean on the tags. */}
+          <span className="hidden w-36 text-left text-xs leading-tight md:grid">
+            <span className="truncate">
+              {branch.lastPushBy ?? branch.createdBy}
+            </span>
+            <span className="text-muted-foreground">
+              pushed {timeAgo(branch.lastActivityAt)}
+            </span>
+          </span>
+          {/* Tags right aligned, in a column wide enough for the widest
+              (Deploying), with room before it so no tag runs into the push
+              block. */}
+          <span className="ml-4 flex w-[6.5rem] justify-end">
             <BranchStatusMark status={branch.status} />
           </span>
           <RowAction
@@ -224,7 +244,9 @@ export default function AllBranches() {
         <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
           Production
         </h2>
-        <ul className="overflow-hidden rounded-lg border">
+        {/* Production is the parent of every branch: a border in its own
+            blue sets it apart, no fill. */}
+        <ul className="overflow-hidden rounded-lg border border-primary/40">
           {renderRow(production)}
         </ul>
       </section>
@@ -232,7 +254,11 @@ export default function AllBranches() {
       <section className="grid gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-            Branches ({branchCount} of {branchLimit})
+            Branches (
+            {automaticBranching
+              ? `${branchCount} of ${branchLimit}`
+              : branchCount}
+            )
           </h2>
           <InputGroup className="w-64">
             <InputGroupAddon>
@@ -249,8 +275,8 @@ export default function AllBranches() {
         {atLimit && (
           <Alert variant="warning" className="py-3">
             <AlertDescription>
-              You've reached the limit of {branchLimit} branches. New pull
-              requests won't get a branch for now.
+              You've reached your limit of {branchLimit} branches. New pull
+              requests won't get a branch until you raise it in Settings.
             </AlertDescription>
           </Alert>
         )}
@@ -266,7 +292,9 @@ export default function AllBranches() {
             </p>
             {!search && (
               <p className="max-w-sm text-muted-foreground text-sm">
-                Open a pull request on GitHub and it gets its own branch here.
+                {automaticBranching
+                  ? 'Open a pull request on GitHub and it gets its own branch here.'
+                  : 'Automatic branching is off. Turn it on in Settings to get a branch for every pull request.'}
               </p>
             )}
           </div>

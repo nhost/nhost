@@ -99,9 +99,9 @@ function BranchesIntro() {
   const { projectName } = useDummyBranches();
   return (
     <p className="text-muted-foreground text-sm">
-      Every pull request on GitHub gets its own branch: a copy of {projectName}
-      's structure, without its data. Merging the pull request ships its changes
-      to production.
+      Each pull request gets its own copy of{' '}
+      <span className="font-medium text-foreground">{projectName}</span>,
+      structure only, no data.
     </p>
   );
 }

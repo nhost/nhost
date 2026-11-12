@@ -69,16 +69,19 @@ export function RenameBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      {/* Same layout as the delete and transfer project dialogs. */}
+      <DialogContent className="p-12 text-foreground sm:max-w-lg">
         <form
-          className="grid gap-4"
+          className="flex flex-col gap-6"
           onSubmit={(e) => {
             e.preventDefault();
             save();
           }}
         >
-          <DialogHeader>
-            <DialogTitle>Rename branch</DialogTitle>
+          <DialogHeader className="gap-1 space-y-0">
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              Rename branch
+            </DialogTitle>
             <DialogDescription>
               It still follows <span className={mono}>{branch.gitBranch}</span>{' '}
               on GitHub.
@@ -105,7 +108,7 @@ export function RenameBranchDialog({
                 : 'Lowercase letters, numbers and hyphens.'}
             </p>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-6">
             <Button
               type="button"
               variant="outline"
@@ -258,9 +261,10 @@ export function BranchLogsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
+      {/* Same layout as the delete and transfer project dialogs. */}
+      <DialogContent className="gap-6 p-12 text-foreground sm:max-w-2xl">
+        <DialogHeader className="gap-1 space-y-0">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
             Logs for <span className="font-mono">{branch.name}</span>
           </DialogTitle>
           <DialogDescription>
