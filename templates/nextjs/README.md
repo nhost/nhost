@@ -45,6 +45,18 @@ in `frontend/src/app/signin/methods.ts`.
 4. Add `NHOST_OAUTH_PROVIDERS=github` (or `github,google`) to
    `frontend/.env.local` and restart `pnpm dev`.
 
+### Unlinking a provider
+
+Unlink on the account page deletes the link, but it doesn't stop that provider
+signing in. If the provider reports a verified email that matches the account's
+email, auth signs the user in to that account and links the provider again. So
+unlinking a GitHub or Google account that someone else has taken over doesn't
+lock them out. Changing the account's email does, and so does turning the
+provider off in `nhost/nhost.toml`, which turns it off for every user. Unlink
+removes a provider for good only when its verified email differs from the
+account's, or the account has no email. That is why the page keeps the last link
+on an account with no email.
+
 ## Permissions
 
 The `user` role can only touch its own rows, and only what the account page

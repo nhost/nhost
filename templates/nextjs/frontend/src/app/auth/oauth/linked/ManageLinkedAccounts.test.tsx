@@ -82,6 +82,16 @@ describe('manage linked accounts', () => {
     ).not.toBeNull();
   });
 
+  // Auth links a provider again by verified email, so Unlink alone doesn't
+  // cut it off.
+  it('says a provider with the account email links again', async () => {
+    await render();
+
+    expect(container.textContent).toContain(
+      "Unlinking doesn't block a provider whose verified email is user@example.com.",
+    );
+  });
+
   // No email, two links: unlinking one leaves the other as the only way in.
   it('holds the last link once the other is unlinked', async () => {
     unlinkProvider.mockReturnValueOnce(new Promise(() => undefined));

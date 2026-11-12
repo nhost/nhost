@@ -109,6 +109,13 @@ export default function ManageLinkedAccounts({
         ))}
       </ul>
 
+      {email ? (
+        <p className="text-muted-foreground text-xs">
+          Unlinking doesn't block a provider whose verified email is {email}.
+          Signing in with it links it again.
+        </p>
+      ) : null}
+
       {canUnlink ? null : (
         <p className="text-muted-foreground text-xs">
           This account has no email address, so its only linked account stays
