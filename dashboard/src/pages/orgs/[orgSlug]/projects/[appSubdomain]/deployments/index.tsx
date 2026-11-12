@@ -1,9 +1,10 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
-import { NavLink } from '@/components/common/NavLink';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Button } from '@/components/ui/v3/button';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
 import { NewDeploymentPopover } from '@/features/orgs/projects/deployments/components/NewDeploymentPopover';
@@ -34,14 +35,13 @@ export default function DeploymentsPage() {
           </p>
         </div>
         <div className="flex w-full justify-center">
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            underline="none"
-            variant="ghost"
-            className="!text-primary"
-          >
-            Connect your Project to GitHub
-          </NavLink>
+          <Button asChild variant="ghost" className="text-primary">
+            <Link
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            >
+              Connect your Project to GitHub
+            </Link>
+          </Button>
         </div>
       </Container>
     );

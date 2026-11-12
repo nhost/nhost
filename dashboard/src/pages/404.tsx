@@ -1,4 +1,4 @@
-import NavLink from 'next/link';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
@@ -12,9 +12,9 @@ export default function NotFoundPage() {
         Page Not Found
       </p>
 
-      <NavLink href="/" className="text-primary hover:underline">
+      <Link href="/" className="text-primary hover:underline">
         Go back to home page
-      </NavLink>
+      </Link>
     </Container>
   );
 }

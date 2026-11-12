@@ -1,10 +1,10 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
-import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
@@ -93,9 +93,12 @@ export default function ResetPasswordPage() {
 
       <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
         Go back to{' '}
-        <NavLink href="/signin/email" className="px-0 font-medium text-lg">
+        <Link
+          href="/signin/email"
+          className="font-medium text-lg text-primary underline-offset-4 hover:underline"
+        >
           Sign In
-        </NavLink>
+        </Link>
       </div>
     </>
   );

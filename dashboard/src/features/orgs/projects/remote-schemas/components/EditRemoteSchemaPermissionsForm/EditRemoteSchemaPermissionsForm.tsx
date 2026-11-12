@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { NavLink } from '@/components/common/NavLink';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
@@ -269,13 +269,12 @@ export default function EditRemoteSchemaPermissionsForm({
           <Alert className="text-left">
             <AlertDescription>
               Please go to the{' '}
-              <NavLink
+              <Link
                 href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
-                underline="hover"
-                className="px-0"
+                className="text-primary underline-offset-4 hover:underline"
               >
                 Settings page
-              </NavLink>{' '}
+              </Link>{' '}
               to add and delete roles.
             </AlertDescription>
           </Alert>
