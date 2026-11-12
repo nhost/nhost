@@ -243,8 +243,11 @@ func TestOpenReplica_UnresponsiveServerTimesOut(t *testing.T) {
 
 	var held []net.Conn
 
+	acceptDone := make(chan struct{})
+
 	t.Cleanup(func() {
 		listener.Close()
+		<-acceptDone
 
 		for _, conn := range held {
 			conn.Close()
@@ -252,6 +255,8 @@ func TestOpenReplica_UnresponsiveServerTimesOut(t *testing.T) {
 	})
 
 	go func() {
+		defer close(acceptDone)
+
 		for {
 			conn, err := listener.Accept()
 			if err != nil {
