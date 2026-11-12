@@ -21,7 +21,6 @@ import {
   getVerifiedUser,
   updateSessionUser,
 } from '@/lib/nhost/server';
-import type { SessionMetadata } from '@/lib/nhost/session-metadata';
 
 // Where the links in the emails below land. Fixed rather than taken from the
 // caller, so nothing here can aim a link at another host.
@@ -355,7 +354,6 @@ export async function resendVerification(): Promise<ActionResult> {
 export type AccountSession = {
   id: string;
   createdAt: string;
-  metadata: SessionMetadata | null;
   current: boolean;
 };
 
@@ -379,7 +377,7 @@ export async function listSessions(): Promise<
         authRefreshTokens(
           where: { expiresAt: { _gt: "now()" } }
           order_by: { createdAt: desc }
-        ) { id createdAt metadata }
+        ) { id createdAt }
       }`,
     });
 

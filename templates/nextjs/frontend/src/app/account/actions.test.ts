@@ -247,12 +247,8 @@ describe('listSessions', () => {
       body: {
         data: {
           authRefreshTokens: [
-            { id: 'other', createdAt: '2026-10-01T00:00:00Z', metadata: null },
-            {
-              id: 'this-one',
-              createdAt: '2026-10-02T00:00:00Z',
-              metadata: null,
-            },
+            { id: 'other', createdAt: '2026-10-01T00:00:00Z' },
+            { id: 'this-one', createdAt: '2026-10-02T00:00:00Z' },
           ],
         },
       },

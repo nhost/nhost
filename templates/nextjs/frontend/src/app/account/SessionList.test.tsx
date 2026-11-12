@@ -2,8 +2,9 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AccountSession } from '@/app/account/actions';
 import SessionList from '@/app/account/SessionList';
-import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
+import { formatSessionTime } from '@/app/account/sessions';
 import ToastProvider from '@/components/Toast';
 
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
@@ -18,20 +19,9 @@ vi.mock('@/lib/nhost/actions', () => ({ signOutAndGoHome }));
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-const sessions: SessionSummary[] = [
-  {
-    id: 'laptop-000',
-    device: 'Chrome - macOS',
-    lastActive: '2026-10-26T12:24:00Z',
-    current: true,
-  },
-  {
-    id: 'phone-0000',
-    device: 'Safari - iOS',
-    place: 'Stockholm, 198.51.100.7',
-    lastActive: '2026-10-20T16:12:00Z',
-    current: false,
-  },
+const sessions: AccountSession[] = [
+  { id: 'laptop-000', createdAt: '2026-10-26T12:24:00Z', current: true },
+  { id: 'phone-0000', createdAt: '2026-10-20T16:12:00Z', current: false },
 ];
 
 let container: HTMLElement;
@@ -87,16 +77,11 @@ describe('session list', () => {
   });
 
   // The browser's own zone, here the one the tests run in, once hydrated.
-  it('reads what a session is on one line, and where and when on the next', () => {
-    const lines = [
-      ...container.querySelectorAll('li')[1].querySelectorAll('p'),
-    ];
+  it('shows each session by its id and when it signed in, nothing more', () => {
+    const line = container.querySelectorAll('li')[1];
 
-    expect(
-      [...lines[0].querySelectorAll('span')].map((part) => part.textContent),
-    ).toEqual(['phone', 'Safari - iOS']);
-    expect(lines[1].textContent).toBe(
-      `Stockholm, 198.51.100.7, ${formatSessionTime('2026-10-20T16:12:00Z')}`,
+    expect(line.querySelector('p')?.textContent).toBe(
+      `phoneSigned in ${formatSessionTime('2026-10-20T16:12:00Z')}`,
     );
   });
 
@@ -105,7 +90,7 @@ describe('session list', () => {
 
     expect(dialog()?.textContent).toContain('Sign out this session?');
     expect(dialog()?.textContent).toContain(
-      'Safari - iOS, Stockholm, 198.51.100.7 will need to sign in again.',
+      'Session phone will need to sign in again.',
     );
     expect(signOutSession).not.toHaveBeenCalled();
   });
@@ -130,6 +115,6 @@ describe('session list', () => {
     await signOutLine(1);
 
     expect(container.querySelectorAll('li')).toHaveLength(1);
-    expect(container.textContent).not.toContain('Safari - iOS');
+    expect(container.textContent).not.toContain('phone');
   });
 });

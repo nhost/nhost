@@ -1,55 +1,15 @@
 import type { AccountSession } from '@/app/account/actions';
-import {
-  describeAddress,
-  describeLocation,
-  describeUserAgent,
-} from '@/lib/nhost/session-metadata';
-
-export type SessionSummary = {
-  id: string;
-  /** The browser and system. */
-  device: string;
-  /** Location and address, as far as they are known. */
-  place?: string;
-  /** When it was last used, or signed in if nothing was recorded since. */
-  lastActive: string;
-  current: boolean;
-};
-
-function lastActive(session: AccountSession): string {
-  return session.metadata?.seenAt ?? session.createdAt;
-}
 
 /**
  * The sessions as the account page lists them: this one first, then the most
- * recently used.
+ * recently signed in.
  */
-export function summarizeSessions(
-  sessions: AccountSession[],
-): SessionSummary[] {
-  return [...sessions]
-    .sort(
-      (a, b) =>
-        Number(b.current) - Number(a.current) ||
-        Date.parse(lastActive(b)) - Date.parse(lastActive(a)),
-    )
-    .map((session) => {
-      const { metadata } = session;
-
-      return {
-        id: session.id,
-        device: describeUserAgent(metadata?.userAgent),
-        place:
-          [
-            metadata ? describeLocation(metadata) : undefined,
-            describeAddress(metadata?.ip),
-          ]
-            .filter(Boolean)
-            .join(', ') || undefined,
-        lastActive: lastActive(session),
-        current: session.current,
-      };
-    });
+export function sortSessions(sessions: AccountSession[]): AccountSession[] {
+  return [...sessions].sort(
+    (a, b) =>
+      Number(b.current) - Number(a.current) ||
+      Date.parse(b.createdAt) - Date.parse(a.createdAt),
+  );
 }
 
 const ordinals = new Intl.PluralRules('en-US', { type: 'ordinal' });

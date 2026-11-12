@@ -38,25 +38,7 @@ select_permissions:
         - id
         - created_at
         - expires_at
-        - metadata
       filter:
-        _and:
-          - user_id:
-              _eq: X-Hasura-User-Id
-          - type:
-              _eq: regular
-update_permissions:
-  - role: user
-    permission:
-      columns:
-        - metadata
-      filter:
-        _and:
-          - user_id:
-              _eq: X-Hasura-User-Id
-          - type:
-              _eq: regular
-      check:
         _and:
           - user_id:
               _eq: X-Hasura-User-Id

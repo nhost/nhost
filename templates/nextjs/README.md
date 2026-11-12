@@ -66,7 +66,7 @@ needs.
 | --- | --- |
 | `auth.users` | read, delete, update `display_name` and `avatar_url` |
 | `auth.user_security_keys` | read, delete |
-| `auth.refresh_tokens` | read, delete, update `metadata` |
+| `auth.refresh_tokens` | read, delete |
 | `auth.user_providers` | read, delete |
 | `storage.files` | upload to the `default` bucket, read, delete |
 
@@ -114,10 +114,9 @@ checks it again.
 
 ### Session list
 
-The account page lists the user's sessions. The proxy saves each session's IP
-address, browser, OS and location in `auth.refresh_tokens.metadata`. Location
-only shows up on Vercel or Cloudflare, which add it as request headers. Users
-can edit their own metadata, so it's informational, not an audit log.
+The account page lists the user's sessions with when each one signed in. It
+doesn't show device, IP address or location: the app has no trustworthy source
+for them, so add that only once you have one.
 
 Signing out a session deletes its row. The proxy checks for the row on every
 page load, so that device is signed out on its next page load rather than when

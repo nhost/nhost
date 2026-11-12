@@ -1,13 +1,44 @@
 import type { Passkey } from '@/app/auth/passkey/manage/actions';
-import { describeUserAgent } from '@/lib/nhost/session-metadata';
+
+// Checked in order, so the browsers that put another's name in their user agent
+// come before the one they name: Edge and Opera say Chrome, and every iOS
+// browser says Safari.
+const BROWSERS: Array<[RegExp, string]> = [
+  [/\bEdg(e|A|iOS)?\//, 'Edge'],
+  [/\b(OPR|OPiOS)\//, 'Opera'],
+  [/\bSamsungBrowser\//, 'Samsung Internet'],
+  [/\b(Firefox|FxiOS)\//, 'Firefox'],
+  [/\b(Chrome|CriOS|HeadlessChrome)\//, 'Chrome'],
+  [/\bVersion\/[\d.]+.*\bSafari\//, 'Safari'],
+];
+
+const SYSTEMS: Array<[RegExp, string]> = [
+  [/\biPhone\b/, 'iOS'],
+  [/\biPad\b/, 'iPadOS'],
+  [/\bAndroid\b/, 'Android'],
+  [/\bCrOS\b/, 'ChromeOS'],
+  [/\bMac OS X\b/, 'macOS'],
+  [/\bWindows\b/, 'Windows'],
+  [/\bLinux\b/, 'Linux'],
+];
 
 /**
  * The name a new passkey starts with: the browser and system it is added from,
- * worded as the Sessions list words them.
+ * as "Chrome - macOS".
  */
 export function deviceName(userAgent: string | undefined): string | undefined {
-  const name = describeUserAgent(userAgent);
-  return name === 'Unknown device' ? undefined : name;
+  if (!userAgent) {
+    return undefined;
+  }
+
+  const browser = BROWSERS.find(([pattern]) => pattern.test(userAgent))?.[1];
+  const system = SYSTEMS.find(([pattern]) => pattern.test(userAgent))?.[1];
+
+  if (browser && system) {
+    return `${browser} - ${system}`;
+  }
+
+  return browser ?? system;
 }
 
 /**

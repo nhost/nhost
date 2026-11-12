@@ -1,10 +1,10 @@
 import { listSessions } from '@/app/account/actions';
 import SessionList from '@/app/account/SessionList';
-import { summarizeSessions } from '@/app/account/sessions';
+import { sortSessions } from '@/app/account/sessions';
 import { SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 
-/** Where the account is signed in, each with a way to end it. */
+/** The account's sessions, each with a way to end it. */
 export default async function SessionsCard() {
   const { sessions, error } = await listSessions();
 
@@ -19,7 +19,7 @@ export default async function SessionsCard() {
             {error}
           </li>
         ) : (
-          <SessionList sessions={summarizeSessions(sessions ?? [])} />
+          <SessionList sessions={sortSessions(sessions ?? [])} />
         )}
       </SettingsList>
     </Card>

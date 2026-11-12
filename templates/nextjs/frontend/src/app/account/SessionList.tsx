@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useSyncExternalStore } from 'react';
-import { signOutSession } from '@/app/account/actions';
+import { type AccountSession, signOutSession } from '@/app/account/actions';
 import ConfirmAction from '@/app/account/ConfirmAction';
-import { formatSessionTime, type SessionSummary } from '@/app/account/sessions';
+import { formatSessionTime } from '@/app/account/sessions';
 import Dialog from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
@@ -23,14 +23,11 @@ function useHydrated(): boolean {
   );
 }
 
-/**
- * One line per browser signed in to the account, each with a way to sign it
- * out.
- */
+/** One line per session on the account, each with a way to sign it out. */
 export default function SessionList({
   sessions: listed,
 }: {
-  sessions: SessionSummary[];
+  sessions: AccountSession[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -47,7 +44,7 @@ export default function SessionList({
 
   // The dialog closes on confirming: this session's line then says it is
   // signing out until the home page arrives, and another's leaves the list.
-  const handleConfirm = async (session: SessionSummary): Promise<undefined> => {
+  const handleConfirm = async (session: AccountSession): Promise<undefined> => {
     setConfirming(undefined);
     if (session.current) {
       here.handleSignOut();
@@ -57,7 +54,7 @@ export default function SessionList({
     return undefined;
   };
 
-  const handleSignOut = async (session: SessionSummary): Promise<void> => {
+  const handleSignOut = async (session: AccountSession): Promise<void> => {
     setError(undefined);
     remove(session.id);
     try {
@@ -81,37 +78,31 @@ export default function SessionList({
     <>
       {sessions.map((session) => {
         const time = hydrated
-          ? formatSessionTime(session.lastActive)
-          : `${formatSessionTime(session.lastActive, 'UTC')} UTC`;
+          ? formatSessionTime(session.createdAt)
+          : `${formatSessionTime(session.createdAt, 'UTC')} UTC`;
 
         return (
           <li
             key={session.id}
             className="flex min-h-12 items-center gap-3 px-5 py-2 text-sm"
           >
-            {/* Two lines that are each cut short rather than wrapped, so every
-                session takes the same room: what it is, then where and when. */}
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <p className="flex min-w-0 items-center gap-2">
-                {/* Enough of the id to tell two alike sessions apart. */}
-                <span
-                  title={session.id}
-                  className="shrink-0 rounded bg-secondary px-1.5 font-mono text-[11px] text-muted-foreground"
-                >
-                  {session.id.slice(0, 5)}
+            <p className="flex min-w-0 flex-1 items-center gap-2">
+              {/* Enough of the id to tell two sessions apart. */}
+              <span
+                title={session.id}
+                className="shrink-0 rounded bg-secondary px-1.5 font-mono text-[11px] text-muted-foreground"
+              >
+                {session.id.slice(0, 5)}
+              </span>
+              <span className="min-w-0 truncate text-muted-foreground text-xs">
+                Signed in <time dateTime={session.createdAt}>{time}</time>
+              </span>
+              {session.current ? (
+                <span className="shrink-0 whitespace-nowrap rounded-full border bg-secondary px-2 text-xs">
+                  This session
                 </span>
-                <span className="min-w-0 truncate">{session.device}</span>
-                {session.current ? (
-                  <span className="shrink-0 whitespace-nowrap rounded-full border bg-secondary px-2 text-xs">
-                    This session
-                  </span>
-                ) : null}
-              </p>
-              <p className="truncate text-muted-foreground text-xs">
-                {session.place ? `${session.place}, ` : null}
-                <time dateTime={session.lastActive}>{time}</time>
-              </p>
-            </div>
+              ) : null}
+            </p>
             <Button
               type="button"
               variant="outline"
@@ -140,7 +131,7 @@ export default function SessionList({
               description={
                 session.current
                   ? "You'll go back to the home page and need to sign in again here."
-                  : `${[session.device, session.place].filter(Boolean).join(', ')} will need to sign in again.`
+                  : `Session ${session.id.slice(0, 5)} will need to sign in again.`
               }
             >
               <ConfirmAction

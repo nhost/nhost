@@ -14,11 +14,6 @@ import { cookies, headers } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
 import { nhostRegion, nhostSubdomain } from './env';
 import { graphqlErrorMessage } from './graphql';
-import {
-  needsUpdate,
-  requestDetails,
-  type SessionMetadata,
-} from './session-metadata';
 import { SIGNED_IN_KEY } from './signed-in';
 
 const key = DEFAULT_SESSION_KEY;
@@ -92,7 +87,9 @@ export function serializeSessionCookie(value: StoredSession): string {
 // Auth rate-limits by the caller's address, which for every call from here is
 // the server's. See "Rate limits" in the README.
 function forwardVisitorAddress(requestHeaders: Headers): ClientConfigurationFn {
-  const { ip } = requestDetails(requestHeaders);
+  const ip =
+    requestHeaders.get('x-real-ip') ??
+    requestHeaders.get('x-forwarded-for')?.split(',')[0]?.trim();
 
   return ({ auth }) => {
     if (ip) {
@@ -190,17 +187,13 @@ export function isPrefetch(request: NextRequest): boolean {
   );
 }
 
-export type TrackedSession = 'live' | 'revoked' | 'unknown';
+export type CheckedSession = 'live' | 'revoked' | 'unknown';
 
-/**
- * Looks up the session's row in `auth.refresh_tokens`, and records where it is
- * being used from while there (see `session-metadata.ts`).
- */
-export async function trackSession(
+/** Whether the session's row in `auth.refresh_tokens` still exists. */
+export async function checkSession(
   nhost: NhostClient,
   session: StoredSession,
-  headers: Headers,
-): Promise<TrackedSession> {
+): Promise<CheckedSession> {
   const id = session.refreshTokenId;
 
   if (!id) {
@@ -209,10 +202,10 @@ export async function trackSession(
 
   try {
     const { body } = await nhost.graphql.request<{
-      authRefreshToken: { id: string; metadata: SessionMetadata | null } | null;
+      authRefreshToken: { id: string } | null;
     }>({
       query: `query Session($id: uuid!) {
-        authRefreshToken(id: $id) { id metadata }
+        authRefreshToken(id: $id) { id }
       }`,
       variables: { id },
     });
@@ -229,32 +222,7 @@ export async function trackSession(
     if (row === null) {
       return 'revoked';
     }
-    if (!row) {
-      return 'unknown';
-    }
-
-    const current = requestDetails(headers);
-    if (needsUpdate(row.metadata, current)) {
-      const metadata: SessionMetadata = {
-        ...current,
-        seenAt: new Date().toISOString(),
-      };
-      const { body: updated } = await nhost.graphql.request({
-        query: `mutation SeenSession($id: uuid!, $metadata: jsonb!) {
-          updateAuthRefreshToken(pk_columns: { id: $id }, _set: { metadata: $metadata }) { id }
-        }`,
-        variables: { id, metadata },
-      });
-
-      if (updated.errors?.length) {
-        console.error(
-          'Could not record the session:',
-          graphqlErrorMessage(updated.errors),
-        );
-      }
-    }
-
-    return 'live';
+    return row ? 'live' : 'unknown';
   } catch (err) {
     console.error('Could not check the session:', err);
     return 'unknown';
@@ -362,7 +330,7 @@ export async function handleNhostProxy(
   // device's account page, still holds an access token the backend accepts
   // until it expires.
   if (session && !isPrefetch(request)) {
-    if ((await trackSession(nhost, session, request.headers)) === 'revoked') {
+    if ((await checkSession(nhost, session)) === 'revoked') {
       clearSessionCookies();
       session = null;
     }
