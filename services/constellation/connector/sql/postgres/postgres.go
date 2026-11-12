@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -22,7 +23,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-var errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+var (
+	errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+	errBeginTransaction        = errors.New("failed to begin transaction")
+)
 
 // Querier abstracts database query execution. Both Pool and Tx satisfy this
 // interface, which lets unexported helpers run against either a pool or a
@@ -192,8 +196,9 @@ func (t *txAdapter) Exec(ctx context.Context, sql string, args ...any) error {
 
 // Client implements the sql.Driver interface for PostgreSQL.
 type Client struct {
-	pool     Pool
-	replicas []Pool
+	pool        Pool
+	replicas    []Pool
+	nextReplica atomic.Uint64
 }
 
 const sqlInit = `CREATE OR REPLACE FUNCTION constellation_throw_error(message text, errcode text)
@@ -238,7 +243,7 @@ func execSQLInit(ctx context.Context, q Querier) error {
 // connector/sql/graphql/schema) can build a *Client around a Pool they
 // already own.
 func NewClient(pool Pool) *Client {
-	return &Client{pool: pool, replicas: nil}
+	return &Client{pool: pool, replicas: nil, nextReplica: atomic.Uint64{}}
 }
 
 // Open opens a pgx connection pool against connStr and runs the
@@ -357,16 +362,50 @@ func (c *Client) Close() {
 }
 
 // ExecuteOperations executes a list of SQL operations within a single
-// transaction. Uses named returns so the rollback defer reads the actual
-// error returned by the function body.
-//
-//nolint:nonamedreturns
+// transaction on the primary.
 func (c *Client) ExecuteOperations(
 	ctx context.Context, operations []core.SQLOperation, logger *slog.Logger,
+) (map[string]any, error) {
+	return c.executeOperationsOn(ctx, c.pool, operations, logger)
+}
+
+// ExecuteReadOperations executes read-only operations on the next read
+// replica in turn, or on the primary when the source has none. If the replica
+// cannot start a transaction the operations run on the primary instead; any
+// other failure is returned as is.
+func (c *Client) ExecuteReadOperations(
+	ctx context.Context, operations []core.SQLOperation, logger *slog.Logger,
+) (map[string]any, error) {
+	if len(c.replicas) == 0 {
+		return c.executeOperationsOn(ctx, c.pool, operations, logger)
+	}
+
+	replica := c.replicas[(c.nextReplica.Add(1)-1)%uint64(len(c.replicas))]
+
+	result, err := c.executeOperationsOn(ctx, replica, operations, logger)
+	if errors.Is(err, errBeginTransaction) {
+		logger.WarnContext(
+			ctx, "read replica unavailable, running query on primary",
+			slog.String("error", err.Error()),
+		)
+
+		return c.executeOperationsOn(ctx, c.pool, operations, logger)
+	}
+
+	return result, err
+}
+
+// executeOperationsOn executes operations within a single transaction on
+// pool. Uses named returns so the rollback defer reads the actual error
+// returned by the function body.
+//
+//nolint:nonamedreturns
+func (c *Client) executeOperationsOn(
+	ctx context.Context, pool Pool, operations []core.SQLOperation, logger *slog.Logger,
 ) (result map[string]any, err error) {
-	tx, err := c.pool.BeginTx(ctx)
+	tx, err := pool.BeginTx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("%w: %w", errBeginTransaction, err)
 	}
 
 	defer func() {
