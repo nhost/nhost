@@ -110,6 +110,7 @@ When creating a new feature page, check whether it needs to be added to:
 - Use `execPromiseWithErrorToast` from `@/features/orgs/utils/execPromiseWithErrorToast` for mutations / async operations that should show loading/success/error toasts. It takes a promise callback and `{ loadingMessage, successMessage, errorMessage }`.
 - When using table data hooks, use `useTableSchemaQuery` if you only need column definitions or foreign key relations (no row data). Use `useTableQuery` only when you also need row data (e.g. for a data grid).
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
+- Send metadata writes with `writeMetadata` from `@/utils/hasura-api/metadataFetch` unless the hook already switches to a `*Migration.ts` sibling for local projects; locally it also saves the change to `nhost/metadata`. Reads, reloads, and event and scheduled-event runs use `metadataOperation`.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
 
