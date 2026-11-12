@@ -1,3 +1,21 @@
+## [cli@1.53.0] - 2026-11-11
+
+### 🚀 Features
+
+- *(cli)* Support auth.method.otp.sms configuration (#5310)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Enforce MCP allowlist on scalar root fields and fragments (#5362)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.52.2
+- *(ci)* Update dependencies due to CVEs (#5307)
+- *(dashboard)* Bump references to 3.9.0
+
 ## [cli@1.52.2] - 2026-10-26
 
 ### 🐛 Bug Fixes
