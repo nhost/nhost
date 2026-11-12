@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -39,6 +40,7 @@ import {
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
+import { SUPPORT_TICKET_URL } from '@/utils/constants/common';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -220,9 +222,18 @@ export default function SubscriptionPlan() {
               <div className="flex flex-1 flex-col gap-2">
                 <span className="font-medium">Current plan</span>
                 {isCancelled ? (
-                  <span className="font-bold text-destructive text-xl">
-                    Cancelled
-                  </span>
+                  <Alert variant="destructive" className="text-left">
+                    <AlertTitle>This subscription is cancelled</AlertTitle>
+                    <AlertDescription>
+                      Several payments failed, so the subscription was
+                      cancelled. To restore access to this organization,{' '}
+                      <TextLink href={SUPPORT_TICKET_URL} external>
+                        open a support ticket
+                        <span className="sr-only">(opens in a new tab)</span>
+                      </TextLink>
+                      .
+                    </AlertDescription>
+                  </Alert>
                 ) : (
                   <span className="font-bold text-primary text-xl">
                     {org?.plan?.name}

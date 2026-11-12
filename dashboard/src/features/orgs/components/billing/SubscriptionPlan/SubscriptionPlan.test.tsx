@@ -57,11 +57,19 @@ describe('SubscriptionPlan', () => {
 
     render(<SubscriptionPlan />);
 
-    expect(await screen.findByText('Cancelled')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'This subscription is cancelled',
+    );
     expect(
       screen.queryByText(mockOrganization.plan.name),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('month')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This subscription is cancelled',
+    );
+    expect(
+      screen.getByRole('link', { name: /open a support ticket/ }),
+    ).toHaveAttribute('href', 'https://app.nhost.io/support');
     expect(
       screen.queryByRole('button', { name: 'Upgrade' }),
     ).not.toBeInTheDocument();
