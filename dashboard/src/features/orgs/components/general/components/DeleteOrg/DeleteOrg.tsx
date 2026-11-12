@@ -7,6 +7,7 @@ import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
 import {
   SettingsCard,
+  SettingsCardContent,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
@@ -115,120 +116,118 @@ export default function DeleteOrg() {
         title="Delete organization"
         description="Proceed with caution, as this action is irreversible and will permanently remove the organization."
         control={
-          <>
-            {!isOrgAdmin && (
-              <Alert className="font-normal">
-                <AlertDescription>
-                  Only organization admins can delete this organization.
-                </AlertDescription>
-              </Alert>
-            )}
-            <AlertDialog
-              open={open}
-              onOpenChange={(nextOpen) => {
-                if (!nextOpen && deleting) {
-                  return;
-                }
+          <AlertDialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen && deleting) {
+                return;
+              }
 
-                setOpen(nextOpen);
+              setOpen(nextOpen);
 
-                if (!nextOpen) {
-                  form.reset();
-                }
-              }}
-            >
-              <span
-                className={deleteDisabled ? 'cursor-not-allowed' : undefined}
-              >
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    disabled={deleteDisabled}
-                    className="w-full sm:w-auto"
-                  >
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-              </span>
-              <AlertDialogContent className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground">
-                <AlertDialogHeader className="gap-2">
-                  <AlertDialogTitle className="text-xl">
-                    {org?.name ? `Delete ${org.name}` : 'Delete organization'}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Deleting an organization removes it and all its projects,
-                    and cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
+              if (!nextOpen) {
+                form.reset();
+              }
+            }}
+          >
+            <span className={deleteDisabled ? 'cursor-not-allowed' : undefined}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={deleteDisabled}
+                  className="w-full sm:w-auto"
+                >
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+            </span>
+            <AlertDialogContent className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground">
+              <AlertDialogHeader className="gap-2">
+                <AlertDialogTitle className="text-xl">
+                  {org?.name ? `Delete ${org.name}` : 'Delete organization'}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Deleting an organization removes it and all its projects, and
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
 
-                <Form {...form}>
-                  <form
-                    id="delete-org-form"
-                    onSubmit={form.handleSubmit(handleDeleteOrg)}
-                    className="flex flex-col gap-6"
-                  >
-                    <div className="flex flex-col gap-3 rounded-lg border p-4">
-                      <FormCheckbox
-                        control={form.control}
-                        name="acknowledgeDeletion"
-                        label="I'm sure I want to delete this organization"
-                      />
-
-                      <FormCheckbox
-                        control={form.control}
-                        name="acknowledgeIrreversible"
-                        label="I understand this action cannot be undone"
-                      />
-                    </div>
-
-                    <FormInput
+              <Form {...form}>
+                <form
+                  id="delete-org-form"
+                  onSubmit={form.handleSubmit(handleDeleteOrg)}
+                  className="flex flex-col gap-6"
+                >
+                  <div className="flex flex-col gap-3 rounded-lg border p-4">
+                    <FormCheckbox
                       control={form.control}
-                      name="confirmation"
-                      autoComplete="off"
-                      className="border-border font-mono"
-                      disabled={!requiredOrganizationConfirmation}
-                      label={
-                        requiredOrganizationConfirmation ? (
-                          <>
-                            Type{' '}
-                            <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
-                              {requiredOrganizationConfirmation}
-                            </InlineCode>{' '}
-                            to confirm
-                          </>
-                        ) : (
-                          'Organization confirmation is unavailable.'
-                        )
-                      }
-                      helperText={
-                        requiredOrganizationConfirmation
-                          ? undefined
-                          : 'An organization name is required to enable deletion.'
-                      }
+                      name="acknowledgeDeletion"
+                      label="I'm sure I want to delete this organization"
                     />
-                  </form>
-                </Form>
 
-                <AlertDialogFooter className="mt-6 gap-2 sm:space-x-0">
-                  <AlertDialogCancel disabled={deleting}>
-                    Cancel
-                  </AlertDialogCancel>
-                  <ButtonWithLoading
-                    type="submit"
-                    form="delete-org-form"
-                    variant="destructive"
-                    data-testid="deleteOrgButton"
-                    disabled={!canDeleteOrganization}
-                    loading={deleting}
-                  >
-                    Delete organization
-                  </ButtonWithLoading>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+                    <FormCheckbox
+                      control={form.control}
+                      name="acknowledgeIrreversible"
+                      label="I understand this action cannot be undone"
+                    />
+                  </div>
+
+                  <FormInput
+                    control={form.control}
+                    name="confirmation"
+                    autoComplete="off"
+                    className="border-border font-mono"
+                    disabled={!requiredOrganizationConfirmation}
+                    label={
+                      requiredOrganizationConfirmation ? (
+                        <>
+                          Type{' '}
+                          <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
+                            {requiredOrganizationConfirmation}
+                          </InlineCode>{' '}
+                          to confirm
+                        </>
+                      ) : (
+                        'Organization confirmation is unavailable.'
+                      )
+                    }
+                    helperText={
+                      requiredOrganizationConfirmation
+                        ? undefined
+                        : 'An organization name is required to enable deletion.'
+                    }
+                  />
+                </form>
+              </Form>
+
+              <AlertDialogFooter className="mt-6 gap-2 sm:space-x-0">
+                <AlertDialogCancel disabled={deleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <ButtonWithLoading
+                  type="submit"
+                  form="delete-org-form"
+                  variant="destructive"
+                  data-testid="deleteOrgButton"
+                  disabled={!canDeleteOrganization}
+                  loading={deleting}
+                >
+                  Delete organization
+                </ButtonWithLoading>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         }
       />
+      {!isOrgAdmin && (
+        <SettingsCardContent>
+          <Alert>
+            <AlertDescription>
+              Only organization admins can delete this organization.
+            </AlertDescription>
+          </Alert>
+        </SettingsCardContent>
+      )}
     </SettingsCard>
   );
 }
