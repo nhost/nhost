@@ -23,10 +23,6 @@ export default function ThemeSwitcher({ className }: ThemeSwitcherProps) {
 
   return (
     <div className={cn('grid grid-flow-row gap-2', className)}>
-      <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-        Theme
-      </span>
-
       <ToggleGroup
         type="single"
         aria-label="Theme"
