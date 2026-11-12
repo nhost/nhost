@@ -241,7 +241,8 @@ func GenerateForRole(
 		generatedAggregateBoolExp   = make(map[string]struct{})
 	)
 
-	tablesWithObjRelInsert, tablesWithArrRelInsert := findRelationships(objects, md, role)
+	insertableTables := findInsertableTables(objects, md, role)
+	objRelTargets, arrRelTargets := findRelationships(objects, md, insertableTables)
 
 	for i := range md.Tables {
 		tableMeta := &md.Tables[i]
@@ -260,7 +261,7 @@ func GenerateForRole(
 			&queryFields, &mutationFields, &subscriptionFields, usedScalars,
 			selectUsedScalars, selectUsedArrayElementTypes,
 			neededEnums, generatedAggregateOrderBy, generatedAggregateBoolExp,
-			tablesWithObjRelInsert, tablesWithArrRelInsert, caps,
+			insertableTables, objRelTargets, arrRelTargets, caps,
 		)
 	}
 
@@ -310,70 +311,94 @@ func generateFunctions(
 	}
 }
 
-func findRelationships( //nolint:cyclop,gocognit
+// findInsertableTables prunes tables without any representable insert field.
+// Start with every eligible table so relationship-only cycles survive: their
+// nullable relationship fields are valid inputs even without writable columns.
+func findInsertableTables(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
 	role string,
-) (map[string]struct{}, map[string]struct{}) {
-	tablesWithObjRelInsert := make(map[string]struct{})
-	tablesWithArrRelInsert := make(map[string]struct{})
+) map[string]struct{} {
+	insertableTables := make(map[string]struct{})
 
 	for i := range md.Tables {
 		tableMeta := &md.Tables[i]
-
-		if role != roleAdmin && getInsertPermission(tableMeta, role) == nil {
+		if role != roleAdmin && getSelectPermission(tableMeta, role) == nil {
 			continue
 		}
 
 		tableInfo, ok := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
-		if !ok {
+		if ok && tableInfo.IsInsertable && hasInsertPermissionForRole(tableMeta, role) {
+			insertableTables[getCustomOrDefaultTypeName(tableMeta)] = struct{}{}
+		}
+	}
+
+	for {
+		previousCount := len(insertableTables)
+
+		for i := range md.Tables {
+			tableMeta := &md.Tables[i]
+
+			name := getCustomOrDefaultTypeName(tableMeta)
+			if _, ok := insertableTables[name]; !ok {
+				continue
+			}
+
+			tableInfo, _ := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
+			if len(getInsertAllowedColumns(tableMeta, tableInfo, role)) == 0 &&
+				len(getInsertRelationshipFields(tableMeta, tableInfo, md, insertableTables)) == 0 {
+				delete(insertableTables, name)
+			}
+		}
+
+		if len(insertableTables) == previousCount {
+			return insertableTables
+		}
+	}
+}
+
+func findRelationships(
+	objects *introspection.Objects,
+	md *metadata.DatabaseMetadata,
+	insertableTables map[string]struct{},
+) (map[string]struct{}, map[string]struct{}) {
+	objRelTargets := make(map[string]struct{})
+	arrRelTargets := make(map[string]struct{})
+
+	for i := range md.Tables {
+		tableMeta := &md.Tables[i]
+		if _, ok := insertableTables[getCustomOrDefaultTypeName(tableMeta)]; !ok {
 			continue
 		}
 
-		for _, rel := range tableMeta.ObjectRelationships {
-			if isTargetTableAccessible(md, tableInfo, rel.Using, role) { //nolint:nestif
-				if targetMeta := getRelationshipTarget(
-					tableInfo,
-					md.Tables,
-					rel.Using,
-				); targetMeta != nil {
-					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
-						if !targetIsInsertable(objects, targetMeta) {
-							continue
-						}
+		tableInfo, _ := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
 
-						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
-						if targetName != "" {
-							tablesWithObjRelInsert[targetName] = struct{}{}
-						}
-					}
-				}
+		for _, rel := range tableMeta.ObjectRelationships {
+			targetName := getInsertRelationshipTargetName(
+				md,
+				tableInfo,
+				rel.Using,
+				insertableTables,
+			)
+			if targetName != "" {
+				objRelTargets[targetName] = struct{}{}
 			}
 		}
 
 		for _, rel := range tableMeta.ArrayRelationships {
-			if isTargetTableAccessible(md, tableInfo, rel.Using, role) { //nolint:nestif
-				if targetMeta := getRelationshipTarget(
-					tableInfo,
-					md.Tables,
-					rel.Using,
-				); targetMeta != nil {
-					if role == roleAdmin || getInsertPermission(targetMeta, role) != nil {
-						if !targetIsInsertable(objects, targetMeta) {
-							continue
-						}
-
-						targetName := getRelationshipTargetName(md, tableInfo, rel.Using)
-						if targetName != "" {
-							tablesWithArrRelInsert[targetName] = struct{}{}
-						}
-					}
-				}
+			targetName := getInsertRelationshipTargetName(
+				md,
+				tableInfo,
+				rel.Using,
+				insertableTables,
+			)
+			if targetName != "" {
+				arrRelTargets[targetName] = struct{}{}
 			}
 		}
 	}
 
-	return tablesWithObjRelInsert, tablesWithArrRelInsert
+	return objRelTargets, arrRelTargets
 }
 
 func addOperationTypes(
