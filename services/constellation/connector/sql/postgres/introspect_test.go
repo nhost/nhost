@@ -251,7 +251,7 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 			// pg_attribute.attidentity, which the SELECT now exposes as the
 			// is_identity scan column. The mock row drives that path and the
 			// validator confirms the bit propagates to introspection.Column.
-			name: "identity column sets IsIdentity",
+			name: "by-default identity column sets only IsIdentity",
 			columns: []columnScan{{
 				tableName:   "users",
 				columnName:  "id",
@@ -269,7 +269,9 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 				}
 
 				if c.IsGenerated {
-					t.Error("expected IsGenerated=false: identity is not the same as generated")
+					t.Error(
+						"expected IsGenerated=false: by-default identities accept explicit values",
+					)
 				}
 			},
 		},
@@ -303,6 +305,53 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 			}
 
 			tt.validate(t, schema.Tables)
+		})
+	}
+}
+
+func TestIntrospect_IdentityColumnScanning(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		generated bool
+	}{
+		{name: "by default accepts explicit values", generated: false},
+		{name: "always rejects explicit values", generated: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			pool := mock.NewMockPool(ctrl)
+			columns := []columnScan{{
+				tableName: "users", columnName: "id", typeName: "int8",
+				isNullable: "NO", isGenerated: tt.generated, isIdentity: true,
+			}}
+			wireSchemaWithColumns(t, ctrl, pool, columns)
+
+			client := postgres.NewClient(pool)
+
+			objects, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+				Name: "default", Tables: trackedTablesForColumns("public", columns),
+			})
+			if err != nil {
+				t.Fatalf("introspect: %v", err)
+			}
+
+			table, ok := objects.GetTable("public", "users")
+			if !ok {
+				t.Fatal("missing public.users table")
+			}
+
+			want := []introspection.Column{{
+				Name: "id", Type: "int8", IsGenerated: tt.generated, IsIdentity: true,
+			}}
+			if diff := cmp.Diff(want, table.Columns); diff != "" {
+				t.Errorf("identity column (-want +got):\n%s", diff)
+			}
 		})
 	}
 }
