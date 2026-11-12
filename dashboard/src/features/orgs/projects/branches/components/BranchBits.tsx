@@ -1,36 +1,49 @@
-import { SiGithub } from '@icons-pack/react-simple-icons';
-import {
-  Clock,
-  GitBranch,
-  GitPullRequest,
-  Loader2,
-  Shield,
-} from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
-import {
-  type Branch,
-  type MergeRequest,
-  timeAgo,
+import { GitBranch, Loader2, Shield } from 'lucide-react';
+import type {
+  Branch,
+  BranchStatus,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { cn } from '@/lib/utils';
 
-/** Shield for production, branch glyph for everything else. */
+/**
+ * Shield for production, branch glyph for everything else. The color only
+ * changes when something is unusual, so it reads at a glance without turning
+ * the whole list into colors:
+ * - deploying or creating: blue, slow pulse (blue is "in progress" here)
+ * - failed: red
+ * - ready, paused or deleting: light gray (production keeps its blue shield)
+ * `current` is the branch you're on (the header trigger): when it's ready it
+ * takes the green of the "on a branch" strip. Color is never the only cue:
+ * the status tags say the same in words.
+ */
 export function BranchIcon({
   branch,
+  current = false,
   className,
 }: {
-  branch: Pick<Branch, 'isProduction'>;
+  branch: Pick<Branch, 'isProduction' | 'status'>;
+  current?: boolean;
   className?: string;
 }) {
-  return branch.isProduction ? (
-    <Shield className={cn('size-4 shrink-0 text-primary', className)} />
-  ) : (
-    <GitBranch
-      className={cn('size-4 shrink-0 text-muted-foreground', className)}
+  const { status } = branch;
+  const busy = status === 'creating' || status === 'deploying';
+  const Icon = branch.isProduction ? Shield : GitBranch;
+
+  return (
+    <Icon
+      className={cn(
+        'size-4 shrink-0',
+        busy && 'animate-pulse text-primary',
+        status === 'failed' && 'text-destructive',
+        status === 'ready' && branch.isProduction && 'text-primary',
+        status === 'ready' && !branch.isProduction && current && 'text-success',
+        // Quiet light gray for everything else.
+        ((status === 'ready' && !branch.isProduction && !current) ||
+          status === 'paused' ||
+          status === 'deleting') &&
+          'text-muted-foreground opacity-50',
+        className,
+      )}
     />
   );
 }
@@ -50,91 +63,63 @@ export function ProductionBadge({ className }: { className?: string }) {
 
 export function CurrentBadge() {
   return (
-    // Same yellow as the "on a branch" strip at the top.
-    <span className="inline-flex shrink-0 items-center rounded-full border border-warning/40 px-2 py-px font-medium text-warning text-xs">
+    // Same green as the "on a branch" strip at the top.
+    <span className="inline-flex shrink-0 items-center rounded-full border border-success/40 px-2 py-px font-medium text-success text-xs">
       You're here
     </span>
   );
 }
 
-/** Gray tag for a branch with no recent activity, e.g. "Inactive 41 days". */
-export function InactiveChip({ branch }: { branch: Branch }) {
+const STATUS_LABEL: Record<BranchStatus, string> = {
+  creating: 'Creating',
+  deploying: 'Deploying',
+  ready: 'Ready',
+  failed: 'Failed',
+  paused: 'Paused',
+  deleting: 'Deleting',
+};
+
+/**
+ * The branch's status as a tag, same shape as the other tags. Ready, paused
+ * and deleting stay quiet (gray), creating and deploying are blue like
+ * anything in progress, failed is red. `hideReady` drops Ready in tight spots
+ * like the header dropdown.
+ */
+export function BranchStatusMark({
+  status,
+  hideReady = false,
+}: {
+  status: BranchStatus;
+  hideReady?: boolean;
+}) {
+  if (status === 'ready' && hideReady) {
+    return null;
+  }
+
+  const busy = status === 'creating' || status === 'deploying';
+
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted px-2 py-px font-medium text-muted-foreground text-xs">
-      <Clock className="size-3" />
-      Inactive {timeAgo(branch.lastActivityAt).replace(' ago', '')}
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-px font-medium text-xs',
+        busy
+          ? 'border-primary/40 bg-primary/10 text-primary'
+          : status === 'failed'
+            ? 'border-destructive/40 bg-destructive/10 text-destructive'
+            : 'bg-muted text-muted-foreground',
+      )}
+    >
+      {busy || status === 'deleting' ? (
+        <Loader2 className="size-3 animate-spin" />
+      ) : (
+        <span
+          className={cn(
+            'size-1.5 rounded-full',
+            status === 'failed' ? 'bg-destructive' : 'bg-muted-foreground',
+          )}
+        />
+      )}
+      {STATUS_LABEL[status]}
     </span>
   );
-}
-
-export function GitHubMirrorMark({ gitBranch }: { gitBranch?: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="flex shrink-0 items-center text-muted-foreground">
-          <SiGithub className="size-3.5" />
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="pointer-events-none max-w-60">
-        <p className="font-medium">Mirrors a GitHub branch</p>
-        <p className="text-muted-foreground">
-          Every push to <span className="font-mono">{gitBranch}</span> deploys
-          to this branch.
-        </p>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
-export function OpenRequestChip({
-  request,
-  compact = false,
-}: {
-  request: MergeRequest;
-  /** Icon only, for tight spots like the header dropdown. */
-  compact?: boolean;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {compact ? (
-          <span
-            role="img"
-            aria-label={`Open merge request #${request.number}`}
-            className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-primary/40 text-primary"
-          >
-            <GitPullRequest className="size-3" />
-          </span>
-        ) : (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 px-1.5 py-px font-medium text-primary text-xs">
-            <GitPullRequest className="size-3" />#{request.number}
-          </span>
-        )}
-      </TooltipTrigger>
-      <TooltipContent className="pointer-events-none max-w-60">
-        <p className="font-medium">Open merge request #{request.number}</p>
-        <p className="text-muted-foreground">{request.title}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
-export function BranchStatusMark({ branch }: { branch: Branch }) {
-  if (branch.status === 'creating') {
-    return (
-      <span className="inline-flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
-        <Loader2 className="size-3 animate-spin" />
-        Creating
-      </span>
-    );
-  }
-  if (branch.status === 'failed') {
-    return (
-      <span className="inline-flex shrink-0 items-center gap-1 text-destructive text-xs">
-        <span className="size-1.5 rounded-full bg-destructive" />
-        Failed
-      </span>
-    );
-  }
-  return null;
 }

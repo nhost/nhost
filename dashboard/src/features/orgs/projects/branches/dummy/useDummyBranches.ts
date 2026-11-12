@@ -4,45 +4,46 @@ import { useCallback, useMemo } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
-export type BranchSource = 'manual' | 'github';
-export type BranchStatus = 'creating' | 'ready' | 'failed';
+/**
+ * Every branch comes from git: production follows the default branch, every
+ * other branch follows a pull request's git branch. There are no manual
+ * branches.
+ */
+// paused and deleting aren't confirmed by the backend yet; designed for in
+// case they exist.
+export type BranchStatus =
+  | 'creating'
+  | 'deploying'
+  | 'ready'
+  | 'failed'
+  | 'paused'
+  | 'deleting';
 
 export interface Branch {
   id: string;
   name: string;
   isProduction: boolean;
-  source: BranchSource;
-  gitBranch?: string;
-  branchedFrom?: string;
+  gitBranch: string;
+  pullRequest?: number;
   createdAt: string;
   createdBy: string;
   lastActivityAt: string;
   status: BranchStatus;
 }
 
-export type MergeRequestState = 'open' | 'merged' | 'closed';
-
-export interface MergeRequest {
-  id: string;
-  number: number;
-  title: string;
-  branchName: string;
-  into: string;
-  author: string;
-  createdAt: string;
-  state: MergeRequestState;
-  closedAt?: string;
-}
-
 interface ProjectBranchesState {
   branches: Branch[];
-  mergeRequests: MergeRequest[];
   currentBranchId: string;
-  nextNumber: number;
+  /** DUMMY: lets the prototype show the "no GitHub" state. */
+  githubConnected: boolean;
 }
 
-const STORAGE_KEY = 'nhost-dummy-branches';
+// v2: branches are git only (no manual branches, no merge requests).
+const STORAGE_KEY = 'nhost-dummy-branches-v2';
 const EMPTY: Record<string, ProjectBranchesState> = {};
+
+/** Comes from the backend (per plan). Production doesn't count. */
+export const BRANCH_LIMIT = 5;
 
 const ago = (minutes: number) =>
   new Date(Date.now() - minutes * 60_000).toISOString();
@@ -50,13 +51,13 @@ const ago = (minutes: number) =>
 function seed(): ProjectBranchesState {
   return {
     currentBranchId: 'production',
-    nextNumber: 43,
+    githubConnected: true,
     branches: [
       {
         id: 'production',
         name: 'production',
         isProduction: true,
-        source: 'manual',
+        gitBranch: 'main',
         createdAt: ago(60 * 24 * 120),
         createdBy: 'Rui Almeida',
         lastActivityAt: ago(4),
@@ -66,8 +67,8 @@ function seed(): ProjectBranchesState {
         id: 'b-billing',
         name: 'feature-billing',
         isProduction: false,
-        source: 'manual',
-        branchedFrom: 'production',
+        gitBranch: 'feature/billing',
+        pullRequest: 42,
         createdAt: ago(60 * 26),
         createdBy: 'Rui Almeida',
         lastActivityAt: ago(120),
@@ -77,68 +78,34 @@ function seed(): ProjectBranchesState {
         id: 'b-auth-email',
         name: 'fix-auth-email',
         isProduction: false,
-        source: 'github',
         gitBranch: 'fix/auth-email',
-        branchedFrom: 'production',
+        pullRequest: 41,
         createdAt: ago(60 * 30),
         createdBy: 'Marta Silva',
-        lastActivityAt: ago(60 * 20),
-        status: 'ready',
+        lastActivityAt: ago(2),
+        status: 'deploying',
+      },
+      {
+        id: 'b-search',
+        name: 'feature-search',
+        isProduction: false,
+        gitBranch: 'feature/search',
+        pullRequest: 44,
+        createdAt: ago(60 * 3),
+        createdBy: 'Tom Becker',
+        lastActivityAt: ago(60 * 3),
+        status: 'failed',
       },
       {
         id: 'b-onboarding',
         name: 'onboarding-flow',
         isProduction: false,
-        source: 'manual',
-        branchedFrom: 'production',
+        gitBranch: 'feature/onboarding-flow',
+        pullRequest: 37,
         createdAt: ago(60 * 24 * 52),
         createdBy: 'Tom Becker',
         lastActivityAt: ago(60 * 24 * 41),
         status: 'ready',
-      },
-    ],
-    mergeRequests: [
-      {
-        id: 'mr-42',
-        number: 42,
-        title: 'Add invoices and invoice items',
-        branchName: 'feature-billing',
-        into: 'production',
-        author: 'Rui Almeida',
-        createdAt: ago(120),
-        state: 'open',
-      },
-      {
-        id: 'mr-41',
-        number: 41,
-        title: 'Tighten auth.users email constraint',
-        branchName: 'fix-auth-email',
-        into: 'production',
-        author: 'Marta Silva',
-        createdAt: ago(60 * 20),
-        state: 'open',
-      },
-      {
-        id: 'mr-40',
-        number: 40,
-        title: 'Add profiles table',
-        branchName: 'profiles',
-        into: 'production',
-        author: 'Tom Becker',
-        createdAt: ago(60 * 24 * 6),
-        state: 'merged',
-        closedAt: ago(60 * 24 * 5),
-      },
-      {
-        id: 'mr-39',
-        number: 39,
-        title: 'Rename orders.total column',
-        branchName: 'orders-cleanup',
-        into: 'production',
-        author: 'Marta Silva',
-        createdAt: ago(60 * 24 * 9),
-        state: 'closed',
-        closedAt: ago(60 * 24 * 8),
       },
     ],
   };
@@ -152,23 +119,6 @@ export function toBranchSlug(value: string) {
     .replace(/-{2,}/g, '-')
     .replace(/^-/, '');
 }
-
-export const STALE_AFTER_DAYS = 30;
-
-export function isStale(branch: Branch) {
-  return (
-    !branch.isProduction &&
-    Date.now() - new Date(branch.lastActivityAt).getTime() >
-      STALE_AFTER_DAYS * 24 * 60 * 60_000
-  );
-}
-
-export const DUMMY_GIT_BRANCHES = [
-  'feature/checkout',
-  'feature/search',
-  'fix/auth-email',
-  'chore/upgrade-hasura',
-];
 
 export function useDummyBranches() {
   const { project } = useProject();
@@ -194,120 +144,22 @@ export function useDummyBranches() {
     state.branches.find((b) => b.id === state.currentBranchId) ??
     state.branches[0];
   const production = state.branches.find((b) => b.isProduction)!;
-
-  const openRequestFor = (branchName: string) =>
-    state.mergeRequests.find(
-      (mr) => mr.branchName === branchName && mr.state === 'open',
-    );
+  const branchCount = state.branches.filter((b) => !b.isProduction).length;
 
   const switchTo = (branchId: string) =>
     update((s) => ({ ...s, currentBranchId: branchId }));
 
-  const createBranch = (input: {
-    name: string;
-    source: BranchSource;
-    gitBranch?: string;
-    openRequestsFromGitHub?: boolean;
-  }) => {
-    const id = `b-${Date.now()}`;
+  const renameBranch = (branchId: string, name: string) =>
     update((s) => ({
       ...s,
-      branches: [
-        ...s.branches,
-        {
-          id,
-          name: input.name,
-          isProduction: false,
-          source: input.source,
-          gitBranch: input.gitBranch,
-          branchedFrom: 'production',
-          createdAt: new Date().toISOString(),
-          createdBy: 'You',
-          lastActivityAt: new Date().toISOString(),
-          status: 'creating',
-        },
-      ],
-    }));
-    // Pretend the copy takes a few seconds.
-    window.setTimeout(() => {
-      update((s) => ({
-        ...s,
-        branches: s.branches.map((b) =>
-          b.id === id ? { ...b, status: 'ready' } : b,
-        ),
-      }));
-    }, 4000);
-    return id;
-  };
-
-  // Deletes one or more branches at once (bulk delete in All branches).
-  const deleteBranches = (branchIds: string[]) =>
-    update((s) => {
-      const names = s.branches
-        .filter((b) => branchIds.includes(b.id))
-        .map((b) => b.name);
-      return {
-        ...s,
-        currentBranchId: branchIds.includes(s.currentBranchId)
-          ? 'production'
-          : s.currentBranchId,
-        branches: s.branches.filter((b) => !branchIds.includes(b.id)),
-        mergeRequests: s.mergeRequests.map((mr) =>
-          names.includes(mr.branchName) && mr.state === 'open'
-            ? { ...mr, state: 'closed', closedAt: new Date().toISOString() }
-            : mr,
-        ),
-      };
-    });
-
-  const openMergeRequest = (branchName: string, title: string) =>
-    update((s) => ({
-      ...s,
-      nextNumber: s.nextNumber + 1,
-      mergeRequests: [
-        {
-          id: `mr-${s.nextNumber}`,
-          number: s.nextNumber,
-          title,
-          branchName,
-          into: 'production',
-          author: 'You',
-          createdAt: new Date().toISOString(),
-          state: 'open',
-        },
-        ...s.mergeRequests,
-      ],
+      branches: s.branches.map((b) => (b.id === branchId ? { ...b, name } : b)),
     }));
 
-  const merge = (requestId: string, deleteAfter: boolean) =>
-    update((s) => {
-      const request = s.mergeRequests.find((mr) => mr.id === requestId);
-      const branch = s.branches.find((b) => b.name === request?.branchName);
-      return {
-        ...s,
-        currentBranchId:
-          deleteAfter && branch && s.currentBranchId === branch.id
-            ? 'production'
-            : s.currentBranchId,
-        branches: deleteAfter
-          ? s.branches.filter((b) => b.id !== branch?.id)
-          : s.branches,
-        mergeRequests: s.mergeRequests.map((mr) =>
-          mr.id === requestId
-            ? { ...mr, state: 'merged', closedAt: new Date().toISOString() }
-            : mr,
-        ),
-      };
-    });
-
-  const closeMergeRequest = (requestId: string) =>
+  const setGithubConnected = (connected: boolean) =>
     update((s) => ({
       ...s,
-      mergeRequests: s.mergeRequests.map((mr) =>
-        mr.id === requestId
-          ? { ...mr, state: 'closed', closedAt: new Date().toISOString() }
-          : mr,
-      ),
+      githubConnected: connected,
+      currentBranchId: connected ? s.currentBranchId : 'production',
     }));
 
   const resetDemo = () => update(() => seed());
@@ -315,17 +167,19 @@ export function useDummyBranches() {
   return {
     isReady: !!project,
     projectName: project?.name ?? 'this project',
+    repository:
+      project?.githubRepository?.fullName ??
+      `nhost/${project?.subdomain ?? 'project'}`,
     branches: state.branches,
-    mergeRequests: state.mergeRequests,
     currentBranch,
     production,
-    openRequestFor,
+    branchCount,
+    branchLimit: BRANCH_LIMIT,
+    atLimit: branchCount >= BRANCH_LIMIT,
+    githubConnected: state.githubConnected,
     switchTo,
-    createBranch,
-    deleteBranches,
-    openMergeRequest,
-    merge,
-    closeMergeRequest,
+    renameBranch,
+    setGithubConnected,
     resetDemo,
   };
 }

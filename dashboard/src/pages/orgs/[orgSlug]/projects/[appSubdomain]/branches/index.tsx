@@ -19,12 +19,8 @@ const AllBranches = dynamic(
   () => import('@/features/orgs/projects/branches/components/AllBranches'),
   { ssr: false },
 );
-const MergeRequests = dynamic(
-  () => import('@/features/orgs/projects/branches/components/MergeRequests'),
-  { ssr: false },
-);
-const NewBranchForm = dynamic(
-  () => import('@/features/orgs/projects/branches/components/NewBranchForm'),
+const BranchSettings = dynamic(
+  () => import('@/features/orgs/projects/branches/components/BranchSettings'),
   { ssr: false },
 );
 
@@ -33,13 +29,9 @@ const TABS = {
     title: 'All branches',
     Component: AllBranches,
   },
-  'merge-requests': {
-    title: 'Merge requests',
-    Component: MergeRequests,
-  },
-  new: {
-    title: 'New branch',
-    Component: NewBranchForm,
+  settings: {
+    title: 'Settings',
+    Component: BranchSettings,
   },
 } as const;
 
@@ -49,7 +41,7 @@ function BranchesSidebar() {
   const router = useRouter();
   const orgSlug = getSingleQueryParam(router.query.orgSlug);
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-  const { resetDemo } = useDummyBranches();
+  const { resetDemo, githubConnected, setGithubConnected } = useDummyBranches();
   const path = `/orgs/${orgSlug}/projects/${appSubdomain}/branches`;
 
   return (
@@ -71,25 +63,25 @@ function BranchesSidebar() {
             All branches
           </AreaSidebarLink>
           <AreaSidebarLink
-            href={`${path}?tab=merge-requests`}
+            href={`${path}?tab=settings`}
             exact
             shallow
             scroll={false}
           >
-            Merge requests
-          </AreaSidebarLink>
-          <AreaSidebarLink
-            href={`${path}?tab=new`}
-            exact
-            shallow
-            scroll={false}
-          >
-            New branch
+            Settings
           </AreaSidebarLink>
         </AreaSidebarGroup>
       </AreaSidebarNav>
       {/* DUMMY PROTOTYPE: remove before staging. */}
-      <div className="hidden shrink-0 border-t p-3 md:block">
+      <div className="hidden shrink-0 gap-1 border-t p-3 md:grid">
+        <Button
+          variant="ghost"
+          size="xs"
+          className="w-full text-muted-foreground"
+          onClick={() => setGithubConnected(!githubConnected)}
+        >
+          {githubConnected ? 'Demo without GitHub' : 'Demo with GitHub'}
+        </Button>
         <Button
           variant="ghost"
           size="xs"
@@ -107,8 +99,9 @@ function BranchesIntro() {
   const { projectName } = useDummyBranches();
   return (
     <p className="text-muted-foreground text-sm">
-      Every branch is a copy of {projectName}'s structure, without its data. Try
-      changes safely, then merge them into production.
+      Every pull request on GitHub gets its own branch: a copy of {projectName}
+      's structure, without its data. Merging the pull request ships its changes
+      to production.
     </p>
   );
 }
@@ -141,7 +134,7 @@ export default function BranchesPage() {
     <div className="mx-auto grid w-full max-w-5xl gap-6 px-5 py-8">
       <header className="grid gap-1">
         <h1 className="font-semibold text-xl">{title}</h1>
-        <ClientIntro />
+        {tab === 'all' && <ClientIntro />}
       </header>
       <Component />
     </div>
