@@ -121,6 +121,20 @@ Signing out a session deletes its row. The proxy checks for the row on every
 page load, so that device is signed out on its next page load rather than when
 its token expires.
 
+### Rate limits
+
+Auth's limits in `nhost/nhost.toml` count requests per visitor address. Every
+auth call comes from the Next server, so the server sends the visitor's address
+as `X-Forwarded-For`, taken from `x-real-ip` or the first `x-forwarded-for`
+entry. That's only trustworthy when something in front of Next sets those
+headers itself. Vercel does. A self-hosted `next start` must sit behind a proxy
+that overwrites them, or visitors can pick their own address and get around the
+limits.
+
+This relies on Nhost Cloud passing the forwarded address on to auth. If it
+doesn't, every visitor shares the server's budget, and the fix is to raise the
+`[auth.rateLimit]` limits in `nhost/nhost.toml`.
+
 ### Avatars
 
 Avatars are private files served through `/api/avatar/<id>`. Only PNG, JPEG,

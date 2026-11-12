@@ -1,15 +1,16 @@
 import {
+  type ClientConfigurationFn,
   createServerClient,
   generateServiceUrl,
   type NhostClient,
 } from '@nhost/nhost-js';
 import { createAPIClient, type User } from '@nhost/nhost-js/auth';
-import type { FetchError } from '@nhost/nhost-js/fetch';
+import { type FetchError, withHeadersMiddleware } from '@nhost/nhost-js/fetch';
 import {
   DEFAULT_SESSION_KEY,
   type StoredSession,
 } from '@nhost/nhost-js/session';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
 import { nhostRegion, nhostSubdomain } from './env';
 import { graphqlErrorMessage } from './graphql';
@@ -87,6 +88,18 @@ export function serializeSessionCookie(value: StoredSession): string {
   return JSON.stringify(value);
 }
 
+// Auth rate-limits by the caller's address, which for every call from here is
+// the server's. See "Rate limits" in the README.
+function forwardVisitorAddress(requestHeaders: Headers): ClientConfigurationFn {
+  const { ip } = requestDetails(requestHeaders);
+
+  return ({ auth }) => {
+    if (ip) {
+      auth.pushChainFunction(withHeadersMiddleware({ 'X-Forwarded-For': ip }));
+    }
+  };
+}
+
 /** Creates an Nhost client for use in server components and server actions. */
 export async function createNhostClient(): Promise<NhostClient> {
   const cookieStore = await cookies();
@@ -94,6 +107,7 @@ export async function createNhostClient(): Promise<NhostClient> {
   return createServerClient({
     region: nhostRegion(),
     subdomain: nhostSubdomain(),
+    configure: [forwardVisitorAddress(await headers())],
     storage: {
       get: (): StoredSession | null =>
         parseSessionCookie(cookieStore.get(key)?.value || null),
@@ -323,6 +337,7 @@ export async function handleNhostProxy(
   const nhost = createServerClient({
     region: nhostRegion(),
     subdomain: nhostSubdomain(),
+    configure: [forwardVisitorAddress(request.headers)],
     storage,
   });
 

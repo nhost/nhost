@@ -13,6 +13,7 @@ import {
 import { SIGNED_IN_KEY } from '@/lib/nhost/signed-in';
 
 const cookie = vi.hoisted(() => ({ value: undefined as string | undefined }));
+const incoming = vi.hoisted(() => ({ headers: new Headers() }));
 
 // Writes land on a real response's cookie jar, which is what `cookies()` hands
 // a server action, so they can be read back as Set-Cookie lines.
@@ -30,6 +31,7 @@ vi.mock('next/headers', () => ({
       written.response?.cookies.set(...args),
     delete: (name: string) => written.response?.cookies.delete(name),
   }),
+  headers: async () => incoming.headers,
 }));
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -364,6 +366,62 @@ describe('session cookies from server actions', () => {
         /Expires=Thu, 01 Jan 1970/,
       );
     }
+  });
+});
+
+// Auth rate-limits by address, so it has to see the visitor's rather than the
+// server's, and nothing else needs it.
+describe('visitor address', () => {
+  beforeEach(() => {
+    cookie.value = storedSession(900);
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    incoming.headers = new Headers();
+    vi.unstubAllGlobals();
+  });
+
+  const forwardedFor = (call: number): string | null =>
+    new Headers(fetchMock.mock.calls[call][1]?.headers).get('X-Forwarded-For');
+
+  it('goes to auth and not to GraphQL from server actions', async () => {
+    incoming.headers = new Headers({
+      'x-forwarded-for': '203.0.113.7, 10.0.0.1',
+    });
+    fetchMock.mockImplementation(async () => json({ data: {} }, 200));
+
+    const nhost = await createNhostClient();
+    await nhost.auth.sendVerificationEmail({ email: 'user@example.com' });
+    await nhost.graphql.request({ query: '{ __typename }' });
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain('.auth.');
+    expect(forwardedFor(0)).toBe('203.0.113.7');
+    expect(String(fetchMock.mock.calls[1][0])).toContain('.graphql.');
+    expect(forwardedFor(1)).toBeNull();
+  });
+
+  it('goes to auth when the proxy refreshes', async () => {
+    fetchMock.mockImplementation(async () => refreshed(jwt(900)));
+
+    await handleNhostProxy(
+      proxyRequest(storedSession(30), undefined, {
+        'x-real-ip': '203.0.113.7',
+      }),
+    );
+
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/v1\/token$/);
+    expect(forwardedFor(0)).toBe('203.0.113.7');
+  });
+
+  it('is left out when the request has none', async () => {
+    fetchMock.mockImplementation(async () => json('OK', 200));
+
+    const nhost = await createNhostClient();
+    await nhost.auth.sendVerificationEmail({ email: 'user@example.com' });
+
+    expect(forwardedFor(0)).toBeNull();
   });
 });
 
