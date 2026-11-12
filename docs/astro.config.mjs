@@ -727,6 +727,7 @@ export default defineConfig({
                     { slug: 'platform/cli/multiple-projects' },
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
+                    { slug: 'platform/cli/cloud-api' },
                     {
                       label: 'CLI MCP server',
                       collapsed: true,
