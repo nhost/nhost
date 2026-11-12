@@ -218,7 +218,7 @@ export default function EditActionRelationshipsForm({
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="icon"
                         aria-label={`Edit relationship ${relationship.name}`}
                         onClick={() => openDialog(relationship)}

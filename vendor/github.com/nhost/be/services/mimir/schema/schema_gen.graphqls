@@ -400,6 +400,9 @@ type ConfigAuthMethod {
     emailPassword: ConfigAuthMethodEmailPassword
     """
     Passwordless sign-in via SMS.
+    Deprecated: use otp.sms instead. The two flags remain independent in
+    config; their values are OR-ed only when generating hasura-auth environment
+    variables.
     """
     smsPasswordless: ConfigAuthMethodSmsPasswordless
     """
@@ -923,14 +926,21 @@ type ConfigAuthMethodOtp {
     Enable one-time-password sign-in over email.
     """
     email: ConfigAuthMethodOtpEmail
+    """
+    Enable one-time-password over SMS, for passwordless sign-in and
+    session elevation.
+    """
+    sms: ConfigAuthMethodOtpSms
 }
 
 input ConfigAuthMethodOtpUpdateInput {
     email: ConfigAuthMethodOtpEmailUpdateInput
+    sms: ConfigAuthMethodOtpSmsUpdateInput
 }
 
 input ConfigAuthMethodOtpInsertInput {
     email: ConfigAuthMethodOtpEmailInsertInput
+    sms: ConfigAuthMethodOtpSmsInsertInput
 }
 
 input ConfigAuthMethodOtpComparisonExp {
@@ -938,6 +948,7 @@ input ConfigAuthMethodOtpComparisonExp {
     _not: ConfigAuthMethodOtpComparisonExp
     _or: [ConfigAuthMethodOtpComparisonExp!]
     email: ConfigAuthMethodOtpEmailComparisonExp
+    sms: ConfigAuthMethodOtpSmsComparisonExp
 }
 
 """
@@ -966,7 +977,36 @@ input ConfigAuthMethodOtpEmailComparisonExp {
 }
 
 """
+Enable one-time-password over SMS, for passwordless sign-in and
+session elevation.
+"""
+type ConfigAuthMethodOtpSms {
+    """
+    Enable this feature.
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthMethodOtpSmsComparisonExp {
+    _and: [ConfigAuthMethodOtpSmsComparisonExp!]
+    _not: ConfigAuthMethodOtpSmsComparisonExp
+    _or: [ConfigAuthMethodOtpSmsComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
 Passwordless sign-in via SMS.
+Deprecated: use otp.sms instead. The two flags remain independent in
+config; their values are OR-ed only when generating hasura-auth environment
+variables.
 """
 type ConfigAuthMethodSmsPasswordless {
     """

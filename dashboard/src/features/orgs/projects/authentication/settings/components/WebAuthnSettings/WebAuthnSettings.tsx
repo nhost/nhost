@@ -9,7 +9,6 @@ import {
   SettingsCard,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -135,14 +134,13 @@ export default function WebAuthnSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/webauthn',
+              topic: 'how to sign in users with security keys',
+            }}
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/webauthn"
-              title="how to sign in users with security keys"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

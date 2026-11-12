@@ -37,10 +37,12 @@ on:
 
 jobs:
   build_artifacts:
-    uses: ./.github/workflows/wf_build_artifacts.yaml
+    uses: ./.github/workflows/wf_check.yaml
     with:
+      BUILD: true
+      CHECKS: false
       NAME: cli
-      PATH: cli
+      PROJECT: cli
       GIT_REF: ${{ inputs.GIT_REF }}
       VERSION: ${{ inputs.VERSION }}
       DOCKER: true
@@ -117,6 +119,9 @@ jobs:
 
       - name: "Build artifact"
         run: |
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#packages.$system.cli-multiplatform" \
+            >> "$NIX_CACHE_ROOTS"
           make build-multiplatform
 
       - name: "Upload assets"
@@ -153,8 +158,10 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
 
       - name: "Store Nix cache"
+        continue-on-error: true
         uses: ./.github/actions/cache-nix
         with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
@@ -163,6 +170,7 @@ jobs:
   publish-npm:
     needs:
       - build-multiplatform
+    # npm trusted publishing rejects self-hosted runner provenance.
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -214,6 +222,9 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#packages.$system.cli-npm" \
+            ".#devShells.$system.pnpm" >> "$NIX_CACHE_ROOTS"
           make build-npm
 
       - name: "Validate staged npm packages"
@@ -221,6 +232,16 @@ jobs:
 
       - name: "Publish to npm"
         run: make publish-npm NPM_TAG="$TAG"
+
+      - name: Store Nix cache
+        if: ${{ always() && env.NIX_CACHE_ROOTS != '' }}
+        continue-on-error: true
+        uses: ./.github/actions/cache-nix
+        with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
       - name: Send Discord notification
         if: always()

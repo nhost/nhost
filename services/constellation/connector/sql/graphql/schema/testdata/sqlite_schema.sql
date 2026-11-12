@@ -374,8 +374,8 @@ CREATE TABLE exercise_log_sets (
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- notes / note_replies: nested array-rel + post-check + parent-CTE
--- substitution fixture (mirrored from pg_schema.sql).
+-- notes / note_replies: nested array-rel + post-insert check fixture
+-- (mirrored from pg_schema.sql).
 CREATE TABLE notes (
     id UUID NOT NULL PRIMARY KEY,
     author_id UUID NOT NULL,

@@ -30,6 +30,24 @@ func (d *PostgresDialect) TypeCast(placeholder string, sqlType string) string {
 	return placeholder + "::" + sqlType
 }
 
+func (d *PostgresDialect) SupportsDependentInsertSteps() bool { return true }
+
+func (d *PostgresDialect) DependentInsertCapture() string {
+	return `COALESCE(json_agg(row_to_json("_physical")), '[]'::json)`
+}
+
+func (d *PostgresDialect) DependentInsertRowsSource(index int) string {
+	return `json_array_elements(` + d.TypeCast(d.Placeholder(index), "json") + `) AS "_rows"(value)`
+}
+
+func (d *PostgresDialect) DependentInsertRowValue(column string) string {
+	return "(value ->> '" + strings.ReplaceAll(column, "'", "''") + "')"
+}
+
+func (d *PostgresDialect) DependentInsertAffectedRows(index int) string {
+	return "generate_series(1, " + d.TypeCast(d.Placeholder(index), "integer") + ")"
+}
+
 func (d *PostgresDialect) WriteArrayIn(
 	b *strings.Builder, source, sqlName, sqlType string,
 	values []any, params []any, paramIndex int,

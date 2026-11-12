@@ -7,7 +7,7 @@ const SettingsCardContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('grid grid-flow-row gap-4 px-4', className)}
+    className={cn('grid grid-flow-row gap-4 px-6', className)}
     {...props}
   />
 ));

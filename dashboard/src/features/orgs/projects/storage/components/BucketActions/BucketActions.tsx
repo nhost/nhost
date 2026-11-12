@@ -21,9 +21,9 @@ export default function BucketActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="subtle"
           size="icon"
-          className="h-6 w-6 shrink-0 border-none bg-transparent px-0 opacity-0 hover:bg-transparent group-hover:opacity-100 data-[state=open]:opacity-100"
+          className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
           onClick={(e) => e.preventDefault()}
         >
           <Ellipsis className="h-6 w-6" />

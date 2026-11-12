@@ -471,10 +471,9 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// The nested department inserts a descendant `employees` CTE, while the
-		// top-level returning selection aliases the normal `user` relationship to
-		// `employees`. This must still build/read the lateral user relationship;
-		// only direct nested relationships may be read from nested CTEs.
+		// The before-parent department has descendant employees, while root
+		// returning aliases the unrelated `user` relationship to `employees`.
+		// Resolution uses relationship identity, never the descendant name.
 		{
 			name: "nested descendant name does not shadow aliased top-level relationship",
 			query: query{
@@ -629,16 +628,9 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// (`kb_entry_id: _in: ...`) or indirectly via a relationship to the
 		// parent (`kb_entry: {uploader_id: _eq: ...}`).
 		//
-		// Two issues had to be fixed for this case:
-		//   1. The pre-check data subquery emitted NULL for the FK column
-		//      (because the parent INSERT hasn't produced its RETURNING yet),
-		//      so any predicate on that column rejected every row. The check
-		//      CTE now pulls the FK from the parent CTE.
-		//   2. A relationship-based predicate compiles to EXISTS against the
-		//      parent's underlying table — which doesn't see the in-flight
-		//      parent INSERT (Postgres WITH snapshot rule). The relationship's
-		//      EXISTS is now rewritten to query the parent CTE in nested
-		//      contexts so it sees the freshly-inserted row.
+		// The parent is inserted and captured before its child. The child's
+		// FK predicate uses the captured parent column, and its relationship
+		// EXISTS reads that parent from the base table in the next statement.
 		{
 			name: "permissions: nested array insert references FK (single row)",
 			query: query{
@@ -1100,19 +1092,9 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Nested array-relationship insert of a child (note_replies) from its
-		// parent (notes) where the child's insert check references the parent
-		// via the `note` object relationship and the child's `visibility`
-		// column is a DB default that the payload omits. requiresPostInsertCheck
-		// fires for the child (defaulted column referenced by check, absent
-		// from payload, not in nestedFKIndex). extendSubsForArrayChild populates
-		// tableSubs[notes.TableFromClause()] = mutation_result. Threading
-		// tableSubs into buildSingleInsertCTEPostCheck must redirect the
-		// relationship-EXISTS in the post-check predicate so it reads the
-		// parent's just-inserted row in mutation_result instead of the
-		// underlying (empty in this isolated DB) notes table. Locks the SQL
-		// shape AND end-to-end execution (parent is empty otherwise, so a
-		// non-substituted EXISTS would deny every row).
+		// The child post-insert check reads both its defaulted visibility and
+		// the earlier parent through an object relationship. Separate statements
+		// make that parent visible in the real base table, without CTE overlays.
 		{
 			name: "permissions: nested array-rel insert with post-check substituted to parent CTE",
 			query: query{
@@ -1139,9 +1121,7 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Same shape but with two nested rows: forces the multi-row nested
-		// path (buildMultiNestedInsertCTEPostCheck) so the SQL shape for the
-		// multi-row sibling of the above case is locked too.
+		// Two relationship-free children share a batch with post-insert checks.
 		{
 			name: "permissions: nested array-rel insert with post-check (multi-row child)",
 			query: query{
@@ -1168,14 +1148,8 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Same shape as "(multi-row child)" but selects ONLY the parent
-		// `title` scalar — no `id`, no `replies`. This is the exact
-		// shape that historically left the gated `nested_replies` and
-		// `nested_replies_post_check` CTEs unreferenced by the outer
-		// SELECT, allowing Postgres to elide them and silently bypass
-		// `constellation_throw_error`. Locks the WHERE-clause force
-		// reference emitted by writeNestedCTEForceRef so the regression
-		// can't sneak back in.
+		// Selecting only the parent scalar must not skip either child's
+		// permission check: the step executor runs before final selection.
 		{
 			name: "permissions: nested array-rel insert with post-check (parent scalar only, force CTE reference)",
 			query: query{

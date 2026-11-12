@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis, Loader2 } from 'lucide-react';
+import { formatDistance } from 'date-fns';
+import { Loader2, Mail, Trash2, UserCog } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,12 +24,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import {
   Form,
   FormControl,
   FormField,
@@ -38,12 +33,12 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { RoleBadge } from '@/features/orgs/components/members/components/RoleBadge';
+import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -53,6 +48,7 @@ import {
   useGetOrganizationInvitesLazyQuery,
   useUpdateOrganizationMemberInviteMutation,
 } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 type Invite = GetOrganizationInvitesQuery['organizationMemberInvites'][0];
 
@@ -70,7 +66,6 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
   const { org } = useCurrentOrg();
   const [deleting, setDeleting] = useState(false);
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
-  const [dropDownOpen, setDropDownOpen] = useState(false);
   const [confirmDeleteInviteDialogOpen, setConfirmDeleteInviteDialogOpen] =
     useState(false);
 
@@ -146,38 +141,77 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
 
   return (
     <>
-      <div className="flex w-full flex-row items-center justify-between">
-        <span className="text-foreground text-sm">{invite.email}</span>
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-row items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </div>
 
-        <div className="flex flex-row items-center gap-4 text-foreground">
-          <span className="font-medium">{invite.role}</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-medium">{invite.email}</span>
+            <span className="truncate text-muted-foreground text-sm">
+              Invited{' '}
+              {formatDistance(new Date(invite.createdAt), new Date(), {
+                addSuffix: true,
+              })}
+            </span>
+          </div>
+        </div>
 
-          <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" disabled={!isAdmin}>
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  form.reset({ email: invite.email, role: invite.role });
-                  setUpdateRoleDialogOpen(true);
-                }}
-              >
-                Update role
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setConfirmDeleteInviteDialogOpen(true);
-                }}
-              >
-                Delete invite
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
+          <RoleBadge role={invite.role} />
+
+          <div className="flex flex-row items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !isAdmin && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Update role"
+                    disabled={!isAdmin}
+                    onClick={() => {
+                      form.reset({ email: invite.email, role: invite.role });
+                      setUpdateRoleDialogOpen(true);
+                    }}
+                  >
+                    <UserCog />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAdmin ? 'Update role' : 'Only admins can update invites.'}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !isAdmin && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Delete invite"
+                    className="hover:text-destructive dark:hover:text-destructive"
+                    disabled={!isAdmin}
+                    onClick={() => setConfirmDeleteInviteDialogOpen(true)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isAdmin ? 'Delete invite' : 'Only admins can delete invites.'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
@@ -185,14 +219,24 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
         open={confirmDeleteInviteDialogOpen}
         onOpenChange={setConfirmDeleteInviteDialogOpen}
       >
-        <AlertDialogContent className="text-foreground">
+        <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-xl">
+              Delete invite?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action will delete the invite.
+              This will delete the invite sent to{' '}
+              <strong className="font-semibold text-foreground">
+                {invite.email}
+              </strong>
+              . They won&apos;t be able to join{' '}
+              <strong className="font-semibold text-foreground">
+                {org?.name}
+              </strong>{' '}
+              using this invite anymore.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="mt-8">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteInvite}
@@ -202,7 +246,7 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               {deleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Delete'
+                'Delete invite'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -216,11 +260,13 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
           setUpdateRoleDialogOpen(value);
         }}
       >
-        <DialogContent className="text-foreground sm:max-w-xl">
+        <DialogContent className="p-12 text-foreground sm:max-w-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
               <DialogHeader className="mb-4">
-                <DialogTitle>Update invite</DialogTitle>
+                <DialogTitle className="text-xl leading-7 tracking-normal">
+                  Update invite
+                </DialogTitle>
                 <DialogDescription>
                   This will affect their permissions and access within the
                   organization.
@@ -252,31 +298,18 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a verified email to display" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(Organization_Members_Role_Enum).map(
-                            (role) => (
-                              <SelectItem key={role[0]} value={role[1]}>
-                                {role[1]}
-                              </SelectItem>
-                            ),
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <RoleSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-8">
                 <Button
                   variant="outline"
                   type="button"
@@ -284,7 +317,12 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Update</Button>
+                <Button
+                  type="submit"
+                  disabled={form.watch('role') === invite.role}
+                >
+                  Update
+                </Button>
               </DialogFooter>
             </form>
           </Form>

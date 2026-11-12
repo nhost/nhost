@@ -5,15 +5,48 @@ on:
       NAME:
         type: string
         required: true
-      PATH:
+      PROJECT:
         type: string
         required: true
       GIT_REF:
         type: string
         required: false
+      BUILD:
+        type: boolean
+        default: false
+      CHECKS:
+        type: boolean
+        default: true
+      CACHE_TARGET:
+        description: "Cached flake installable; {system} is the native system"
+        type: string
+        default: ".#packages.{system}.nixops"
+      SKIP_CACHE_CHECK:
+        description: "Bypass ready-cache gate for bootstrap and refresh"
+        type: boolean
+        default: false
+      LOGIN_ECR:
+        description: "Authenticate Docker for integration dependencies in ECR"
+        type: boolean
+        default: false
+      VERSION:
+        type: string
+        default: "0.0.0-dev"
+      RUNS_ON:
+        description: "JSON runner-label list; checks run on the first entry"
+        type: string
+        default: >-
+          ["blacksmith-4vcpu-ubuntu-2404-arm",
+           "blacksmith-2vcpu-ubuntu-2404"]
+      DOCKER:
+        type: boolean
+        default: false
       ENV:
         type: string
         required: false
+        default: ""
+      ARTIFACT_SUFFIX:
+        type: string
         default: ""
     secrets:
       AWS_ACCOUNT_ID:
@@ -31,27 +64,38 @@ on:
 
 jobs:
   tests:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 30
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ inputs.BUILD && 180 || 60 }}
 
     defaults:
       run:
-        working-directory: ${{ inputs.PATH }}
-
-    env:
-      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+        working-directory: ${{ inputs.PROJECT }}
 
     permissions:
       id-token: write
       contents: read
 
+    strategy:
+      matrix:
+        runner: ${{ fromJSON(inputs.RUNS_ON) }}
+      fail-fast: true
+
+    env:
+      NAME: ${{ inputs.NAME }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+      # Checks run once, on the first requested runner.
+      RUN_CHECKS: >-
+        ${{ inputs.CHECKS && matrix.runner == fromJSON(inputs.RUNS_ON)[0] }}
+
     steps:
-      - name: "Set custom env"
-        if: ${{ inputs.ENV != '' }}
-        run: echo "${{ inputs.ENV }}" >> $GITHUB_ENV
+      - name: Set custom env
+        if: inputs.ENV != ''
+        env:
+          CUSTOM_ENV: ${{ inputs.ENV }}
+        run: printf '%s\n' "$CUSTOM_ENV" >> "$GITHUB_ENV"
         working-directory: .
 
-      - name: "Check out repository"
+      - name: Check out repository
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
@@ -60,59 +104,139 @@ jobs:
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          role-to-assume: >-
+            ${{ format('arn:aws:iam::{0}:role/github-actions-nhost-{1}',
+              secrets.AWS_ACCOUNT_ID, github.event.repository.name) }}
           aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        if: inputs.LOGIN_ECR && env.RUN_CHECKS == 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'true'
 
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
         with:
           NAME: ${{ inputs.NAME }}
+          CACHE_TARGET: ${{ inputs.CACHE_TARGET }}
+          SKIP_CACHE_CHECK: ${{ inputs.SKIP_CACHE_CHECK }}
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          NIX_CACHE_SECRET_ACCESS_KEY: >-
+            ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Verify if we need to build"
-        id: verify-build
+      - name: Verify if checks need to run
+        id: verify-checks
+        if: env.RUN_CHECKS == 'true'
         run: |
-          # `nix build --dry-run` (inside `make check-dry-run`) walks the
-          # full build graph and reports what would be built locally vs
-          # fetched from configured substituters (cache.nixos.org + our
-          # S3 cache). If any derivation would be built we have new paths
-          # worth uploading. This catches the case where the top-level
-          # output is cached but transitive build deps aren't — `nix
-          # path-info --recursive` only sees the runtime closure, which
-          # misses build-time intermediates.
-          stderr_log=$(mktemp)
-          if ! drvPath=$(make check-dry-run 2>"$stderr_log"); then
-            cat "$stderr_log" >&2
-            rm -f "$stderr_log"
+          # Retain the development graph, including failed-check dependencies.
+          make --no-print-directory cache-check-roots >> "$NIX_CACHE_ROOTS"
+          log=$(mktemp)
+          trap 'rm -f "$log"' EXIT
+          if ! make check-dry-run > /dev/null 2>"$log"; then
+            cat "$log" >&2
             exit 1
           fi
-          export drvPath
-          echo "Derivation path: $drvPath"
-          if grep -q "will be built" "$stderr_log"; then
-            export BUILD_NEEDED=yes
+          if grep -q "will be built" "$log"; then
+            echo "BUILD_NEEDED=yes" >> "$GITHUB_OUTPUT"
           else
-            export BUILD_NEEDED=no
+            echo "BUILD_NEEDED=no" >> "$GITHUB_OUTPUT"
           fi
-          rm -f "$stderr_log"
-          echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
-          echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
 
-      - name: "Start containters for integration tests"
+      - name: Grant Nix builds access to the Docker socket
+        # nixbld users lose supplementary groups on these ephemeral runners.
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
         run: |
-          nix develop .\#${{ inputs.NAME }} -c make dev-env-up
-        if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+          if [ -S /var/run/docker.sock ]; then
+            sudo chmod 666 /var/run/docker.sock
+          fi
 
-      - name: "Run checks"
-        run: make check
-        if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+      - name: Start containers for integration tests
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
+        run: nix develop ".#$NAME" -c make dev-env-up OUT_LINK=result-dev-env
 
-      - name: "Store Nix cache"
-        uses: ./.github/actions/cache-nix
+      - name: Run checks
+        if: steps.verify-checks.outputs.BUILD_NEEDED == 'yes'
+        run: make check OUT_LINK=result-check
+
+      - name: Compute artifact version
+        id: vars
+        if: inputs.BUILD
+        env:
+          REQUESTED_VERSION: ${{ inputs.VERSION }}
+        run: |
+          # Checks and integration setup are finished before changing metadata.
+          if [ "$REQUESTED_VERSION" = 0.0.0-dev ]; then
+            version=0.0.0-dev
+          else
+            version=$(make get-version VER="$REQUESTED_VERSION")
+          fi
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+          arch=$([ "$RUNNER_ARCH" = X64 ] && echo x86_64 || echo aarch64)
+          os=$(printf '%s' "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+          echo "PLATFORM=$os-$arch" >> "$GITHUB_OUTPUT"
+
+      - name: Record artifact cache roots
+        if: inputs.BUILD
+        env:
+          DOCKER: ${{ inputs.DOCKER }}
+          LOAD_DOCKER_IMAGE: "false"
+        run: |
+          make --no-print-directory cache-build-roots >> "$NIX_CACHE_ROOTS"
+          if [ "$DOCKER" = true ] && [ "$RUNNER_OS" != macOS ]; then
+            make --no-print-directory cache-image-roots >> "$NIX_CACHE_ROOTS"
+          fi
+
+      - name: Build artifact
+        if: inputs.BUILD
+        run: |
+          make build OUT_LINK=result-bin
+          artifact_dir=$(mktemp -d)
+          trap 'rm -rf "$artifact_dir"' EXIT
+          ln -s "$PWD/result-bin" "$artifact_dir/result"
+          archive="$PWD/result.zip"
+          (cd "$artifact_dir" && zip -r "$archive" result)
+
+      - name: Build Docker image
+        if: inputs.BUILD && inputs.DOCKER && runner.os != 'macOS'
+        env:
+          LOAD_DOCKER_IMAGE: "false"
+        run: make build-docker-image OUT_LINK=result-image
+
+      - name: Push artifact to artifact repository
+        if: inputs.BUILD
+        uses: actions/upload-artifact@v7
         with:
+          name: >-
+            ${{ format('{0}-artifact{1}-{2}-{3}', inputs.NAME,
+              inputs.ARTIFACT_SUFFIX, steps.vars.outputs.PLATFORM,
+              steps.vars.outputs.VERSION) }}
+          path: ${{ inputs.PROJECT }}/result.zip
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Push Docker image to artifact repository
+        if: inputs.BUILD && inputs.DOCKER && runner.os != 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: >-
+            ${{ format('{0}-docker-image{1}-{2}-{3}', inputs.NAME,
+              inputs.ARTIFACT_SUFFIX, steps.vars.outputs.PLATFORM,
+              steps.vars.outputs.VERSION) }}
+          path: ${{ inputs.PROJECT }}/result-image
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Store Nix cache
+        uses: ./.github/actions/cache-nix
+        if: ${{ always() && env.NIX_CACHE_ROOTS != '' }}
+        with:
+          ROOTS_FILE: ${{ env.NIX_CACHE_ROOTS }}
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-        if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+          NIX_CACHE_SECRET_ACCESS_KEY: >-
+            ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}

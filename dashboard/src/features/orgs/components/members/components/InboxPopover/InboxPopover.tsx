@@ -81,9 +81,9 @@ export default function InboxPopover({ inbox }: InboxPopoverProps) {
             <h2 className="font-semibold text-lg">Inbox</h2>
             <PopoverClose asChild>
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8"
                 aria-label="Close inbox"
               >
                 <X className="h-4 w-4" />

@@ -1,8 +1,6 @@
 import {
   SettingsCard,
-  SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { useHasCustomDomain } from '@/features/orgs/projects/custom-domains/settings/hooks/useHasCustomDomain';
 
@@ -22,13 +20,11 @@ export default function CustomDomainsNotice() {
       <SettingsCardHeader
         title="Custom Domains"
         description="Add a custom domain to your project for only a $10 flat fee 🚀"
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/custom-domains',
+          topic: 'Custom Domains',
+        }}
       />
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/custom-domains"
-          title="Custom Domains"
-        />
-      </SettingsCardFooter>
     </SettingsCard>
   );
 }

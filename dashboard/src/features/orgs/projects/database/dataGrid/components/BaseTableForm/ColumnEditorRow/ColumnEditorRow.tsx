@@ -5,6 +5,7 @@ import DefaultValueInput from './DefaultValueInput';
 import { NameInput } from './NameInput';
 import { RemoveButton } from './RemoveButton';
 import { TypeCombobox } from './TypeCombobox';
+import { UniqueCheckbox } from './UniqueCheckbox';
 
 export interface FieldArrayInputProps {
   /**
@@ -48,12 +49,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
     </div>
 
     <div className="flex h-10 w-13 flex-none items-center justify-center">
-      <Checkbox
-        name={`columns.${index}.isUnique`}
-        aria-label="Unique"
-        index={index}
-        data-testid={`columns.${index}.isUnique`}
-      />
+      <UniqueCheckbox index={index} />
     </div>
 
     <div className="flex h-10 w-9 flex-none items-center justify-center">

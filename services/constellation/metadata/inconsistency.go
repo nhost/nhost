@@ -10,8 +10,9 @@ import (
 // Inconsistency kinds mirror Hasura's metadata-inconsistency taxonomy. Two
 // granularities live here side-by-side: source-level entries (database /
 // remote_schema) drop a whole source; sub-source entries (table / column /
-// function / relationship / enum_values) drop just one entity within the
-// source so the rest keeps serving.
+// function / relationship / enum_values / computed_field) drop just one
+// entity; computed permission inconsistencies drop the whole affected grant,
+// never its filter/check alone. The rest of the source keeps serving.
 const (
 	// InconsistencyKindDatabase reports that a database source failed to
 	// build (factory error, customization error, etc.). The source is
@@ -43,6 +44,16 @@ const (
 	// pointing at it is not silently widened — same outcome as a missing
 	// table, but recorded under a distinct kind so it is filterable.
 	InconsistencyKindEnumValues = "enum_values"
+	// InconsistencyKindComputedField drops one invalid table-owned function.
+	InconsistencyKindComputedField = "computed_field"
+	// InconsistencyKindSelectPermission drops a whole invalid select grant.
+	InconsistencyKindSelectPermission = "select_permission"
+	// InconsistencyKindInsertPermission drops a whole invalid insert grant.
+	InconsistencyKindInsertPermission = "insert_permission"
+	// InconsistencyKindUpdatePermission drops a whole invalid update grant.
+	InconsistencyKindUpdatePermission = "update_permission"
+	// InconsistencyKindDeletePermission drops a whole invalid delete grant.
+	InconsistencyKindDeletePermission = "delete_permission"
 )
 
 // Inconsistency records a non-fatal failure encountered while turning a
@@ -53,7 +64,8 @@ type Inconsistency struct {
 	// Kind classifies the failed entity. See the InconsistencyKind* constants.
 	Kind string
 	// Source is the owning source name (database / remote_schema) for
-	// sub-source kinds (table, column, function, relationship, enum_values).
+	// sub-source kinds (table, column, function, relationship, enum_values,
+	// computed_field, and operation permissions).
 	// Empty for source-level (database, remote_schema) and role kinds.
 	Source string
 	// Name identifies the failed entity. Format depends on Kind:
@@ -63,6 +75,8 @@ type Inconsistency struct {
 	//   - column: "schema.table.column"
 	//   - function: "schema.function"
 	//   - relationship: "schema.table.relationship"
+	//   - computed_field: "schema.table.field" (empty field for a malformed nameless entry)
+	//   - operation_permission: "schema.table.role"
 	Name string
 	// Reason is a human-readable description of what went wrong.
 	Reason string
@@ -228,6 +242,24 @@ func (i *Inconsistencies) RecordFunction(
 		qualifyTable(schema, function),
 		reason,
 	)
+}
+
+// RecordComputedField records a field-local PostgreSQL inconsistency. An empty
+// name identifies a malformed wire member without accidentally granting it.
+func (i *Inconsistencies) RecordComputedField(
+	ctx context.Context, logger *slog.Logger, source, schema, table, field, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindComputedField, source,
+		qualifyTable(schema, table)+"."+field, reason)
+}
+
+// RecordPermission records the loss of an entire permission, never merely its
+// filter/check. operation is one of select, insert, update, delete.
+func (i *Inconsistencies) RecordPermission(
+	ctx context.Context, logger *slog.Logger, operation, source, schema, table, role, reason string,
+) {
+	i.Record(ctx, logger, operation+"_permission", source,
+		qualifyTable(schema, table)+"."+role, reason)
 }
 
 // RecordRelationship records that a relationship's target (or local column)

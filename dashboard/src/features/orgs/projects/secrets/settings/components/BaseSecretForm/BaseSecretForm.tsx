@@ -75,33 +75,38 @@ export default function BaseSecretForm({
   }, [mode, setFocus]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <FormInput
-          control={control}
-          name="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          autoComplete="off"
-          disabled={mode === 'edit'}
-        />
+        {mode === 'edit' ? (
+          <p className="text-muted-foreground text-sm">
+            The current value is hidden. Saving replaces it.
+          </p>
+        ) : (
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+          />
+        )}
 
         <FormTextarea
           control={control}
           name="value"
-          label="Value"
-          placeholder="Enter value"
+          label={mode === 'edit' ? 'New value' : 'Value'}
+          placeholder={mode === 'edit' ? 'Enter a new value' : 'Enter value'}
           className="min-h-32"
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

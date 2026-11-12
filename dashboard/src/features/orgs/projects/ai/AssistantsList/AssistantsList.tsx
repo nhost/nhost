@@ -1,10 +1,10 @@
 import {
-  CopyIcon,
   Ellipsis as DotsHorizontalIcon,
   EyeIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -19,7 +19,6 @@ import {
 import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
-import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {
   /**
@@ -103,25 +102,17 @@ export default function AssistantsList({
             </div>
           </button>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={(event) => {
-              copy(assistant.assistantID, 'Assistant Id');
-              event.stopPropagation();
-            }}
-            aria-label="Assistant Id"
-            className="hidden h-8 w-8 flex-shrink-0 md:inline-flex"
-          >
-            <CopyIcon className="h-4 w-4" />
-          </Button>
+          <CopyToClipboardButton
+            textToCopy={assistant.assistantID}
+            title="Assistant ID"
+            className="hidden md:inline-flex"
+          />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 aria-label="More options"
                 onClick={(event) => event.stopPropagation()}

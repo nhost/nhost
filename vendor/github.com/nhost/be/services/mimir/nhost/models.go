@@ -29,11 +29,8 @@ type App struct {
 	ID                         uuid.UUID
 	CreatedAt                  pgtype.Timestamptz
 	UpdatedAt                  pgtype.Timestamptz
-	WorkspaceID                pgtype.UUID
 	Name                       string
 	Slug                       string
-	LegacyPlanID               pgtype.UUID
-	LegacyStripeSubscriptionID pgtype.Text
 	RegionID                   uuid.UUID
 	GithubRepositoryID         pgtype.UUID
 	Subdomain                  string
@@ -49,7 +46,7 @@ type App struct {
 	StateMatch                 pgtype.Bool
 	IsLocked                   pgtype.Bool
 	IsLockedReason             pgtype.Text
-	OrganizationID             pgtype.UUID
+	OrganizationID             uuid.UUID
 	AutomaticDeploys           bool
 }
 
@@ -170,31 +167,34 @@ type AuthSchemaMigration struct {
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthUser struct {
-	ID                       uuid.UUID
-	CreatedAt                pgtype.Timestamptz
-	UpdatedAt                pgtype.Timestamptz
-	LastSeen                 pgtype.Timestamptz
-	Disabled                 bool
-	DisplayName              string
-	AvatarUrl                string
-	Locale                   string
-	Email                    interface{}
-	PhoneNumber              pgtype.Text
-	PasswordHash             pgtype.Text
-	EmailVerified            bool
-	PhoneNumberVerified      bool
-	NewEmail                 interface{}
-	OtpMethodLastUsed        pgtype.Text
-	OtpHash                  pgtype.Text
-	OtpHashExpiresAt         pgtype.Timestamptz
-	DefaultRole              string
-	IsAnonymous              bool
-	TotpSecret               pgtype.Text
-	ActiveMfaType            pgtype.Text
-	Ticket                   pgtype.Text
-	TicketExpiresAt          pgtype.Timestamptz
-	Metadata                 []byte
-	WebauthnCurrentChallenge pgtype.Text
+	ID                           uuid.UUID
+	CreatedAt                    pgtype.Timestamptz
+	UpdatedAt                    pgtype.Timestamptz
+	LastSeen                     pgtype.Timestamptz
+	Disabled                     bool
+	DisplayName                  string
+	AvatarUrl                    string
+	Locale                       string
+	Email                        interface{}
+	PhoneNumber                  pgtype.Text
+	PasswordHash                 pgtype.Text
+	EmailVerified                bool
+	PhoneNumberVerified          bool
+	NewEmail                     interface{}
+	OtpMethodLastUsed            pgtype.Text
+	OtpHash                      pgtype.Text
+	OtpHashExpiresAt             pgtype.Timestamptz
+	DefaultRole                  string
+	IsAnonymous                  bool
+	TotpSecret                   pgtype.Text
+	ActiveMfaType                pgtype.Text
+	Ticket                       pgtype.Text
+	TicketExpiresAt              pgtype.Timestamptz
+	Metadata                     []byte
+	WebauthnCurrentChallenge     pgtype.Text
+	OtpAttempts                  int16
+	NewPhoneNumber               pgtype.Text
+	PendingSmsDeanonymizeOptions []byte
 }
 
 // Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -229,12 +229,15 @@ type AuthUserSecurityKey struct {
 }
 
 type Backup struct {
-	ID          uuid.UUID
-	AppID       uuid.UUID
-	Size        int64
-	CreatedAt   pgtype.Timestamptz
-	CompletedAt pgtype.Timestamptz
-	ExpiresAt   pgtype.Timestamptz
+	ID              uuid.UUID
+	AppID           uuid.UUID
+	Size            int64
+	CreatedAt       pgtype.Timestamptz
+	CompletedAt     pgtype.Timestamptz
+	ExpiresAt       pgtype.Timestamptz
+	Status          pgtype.Text
+	FailureReason   pgtype.Text
+	ExpireCondition pgtype.Text
 }
 
 type BillingDedicatedCompute struct {
@@ -294,19 +297,6 @@ type BillingResource struct {
 	PersistentVolume int32
 	OrganizationID   pgtype.UUID
 	Pitr             int32
-}
-
-type BillingSubscription struct {
-	ID               uuid.UUID
-	CreatedAt        pgtype.Timestamptz
-	UpdatedAt        pgtype.Timestamptz
-	AppID            uuid.UUID
-	DedicatedCompute pgtype.Text
-	Egress           pgtype.Text
-	Functions        pgtype.Text
-	FunctionsAmount  pgtype.Text
-	PersistentVolume pgtype.Text
-	CustomDomains    pgtype.Text
 }
 
 type BillingSubscriptionItem struct {
@@ -591,19 +581,6 @@ type OrganizationStatus struct {
 	Comment string
 }
 
-type PaymentMethod struct {
-	ID                    uuid.UUID
-	CreatedAt             pgtype.Timestamptz
-	StripePaymentMethodID string
-	WorkspaceID           uuid.UUID
-	AddedByUserID         uuid.UUID
-	CardLast4             string
-	CardBrand             string
-	CardExpMonth          int32
-	CardExpYear           int32
-	IsDefault             bool
-}
-
 type PipelineRun struct {
 	ID        uuid.UUID
 	CreatedAt pgtype.Timestamptz
@@ -653,7 +630,6 @@ type Plan struct {
 	StripePriceIDCustomDomains         string
 	StripePriceIDPersistentVolumesGb   string
 	Deprecated                         bool
-	Individual                         bool
 	FeatureAdvancedGraphql             bool
 	FeatureBackupRetentionDays         int32
 	StripePriceIDPitr                  string
@@ -687,15 +663,6 @@ type RegionsAllowedOrganization struct {
 	Description    string
 	RegionID       uuid.UUID
 	OrganizationID uuid.UUID
-}
-
-type RegionsAllowedWorkspace struct {
-	ID          uuid.UUID
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	Description string
-	RegionID    uuid.UUID
-	WorkspaceID uuid.UUID
 }
 
 type RunService struct {
@@ -776,52 +743,4 @@ type UnifiedDeployment struct {
 	EndedAt             pgtype.Timestamptz
 	Status              pgtype.Text
 	CreatedAt           pgtype.Timestamptz
-}
-
-type Workspace struct {
-	ID               uuid.UUID
-	Name             string
-	Slug             string
-	StripeCustomerID pgtype.Text
-	Email            string
-	CreatorUserID    pgtype.UUID
-	// Address line 1 (e.g., street, PO Box, or company name).
-	AddressLine1 string
-	// Address line 2 (e.g., apartment, suite, unit, or building).
-	AddressLine2 string
-	// City, district, suburb, town, or village.
-	AddressCity string
-	// ZIP or postal code.
-	AddressPostalCode string
-	// State, county, province, or region.
-	AddressState string
-	// Two-letter country code (ISO 3166-1 alpha-2).
-	AddressCountryCode pgtype.Text
-	TaxIDType          string
-	TaxIDValue         string
-	CompanyName        string
-	CreatedAt          pgtype.Timestamptz
-	UpdatedAt          pgtype.Timestamptz
-}
-
-type WorkspaceMember struct {
-	ID          uuid.UUID
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	UserID      uuid.UUID
-	WorkspaceID uuid.UUID
-	// owner or member
-	Type string
-}
-
-type WorkspaceMemberInvite struct {
-	ID          uuid.UUID
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	WorkspaceID uuid.UUID
-	Email       interface{}
-	// owner or member
-	MemberType      string
-	InvitedByUserID uuid.UUID
-	IsAccepted      pgtype.Bool
 }

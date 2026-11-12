@@ -1,17 +1,62 @@
 [
   {
     "Name": "insert_notes_one",
-    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::uuid AS \"author_id\", $3::text AS \"title\") AS data WHERE data.\"author_id\" = $4::uuid), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"notes\" (\"id\", \"author_id\", \"title\") SELECT check_mutation_result.\"id\", check_mutation_result.\"author_id\", check_mutation_result.\"title\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *), nested_replies_data AS (SELECT * FROM (SELECT $5::text AS \"body\", mutation_result.\"id\" AS \"note_id\" FROM mutation_result UNION ALL SELECT $6::text AS \"body\", mutation_result.\"id\" AS \"note_id\" FROM mutation_result) AS data), _nested_replies AS (INSERT INTO \"public\".\"note_replies\" (\"body\", \"note_id\") SELECT nested_replies_data.\"body\", mutation_result.\"id\" FROM nested_replies_data, mutation_result RETURNING *), nested_replies_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _nested_replies WHERE EXISTS (SELECT 1 FROM mutation_result g WHERE _nested_replies.\"note_id\" = g.\"id\" AND g.\"author_id\" = $7::uuid) AND _nested_replies.\"visibility\" = $8::text) = (SELECT COUNT(*) FROM _nested_replies) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), nested_replies AS (SELECT * FROM _nested_replies WHERE (SELECT status FROM nested_replies_post_check) = 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\") AS \"_e\")) FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_replies) IS NOT NULL",
-    "Parameters": [
-      "0199bbbb-0000-7000-8000-000000000011",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "Note with multiple replies",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "reply 1",
-      "reply 2",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "public"
-    ],
-    "StreamCursors": null
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Insert": {
+      "Root": {
+        "Batch": null,
+        "Objects": [
+          {
+            "Row": {
+              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::uuid AS \"author_id\", $3::text AS \"title\") AS data WHERE data.\"author_id\" = $4::uuid), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"notes\" (\"id\", \"author_id\", \"title\") SELECT check_mutation_result.\"id\", check_mutation_result.\"author_id\", check_mutation_result.\"title\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"author_id\"::text AS \"author_id\", \"title\"::text AS \"title\" FROM mutation_result) AS \"_physical\"",
+              "Parameters": [
+                "0199bbbb-0000-7000-8000-000000000011",
+                "550e8400-e29b-41d4-a716-446655440001",
+                "Note with multiple replies",
+                "550e8400-e29b-41d4-a716-446655440001"
+              ],
+              "TableRef": "\"public\".\"notes\""
+            },
+            "Before": null,
+            "Arrays": [
+              {
+                "Name": "replies",
+                "Level": {
+                  "Batch": {
+                    "SQL": "WITH insert_data AS (SELECT * FROM (SELECT $1::text AS \"body\", $2::text::pg_catalog.uuid AS \"note_id\" UNION ALL SELECT $3::text AS \"body\", $4::text::pg_catalog.uuid AS \"note_id\") AS data), _mutation_result AS (INSERT INTO \"public\".\"note_replies\" (\"body\", \"note_id\") SELECT insert_data.\"body\", insert_data.\"note_id\" FROM insert_data RETURNING *), post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _mutation_result WHERE EXISTS (SELECT 1 FROM \"public\".\"notes\" g WHERE _mutation_result.\"note_id\" = g.\"id\" AND g.\"author_id\" = $5::uuid) AND _mutation_result.\"visibility\" = $6::text) = (SELECT COUNT(*) FROM _mutation_result) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (SELECT * FROM _mutation_result WHERE (SELECT status FROM post_check) = 1) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"note_id\"::text AS \"note_id\", \"visibility\"::text AS \"visibility\", \"body\"::text AS \"body\" FROM mutation_result) AS \"_physical\"",
+                    "Parameters": [
+                      "reply 1",
+                      {
+                        "Source": "$parent",
+                        "TableRef": "\"public\".\"notes\"",
+                        "Column": "id"
+                      },
+                      "reply 2",
+                      {
+                        "Source": "$parent",
+                        "TableRef": "\"public\".\"notes\"",
+                        "Column": "id"
+                      },
+                      "550e8400-e29b-41d4-a716-446655440001",
+                      "public"
+                    ],
+                    "TableRef": "\"public\".\"note_replies\""
+                  },
+                  "Objects": null
+                }
+              }
+            ],
+            "AfterObjects": null
+          }
+        ]
+      },
+      "FinalSQL": "WITH mutation_result AS (SELECT (value ->> 'id')::text::pg_catalog.uuid AS \"id\", (value ->> 'author_id')::text::pg_catalog.uuid AS \"author_id\", (value ->> 'title')::text::pg_catalog.text AS \"title\" FROM json_array_elements($1::json) AS \"_rows\"(value)) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\") AS \"_e\")) FROM mutation_result",
+      "FinalParameters": [
+        null
+      ],
+      "Collection": false
+    }
   }
 ]

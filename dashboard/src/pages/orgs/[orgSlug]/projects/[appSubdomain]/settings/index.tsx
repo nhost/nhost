@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, type ReactElement, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import {
   AreaSidebarGroup,
@@ -7,11 +7,14 @@ import {
   AreaSidebarNav,
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import {
+  type SettingsTab,
+  SettingsTabs,
+} from '@/features/orgs/projects/common/components/settings/SettingsTabs';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { GeneralSettings } from '@/features/orgs/projects/general/settings/components/GeneralSettings';
@@ -19,42 +22,19 @@ import { ComputeResourcesSettings } from '@/features/orgs/projects/resources/set
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
-function RedirectToGeneralTab() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-
-    void router.replace(
-      { pathname: router.pathname, query: { ...router.query, tab: 'general' } },
-      undefined,
-      { shallow: true },
-    );
-  }, [router]);
-
-  return null;
-}
-
-function ProjectSettingsTabContent() {
-  const router = useRouter();
-
-  switch (getSingleQueryParam(router.query.tab)) {
-    case 'general':
-      return <GeneralSettings />;
-    case 'compute-resources':
-      return <ComputeResourcesSettings />;
-    case 'environment-variables':
-      return <EnvironmentVariablesSettings />;
-    case 'secrets':
-      return <SecretsSettings />;
-    case 'editor':
-      return <TOMLEditor />;
-    default:
-      return <RedirectToGeneralTab />;
-  }
-}
+const PROJECT_SETTINGS_TABS = {
+  general: { title: 'General', Component: GeneralSettings },
+  'compute-resources': {
+    title: 'Compute Resources',
+    Component: ComputeResourcesSettings,
+  },
+  'environment-variables': {
+    title: 'Environment Variables',
+    Component: EnvironmentVariablesSettings,
+  },
+  secrets: { title: 'Secrets', Component: SecretsSettings },
+  editor: { title: 'Configuration Editor', Component: TOMLEditor },
+} satisfies Record<string, SettingsTab>;
 
 function ProjectSettingsSidebar() {
   const router = useRouter();
@@ -127,22 +107,8 @@ function ProjectSettingsSidebar() {
   );
 }
 
-function ProjectSettingsContentLayout({ children }: PropsWithChildren) {
-  const router = useRouter();
-
-  if (getSingleQueryParam(router.query.tab) === 'editor') {
-    return (
-      <RetryableErrorBoundary resetKeys={[router.asPath]}>
-        {children}
-      </RetryableErrorBoundary>
-    );
-  }
-
-  return <SettingsArea>{children}</SettingsArea>;
-}
-
 export default function SettingsGeneralPage() {
-  return <ProjectSettingsTabContent />;
+  return <SettingsTabs tabs={PROJECT_SETTINGS_TABS} defaultTab="general" />;
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
@@ -154,9 +120,7 @@ SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
             <div className="flex h-full min-h-0 flex-col md:flex-row">
               <ProjectSettingsSidebar />
               <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-                <ProjectSettingsContentLayout>
-                  {page}
-                </ProjectSettingsContentLayout>
+                <SettingsArea>{page}</SettingsArea>
               </div>
             </div>
           </SettingsGuard>

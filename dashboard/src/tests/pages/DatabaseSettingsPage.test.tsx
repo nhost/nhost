@@ -11,12 +11,41 @@ import {
   mockRouter,
 } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { queryClient, render, waitFor } from '@/tests/testUtils';
+import { queryClient, render, screen, waitFor } from '@/tests/testUtils';
 
 vi.mock('next/router', () => ({ useRouter: vi.fn() }));
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: vi.fn(),
 }));
+
+// These tests cover which tab the page picks; the tabs' own settings are
+// covered by their components' tests.
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/DatabaseServiceVersionSettings',
+  () => ({ DatabaseServiceVersionSettings: () => <p>version content</p> }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacity',
+  () => ({ DatabaseStorageCapacity: () => <p>capacity content</p> }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/DatabasePiTRSettings',
+  () => ({ DatabasePiTRSettings: () => <p>point-in-time content</p> }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/DatabaseConnectionInfo',
+  () => ({ DatabaseConnectionInfo: () => <p>access content</p> }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/DatabaseAllowedCIDRs',
+  () => ({ DatabaseAllowedCIDRs: () => null }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/settings/components/ResetDatabasePasswordSettings',
+  () => ({
+    ResetDatabasePasswordSettings: () => <p>reset-password content</p>,
+  }),
+);
 
 const server = setupServer(
   tokenQuery,
@@ -34,6 +63,34 @@ function renderTab(tab: string) {
     query: { ...mockRouter.query, tab },
   });
   render(<DatabaseSettingsPage />);
+}
+
+function loadSettings() {
+  vi.mocked(useProject).mockReturnValue({
+    project: mockApplication,
+    loading: false,
+    projectNotFound: false,
+    refetch: vi.fn().mockResolvedValue(undefined),
+  });
+  vi.spyOn(graphql, 'useGetPostgresSettingsQuery').mockReturnValue({
+    data: { config: null },
+    error: undefined,
+  } as unknown as ReturnType<typeof graphql.useGetPostgresSettingsQuery>);
+}
+
+function expectDefaultTabWithCorrectedUrl() {
+  expect(
+    screen.getByRole('heading', { level: 1, name: 'Postgres version' }),
+  ).toBeInTheDocument();
+  expect(screen.getByText('version content')).toBeInTheDocument();
+  expect(mockRouter.replace).toHaveBeenCalledWith(
+    {
+      pathname: SETTINGS_ROUTE,
+      query: { ...mockRouter.query, tab: 'version' },
+    },
+    undefined,
+    { shallow: true },
+  );
 }
 
 beforeAll(() => {
@@ -92,22 +149,56 @@ describe('DatabaseSettingsPage', () => {
     expect(settingsQuery).not.toHaveBeenCalled();
   });
 
-  it('redirects invalid tabs to the default tab', () => {
+  it('shows the default tab for an unknown tab and corrects the URL', () => {
+    loadSettings();
     renderTab('unknown');
 
-    expect(mockRouter.replace).toHaveBeenCalledWith(
-      {
-        pathname: SETTINGS_ROUTE,
-        query: { ...mockRouter.query, tab: 'version' },
-      },
-      undefined,
-      { shallow: true },
-    );
+    expectDefaultTabWithCorrectedUrl();
   });
 
-  it('does not redirect valid tabs', () => {
+  it.each([
+    ['version', 'Postgres version'],
+    ['capacity', 'Capacity'],
+    ['point-in-time', 'Point-in-Time Recovery'],
+    ['access', 'Access'],
+    ['reset-password', 'Reset password'],
+  ])('renders the %s tab on the platform', (tab, title) => {
+    loadSettings();
+    renderTab(tab);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: title }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(`${tab} content`)).toBeInTheDocument();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('renders the capacity tab for a local project', () => {
+    vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+    loadSettings();
     renderTab('capacity');
 
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Capacity' }),
+    ).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it.each(['point-in-time', 'access', 'custom-domain', 'reset-password'])(
+    'shows the default tab instead of the platform-only %s tab for a local project',
+    (tab) => {
+      vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+      loadSettings();
+      renderTab(tab);
+
+      expectDefaultTabWithCorrectedUrl();
+    },
+  );
+
+  it('shows a spinner instead of a tab until the settings are loaded', () => {
+    renderTab('capacity');
+
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.queryByText('capacity content')).not.toBeInTheDocument();
   });
 });

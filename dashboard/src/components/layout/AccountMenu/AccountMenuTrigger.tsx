@@ -17,7 +17,7 @@ export default function AccountMenuTrigger({
     <PopoverTrigger asChild>
       <Button
         ref={triggerRef}
-        variant="ghost"
+        variant="subtle"
         size="icon"
         aria-label="Open account menu"
         className="h-7 w-7 rounded-full p-0"

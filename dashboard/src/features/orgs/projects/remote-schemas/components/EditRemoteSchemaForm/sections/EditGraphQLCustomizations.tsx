@@ -297,7 +297,7 @@ export default function EditGraphQLCustomizations({
           <Button
             aria-label="Add type remap"
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={addFirstAvailableTypeRemap}
             disabled={!canAddTypeRemap}
@@ -333,9 +333,9 @@ export default function EditGraphQLCustomizations({
                 </div>
                 <div className="flex">
                   <Button
-                    className="h-10 self-end text-destructive hover:text-destructive"
+                    className="h-10 self-end"
                     aria-label="Remove type remap"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
                     onClick={() => removeTypeRemap(fromType)}
                   >
@@ -356,7 +356,7 @@ export default function EditGraphQLCustomizations({
           </div>
           <Button
             aria-label="Add field name"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={() =>
               appendFieldName({} as RemoteSchemaCustomizationFieldNamesItem)
@@ -502,9 +502,9 @@ export default function EditGraphQLCustomizations({
                   </div>
                   <div className="flex">
                     <Button
-                      className="h-10 self-end text-destructive hover:text-destructive"
+                      className="h-10 self-end"
                       aria-label="Remove field name"
-                      variant="ghost"
+                      variant="subtle"
                       size="icon"
                       onClick={() => removeFieldName(index)}
                     >

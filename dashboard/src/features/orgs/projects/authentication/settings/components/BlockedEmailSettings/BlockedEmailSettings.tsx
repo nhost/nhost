@@ -12,7 +12,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -174,11 +173,15 @@ export default function BlockedEmailSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains',
+              topic: 'Blocked Emails and Domains',
+            }}
           />
 
           <SettingsCardContent
             className={twMerge(
-              'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
+              'row-span-2 grid grid-flow-row gap-4 lg:grid-cols-3',
               !enabled && 'hidden',
             )}
           >
@@ -199,11 +202,6 @@ export default function BlockedEmailSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
-              title="Blocked Emails and Domains"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

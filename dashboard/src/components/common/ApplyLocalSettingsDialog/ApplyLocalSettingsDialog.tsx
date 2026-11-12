@@ -5,7 +5,7 @@ export default function ApplyLocalSettingsDialog() {
   const { closeDialog } = useDialog();
 
   return (
-    <div className="flex flex-col gap-4 px-6 pb-6">
+    <div className="flex flex-col gap-4 px-12 pb-12">
       <p className="text-muted-foreground text-sm">
         Run{' '}
         <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
@@ -14,7 +14,7 @@ export default function ApplyLocalSettingsDialog() {
         using the cli to apply your changes
       </p>
 
-      <Button className="w-full" onClick={() => closeDialog()}>
+      <Button className="mt-8 self-end" onClick={() => closeDialog()}>
         OK
       </Button>
     </div>

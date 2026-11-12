@@ -1,3 +1,4 @@
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
 import { vi } from 'vitest';
@@ -20,11 +21,16 @@ function setAppSubdomain(appSubdomain?: string) {
 
 function renderClearHook() {
   const queryClient = new QueryClient();
+  const apolloClient = new ApolloClient({ cache: new InMemoryCache() });
   const clearSpy = vi.spyOn(queryClient, 'clear');
 
   function Wrapper({ children }: PropsWithChildren) {
     return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <ApolloProvider client={apolloClient}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </ApolloProvider>
     );
   }
 

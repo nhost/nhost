@@ -36,7 +36,7 @@ func (r *mutationResolver) updateConfig(
 
 	newApp.Config.Update(&input)
 
-	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
+	if err := newApp.validateConfig(r.schema); err != nil {
 		return nil, err
 	}
 

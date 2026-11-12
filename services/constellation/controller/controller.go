@@ -5,9 +5,14 @@
 // relationships.
 //
 // The package's single source of truth is the atomic.Pointer[controllerState]
-// on Controller: every request loads it once and uses that snapshot for its
-// lifetime. Reloads build a fresh state and swap the pointer; old states are
-// shut down in the background once no in-flight request still holds them.
+// on Controller. HTTP Resolve calls acquireState and defers release for its
+// entire execution; acquisition registers on inflight and rechecks the pointer.
+// WebSockets load the pointer directly and cancel when state.done closes.
+// Reloads build a fresh state and swap the pointer, retiring the old state in
+// the background. Subscription shutdown remains cancellable; connector closure
+// follows an HTTP-registration drain bounded by shutdownTimeout independently
+// of controller cancellation. Holding a state pointer alone does not keep
+// connector resources open, and work outliving the drain can see closed connectors.
 //
 // Subpackages: planner (compile-time analysis), resolver (run-time stitching),
 // middleware (auth and session extraction), introspection (__schema/__type),
@@ -34,7 +39,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-const shutdownTimeout = 30 * time.Second
+const (
+	shutdownTimeout  = 30 * time.Second
+	idlePollInterval = 10 * time.Millisecond
+)
 
 // subscriptionCapableConnector is the optional interface a connector satisfies
 // when it can serve GraphQL subscriptions. buildState probes each connector
@@ -49,8 +57,9 @@ type subscriptionCapableConnector interface {
 }
 
 // controllerState holds all mutable state that is rebuilt on metadata changes.
-// Handler methods load a snapshot via c.state.Load() once per request so they
-// see a consistent view even while a reload is in progress.
+// HTTP requests take a snapshot via acquireState and WebSocket connections via
+// c.state.Load(), so each sees a consistent view even while a reload is in
+// progress.
 type controllerState struct {
 	validatedSchemas           map[string]*ast.Schema
 	connectors                 map[string]connector.Connector
@@ -67,6 +76,9 @@ type controllerState struct {
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
 	done chan struct{}
+	// inflight counts HTTP requests registered through acquireState. A
+	// reload closes this state's connectors only once it drops to zero.
+	inflight atomic.Int64
 }
 
 // newControllerState assembles a controllerState with the always-zero
@@ -93,6 +105,7 @@ func newControllerState(
 		queryCache:                 newQueryCache(),
 		inconsistencies:            inconsistencies,
 		done:                       make(chan struct{}),
+		inflight:                   atomic.Int64{},
 	}
 }
 
@@ -104,6 +117,20 @@ func (s *controllerState) shutdown(ctx context.Context) {
 	for _, handler := range s.subHandlers {
 		if handler != nil {
 			handler.Shutdown(ctx)
+		}
+	}
+}
+
+// waitIdle blocks until no request holds this state or ctx is done.
+func (s *controllerState) waitIdle(ctx context.Context) {
+	ticker := time.NewTicker(idlePollInterval)
+	defer ticker.Stop()
+
+	for s.inflight.Load() > 0 {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
 		}
 	}
 }
@@ -268,9 +295,13 @@ func buildState(
 	), nil
 }
 
-// Run consumes metadata updates from the source and reloads state. It returns
-// when the source channel closes or ctx is cancelled. In serve.go the
-// deferred cancel() ensures the rest of the process shuts down.
+// Run consumes metadata updates and reloads state until the source's watch
+// channel closes. Before returning, it shuts down the current state's
+// subscriptions with ctx, drains HTTP calls registered through acquireState,
+// then closes the current connectors. The drain is bounded by shutdownTimeout
+// (30 seconds) independently of ctx cancellation; this bounds only the HTTP
+// wait, not the entire teardown. Run does not join background cleanup of states
+// replaced by reloads, stop HTTP admission, or wait for every HTTP-server handler.
 func (c *Controller) Run(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -311,17 +342,43 @@ func (c *Controller) swapState(
 		shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 		defer cancel()
 
+		// Controller cancellation must not cut short the drain of HTTP requests.
+		drainCtx, drainCancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+		defer drainCancel()
+
 		oldState.shutdown(shutdownCtx)
+		oldState.waitIdle(drainCtx)
 		oldState.closeConnectors()
 	}()
+}
+
+// acquireState returns the current state registered as in use until release
+// is called. Re-checking the pointer after registering ensures swapState
+// cannot observe zero in-flight requests and close a state a request is
+// about to use.
+func (c *Controller) acquireState() (*controllerState, func()) {
+	for {
+		state := c.state.Load()
+		state.inflight.Add(1)
+
+		if c.state.Load() == state {
+			return state, func() { state.inflight.Add(-1) }
+		}
+
+		state.inflight.Add(-1)
+	}
 }
 
 // shutdownState tears down the current state on controller exit.
 func (c *Controller) shutdownState(ctx context.Context, logger *slog.Logger) {
 	logger.InfoContext(ctx, "shutting down controller")
 
+	drainCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
+	defer cancel()
+
 	state := c.state.Load()
 	state.shutdown(ctx)
+	state.waitIdle(drainCtx)
 	state.closeConnectors()
 }
 

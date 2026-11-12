@@ -268,6 +268,7 @@ func parseSpatialCast( //nolint:ireturn,nolintlint
 	value *ast.Value,
 	variables map[string]any,
 	d dialect.Dialect,
+	tables ...Table,
 ) (Statement, error) {
 	if !d.SupportsSpatialTypes() {
 		return nil, errSpatialUnsupportedByDialect
@@ -296,7 +297,13 @@ func parseSpatialCast( //nolint:ireturn,nolintlint
 
 		castTarget := newSpatialCastComparisonTarget(baseTarget, toSQLType, d)
 
-		cond, err := parseFieldComparisonValue(column, &castTarget, child.Value, variables, d)
+		cond, err := parseFieldComparisonValue(
+			column,
+			&castTarget,
+			child.Value,
+			variables,
+			d,
+			tables...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse spatial _cast.%s: %w", child.Name, err)
 		}

@@ -87,9 +87,9 @@ export default function DeleteAccount() {
               Delete Personal Account
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="z-[9999] max-w-sm text-foreground">
+          <AlertDialogContent className="z-[9999] p-12 text-foreground">
             <AlertDialogHeader className="text-left">
-              <AlertDialogTitle className="text-2xl">
+              <AlertDialogTitle className="text-xl">
                 Delete Account?
               </AlertDialogTitle>
               <AlertDialogDescription>
@@ -112,21 +112,20 @@ export default function DeleteAccount() {
               </Label>
             </div>
 
-            <div className="grid grid-flow-row gap-2">
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <AlertDialogCancel disabled={loadingRemove}>
+                Cancel
+              </AlertDialogCancel>
+
               <ButtonWithLoading
                 type="button"
                 variant="destructive"
                 onClick={onClickConfirm}
                 disabled={!remove}
                 loading={loadingRemove}
-                className="w-full"
               >
                 Delete
               </ButtonWithLoading>
-
-              <AlertDialogCancel disabled={loadingRemove} className="w-full">
-                Cancel
-              </AlertDialogCancel>
             </div>
           </AlertDialogContent>
         </AlertDialog>

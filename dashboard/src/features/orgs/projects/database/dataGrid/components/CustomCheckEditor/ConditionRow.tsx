@@ -93,9 +93,9 @@ export default function ConditionRow({ name, onRemove }: ConditionRowProps) {
       />
 
       <Button
-        variant="ghost"
+        variant="subtle"
         size="icon"
-        className="w-full text-destructive xl:w-auto"
+        className="w-full xl:w-auto"
         onClick={onRemove}
         aria-label="Delete condition"
       >

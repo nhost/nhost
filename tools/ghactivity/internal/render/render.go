@@ -23,7 +23,8 @@ func Markdown(w io.Writer, r *activity.Report) error {
 		items   []activity.Item
 	}{
 		{"### 🟢 In progress", r.InProgress},
-		{"### 👀 Moved to waiting for review", r.ReadyForReview},
+		{"### 👀 Ready for review", r.ReadyForReview},
+		{"### 🚀 Ready to merge", r.ReadyToMerge},
 		{"### ⏸️ Blocked / waiting on something else", r.Blocked},
 		{"### ✅ Closed / merged", r.ClosedOrMerged},
 		{"### 🔍 Reviewed / commented", r.Reviewed},

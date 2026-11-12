@@ -63,12 +63,12 @@ function SidebarTooltip({
 }) {
   // Always render the tooltip wrapper and only toggle its content. Swapping
   // the wrapper in and out would remount the item, and its collapse
-  // transitions would never run. `disableHoverableContent` makes leaving the
-  // item close the tooltip by itself; otherwise the (unrendered) content is in
-  // charge of closing it, and an item hovered while expanded would show its
-  // tooltip as soon as the sidebar collapses.
+  // transitions would never run. A plain (not interactive) tooltip closes as
+  // soon as the pointer leaves the item; otherwise the (unrendered) content
+  // would be in charge of closing it, and an item hovered while expanded would
+  // show its tooltip as soon as the sidebar collapses.
   return (
-    <Tooltip disableHoverableContent>
+    <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       {collapsed && (
         <TooltipContent side="right" sideOffset={8}>

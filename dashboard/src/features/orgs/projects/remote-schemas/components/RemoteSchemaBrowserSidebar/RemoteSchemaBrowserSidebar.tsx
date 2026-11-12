@@ -263,10 +263,10 @@ function RemoteSchemaBrowserSidebarContent({
                             )}
                           >
                             <Button
-                              variant="outline"
+                              variant="subtle"
                               size="icon"
                               aria-label="Remote schema options"
-                              className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                              className="h-6 w-6"
                             >
                               <DotsHorizontalIcon />
                             </Button>

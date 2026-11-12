@@ -6,114 +6,86 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"strings"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "github.com/lib/pq" // Register the PostgreSQL driver with database/sql.
+	"github.com/nhost/nhost/internal/lib/pgmigrate"
 )
 
-const schemaName = "auth"
+const (
+	schemaName            = "auth"
+	postgresMigrationPath = "postgres"
+)
 
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS
 
-func checkIfWeNeedToMigrate(
+type postgresMigrator func(
 	ctx context.Context,
-	db *sql.DB,
-) (int, error) {
-	var exists bool
-
-	// we check if golang's migrations table already exists, nothing to do if it does
-	if err := db.QueryRowContext(
-		ctx,
-		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2)",
-		schemaName,
-		"schema_migrations",
-	).Scan(&exists); err != nil {
-		return 0, fmt.Errorf("error checking if migrations table exists: %w", err)
-	}
-
-	if exists {
-		return 0, nil
-	}
-
-	// we check if Node.js's migrations table already exists, nothing to do if it doesn't
-	if err := db.QueryRowContext(
-		ctx,
-		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2)",
-		schemaName,
-		"migrations",
-	).Scan(&exists); err != nil {
-		return 0, fmt.Errorf("error checking if migrations table exists: %w", err)
-	}
-
-	if !exists {
-		return 0, nil
-	}
-
-	var highestVersion int
-	if err := db.QueryRowContext(
-		ctx, "SELECT MAX(id) FROM auth.migrations",
-	).Scan(&highestVersion); err != nil {
-		return 0, fmt.Errorf("error getting highest migration version: %w", err)
-	}
-
-	return highestVersion, nil
-}
+	logger *slog.Logger,
+	database pgmigrate.Database,
+	fsys fs.FS,
+	migrationPath string,
+	schema string,
+) error
 
 func ApplyPostgresMigration(
-	ctx context.Context, postgresURL string, logger *slog.Logger,
+	ctx context.Context,
+	postgresURL string,
+	logger *slog.Logger,
 ) error {
-	// for backward compatibility, we ensure that the postgresURL contains the sslmode parameter
-	// if it doesn't, we default to "disable"
-	if !strings.Contains(postgresURL, "sslmode") {
-		postgresURL += "?sslmode=disable"
-	}
-
-	db, err := sql.Open("postgres", postgresURL)
+	database, err := sql.Open("postgres", postgresURLWithDefaultSSLMode(postgresURL))
 	if err != nil {
 		return fmt.Errorf("problem connecting to postgres: %w", err)
 	}
 
-	versionToMigrate, err := checkIfWeNeedToMigrate(ctx, db)
-	if err != nil {
-		return err
-	}
-
-	driver, err := postgres.WithInstance(
-		db,
-		&postgres.Config{SchemaName: schemaName}, //nolint:exhaustruct
+	return runPostgresMigration(
+		ctx, logger, database, database.Close, pgmigrate.Migrate,
 	)
-	if err != nil {
-		return fmt.Errorf("problem creating postgres driver: %w", err)
+}
+
+func postgresURLWithDefaultSSLMode(postgresURL string) string {
+	// For backward compatibility, default to an unencrypted migration connection
+	// when the connection string does not specify an SSL mode.
+	if strings.Contains(postgresURL, "sslmode") {
+		return postgresURL
 	}
 
-	source, err := iofs.New(postgresMigrations, "postgres")
-	if err != nil {
-		return fmt.Errorf("problem creating mirgations source: %w", err)
+	separator := "?"
+	if strings.Contains(postgresURL, "?") {
+		separator = "&"
 	}
 
-	migration, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
-	if err != nil {
-		return fmt.Errorf("problem migrations: %w", err)
-	}
+	return postgresURL + separator + "sslmode=disable"
+}
 
-	if versionToMigrate > 0 {
-		logger.InfoContext(
-			ctx, "migrating migrations from node.js to go", "version", versionToMigrate,
-		)
-
-		if err := migration.Force(versionToMigrate); err != nil {
-			return fmt.Errorf("error forcing migration to version %d: %w", versionToMigrate, err)
+func runPostgresMigration(
+	ctx context.Context,
+	logger *slog.Logger,
+	database pgmigrate.Database,
+	closeDatabase func() error,
+	migrate postgresMigrator,
+) (result error) {
+	defer func() {
+		if err := closeDatabase(); err != nil {
+			result = errors.Join(
+				result,
+				fmt.Errorf("problem closing postgres migration pool: %w", err),
+			)
 		}
-	}
+	}()
 
-	if err := migration.Up(); err != nil { // or m.Step(2) if you want to explicitly set the number of migrations to run
-		if !errors.Is(err, migrate.ErrNoChange) {
-			return fmt.Errorf("problem migrating: %w", err)
-		}
+	if err := migrate(
+		ctx,
+		logger,
+		database,
+		postgresMigrations,
+		postgresMigrationPath,
+		schemaName,
+	); err != nil {
+		return fmt.Errorf("problem migrating postgres: %w", err)
 	}
 
 	return nil

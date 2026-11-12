@@ -1,6 +1,7 @@
 package groupedaggregate_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
@@ -20,6 +21,31 @@ var _ groupedaggregate.Executor = (*mock.MockExecutor)(nil)
 // silently into the two production call sites
 // (controller/resolver/aggregate_resolver.go and
 // connector/sql/grouped_aggregate.go).
+func TestNewRequest_SQLiteCollectionNamespace(t *testing.T) {
+	t.Parallel()
+
+	req := groupedaggregate.Request{
+		TableName: "children", JoinColumns: []string{"owner_id", "label"},
+		JoinTuples: [][]any{{1, "first"}}, JSONTargets: []bool{false, false},
+		Field: &ast.Field{Name: "children"}, AllowEmptySchema: true,
+	}
+
+	validated, err := groupedaggregate.NewRequest(req)
+	if err != nil || validated.TableSchema != "" || len(validated.JoinColumns) != 2 {
+		t.Fatalf("SQLite collection request=%+v error=%v", validated, err)
+	}
+
+	req.AllowEmptySchema = false
+	if _, err := groupedaggregate.NewRequest(
+		req,
+	); !errors.Is(
+		err,
+		groupedaggregate.ErrInvalidRequest,
+	) {
+		t.Fatalf("aggregate request without schema error=%v", err)
+	}
+}
+
 func TestRequest_FieldsRoundTrip(t *testing.T) {
 	t.Parallel()
 
