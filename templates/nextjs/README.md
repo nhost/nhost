@@ -123,7 +123,11 @@ on the current device straight away.
 ### Email templates
 
 `nhost/emails/` only has English templates. The `signin-otp` email links to the
-code page, so make the same change if you add another language.
+code page with `${clientUrl}/auth/otp`, so make the same change if you add
+another language. Auth pastes template variables in without escaping them, so
+only use the ones auth builds or reads from config (`link`, `ticket`, `code`,
+`clientUrl`, `serverUrl`), never `redirectTo`, `email` or `displayName`, which
+come from the request. `frontend/src/lib/nhost/emails.test.ts` checks this.
 
 ## Deploying
 

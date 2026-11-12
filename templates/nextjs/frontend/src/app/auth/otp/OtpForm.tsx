@@ -24,8 +24,8 @@ export default function OtpForm({
   const emailId = useId();
   const codeId = useId();
 
-  // Opened from the link in the code email, the code is already out, so the
-  // form starts where the visitor left it: waiting for them to type it in.
+  // Given the address a code went to, the form starts where the visitor left
+  // it: waiting for them to type the code in.
   const [step, setStep] = useState<Step>(sentTo ? 'code' : 'email');
   const [email, setEmail] = useState(sentTo ?? '');
   const [otp, setOtp] = useState('');

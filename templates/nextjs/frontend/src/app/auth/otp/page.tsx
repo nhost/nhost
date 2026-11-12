@@ -24,8 +24,9 @@ export default async function OtpSignIn({
   }>;
 }) {
   const { next, intent, email } = await searchParams;
-  // Set by the link in the code email (see `link.ts`). It is only ever shown,
-  // and "Use a different address" replaces it, so a crafted one does nothing.
+  // Opens the form on the code step for this address (see `link.ts`). It is
+  // only ever shown, and "Use a different address" replaces it, so a crafted
+  // one does nothing.
   const sentTo = (Array.isArray(email) ? email[0] : email)?.trim() || undefined;
   const destination = signInDestination(next);
   const query = signInQuery(destination, signInIntent(intent));

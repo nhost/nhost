@@ -16,8 +16,7 @@ describe('sendCode', () => {
     signInOTPEmail.mockReset();
   });
 
-  // The email's link has to open somewhere the code can be typed in.
-  it('links the email to the code step for that address', async () => {
+  it('sends the code page for that address as redirectTo', async () => {
     signInOTPEmail.mockResolvedValueOnce({});
 
     await sendCode('a+b@example.com', '/protected');
