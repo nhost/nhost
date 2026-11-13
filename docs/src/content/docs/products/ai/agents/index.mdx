@@ -75,15 +75,22 @@ deprecated Graphite releases.
 
 ## Permissions
 
-The AI service creates and tracks three tables. It does not install role permissions for your
-application; configure the operations and row filters your roles need.
+The AI service creates and tracks the `ai.agent_providers` enum table plus three data tables. It
+does not install role permissions. Configure the operations and row filters your roles need.
+
+### `ai.agent_providers`
+
+Roles that build an agent management interface commonly need `select` permission on the `value`
+and `comment` columns. This exposes the seeded `anthropic`, `openai`, and `google` choices through
+`aiAgentProviders`. Do not grant insert, update, or delete permissions on this enum table to client
+roles.
 
 ### `ai.agents`
 
 | Operation | Commonly required columns | Purpose |
 | --- | --- | --- |
 | `select` | `id`, `user_id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config`, `created_at`, `updated_at` | List and retrieve agents |
-| `insert` | `user_id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Create agents |
+| `insert` | `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Create agents; set `user_id` with a column preset |
 | `update` | `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Update agents |
 | `delete` | — | Delete agents and their sessions |
 
@@ -92,7 +99,7 @@ application; configure the operations and row filters your roles need.
 | Operation | Commonly required columns | Purpose |
 | --- | --- | --- |
 | `select` | `id`, `agent_id`, `user_id`, `created_at`, `updated_at` | Authorize and list sessions |
-| `insert` | `agent_id`, `user_id` | Start sessions |
+| `insert` | `agent_id` | Start sessions; set `user_id` with a column preset |
 | `delete` | — | Delete sessions and their messages |
 
 ### `ai.agent_messages`
@@ -109,11 +116,91 @@ The service persists messages through its internal connection, so application ro
 For user-owned agents and sessions, typical permission rules include:
 
 - Set `user_id` to `X-Hasura-User-Id` with an insert column preset.
+- Do not include `user_id` in the client-settable insert columns when using that preset.
 - Filter `agents` select, update, and delete with
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
 - Filter `agent_sessions` select and delete with the same `user_id` expression.
 - Filter `agent_messages` select through the `agentSession` relationship so that
   `agentSession.user_id` equals `X-Hasura-User-Id`.
+
+### Example agent management permissions
+
+The following permission sections grant a `user` role read-only provider discovery and CRUD access
+to only its own agents. Add each section to the metadata for the named table.
+
+For `ai.agent_providers`:
+
+```yaml
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - value
+        - comment
+      filter: {}
+```
+
+For `ai.agents`:
+
+```yaml
+insert_permissions:
+  - role: user
+    permission:
+      columns:
+        - name
+        - description
+        - instructions
+        - provider
+        - model
+        - tools_config
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: X-Hasura-User-Id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - user_id
+        - name
+        - description
+        - instructions
+        - provider
+        - model
+        - tools_config
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - name
+        - description
+        - instructions
+        - provider
+        - model
+        - tools_config
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+```
+
+These permissions cover agent management only. Before users start conversations, configure the
+session and message permissions described earlier.
 
 :::caution
 The streaming and approval endpoints authorize non-admin requests by querying

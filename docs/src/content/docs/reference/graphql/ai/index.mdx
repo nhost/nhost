@@ -14,6 +14,17 @@ The AI service does not expose its own remote GraphQL schema. Agent conversation
 [REST endpoints](/products/ai/agents/sessions-and-streaming), while management uses the generated
 fields below.
 
+## Agent providers
+
+| Operation | GraphQL field |
+| --- | --- |
+| Get one | `aiAgentProvider` |
+| List | `aiAgentProviders` |
+
+The service seeds this enum table with `anthropic`, `openai`, and `google`. Agent management roles
+commonly need `select` permission on its `value` and `comment` columns, but should not receive
+mutation permissions.
+
 ## Agents
 
 | Operation | GraphQL field |

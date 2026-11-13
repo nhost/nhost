@@ -8,6 +8,23 @@ Agents are rows in `ai.agents` and are exposed through the GraphQL API generated
 The available operations depend on the role permissions you configure on that table. See
 [Agent Permissions](/products/ai/agents#permissions) before exposing these operations to users.
 
+## List available providers
+
+The `ai.agent_providers` enum table contains the providers supported by the service. A management
+interface can query it instead of hard-coding provider choices:
+
+```graphql
+query ListAgentProviders {
+  aiAgentProviders(order_by: { value: asc }) {
+    value
+    comment
+  }
+}
+```
+
+The caller's role needs `select` permission on the table's `value` and `comment` columns. Keep this
+table read-only for client roles; its rows are managed by the AI service.
+
 ## Create an agent
 
 Use `insertAiAgent`:
