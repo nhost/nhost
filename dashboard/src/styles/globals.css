@@ -283,6 +283,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive: 340 52% 48%;
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
+    --success: 149 70% 30%;
     --warning: 32 100% 57%;
     /* Readable warning text on light tinted backgrounds (plan tags). */
     --warning-foreground: 32.13 94.62% 34%;
@@ -381,6 +382,7 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive: 358.73 79.73% 80.35%;
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
+    --success: 149 55% 60%;
     --warning: 32 100% 57%;
     --warning-foreground: 45.94 96.69% 64.51%;
     --brand-violet: 252.5 94.74% 85.1%;
