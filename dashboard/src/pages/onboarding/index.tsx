@@ -12,7 +12,6 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -371,7 +370,6 @@ export default function OnboardingPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Choose your plan</FormLabel>
-                    <FormDescription>You can change this later</FormDescription>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}

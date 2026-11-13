@@ -16,14 +16,13 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { RadioGroup } from '@/components/ui/v3/radio-group';
 import {
   Select,
   SelectContent,
@@ -38,6 +37,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { PlanCard } from '@/features/orgs/components/billing/PlanCard';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
@@ -77,6 +77,11 @@ function CreateOrgForm({
   isStarterDisabled,
 }: CreateOrgFormProps) {
   const { orgs } = useOrgs();
+  // Enterprise is contact only and has its own row, so any Enterprise plan
+  // coming back from the API (e.g. staging test plans) is left out here.
+  const orderablePlans = plans.filter(
+    (plan) => !plan.name.toLowerCase().startsWith('enterprise'),
+  );
   const starterPlan = plans.find(({ name }) => name === 'Starter');
   const proPlan = plans.find(({ name }) => name === 'Pro')!;
 
@@ -144,94 +149,63 @@ function CreateOrgForm({
           control={form.control}
           name="plan"
           render={({ field }) => (
-            <FormItem className="">
-              <div>
-                <FormLabel>Plan</FormLabel>
-                <FormDescription className="text-xs">
-                  You can change this later
-                </FormDescription>
-              </div>
+            <FormItem>
+              <FormLabel className="sr-only">Plan</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
+                  value={field.value}
+                  className="flex flex-col gap-3 rounded-xl border bg-muted/40 p-3"
                 >
-                  {plans.map((plan) => {
+                  {orderablePlans.map((plan) => {
                     const isStarterPlan =
                       plan.name === 'Starter' || plan.isFree;
                     const isDisabled =
                       isStarterPlan && (hasStarterOrg || isStarterDisabled);
 
-                    const labelContent = (
-                      <FormLabel
-                        className={cn(
-                          'flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3',
-                          { 'cursor-not-allowed opacity-50': isDisabled },
-                        )}
-                      >
-                        <div className="flex flex-row items-center space-x-3">
-                          <FormControl>
-                            <RadioGroupItem
-                              value={plan.id}
-                              disabled={isDisabled}
-                            />
-                          </FormControl>
-                          <div className="flex flex-col space-y-2">
-                            <div className="font-semibold text-md">
-                              {plan.name}
-                            </div>
-                            <FormDescription className="w-2/3 text-xs">
-                              {planDescriptions[plan.name]}
-                            </FormDescription>
-                          </div>
-                        </div>
-
-                        <div className="mt-0 flex h-full items-center font-semibold text-xl">
-                          {plan.isFree ? 'Free' : `$${plan.price}/mo`}
-                        </div>
-                      </FormLabel>
+                    const card = (
+                      <PlanCard
+                        compact
+                        value={plan.id}
+                        name={plan.name}
+                        price={plan.isFree ? 'Free' : `$${plan.price}`}
+                        isMonthly={!plan.isFree}
+                        description={planDescriptions[plan.name]}
+                        isSelected={field.value === plan.id}
+                        isPopular={plan.name === 'Team'}
+                        disabled={isDisabled}
+                        className={cn({ 'opacity-50': isDisabled })}
+                      />
                     );
 
                     return (
                       <FormItem key={plan.id}>
                         {isDisabled ? (
                           <Tooltip delayDuration={100}>
-                            <TooltipTrigger asChild>
-                              {labelContent}
-                            </TooltipTrigger>
+                            <TooltipTrigger asChild>{card}</TooltipTrigger>
                             <TooltipContent>
                               You can only have one Starter organization
                             </TooltipContent>
                           </Tooltip>
                         ) : (
-                          labelContent
+                          card
                         )}
                       </FormItem>
                     );
                   })}
-                  <div>
-                    <div className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
-                      <div className="flex flex-row items-center space-x-3">
-                        <div className="flex flex-col space-y-2">
-                          <div className="font-semibold text-md">
-                            Enterprise
-                          </div>
-                          <div className="w-2/3 text-xs">
-                            {planDescriptions.Enterprise}
-                          </div>
-                        </div>
-                      </div>
-
-                      <TextLink
-                        href="mailto:hello@nhost.io"
-                        external
-                        className="font-medium"
-                      >
-                        Contact us
-                      </TextLink>
-                    </div>
-                  </div>
+                  <PlanCard
+                    compact
+                    name="Enterprise"
+                    description={planDescriptions.Enterprise}
+                  >
+                    <TextLink
+                      href="mailto:hello@nhost.io"
+                      external
+                      className="shrink-0 font-medium"
+                    >
+                      Contact us
+                    </TextLink>
+                  </PlanCard>
                 </RadioGroup>
               </FormControl>
               <FormMessage />
