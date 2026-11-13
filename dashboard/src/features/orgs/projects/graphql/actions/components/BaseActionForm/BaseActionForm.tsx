@@ -254,6 +254,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="actionDefinitionSdl"
                 aria-label="Action Definition"
+                autoFocus
                 extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>

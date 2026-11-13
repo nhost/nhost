@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "insert_defaults_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT ) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"defaults\" SELECT  FROM check_mutation_result RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"label\" AS \"label\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

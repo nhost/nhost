@@ -128,7 +128,7 @@ export default function BaseForeignKeyForm({
             References
           </h3>
 
-          <ReferencedSchemaSelect options={schemas} autoFocus />
+          <ReferencedSchemaSelect options={schemas} />
           <ReferencedTableSelect options={tables} />
           <ReferencedKeySelect />
         </section>

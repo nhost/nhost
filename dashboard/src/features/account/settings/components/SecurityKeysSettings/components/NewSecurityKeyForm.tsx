@@ -33,6 +33,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
               <FormControl>
                 <Input
                   placeholder="Name"
+                  autoFocus
                   {...field}
                   className="!bg-transparent"
                 />

@@ -1,3 +1,21 @@
+## [constellation@0.8.0] - 2026-11-13
+
+### 🚀 Features
+
+- *(constellation)* Coalesce concurrent query parsing (#5309)
+- *(constellation)* Added support for computed fields (#5273)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Wait for in-flight requests before closing old connectors on reload (#5344)
+- *(constellation)* Keep default-only inserts for generated columns (#5377)
+
+
+### Chore
+
+- *(deps)* Bump go and govulncheck (#5162)
+
 ## [constellation@0.7.1] - 2026-09-30
 
 ### 🐛 Bug Fixes

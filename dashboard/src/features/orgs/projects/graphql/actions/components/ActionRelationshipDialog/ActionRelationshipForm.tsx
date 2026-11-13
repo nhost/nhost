@@ -100,6 +100,7 @@ export default function ActionRelationshipForm({
             placeholder="Name..."
             autoComplete="off"
             disabled={isEditing}
+            autoFocus
           />
 
           <RemoteTableSelector />

@@ -151,6 +151,11 @@ type Dialect interface { //nolint:interfacebloat
 	// planner independently of SELECT's LATERAL support.
 	SupportsDependentInsertSteps() bool
 
+	// SupportsZeroColumnSelect reports whether SELECT with an empty target
+	// list can supply one default INSERT row per source row. PostgreSQL can;
+	// SQLite requires DEFAULT VALUES, which cannot consume the checked CTE.
+	SupportsZeroColumnSelect() bool
+
 	// DependentInsertCapture aggregates physical RETURNING rows as JSON.
 	DependentInsertCapture() string
 

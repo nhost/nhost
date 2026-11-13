@@ -253,7 +253,11 @@ export default function OnboardingProjectPage() {
                     <FormItem>
                       <FormLabel>Project Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="My awesome project" {...field} />
+                        <Input
+                          placeholder="My awesome project"
+                          autoFocus
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

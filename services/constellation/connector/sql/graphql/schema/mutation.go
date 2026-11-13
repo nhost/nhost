@@ -35,6 +35,7 @@ func generateTableMutationFields(
 	qualifiedName string,
 	role string,
 	md *metadata.DatabaseMetadata,
+	hasInsertInput bool,
 ) {
 	// DELETE is intentionally gated on IsUpdatable. Postgres exposes
 	// is_trigger_deletable independently of is_updatable, so an INSTEAD OF
@@ -47,7 +48,7 @@ func generateTableMutationFields(
 		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, md)
 	}
 
-	if tableInfo.IsInsertable &&
+	if hasInsertInput && tableInfo.IsInsertable &&
 		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
 		appendInsertFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName)
 	}
@@ -140,18 +141,10 @@ func appendUpdateFields(
 	)
 }
 
-// generateTableMutationInputTypes generates all mutation input types for a table.
-func generateTableMutationInputTypes( //nolint:funlen,cyclop
+func generateTableMutationResponseType(
 	schema *graph.Schema,
-	tableMeta *metadata.TableMetadata,
-	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
-	md *metadata.DatabaseMetadata,
-	objects *introspection.Objects,
-	role string,
-	tablesWithObjRelInsert map[string]struct{},
-	tablesWithArrRelInsert map[string]struct{},
 ) {
 	schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
 		Name: customTableName + "_mutation_response",
@@ -172,14 +165,25 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 			},
 		},
 	})
+}
 
-	_, hasObjRel := tablesWithObjRelInsert[customTableName]
-	_, hasArrRel := tablesWithArrRelInsert[customTableName]
+// generateTableMutationInputTypes generates all mutation input types for a table.
+func generateTableMutationInputTypes( //nolint:funlen
+	schema *graph.Schema,
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	customTableName string,
+	qualifiedName string,
+	md *metadata.DatabaseMetadata,
+	role string,
+	insertableTables map[string]struct{},
+	objRelTargets map[string]struct{},
+	arrRelTargets map[string]struct{},
+) {
+	_, hasInsertInput := insertableTables[customTableName]
 
 	insertAllowedColumns := getInsertAllowedColumns(tableMeta, tableInfo, role)
-	if tableInfo.IsInsertable &&
-		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil ||
-			hasObjRel || hasArrRel) {
+	if hasInsertInput {
 		generateInsertInput(
 			schema,
 			tableMeta,
@@ -188,8 +192,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 			qualifiedName,
 			insertAllowedColumns,
 			md,
-			objects,
-			role,
+			insertableTables,
 		)
 	}
 
@@ -201,8 +204,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 		)
 	}
 
-	if tableInfo.IsInsertable &&
-		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
+	if hasInsertInput {
 		generateOnConflictTypes(
 			schema, tableInfo, customTableName, qualifiedName,
 		)
@@ -225,8 +227,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 		generateUpdatesInput(schema, customTableName, hasJSONB, hasIncrement)
 	}
 
-	if tableInfo.IsInsertable &&
-		(role == roleAdmin || getInsertPermission(tableMeta, role) != nil) {
+	if hasInsertInput {
 		hasConstraints := len(tableInfo.PrimaryKeys) > 0 || len(tableInfo.UniqueConstraints) > 0
 
 		// _update_column enum is only referenced by _on_conflict.update_columns,
@@ -238,11 +239,11 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 			)
 		}
 
-		if _, ok := tablesWithObjRelInsert[customTableName]; ok {
+		if _, ok := objRelTargets[customTableName]; ok {
 			generateObjRelInsertInput(schema, customTableName, qualifiedName, hasConstraints)
 		}
 
-		if _, ok := tablesWithArrRelInsert[customTableName]; ok {
+		if _, ok := arrRelTargets[customTableName]; ok {
 			generateArrRelInsertInput(schema, customTableName, qualifiedName, hasConstraints)
 		}
 	}

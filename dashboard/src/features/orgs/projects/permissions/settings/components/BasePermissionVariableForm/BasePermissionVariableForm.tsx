@@ -81,6 +81,7 @@ export default function BasePermissionVariableForm({
           name="key"
           label="Field Name"
           autoComplete="off"
+          autoFocus
           addonStart={<span className="shrink-0 pl-2">X-Hasura-</span>}
         />
 
