@@ -1,0 +1,10 @@
+# Nhost hosts only; they all redirect to https.
+extends: existence
+message: "'%s' redirects; link Nhost hosts over https."
+level: warning
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - 'http://[a-z0-9.-]*nhost\.io'

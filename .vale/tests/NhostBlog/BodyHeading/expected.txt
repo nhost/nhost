@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/BodyHeading/fail.mdx:3:3:NhostBlog.BodyHeading:The layout renders the title as the h1; start the body with a paragraph and use '##' and '###' only.

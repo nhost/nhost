@@ -8,8 +8,11 @@
     "build": "next build --webpack && node scripts/generate-sitemap.mjs",
     "start": "next start",
     "lint": "eslint .",
+    "lint:prose": "vale src/pages/blog/",
+    "lint:prose:changed": "../.vale/lint_changed.sh src/pages/blog",
     "generate": "echo \"Nothing to generate\"",
-    "test": "vitest run && next build --webpack"
+    "test": "vitest run && next build --webpack && pnpm test:prose",
+    "test:prose": "vale --minAlertLevel=error src/pages/blog/"
   },
   "dependencies": {
     "@code-hike/mdx": "^0.9.0",

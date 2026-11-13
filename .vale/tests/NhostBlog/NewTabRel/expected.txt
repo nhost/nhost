@@ -1,0 +1,3 @@
+.vale/tests/NhostBlog/NewTabRel/fail.mdx:3:13:NhostBlog.NewTabRel:A link that opens a new tab needs 'rel="noopener noreferrer"'.
+.vale/tests/NhostBlog/NewTabRel/fail.mdx:6:15:NhostBlog.NewTabRel:A link that opens a new tab needs 'rel="noopener noreferrer"'.
+.vale/tests/NhostBlog/NewTabRel/fail.mdx:9:6:NhostBlog.NewTabRel:A link that opens a new tab needs 'rel="noopener noreferrer"'.

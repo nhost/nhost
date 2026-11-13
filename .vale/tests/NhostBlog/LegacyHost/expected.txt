@@ -1,0 +1,1 @@
+.vale/tests/NhostBlog/LegacyHost/fail.mdx:3:22:NhostBlog.LegacyHost:'console.nhost.io' is the retired v1 dashboard and no longer resolves; link 'https://app.nhost.io'.

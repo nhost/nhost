@@ -1,0 +1,11 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.errata-ai-Google.
+extends: existence
+message: "'%s' should have one space."
+link: 'https://developers.google.com/style/sentence-spacing'
+level: error
+nonword: true
+action:
+  name: remove
+tokens:
+  - '[a-z][.?!] {2,}[A-Z]'
+  - '[a-z][.?!][A-Z]'

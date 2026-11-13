@@ -1,0 +1,11 @@
+# The blog can't render ':::' callouts.
+extends: existence
+message: "The blog has no ':::' callout; put the caveat in a
+  sentence beside what it qualifies."
+level: error
+scope: raw
+# accept.txt terms would otherwise hide a match.
+vocab: false
+nonword: true
+tokens:
+  - '(?m)^[ \t]*:::'
