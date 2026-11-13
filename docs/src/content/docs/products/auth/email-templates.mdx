@@ -92,7 +92,7 @@ The default value of the `locale` column is `en`
 For folder-based email and SMS templates, Auth checks the following in order:
 
 1. The requested template in the user's locale.
-2. The same template in the configured default locale (`AUTH_LOCALE_DEFAULT`).
+2. The same template in the configured default locale (`auth.user.locale.default`).
 3. The same template from Auth's built-in English defaults.
 
 Custom templates take priority over the built-in defaults. If either `body.html` or `subject.txt` is missing, the entire email falls back to the next step. Auth can also use its built-in defaults without a templates folder.
@@ -114,7 +114,7 @@ The following variables are available to all email templates:
 | `ticket`      | Ticket or OTP that is used to authorize the request.                                                                                  |
 | `displayName` | The display name of the user                                                                                                      |
 | `email`       | The email of the user                                                                                                             |
-| `locale`      | Locale of the user as a two or three letter language code (e.g. "en")                                                                       |
+| `locale`      | Locale of the rendered template as a two or three letter language code (e.g. "en")                                                |
 
 Variables can be referenced by enclosing them with `${}` as in the following example:
 
