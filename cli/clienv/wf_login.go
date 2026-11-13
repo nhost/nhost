@@ -32,7 +32,16 @@ func saveCredentials(
 		}
 	}
 
-	if err := MarshalFile(creds, ce.Path.AuthFile(), json.Marshal); err != nil {
+	// Write the new contents to auth.json.tmp, then rename it over auth.json.
+	// The rename replaces the file in one step, so a command reading auth.json at
+	// the same time sees the old or the new contents, never an empty file. The
+	// .tmp name can be fixed because writers hold the credentials lock.
+	tmp := ce.Path.AuthFile() + ".tmp"
+	if err := MarshalFile(creds, tmp, json.Marshal); err != nil {
+		return fmt.Errorf("failed to write credentials to file: %w", err)
+	}
+
+	if err := os.Rename(tmp, ce.Path.AuthFile()); err != nil {
 		return fmt.Errorf("failed to write credentials to file: %w", err)
 	}
 
@@ -318,7 +327,9 @@ func (ce *CliEnv) Login(
 		return Credentials{}, err
 	}
 
-	if err := saveCredentials(ce, creds); err != nil {
+	if err := ce.withCredentialsLock(func() error {
+		return saveCredentials(ce, creds)
+	}); err != nil {
 		return Credentials{}, err
 	}
 
