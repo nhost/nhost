@@ -15,7 +15,7 @@ query getOrganizations($userId: uuid!) {
       featureMaxDbSize
       slaLevel
     }
-    apps(order_by: { name: asc }) {
+    apps(order_by: { createdAt: asc }) {
       ...ProjectBase
     }
     members {
