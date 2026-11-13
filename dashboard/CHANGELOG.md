@@ -1,3 +1,25 @@
+## [@nhost/dashboard@3.10.0] - 2026-11-13
+
+### 🚀 Features
+
+- *(dashboard)* Extend the table view menu (#5337)
+- *(dashboard)* New projects page with status pills (#5328)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Dark mode contrast and darker background (#5340)
+- *(dashboard)* Cleaner environment variables page (#5313)
+- *(dashboard)* Frosted sticky header in the config editor (#5334)
+- *(dashboard)* Give each organization plan tag its own color (#5351)
+- *(dashboard)* Cleaner secrets page and a clearer replace popup (#5314)
+- *(dashboard)* Members page redesign (#5335)
+- *(dashboard)* Organization settings redesign (#5348)
+- *(dashboard)* Show admin-only delete notice as an Alert (#5353)
+- *(dashboard)* Auto focus (#5366)
+- *(dashboard)* Responsive form control sizes (#5218)
+- *(dashboard)* Add region on project cards (#5376)
+
 ## [@nhost/dashboard@3.9.0] - 2026-11-10
 
 ### 🚀 Features
