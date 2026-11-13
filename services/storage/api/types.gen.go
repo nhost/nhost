@@ -257,6 +257,16 @@ type ReplaceFileMultipartBody struct {
 	Metadata *UpdateFileMetadata `json:"metadata,omitempty"`
 }
 
+// GetFilePresignedURLParams defines parameters for GetFilePresignedURL.
+type GetFilePresignedURLParams struct {
+	// ExpiresIn Number of seconds the presigned URL is valid for, overriding the
+	// bucket's download expiration. Only allowed for requests that carry
+	// a valid `X-Hasura-Admin-Secret` header; other requests get a 403.
+	// Capped at 604800 (7 days), the longest expiration S3 signatures
+	// support.
+	ExpiresIn *int `form:"expiresIn,omitempty" json:"expiresIn,omitempty"`
+}
+
 // GetFileWithPresignedURLParams defines parameters for GetFileWithPresignedURL.
 type GetFileWithPresignedURLParams struct {
 	// XAmzAlgorithm Use presignedurl endpoint to generate this automatically

@@ -72,6 +72,20 @@ mutation UpdateBucketExpiration {
 }
 ```
 
+### Overriding the expiration from the backend
+
+Requests authenticated with the admin secret, for example from a serverless function, can pick the expiration of a single URL with the `expiresIn` query parameter (in seconds, up to `604800`, which is 7 days). This is useful when you hand a URL to an external service that may not download the file right away:
+
+```bash
+curl -H "x-hasura-admin-secret: $ADMIN_SECRET" \
+  "https://local.storage.local.nhost.run/v1/files/$FILE_ID/presignedurl?expiresIn=86400"
+
+# Response:
+# { "url": "https://...", "expiration": 86400 }
+```
+
+Requests without the admin secret that pass `expiresIn` are rejected with `403`; they always get the bucket's `download_expiration`.
+
 ## When to Use Pre-signed URLs
 
 **Good use cases:**
