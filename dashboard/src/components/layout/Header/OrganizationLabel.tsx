@@ -14,7 +14,10 @@ export default function OrganizationLabel({
       <span className="truncate" title={organization.name}>
         {organization.name}
       </span>
-      <OrganizationPlanBadge plan={organization.plan?.name} />
+      <OrganizationPlanBadge
+        plan={organization.plan?.name}
+        status={organization.status}
+      />
     </div>
   );
 }

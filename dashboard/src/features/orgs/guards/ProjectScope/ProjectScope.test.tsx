@@ -269,17 +269,16 @@ it('keeps the header and sidebar visible while auth loads, but hides page conten
 describe.each([
   { name: 'OrganizationScope', Scope: OrganizationScope },
   { name: 'ProjectScope', Scope: ProjectScope },
-])('$name banner layout', ({ name, Scope }) => {
+])('$name status strip layout', ({ name, Scope }) => {
   it.each([
     { status: Organization_Status_Enum.Ok, banner: null },
     {
       status: Organization_Status_Enum.AllowanceExceeded,
-      banner: 'Usage limit has been exceeded for this organization',
+      banner: 'Usage limit exceeded.',
     },
     {
       status: Organization_Status_Enum.Cancelled,
-      banner:
-        'Subscription is cancelled after multiple failed billing attempts',
+      banner: 'Subscription cancelled after multiple failed payments.',
     },
   ])(
     'reserves the remaining height for content when status is $status',
@@ -316,18 +315,89 @@ describe.each([
         'overflow-y-auto',
       );
       expect(content?.parentElement).toBe(main);
+      expect(main.children).toHaveLength(1);
 
       if (banner) {
-        const heading = within(main).getByRole('heading', { name: banner });
-        const statusBanner = heading.parentElement?.parentElement;
+        // The strip spans the whole app, above the header, outside <main>.
+        const strip = await screen.findByRole('region', {
+          name: 'Organization status',
+        });
 
-        expect(statusBanner).toHaveClass('shrink-0');
-        expect(content?.previousElementSibling).toBe(statusBanner);
+        expect(strip).toHaveTextContent(banner);
+        expect(strip).toHaveClass('shrink-0');
+        expect(strip.nextElementSibling).toBe(screen.getByRole('banner'));
+        expect(main).not.toContainElement(strip);
       } else {
-        expect(main.children).toHaveLength(1);
+        expect(
+          screen.queryByRole('region', { name: 'Organization status' }),
+        ).not.toBeInTheDocument();
       }
     },
   );
+});
+
+describe('Organization status strip', () => {
+  function renderOrganizationPage(pathname = '/orgs/[orgSlug]/projects') {
+    mockRouter.pathname = pathname;
+    mockRouter.route = pathname;
+    mockRouter.asPath = pathname.replace('[orgSlug]', ORG_SLUG);
+    mockRouter.query = { orgSlug: ORG_SLUG };
+
+    render(
+      <AppLayout>
+        <OrganizationScope>
+          <h1>Organization page</h1>
+        </OrganizationScope>
+      </AppLayout>,
+    );
+  }
+
+  it('links a cancelled organization to a support ticket in a new tab', async () => {
+    setOrganizationStatus(Organization_Status_Enum.Cancelled);
+    renderOrganizationPage();
+
+    const strip = await screen.findByRole('region', {
+      name: 'Organization status',
+    });
+    const link = within(strip).getByRole('link', {
+      name: /Open a support ticket/,
+    });
+
+    expect(link).toHaveAttribute('href', 'https://app.nhost.io/support');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it.each([Organization_Status_Enum.Disabled, Organization_Status_Enum.Locked])(
+    'sends a %s organization to billing and links there',
+    async (status) => {
+      setOrganizationStatus(status);
+      renderOrganizationPage();
+
+      const strip = await screen.findByRole('region', {
+        name: 'Organization status',
+      });
+
+      expect(
+        within(strip).getByRole('link', { name: 'Go to billing' }),
+      ).toHaveAttribute('href', `/orgs/${ORG_SLUG}/billing`);
+      expect(mockRouter.push).toHaveBeenCalledWith(`/orgs/${ORG_SLUG}/billing`);
+    },
+  );
+
+  it('hides the billing link on the billing page', async () => {
+    setOrganizationStatus(Organization_Status_Enum.Locked);
+    renderOrganizationPage('/orgs/[orgSlug]/billing');
+
+    const strip = await screen.findByRole('region', {
+      name: 'Organization status',
+    });
+
+    expect(strip).toHaveTextContent('Outstanding invoice.');
+    expect(
+      within(strip).queryByRole('link', { name: 'Go to billing' }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe('ProjectScope', () => {
@@ -369,10 +439,8 @@ describe('ProjectScope', () => {
     expect(content).toContainElement(dialog);
     expect(content?.firstElementChild).toHaveClass('h-full');
     expect(
-      within(main).getByRole('heading', {
-        name: 'Usage limit has been exceeded for this organization',
-      }),
-    ).toBeVisible();
+      screen.getByRole('region', { name: 'Organization status' }),
+    ).toHaveTextContent('Usage limit exceeded.');
     expect(
       screen.queryByRole('heading', { name: 'Project content' }),
     ).not.toBeInTheDocument();
@@ -408,10 +476,8 @@ describe('ProjectScope', () => {
 
     expect(await screen.findByText('Could not load settings')).toBeVisible();
     expect(
-      within(screen.getByRole('main')).getByRole('heading', {
-        name: 'Usage limit has been exceeded for this organization',
-      }),
-    ).toBeVisible();
+      screen.getByRole('region', { name: 'Organization status' }),
+    ).toHaveTextContent('Usage limit exceeded.');
 
     consoleError.mockRestore();
   });

@@ -6,6 +6,7 @@ query getOrganizations($userId: uuid!) {
     id
     name
     slug
+    status
     plan {
       id
       name
