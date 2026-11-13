@@ -11,6 +11,8 @@ query getProjects($orgSlug: String!) {
     region {
       id
       name
+      countryCode
+      city
     }
     githubRepository {
       fullName

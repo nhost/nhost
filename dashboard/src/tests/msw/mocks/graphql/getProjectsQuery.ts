@@ -14,6 +14,8 @@ export const getProjectsQuery = nhostGraphQLLink.query('getProjects', () =>
           region: {
             id: '1',
             name: 'us-east-1',
+            countryCode: 'US',
+            city: 'Virginia',
             __typename: 'regions',
           },
           deployments: [],
@@ -45,6 +47,8 @@ export const getProjectsQuery = nhostGraphQLLink.query('getProjects', () =>
           region: {
             id: 'dd6f8e01-35a9-4ba6-8dc6-ed972f2db93c',
             name: 'eu-central-1',
+            countryCode: 'DE',
+            city: 'Frankfurt',
             __typename: 'regions',
           },
           deployments: [],
@@ -75,6 +79,8 @@ export const getProjectsQuery = nhostGraphQLLink.query('getProjects', () =>
           region: {
             id: '1',
             name: 'us-east-1',
+            countryCode: 'US',
+            city: 'Virginia',
             __typename: 'regions',
           },
           deployments: [],
@@ -106,6 +112,8 @@ export const getProjectsQuery = nhostGraphQLLink.query('getProjects', () =>
           region: {
             id: '1',
             name: 'us-east-1',
+            countryCode: 'US',
+            city: 'Virginia',
             __typename: 'regions',
           },
           deployments: [],
