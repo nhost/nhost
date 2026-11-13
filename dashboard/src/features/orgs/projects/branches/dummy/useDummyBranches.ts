@@ -51,6 +51,15 @@ export interface WaitingPullRequest {
   openedAt: string;
 }
 
+/**
+ * What a new branch's database starts with (nhost.toml
+ * `branching.initialData`):
+ * - empty: structure only, no rows
+ * - seed: the repo's seed files run after migrations
+ * - parentBackup: production's most recent backup is restored
+ */
+export type InitialData = 'empty' | 'seed' | 'parentBackup';
+
 interface ProjectBranchesState {
   branches: Branch[];
   currentBranchId: string;
@@ -58,6 +67,8 @@ interface ProjectBranchesState {
   automaticBranching?: boolean;
   /** Most branches at once (production doesn't count). Set by the user. */
   branchLimit?: number;
+  /** What new branches start with. Empty by default. */
+  initialData?: InitialData;
   /** Pull requests waiting for a slot, oldest first. */
   waiting?: WaitingPullRequest[];
   /** DUMMY: lets the prototype show the "no GitHub" state. */
@@ -288,6 +299,7 @@ export function useDummyBranches() {
   // Older demo data has no settings yet: fall back to the defaults.
   const automaticBranching = state.automaticBranching ?? true;
   const branchLimit = state.branchLimit ?? DEFAULT_BRANCH_LIMIT;
+  const initialData: InitialData = state.initialData ?? 'empty';
 
   const switchTo = (branchId: string) =>
     update((s) => ({ ...s, currentBranchId: branchId }));
@@ -301,6 +313,7 @@ export function useDummyBranches() {
   const saveSettings = (input: {
     automaticBranching: boolean;
     branchLimit: number;
+    initialData: InitialData;
   }) => update((s) => fillSlots({ ...s, ...input }));
 
   /**
@@ -370,6 +383,7 @@ export function useDummyBranches() {
     branchCount,
     automaticBranching,
     branchLimit,
+    initialData,
     atLimit: automaticBranching && branchCount >= branchLimit,
     // Nothing waits while automatic branching is off.
     waiting: automaticBranching ? (state.waiting ?? []) : [],

@@ -127,12 +127,15 @@ function BranchesSidebar() {
 }
 
 function BranchesIntro() {
-  const { projectName } = useDummyBranches();
+  const { projectName, initialData } = useDummyBranches();
   return (
     <p className="text-muted-foreground text-sm">
       Each pull request gets its own copy of{' '}
-      <span className="font-medium text-foreground">{projectName}</span>,
-      structure only, no data.
+      <span className="font-medium text-foreground">{projectName}</span>
+      {initialData === 'empty' && ', structure only, no data.'}
+      {initialData === 'seed' && ', filled with your seed data.'}
+      {initialData === 'parentBackup' &&
+        ", filled from production's latest backup."}
     </p>
   );
 }

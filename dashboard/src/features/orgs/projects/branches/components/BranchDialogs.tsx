@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/v3/label';
 import { BranchStatusMark } from '@/features/orgs/projects/branches/components/BranchBits';
 import {
   type Branch,
+  type InitialData,
   ordinal,
   timeAgo,
   toBranchSlug,
@@ -217,7 +218,7 @@ interface LogStep {
 
 // DUMMY: the steps of the branch's latest deployment, shaped like the
 // deployment details page (one section per task, timestamped lines).
-function dummySteps(branch: Branch): LogStep[] {
+function dummySteps(branch: Branch, initialData: InitialData): LogStep[] {
   const source = branch.isProduction ? 'main' : 'production';
   const steps: LogStep[] = [
     {
@@ -227,7 +228,17 @@ function dummySteps(branch: Branch): LogStep[] {
       lines: [
         ['12:04:11', `Push to ${branch.gitBranch} received`],
         ['12:04:12', `Copying database structure from ${source}`],
-        ['12:04:15', 'Database structure copied (no data)'],
+        ['12:04:15', 'Database structure copied'],
+        ...(branch.isProduction || initialData === 'empty'
+          ? []
+          : ([
+              [
+                '12:04:16',
+                initialData === 'seed'
+                  ? 'Running seed files from nhost/seeds'
+                  : "Restoring production's latest backup",
+              ],
+            ] as [string, string][])),
       ],
     },
     {
@@ -330,10 +341,11 @@ export function BranchLogsDialog({
   open,
   onOpenChange,
 }: DialogBaseProps & { branch: Branch | null }) {
+  const { initialData } = useDummyBranches();
   if (!branch) {
     return null;
   }
-  const steps = dummySteps(branch);
+  const steps = dummySteps(branch, initialData);
   // Open every step that has something to show.
   const expanded = steps
     .filter((s) => s.status !== 'pending')
