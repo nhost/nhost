@@ -1,0 +1,177 @@
+# Nhost + Next.js Starter
+
+A Next.js starter with Nhost auth. Users can sign in with a password, magic
+link, email code, passkey, GitHub or Google, and manage their account.
+
+## What's included
+
+- Five sign-in methods, each in its own folder under `frontend/src/app/auth/`
+- An account page: profile, avatar, email, password, two-factor, passkeys,
+  linked accounts, sessions and account deletion
+- Sessions handled on the server, so browser JavaScript never sees a token
+- `nhost/`: the backend config, Hasura permissions and email templates
+
+## Getting started
+
+```sh
+cp .secrets.example .secrets
+nhost up
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Open http://localhost:3000. Use `localhost`, not `127.0.0.1`, or passkeys won't
+work.
+
+Other commands in `frontend/`: `pnpm test`, `pnpm lint` and `pnpm build`.
+
+## Sign-in methods
+
+Email and password, magic link, email code and passkeys are on by default.
+OAuth is off until you add credentials.
+
+To remove a method, delete its folder in `frontend/src/app/auth/` and its entry
+in `frontend/src/app/signin/methods.ts`.
+
+### Turning on OAuth
+
+1. Create an OAuth app with GitHub or Google. The callback URL is
+   `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`
+   (use `google` for Google).
+2. Add the client ID and secret to `.secrets`.
+3. Set `enabled = true` for the provider in `nhost/nhost.toml` and restart
+   `nhost up`.
+4. Add `NHOST_OAUTH_PROVIDERS=github` (or `github,google`) to
+   `frontend/.env.local` and restart `pnpm dev`.
+
+### Unlinking a provider
+
+Unlink on the account page deletes the link, but it doesn't stop that provider
+signing in. If the provider reports a verified email that matches the account's
+email, auth signs the user in to that account and links the provider again. So
+unlinking a GitHub or Google account that someone else has taken over doesn't
+lock them out. Changing the account's email does, and so does turning the
+provider off in `nhost/nhost.toml`, which turns it off for every user. Unlink
+removes a provider for good only when its verified email differs from the
+account's, or the account has no email. That is why the page keeps the last link
+on an account with no email.
+
+## Permissions
+
+The `user` role can only touch its own rows, and only what the account page
+needs.
+
+| Table | Allowed |
+| --- | --- |
+| `auth.users` | read, delete, update `display_name` and `avatar_url` |
+| `auth.user_security_keys` | read, delete |
+| `auth.refresh_tokens` | read, delete |
+| `auth.user_providers` | read, delete |
+| `storage.files` | upload to the `default` bucket, read, delete |
+
+A few things to keep in mind if you change these:
+
+- `auth.users` also holds the user's role and email, so don't let users update
+  other columns.
+- Never expose `refresh_token_hash` or the provider tokens in
+  `auth.user_providers`.
+- Keep the `storage.files` read columns as they are. Storage reads them back
+  when it serves a file.
+
+## How it works
+
+### Sessions
+
+The session lives in an httpOnly cookie that only the proxy
+(`frontend/src/proxy.ts`) and server code can read. The browser gets a second
+cookie, `nhostSignedIn`, which only says whether someone is signed in.
+
+The proxy is the only place the token gets refreshed. Refresh tokens can only
+be used once, so prefetches never refresh. Don't turn on `prefetch={true}` or
+the SDK's browser auto-refresh.
+
+If two requests try to refresh at once, the one that loses doesn't sign the
+user out. It sets a short-lived `nhostRefreshRejected` cookie with the time,
+and the page retries. Only a second failure more than a few seconds later signs
+them out, so a retry the browser sends before the winner's cookie arrives, such
+as the redirect from a protected page, can't.
+
+### Links in emails
+
+Sign-in emails and OAuth send the user back with a `refreshToken` in the URL.
+The proxy only uses it if they're signed out, so a link from someone else can't
+replace their session. If they're already signed in, the token is revoked
+instead. Either way, it's removed from the URL.
+
+Linking an OAuth provider also puts a token in the URL, because the auth
+service needs the access token to link the account. It's valid for 15 minutes.
+
+### Redirects
+
+`?next=` is only followed if it's a path on this site, and each server action
+checks it again.
+
+### Session list
+
+The account page lists the user's sessions with when each one signed in. It
+doesn't show device, IP address or location: the app has no trustworthy source
+for them, so add that only once you have one.
+
+Signing out a session deletes its row. The proxy checks for the row on every
+page load, so that device is signed out on its next page load rather than when
+its token expires.
+
+### Rate limits
+
+Auth's limits in `nhost/nhost.toml` count requests per visitor address. Every
+auth call comes from the Next server, so the server sends the visitor's address
+as `X-Forwarded-For`, taken from `x-real-ip` or the first `x-forwarded-for`
+entry. That's only trustworthy when something in front of Next sets those
+headers itself. Vercel does. A self-hosted `next start` must sit behind a proxy
+that overwrites them, or visitors can pick their own address and get around the
+limits.
+
+This relies on Nhost Cloud passing the forwarded address on to auth. If it
+doesn't, every visitor shares the server's budget, and the fix is to raise the
+`[auth.rateLimit]` limits in `nhost/nhost.toml`.
+
+### Avatars
+
+Avatars are private files served through `/api/avatar/<id>`. Only PNG, JPEG,
+WebP and AVIF are allowed, up to 4 MB. SVG and HTML are blocked because they
+could run scripts on this site.
+
+### Password changes
+
+Changing the password signs out every session. The app signs the user back in
+on the current device straight away.
+
+### Email templates
+
+`nhost/emails/` only has English templates. The `signin-otp` email links to the
+code page with `${clientUrl}/auth/otp`, so make the same change if you add
+another language. Auth pastes template variables in without escaping them, so
+only use the ones auth builds or reads from config (`link`, `ticket`, `code`,
+`clientUrl`, `serverUrl`), never `redirectTo`, `email` or `displayName`, which
+come from the request. `frontend/src/lib/nhost/emails.test.ts` checks this.
+
+## Deploying
+
+Before you deploy:
+
+- Set the `APP_ORIGIN` (your frontend URL) and `WEBAUTHN_RP_ID` (its hostname)
+  secrets with `nhost secrets create`. The OAuth secrets must exist too, even
+  with OAuth off. `fixme` is fine.
+- Set `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` before
+  `next build`, and `NEXT_PUBLIC_APP_ORIGIN` unless you deploy to Vercel. See
+  `frontend/.env.example`.
+- On Vercel, import the repo and set the project's Root Directory to
+  `frontend`, where the app and its `vercel.json` live. Add
+  `NEXT_PUBLIC_NHOST_SUBDOMAIN`, `NEXT_PUBLIC_NHOST_REGION` and, with OAuth on,
+  `NHOST_OAUTH_PROVIDERS` as environment variables. `NEXT_PUBLIC_APP_ORIGIN`
+  can stay unset: the build falls back to the project's production domain, so
+  set the `APP_ORIGIN` secret to that.
+- For OAuth, use the callback URL
+  `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/github/callback`
+  and set the client ID and secret with `nhost secrets`.

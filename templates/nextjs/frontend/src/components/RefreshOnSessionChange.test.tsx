@@ -1,0 +1,96 @@
+// @vitest-environment happy-dom
+import { act } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import RefreshOnSessionChange, {
+  FOCUS_REFRESH_MS,
+} from '@/components/RefreshOnSessionChange';
+import { SIGNED_IN_KEY } from '@/lib/nhost/signed-in';
+
+const router = vi.hoisted(() => ({ refresh: vi.fn() }));
+const pathname = vi.hoisted(() => ({ current: '/' }));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => router,
+  usePathname: () => pathname.current,
+}));
+
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+function setAccessTokenCookie(present: boolean): void {
+  vi.spyOn(document, 'cookie', 'get').mockReturnValue(
+    present ? `${SIGNED_IN_KEY}=1` : '',
+  );
+}
+
+let container: HTMLElement;
+let root: Root;
+
+async function render(signedIn: boolean, path = '/'): Promise<void> {
+  pathname.current = path;
+  await act(async () =>
+    root.render(<RefreshOnSessionChange signedIn={signedIn} />),
+  );
+}
+
+describe('RefreshOnSessionChange', () => {
+  beforeEach(() => {
+    router.refresh.mockReset();
+    setAccessTokenCookie(false);
+    container = document.body.appendChild(document.createElement('div'));
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.restoreAllMocks();
+  });
+
+  // Signed out in another tab: the next page renders with no session, but
+  // the nav in the root layout still shows the avatar.
+  it('refreshes when the session ended since the nav rendered', async () => {
+    setAccessTokenCookie(true);
+    await render(true);
+
+    setAccessTokenCookie(false);
+    await render(true, '/account');
+
+    expect(router.refresh).toHaveBeenCalledOnce();
+  });
+});
+
+// A tab left open never navigates, so coming back to it is what lets the
+// proxy see a session revoked from another device.
+describe('RefreshOnSessionChange, returning to the tab', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    router.refresh.mockReset();
+    setAccessTokenCookie(true);
+    container = document.body.appendChild(document.createElement('div'));
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  const returnToTab = (): void => {
+    act(() => {
+      window.dispatchEvent(new Event('focus'));
+    });
+  };
+
+  it('refreshes a signed-in tab returned to after a while', async () => {
+    await render(true);
+    vi.advanceTimersByTime(FOCUS_REFRESH_MS);
+    returnToTab();
+
+    expect(router.refresh).toHaveBeenCalledOnce();
+  });
+});
