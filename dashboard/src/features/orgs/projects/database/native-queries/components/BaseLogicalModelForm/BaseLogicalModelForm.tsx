@@ -64,6 +64,7 @@ export default function BaseLogicalModelForm({
           <Input
             id="logical-model-name"
             placeholder="Logical model name"
+            autoFocus
             className="max-w-md"
             {...form.register('name')}
           />
