@@ -27,6 +27,7 @@ function SignInWithEmailAndPassword({ onSubmit, isLoading }: Props) {
           name="email"
           type="email"
           placeholder="Email"
+          autoFocus
         />
         <FormInput
           control={form.control}

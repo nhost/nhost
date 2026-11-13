@@ -225,6 +225,7 @@ export default function EditOAuth2ClientForm({
           label="Description"
           placeholder="Describe this OAuth2 client"
           autoComplete="off"
+          autoFocus
         />
 
         <FormTextarea

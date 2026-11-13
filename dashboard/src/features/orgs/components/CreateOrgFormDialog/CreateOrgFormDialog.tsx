@@ -108,7 +108,7 @@ function CreateOrgForm({
             <FormItem>
               <FormLabel>Organization Name</FormLabel>
               <FormControl>
-                <Input placeholder="Acme Inc" {...field} />
+                <Input placeholder="Acme Inc" autoFocus {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

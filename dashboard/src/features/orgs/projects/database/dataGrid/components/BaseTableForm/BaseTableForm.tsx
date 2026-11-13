@@ -168,6 +168,7 @@ function NameInput() {
       label="Name"
       inline
       autoComplete="off"
+      autoFocus
       className="border-border"
       containerClassName="col-span-8"
       data-testid="tableNameInput"

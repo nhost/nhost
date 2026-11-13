@@ -68,6 +68,7 @@ export default function ResetPasswordPage() {
               name="newPassword"
               type="password"
               label="New Password"
+              autoFocus
               className="!bg-transparent border-border"
             />
 

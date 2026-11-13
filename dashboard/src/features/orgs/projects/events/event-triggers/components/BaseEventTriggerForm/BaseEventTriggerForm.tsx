@@ -304,6 +304,7 @@ export default function BaseEventTriggerForm({
                     name="triggerName"
                     label="Trigger Name"
                     placeholder="trigger_name"
+                    autoFocus
                     disabled={isEditing}
                     className="max-w-lg"
                     autoComplete="off"
