@@ -3,8 +3,8 @@ import {
   RotateCcw as ArrowCounterclockwiseIcon,
   ChevronRightIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import type { MouseEvent } from 'react';
-import { NavLink } from '@/components/common/NavLink';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v3/avatar';
@@ -54,12 +54,10 @@ export default function DeploymentListItem({
 
   return (
     <li className="flex w-full list-none">
-      <NavLink
-        variant="ghost"
-        underline="none"
-        className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
+      <Link
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={deployment.commitMessage || 'No commit message'}
+        className="grid w-full grid-flow-col items-center justify-between gap-2 p-2 font-display font-medium text-accent-foreground text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <Avatar
@@ -91,10 +89,10 @@ export default function DeploymentListItem({
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="xs"
                     disabled={disableRedeploy || scheduling}
                     onClick={redeploy}
-                    className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
+                    className="rounded-full border-primary text-primary text-xs hover:bg-primary/10 hover:text-primary"
                     aria-label="Redeploy"
                   >
                     <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
@@ -135,7 +133,7 @@ export default function DeploymentListItem({
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
-      </NavLink>
+      </Link>
     </li>
   );
 }

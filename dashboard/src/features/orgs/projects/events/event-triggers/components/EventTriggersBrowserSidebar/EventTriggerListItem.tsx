@@ -82,8 +82,7 @@ export default function EventTriggerListItem({
               >
                 <Button
                   variant="subtle"
-                  size="icon"
-                  className="h-6 w-6"
+                  size="icon-xs"
                   data-testid={`event-trigger-menu-${eventTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();

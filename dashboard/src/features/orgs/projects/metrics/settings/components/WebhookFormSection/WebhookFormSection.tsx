@@ -153,7 +153,6 @@ export default function WebhookFormSection() {
                   <Button
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove webhook"
                     onClick={() => remove(index)}
                   >

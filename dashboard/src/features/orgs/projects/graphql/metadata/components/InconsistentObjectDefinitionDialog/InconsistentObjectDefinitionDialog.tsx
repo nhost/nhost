@@ -29,7 +29,7 @@ export default function InconsistentObjectDefinitionDialog({
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
-            <Button variant="subtle" size="icon" className="h-8 w-8">
+            <Button variant="subtle" size="icon-sm">
               <Eye className="h-4 w-4" />
             </Button>
           </DialogTrigger>
