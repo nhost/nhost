@@ -1,11 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { Unlink } from 'lucide-react';
 import { useState } from 'react';
-import {
-  SettingsCardContent,
-  SettingsCardFooter,
-  SettingsCardHeader,
-} from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -17,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
-import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
+import { AccountSettingsTile } from '@/features/account/settings/components/AccountSettingsTile';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useDeleteAuthUserProviderMutation,
@@ -133,7 +128,7 @@ export default function SocialProvidersSettings() {
     const url = nhost.auth.signInProviderURL('github', {
       connect: token,
       redirectTo: appendPkceId(
-        `${window.location.origin}/account?signinProvider=github`,
+        `${window.location.origin}/account?tab=authentication&signinProvider=github`,
         id,
       ),
       codeChallenge: challenge,
@@ -146,29 +141,14 @@ export default function SocialProvidersSettings() {
   }
 
   return (
-    <AccountSettingsCard>
-      <SettingsCardHeader title="Authentication providers" />
-
-      <SettingsCardContent>
-        {isGithubConnected ? (
-          <div className="flex w-fit flex-row items-center justify-start gap-2 rounded-md bg-muted p-2">
-            <GitHubIcon />
-            <span className="font-medium">Connected</span>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            className="flex w-fit flex-row gap-2"
-            onClick={handleConnectGithub}
-          >
-            <GitHubIcon />
-            Connect with GitHub
-          </Button>
-        )}
-      </SettingsCardContent>
-
-      {isGithubConnected && (
-        <SettingsCardFooter className="justify-start sm:justify-start">
+    <AccountSettingsTile
+      icon={<GitHubIcon className="h-5 w-5" aria-hidden="true" />}
+      title="GitHub"
+      active={isGithubConnected}
+      status={isGithubConnected ? 'Linked' : 'Not linked'}
+      description="Sign in with GitHub and connect repositories to your projects."
+      action={
+        isGithubConnected ? (
           <Dialog
             open={disconnectDialogOpen}
             onOpenChange={setDisconnectDialogOpen}
@@ -176,7 +156,7 @@ export default function SocialProvidersSettings() {
             <DialogTrigger asChild>
               <Button variant="outline" disabled={deletingGitHubUserProvider}>
                 <Unlink className="mr-2 h-4 w-4" />
-                Disconnect GitHub
+                Unlink
               </Button>
             </DialogTrigger>
             <DialogContent className="z-[9999] p-12 text-foreground">
@@ -186,8 +166,13 @@ export default function SocialProvidersSettings() {
               />
             </DialogContent>
           </Dialog>
-        </SettingsCardFooter>
-      )}
-    </AccountSettingsCard>
+        ) : (
+          <Button variant="outline" onClick={handleConnectGithub}>
+            <GitHubIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+            Link GitHub
+          </Button>
+        )
+      }
+    />
   );
 }

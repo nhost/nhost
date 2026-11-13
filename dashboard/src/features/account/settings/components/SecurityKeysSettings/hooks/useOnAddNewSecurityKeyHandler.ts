@@ -24,7 +24,7 @@ function useOnAddNewSecurityKeyHandler({ onSuccess }: Props) {
       await refetch();
       onSuccess();
     },
-    successMessage: 'Security key has been added.',
+    successMessage: 'Passkey added.',
   });
 
   async function onSubmit(values: NewSecurityKeyFormValues) {

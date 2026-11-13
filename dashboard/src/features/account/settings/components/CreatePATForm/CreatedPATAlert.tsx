@@ -1,31 +1,44 @@
 import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
-import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Alert } from '@/components/ui/v3/alert';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
 
 interface CreatedPATAlertProps {
   personalAccessToken: string;
 }
 
+/**
+ * The new token in a read-only field with its copy button, like the
+ * connection fields elsewhere, and the usual warning box saying it won't
+ * show again.
+ */
 export default function CreatedPATAlert({
   personalAccessToken,
 }: CreatedPATAlertProps) {
   return (
-    <Alert className="grid grid-flow-row gap-2">
-      <AlertDescription className="col-start-1">
-        <p className="text-sm">
-          This token will not be shown again. Make sure to copy it now.
-        </p>
-      </AlertDescription>
-
-      <div className="flex items-center justify-center gap-2 bg-transparent">
-        <code className="break-all rounded bg-primary-light px-1.5 py-0.5 font-display font-semibold text-foreground text-xs dark:bg-[#2f363d]">
-          {personalAccessToken}
-        </code>
-
-        <CopyToClipboardButton
-          textToCopy={personalAccessToken}
-          title="Personal access token"
+    <div className="grid gap-3">
+      <InputGroup>
+        <InputGroupInput
+          readOnly
+          aria-label="Personal access token"
+          value={personalAccessToken}
+          className="truncate font-mono text-sm"
+          onFocus={(event) => event.currentTarget.select()}
         />
-      </div>
-    </Alert>
+        <InputGroupAddon align="inline-end">
+          <CopyToClipboardButton
+            textToCopy={personalAccessToken}
+            title="Personal access token"
+          />
+        </InputGroupAddon>
+      </InputGroup>
+
+      <Alert variant="warning">
+        This token will not be shown again. Make sure to copy it now.
+      </Alert>
+    </div>
   );
 }

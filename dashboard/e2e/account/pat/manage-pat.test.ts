@@ -8,7 +8,8 @@ test('should be able to create then delete a personal access token', async ({
     page.getByRole('banner').getByRole('button').last(),
   ).toBeVisible();
   await page.getByRole('banner').getByRole('button').last().click();
-  await page.getByRole('link', { name: /account settings/i }).click();
+  await page.getByRole('link', { name: /^security$/i }).click();
+  await page.getByRole('link', { name: /personal access tokens/i }).click();
   await page
     .getByRole('button', { name: /create personal access token/i })
     .click();
@@ -23,22 +24,26 @@ test('should be able to create then delete a personal access token', async ({
   await page.getByRole('option', { name: /7 days/i }).click();
   await createPATDialog.getByRole('button', { name: /create/i }).click();
 
+  // The dialog title changes to "Token created" once the token exists.
+  const tokenCreatedDialog = page.getByRole('dialog', {
+    name: /token created/i,
+  });
+
   await expect(
-    createPATDialog.getByText(
+    tokenCreatedDialog.getByText(
       /this token will not be shown again. make sure to copy it now./i,
     ),
   ).toBeVisible();
 
-  await createPATDialog
+  await tokenCreatedDialog
     .getByRole('button', { name: /close personal access token dialog/i })
     .click();
 
   await expect(page.getByText(patName)).toBeVisible();
 
   await page
-    .getByRole('button', { name: `More options for ${patName}`, exact: true })
+    .getByRole('button', { name: `Delete ${patName}`, exact: true })
     .click();
-  await page.getByRole('menuitem', { name: /delete/i }).click();
 
   const deletePATDialog = page.getByRole('alertdialog', {
     name: /delete personal access token/i,

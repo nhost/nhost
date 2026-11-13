@@ -180,7 +180,6 @@ export default function GeneralSettings() {
         <Form onSubmit={handleProjectNameChange}>
           <SettingsCard>
             <SettingsCardHeader
-              size="lg"
               title="Project name"
               control={
                 <ButtonWithLoading
@@ -206,13 +205,8 @@ export default function GeneralSettings() {
 
       <SettingsCard>
         <SettingsCardHeader
-          size="lg"
-          title={
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-xl">Availability</h3>
-              <ProjectStatusPill status={state} />
-            </div>
-          }
+          title="Availability"
+          actions={<ProjectStatusPill status={state} />}
         />
 
         <SettingsCardContent>
@@ -318,7 +312,6 @@ export default function GeneralSettings() {
       {isPlatform && (
         <SettingsCard>
           <SettingsCardHeader
-            size="lg"
             title="Delete project"
             description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
             control={

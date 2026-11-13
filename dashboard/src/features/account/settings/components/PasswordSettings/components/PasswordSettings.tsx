@@ -20,21 +20,20 @@ export default function PasswordSettings() {
     <Form {...form}>
       <AccountSettingsCard asChild>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <SettingsCardHeader
-            title="Change Password"
-            description="Update your account password."
-          />
+          <SettingsCardHeader title="Password" />
 
-          <SettingsCardContent className="sm:max-w-[370px]">
+          {/* Same shape as the organization settings form: the fields
+              share the full width, Save sits in the footer. */}
+          <SettingsCardContent className="sm:grid-cols-2">
             <FormPasswordInput
               control={form.control}
               name="newPassword"
-              label="New Password"
+              label="New password"
             />
             <FormPasswordInput
               control={form.control}
               name="confirmPassword"
-              label="Confirm Password"
+              label="Confirm password"
             />
           </SettingsCardContent>
 

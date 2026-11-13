@@ -25,6 +25,8 @@ export type CreatePATFormValues = Yup.InferType<
 
 export interface CreatePATFormProps {
   onCancel?: VoidFunction;
+  /** Called once the token is created, so the dialog can change its title. */
+  onCreated?: VoidFunction;
 }
 
 function getStringifiedDateOffset(offsetDays: number) {
@@ -55,7 +57,10 @@ function getDaysUntilNextYearSameDay() {
   return 366;
 }
 
-export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
+export default function CreatePATForm({
+  onCancel,
+  onCreated,
+}: CreatePATFormProps) {
   const [personalAccessToken, setPersonalAccessToken] = useState<string | null>(
     null,
   );
@@ -81,6 +86,7 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
     successMessage: 'The personal access token has been created successfully.',
     onSuccess: ({ body }) => {
       setPersonalAccessToken(body.personalAccessToken);
+      onCreated?.();
       apolloClient.refetchQueries({
         include: [GetPersonalAccessTokensDocument],
       });
@@ -106,11 +112,10 @@ export default function CreatePATForm({ onCancel }: CreatePATFormProps) {
         <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
-            variant="outline"
             aria-label="Close personal access token dialog"
             onClick={onCancel}
           >
-            Close
+            Done
           </Button>
         </div>
       </div>

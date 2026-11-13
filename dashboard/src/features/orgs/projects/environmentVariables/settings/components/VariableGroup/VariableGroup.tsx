@@ -12,6 +12,9 @@ export interface VariableGroupProps {
   children: ReactNode;
 }
 
+// Variables in a bordered, softly filled box with rounded corners, optionally
+// under a small label. The first column has the same width in every box, so
+// the values line up across groups.
 export default function VariableGroup({ label, children }: VariableGroupProps) {
   return (
     <div className="flex flex-col gap-2">
