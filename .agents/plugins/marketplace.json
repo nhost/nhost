@@ -1,0 +1,17 @@
+{
+  "name": "nhost",
+  "plugins": [
+    {
+      "name": "nhost",
+      "source": {
+        "source": "local",
+        "path": "./plugins/nhost"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
