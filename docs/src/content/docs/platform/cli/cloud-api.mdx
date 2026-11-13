@@ -1,0 +1,76 @@
+---
+title: Nhost Cloud API
+description: Use the CLI to inspect the Nhost Cloud schema and send GraphQL queries and mutations with your login session.
+keywords: ["Nhost Cloud API", "GraphQL", "CLI", "AI agents"]
+head:
+  - tag: title
+    content: "Send Raw GraphQL Requests to Nhost Cloud from the CLI | Nhost Docs"
+---
+
+Prefer the [CLI MCP tools](/platform/cli/mcp) when they cover your task. Use `nhost api` as a raw pass-through to the Nhost Cloud GraphQL API when they don't. Requests run with your account's permissions.
+
+The Nhost Cloud API manages your organizations and projects; it isn't your project's own GraphQL API. Projects are called **apps** in it.
+
+## Sign in
+
+```bash
+nhost login
+```
+
+The API commands use this session without prompting or opening a browser. You don't need a personal access token.
+
+## Set up your agent
+
+Configure your agent's command permissions to:
+
+- Allow only the exact command `nhost api schema`, with no other arguments or flags.
+- Ask for your approval before `nhost api query`. Only a call with `--with-mutations` can change your projects, so review those carefully.
+
+:::caution
+Reads can return secrets into your agent's context. Mutations run as-is with your permissions, without confirmation or additional safety checks. Review the operation and variables before approving a mutation.
+:::
+
+## Inspect the schema
+
+`schema` prints the introspection result (`{"__schema": ...}`) as JSON. It's large, so save it to a file and inspect it with `jq`. For example, inspect the `updateApp` mutation:
+
+```bash
+nhost api schema > cloud-schema.json
+jq '.__schema.mutationType.fields[] | select(.name == "updateApp")' cloud-schema.json
+```
+
+The schema reflects your session's permissions.
+
+## Send a query
+
+For example, list five projects ordered by name:
+
+```bash
+nhost api query 'query {
+  apps(limit: 5, order_by: {name: asc}) {
+    id
+    name
+  }
+}'
+```
+
+`query` takes one quoted GraphQL document and an optional `--variables` JSON object. It refuses mutations unless you pass `--with-mutations`, and always refuses subscriptions.
+
+## Send a mutation
+
+Inspect `updateApp` in the schema first. To rename an existing project, replace `<project-id>` with its ID and review the new name:
+
+```bash
+nhost api query --with-mutations 'mutation RenameProject($id: uuid!, $name: String!) {
+  updateApp(pk_columns: {id: $id}, _set: {name: $name}) {
+    id
+    name
+  }
+}' --variables '{"id":"<project-id>","name":"New project name"}'
+```
+
+With `--with-mutations`, the mutation is sent as-is. Requests aren't retried. After a network error, a mutation may or may not have been applied; check the result before trying again.
+
+On success, both commands print only the response's `data` as JSON to stdout. Any failure exits with code `1` and writes the error to stderr, including the server's response for GraphQL or HTTP errors.
+
+See the [command reference](/reference/cli/commands#api) for all options.
