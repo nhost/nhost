@@ -165,7 +165,7 @@ parameterized SQL values.
 
 | Field | Status | Notes |
 |---|---|---|
-| `columns` | ✅ | Gates which columns the role may set. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. |
+| `columns` | ✅ | Gates which columns the role may set. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists, including `[]`. With no writable fields, the insert input is genuinely empty and PostgreSQL inserts can use `{}` with presets/defaults; generated ALWAYS identities and preset columns stay hidden (see [PostgreSQL features](postgres-features.md#columns)). |
 | `check` | ✅ | Per-row boolean check; rows failing it are rejected (all-or-nothing). Evaluated against the input payload by default and switched to a post-INSERT check (against `RETURNING *`) when the predicate references a computed field, a `$` root column comparison, or a column whose final value is only known after the row exists — generated columns, identity columns (Postgres `GENERATED AS IDENTITY`, SQLite `INTEGER PRIMARY KEY` rowid alias), or a DB-defaulted column the payload omits. Enforced on Postgres via `RETURNING` + `constellation_throw_error`. |
 | `set` | ✅ | Column presets (incl. session variables) forcibly written on every insert. |
 | `backend_only` | ⚪ | Not honored — the mutation is exposed regardless. |

@@ -9,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
+import { controlHeight, controlText } from '@/components/ui/v3/control';
 import {
   Popover,
   PopoverAnchor,
@@ -175,6 +176,8 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
             aria-describedby={ariaDescribedBy}
             aria-invalid={ariaInvalid}
             className={cn(
+              controlHeight,
+              controlText,
               'w-full justify-between font-normal',
               !displayLabel && 'text-muted-foreground',
               className,
@@ -200,7 +203,6 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
           <Command filter={filter}>
             <CommandInput
               placeholder={searchPlaceholder}
-              className="h-9"
               disabled={disabled}
               onValueChange={onSearchChange}
             />

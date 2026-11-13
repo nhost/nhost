@@ -161,8 +161,7 @@ export default function ActionListItem({
             >
               <Button
                 variant="subtle"
-                size="icon"
-                className="h-6 w-6"
+                size="icon-xs"
                 aria-label={`Actions for ${action.name}`}
                 data-testid={`action-menu-${action.name}`}
                 onClick={(event) => {
