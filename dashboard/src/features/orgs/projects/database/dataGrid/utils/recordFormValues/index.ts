@@ -1,5 +1,6 @@
 export {
   getColumnInsertOptions,
+  getColumnUpdateOptions,
   getCreateRecordFormDefaultValues,
   getEditRecordFormDefaultValues,
   getRecordFormValue,
