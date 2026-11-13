@@ -20,6 +20,7 @@ export default function RemoteSchemaNameInput({
       name="name"
       label="Name"
       placeholder="Remote Schema Name"
+      autoFocus
       disabled={disabled}
       autoComplete="off"
     />

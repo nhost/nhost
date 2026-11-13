@@ -61,6 +61,7 @@ function NewDeploymentForm({ onScheduled }: { onScheduled: VoidFunction }) {
           name="ref"
           label="Branch, tag or commit SHA"
           placeholder="git_ref"
+          autoFocus
           helperText="Use the full 40-character SHA for a commit."
           autoComplete="off"
           spellCheck={false}
