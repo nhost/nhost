@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Avatar } from '@/components/ui/v3/avatar';
 import { Button } from '@/components/ui/v3/button';
 import {
   InputGroup,
@@ -202,15 +203,22 @@ export default function AllBranches() {
 
         {/* Status, then the actions as icons. */}
         <div className="relative z-10 flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
-          {/* The latest push: who on top, when under it. One block, since
-              both describe the same moment. Left aligned in its own column,
-              so it reads as a column and doesn't lean on the tags. */}
-          <span className="hidden w-36 text-left text-xs leading-tight md:grid">
-            <span className="truncate">
-              {branch.lastPushBy ?? branch.createdBy}
-            </span>
-            <span className="text-muted-foreground">
-              pushed {timeAgo(branch.lastActivityAt)}
+          {/* The latest push: avatar on the left, then who on top and when
+              under it. One block, since all of it describes the same moment.
+              Left aligned in its own column, so it doesn't lean on the tags. */}
+          <span className="hidden w-44 items-center gap-2 md:flex">
+            <Avatar
+              name={branch.lastPushBy ?? branch.createdBy}
+              className="h-6 w-6"
+              fallbackClassName="text-[11px] font-medium"
+            />
+            <span className="grid min-w-0 text-xs leading-tight">
+              <span className="truncate">
+                {branch.lastPushBy ?? branch.createdBy}
+              </span>
+              <span className="text-muted-foreground">
+                pushed {timeAgo(branch.lastActivityAt)}
+              </span>
             </span>
           </span>
           {/* Tags right aligned, in a column wide enough for the widest
@@ -244,9 +252,9 @@ export default function AllBranches() {
         <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
           Production
         </h2>
-        {/* Production is the parent of every branch: a border in its own
-            blue sets it apart, no fill. */}
-        <ul className="overflow-hidden rounded-lg border border-primary/40">
+        {/* Production is the parent of every branch: the normal border and a
+            very soft fill, a touch off the page background. */}
+        <ul className="overflow-hidden rounded-lg border bg-muted/30">
           {renderRow(production)}
         </ul>
       </section>
