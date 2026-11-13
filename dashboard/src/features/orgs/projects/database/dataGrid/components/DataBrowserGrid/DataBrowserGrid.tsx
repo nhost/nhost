@@ -1,16 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { CellContext, Row } from '@tanstack/react-table';
-import { Copy, Edit, KeyRound, Trash2 } from 'lucide-react';
+import { Copy, Database, Edit, KeyRound, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useUrlPagination } from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
@@ -504,7 +504,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   if (metadata?.schemaNotFound) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Schema not found"
         description={
           <span>
@@ -521,7 +522,8 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   if (metadata?.tableNotFound) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Table not found"
         description={
           <span>

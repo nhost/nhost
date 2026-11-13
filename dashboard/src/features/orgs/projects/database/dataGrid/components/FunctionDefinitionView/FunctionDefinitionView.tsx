@@ -1,11 +1,12 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { ChevronDown, ChevronRight, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, Pencil } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { EmptyState } from '@/components/common/EmptyState';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
@@ -17,7 +18,6 @@ import {
 } from '@/components/ui/v3/collapsible';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/components/TrackFunctionButton';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
@@ -108,7 +108,8 @@ export default function FunctionDefinitionView() {
 
   if (status === 'error' || functionError) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Error loading function"
         description={
           <span>
@@ -124,7 +125,8 @@ export default function FunctionDefinitionView() {
 
   if (!functionMetadata) {
     return (
-      <DataBrowserEmptyState
+      <EmptyState
+        icon={Database}
         title="Function not found"
         description={<span>The function does not exist.</span>}
       />

@@ -1,5 +1,7 @@
-import Image from 'next/image';
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { RocketIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { NavLink } from '@/components/common/NavLink';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
@@ -17,32 +19,26 @@ export default function DeploymentsPage() {
 
   if (!project?.githubRepository) {
     return (
-      <Container className="grid max-w-3xl grid-flow-row gap-4 pt-8 pb-8 text-center antialiased">
-        <div className="mx-auto flex w-centImage flex-col text-center">
-          <Image
-            src="/assets/githubRepo.svg"
-            width={72}
-            height={72}
-            alt="GitHub Logo"
-          />
-        </div>
-        <div className="grid grid-flow-row gap-2">
-          <h1 className="font-medium text-lg">Deployments</h1>
-          <p className="text-sm+">
-            Once you connect this app to version control, all changes will be
-            deployed automatically.
-          </p>
-        </div>
-        <div className="flex w-full justify-center">
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            underline="none"
-            variant="ghost"
-            className="!text-primary"
-          >
-            Connect your Project to GitHub
-          </NavLink>
-        </div>
+      <Container
+        className="flex h-full max-w-3xl flex-col pt-8 pb-8"
+        rootClassName="h-full"
+      >
+        <EmptyState
+          icon={RocketIcon}
+          title="Deployments"
+          description="Once you connect this app to version control, all changes will be deployed automatically."
+          action={
+            <NavLink
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+              underline="none"
+              variant="default"
+              className="h-9"
+            >
+              <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
+              Connect your Project to GitHub
+            </NavLink>
+          }
+        />
       </Container>
     );
   }

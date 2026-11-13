@@ -1,8 +1,9 @@
+import { ZapIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
 import { EventsArea } from '@/features/orgs/projects/events/layout';
@@ -24,7 +25,8 @@ export default function EventTriggersPage() {
 
   if (errorEventTriggers instanceof Error) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        icon={ZapIcon}
         title="Event triggers"
         description="An error occurred while fetching event triggers."
       />
@@ -36,7 +38,8 @@ export default function EventTriggersPage() {
 
   if (showNoEventTriggersMessage) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        icon={ZapIcon}
         title="Event triggers"
         description="Add an event trigger to get started."
       />
@@ -44,7 +47,8 @@ export default function EventTriggersPage() {
   }
 
   return (
-    <EventsEmptyState
+    <EmptyState
+      icon={ZapIcon}
       title="Event triggers"
       description="Select an event trigger from the sidebar to get started."
     />

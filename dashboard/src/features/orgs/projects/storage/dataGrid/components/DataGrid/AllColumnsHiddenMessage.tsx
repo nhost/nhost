@@ -1,6 +1,6 @@
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/v3/button';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { saveColumnVisibility } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 
@@ -21,12 +21,7 @@ function Description() {
 }
 
 function AllColumnsHiddenMessage() {
-  return (
-    <DataBrowserEmptyState
-      title="All columns are hidden"
-      description={<Description />}
-    />
-  );
+  return <EmptyState title="All columns are hidden" action={<Description />} />;
 }
 
 export default AllColumnsHiddenMessage;

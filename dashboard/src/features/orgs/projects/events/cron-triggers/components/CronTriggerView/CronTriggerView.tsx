@@ -1,12 +1,13 @@
+import { ZapIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { EmptyState } from '@/components/common/EmptyState';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
-import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { PaginationControls } from '@/features/orgs/projects/events/common/components/PaginationControls';
 import { useEventPagination } from '@/features/orgs/projects/events/common/hooks/useEventPagination';
 import { useGetScheduledEventLogsQuery } from '@/features/orgs/projects/events/common/hooks/useGetScheduledEventLogsQuery';
@@ -73,7 +74,8 @@ export default function CronTriggerView() {
 
   if (error instanceof Error) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        icon={ZapIcon}
         title="Cron trigger not found"
         description={
           <span>
@@ -90,7 +92,8 @@ export default function CronTriggerView() {
 
   if (isEmptyValue(cronTrigger)) {
     return (
-      <EventsEmptyState
+      <EmptyState
+        icon={ZapIcon}
         title="Cron trigger not found"
         description={
           <span>
