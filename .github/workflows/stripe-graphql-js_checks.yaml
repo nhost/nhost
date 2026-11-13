@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   check-permissions:
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -42,6 +42,7 @@ jobs:
     needs:
       - check-permissions
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
       BUILD: true
       NAME: stripe-graphql-js
       PROJECT: packages/stripe-graphql-js

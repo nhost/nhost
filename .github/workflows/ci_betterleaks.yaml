@@ -10,14 +10,14 @@ concurrency:
 
 jobs:
   check-permissions:
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   scan:
     needs: [check-permissions]
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: nhost-aarch64-2c2g
     timeout-minutes: 30
 
     permissions:

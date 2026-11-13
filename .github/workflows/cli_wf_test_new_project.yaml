@@ -27,7 +27,8 @@ on:
 
 jobs:
   tests:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # This job consumes the x86_64 CLI binary and Docker image artifacts.
+    runs-on: nhost-x86_64-4c8g
     timeout-minutes: 30
 
     defaults:
