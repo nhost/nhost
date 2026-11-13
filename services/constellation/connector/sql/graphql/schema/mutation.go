@@ -141,18 +141,10 @@ func appendUpdateFields(
 	)
 }
 
-// generateTableMutationInputTypes generates all mutation input types for a table.
-func generateTableMutationInputTypes( //nolint:funlen
+func generateTableMutationResponseType(
 	schema *graph.Schema,
-	tableMeta *metadata.TableMetadata,
-	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
-	md *metadata.DatabaseMetadata,
-	role string,
-	insertableTables map[string]struct{},
-	objRelTargets map[string]struct{},
-	arrRelTargets map[string]struct{},
 ) {
 	schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
 		Name: customTableName + "_mutation_response",
@@ -173,7 +165,21 @@ func generateTableMutationInputTypes( //nolint:funlen
 			},
 		},
 	})
+}
 
+// generateTableMutationInputTypes generates all mutation input types for a table.
+func generateTableMutationInputTypes( //nolint:funlen
+	schema *graph.Schema,
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	customTableName string,
+	qualifiedName string,
+	md *metadata.DatabaseMetadata,
+	role string,
+	insertableTables map[string]struct{},
+	objRelTargets map[string]struct{},
+	arrRelTargets map[string]struct{},
+) {
 	_, hasInsertInput := insertableTables[customTableName]
 
 	insertAllowedColumns := getInsertAllowedColumns(tableMeta, tableInfo, role)

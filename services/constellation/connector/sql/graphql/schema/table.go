@@ -91,6 +91,8 @@ func generateForTable( //nolint:funlen
 		caps,
 	)
 
+	mutationFieldCount := len(*mutationFields)
+
 	generateTableMutationFields(
 		mutationFields,
 		tableMeta,
@@ -101,6 +103,11 @@ func generateForTable( //nolint:funlen
 		md,
 		hasInsertInput,
 	)
+
+	// Every emitted table mutation family includes a bulk root using this response.
+	if len(*mutationFields) > mutationFieldCount {
+		generateTableMutationResponseType(schema, customTableName, qualifiedName)
+	}
 
 	generateTableSubscriptionFields(
 		subscriptionFields,
