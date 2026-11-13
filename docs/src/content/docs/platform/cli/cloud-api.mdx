@@ -13,17 +13,25 @@ The Nhost Cloud API manages your organizations and projects; it isn't your proje
 
 ## Sign in
 
+`nhost api` uses the session you create with `nhost login`:
+
 ```bash
 nhost login
 ```
 
-The API commands use this session without prompting or opening a browser. You don't need a personal access token.
+`nhost login` opens your browser to sign in to your Nhost account. It saves the session in `~/.nhost/state/auth.json`, or in `$XDG_STATE_HOME/nhost/auth.json` if `XDG_STATE_HOME` is set. Other CLI commands and the CLI MCP server use the same session.
+
+Each `nhost api` call reads the session file, gets a short-lived access token for the request, and saves the renewed session back to the file. It never opens a browser or asks for input, so it works in scripts and agents. If your agent runs in a sandbox, give it read and write access to the session file.
+
+If there's no session, or it has expired or been revoked, the command fails. Run `nhost login` again.
+
+To use a personal access token instead, for example in CI, set the `NHOST_PAT` environment variable. When it's set, `nhost api` uses the token and ignores the saved session. You can create a token in the dashboard under **Account Settings**.
 
 ## Set up your agent
 
 Configure your agent's command permissions to:
 
-- Allow `nhost api schema`.
+- Allow only the exact command `nhost api schema`, with no other arguments or flags.
 - Ask for your approval before `nhost api query`. Only a call with `--with-mutations` can change your projects, so review those carefully.
 
 :::caution
@@ -38,8 +46,6 @@ Reads can return secrets into your agent's context. Mutations run as-is with you
 nhost api schema > cloud-schema.json
 jq '.__schema.mutationType.fields[] | select(.name == "updateApp")' cloud-schema.json
 ```
-
-The schema reflects your session's permissions.
 
 ## Send a query
 
