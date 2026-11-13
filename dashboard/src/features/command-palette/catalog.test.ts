@@ -22,6 +22,7 @@ describe('command palette catalog', () => {
       'settings',
       'members',
       'billing',
+      'billing-usage',
     ]);
   });
 

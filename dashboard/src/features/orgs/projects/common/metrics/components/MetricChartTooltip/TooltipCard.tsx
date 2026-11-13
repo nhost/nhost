@@ -120,7 +120,13 @@ export default function TooltipCard({
               ? formatTooltipValue(entry.value, valueFormatter)
               : String(entry.value ?? '');
           return (
-            <div key={entry.key} className="flex w-full items-center gap-2">
+            <div
+              key={entry.key}
+              className={cn(
+                'flex w-full items-center gap-2',
+                entry.value === 0 && 'opacity-50',
+              )}
+            >
               <div
                 className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
                 style={{ backgroundColor: entry.color }}

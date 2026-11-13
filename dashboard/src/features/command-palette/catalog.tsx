@@ -317,6 +317,12 @@ export const orgPages = definePages([
   { name: 'Settings', slug: 'settings', route: 'settings', gate: 'platform' },
   { name: 'Members', slug: 'members', route: 'members', gate: 'platform' },
   { name: 'Billing', slug: 'billing', route: 'billing', gate: 'platform' },
+  {
+    name: 'Billing usage',
+    slug: 'billing-usage',
+    route: 'billing/usage',
+    gate: 'platform',
+  },
 ]);
 
 export type PaletteGating = {

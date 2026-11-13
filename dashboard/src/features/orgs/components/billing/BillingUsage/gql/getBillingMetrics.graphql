@@ -1,0 +1,30 @@
+query getBillingMetrics($organizationID: uuid!, $from: timestamptz!) {
+  billingReports(
+    where: {
+      organizationID: { _eq: $organizationID }
+      reportEnds: { _gte: $from }
+    }
+    order_by: { reportEnds: desc }
+  ) {
+    appID
+    type
+    value
+    reportEnds
+  }
+  billingResources(where: { organizationID: { _eq: $organizationID } }) {
+    appID
+    functionsAmount
+    customDomains
+    persistentVolume
+    pitr
+  }
+  billingTimeBasedUsages(
+    where: {
+      organizationID: { _eq: $organizationID }
+      productType: { _eq: dedicated_compute }
+    }
+  ) {
+    appID
+    value
+  }
+}

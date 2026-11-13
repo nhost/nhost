@@ -11,4 +11,5 @@ export {
   formatTimestampSecondsTick,
   formatTimestampTick,
   formatterForKind,
+  formatWholePercent,
 } from './formatters';
