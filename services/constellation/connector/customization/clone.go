@@ -209,6 +209,7 @@ func cloneInputs(inputs []*graph.InputObjectType) []*graph.InputObjectType {
 			Fields:           fields,
 			Directives:       cloneDirectives(in.Directives),
 			ComputedArgument: in.ComputedArgument,
+			EmptySQLInsert:   in.EmptySQLInsert,
 		}
 	}
 

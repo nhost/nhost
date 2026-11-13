@@ -316,6 +316,7 @@ func convertIntrospectionInput(t *introspectionType) *graph.InputObjectType {
 		Fields:           fields,
 		Directives:       nil,
 		ComputedArgument: false,
+		EmptySQLInsert:   false,
 	}
 }
 

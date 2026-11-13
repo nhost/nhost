@@ -140,6 +140,7 @@ func tableComputedArguments(
 	s.Inputs = append(s.Inputs, &graph.InputObjectType{
 		Name: name, Fields: userArgs, Description: "", Directives: nil,
 		ComputedArgument: true,
+		EmptySQLInsert:   false,
 	})
 
 	typ := graph.NewNamedType(name)

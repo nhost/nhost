@@ -88,6 +88,7 @@ func scalarComputedFields(
 			s.Inputs = append(s.Inputs, &graph.InputObjectType{
 				Name: name, Fields: args, Description: "", Directives: nil,
 				ComputedArgument: true,
+				EmptySQLInsert:   false,
 			})
 
 			argsType := graph.NewNamedType(name)
