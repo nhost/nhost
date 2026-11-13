@@ -6,6 +6,8 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -481,6 +483,105 @@ func TestSetIsUploaded(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestStartFileReplace(t *testing.T) {
+	t.Parallel()
+
+	hasura := metadata.NewHasura(hasuraURL)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(
+		context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader(),
+	); err != nil {
+		panic(err)
+	}
+
+	if err := hasura.SetIsUploaded(context.Background(), fileID, true, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	cases := []struct {
+		name            string
+		fileID          string
+		expectedStarted bool
+	}{
+		{
+			name:            "uploaded file",
+			fileID:          fileID,
+			expectedStarted: true,
+		},
+		{
+			name:            "replace already in progress",
+			fileID:          fileID,
+			expectedStarted: false,
+		},
+		{
+			name:            "file not found",
+			fileID:          "aaaaaaaa-1111-bbbb-2222-cccccccccccc",
+			expectedStarted: false,
+		},
+	}
+
+	for _, tc := range cases {
+		started, err := hasura.StartFileReplace(context.Background(), tc.fileID, getAuthHeader())
+		if err != nil {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+
+		if started != tc.expectedStarted {
+			t.Errorf("%s: started = %v, want %v", tc.name, started, tc.expectedStarted)
+		}
+	}
+}
+
+func TestStartFileReplace_Concurrent(t *testing.T) {
+	t.Parallel()
+
+	const attempts = 10
+
+	hasura := metadata.NewHasura(hasuraURL)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(
+		context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader(),
+	); err != nil {
+		panic(err)
+	}
+
+	if err := hasura.SetIsUploaded(context.Background(), fileID, true, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	var (
+		wg      sync.WaitGroup
+		claimed atomic.Int32
+	)
+
+	start := make(chan struct{})
+
+	for range attempts {
+		wg.Go(func() {
+			<-start
+
+			started, err := hasura.StartFileReplace(context.Background(), fileID, getAuthHeader())
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
+
+			if started {
+				claimed.Add(1)
+			}
+		})
+	}
+
+	close(start)
+	wg.Wait()
+
+	if got := claimed.Load(); got != 1 {
+		t.Errorf("%d of %d concurrent replaces claimed the file, want exactly 1", got, attempts)
 	}
 }
 

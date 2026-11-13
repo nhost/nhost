@@ -60,6 +60,15 @@ mutation UpdateFile($id: uuid!, $_set: files_set_input!) {
   }
 }
 
+mutation StartFileReplace($id: uuid!) {
+  updateFiles(
+    where: { id: { _eq: $id }, isUploaded: { _eq: true } }
+    _set: { isUploaded: false }
+  ) {
+    affected_rows
+  }
+}
+
 mutation DeleteFile($id: uuid!) {
   deleteFile(id: $id) {
     id

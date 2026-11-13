@@ -50,6 +50,7 @@ type MetadataStorage interface {
 		isUploaded bool,
 		headers http.Header,
 	) *APIError
+	StartFileReplace(ctx context.Context, fileID string, headers http.Header) (bool, *APIError)
 	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *APIError
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 	InsertVirus(
