@@ -52,7 +52,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Apply Go security fixes
-        # govulncheck-wrapper -fix bumps each non-allowlisted finding via
+        # Keep proactive updates at package level: bump non-allowlisted imported
+        # vulnerable packages even when their vulnerable symbols are not called.
+        # CI gates on symbol reachability instead. govulncheck-wrapper -fix uses
         # `go mod edit -require=module@fixed-version` then runs
         # `go mod tidy && go mod vendor` to keep go.sum and vendor/ in sync. No
         # overrides, no vendoring tricks — just standard module bumps. No-op when
@@ -108,9 +110,11 @@ jobs:
             Daily security updates.
 
             * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
-            * **Go**: `go mod edit -require` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
+            * **Go**: `go mod edit -require` for non-allowlisted modules with
+              imported vulnerable packages, then `go mod tidy && go mod vendor`.
 
-            Anything still flagged after this PR will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually.
+            Regular CI gates on called vulnerable Go symbols and pnpm audit
+            findings. Remaining gate failures require manual fixes.
           labels: |
             dependencies
             security

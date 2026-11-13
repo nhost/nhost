@@ -108,6 +108,22 @@ class ContractsTests(unittest.TestCase):
                         self.assertTrue(job["with"]["BUILD"])
                         self.assertFalse(job["with"]["CHECKS"])
 
+    def test_go_vulnerability_scan_policies(self):
+        go_checks = (REPO / "nixops/lib/go/go.nix").read_text()
+        self.assertIn(
+            "govulncheck-wrapper -config ${src}/govulncheck.yaml "
+            "-- -scan=symbol ./${submodule}/...",
+            go_checks,
+        )
+        workflow = load(WORKFLOWS / "gen_security_updates.yaml")
+        fixes = next(
+            step for step in workflow["jobs"]["run"]["steps"]
+            if step.get("name") == "Apply Go security fixes"
+        )
+        self.assertIn(
+            "govulncheck-wrapper -fix -- -scan=package ./...", fixes["run"]
+        )
+
     def test_cli_image_loader_does_not_record_an_unused_nix_shell(self):
         workflow = load(WORKFLOWS / "cli_wf_test_new_project.yaml")
         steps = workflow["jobs"]["tests"]["steps"]

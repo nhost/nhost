@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Lock, Pause, Play } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo } from 'react';
@@ -15,8 +15,9 @@ import {
   SettingsRow,
 } from '@/components/layout/SettingsCard';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Alert } from '@/components/ui/v3/alert';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -204,7 +205,15 @@ export default function GeneralSettings() {
       </FormProvider>
 
       <SettingsCard>
-        <SettingsCardHeader size="lg" title="Availability" />
+        <SettingsCardHeader
+          size="lg"
+          title={
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-xl">Availability</h3>
+              <ProjectStatusPill status={state} />
+            </div>
+          }
+        />
 
         <SettingsCardContent>
           {showWakeUpCard ? (
@@ -313,31 +322,32 @@ export default function GeneralSettings() {
             title="Delete project"
             description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
             control={
-              <>
-                {!isOwner && (
-                  <p className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Lock className="h-4 w-4 shrink-0" />
-                    Only organization admins can delete this project.
-                  </p>
-                )}
-                <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-                  <RemoveApplicationDialog
-                    handler={handleDeleteApplication}
-                    trigger={
-                      <ButtonWithLoading
-                        type="button"
-                        disabled={!isOwner}
-                        variant="destructive"
-                        className="w-full sm:w-auto"
-                      >
-                        Delete
-                      </ButtonWithLoading>
-                    }
-                  />
-                </span>
-              </>
+              <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+                <RemoveApplicationDialog
+                  handler={handleDeleteApplication}
+                  trigger={
+                    <ButtonWithLoading
+                      type="button"
+                      disabled={!isOwner}
+                      variant="destructive"
+                      className="w-full sm:w-auto"
+                    >
+                      Delete
+                    </ButtonWithLoading>
+                  }
+                />
+              </span>
             }
           />
+          {!isOwner && (
+            <SettingsCardContent>
+              <Alert>
+                <AlertDescription>
+                  Only organization admins can delete this project.
+                </AlertDescription>
+              </Alert>
+            </SettingsCardContent>
+          )}
         </SettingsCard>
       )}
     </div>

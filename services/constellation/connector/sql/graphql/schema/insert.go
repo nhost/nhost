@@ -95,8 +95,7 @@ func generateInsertInput(
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
-	objects *introspection.Objects,
-	role string,
+	insertableTables map[string]struct{},
 ) {
 	fields := []*graph.InputField{}
 
@@ -125,25 +124,9 @@ func generateInsertInput(
 		})
 	}
 
-	if role == roleAdmin || getInsertPermission(tableMeta, role) != nil {
-		for _, rel := range tableMeta.ObjectRelationships {
-			inputField := getRelationshipTargetInputField(
-				md, objects, tableInfo, rel.Using, rel.Name, "_obj_rel_insert_input", role,
-			)
-			if inputField != nil {
-				fields = append(fields, inputField)
-			}
-		}
-
-		for _, rel := range tableMeta.ArrayRelationships {
-			inputField := getRelationshipTargetInputField(
-				md, objects, tableInfo, rel.Using, rel.Name, "_arr_rel_insert_input", role,
-			)
-			if inputField != nil {
-				fields = append(fields, inputField)
-			}
-		}
-	}
+	fields = append(
+		fields,
+		getInsertRelationshipFields(tableMeta, tableInfo, md, insertableTables)...)
 
 	schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
 		Name: customTableName + "_insert_input",
@@ -151,46 +134,64 @@ func generateInsertInput(
 			`input type for inserting data into table "%s"`,
 			qualifiedName,
 		),
-		Fields: fields,
+		Fields:         fields,
+		EmptySQLInsert: len(fields) == 0,
 	})
+}
+
+func getInsertRelationshipFields(
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+	insertableTables map[string]struct{},
+) []*graph.InputField {
+	var fields []*graph.InputField
+
+	for _, rel := range tableMeta.ObjectRelationships {
+		inputField := getRelationshipTargetInputField(
+			md, tableInfo, rel.Using, rel.Name, "_obj_rel_insert_input", insertableTables,
+		)
+		if inputField != nil {
+			fields = append(fields, inputField)
+		}
+	}
+
+	for _, rel := range tableMeta.ArrayRelationships {
+		inputField := getRelationshipTargetInputField(
+			md, tableInfo, rel.Using, rel.Name, "_arr_rel_insert_input", insertableTables,
+		)
+		if inputField != nil {
+			fields = append(fields, inputField)
+		}
+	}
+
+	return fields
+}
+
+func getInsertRelationshipTargetName(
+	md *metadata.DatabaseMetadata,
+	tableInfo *introspection.Table,
+	using metadata.RelationshipUsing,
+	insertableTables map[string]struct{},
+) string {
+	targetName := getRelationshipTargetName(md, tableInfo, using)
+	if _, ok := insertableTables[targetName]; !ok {
+		return ""
+	}
+
+	return targetName
 }
 
 func getRelationshipTargetInputField(
 	md *metadata.DatabaseMetadata,
-	objects *introspection.Objects,
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
 	relName string,
 	suffix string,
-	role string,
+	insertableTables map[string]struct{},
 ) *graph.InputField {
-	targetName := getRelationshipTargetName(md, tableInfo, using)
+	targetName := getInsertRelationshipTargetName(md, tableInfo, using, insertableTables)
 	if targetName == "" {
-		return nil
-	}
-
-	if !isTargetTableAccessible(md, tableInfo, using, role) {
-		return nil
-	}
-
-	targetTable := getRelationshipTarget(tableInfo, md.Tables, using)
-	if targetTable == nil {
-		return nil
-	}
-
-	// The target must permit insert: obj_rel_insert_input / arr_rel_insert_input
-	// are only generated for tables the role can insert into.
-	if role != roleAdmin && getInsertPermission(targetTable, role) == nil {
-		return nil
-	}
-
-	// The target's introspected IsInsertable must also be true. Otherwise
-	// the corresponding _obj_rel_insert_input / _arr_rel_insert_input type
-	// is not emitted by generateTableMutationInputTypes (which gates on
-	// tableInfo.IsInsertable) and we would leave a dangling type reference
-	// in the parent's _insert_input. This matters for admin specifically,
-	// where role-permission gating alone cannot exclude read-only views.
-	if !targetIsInsertable(objects, targetTable) {
 		return nil
 	}
 

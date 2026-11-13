@@ -41,6 +41,8 @@ func (d *SQLiteDialect) TypeCast(placeholder string, _ string) string {
 
 func (d *SQLiteDialect) SupportsDependentInsertSteps() bool { return false }
 
+func (d *SQLiteDialect) SupportsZeroColumnSelect() bool { return false }
+
 // DependentInsertCapture is unreachable: SQLite rejects the plan before rendering.
 func (d *SQLiteDialect) DependentInsertCapture() string { return "" }
 

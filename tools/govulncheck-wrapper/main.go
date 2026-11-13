@@ -20,9 +20,14 @@ type config struct {
 	AllowList []string `yaml:"allow_list"`
 }
 
+type scannerConfig struct {
+	ScanLevel string `json:"scan_level"`
+}
+
 type message struct {
-	OSV     *osvEntry `json:"osv,omitempty"`
-	Finding *finding  `json:"finding,omitempty"`
+	Config  *scannerConfig `json:"config,omitempty"`
+	OSV     *osvEntry      `json:"osv,omitempty"`
+	Finding *finding       `json:"finding,omitempty"`
 }
 
 type osvEntry struct {
@@ -68,11 +73,29 @@ func loadConfig(path string) (map[string]bool, error) {
 	return allow, nil
 }
 
+// matchesScanLevel excludes the lower-level findings that govulncheck emits in
+// JSON even when they do not affect the result at the selected scan level.
+func (f *finding) matchesScanLevel(level string) bool {
+	if len(f.Trace) == 0 {
+		return false
+	}
+
+	switch level {
+	case "module":
+		return f.Trace[0].Module != ""
+	case "package":
+		return f.Trace[0].Package != ""
+	default:
+		return f.Trace[0].Function != ""
+	}
+}
+
 func parseMessages(
 	r io.Reader,
 ) (map[string]*osvEntry, map[string][]*finding) {
 	osvMap := make(map[string]*osvEntry)
 	findingsMap := make(map[string][]*finding)
+	scanLevel := "symbol"
 
 	dec := json.NewDecoder(r)
 
@@ -90,11 +113,15 @@ func parseMessages(
 			break
 		}
 
+		if msg.Config != nil && msg.Config.ScanLevel != "" {
+			scanLevel = msg.Config.ScanLevel
+		}
+
 		if msg.OSV != nil {
 			osvMap[msg.OSV.ID] = msg.OSV
 		}
 
-		if msg.Finding != nil {
+		if msg.Finding != nil && msg.Finding.matchesScanLevel(scanLevel) {
 			findingsMap[msg.Finding.OSV] = append(
 				findingsMap[msg.Finding.OSV], msg.Finding,
 			)
@@ -125,9 +152,10 @@ func runGovulncheck(
 
 	osvMap, findingsMap := parseMessages(stdout)
 
-	cmdErr := cmd.Wait()
-	if len(findingsMap) == 0 && len(osvMap) == 0 && cmdErr != nil {
-		return nil, nil, fmt.Errorf("govulncheck failed: %w", cmdErr)
+	// In JSON mode, vulnerabilities do not cause a non-zero exit. Any failure
+	// means the scan is incomplete, even if it already emitted some findings.
+	if err := cmd.Wait(); err != nil {
+		return nil, nil, fmt.Errorf("govulncheck failed: %w", err)
 	}
 
 	return osvMap, findingsMap, nil
