@@ -1,4 +1,5 @@
-import { Loader2 } from 'lucide-react';
+import { SiGithub } from '@icons-pack/react-simple-icons';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   Accordion,
@@ -20,9 +21,11 @@ import { Label } from '@/components/ui/v3/label';
 import { BranchStatusMark } from '@/features/orgs/projects/branches/components/BranchBits';
 import {
   type Branch,
+  ordinal,
   timeAgo,
   toBranchSlug,
   useDummyBranches,
+  type WaitingPullRequest,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { cn } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
@@ -121,6 +124,83 @@ export function RenameBranchDialog({
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * What Nhost posts on a pull request that's waiting for a slot. Nhost keeps
+ * one comment per pull request and edits it as things change (waiting, then
+ * the branch's status and links), so the pull request never fills up with
+ * bot comments. Shown here so the team can see both sides.
+ */
+export function PullRequestCommentDialog({
+  pullRequest,
+  position,
+  open,
+  onOpenChange,
+}: DialogBaseProps & {
+  pullRequest: WaitingPullRequest | null;
+  position: number;
+}) {
+  const { projectName, repository, branchLimit } = useDummyBranches();
+
+  if (!pullRequest) {
+    return null;
+  }
+
+  const prUrl = `https://github.com/${repository}/pull/${pullRequest.pullRequest}`;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="gap-6 p-12 text-foreground sm:max-w-xl">
+        <DialogHeader className="gap-1 space-y-0">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            GitHub comment
+          </DialogTitle>
+          <DialogDescription>
+            What Nhost shows on #{pullRequest.pullRequest}. It's one comment,
+            updated when the pull request gets its branch.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* A plain picture of a comment, in the dashboard's own styles. */}
+        <div className="overflow-hidden rounded-lg border text-sm">
+          <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-2 text-muted-foreground text-xs">
+            <SiGithub className="size-3.5 text-foreground" />
+            <span className="font-medium text-foreground">nhost</span>
+            <span className="rounded border px-1 text-[10px] leading-4">
+              bot
+            </span>
+            commented {timeAgo(pullRequest.openedAt)}
+          </div>
+          <div className="grid gap-3 p-4">
+            <p className="font-medium">
+              Waiting for a branch, {ordinal(position)} in line
+            </p>
+            <p className="text-muted-foreground">
+              All {branchLimit} branches on{' '}
+              <span className="font-medium text-foreground">{projectName}</span>{' '}
+              are in use. This pull request gets its own branch when another one
+              closes or someone raises the limit. This comment updates when it
+              does.
+            </p>
+            <p className="flex items-center gap-1 text-primary">
+              Raise the limit in Nhost
+              <ArrowUpRight className="size-3.5" />
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" asChild>
+            <a href={prUrl} target="_blank" rel="noreferrer">
+              Open pull request
+            </a>
+          </Button>
+          <Button onClick={() => onOpenChange(false)}>Done</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

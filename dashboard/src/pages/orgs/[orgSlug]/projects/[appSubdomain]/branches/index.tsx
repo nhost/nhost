@@ -8,11 +8,13 @@ import {
   AreaSidebarNav,
   AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useDummyBranches } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+import { triggerToast } from '@/utils/toast';
 
 // DUMMY PROTOTYPE: client-only, the fake branches live in localStorage.
 const AllBranches = dynamic(
@@ -41,7 +43,13 @@ function BranchesSidebar() {
   const router = useRouter();
   const orgSlug = getSingleQueryParam(router.query.orgSlug);
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-  const { resetDemo, githubConnected, setGithubConnected } = useDummyBranches();
+  const {
+    resetDemo,
+    githubConnected,
+    setGithubConnected,
+    demoClosePullRequest,
+    branchCount,
+  } = useDummyBranches();
   const path = `/orgs/${orgSlug}/projects/${appSubdomain}/branches`;
 
   return (
@@ -61,6 +69,14 @@ function BranchesSidebar() {
             scroll={false}
           >
             All branches
+            {/* How many branches are open (production not counted), in the
+                dashboard's own Badge, primary blue. A hard
+                shadow in the primary button's depth color lifts the number. Hidden when there are none. */}
+            {githubConnected && branchCount > 0 && (
+              <Badge className="ml-auto px-1.5 py-0 font-medium tabular-nums [text-shadow:0_1px_0_hsl(var(--primary-emboss-depth)/0.6)] hover:bg-primary">
+                {branchCount}
+              </Badge>
+            )}
           </AreaSidebarLink>
           <AreaSidebarLink
             href={`${path}?tab=settings`}
@@ -81,6 +97,21 @@ function BranchesSidebar() {
           onClick={() => setGithubConnected(!githubConnected)}
         >
           {githubConnected ? 'Demo without GitHub' : 'Demo with GitHub'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="xs"
+          className="w-full text-muted-foreground"
+          onClick={() => {
+            const closed = demoClosePullRequest();
+            if (closed) {
+              triggerToast(
+                `#${closed.pullRequest} merged, ${closed.name} removed`,
+              );
+            }
+          }}
+        >
+          Demo a merged pull request
         </Button>
         <Button
           variant="ghost"

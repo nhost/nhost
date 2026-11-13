@@ -25,6 +25,7 @@ export default function BranchSettings() {
     branchCount,
     repository,
     saveSettings,
+    waiting,
   } = useDummyBranches();
   const [enabled, setEnabled] = useState(automaticBranching);
   const [limit, setLimit] = useState(String(branchLimit));
@@ -38,6 +39,11 @@ export default function BranchSettings() {
   const dirty =
     enabled !== automaticBranching || (validLimit && parsed !== branchLimit);
   const belowCount = enabled && validLimit && parsed < branchCount;
+  // How many waiting pull requests a save would give a branch to.
+  const freed =
+    enabled && validLimit
+      ? Math.min(Math.max(0, parsed - branchCount), waiting.length)
+      : 0;
 
   return (
     <SettingsCard asChild>
@@ -90,12 +96,18 @@ export default function BranchSettings() {
                       Enter a whole number, 1 or more.
                     </span>
                   ) : (
-                    belowCount && (
+                    (belowCount && (
                       <span className="mt-1 block text-foreground">
-                        New pull requests won't get a branch until you have
-                        fewer than {parsed}.
+                        Existing branches stay. New pull requests wait until you
+                        have fewer than {parsed}.
                       </span>
-                    )
+                    )) ||
+                    (freed > 0 && (
+                      <span className="mt-1 block text-foreground">
+                        Saving gives a branch to {freed} waiting pull{' '}
+                        {freed === 1 ? 'request' : 'requests'}.
+                      </span>
+                    ))
                   )}
                 </>
               }
@@ -117,6 +129,7 @@ export default function BranchSettings() {
                     className="text-muted-foreground text-xs"
                   >
                     {branchCount} in use
+                    {waiting.length > 0 && `, ${waiting.length} waiting`}
                   </span>
                 </div>
               }

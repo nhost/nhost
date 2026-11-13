@@ -1,9 +1,15 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { FileText, GitPullRequest, Pencil, Search } from 'lucide-react';
+import {
+  Clock,
+  FileText,
+  GitPullRequest,
+  MessageSquare,
+  Pencil,
+  Search,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactNode, useState } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -24,18 +30,24 @@ import {
 } from '@/features/orgs/projects/branches/components/BranchBits';
 import {
   BranchLogsDialog,
+  PullRequestCommentDialog,
   RenameBranchDialog,
 } from '@/features/orgs/projects/branches/components/BranchDialogs';
 import {
   type Branch,
+  ordinal,
   timeAgo,
   useDummyBranches,
+  type WaitingPullRequest,
 } from '@/features/orgs/projects/branches/dummy/useDummyBranches';
 import { cn } from '@/lib/utils';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { triggerToast } from '@/utils/toast';
 
-type DialogState = { kind: 'logs' | 'rename'; branch: Branch } | null;
+type DialogState =
+  | { kind: 'logs' | 'rename'; branch: Branch }
+  | { kind: 'comment'; pullRequest: WaitingPullRequest; position: number }
+  | null;
 
 interface RowActionProps {
   label: string;
@@ -105,6 +117,35 @@ function ConnectGitHub() {
   );
 }
 
+/** Opens Settings, where the limit lives. */
+function RaiseLimitLink() {
+  const router = useRouter();
+  return (
+    <Button asChild variant="outline" size="sm">
+      <Link
+        href={{
+          pathname: router.pathname,
+          query: { ...router.query, tab: 'settings' },
+        }}
+        shallow
+        scroll={false}
+      >
+        Raise limit
+      </Link>
+    </Button>
+  );
+}
+
+/** Place in the queue, same pill shape as the status tags, quiet gray. */
+function QueueMark({ position }: { position: number }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border bg-muted px-2 py-px font-medium text-muted-foreground text-xs">
+      <Clock className="size-3" />
+      {position === 1 ? 'Next' : `${ordinal(position)} in line`}
+    </span>
+  );
+}
+
 export default function AllBranches() {
   const {
     branches,
@@ -117,6 +158,7 @@ export default function AllBranches() {
     atLimit,
     automaticBranching,
     githubConnected,
+    waiting,
   } = useDummyBranches();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -244,6 +286,72 @@ export default function AllBranches() {
     );
   }
 
+  /**
+   * A pull request without a branch yet. Same columns as a branch row, so
+   * the eye reads it as "almost a branch": who opened it and when where the
+   * last push sits, its place in line where the status sits.
+   */
+  function renderWaitingRow(pr: WaitingPullRequest, index: number) {
+    const position = index + 1;
+    return (
+      <li
+        key={pr.pullRequest}
+        className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
+      >
+        <div className="min-w-0 flex-1">
+          {/* No branch name yet, so the pull request is the title. */}
+          <a
+            href={`https://github.com/${repository}/pull/${pr.pullRequest}`}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex min-w-0 max-w-fit items-center gap-2 text-sm"
+          >
+            <GitPullRequest className="size-4 shrink-0 text-muted-foreground" />
+            <span className="shrink-0 text-muted-foreground">
+              #{pr.pullRequest}
+            </span>
+            <span className="truncate font-medium underline-offset-4 group-hover:underline">
+              {pr.title}
+            </span>
+          </a>
+          <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
+            <SiGithub className="size-3 shrink-0" />
+            <span className="truncate font-mono">{pr.gitBranch}</span>
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
+          <span className="hidden w-44 items-center gap-2 md:flex">
+            <Avatar
+              name={pr.openedBy}
+              className="h-6 w-6"
+              fallbackClassName="text-[11px] font-medium"
+            />
+            <span className="grid min-w-0 text-xs leading-tight">
+              <span className="truncate">{pr.openedBy}</span>
+              <span className="text-muted-foreground">
+                opened {timeAgo(pr.openedAt)}
+              </span>
+            </span>
+          </span>
+          <span className="ml-4 flex w-[6.5rem] justify-end">
+            <QueueMark position={position} />
+          </span>
+          {/* Holds the Rename spot so the last icon lines up with View
+              logs on the branch rows. */}
+          <span aria-hidden className="size-8" />
+          <RowAction
+            label="View GitHub comment"
+            icon={<MessageSquare />}
+            tooltip="GitHub comment"
+            onClick={() =>
+              setDialog({ kind: 'comment', pullRequest: pr, position })
+            }
+          />
+        </div>
+      </li>
+    );
+  }
+
   const close = (open: boolean) => !open && setDialog(null);
 
   return (
@@ -280,13 +388,16 @@ export default function AllBranches() {
           </InputGroup>
         </div>
 
-        {atLimit && (
-          <Alert variant="warning" className="py-3">
-            <AlertDescription>
-              You've reached your limit of {branchLimit} branches. New pull
-              requests won't get a branch until you raise it in Settings.
-            </AlertDescription>
-          </Alert>
+        {/* Full, nobody waiting yet: a quiet heads up, not a warning. A
+            full limit is the setting working, not something broken. */}
+        {atLimit && waiting.length === 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+            <p className="text-muted-foreground text-sm">
+              All {branchLimit} branches are in use. New pull requests will wait
+              for one to free up.
+            </p>
+            <RaiseLimitLink />
+          </div>
         )}
 
         {others.length > 0 ? (
@@ -309,6 +420,28 @@ export default function AllBranches() {
         )}
       </section>
 
+      {waiting.length > 0 && (
+        <section className="grid gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="grid gap-1">
+              <h2 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                Waiting for a branch ({waiting.length})
+              </h2>
+              <p className="max-w-xl text-muted-foreground text-sm">
+                All {branchLimit} branches are in use. These pull requests get
+                one in this order when another pull request closes or you raise
+                the limit.
+              </p>
+            </div>
+            <RaiseLimitLink />
+          </div>
+          {/* Dashed like other "not there yet" spots in the dashboard. */}
+          <ul className="divide-y overflow-hidden rounded-lg border border-dashed">
+            {waiting.map(renderWaitingRow)}
+          </ul>
+        </section>
+      )}
+
       <RenameBranchDialog
         branch={dialog?.kind === 'rename' ? dialog.branch : null}
         open={dialog?.kind === 'rename'}
@@ -317,6 +450,12 @@ export default function AllBranches() {
       <BranchLogsDialog
         branch={dialog?.kind === 'logs' ? dialog.branch : null}
         open={dialog?.kind === 'logs'}
+        onOpenChange={close}
+      />
+      <PullRequestCommentDialog
+        pullRequest={dialog?.kind === 'comment' ? dialog.pullRequest : null}
+        position={dialog?.kind === 'comment' ? dialog.position : 0}
+        open={dialog?.kind === 'comment'}
         onOpenChange={close}
       />
     </div>

@@ -20,8 +20,14 @@ export default function BranchesComboBox() {
   const router = useRouter();
   const orgSlug = getSingleQueryParam(router.query.orgSlug);
   const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
-  const { isReady, branches, currentBranch, switchTo, githubConnected } =
-    useDummyBranches();
+  const {
+    isReady,
+    branches,
+    currentBranch,
+    switchTo,
+    githubConnected,
+    waiting,
+  } = useDummyBranches();
 
   if (!isReady) {
     return null;
@@ -78,6 +84,13 @@ export default function BranchesComboBox() {
       >
         <ListTree className="mr-2 size-4" />
         Manage branches
+        {/* Waiting pull requests have no branch to open yet, so they're
+            only counted here, next to the page that lists them. */}
+        {githubConnected && waiting.length > 0 && (
+          <span className="ml-auto text-muted-foreground text-xs">
+            {waiting.length} waiting
+          </span>
+        )}
       </CommandItem>
     </>
   );

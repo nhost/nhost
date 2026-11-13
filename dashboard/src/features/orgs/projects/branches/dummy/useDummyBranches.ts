@@ -1,6 +1,6 @@
 // DUMMY PROTOTYPE DATA. Remove before staging: the real data comes from the
 // backend. Everything here lives in localStorage so the prototype feels alive.
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
@@ -33,6 +33,22 @@ export interface Branch {
   /** Who made the latest push (lastActivityAt is when). */
   lastPushBy?: string;
   status: BranchStatus;
+  /** DUMMY: set on branches made from the queue, so they move from
+   * Creating to Ready by themselves. */
+  demoStartedAt?: string;
+}
+
+/**
+ * A pull request that should get a branch but can't: every slot under the
+ * branch limit is taken. Oldest first; it gets a branch as soon as a slot
+ * frees up (a pull request closes or the limit goes up).
+ */
+export interface WaitingPullRequest {
+  pullRequest: number;
+  title: string;
+  gitBranch: string;
+  openedBy: string;
+  openedAt: string;
 }
 
 interface ProjectBranchesState {
@@ -42,12 +58,14 @@ interface ProjectBranchesState {
   automaticBranching?: boolean;
   /** Most branches at once (production doesn't count). Set by the user. */
   branchLimit?: number;
+  /** Pull requests waiting for a slot, oldest first. */
+  waiting?: WaitingPullRequest[];
   /** DUMMY: lets the prototype show the "no GitHub" state. */
   githubConnected: boolean;
 }
 
-// v2: branches are git only (no manual branches, no merge requests).
-const STORAGE_KEY = 'nhost-dummy-branches-v2';
+// v3: the seed starts at the limit, with pull requests waiting for a slot.
+const STORAGE_KEY = 'nhost-dummy-branches-v3';
 const EMPTY: Record<string, ProjectBranchesState> = {};
 
 /**
@@ -127,8 +145,89 @@ function seed(): ProjectBranchesState {
         lastActivityAt: ago(60 * 24 * 41),
         status: 'ready',
       },
+      {
+        id: 'b-pricing',
+        name: 'pricing-tiers',
+        isProduction: false,
+        gitBranch: 'feature/pricing-tiers',
+        pullRequest: 43,
+        pullRequestTitle: 'Usage based pricing tiers',
+        lastPushBy: 'Ana Costa',
+        createdAt: ago(60 * 20),
+        createdBy: 'Ana Costa',
+        lastActivityAt: ago(60 * 5),
+        status: 'ready',
+      },
+    ],
+    // Five branches, limit five: these two are waiting.
+    waiting: [
+      {
+        pullRequest: 45,
+        title: 'Rate limit the public API',
+        gitBranch: 'feature/rate-limit',
+        openedBy: 'Ana Costa',
+        openedAt: ago(50),
+      },
+      {
+        pullRequest: 46,
+        title: 'Sign in with Apple',
+        gitBranch: 'feature/apple-sign-in',
+        openedBy: 'Marta Silva',
+        openedAt: ago(12),
+      },
     ],
   };
+}
+
+/**
+ * Gives waiting pull requests a branch while there are free slots, oldest
+ * first. Runs whenever a slot can free up: the limit goes up, automatic
+ * branching turns on, or a pull request closes.
+ */
+function fillSlots(s: ProjectBranchesState): ProjectBranchesState {
+  if (!(s.automaticBranching ?? true)) {
+    return s;
+  }
+  const limit = s.branchLimit ?? DEFAULT_BRANCH_LIMIT;
+  const count = s.branches.filter((b) => !b.isProduction).length;
+  const waiting = s.waiting ?? [];
+  const free = Math.max(0, limit - count);
+  if (!free || !waiting.length) {
+    return s;
+  }
+  const now = new Date().toISOString();
+  return {
+    ...s,
+    waiting: waiting.slice(free),
+    branches: [
+      ...s.branches,
+      ...waiting.slice(0, free).map(
+        (pr): Branch => ({
+          id: `b-pr-${pr.pullRequest}`,
+          name: toBranchSlug(pr.gitBranch.replace(/^(feature|fix)\//, '')),
+          isProduction: false,
+          gitBranch: pr.gitBranch,
+          pullRequest: pr.pullRequest,
+          pullRequestTitle: pr.title,
+          createdAt: now,
+          createdBy: pr.openedBy,
+          lastPushBy: pr.openedBy,
+          lastActivityAt: now,
+          status: 'creating',
+          demoStartedAt: now,
+        }),
+      ),
+    ],
+  };
+}
+
+/** 1st, 2nd, 3rd, 4th… for places in the queue. */
+export function ordinal(n: number) {
+  const suffix =
+    n % 100 >= 11 && n % 100 <= 13
+      ? 'th'
+      : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10];
+  return `${n}${suffix ?? 'th'}`;
 }
 
 /** Branch names: lowercase letters, numbers and single hyphens. */
@@ -202,7 +301,53 @@ export function useDummyBranches() {
   const saveSettings = (input: {
     automaticBranching: boolean;
     branchLimit: number;
-  }) => update((s) => ({ ...s, ...input }));
+  }) => update((s) => fillSlots({ ...s, ...input }));
+
+  /**
+   * DUMMY: the oldest pull request gets merged on GitHub, so its branch is
+   * removed and the first waiting pull request takes the slot.
+   */
+  const demoClosePullRequest = () => {
+    const oldest = [...state.branches]
+      .filter((b) => !b.isProduction)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
+    if (!oldest) {
+      return null;
+    }
+    update((s) =>
+      fillSlots({
+        ...s,
+        currentBranchId:
+          s.currentBranchId === oldest.id ? 'production' : s.currentBranchId,
+        branches: s.branches.filter((b) => b.id !== oldest.id),
+      }),
+    );
+    return oldest;
+  };
+
+  // DUMMY: branches made from the queue go Creating, Deploying, Ready.
+  useEffect(() => {
+    if (!state.branches.some((b) => b.demoStartedAt && b.status !== 'ready')) {
+      return undefined;
+    }
+    const timer = setTimeout(
+      () =>
+        update((s) => ({
+          ...s,
+          branches: s.branches.map((b) => {
+            if (!b.demoStartedAt || b.status === 'ready') {
+              return b;
+            }
+            const age = Date.now() - Date.parse(b.demoStartedAt);
+            const status: BranchStatus =
+              age >= 9000 ? 'ready' : age >= 4000 ? 'deploying' : 'creating';
+            return { ...b, status };
+          }),
+        })),
+      1000,
+    );
+    return () => clearTimeout(timer);
+  }, [state, update]);
 
   const setGithubConnected = (connected: boolean) =>
     update((s) => ({
@@ -226,12 +371,15 @@ export function useDummyBranches() {
     automaticBranching,
     branchLimit,
     atLimit: automaticBranching && branchCount >= branchLimit,
+    // Nothing waits while automatic branching is off.
+    waiting: automaticBranching ? (state.waiting ?? []) : [],
     githubConnected: state.githubConnected,
     switchTo,
     renameBranch,
     saveSettings,
     setGithubConnected,
     resetDemo,
+    demoClosePullRequest,
   };
 }
 
