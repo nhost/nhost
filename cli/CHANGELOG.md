@@ -1,3 +1,14 @@
+## [cli@1.53.1] - 2026-11-13
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Keep default-only inserts for generated columns (#5377)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.53.0
+
 ## [cli@1.53.0] - 2026-11-11
 
 ### 🚀 Features
