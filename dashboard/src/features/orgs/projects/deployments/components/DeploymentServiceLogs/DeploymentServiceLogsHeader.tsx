@@ -58,7 +58,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
           <LogsRegexFilter {...form.register('regexFilter')} />
           <ButtonWithLoading
             type="submit"
-            className="h-10 min-w-min gap-2"
+            className="min-w-min gap-2"
             loading={loading}
             loaderClassName="h-5 w-5"
           >

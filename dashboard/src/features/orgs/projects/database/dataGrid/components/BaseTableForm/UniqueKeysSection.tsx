@@ -96,7 +96,7 @@ function UniqueKeyDialog({
       <div className="grid gap-2">
         <span className="font-medium text-sm">Columns</span>
         <MultiSelect values={columnIndices} onValuesChange={setColumnIndices}>
-          <MultiSelectTrigger aria-label="Columns" className="h-10 w-full">
+          <MultiSelectTrigger aria-label="Columns" className="w-full">
             <MultiSelectValue placeholder="Select columns" />
           </MultiSelectTrigger>
           <MultiSelectContent

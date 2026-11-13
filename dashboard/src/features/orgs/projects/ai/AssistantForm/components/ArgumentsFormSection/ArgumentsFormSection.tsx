@@ -86,7 +86,7 @@ export default function ArgumentsFormSection({
                   className={`${argumentFieldClasses} min-h-10 resize-y`}
                 />
 
-                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-start">
+                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center">
                   <FormSelect
                     control={form.control}
                     name={typeField}
@@ -107,7 +107,7 @@ export default function ArgumentsFormSection({
                     name={requiredField}
                     label="Required"
                     className="border-muted-foreground/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/35 dark:data-[state=checked]:border-primary dark:data-[state=checked]:bg-primary dark:data-[state=unchecked]:bg-slate-500"
-                    containerClassName="flex h-10 flex-row-reverse items-center gap-2 space-y-0 px-1"
+                    containerClassName="flex flex-row-reverse items-center gap-2 space-y-0 px-1"
                     labelClassName="font-normal text-muted-foreground"
                   />
 
@@ -115,7 +115,6 @@ export default function ArgumentsFormSection({
                     type="button"
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove argument"
                     onClick={() => remove(index)}
                   >

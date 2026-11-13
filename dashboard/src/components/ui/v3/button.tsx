@@ -2,6 +2,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
+import { controlHeight } from '@/components/ui/v3/control';
 import { cn } from '@/lib/utils';
 
 const baseButtonVariants = cva(
@@ -39,12 +40,15 @@ const baseButtonVariants = cva(
       // it. Icon props like `size={16}` don't (CSS beats SVG attributes).
       size: {
         xs: 'h-8 rounded-md px-2 [:where(&_svg)]:size-4',
-        sm: 'h-9 rounded-md px-3 [:where(&_svg)]:size-4',
-        md: 'h-10 px-4 py-2 [:where(&_svg)]:size-4',
+        sm: `${controlHeight} rounded-md px-3 [:where(&_svg)]:size-4`,
+        md: 'h-11 px-4 py-2 md:h-10 [:where(&_svg)]:size-4',
         lg: 'h-11 rounded-md px-8 [:where(&_svg)]:size-5',
+        // No height or padding: the button is as tall as its content. For
+        // links inside text, like `variant="link"` in a sentence or form hint.
+        inline: '[:where(&_svg)]:size-4',
         'icon-xs': 'h-6 w-6 [:where(&_svg)]:size-3.5',
         'icon-sm': 'h-8 w-8 [:where(&_svg)]:size-4',
-        icon: 'h-10 w-10 [:where(&_svg)]:size-5',
+        icon: `${controlHeight} w-11 md:w-9 [:where(&_svg)]:size-4`,
       },
     },
     compoundVariants: [

@@ -333,7 +333,7 @@ export default function EditGraphQLCustomizations({
                 </div>
                 <div className="flex">
                   <Button
-                    className="h-10 self-end"
+                    className="self-end"
                     aria-label="Remove type remap"
                     variant="subtle"
                     size="icon"
@@ -405,10 +405,7 @@ export default function EditGraphQLCustomizations({
                           </PopoverTrigger>
                           <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                             <Command>
-                              <CommandInput
-                                placeholder="Search type..."
-                                className="h-9"
-                              />
+                              <CommandInput placeholder="Search type..." />
                               <CommandList>
                                 <CommandEmpty>No type found.</CommandEmpty>
                                 <CommandGroup>
@@ -502,7 +499,7 @@ export default function EditGraphQLCustomizations({
                   </div>
                   <div className="flex">
                     <Button
-                      className="h-10 self-end"
+                      className="self-end"
                       aria-label="Remove field name"
                       variant="subtle"
                       size="icon"

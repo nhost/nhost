@@ -264,11 +264,10 @@ function RemoteSchemaBrowserSidebarContent({
                           >
                             <Button
                               variant="subtle"
-                              size="icon"
+                              size="icon-xs"
                               aria-label="Remote schema options"
-                              className="h-6 w-6"
                             >
-                              <DotsHorizontalIcon />
+                              <DotsHorizontalIcon className="size-6" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent

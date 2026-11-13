@@ -144,7 +144,7 @@ export default function EditJwtSecretForm({
                     disabled={disabled}
                     aria-label="JWT Secret"
                     rows={4}
-                    className="font-mono text-sm"
+                    className="font-mono"
                   />
                 </FormControl>
                 <FormMessage />

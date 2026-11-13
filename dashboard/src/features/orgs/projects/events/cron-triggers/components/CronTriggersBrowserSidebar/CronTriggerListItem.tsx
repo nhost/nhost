@@ -84,8 +84,7 @@ export default function CronTriggerListItem({
               >
                 <Button
                   variant="subtle"
-                  size="icon"
-                  className="h-6 w-6"
+                  size="icon-xs"
                   data-testid={`cron-trigger-menu-${cronTrigger.name}`}
                   onClick={(event) => {
                     event.preventDefault();

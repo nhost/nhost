@@ -33,7 +33,7 @@ export function TypeCombobox({ index }: FieldArrayInputProps) {
   if (isGenerated) {
     return (
       <div
-        className="flex h-10 w-full cursor-not-allowed items-center rounded-md border bg-background px-4 py-2 text-sm opacity-50"
+        className="flex h-11 w-full cursor-not-allowed items-center rounded-md border bg-background px-3 py-2 text-sm opacity-50 md:h-9"
         data-testid={`columns.${index}.type`}
       >
         <span className="truncate">{type ?? ''}</span>
