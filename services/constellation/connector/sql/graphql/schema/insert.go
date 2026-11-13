@@ -134,7 +134,8 @@ func generateInsertInput(
 			`input type for inserting data into table "%s"`,
 			qualifiedName,
 		),
-		Fields: fields,
+		Fields:         fields,
+		EmptySQLInsert: len(fields) == 0,
 	})
 }
 

@@ -261,6 +261,7 @@ func convertSDLInput(typ *ast.Definition) *graph.InputObjectType {
 		Fields:           convertInputFields(typ.Fields),
 		Directives:       nil,
 		ComputedArgument: false,
+		EmptySQLInsert:   false,
 	}
 }
 

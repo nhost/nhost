@@ -311,9 +311,8 @@ func generateFunctions(
 	}
 }
 
-// findInsertableTables prunes tables without any representable insert field.
-// Start with every eligible table so relationship-only cycles survive: their
-// nullable relationship fields are valid inputs even without writable columns.
+// findInsertableTables retains permitted inserts even when every column is
+// generated or preset. Hasura accepts {} for these genuinely empty inputs.
 func findInsertableTables(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
@@ -333,28 +332,7 @@ func findInsertableTables(
 		}
 	}
 
-	for {
-		previousCount := len(insertableTables)
-
-		for i := range md.Tables {
-			tableMeta := &md.Tables[i]
-
-			name := getCustomOrDefaultTypeName(tableMeta)
-			if _, ok := insertableTables[name]; !ok {
-				continue
-			}
-
-			tableInfo, _ := objects.GetTable(tableMeta.Table.Schema, tableMeta.Table.Name)
-			if len(getInsertAllowedColumns(tableMeta, tableInfo, role)) == 0 &&
-				len(getInsertRelationshipFields(tableMeta, tableInfo, md, insertableTables)) == 0 {
-				delete(insertableTables, name)
-			}
-		}
-
-		if len(insertableTables) == previousCount {
-			return insertableTables
-		}
-	}
+	return insertableTables
 }
 
 func findRelationships(
