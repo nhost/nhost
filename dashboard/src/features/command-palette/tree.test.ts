@@ -43,7 +43,6 @@ describe('commandPaletteTree', () => {
       title: 'Support',
       kind: 'page',
       path: '/support',
-      scope: 'external',
       keywords: ['support', 'help', 'contact'],
       gate: 'platform',
     });

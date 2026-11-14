@@ -343,7 +343,7 @@ describe('CommandPaletteTrigger', () => {
       name: /^Account Settings(?:Page)?$/,
     });
     const support = screen.getByRole('option', {
-      name: /^Support\/support(?:Page)?$/,
+      name: /^Support(?:Page)?$/,
     });
     const docs = screen.getByRole('option', { name: /^Docs/ });
 
@@ -365,7 +365,7 @@ describe('CommandPaletteTrigger', () => {
     await replaceQuery(input, 'help');
     expect(
       await screen.findByRole('option', {
-        name: /^Support\/support(?:Page)?$/,
+        name: /^Support(?:Page)?$/,
       }),
     ).toBeInTheDocument();
   });
@@ -390,25 +390,23 @@ describe('CommandPaletteTrigger', () => {
     expect(window.localStorage.getItem('command-palette-recent')).toBeNull();
   });
 
-  it('opens Support safely in a new tab without routing in-app', async () => {
+  it('opens Support in the dashboard without a new tab', async () => {
     renderTrigger();
     const input = await openPaletteAtRoot();
     await replaceQuery(input, 'support');
 
     await user.click(
       await screen.findByRole('option', {
-        name: /^Support\/support(?:Page)?$/,
+        name: /^Support(?:Page)?$/,
       }),
     );
 
     await waitFor(() => {
-      expect(openWindow).toHaveBeenCalledWith(
-        '/support',
-        '_blank',
-        'noopener,noreferrer',
-      );
+      expect(push).toHaveBeenCalledWith('/support', undefined, {
+        shallow: true,
+      });
     });
-    expect(push).not.toHaveBeenCalled();
+    expect(openWindow).not.toHaveBeenCalled();
   });
 
   it('opens docs in a new tab without routing in-app', async () => {
@@ -642,7 +640,7 @@ describe('CommandPaletteTrigger', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
-        name: /^Support\/support(?:Page)?$/,
+        name: /^Support(?:Page)?$/,
       }),
     ).not.toBeInTheDocument();
 
@@ -657,7 +655,7 @@ describe('CommandPaletteTrigger', () => {
     await replaceQuery(input, 'help');
     expect(
       screen.queryByRole('option', {
-        name: /^Support\/support(?:Page)?$/,
+        name: /^Support(?:Page)?$/,
       }),
     ).not.toBeInTheDocument();
   });

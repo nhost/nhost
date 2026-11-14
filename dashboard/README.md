@@ -102,6 +102,24 @@ The dashboard supports build-time CSP configuration to enable self-hosted deploy
 | `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`       | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |
 | `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`     | URL of the Bragi websocket. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.    |
 
+## Native support
+
+The platform dashboard includes a native support workspace:
+
+- `/support`: organization-visible customer tickets, or global queues for support agents. Search titles and organization names, filter by status, and paginate results. Agents also have assigned-to-me and unassigned queues.
+- `/support/ticket`: create a ticket for one of your organizations, optionally tied to a current project. The form collects title, severity, affected services, and description.
+- `/support/tickets/[ticketId]`: public conversation and activity, with status transitions, self-assignment, unassignment, and severity changes restricted to support agents. Customers can view ticket details and reply, but cannot update ticket fields. Agents can reopen resolved tickets; closed tickets are final and read-only.
+
+This uses the existing dashboard Nhost session and GraphQL endpoint. There is **no separate support login, OAuth client, admin secret, or Zendesk credential**. The old `/api/support/create-ticket` route is removed; clients must use the native GraphQL API instead. Existing Zendesk tickets are not imported.
+
+Before deploying the dashboard, deploy the console-next `support` schema migration and metadata. Grant staff the native `support_agents` allowed role while retaining `user`, then renew their session. A role cannot be granted by browser metadata or a UI toggle. Customers use the same live organization-membership permissions as application visibility; agents can read the global support queue without gaining general access to customer projects. Creating a ticket still requires current membership, even for staff.
+
+Support is available only with `NEXT_PUBLIC_NHOST_PLATFORM=true`. Keep normal platform Auth/GraphQL URLs pointed at console-next. Do not point the support workspace at an arbitrary customer project's backend. GraphQL documents live in `src/gql/support/`; regenerate types with `pnpm codegen` against a migrated console-next endpoint.
+
+Queues and conversations refresh every 30 seconds and after writes. Status, severity, and assignment updates use the ticket version to detect conflicts. Severity is recorded as submitted, not used to promise an SLA. Email intake/notifications, attachments, private notes, automated SLAs, and historical Zendesk migration are not included; users follow replies in the dashboard.
+
+The dashboard's existing Nix package and CI checks include these routes, generated types, and tests; no separate support service or frontend deployment is needed.
+
 ## Biome Linting Rules
 
 This project uses [Biome](https://biomejs.dev/) for linting. The rules are configured in `biome.jsonc`.
