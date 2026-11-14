@@ -59,6 +59,19 @@ Triggers:
 **Effect:** the entire remote schema is omitted. Other sources serve as
 normal.
 
+### `read_replica` (PostgreSQL / SQLite source)
+
+Recorded when an entry in a database source's `configuration.read_replicas`
+cannot be used. `source` is the database name and `name` is the entry's
+position, e.g. `read_replicas[1]`; the URL is never recorded. Triggers:
+
+* The replica URL fails to resolve (unresolved env var, empty value).
+* The replica cannot be reached within 5 seconds.
+* The source is SQLite, which has no replica support.
+
+**Effect:** only that replica is skipped. The source keeps serving from its
+primary and from any other replicas. Other sources serve as normal.
+
 ### `table` (PostgreSQL / SQLite source)
 
 Recorded when metadata tracks `schema.table` but the source has no such
@@ -210,6 +223,7 @@ produce.
 |---|---|---|---|
 | `database` | ✅ | ✅ | — |
 | `remote_schema` | — | — | ✅ |
+| `read_replica` | ✅ | ✅ (always, when `read_replicas` is set) | — |
 | `table` | ✅ | ✅ | — |
 | `column` | ✅ | ✅ | — |
 | `function` | ✅ | — | — |

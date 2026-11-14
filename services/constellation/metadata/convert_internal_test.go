@@ -41,6 +41,43 @@ func TestConvertDatabaseURL(t *testing.T) {
 	}
 }
 
+func TestConvertReadReplicas(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   []hasura.DatabaseConnectionInfo
+		want []DatabaseConnectionInfo
+	}{
+		{
+			name: "none",
+			in:   nil,
+			want: nil,
+		},
+		{
+			name: "from env and direct url",
+			in: []hasura.DatabaseConnectionInfo{
+				{DatabaseURL: hasura.DatabaseURL{FromEnv: "PG_REPLICA_URL_1"}},
+				{DatabaseURL: hasura.DatabaseURL{URL: "postgres://replica-2/app"}},
+			},
+			want: []DatabaseConnectionInfo{
+				{DatabaseURL: "{{PG_REPLICA_URL_1}}"},
+				{DatabaseURL: "postgres://replica-2/app"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if diff := cmp.Diff(tt.want, convertReadReplicas(tt.in)); diff != "" {
+				t.Errorf("convertReadReplicas mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestConvertHeaderValue(t *testing.T) {
 	t.Parallel()
 

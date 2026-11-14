@@ -10,6 +10,10 @@ var ErrUnsupportedDatabaseKind = errors.New("unsupported database kind")
 // is empty after consulting metadata and environment variables.
 var ErrDatabaseURLNotSet = errors.New("database URL is not set")
 
+var errReadReplicasNotSupported = errors.New(
+	"read replicas are only supported for postgres sources",
+)
+
 // ErrUnsupportedCustomization is returned when a connector customization
 // configuration uses a feature that is not yet supported by the execution
 // path (e.g. per-type field_names renames).

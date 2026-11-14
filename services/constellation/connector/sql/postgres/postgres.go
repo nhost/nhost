@@ -11,9 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	csql "github.com/nhost/nhost/services/constellation/connector/sql"
@@ -22,7 +24,17 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-var errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+var (
+	errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+	errBeginTransaction        = errors.New("failed to begin transaction")
+	errReplicaBehind           = errors.New("read replica is behind data already delivered")
+	errNoReplayPosition        = errors.New("server reported no WAL replay position")
+)
+
+const (
+	replayPositionSQL  = "SELECT (pg_last_wal_replay_lsn() - '0/0'::pg_lsn)::bigint"
+	primaryPositionSQL = "SELECT (pg_current_wal_insert_lsn() - '0/0'::pg_lsn)::bigint"
+)
 
 // Querier abstracts database query execution. Both Pool and Tx satisfy this
 // interface, which lets unexported helpers run against either a pool or a
@@ -76,6 +88,11 @@ const (
 	poolMinMaxConnLifetime   = time.Hour
 	poolMinMaxConnIdleTime   = time.Minute * 30
 	poolMinHealthCheckPeriod = time.Minute
+	replicaConnectTimeout    = 5 * time.Second
+	replicaAttemptTimeout    = 10 * time.Second
+	// replicaAttemptShareDivisor leaves a replica attempt at most half of the
+	// caller's remaining time, keeping the rest for the primary.
+	replicaAttemptShareDivisor = 2
 )
 
 // Retry configuration for the constellation_throw_error init SQL. Declared as
@@ -91,6 +108,20 @@ var (
 func newPool( //nolint:ireturn,nolintlint
 	ctx context.Context, connStr string,
 ) (Pool, error) {
+	config, err := newPoolConfig(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	pgxPool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	return &poolAdapter{Pool: pgxPool}, nil
+}
+
+func newPoolConfig(connStr string) (*pgxpool.Config, error) {
 	config, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database config: %w", err)
@@ -116,12 +147,7 @@ func newPool( //nolint:ireturn,nolintlint
 		config.HealthCheckPeriod = poolMinHealthCheckPeriod
 	}
 
-	pgxPool, err := pgxpool.NewWithConfig(ctx, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	return &poolAdapter{Pool: pgxPool}, nil
+	return config, nil
 }
 
 // poolAdapter wraps *pgxpool.Pool so it implements the local Pool interface
@@ -191,7 +217,13 @@ func (t *txAdapter) Exec(ctx context.Context, sql string, args ...any) error {
 
 // Client implements the sql.Driver interface for PostgreSQL.
 type Client struct {
-	pool Pool
+	pool        Pool
+	replicas    []Pool
+	nextReplica atomic.Uint64
+	// readFloor is the newest WAL position whose data a subscription poll may
+	// already have delivered. A replica that has not replayed up to it is
+	// skipped so no subscriber is sent older data than it has seen.
+	readFloor atomic.Int64
 }
 
 const sqlInit = `CREATE OR REPLACE FUNCTION constellation_throw_error(message text, errcode text)
@@ -236,7 +268,12 @@ func execSQLInit(ctx context.Context, q Querier) error {
 // connector/sql/graphql/schema) can build a *Client around a Pool they
 // already own.
 func NewClient(pool Pool) *Client {
-	return &Client{pool: pool}
+	return &Client{
+		pool:        pool,
+		replicas:    nil,
+		nextReplica: atomic.Uint64{},
+		readFloor:   atomic.Int64{},
+	}
 }
 
 // Open opens a pgx connection pool against connStr and runs the
@@ -261,12 +298,15 @@ func Open(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,
 
 // New creates a PostgreSQL-backed sql.Connector — convenience for
 // Open + NewClient + csql.NewConnector for callers who just want the full
-// connector wired up from a connection string. inconsistencies receives per-
-// table / per-column / per-function reconciliation entries (pass nil to drop
+// connector wired up from a connection string. replicaURLs holds one entry per
+// metadata read replica, in order; an empty entry marks a replica that was
+// already skipped. inconsistencies receives per-table / per-column /
+// per-function reconciliation entries and skipped replicas (pass nil to drop
 // them on the floor).
 func New(
 	ctx context.Context,
 	connStr string,
+	replicaURLs []string,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
@@ -276,13 +316,105 @@ func New(
 		return nil, err
 	}
 
-	c, err := csql.NewConnector(ctx, NewClient(pool), dbMeta, inconsistencies, logger)
+	client := NewClient(pool)
+	client.replicas = openReplicas(ctx, replicaURLs, dbMeta.Name, inconsistencies, logger)
+
+	c, err := csql.NewConnector(ctx, client, dbMeta, inconsistencies, logger)
 	if err != nil {
-		pool.Close()
+		client.Close()
 		return nil, fmt.Errorf("failed to create sql connector: %w", err)
 	}
 
 	return c, nil
+}
+
+// openReplicas opens a pool for every non-empty replica URL. A replica that
+// cannot be reached is recorded as an inconsistency and left out, so the
+// source keeps serving from its primary.
+func openReplicas(
+	ctx context.Context,
+	replicaURLs []string,
+	source string,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
+) []Pool {
+	var replicas []Pool
+
+	for i, connStr := range replicaURLs {
+		if connStr == "" {
+			continue
+		}
+
+		replica, err := openReplica(ctx, connStr)
+		if err != nil {
+			inconsistencies.RecordReadReplica(ctx, logger, source, i, replicaFailureReason(err))
+			continue
+		}
+
+		replicas = append(replicas, replica)
+	}
+
+	return replicas
+}
+
+// replicaFailureReason describes why a replica could not be opened without
+// the connection string, which pgx copies into parse errors and can carry a
+// password.
+func replicaFailureReason(err error) string {
+	if _, ok := errors.AsType[*pgconn.ParseConfigError](err); ok {
+		return "invalid read replica connection string"
+	}
+
+	return err.Error()
+}
+
+// openReplica opens a pool against a read-only replica within
+// replicaConnectTimeout. Unlike [Open] it runs no init SQL, which would fail
+// on a standby, and instead checks that the replica answers a query. Every
+// later connection attempt to the replica is bounded by the same timeout.
+func openReplica(ctx context.Context, connStr string) (Pool, error) { //nolint:ireturn,nolintlint
+	config, err := newPoolConfig(connStr)
+	if err != nil {
+		return nil, fmt.Errorf("opening read replica: %w", err)
+	}
+
+	if config.ConnConfig.ConnectTimeout == 0 ||
+		config.ConnConfig.ConnectTimeout > replicaConnectTimeout {
+		config.ConnConfig.ConnectTimeout = replicaConnectTimeout
+	}
+
+	connectCtx, cancel := context.WithTimeout(ctx, replicaConnectTimeout)
+	defer cancel()
+
+	pgxPool, err := pgxpool.NewWithConfig(connectCtx, config)
+	if err != nil {
+		return nil, fmt.Errorf("opening read replica: %w", err)
+	}
+
+	pool := &poolAdapter{Pool: pgxPool}
+
+	if err := pool.Exec(connectCtx, "SELECT 1"); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("connecting to read replica: %w", err)
+	}
+
+	return pool, nil
+}
+
+// replicaAttemptContext bounds one attempt on a read replica to
+// replicaAttemptTimeout or half of the caller's remaining time, whichever is
+// shorter, so a replica that stops responding leaves time to retry on the
+// primary.
+func replicaAttemptContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	timeout := replicaAttemptTimeout
+
+	if deadline, ok := ctx.Deadline(); ok {
+		if share := time.Until(deadline) / replicaAttemptShareDivisor; share < timeout {
+			timeout = share
+		}
+	}
+
+	return context.WithTimeout(ctx, timeout)
 }
 
 // Dialect returns the PostgreSQL SQL dialect.
@@ -290,22 +422,69 @@ func (c *Client) Dialect() dialect.Dialect { //nolint:ireturn,nolintlint
 	return dialect.NewPostgresDialect()
 }
 
-// Close releases the underlying connection pool.
+// Close releases the primary and replica connection pools.
 func (c *Client) Close() {
 	c.pool.Close()
+
+	for _, replica := range c.replicas {
+		replica.Close()
+	}
 }
 
 // ExecuteOperations executes a list of SQL operations within a single
-// transaction. Uses named returns so the rollback defer reads the actual
-// error returned by the function body.
-//
-//nolint:nonamedreturns
+// transaction on the primary.
 func (c *Client) ExecuteOperations(
 	ctx context.Context, operations []core.SQLOperation, logger *slog.Logger,
+) (map[string]any, error) {
+	return c.executeOperationsOn(ctx, c.pool, operations, logger)
+}
+
+// ExecuteReadOperations executes read-only operations on the next read
+// replica in turn, or on the primary when the source has none. If the replica
+// cannot start a transaction the operations run on the primary instead; any
+// other failure is returned as is.
+func (c *Client) ExecuteReadOperations(
+	ctx context.Context, operations []core.SQLOperation, logger *slog.Logger,
+) (map[string]any, error) {
+	if len(c.replicas) == 0 {
+		return c.executeOperationsOn(ctx, c.pool, operations, logger)
+	}
+
+	attemptCtx, cancel := replicaAttemptContext(ctx)
+	result, err := c.executeOperationsOn(attemptCtx, c.pickReplica(), operations, logger)
+	timedOut := errors.Is(attemptCtx.Err(), context.DeadlineExceeded) && ctx.Err() == nil
+
+	cancel()
+
+	if errors.Is(err, errBeginTransaction) || (err != nil && timedOut) {
+		logger.WarnContext(
+			ctx, "read replica unavailable, running query on primary",
+			slog.String("error", err.Error()),
+		)
+
+		return c.executeOperationsOn(ctx, c.pool, operations, logger)
+	}
+
+	return result, err
+}
+
+// pickReplica returns the next read replica in turn. The client must have at
+// least one.
+func (c *Client) pickReplica() Pool { //nolint:ireturn,nolintlint
+	return c.replicas[(c.nextReplica.Add(1)-1)%uint64(len(c.replicas))]
+}
+
+// executeOperationsOn executes operations within a single transaction on
+// pool. Uses named returns so the rollback defer reads the actual error
+// returned by the function body.
+//
+//nolint:nonamedreturns
+func (c *Client) executeOperationsOn(
+	ctx context.Context, pool Pool, operations []core.SQLOperation, logger *slog.Logger,
 ) (result map[string]any, err error) {
-	tx, err := c.pool.BeginTx(ctx)
+	tx, err := pool.BeginTx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("%w: %w", errBeginTransaction, err)
 	}
 
 	defer func() {
@@ -439,7 +618,105 @@ func (c *Client) ExecuteMultiplexedOperation(
 		slog.Int("args", len(args)),
 	)
 
-	rows, err := c.pool.Query(ctx, sqlQuery, args...)
+	if len(c.replicas) == 0 {
+		return queryMultiplexed(ctx, c.pool, sqlQuery, args, logger)
+	}
+
+	attemptCtx, cancel := replicaAttemptContext(ctx)
+	results, err := c.multiplexedOnReplica(attemptCtx, c.pickReplica(), sqlQuery, args, logger)
+
+	cancel()
+
+	if err == nil {
+		return results, nil
+	}
+
+	logger.DebugContext(
+		ctx, "running subscription poll on primary", slog.String("reason", err.Error()),
+	)
+
+	return c.multiplexedOnPrimary(ctx, sqlQuery, args, logger)
+}
+
+// multiplexedOnReplica runs a subscription poll on replica only if the replica
+// has replayed everything a previous poll may have delivered. Its replay
+// position is read before the poll query, to compare with the floor, and
+// after it, to raise the floor: the query saw data between the two.
+func (c *Client) multiplexedOnReplica(
+	ctx context.Context, replica Pool, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	before, err := walPosition(ctx, replica, replayPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	if before < c.readFloor.Load() {
+		return nil, errReplicaBehind
+	}
+
+	results, err := queryMultiplexed(ctx, replica, sqlQuery, args, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := walPosition(ctx, replica, replayPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	c.raiseReadFloor(after)
+
+	return results, nil
+}
+
+// multiplexedOnPrimary runs a subscription poll on the primary and raises the
+// floor to the primary's WAL position read after the query.
+func (c *Client) multiplexedOnPrimary(
+	ctx context.Context, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	results, err := queryMultiplexed(ctx, c.pool, sqlQuery, args, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	after, err := walPosition(ctx, c.pool, primaryPositionSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	c.raiseReadFloor(after)
+
+	return results, nil
+}
+
+func (c *Client) raiseReadFloor(position int64) {
+	for {
+		current := c.readFloor.Load()
+		if position <= current || c.readFloor.CompareAndSwap(current, position) {
+			return
+		}
+	}
+}
+
+// walPosition returns the WAL position reported by positionSQL as a byte
+// offset.
+func walPosition(ctx context.Context, q Querier, positionSQL string) (int64, error) {
+	var position *int64
+	if err := q.QueryRow(ctx, positionSQL).Scan(&position); err != nil {
+		return 0, fmt.Errorf("reading WAL position: %w", err)
+	}
+
+	if position == nil {
+		return 0, errNoReplayPosition
+	}
+
+	return *position, nil
+}
+
+func queryMultiplexed(
+	ctx context.Context, q Querier, sqlQuery string, args []any, logger *slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	rows, err := q.Query(ctx, sqlQuery, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute multiplexed query: %w", err)
 	}

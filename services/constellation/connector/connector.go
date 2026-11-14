@@ -342,6 +342,37 @@ func resolveDBURL(dbMeta *metadata.DatabaseMetadata) (string, error) {
 	return dbURL, nil
 }
 
+// resolveReplicaURLs resolves every read replica URL of dbMeta, keeping each
+// at its metadata position. A replica whose URL cannot be resolved is recorded
+// and left as an empty entry.
+func resolveReplicaURLs(
+	ctx context.Context,
+	dbMeta *metadata.DatabaseMetadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
+) []string {
+	urls := make([]string, len(dbMeta.Configuration.ReadReplicas))
+
+	for i, replica := range dbMeta.Configuration.ReadReplicas {
+		url, err := replica.DatabaseURL.Resolve()
+
+		switch {
+		case err != nil:
+			inconsistencies.RecordReadReplica(
+				ctx, logger, dbMeta.Name, i, fmt.Sprintf("resolving database URL: %v", err),
+			)
+		case url == "":
+			inconsistencies.RecordReadReplica(
+				ctx, logger, dbMeta.Name, i, ErrDatabaseURLNotSet.Error(),
+			)
+		default:
+			urls[i] = url
+		}
+	}
+
+	return urls
+}
+
 func newPostgresConnector( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
@@ -353,7 +384,9 @@ func newPostgresConnector( //nolint:ireturn,nolintlint
 		return nil, fmt.Errorf("creating postgres connector for %s: %w", dbMeta.Name, err)
 	}
 
-	backend, err := postgres.New(ctx, dbURL, dbMeta, inconsistencies, logger)
+	replicaURLs := resolveReplicaURLs(ctx, dbMeta, inconsistencies, logger)
+
+	backend, err := postgres.New(ctx, dbURL, replicaURLs, dbMeta, inconsistencies, logger)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to create postgres connector for %s: %w", dbMeta.Name, err,
@@ -372,6 +405,12 @@ func newSQLiteConnector( //nolint:ireturn,nolintlint
 	dbURL, err := resolveDBURL(dbMeta)
 	if err != nil {
 		return nil, fmt.Errorf("creating sqlite connector for %s: %w", dbMeta.Name, err)
+	}
+
+	for i := range dbMeta.Configuration.ReadReplicas {
+		inconsistencies.RecordReadReplica(
+			ctx, logger, dbMeta.Name, i, errReadReplicasNotSupported.Error(),
+		)
 	}
 
 	backend, err := sqlite.New(ctx, dbURL, dbMeta, inconsistencies, logger)
