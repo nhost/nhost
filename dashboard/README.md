@@ -88,6 +88,8 @@ This will connect the Nhost Dashboard to your locally running Nhost backend.
 
 The dashboard supports build-time CSP configuration to enable self-hosted deployments on custom domains.
 
+The default policy omits `upgrade-insecure-requests` during `pnpm dev` so browsers, particularly Safari, do not try to load the HTTP dev server's JavaScript bundles over HTTPS. Production builds retain HTTPS upgrades. Other default security directives remain enabled, and explicitly configured custom policies are used unchanged.
+
 | Name         | Description                                                                                                                                                                                                                              |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CSP_MODE`   | Controls CSP behavior. Options: `nhost` (default, uses Nhost Cloud CSP), `disabled` (no CSP headers), `custom` (use custom CSP via `CSP_HEADER`). For self-hosted deployments on custom domains, set to `disabled` or `custom`.          |
