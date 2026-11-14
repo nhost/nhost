@@ -11,6 +11,7 @@ import { FormInput } from '@/components/form/FormInput';
 import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { GuestGuard } from '@/features/auth/GuestGuard';
+import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -19,7 +20,12 @@ const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),
   turnstileToken: Yup.string()
     .label('Verification')
-    .required('Please complete the CAPTCHA'),
+    .defined()
+    .test(
+      'captcha',
+      'Please complete the CAPTCHA',
+      (token) => !isTurnstileEnabled() || !!token,
+    ),
 });
 
 export type NewPasswordFormValues = Yup.InferType<typeof validationSchema>;
@@ -58,9 +64,9 @@ export default function NewPasswordPage() {
           },
         },
         {
-          headers: {
-            'x-cf-turnstile-response': turnstileToken,
-          },
+          headers: isTurnstileEnabled()
+            ? { 'x-cf-turnstile-response': turnstileToken }
+            : {},
         },
       );
       setIsSent(true);
@@ -103,33 +109,35 @@ export default function NewPasswordPage() {
               className="!bg-transparent border-border"
             />
 
-            <div className="grid grid-flow-row gap-2">
-              <p className="text-sm">Verification</p>
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                options={{ theme: 'dark', size: 'flexible' }}
-                onSuccess={(token) => {
-                  setValue('turnstileToken', token, {
-                    shouldValidate: true,
-                  });
-                }}
-                onError={() => {
-                  setValue('turnstileToken', '', {
-                    shouldValidate: true,
-                  });
-                }}
-                onExpire={() => {
-                  setValue('turnstileToken', '', {
-                    shouldValidate: true,
-                  });
-                }}
-              />
-              {formState.errors.turnstileToken && (
-                <p className="text-destructive text-sm">
-                  {formState.errors.turnstileToken.message}
-                </p>
-              )}
-            </div>
+            {isTurnstileEnabled() && (
+              <div className="grid grid-flow-row gap-2">
+                <p className="text-sm">Verification</p>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                  options={{ theme: 'dark', size: 'flexible' }}
+                  onSuccess={(token) => {
+                    setValue('turnstileToken', token, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  onError={() => {
+                    setValue('turnstileToken', '', {
+                      shouldValidate: true,
+                    });
+                  }}
+                  onExpire={() => {
+                    setValue('turnstileToken', '', {
+                      shouldValidate: true,
+                    });
+                  }}
+                />
+                {formState.errors.turnstileToken && (
+                  <p className="text-destructive text-sm">
+                    {formState.errors.turnstileToken.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             <ButtonWithLoading
               size="lg"
