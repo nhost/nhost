@@ -7,8 +7,10 @@ import { SupportArea } from '@/features/support/components/SupportArea';
 import TicketDetail from '@/features/support/components/TicketDetail';
 import TicketList from '@/features/support/components/TicketList';
 import {
+  type DashboardSupportEventsQuery,
   type DashboardSupportTicketQuery,
   SupportSeverities_Enum,
+  SupportTicketEventKinds_Enum,
   SupportTicketStatuses_Enum,
 } from '@/generated/graphql';
 import { useAuth } from '@/providers/Auth';
@@ -58,7 +60,17 @@ const initialTicket: NonNullable<DashboardSupportTicketQuery['supportTicket']> =
     resolvedAt: null,
     closedAt: null,
   };
+const initialEvent: DashboardSupportEventsQuery['supportTicketEvents'][number] =
+  {
+    id: 'event-1',
+    actorName: 'Customer Alice',
+    kind: SupportTicketEventKinds_Enum.Created,
+    oldValue: null,
+    newValue: 'new',
+    createdAt: initialTicket.createdAt,
+  };
 let ticket = structuredClone(initialTicket);
+let event = structuredClone(initialEvent);
 let requests: {
   operation: string;
   role: string | null;
@@ -135,19 +147,8 @@ const server = setupServer(
       role: request.headers.get('x-hasura-role'),
       variables,
     });
-    return HttpResponse.json({
-      data: {
-        supportTicketEvents: [
-          {
-            id: 'event-1',
-            actorName: 'Customer Alice',
-            kind: 'created',
-            oldValue: null,
-            newValue: 'new',
-            createdAt: ticket.createdAt,
-          },
-        ],
-      },
+    return HttpResponse.json<{ data: DashboardSupportEventsQuery }>({
+      data: { supportTicketEvents: [event] },
     });
   }),
   nhostGraphQLLink.query(
@@ -247,6 +248,7 @@ beforeEach(() => {
   mockSession.accessToken = sessionToken(['user']);
   queryClient.clear();
   ticket = structuredClone(initialTicket);
+  event = structuredClone(initialEvent);
   requests = [];
   mockSession.decodedToken = structuredClone(originalClaims);
   mockScrollIntoViewAndPointerCapture();
@@ -435,6 +437,32 @@ describe('native dashboard support', () => {
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
   });
+  it.each([
+    { kind: SupportTicketEventKinds_Enum.Created, label: 'Created' },
+    {
+      kind: SupportTicketEventKinds_Enum.StatusChanged,
+      label: 'Status changed',
+    },
+    {
+      kind: SupportTicketEventKinds_Enum.SeverityChanged,
+      label: 'Severity changed',
+    },
+    {
+      kind: SupportTicketEventKinds_Enum.AssignmentChanged,
+      label: 'Assignment changed',
+    },
+  ])(
+    'renders $kind enum events in ticket activity',
+    async ({ kind, label }) => {
+      event.kind = kind;
+      render(<TicketDetail />);
+      await waitFor(() =>
+        expect(
+          screen.getByRole('region', { name: 'Ticket activity' }),
+        ).toHaveTextContent(`Customer Alice · ${label}`),
+      );
+    },
+  );
   it.each([
     SupportTicketStatuses_Enum.New,
     SupportTicketStatuses_Enum.Resolved,

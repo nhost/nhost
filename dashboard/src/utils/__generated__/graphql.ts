@@ -32,9 +32,7 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
-  /** A map of string keys to string values. */
   labels: any;
-  /** Map of string keys to arbitrary values. */
   map: any;
   smallint: any;
   timestamptz: any;
@@ -4480,7 +4478,7 @@ export type Announcements_Read_Bool_Exp = {
 
 /** unique or primary key constraints on table "announcements_read" */
 export enum Announcements_Read_Constraint {
-  /** unique or primary key constraint on columns "user_id", "announcement_id" */
+  /** unique or primary key constraint on columns "announcement_id", "user_id" */
   AnnouncementsReadAnnouncementIdUserIdKey = 'announcements_read_announcement_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
   AnnouncementsReadPkey = 'announcements_read_pkey'
@@ -5710,13 +5708,16 @@ export type Apps_Insert_Input = {
 /** aggregate max on columns */
 export type Apps_Max_Fields = {
   __typename?: 'apps_max_fields';
+  automaticDeploys?: Maybe<Scalars['Boolean']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
   currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
+  metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -5726,19 +5727,23 @@ export type Apps_Max_Fields = {
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
+  stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "apps" */
 export type Apps_Max_Order_By = {
+  automaticDeploys?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
   currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
+  metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -5748,6 +5753,7 @@ export type Apps_Max_Order_By = {
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
+  stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -5755,13 +5761,16 @@ export type Apps_Max_Order_By = {
 /** aggregate min on columns */
 export type Apps_Min_Fields = {
   __typename?: 'apps_min_fields';
+  automaticDeploys?: Maybe<Scalars['Boolean']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
   currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
+  metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -5771,19 +5780,23 @@ export type Apps_Min_Fields = {
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
+  stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "apps" */
 export type Apps_Min_Order_By = {
+  automaticDeploys?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
   currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
+  metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -5793,6 +5806,7 @@ export type Apps_Min_Order_By = {
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
+  stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -6351,13 +6365,13 @@ export type AuthOauth2AuthRequests_Max_Fields = {
   codeChallenge?: Maybe<Scalars['String']>;
   codeChallengeMethod?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  done?: Maybe<Scalars['Boolean']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   nonce?: Maybe<Scalars['String']>;
   redirectUri?: Maybe<Scalars['String']>;
   resource?: Maybe<Scalars['String']>;
   responseType?: Maybe<Scalars['String']>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   state?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -6369,13 +6383,13 @@ export type AuthOauth2AuthRequests_Max_Order_By = {
   codeChallenge?: InputMaybe<Order_By>;
   codeChallengeMethod?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   redirectUri?: InputMaybe<Order_By>;
   resource?: InputMaybe<Order_By>;
   responseType?: InputMaybe<Order_By>;
-  scopes?: InputMaybe<Order_By>;
   state?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -6388,13 +6402,13 @@ export type AuthOauth2AuthRequests_Min_Fields = {
   codeChallenge?: Maybe<Scalars['String']>;
   codeChallengeMethod?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  done?: Maybe<Scalars['Boolean']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   nonce?: Maybe<Scalars['String']>;
   redirectUri?: Maybe<Scalars['String']>;
   resource?: Maybe<Scalars['String']>;
   responseType?: Maybe<Scalars['String']>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   state?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -6406,13 +6420,13 @@ export type AuthOauth2AuthRequests_Min_Order_By = {
   codeChallenge?: InputMaybe<Order_By>;
   codeChallengeMethod?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   redirectUri?: InputMaybe<Order_By>;
   resource?: InputMaybe<Order_By>;
   responseType?: InputMaybe<Order_By>;
-  scopes?: InputMaybe<Order_By>;
   state?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -6986,9 +7000,8 @@ export type AuthOauth2Clients_Max_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
-  redirectUris?: Maybe<Array<Scalars['String']>>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   type?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7000,9 +7013,8 @@ export type AuthOauth2Clients_Min_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
-  redirectUris?: Maybe<Array<Scalars['String']>>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   type?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7273,7 +7285,6 @@ export type AuthOauth2RefreshTokens_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   tokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -7285,7 +7296,6 @@ export type AuthOauth2RefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  scopes?: InputMaybe<Order_By>;
   tokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -7298,7 +7308,6 @@ export type AuthOauth2RefreshTokens_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  scopes?: Maybe<Array<Scalars['String']>>;
   tokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -7310,7 +7319,6 @@ export type AuthOauth2RefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  scopes?: InputMaybe<Order_By>;
   tokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -7510,12 +7518,14 @@ export type AuthProviderRequests_Insert_Input = {
 export type AuthProviderRequests_Max_Fields = {
   __typename?: 'authProviderRequests_max_fields';
   id?: Maybe<Scalars['uuid']>;
+  options?: Maybe<Scalars['jsonb']>;
 };
 
 /** aggregate min on columns */
 export type AuthProviderRequests_Min_Fields = {
   __typename?: 'authProviderRequests_min_fields';
   id?: Maybe<Scalars['uuid']>;
+  options?: Maybe<Scalars['jsonb']>;
 };
 
 /** response of any mutation on the table "auth.provider_requests" */
@@ -8064,6 +8074,7 @@ export type AuthRefreshTokens_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -8073,6 +8084,7 @@ export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -8083,6 +8095,7 @@ export type AuthRefreshTokens_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -8092,6 +8105,7 @@ export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -8487,7 +8501,7 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
+  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
 }
 
@@ -9013,6 +9027,7 @@ export type AuthUserSecurityKeys_Max_Fields = {
   __typename?: 'authUserSecurityKeys_max_fields';
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
+  credentialPublicKey?: Maybe<Scalars['bytea']>;
   id?: Maybe<Scalars['uuid']>;
   nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
@@ -9023,6 +9038,7 @@ export type AuthUserSecurityKeys_Max_Fields = {
 export type AuthUserSecurityKeys_Max_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
+  credentialPublicKey?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
@@ -9034,6 +9050,7 @@ export type AuthUserSecurityKeys_Min_Fields = {
   __typename?: 'authUserSecurityKeys_min_fields';
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
+  credentialPublicKey?: Maybe<Scalars['bytea']>;
   id?: Maybe<Scalars['uuid']>;
   nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
@@ -9044,6 +9061,7 @@ export type AuthUserSecurityKeys_Min_Fields = {
 export type AuthUserSecurityKeys_Min_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
+  credentialPublicKey?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
@@ -10046,6 +10064,7 @@ export type Billing_Reports_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
+  pending?: Maybe<Scalars['Boolean']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10060,6 +10079,7 @@ export type Billing_Reports_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
+  pending?: Maybe<Scalars['Boolean']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10203,10 +10223,10 @@ export type Billing_Reports_Resources_Insert_Input = {
 /** aggregate max on columns */
 export type Billing_Reports_Resources_Max_Fields = {
   __typename?: 'billing_reports_resources_max_fields';
-  app_ids?: Maybe<Array<Scalars['uuid']>>;
   created_at?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organization_id?: Maybe<Scalars['uuid']>;
+  pending?: Maybe<Scalars['Boolean']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10217,10 +10237,10 @@ export type Billing_Reports_Resources_Max_Fields = {
 /** aggregate min on columns */
 export type Billing_Reports_Resources_Min_Fields = {
   __typename?: 'billing_reports_resources_min_fields';
-  app_ids?: Maybe<Array<Scalars['uuid']>>;
   created_at?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organization_id?: Maybe<Scalars['uuid']>;
+  pending?: Maybe<Scalars['Boolean']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -11794,6 +11814,7 @@ export type Buckets_Max_Fields = {
   id?: Maybe<Scalars['String']>;
   maxUploadFileSize?: Maybe<Scalars['Int']>;
   minUploadFileSize?: Maybe<Scalars['Int']>;
+  presignedUrlsEnabled?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -11806,6 +11827,7 @@ export type Buckets_Min_Fields = {
   id?: Maybe<Scalars['String']>;
   maxUploadFileSize?: Maybe<Scalars['Int']>;
   minUploadFileSize?: Maybe<Scalars['Int']>;
+  presignedUrlsEnabled?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -12311,9 +12333,11 @@ export type Continents_Bool_Exp = {
   _and?: InputMaybe<Array<Continents_Bool_Exp>>;
   _not?: InputMaybe<Continents_Bool_Exp>;
   _or?: InputMaybe<Array<Continents_Bool_Exp>>;
+  /** Continent code */
   code?: InputMaybe<Bpchar_Comparison_Exp>;
   countries?: InputMaybe<Countries_Bool_Exp>;
   countries_aggregate?: InputMaybe<Countries_Aggregate_Bool_Exp>;
+  /** Continent name */
   name?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -12375,8 +12399,10 @@ export type Continents_On_Conflict = {
 
 /** Ordering options when selecting data from "continents". */
 export type Continents_Order_By = {
+  /** Continent code */
   code?: InputMaybe<Order_By>;
   countries_aggregate?: InputMaybe<Countries_Aggregate_Order_By>;
+  /** Continent name */
   name?: InputMaybe<Order_By>;
 };
 
@@ -12388,9 +12414,9 @@ export type Continents_Pk_Columns_Input = {
 
 /** select columns of table "continents" */
 export enum Continents_Select_Column {
-  /** column name */
+  /** Continent code */
   Code = 'code',
-  /** column name */
+  /** Continent name */
   Name = 'name'
 }
 
@@ -12420,9 +12446,9 @@ export type Continents_Stream_Cursor_Value_Input = {
 
 /** update columns of table "continents" */
 export enum Continents_Update_Column {
-  /** column name */
+  /** Continent code */
   Code = 'code',
-  /** column name */
+  /** Continent name */
   Name = 'name'
 }
 
@@ -12557,15 +12583,20 @@ export type Countries_Bool_Exp = {
   _and?: InputMaybe<Array<Countries_Bool_Exp>>;
   _not?: InputMaybe<Countries_Bool_Exp>;
   _or?: InputMaybe<Array<Countries_Bool_Exp>>;
+  /** Two-letter country code (ISO 3166-1 alpha-2) */
   code?: InputMaybe<Bpchar_Comparison_Exp>;
   continent?: InputMaybe<Continents_Bool_Exp>;
   continentCode?: InputMaybe<Bpchar_Comparison_Exp>;
   emojiFlag?: InputMaybe<String_Comparison_Exp>;
+  /** Full English country name */
   fullName?: InputMaybe<String_Comparison_Exp>;
+  /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
+  /** Three-letter country code (ISO 3166-1 numeric) */
   isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
+  /** English country name */
   name?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -12690,14 +12721,19 @@ export type Countries_On_Conflict = {
 
 /** Ordering options when selecting data from "countries". */
 export type Countries_Order_By = {
+  /** Two-letter country code (ISO 3166-1 alpha-2) */
   code?: InputMaybe<Order_By>;
   continent?: InputMaybe<Continents_Order_By>;
   continentCode?: InputMaybe<Order_By>;
   emojiFlag?: InputMaybe<Order_By>;
+  /** Full English country name */
   fullName?: InputMaybe<Order_By>;
+  /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Order_By>;
+  /** Three-letter country code (ISO 3166-1 numeric) */
   isoNumber?: InputMaybe<Order_By>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Order_By>;
+  /** English country name */
   name?: InputMaybe<Order_By>;
 };
 
@@ -12709,19 +12745,19 @@ export type Countries_Pk_Columns_Input = {
 
 /** select columns of table "countries" */
 export enum Countries_Select_Column {
-  /** column name */
+  /** Two-letter country code (ISO 3166-1 alpha-2) */
   Code = 'code',
   /** column name */
   ContinentCode = 'continentCode',
   /** column name */
   EmojiFlag = 'emojiFlag',
-  /** column name */
+  /** Full English country name */
   FullName = 'fullName',
-  /** column name */
+  /** Three-letter country code (ISO 3166-1 alpha-3) */
   Iso3 = 'iso3',
-  /** column name */
+  /** Three-letter country code (ISO 3166-1 numeric) */
   IsoNumber = 'isoNumber',
-  /** column name */
+  /** English country name */
   Name = 'name'
 }
 
@@ -12819,19 +12855,19 @@ export type Countries_Sum_Order_By = {
 
 /** update columns of table "countries" */
 export enum Countries_Update_Column {
-  /** column name */
+  /** Two-letter country code (ISO 3166-1 alpha-2) */
   Code = 'code',
   /** column name */
   ContinentCode = 'continentCode',
   /** column name */
   EmojiFlag = 'emojiFlag',
-  /** column name */
+  /** Full English country name */
   FullName = 'fullName',
-  /** column name */
+  /** Three-letter country code (ISO 3166-1 alpha-3) */
   Iso3 = 'iso3',
-  /** column name */
+  /** Three-letter country code (ISO 3166-1 numeric) */
   IsoNumber = 'isoNumber',
-  /** column name */
+  /** English country name */
   Name = 'name'
 }
 
@@ -13953,6 +13989,8 @@ export type Files_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  isUploaded?: Maybe<Scalars['Boolean']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   mimeType?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
@@ -13966,6 +14004,8 @@ export type Files_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isUploaded?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   mimeType?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
@@ -13980,6 +14020,8 @@ export type Files_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  isUploaded?: Maybe<Scalars['Boolean']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   mimeType?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
@@ -13993,6 +14035,8 @@ export type Files_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isUploaded?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   mimeType?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
@@ -14447,6 +14491,7 @@ export type GithubAppInstallations_Max_Fields = {
   accountType?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   externalGithubAppInstallationId?: Maybe<Scalars['Int']>;
+  githubData?: Maybe<Scalars['jsonb']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
@@ -14460,6 +14505,7 @@ export type GithubAppInstallations_Max_Order_By = {
   accountType?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   externalGithubAppInstallationId?: InputMaybe<Order_By>;
+  githubData?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -14474,6 +14520,7 @@ export type GithubAppInstallations_Min_Fields = {
   accountType?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   externalGithubAppInstallationId?: Maybe<Scalars['Int']>;
+  githubData?: Maybe<Scalars['jsonb']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
@@ -14487,6 +14534,7 @@ export type GithubAppInstallations_Min_Order_By = {
   accountType?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   externalGithubAppInstallationId?: InputMaybe<Order_By>;
+  githubData?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -14870,6 +14918,7 @@ export type GithubRepositories_Max_Fields = {
   githubAppInstallationId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
+  private?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -14881,6 +14930,7 @@ export type GithubRepositories_Max_Order_By = {
   githubAppInstallationId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  private?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -14893,6 +14943,7 @@ export type GithubRepositories_Min_Fields = {
   githubAppInstallationId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
+  private?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -14904,6 +14955,7 @@ export type GithubRepositories_Min_Order_By = {
   githubAppInstallationId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
+  private?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -15611,7 +15663,7 @@ export type Mutation_Root = {
   insert_sla_level?: Maybe<Sla_Level_Mutation_Response>;
   /** insert a single row into the table: "sla_level" */
   insert_sla_level_one?: Maybe<Sla_Level>;
-  /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
+  /** execute function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
   pauseInactiveApps: Array<Scalars['String']>;
   pauseOrganizationsExceedUsage: Array<Scalars['String']>;
@@ -19383,7 +19435,7 @@ export enum Order_By {
 }
 
 export type OrganizationMemberInviteAccept_Args = {
-  id?: InputMaybe<Scalars['uuid']>;
+  id: Scalars['uuid'];
 };
 
 /** columns and relationships of "organization_costs_thresholds" */
@@ -19619,7 +19671,7 @@ export type Organization_Member_Invites_Bool_Exp = {
 
 /** unique or primary key constraints on table "organization_member_invites" */
 export enum Organization_Member_Invites_Constraint {
-  /** unique or primary key constraint on columns "email", "organization_id" */
+  /** unique or primary key constraint on columns "organization_id", "email" */
   OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
   /** unique or primary key constraint on columns "id" */
   OrganizationMemberInvitesPkey = 'organization_member_invites_pkey'
@@ -19854,7 +19906,7 @@ export type Organization_Members_Bool_Exp = {
 
 /** unique or primary key constraints on table "organization_members" */
 export enum Organization_Members_Constraint {
-  /** unique or primary key constraint on columns "user_id", "organization_id" */
+  /** unique or primary key constraint on columns "organization_id", "user_id" */
   OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
   OrganizationMembersPkey = 'organization_members_pkey'
@@ -21375,8 +21427,11 @@ export type PipelineRuns_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  input?: Maybe<Scalars['jsonb']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
+  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21386,8 +21441,11 @@ export type PipelineRuns_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  input?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
+  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -21398,8 +21456,11 @@ export type PipelineRuns_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  input?: Maybe<Scalars['jsonb']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
+  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21409,8 +21470,11 @@ export type PipelineRuns_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  input?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
+  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -21679,10 +21743,13 @@ export type Plans_Bool_Exp = {
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomResources?: InputMaybe<Boolean_Comparison_Exp>;
+  /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Boolean_Comparison_Exp>;
+  /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: InputMaybe<Int_Comparison_Exp>;
   featureMaxDbSize?: InputMaybe<Int_Comparison_Exp>;
   featureMaxFilesSize?: InputMaybe<Int_Comparison_Exp>;
+  /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isDefault?: InputMaybe<Boolean_Comparison_Exp>;
@@ -21768,7 +21835,15 @@ export type Plans_Insert_Input = {
 export type Plans_Max_Fields = {
   __typename?: 'plans_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  deprecated?: Maybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
+  featureBackupEnabled?: Maybe<Scalars['Boolean']>;
   featureBackupRetentionDays?: Maybe<Scalars['Int']>;
+  featureCustomDomainsEnabled?: Maybe<Scalars['Boolean']>;
+  featureCustomEmailTemplatesEnabled?: Maybe<Scalars['Boolean']>;
+  featureCustomResources?: Maybe<Scalars['Boolean']>;
+  /** Weather or not to deploy email templates for git deployments */
+  featureDeployEmailTemplates?: Maybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -21776,6 +21851,9 @@ export type Plans_Max_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  isDefault?: Maybe<Scalars['Boolean']>;
+  isFree?: Maybe<Scalars['Boolean']>;
+  isPublic?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
@@ -21795,7 +21873,15 @@ export type Plans_Max_Fields = {
 export type Plans_Min_Fields = {
   __typename?: 'plans_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  deprecated?: Maybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
+  featureBackupEnabled?: Maybe<Scalars['Boolean']>;
   featureBackupRetentionDays?: Maybe<Scalars['Int']>;
+  featureCustomDomainsEnabled?: Maybe<Scalars['Boolean']>;
+  featureCustomEmailTemplatesEnabled?: Maybe<Scalars['Boolean']>;
+  featureCustomResources?: Maybe<Scalars['Boolean']>;
+  /** Weather or not to deploy email templates for git deployments */
+  featureDeployEmailTemplates?: Maybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -21803,6 +21889,9 @@ export type Plans_Min_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
+  isDefault?: Maybe<Scalars['Boolean']>;
+  isFree?: Maybe<Scalars['Boolean']>;
+  isPublic?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
@@ -21851,10 +21940,13 @@ export type Plans_Order_By = {
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
   featureCustomResources?: InputMaybe<Order_By>;
+  /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Order_By>;
+  /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: InputMaybe<Order_By>;
   featureMaxDbSize?: InputMaybe<Order_By>;
   featureMaxFilesSize?: InputMaybe<Order_By>;
+  /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isDefault?: InputMaybe<Order_By>;
@@ -21900,15 +21992,15 @@ export enum Plans_Select_Column {
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
   /** column name */
   FeatureCustomResources = 'featureCustomResources',
-  /** column name */
+  /** Weather or not to deploy email templates for git deployments */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
-  /** column name */
+  /** Function execution timeout in seconds */
   FeatureFunctionExecutionTimeout = 'featureFunctionExecutionTimeout',
   /** column name */
   FeatureMaxDbSize = 'featureMaxDbSize',
   /** column name */
   FeatureMaxFilesSize = 'featureMaxFilesSize',
-  /** column name */
+  /** Max number of functions to deploy per git deployment */
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
@@ -22106,15 +22198,15 @@ export enum Plans_Update_Column {
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
   /** column name */
   FeatureCustomResources = 'featureCustomResources',
-  /** column name */
+  /** Weather or not to deploy email templates for git deployments */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
-  /** column name */
+  /** Function execution timeout in seconds */
   FeatureFunctionExecutionTimeout = 'featureFunctionExecutionTimeout',
   /** column name */
   FeatureMaxDbSize = 'featureMaxDbSize',
   /** column name */
   FeatureMaxFilesSize = 'featureMaxFilesSize',
-  /** column name */
+  /** Max number of functions to deploy per git deployment */
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
@@ -22234,7 +22326,7 @@ export type Query_Root = {
   appStates: Array<AppStates>;
   /** fetch aggregated fields from the table: "app_states" */
   appStatesAggregate: AppStates_Aggregate;
-  /** An array relationship */
+  /** fetch data from the table: "apps" */
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
@@ -22313,7 +22405,7 @@ export type Query_Root = {
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
-  /** An array relationship */
+  /** fetch data from the table: "backups" */
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
@@ -22376,7 +22468,7 @@ export type Query_Root = {
   bucketsAggregate: Buckets_Aggregate;
   /** fetch data from the table: "cli_tokens" using primary key columns */
   cliToken?: Maybe<CliTokens>;
-  /** An array relationship */
+  /** fetch data from the table: "cli_tokens" */
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
@@ -22389,9 +22481,9 @@ export type Query_Root = {
   continents_aggregate: Continents_Aggregate;
   /** fetch data from the table: "continents" using primary key columns */
   continents_by_pk?: Maybe<Continents>;
-  /** An array relationship */
+  /** fetch data from the table: "countries" */
   countries: Array<Countries>;
-  /** An aggregate relationship */
+  /** fetch aggregated fields from the table: "countries" */
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
@@ -22399,11 +22491,11 @@ export type Query_Root = {
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
   deploymentLog?: Maybe<DeploymentLogs>;
-  /** An array relationship */
+  /** fetch data from the table: "deployment_logs" */
   deploymentLogs: Array<DeploymentLogs>;
   /** fetch aggregated fields from the table: "deployment_logs" */
   deploymentLogsAggregate: DeploymentLogs_Aggregate;
-  /** An array relationship */
+  /** fetch data from the table: "deployments" */
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
@@ -22414,13 +22506,13 @@ export type Query_Root = {
   dnsLookupCNAME: Scalars['String'];
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
-  /** An array relationship */
+  /** fetch data from the table: "feature_flags" */
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
-  /** An array relationship */
+  /** fetch data from the table: "storage.files" */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
@@ -22502,7 +22594,7 @@ export type Query_Root = {
   githubAppInstallations: Array<GithubAppInstallations>;
   /** fetch aggregated fields from the table: "github_app_installations" */
   githubAppInstallationsAggregate: GithubAppInstallations_Aggregate;
-  /** An array relationship */
+  /** fetch data from the table: "github_repositories" */
   githubRepositories: Array<GithubRepositories>;
   /** fetch aggregated fields from the table: "github_repositories" */
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
@@ -22551,7 +22643,7 @@ export type Query_Root = {
   organization_status_aggregate: Organization_Status_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
   organization_status_by_pk?: Maybe<Organization_Status>;
-  /** An array relationship */
+  /** fetch data from the table: "organizations" */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
   organizationsAggregate: Organizations_Aggregate;
@@ -22563,7 +22655,7 @@ export type Query_Root = {
   pipelineRunStatus_aggregate: PipelineRunStatus_Aggregate;
   /** fetch data from the table: "pipeline_run_status" using primary key columns */
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
-  /** An array relationship */
+  /** fetch data from the table: "pipeline_runs" */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
@@ -22579,7 +22671,7 @@ export type Query_Root = {
   region_type_aggregate: Region_Type_Aggregate;
   /** fetch data from the table: "region_type" using primary key columns */
   region_type_by_pk?: Maybe<Region_Type>;
-  /** An array relationship */
+  /** fetch data from the table: "regions" */
   regions: Array<Regions>;
   /** fetch data from the table: "regions_allowed_organization" using primary key columns */
   regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
@@ -22587,7 +22679,7 @@ export type Query_Root = {
   regionsAllowedOrganizations: Array<Regions_Allowed_Organization>;
   /** fetch aggregated fields from the table: "regions_allowed_organization" */
   regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
-  /** An aggregate relationship */
+  /** fetch aggregated fields from the table: "regions" */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
@@ -22597,7 +22689,7 @@ export type Query_Root = {
   runServiceConfigRawJSON: Scalars['String'];
   runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
   runServiceConfigsAll: Array<ConfigRunServiceConfigWithId>;
-  /** An array relationship */
+  /** fetch data from the table: "run_service" */
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
   runServicesAggregate: Run_Service_Aggregate;
@@ -24828,7 +24920,7 @@ export type Regions_Allowed_Organization_Bool_Exp = {
 export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
-  /** unique or primary key constraint on columns "organization_id", "region_id" */
+  /** unique or primary key constraint on columns "region_id", "organization_id" */
   RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
 }
 
@@ -25047,6 +25139,7 @@ export type Regions_Insert_Input = {
 /** aggregate max on columns */
 export type Regions_Max_Fields = {
   __typename?: 'regions_max_fields';
+  active?: Maybe<Scalars['Boolean']>;
   awsName?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
@@ -25054,12 +25147,14 @@ export type Regions_Max_Fields = {
   description?: Maybe<Scalars['String']>;
   domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  isGdprCompliant?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "regions" */
 export type Regions_Max_Order_By = {
+  active?: InputMaybe<Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
@@ -25067,6 +25162,7 @@ export type Regions_Max_Order_By = {
   description?: InputMaybe<Order_By>;
   domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isGdprCompliant?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -25074,6 +25170,7 @@ export type Regions_Max_Order_By = {
 /** aggregate min on columns */
 export type Regions_Min_Fields = {
   __typename?: 'regions_min_fields';
+  active?: Maybe<Scalars['Boolean']>;
   awsName?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
@@ -25081,12 +25178,14 @@ export type Regions_Min_Fields = {
   description?: Maybe<Scalars['String']>;
   domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  isGdprCompliant?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "regions" */
 export type Regions_Min_Order_By = {
+  active?: InputMaybe<Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
@@ -25094,6 +25193,7 @@ export type Regions_Min_Order_By = {
   description?: InputMaybe<Order_By>;
   domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isGdprCompliant?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -26084,7 +26184,7 @@ export type Subscription_Root = {
   appStatesAggregate: AppStates_Aggregate;
   /** fetch data from the table in a streaming manner: "app_states" */
   appStates_stream: Array<AppStates>;
-  /** An array relationship */
+  /** fetch data from the table: "apps" */
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
@@ -26188,7 +26288,7 @@ export type Subscription_Root = {
   authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
-  /** An array relationship */
+  /** fetch data from the table: "backups" */
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
@@ -26268,7 +26368,7 @@ export type Subscription_Root = {
   buckets_stream: Array<Buckets>;
   /** fetch data from the table: "cli_tokens" using primary key columns */
   cliToken?: Maybe<CliTokens>;
-  /** An array relationship */
+  /** fetch data from the table: "cli_tokens" */
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
@@ -26282,9 +26382,9 @@ export type Subscription_Root = {
   continents_by_pk?: Maybe<Continents>;
   /** fetch data from the table in a streaming manner: "continents" */
   continents_stream: Array<Continents>;
-  /** An array relationship */
+  /** fetch data from the table: "countries" */
   countries: Array<Countries>;
-  /** An aggregate relationship */
+  /** fetch aggregated fields from the table: "countries" */
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
@@ -26294,13 +26394,13 @@ export type Subscription_Root = {
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
   deploymentLog?: Maybe<DeploymentLogs>;
-  /** An array relationship */
+  /** fetch data from the table: "deployment_logs" */
   deploymentLogs: Array<DeploymentLogs>;
   /** fetch aggregated fields from the table: "deployment_logs" */
   deploymentLogsAggregate: DeploymentLogs_Aggregate;
   /** fetch data from the table in a streaming manner: "deployment_logs" */
   deploymentLogs_stream: Array<DeploymentLogs>;
-  /** An array relationship */
+  /** fetch data from the table: "deployments" */
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
@@ -26308,7 +26408,7 @@ export type Subscription_Root = {
   deployments_stream: Array<Deployments>;
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
-  /** An array relationship */
+  /** fetch data from the table: "feature_flags" */
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
@@ -26316,7 +26416,7 @@ export type Subscription_Root = {
   featureFlags_stream: Array<FeatureFlags>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
-  /** An array relationship */
+  /** fetch data from the table: "storage.files" */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
@@ -26340,7 +26440,7 @@ export type Subscription_Root = {
   githubAppInstallationsAggregate: GithubAppInstallations_Aggregate;
   /** fetch data from the table in a streaming manner: "github_app_installations" */
   githubAppInstallations_stream: Array<GithubAppInstallations>;
-  /** An array relationship */
+  /** fetch data from the table: "github_repositories" */
   githubRepositories: Array<GithubRepositories>;
   /** fetch aggregated fields from the table: "github_repositories" */
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
@@ -26403,7 +26503,7 @@ export type Subscription_Root = {
   organization_status_by_pk?: Maybe<Organization_Status>;
   /** fetch data from the table in a streaming manner: "organization_status" */
   organization_status_stream: Array<Organization_Status>;
-  /** An array relationship */
+  /** fetch data from the table: "organizations" */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
   organizationsAggregate: Organizations_Aggregate;
@@ -26419,7 +26519,7 @@ export type Subscription_Root = {
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
   /** fetch data from the table in a streaming manner: "pipeline_run_status" */
   pipelineRunStatus_stream: Array<PipelineRunStatus>;
-  /** An array relationship */
+  /** fetch data from the table: "pipeline_runs" */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
@@ -26441,7 +26541,7 @@ export type Subscription_Root = {
   region_type_by_pk?: Maybe<Region_Type>;
   /** fetch data from the table in a streaming manner: "region_type" */
   region_type_stream: Array<Region_Type>;
-  /** An array relationship */
+  /** fetch data from the table: "regions" */
   regions: Array<Regions>;
   /** fetch data from the table: "regions_allowed_organization" using primary key columns */
   regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
@@ -26451,7 +26551,7 @@ export type Subscription_Root = {
   regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
   /** fetch data from the table in a streaming manner: "regions_allowed_organization" */
   regionsAllowedOrganizationsStream: Array<Regions_Allowed_Organization>;
-  /** An aggregate relationship */
+  /** fetch aggregated fields from the table: "regions" */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
@@ -26459,7 +26559,7 @@ export type Subscription_Root = {
   regions_stream: Array<Regions>;
   /** fetch data from the table: "run_service" using primary key columns */
   runService?: Maybe<Run_Service>;
-  /** An array relationship */
+  /** fetch data from the table: "run_service" */
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
   runServicesAggregate: Run_Service_Aggregate;
@@ -30070,6 +30170,8 @@ export type SupportTicketTransitions_Aggregate = {
 export type SupportTicketTransitions_Aggregate_Fields = {
   __typename?: 'supportTicketTransitions_aggregate_fields';
   count: Scalars['Int'];
+  max?: Maybe<SupportTicketTransitions_Max_Fields>;
+  min?: Maybe<SupportTicketTransitions_Min_Fields>;
 };
 
 
@@ -30091,7 +30193,7 @@ export type SupportTicketTransitions_Bool_Exp = {
 
 /** unique or primary key constraints on table "support.ticket_transitions" */
 export enum SupportTicketTransitions_Constraint {
-  /** unique or primary key constraint on columns "to_status", "from_status" */
+  /** unique or primary key constraint on columns "from_status", "to_status" */
   TicketTransitionsPkey = 'ticket_transitions_pkey'
 }
 
@@ -30100,6 +30202,18 @@ export type SupportTicketTransitions_Insert_Input = {
   customerAllowed?: InputMaybe<Scalars['Boolean']>;
   fromStatus?: InputMaybe<SupportTicketStatuses_Enum>;
   toStatus?: InputMaybe<SupportTicketStatuses_Enum>;
+};
+
+/** aggregate max on columns */
+export type SupportTicketTransitions_Max_Fields = {
+  __typename?: 'supportTicketTransitions_max_fields';
+  customerAllowed?: Maybe<Scalars['Boolean']>;
+};
+
+/** aggregate min on columns */
+export type SupportTicketTransitions_Min_Fields = {
+  __typename?: 'supportTicketTransitions_min_fields';
+  customerAllowed?: Maybe<Scalars['Boolean']>;
 };
 
 /** response of any mutation on the table "support.ticket_transitions" */
@@ -30423,7 +30537,6 @@ export type SupportTickets_Max_Fields = {
   requesterID?: Maybe<Scalars['uuid']>;
   requesterName?: Maybe<Scalars['String']>;
   resolvedAt?: Maybe<Scalars['timestamptz']>;
-  services?: Maybe<Array<Scalars['String']>>;
   title?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   updatedByID?: Maybe<Scalars['uuid']>;
@@ -30449,7 +30562,6 @@ export type SupportTickets_Min_Fields = {
   requesterID?: Maybe<Scalars['uuid']>;
   requesterName?: Maybe<Scalars['String']>;
   resolvedAt?: Maybe<Scalars['timestamptz']>;
-  services?: Maybe<Array<Scalars['String']>>;
   title?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   updatedByID?: Maybe<Scalars['uuid']>;
@@ -31430,11 +31542,15 @@ export type Users_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
+  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
+  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
+  isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   new_phone_number?: Maybe<Scalars['String']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -31442,7 +31558,9 @@ export type Users_Max_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
+  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
+  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
   totpSecret?: Maybe<Scalars['String']>;
@@ -31456,11 +31574,15 @@ export type Users_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
+  disabled?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
+  emailVerified?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isAnonymous?: InputMaybe<Order_By>;
   lastSeen?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
   new_phone_number?: InputMaybe<Order_By>;
   otpHash?: InputMaybe<Order_By>;
@@ -31468,7 +31590,9 @@ export type Users_Max_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
+  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
+  phoneNumberVerified?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
   totpSecret?: InputMaybe<Order_By>;
@@ -31483,11 +31607,15 @@ export type Users_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
+  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
+  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
+  isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
+  metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   new_phone_number?: Maybe<Scalars['String']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -31495,7 +31623,9 @@ export type Users_Min_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
+  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
+  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
   totpSecret?: Maybe<Scalars['String']>;
@@ -31509,11 +31639,15 @@ export type Users_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
+  disabled?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
+  emailVerified?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isAnonymous?: InputMaybe<Order_By>;
   lastSeen?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
   new_phone_number?: InputMaybe<Order_By>;
   otpHash?: InputMaybe<Order_By>;
@@ -31521,7 +31655,9 @@ export type Users_Min_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
+  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
+  phoneNumberVerified?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
   totpSecret?: InputMaybe<Order_By>;
@@ -32051,6 +32187,7 @@ export type Virus_Max_Fields = {
   filename?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
+  userSession?: Maybe<Scalars['jsonb']>;
   virus?: Maybe<Scalars['String']>;
 };
 
@@ -32062,6 +32199,7 @@ export type Virus_Min_Fields = {
   filename?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
+  userSession?: Maybe<Scalars['jsonb']>;
   virus?: Maybe<Scalars['String']>;
 };
 
