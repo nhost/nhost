@@ -1,5 +1,3 @@
-preferWorkspacePackages: false
-
 # next pulls in sharp for image optimization; allow its build script so
 # `pnpm install` does not stop to ask.
 allowBuilds:
