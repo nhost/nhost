@@ -13,7 +13,7 @@ const changePassword = vi.hoisted(() =>
   >(),
 );
 
-vi.mock('@/app/account/actions', () => ({ changePassword }));
+vi.mock('@/app/auth/password/change/actions', () => ({ changePassword }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: () => undefined }),
 }));

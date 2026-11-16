@@ -1,5 +1,10 @@
 'use server';
 
+import {
+  couldBeAPassword,
+  newPasswordError,
+  newPasswordProblem,
+} from '@/app/auth/password/requirements';
 import { signInDestination } from '@/app/signin/destination';
 import { appOrigin } from '@/lib/nhost/env';
 import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
@@ -13,6 +18,11 @@ export async function signIn(
 ): Promise<ActionResult & { mfaTicket?: string }> {
   if (!email || !password) {
     return { error: 'Email and password are required.' };
+  }
+
+  // Auth would refuse it as a malformed request rather than a wrong password.
+  if (!couldBeAPassword(password)) {
+    return { error: 'Could not sign in: Incorrect email or password' };
   }
 
   try {
@@ -66,6 +76,11 @@ export async function signUp(
     return { error: 'Email and password are required.' };
   }
 
+  const problem = newPasswordProblem(password);
+  if (problem) {
+    return { error: problem };
+  }
+
   const destination = signInDestination(next);
 
   try {
@@ -78,7 +93,7 @@ export async function signUp(
 
     return { success: true, signedIn: Boolean(body.session) };
   } catch (err) {
-    return { error: `Could not sign up: ${errorMessage(err)}` };
+    return { error: `Could not sign up: ${newPasswordError(err)}` };
   }
 }
 
@@ -112,6 +127,11 @@ export async function setNewPassword(
     return { error: 'A new password is required.' };
   }
 
+  const problem = newPasswordProblem(newPassword);
+  if (problem) {
+    return { error: problem };
+  }
+
   try {
     const nhost = await createNhostClient();
 
@@ -124,6 +144,6 @@ export async function setNewPassword(
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not change the password: ${errorMessage(err)}` };
+    return { error: `Could not change the password: ${newPasswordError(err)}` };
   }
 }

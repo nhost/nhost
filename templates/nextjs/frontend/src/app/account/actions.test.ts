@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   changeEmail,
-  changePassword,
   deleteAccount,
   listSessions,
   removeAvatar,
@@ -14,7 +13,7 @@ import { appOrigin } from '@/lib/nhost/env';
 const client = vi.hoisted(() => ({
   session: null as {
     refreshTokenId?: string;
-    user?: { id: string; email?: string; avatarUrl?: string };
+    user?: { id: string };
   } | null,
   verifiedUser: null as {
     id: string;
@@ -22,9 +21,6 @@ const client = vi.hoisted(() => ({
     avatarUrl?: string;
   } | null,
   auth: {
-    changeUserPassword: vi.fn(),
-    signInEmailPassword: vi.fn(),
-    verifySignInMfaTotp: vi.fn(),
     changeUserEmail: vi.fn(),
     sendVerificationEmail: vi.fn(),
   },
@@ -66,47 +62,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-});
-
-describe('changePassword', () => {
-  // The change revoked this session with the rest, so the new password signs
-  // this browser straight back in.
-  it('signs this device back in with the new password', async () => {
-    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
-    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
-    client.auth.signInEmailPassword.mockResolvedValueOnce({
-      body: { session: { accessToken: 'new' } },
-    });
-
-    expect(await changePassword('correct horse')).toEqual({
-      success: true,
-      signedIn: true,
-    });
-    expect(client.auth.signInEmailPassword).toHaveBeenCalledWith({
-      email: 'user@example.com',
-      password: 'correct horse',
-    });
-  });
-
-  it('signs a two-factor account back in with the code it was given', async () => {
-    client.session = { user: { id: 'user-1', email: 'user@example.com' } };
-    client.auth.changeUserPassword.mockResolvedValueOnce({ body: {} });
-    client.auth.signInEmailPassword.mockResolvedValueOnce({
-      body: { mfa: { ticket: 'mfaTotp:abc' } },
-    });
-    client.auth.verifySignInMfaTotp.mockResolvedValueOnce({
-      body: { session: { accessToken: 'new' } },
-    });
-
-    expect(await changePassword('correct horse', '123456')).toEqual({
-      success: true,
-      signedIn: true,
-    });
-    expect(client.auth.verifySignInMfaTotp).toHaveBeenCalledWith({
-      ticket: 'mfaTotp:abc',
-      otp: '123456',
-    });
-  });
 });
 
 describe('changeEmail', () => {

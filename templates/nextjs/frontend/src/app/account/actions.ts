@@ -26,58 +26,6 @@ import {
 // caller, so nothing here can aim a link at another host.
 const ACCOUNT_URL = () => `${appOrigin()}/account`;
 
-// The auth service takes the new password and nothing else: no current
-// password, and no check that one was ever set, so this works for an account
-// created by magic link as much as one created with a password.
-export async function changePassword(
-  newPassword: string,
-  otp?: string,
-): Promise<ActionResult & { signedIn?: boolean }> {
-  if (!newPassword) {
-    return { error: 'A new password is required.' };
-  }
-
-  try {
-    const nhost = await createNhostClient();
-    const session = nhost.getUserSession();
-
-    if (!session) {
-      return { error: SIGNED_OUT };
-    }
-
-    await nhost.auth.changeUserPassword({ newPassword });
-
-    const email = session.user?.email;
-    if (!email) {
-      return { success: true, signedIn: false };
-    }
-
-    try {
-      const { body } = await nhost.auth.signInEmailPassword({
-        email,
-        password: newPassword,
-      });
-
-      // Two-factor answers the password with a ticket, which the code trades
-      // for the session.
-      if (!body.session && body.mfa?.ticket && otp) {
-        const verified = await nhost.auth.verifySignInMfaTotp({
-          ticket: body.mfa.ticket,
-          otp,
-        });
-        return { success: true, signedIn: Boolean(verified.body.session) };
-      }
-
-      return { success: true, signedIn: Boolean(body.session) };
-    } catch (err) {
-      console.error('Could not sign back in after the password change:', err);
-      return { success: true, signedIn: false };
-    }
-  } catch (err) {
-    return { error: `Could not change the password: ${errorMessage(err)}` };
-  }
-}
-
 // Sends a confirmation link to the new address. The change happens when that
 // link is opened, not here: until then the old address is the account's.
 export async function changeEmail(newEmail: string): Promise<ActionResult> {

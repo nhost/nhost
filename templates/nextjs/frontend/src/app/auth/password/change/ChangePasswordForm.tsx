@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
-import { changePassword } from '@/app/account/actions';
+import { changePassword } from '@/app/auth/password/change/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import { meetsRequirements } from '@/app/auth/password/requirements';

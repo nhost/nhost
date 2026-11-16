@@ -8,7 +8,7 @@ import ReplacePageLayout from '@/components/ReplacePageLayout';
 const changePassword = vi.hoisted(() => vi.fn());
 const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 
-vi.mock('@/app/account/actions', () => ({ changePassword }));
+vi.mock('@/app/auth/password/change/actions', () => ({ changePassword }));
 vi.mock('next/navigation', () => ({ useRouter: () => router }));
 
 (
@@ -74,6 +74,19 @@ describe('change password form', () => {
     expect(changePassword).toHaveBeenCalledWith('correct horse', undefined);
     expect(router.refresh).toHaveBeenCalledOnce();
     expect(container.textContent).not.toContain('Sign in again');
+  });
+
+  // Auth refuses over 50 characters, or over 72 bytes for bcrypt.
+  it('will not send a password auth would refuse', async () => {
+    const change = container.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+
+    for (const password of ['a'.repeat(51), 'é'.repeat(37)]) {
+      await type('New password', password);
+      await type('Confirm new password', password);
+      expect(change?.disabled).toBe(true);
+    }
   });
 
   // Two-factor: signing back in takes a current code as well.
