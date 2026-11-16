@@ -20,7 +20,7 @@ const key = DEFAULT_SESSION_KEY;
 
 // How close to expiry the proxy refreshes the access token, so it stays
 // usable for the time between two navigations.
-export const PROXY_REFRESH_MARGIN_SECONDS = 60;
+const PROXY_REFRESH_MARGIN_SECONDS = 60;
 
 // Every session write sets two cookies: the httpOnly session, and a flag
 // JavaScript can read that says one is there. See "How it works" in the README.
@@ -68,7 +68,7 @@ function sessionCookies(value: StoredSession) {
 
 // Next's cookie APIs percent-encode on write and decode on read, so these two
 // only deal in JSON.
-export function parseSessionCookie(raw: string | null): StoredSession | null {
+function parseSessionCookie(raw: string | null): StoredSession | null {
   if (!raw) {
     return null;
   }
@@ -80,7 +80,7 @@ export function parseSessionCookie(raw: string | null): StoredSession | null {
   }
 }
 
-export function serializeSessionCookie(value: StoredSession): string {
+function serializeSessionCookie(value: StoredSession): string {
   return JSON.stringify(value);
 }
 
@@ -187,10 +187,10 @@ export function isPrefetch(request: NextRequest): boolean {
   );
 }
 
-export type CheckedSession = 'live' | 'revoked' | 'unknown';
+type CheckedSession = 'live' | 'revoked' | 'unknown';
 
 /** Whether the session's row in `auth.refresh_tokens` still exists. */
-export async function checkSession(
+async function checkSession(
   nhost: NhostClient,
   session: StoredSession,
 ): Promise<CheckedSession> {

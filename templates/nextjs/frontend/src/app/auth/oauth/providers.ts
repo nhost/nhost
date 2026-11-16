@@ -1,7 +1,7 @@
 import type { SignInProvider } from '@nhost/nhost-js/auth';
 
 /** The providers this page can offer. */
-export const providers = [
+const providers = [
   { id: 'github', name: 'GitHub', label: 'Continue with GitHub' },
   { id: 'google', name: 'Google', label: 'Continue with Google' },
 ] as const satisfies ReadonlyArray<{

@@ -40,7 +40,7 @@ export const isAvatarType = (contentType: string | null): boolean =>
   );
 
 /** The widths the route will ask storage to resize to, and no others. */
-export const AVATAR_WIDTHS = [64, 192] as const;
+const AVATAR_WIDTHS = [64, 192] as const;
 
 export type AvatarWidth = (typeof AVATAR_WIDTHS)[number];
 

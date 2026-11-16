@@ -10,7 +10,7 @@ export function SettingsList({ children }: { children: ReactNode }) {
   return <ul className="divide-y">{children}</ul>;
 }
 
-export function SettingRow({
+function SettingRow({
   label,
   value,
   children,

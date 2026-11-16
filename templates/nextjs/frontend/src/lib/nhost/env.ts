@@ -24,7 +24,7 @@ const vercelOrigin = (): string | undefined => {
  * URL of a service in the local stack, on the same hostname pattern `nhost up`
  * prints: <subdomain>.<service>.local.nhost.run over TLS.
  */
-export const localServiceURL = (service: string): string =>
+const localServiceURL = (service: string): string =>
   `https://${nhostSubdomain()}.${service}.local.nhost.run`;
 
 /**
