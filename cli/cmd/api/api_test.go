@@ -205,15 +205,15 @@ func TestCommand(t *testing.T) {
 			},
 		},
 		{
-			name:        "mutation with --with-mutations",
-			args:        []string{"query", "--with-mutations", "--", mutation},
+			name:        "mutation with --allow-mutations",
+			args:        []string{"query", "--allow-mutations", "--", mutation},
 			body:        `{"data":{"updateApp":{"id":"id"}}}`,
 			wantData:    "{\"updateApp\":{\"id\":\"id\"}}\n",
 			wantRequest: &sentRequest{Query: mutation, Variables: map[string]json.RawMessage{}},
 		},
 		{
 			name:        "mutation sent once when the connection drops",
-			args:        []string{"query", "--with-mutations", "--", mutation},
+			args:        []string{"query", "--allow-mutations", "--", mutation},
 			hangUp:      true,
 			wantErr:     "failed to query the Nhost Cloud API",
 			wantRequest: &sentRequest{Query: mutation, Variables: map[string]json.RawMessage{}},
@@ -226,8 +226,8 @@ func TestCommand(t *testing.T) {
 			wantRequest: &sentRequest{Query: graphql.IntrospectionQuery},
 		},
 		{
-			name: "mutation without --with-mutations", args: []string{"query", mutation},
-			wantErr: "nhost api query sends mutations only with --with-mutations",
+			name: "mutation without --allow-mutations", args: []string{"query", mutation},
+			wantErr: "nhost api query sends mutations only with --allow-mutations",
 		},
 		{
 			name:    "subscription",
@@ -235,8 +235,8 @@ func TestCommand(t *testing.T) {
 			wantErr: "Subscriptions are not supported",
 		},
 		{
-			name:    "subscription with --with-mutations",
-			args:    []string{"query", "--with-mutations", `subscription { apps { id } }`},
+			name:    "subscription with --allow-mutations",
+			args:    []string{"query", "--allow-mutations", `subscription { apps { id } }`},
 			wantErr: "Subscriptions are not supported",
 		},
 		{

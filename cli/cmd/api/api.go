@@ -26,7 +26,7 @@ func Command() *cli.Command {
 		Description: "Sends GraphQL to the Nhost Cloud API, which manages your organizations and " +
 			"projects, not to your project's own GraphQL API. Prefer `nhost mcp` tools. This raw " +
 			"pass-through runs exactly what you send with your permissions; reads can return secrets. " +
-			"`nhost api query` sends mutations only with --with-mutations; nothing else is checked or " +
+			"`nhost api query` sends mutations only with --allow-mutations; nothing else is checked or " +
 			"confirmed, so configure your agent to ask before running it. Projects are called apps.",
 		Commands: []*cli.Command{
 			CommandQuery(),
