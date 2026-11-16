@@ -4,7 +4,6 @@ import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import SignUpWithEmailAndPasswordForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/components/SignUpWithEmailAndPasswordForm';
 import SignUpWithSecurityKeyForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithSecurityKey/components/SignUpWithSecurityKeyForm';
-import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 import NewPasswordPage from '@/pages/password/new';
 import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
@@ -83,6 +82,7 @@ afterEach(() => {
   toast.remove();
   queryClient.clear();
   localStorage.clear();
+  document.getElementById('cf-turnstile-script')?.remove();
   vi.unstubAllEnvs();
 });
 afterAll(() => {
@@ -91,32 +91,60 @@ afterAll(() => {
 });
 
 describe('Turnstile in authentication forms', () => {
-  it.each(forms)(
-    'disables the widget, token requirement and header for $name in development',
-    async ({ Component, button, path, hasName, hasPassword }) => {
-      vi.stubEnv('NODE_ENV', 'development');
-      const user = new TestUserEvent();
-      render(<Component />);
-      expect(screen.queryByText('Verification')).not.toBeInTheDocument();
-      expect(
-        document.querySelector('script[src*="challenges.cloudflare.com"]'),
-      ).toBeNull();
-      if (hasName) {
-        await user.type(screen.getByLabelText('Name'), 'Local Tester');
-      }
-      await user.type(screen.getByLabelText('Email'), 'local@example.com');
-      if (hasPassword) {
-        await user.type(screen.getByLabelText('Password'), 'test-password');
-      }
-      await user.click(screen.getByRole('button', { name: button }));
-      await waitFor(() => {
-        expect(requests).toContainEqual({ path, turnstileToken: null });
-      });
-      expect(
-        screen.queryByText('Please complete the CAPTCHA'),
-      ).not.toBeInTheDocument();
+  describe.each([
+    {
+      reason: 'in development with a configured key',
+      nodeEnv: 'development',
+      siteKey: 'test-site-key',
     },
-  );
+    {
+      reason: 'when the key is missing',
+      nodeEnv: 'production',
+      siteKey: undefined,
+    },
+    {
+      reason: 'when the key is empty',
+      nodeEnv: 'production',
+      siteKey: '',
+    },
+    {
+      reason: 'when the key is FIXME',
+      nodeEnv: 'production',
+      siteKey: 'FIXME',
+    },
+  ])('$reason', ({ nodeEnv, siteKey }) => {
+    it.each(forms)(
+      'disables the widget, token requirement and header for $name',
+      async ({ Component, button, path, hasName, hasPassword }) => {
+        vi.stubEnv('NODE_ENV', nodeEnv);
+        if (siteKey === undefined) {
+          delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+        } else {
+          vi.stubEnv('NEXT_PUBLIC_TURNSTILE_SITE_KEY', siteKey);
+        }
+        const user = new TestUserEvent();
+        render(<Component />);
+        expect(screen.queryByText('Verification')).not.toBeInTheDocument();
+        expect(
+          document.querySelector('script[src*="challenges.cloudflare.com"]'),
+        ).toBeNull();
+        if (hasName) {
+          await user.type(screen.getByLabelText('Name'), 'Local Tester');
+        }
+        await user.type(screen.getByLabelText('Email'), 'local@example.com');
+        if (hasPassword) {
+          await user.type(screen.getByLabelText('Password'), 'test-password');
+        }
+        await user.click(screen.getByRole('button', { name: button }));
+        await waitFor(() => {
+          expect(requests).toContainEqual({ path, turnstileToken: null });
+        });
+        expect(
+          screen.queryByText('Please complete the CAPTCHA'),
+        ).not.toBeInTheDocument();
+      },
+    );
+  });
 
   it.each(forms)(
     'still requires a CAPTCHA for $name in production',
@@ -140,13 +168,4 @@ describe('Turnstile in authentication forms', () => {
       expect(requests).toEqual([]);
     },
   );
-
-  it('only opts out in development mode', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    expect(isTurnstileEnabled()).toBe(false);
-    vi.stubEnv('NODE_ENV', 'production');
-    expect(isTurnstileEnabled()).toBe(true);
-    vi.stubEnv('NODE_ENV', 'test');
-    expect(isTurnstileEnabled()).toBe(true);
-  });
 });
