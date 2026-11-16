@@ -88,7 +88,6 @@ This will connect the Nhost Dashboard to your locally running Nhost backend.
 
 The dashboard supports build-time CSP configuration to enable self-hosted deployments on custom domains.
 
-
 | Name         | Description                                                                                                                                                                                                                              |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CSP_MODE`   | Controls CSP behavior. Options: `nhost` (default, uses Nhost Cloud CSP), `disabled` (no CSP headers), `custom` (use custom CSP via `CSP_HEADER`). For self-hosted deployments on custom domains, set to `disabled` or `custom`.          |
