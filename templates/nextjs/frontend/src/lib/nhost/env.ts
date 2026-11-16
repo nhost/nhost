@@ -1,6 +1,5 @@
 const LOCAL = 'local';
 
-/** Backend coordinates. */
 export const nhostSubdomain = (): string =>
   process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || LOCAL;
 
