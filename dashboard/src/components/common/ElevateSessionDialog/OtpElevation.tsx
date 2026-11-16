@@ -1,6 +1,7 @@
 import type { ElevationMethod } from '@nhost/nhost-js/auth';
+import { useMutation } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -16,53 +17,37 @@ interface Props {
 
 function OtpElevation({ method, onElevated }: Props) {
   const nhost = useNhostClient();
-  const [isSendingCode, setIsSendingCode] = useState(method !== 'totp');
-  const [sendError, setSendError] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
 
-  async function sendCode() {
-    setIsSendingCode(true);
-    setSendError(null);
+  const sendCode = useMutation<unknown, Error>({
+    mutationFn: () =>
+      method === 'otp-email'
+        ? nhost.auth.elevateOTPEmail()
+        : nhost.auth.elevateOTPSms(),
+  });
 
-    try {
-      if (method === 'otp-email') {
-        await nhost.auth.elevateOTPEmail();
-      } else {
-        await nhost.auth.elevateOTPSms();
+  const verifyCode = useMutation({
+    mutationFn: (otp: string) => {
+      if (method === 'totp') {
+        return nhost.auth.elevateTotp({ otp });
       }
-    } catch (error) {
-      setSendError(error?.message || 'Please try again in a few moments.');
-    } finally {
-      setIsSendingCode(false);
-    }
-  }
+
+      if (method === 'otp-email') {
+        return nhost.auth.verifyElevateOTPEmail({ otp });
+      }
+
+      return nhost.auth.verifyElevateOTPSms({ otp });
+    },
+    onSuccess: () => onElevated(),
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: request the code once on mount
   useEffect(() => {
     if (method !== 'totp') {
-      sendCode();
+      sendCode.mutate();
     }
   }, []);
 
-  async function verify(otp: string) {
-    setIsVerifying(true);
-
-    try {
-      if (method === 'totp') {
-        await nhost.auth.elevateTotp({ otp });
-      } else if (method === 'otp-email') {
-        await nhost.auth.verifyElevateOTPEmail({ otp });
-      } else {
-        await nhost.auth.verifyElevateOTPSms({ otp });
-      }
-
-      onElevated();
-    } finally {
-      setIsVerifying(false);
-    }
-  }
-
-  if (isSendingCode) {
+  if (method !== 'totp' && (sendCode.isIdle || sendCode.isPending)) {
     return (
       <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
         <span className="text-muted-foreground text-xs">
@@ -72,23 +57,25 @@ function OtpElevation({ method, onElevated }: Props) {
     );
   }
 
-  if (sendError) {
+  if (sendCode.isError) {
     return (
       <>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Couldn&apos;t send the code</AlertTitle>
-          <AlertDescription>{sendError}</AlertDescription>
+          <AlertDescription>
+            {sendCode.error.message || 'Please try again in a few moments.'}
+          </AlertDescription>
         </Alert>
-        <Button onClick={sendCode}>Resend code</Button>
+        <Button onClick={() => sendCode.mutate()}>Resend code</Button>
       </>
     );
   }
 
   return (
     <MfaOtpForm
-      loading={isVerifying}
-      sendMfaOtp={verify}
+      loading={verifyCode.isPending}
+      sendMfaOtp={verifyCode.mutateAsync}
       placeholder="Enter the 6-digit code"
     />
   );
