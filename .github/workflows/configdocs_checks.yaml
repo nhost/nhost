@@ -55,7 +55,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -67,6 +67,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g", "nhost-x86_64-4c8g"]'
       BUILD: true
       NAME: configdocs
       PROJECT: tools/configdocs
