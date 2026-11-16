@@ -5,6 +5,7 @@ import { type FormEvent, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
+import { meetsRequirements } from '@/app/auth/password/requirements';
 import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,7 +115,10 @@ export default function ResetPasswordForm() {
         </p>
       ) : null}
 
-      <Button type="submit" disabled={isSaving}>
+      <Button
+        type="submit"
+        disabled={isSaving || !meetsRequirements(password, confirm)}
+      >
         {isSaving ? 'Saving…' : 'Save password'}
       </Button>
 

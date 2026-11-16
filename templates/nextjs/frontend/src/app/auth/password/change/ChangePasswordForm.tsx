@@ -5,7 +5,7 @@ import { type FormEvent, useId, useState } from 'react';
 import { changePassword } from '@/app/account/actions';
 import PasswordChanged from '@/app/auth/password/PasswordChanged';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
-import { passwordRequirements } from '@/app/auth/password/requirements';
+import { meetsRequirements } from '@/app/auth/password/requirements';
 import { DialogClose, DialogFooter, useCloseDialog } from '@/components/Dialog';
 import { useReplacePage } from '@/components/ReplacePageLayout';
 import { useToast } from '@/components/Toast';
@@ -40,7 +40,7 @@ export default function ChangePasswordForm({
   const [isPending, setIsPending] = useState(false);
 
   const ready =
-    passwordRequirements(password, confirm).every((rule) => rule.met) &&
+    meetsRequirements(password, confirm) &&
     (!needsCode || /^\d{6}$/.test(code.trim()));
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {

@@ -9,6 +9,7 @@ import {
   verifyMfa,
 } from '@/app/auth/password/actions';
 import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
+import { meetsRequirements } from '@/app/auth/password/requirements';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
 import CheckYourInbox from '@/components/CheckYourInbox';
@@ -262,7 +263,12 @@ export default function PasswordForm({
         </p>
       ) : null}
 
-      <Button type="submit" disabled={isPending}>
+      <Button
+        type="submit"
+        disabled={
+          isPending || (mode === 'sign-up' && !meetsRequirements(password))
+        }
+      >
         {mode === 'sign-in'
           ? isPending
             ? 'Signing in…'
