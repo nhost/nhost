@@ -84,13 +84,46 @@ Columns are introspected with the following metadata:
 | `Type`           | `format_type(atttypid, atttypmod)` | Resolves domain types and aliases                                                                                                                                                                                                                                                                                                         |
 | `IsNullable`     | `information_schema.columns`       | —                                                                                                                                                                                                                                                                                                                                         |
 | `Default`        | `column_default`                   | Captures `nextval(...)` (sequences), `gen_random_uuid()`, `now()`, etc.                                                                                                                                                                                                                                                                   |
-| `IsGenerated`    | `pg_attribute.attgenerated != ''`  | `GENERATED ALWAYS AS` columns; not insertable                                                                                                                                                                                                                                                                                             |
-| `IsIdentity`     | `pg_attribute.attidentity != ''`   | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Distinct from `IsGenerated`: the value is engine-assigned at INSERT time rather than computed from other columns, and insert-check predicates referencing the column run post-INSERT (against `RETURNING *`). SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
+| `IsGenerated`    | `pg_attribute.attgenerated != '' OR attidentity = 'a'` | Computed columns and `GENERATED ALWAYS AS IDENTITY` columns; excluded from insert/update inputs                                                                                                                                                                                                                                                                                             |
+| `IsIdentity`     | `pg_attribute.attidentity != ''`   | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Both identity modes require post-INSERT permission checks against the engine-assigned value. `ALWAYS` also sets `IsGenerated`; `BY DEFAULT` remains writable. SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
 | `IsArray`        | `pg_type.typcategory = 'A'`        | Postgres-only                                                                                                                                                                                                                                                                                                                             |
 | `SupportsMinMax` | derived from type                  | Drives `min`/`max` aggregates                                                                                                                                                                                                                                                                                                             |
 | `SupportsInc`    | derived from type                  | Drives `_inc` update operator                                                                                                                                                                                                                                                                                                             |
 | `SupportsAgg`    | derived from type                  | Drives numeric aggregates                                                                                                                                                                                                                                                                                                                 |
 | `Comment`        | `pg_description`                   | Surfaced as field description                                                                                                                                                                                                                                                                                                             |
+
+`GENERATED ALWAYS AS IDENTITY` columns remain selectable, filterable, sortable,
+aggregatable and usable as stream cursors, but are omitted from `_insert_input`,
+`_set_input`, `_inc_input` and `_update_column` for every role, including admin.
+This matches Hasura and avoids advertising writes PostgreSQL rejects.
+`GENERATED BY DEFAULT AS IDENTITY` and serial columns still accept explicit
+values, subject to column permissions.
+
+Permitted inserts remain available even when there are no client-writable
+fields. For example, a table containing only an ALWAYS identity accepts
+`insert_<table>_one(object: {})` and `insert_<table>(objects: [{}, {}])`, using
+database-generated values for each row. A role with `columns: []` can likewise
+insert rows using session presets or database defaults. Preset columns remain
+hidden, whether included in the column grant or not; neither preset overrides
+nor explicit ALWAYS identity values are accepted.
+
+These SQL-generated insert inputs introspect as `INPUT_OBJECT` with
+`inputFields: []`: no identity or placeholder field is exposed. Constellation
+allows this specific Hasura-compatible exception to GraphQL's non-empty input
+rule during composition. Other empty inputs and invalid schemas still fail
+validation. Empty objects work as literals, variables, bulk rows and nested
+relationship data, subject to the existing table/role permission gates. Incoming
+insert relationships to these inputs and the table's conflict types remain
+available. Presets, foreign-key propagation and post-insert permission checks
+still apply; a failed check rolls back the mutation. Database constraints still
+apply too: `{}` cannot supply a missing required value with no preset or default.
+This does not enable SQLite writes; see [SQLite source differences](sqlite.md).
+
+`nhost schema dump` preserves these field-less input definitions in SDL, and
+`nhost schema diff` can load and compare them, including customized type names.
+The offline diff loader accepts empty input definitions because serialized SDL
+has no SQL provenance marker; it still performs all other schema validation.
+This does not broaden the service's SQL-generated-input-only exception above.
 
 ### Views and materialized views
 

@@ -47,14 +47,16 @@ class ContractsTests(unittest.TestCase):
                                 self.assertIn(name, supplied)
 
     def test_secret_bearing_pr_checks_preserve_approval_and_exact_sha(self):
-        for path in WORKFLOWS.glob("*checks.yaml"):
+        for path in WORKFLOWS.glob("*"):
             workflow = load(path)
             if "pull_request_target" not in triggers(workflow):
                 continue
-            for job in workflow["jobs"].values():
-                if job.get("uses") != "./.github/workflows/wf_check.yaml":
+            for name, job in workflow["jobs"].items():
+                if not job.get("uses", "").startswith("./.github/workflows/"):
                     continue
-                with self.subTest(workflow=path.name):
+                if "GIT_REF" not in job.get("with", {}):
+                    continue
+                with self.subTest(workflow=path.name, job=name):
                     self.assertIn("check-permissions", job["needs"])
                     self.assertIn(
                         "github.event.pull_request.head.sha", job["with"]["GIT_REF"]
@@ -62,13 +64,13 @@ class ContractsTests(unittest.TestCase):
                     self.assertNotIn("refs/pull/", job["with"]["GIT_REF"])
 
     def test_runner_and_artifact_contracts(self):
+        labels = load(REPO / ".github/actionlint.yaml")["self-hosted-runner"]["labels"]
         for path in WORKFLOWS.glob("*"):
             text = path.read_text()
             self.assertNotIn("wf_build_artifacts.yaml", text, path.name)
             self.assertNotIn("/home/runner", text, path.name)
             for name, job in load(path)["jobs"].items():
                 runner = job.get("runs-on", "")
-                self.assertNotIn("nhost-", runner, path.name)
                 if not runner or "${{" in runner:
                     continue
                 if (path.name, name) in {
@@ -77,22 +79,13 @@ class ContractsTests(unittest.TestCase):
                 }:
                     self.assertEqual(runner, "ubuntu-latest")
                 else:
-                    self.assertIn(
-                        runner,
-                        {
-                            "ubuntu-latest",
-                            "ubuntu-slim",
-                            "blacksmith-2vcpu-ubuntu-2404",
-                            "blacksmith-2vcpu-ubuntu-2404-arm",
-                        },
-                        path.name,
-                    )
+                    self.assertIn(runner, labels, path.name)
         inputs = triggers(load(WORKFLOWS / "wf_check.yaml"))["workflow_call"]["inputs"]
         self.assertEqual(
             json.loads(inputs["RUNS_ON"]["default"]),
             [
-                "blacksmith-4vcpu-ubuntu-2404-arm",
-                "blacksmith-2vcpu-ubuntu-2404",
+                "nhost-aarch64-4c8g",
+                "nhost-x86_64-4c8g",
             ],
         )
         mac = load(WORKFLOWS / "nixops_checks.yaml")["jobs"]["cache-macos"]["with"]

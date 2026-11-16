@@ -76,6 +76,7 @@ export default function BaseBucketForm({
             control={form.control}
             name="name"
             label="Name"
+            autoFocus
             autoComplete="off"
             inline
           />
