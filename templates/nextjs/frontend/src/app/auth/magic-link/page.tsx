@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { localMailboxURL } from '@/lib/nhost/env';
 import MagicLinkForm from './MagicLinkForm';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +36,7 @@ export default async function MagicLink({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <MagicLinkForm next={destination} mailboxURL={localMailboxURL()} />
+          <MagicLinkForm next={destination} />
           <OtherWaysLink query={query} />
         </CardContent>
       </Card>

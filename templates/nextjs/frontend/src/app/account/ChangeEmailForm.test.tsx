@@ -21,11 +21,7 @@ let root: Root;
 async function render(verified: boolean): Promise<void> {
   await act(async () =>
     root.render(
-      <ChangeEmailForm
-        email="user@example.com"
-        verified={verified}
-        mailboxURL={null}
-      />,
+      <ChangeEmailForm email="user@example.com" verified={verified} />,
     ),
   );
 }

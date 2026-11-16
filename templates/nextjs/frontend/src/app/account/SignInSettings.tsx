@@ -3,7 +3,6 @@ import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import { buttonSettings, methods } from '@/app/signin/methods';
 import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
-import { localMailboxURL } from '@/lib/nhost/env';
 
 /** Every sign-in method, as the account page shows it. */
 
@@ -42,11 +41,7 @@ export default function SignInSettings({ user }: { user: User }) {
           title="Change email"
           description="We'll send a link to the new address to confirm it."
         >
-          <ChangeEmailForm
-            email={user.email}
-            verified={user.emailVerified}
-            mailboxURL={localMailboxURL()}
-          />
+          <ChangeEmailForm email={user.email} verified={user.emailVerified} />
         </DialogSetting>
         {methods.flatMap((method) =>
           Object.entries(method.account ?? {}).map(([name, Setting]) => (

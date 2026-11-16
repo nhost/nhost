@@ -27,11 +27,9 @@ type Sent = 'verification' | 'reset';
 export default function PasswordForm({
   next,
   intent,
-  mailboxURL,
 }: {
   next: string;
   intent: Intent;
-  mailboxURL: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -160,7 +158,7 @@ export default function PasswordForm({
   if (sent === 'verification') {
     return (
       <div className="flex flex-col gap-2 text-sm">
-        <CheckYourInbox url={mailboxURL} />
+        <CheckYourInbox />
         <p className="text-muted-foreground">
           We sent a verification link to {email}. Opening it confirms the
           address and signs you in.
@@ -172,7 +170,7 @@ export default function PasswordForm({
   if (sent === 'reset') {
     return (
       <div className="flex flex-col gap-2 text-sm">
-        <CheckYourInbox url={mailboxURL} />
+        <CheckYourInbox />
         <p className="text-muted-foreground">
           If that address has an account, a reset link is on its way.
         </p>

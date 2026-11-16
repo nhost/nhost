@@ -41,9 +41,7 @@ let root: Root;
 
 async function render(intent: 'sign-in' | 'sign-up'): Promise<void> {
   await act(async () =>
-    root.render(
-      <PasskeyForm next="/protected" intent={intent} mailboxURL={null} />,
-    ),
+    root.render(<PasskeyForm next="/protected" intent={intent} />),
   );
 }
 

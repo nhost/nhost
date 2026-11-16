@@ -47,9 +47,7 @@ describe('password form, switching modes', () => {
 
   it('writes the mode it switched to into the URL, keeping next', async () => {
     await act(async () =>
-      root.render(
-        <PasswordForm next="/protected" intent="sign-up" mailboxURL={null} />,
-      ),
+      root.render(<PasswordForm next="/protected" intent="sign-up" />),
     );
 
     await toggle('I already have an account');

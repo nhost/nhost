@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { localMailboxURL } from '@/lib/nhost/env';
 import OtpForm from './OtpForm';
 
 export const dynamic = 'force-dynamic';
@@ -41,11 +40,7 @@ export default async function OtpSignIn({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <OtpForm
-            next={destination}
-            sentTo={sentTo}
-            mailboxURL={localMailboxURL()}
-          />
+          <OtpForm next={destination} sentTo={sentTo} />
           <OtherWaysLink query={query} />
         </CardContent>
       </Card>

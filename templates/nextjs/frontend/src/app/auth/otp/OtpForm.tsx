@@ -14,11 +14,9 @@ type Step = 'email' | 'code';
 export default function OtpForm({
   next,
   sentTo,
-  mailboxURL,
 }: {
   next: string;
   sentTo?: string;
-  mailboxURL: string | null;
 }) {
   const router = useRouter();
   const emailId = useId();
@@ -96,7 +94,7 @@ export default function OtpForm({
     return (
       <form onSubmit={handleVerify} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <CheckYourInbox url={mailboxURL} />
+          <CheckYourInbox />
           <p className="text-muted-foreground text-sm">
             We sent a code to {email}.
           </p>

@@ -71,9 +71,7 @@ describe('password sign-in with two-factor on', () => {
     container = document.body.appendChild(document.createElement('div'));
     root = createRoot(container);
     await act(async () =>
-      root.render(
-        <PasswordForm next="/account" intent="sign-in" mailboxURL={null} />,
-      ),
+      root.render(<PasswordForm next="/account" intent="sign-in" />),
     );
   });
 

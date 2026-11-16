@@ -20,23 +20,6 @@ const vercelOrigin = (): string | undefined => {
   return domain ? `https://${domain}` : undefined;
 };
 
-/**
- * URL of a service in the local stack, on the same hostname pattern `nhost up`
- * prints: <subdomain>.<service>.local.nhost.run over TLS.
- */
-const localServiceURL = (service: string): string =>
-  `https://${nhostSubdomain()}.${service}.local.nhost.run`;
-
-/**
- * URL of the local mailbox that captures every email the backend sends, or null
- * when the app targets a real project and the emails go out for real.
- */
-export const localMailboxURL = (): string | null =>
-  isLocalBackend() ? localServiceURL('mailhog') : null;
-
-/** Whether the app targets the stack `nhost up` runs rather than a project. */
-export const isLocalBackend = (): boolean => nhostRegion() === LOCAL;
-
 if (
   process.env.NODE_ENV === 'production' &&
   !(

@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { localMailboxURL } from '@/lib/nhost/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,11 +36,7 @@ export default async function Passkey({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <PasskeyForm
-            next={destination}
-            intent={chosen}
-            mailboxURL={localMailboxURL()}
-          />
+          <PasskeyForm next={destination} intent={chosen} />
           <OtherWaysLink query={query} />
         </CardContent>
       </Card>

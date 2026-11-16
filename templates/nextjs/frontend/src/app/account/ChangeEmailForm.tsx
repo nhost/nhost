@@ -17,11 +17,9 @@ type Sent = { kind: 'change'; to: string } | { kind: 'verification' };
 export default function ChangeEmailForm({
   email,
   verified,
-  mailboxURL,
 }: {
   email: string | undefined;
   verified: boolean;
-  mailboxURL: string | null;
 }) {
   const emailId = useId();
 
@@ -74,7 +72,7 @@ export default function ChangeEmailForm({
     return (
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-1 text-sm" role="status">
-          <CheckYourInbox url={mailboxURL} />
+          <CheckYourInbox />
           <p className="text-muted-foreground">
             {sent.kind === 'change'
               ? `We sent a confirmation link to ${sent.to}. The address changes when you open it.`

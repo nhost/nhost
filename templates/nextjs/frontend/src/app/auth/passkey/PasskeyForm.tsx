@@ -28,11 +28,9 @@ type Mode = 'sign-in' | 'sign-up';
 export default function PasskeyForm({
   next,
   intent,
-  mailboxURL,
 }: {
   next: string;
   intent: Intent;
-  mailboxURL: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -136,7 +134,7 @@ export default function PasskeyForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-2 text-sm">
-        <CheckYourInbox url={mailboxURL} />
+        <CheckYourInbox />
         <p className="text-muted-foreground">
           Your passkey is registered. We sent a verification link to {email}.
           Opening it confirms the address and signs you in.

@@ -8,13 +8,7 @@ import { Label } from '@/components/ui/label';
 import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { sendMagicLink } from './actions';
 
-export default function MagicLinkForm({
-  next,
-  mailboxURL,
-}: {
-  next: string;
-  mailboxURL: string | null;
-}) {
+export default function MagicLinkForm({ next }: { next: string }) {
   const emailId = useId();
 
   const [email, setEmail] = useState('');
@@ -52,7 +46,7 @@ export default function MagicLinkForm({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <CheckYourInbox url={mailboxURL} />
+          <CheckYourInbox />
           <p className="text-muted-foreground text-sm">
             A sign-in link is on its way to {email}. Open it in this browser to
             sign in here.

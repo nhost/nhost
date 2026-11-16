@@ -24,6 +24,9 @@ pnpm dev
 Open http://localhost:3000. Use `localhost`, not `127.0.0.1`, or passkeys won't
 work.
 
+Emails the local stack sends, such as sign-in links and codes, land in Mailhog
+at https://local.mailhog.local.nhost.run.
+
 Other commands in `frontend/`: `pnpm test`, `pnpm lint` and `pnpm build`.
 
 ## Sign-in methods
