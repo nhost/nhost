@@ -23,7 +23,6 @@ function getCspHeader() {
         "frame-ancestors 'none'",
         "frame-src 'self' js.stripe.com challenges.cloudflare.com",
         'block-all-mixed-content',
-        // Safari upgrades local assets to HTTPS, but next dev serves HTTP.
         ...(process.env.NODE_ENV === 'development'
           ? []
           : ['upgrade-insecure-requests']),
