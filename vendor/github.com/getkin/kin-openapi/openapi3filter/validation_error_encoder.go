@@ -117,16 +117,24 @@ func convertParseError(e *RequestError, innerErr *ParseError) *ValidationError {
 		}
 	} else if innerErr.RootCause() != nil {
 		if rootErr, ok := innerErr.Cause.(*ParseError); ok &&
-			rootErr.Kind == KindInvalidFormat && e.Parameter.In == "query" {
+			rootErr.Kind == KindInvalidFormat && e.Parameter != nil && e.Parameter.In == "query" {
 			return &ValidationError{
 				Status: http.StatusBadRequest,
 				Title: fmt.Sprintf("parameter %q in %s is invalid: %v is %s",
 					e.Parameter.Name, e.Parameter.In, rootErr.Value, rootErr.Reason),
 			}
 		}
+		// For body parse errors (e.Parameter == nil) the outer ParseError's
+		// Reason is often empty, e.g. the multipart decoder wraps a part's
+		// *ParseError without setting one. Fall back to the full error text so
+		// the response still carries a meaningful message.
+		title := innerErr.Reason
+		if title == "" {
+			title = innerErr.Error()
+		}
 		return &ValidationError{
 			Status: http.StatusBadRequest,
-			Title:  innerErr.Reason,
+			Title:  title,
 		}
 	}
 	return nil

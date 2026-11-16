@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateCronTriggerArgs,
   CreateCronTriggerBulkOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateCronTriggerVariables {
@@ -15,7 +15,7 @@ export default async function createCronTrigger({
   args,
 }: MetadataOperationOptions & CreateCronTriggerVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'bulk',
         args: [
@@ -26,7 +26,7 @@ export default async function createCronTrigger({
         ],
       } satisfies CreateCronTriggerBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

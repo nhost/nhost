@@ -229,6 +229,7 @@ export default function BaseCronTriggerForm({
                     name="triggerName"
                     label="Cron Trigger Name"
                     placeholder="cron_trigger_name"
+                    autoFocus
                     disabled={isEditing}
                     className="max-w-lg"
                     autoComplete="off"
@@ -415,8 +416,7 @@ export default function BaseCronTriggerForm({
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
                 <Button
-                  variant="ghost"
-                  className="text-foreground"
+                  variant="outline"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel

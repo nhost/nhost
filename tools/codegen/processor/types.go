@@ -192,7 +192,8 @@ func getTypeObject( //nolint:ireturn
 	}
 
 	if schema.Schema().Properties == nil {
-		if schema.Schema().AdditionalProperties.B {
+		ap := schema.Schema().AdditionalProperties
+		if ap != nil && (ap.B || ap.A != nil) {
 			return &TypeMap{
 				schema: schema,
 				p:      p,

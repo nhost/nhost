@@ -21,6 +21,7 @@ let
       ../../.golangci.yaml
       ../../govulncheck.yaml
       ../../internal/lib/oapi
+      ../../internal/lib/syncmap
       (fs.fileFilter (f: f.hasExt "go") ./.)
       # oapi-codegen inputs consumed by `go generate` in the hermetic build.
       ./api/openapi.yaml
@@ -34,6 +35,7 @@ let
       ./connector/sql/graphql/schema/testdata
       ./metadata/internal/hasura/testdata
       ./integration/nhost
+      ./integration/computedfields/testdata
     ];
   };
 
@@ -44,7 +46,7 @@ let
 
   checkDeps = with pkgs; [
     nhost.nhost-cli
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.sqlc
     nhost.postgresql_18-client
@@ -52,7 +54,7 @@ let
 
   buildInputs = [ ];
 
-  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     pkgs.apple-sdk_14
   ];
 in
@@ -70,6 +72,7 @@ rec {
 
     preCheck = ''
       export GOEXPERIMENT=jsonv2;
+      export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     '';
   };
 

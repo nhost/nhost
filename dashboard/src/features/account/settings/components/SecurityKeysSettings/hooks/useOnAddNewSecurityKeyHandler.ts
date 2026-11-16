@@ -1,8 +1,8 @@
 import { startRegistration } from '@simplewebauthn/browser';
+import type { NewSecurityKeyFormValues } from '@/features/account/settings/components/SecurityKeysSettings/hooks/useNewSecurityKeyForm';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import { useNhostClient } from '@/providers/nhost';
-import type { NewSecurityKeyFormValues } from './useNewSecurityKeyForm';
 
 interface Props {
   onSuccess: () => void;

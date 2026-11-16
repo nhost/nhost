@@ -22,3 +22,28 @@ export interface SeriesAccessors {
     index: number,
   ) => string;
 }
+
+// The subset of a Recharts chart mouse event the interaction hooks read.
+export interface ChartMouseEvent {
+  activeLabel?: string | number;
+  activeTooltipIndex?: number | string | null;
+  activeCoordinate?: { x?: number; y?: number };
+  chartX?: number;
+  chartY?: number;
+}
+
+export interface PinnedPayloadEntry {
+  dataKey?: string | number;
+  name?: string | number;
+  value?: number | string;
+  color?: string | undefined;
+  payload?: { fill?: string };
+  type?: string;
+}
+
+export interface PinnedState {
+  x: number;
+  y: number;
+  label: number;
+  payload: PinnedPayloadEntry[];
+}

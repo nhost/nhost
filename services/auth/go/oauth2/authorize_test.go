@@ -317,7 +317,8 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 				},
 			),
 			expectedErr: &oauth2.Error{
-				Err: "invalid_request", Description: "PKCE code_challenge is required for public clients",
+				Err:         "invalid_request",
+				Description: "PKCE code_challenge is required for public clients",
 			},
 		},
 		{
@@ -343,7 +344,8 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 				},
 			),
 			expectedErr: &oauth2.Error{
-				Err: "invalid_request", Description: "PKCE code_challenge is required for public clients",
+				Err:         "invalid_request",
+				Description: "PKCE code_challenge is required for public clients",
 			},
 		},
 		{

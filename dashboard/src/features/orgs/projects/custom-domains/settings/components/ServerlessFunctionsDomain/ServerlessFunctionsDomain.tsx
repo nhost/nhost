@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -17,6 +23,7 @@ import {
   useGetServerlessFunctionsSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
@@ -31,6 +38,7 @@ export default function ServerlessFunctionsDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const [isVerified, setIsVerified] = useState(false);
   const { project, refetch: refetchProject } = useProject();
 
@@ -60,7 +68,7 @@ export default function ServerlessFunctionsDomain() {
     }
   }, [data, loading, form, initialValue]);
 
-  const { formState, watch, setValue } = form;
+  const { formState, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const functions_fqdn = watch('functions_fqdn');
@@ -88,11 +96,11 @@ export default function ServerlessFunctionsDomain() {
     if (isNotEmptyValue(formValues.functions_fqdn)) {
       ingresses = [{ fqdn: [formValues.functions_fqdn] }];
       successMessage =
-        'Serverless Functions domain has been updated successfully.';
+        'Serverless Functions custom domain has been updated successfully.';
     } else {
       ingresses = null;
       successMessage =
-        'Custom Serverless Functions domain has been removed successfully.';
+        'Serverless Functions custom domain has been removed successfully.';
     }
 
     const updateConfigPromise = updateConfig({
@@ -113,6 +121,9 @@ export default function ServerlessFunctionsDomain() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (!initialValue && isNotEmptyValue(formValues.functions_fqdn)) {
+          track('Custom Domain Added', { service: 'functions' });
+        }
         form.reset(formValues);
         await refetchProject();
 
@@ -129,10 +140,11 @@ export default function ServerlessFunctionsDomain() {
         }
       },
       {
-        loadingMessage: 'Serverless Functions domain is being updated...',
+        loadingMessage:
+          'Serverless Functions custom domain is being updated...',
         successMessage,
         errorMessage:
-          'An error occurred while trying to update the Serverless Functions domain.',
+          'An error occurred while trying to update the Serverless Functions custom domain.',
       },
     );
   }
@@ -140,45 +152,46 @@ export default function ServerlessFunctionsDomain() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Serverless Functions Domain"
-          description="Enter below your custom domain for Serverless Functions."
-          slotProps={{
-            submitButton: {
-              disabled: submitButtonDisabled,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
-        >
-          <Input
-            value={functions_fqdn}
-            onChange={(e) => {
-              setValue('functions_fqdn', e.target.value, { shouldDirty: true });
-              if (isVerified) {
-                setIsVerified(false);
-              }
-            }}
-            id="functions_fqdn"
-            name="functions_fqdn"
-            type="string"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            placeholder="functions.mydomain.dev"
-            error={Boolean(formState.errors.functions_fqdn?.message)}
-            helperText={formState.errors.functions_fqdn?.message}
-            slotProps={{ inputRoot: { min: 1, max: 100 } }}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Serverless Functions Custom Domain"
+            description="Enter below your custom domain for Serverless Functions."
           />
-          <div className="col-span-5 row-start-2">
-            <VerifyDomain
-              recordType="CNAME"
-              hostname={functions_fqdn}
-              value={`lb.${project!.region.name}.${project!.region.domain}.`}
-              onHostNameVerified={() => setIsVerified(true)}
-              saveEnabled={!submitButtonDisabled}
+
+          <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="functions_fqdn"
+              containerClassName="col-span-5 lg:col-span-2"
+              placeholder="functions.mydomain.dev"
+              onChange={() => {
+                if (isVerified) {
+                  setIsVerified(false);
+                }
+              }}
             />
-          </div>
-        </SettingsContainer>
+            <div className="col-span-5 row-start-2">
+              <VerifyDomain
+                recordType="CNAME"
+                hostname={functions_fqdn}
+                value={`lb.${project!.region.name}.${project!.region.domain}.`}
+                onHostNameVerified={() => setIsVerified(true)}
+                saveEnabled={!submitButtonDisabled}
+              />
+            </div>
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={submitButtonDisabled}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

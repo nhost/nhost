@@ -1,4 +1,3 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   TrackFunctionArgs,
   TrackFunctionBulkOperation,
@@ -6,6 +5,7 @@ import type {
   UntrackFunctionBulkOperation,
   UntrackFunctionStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetFunctionTrackingVariables {
@@ -43,7 +43,7 @@ export default async function setFunctionTracking({
 
   try {
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

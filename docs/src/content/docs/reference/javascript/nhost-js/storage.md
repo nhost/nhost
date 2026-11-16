@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from "@nhost/nhost-js/storage";
+import { createAPIClient } from "@nhost/nhost-js/storage";
 ```
 
 # Usage
@@ -227,7 +227,8 @@ This method may return different T based on the response code:
 getFile(
    id: string,
    params?: GetFileParams,
-   options?: RequestInit): Promise<FetchResponse<Blob>>;
+   options?: RequestInit
+): Promise<FetchResponse<Blob>>;
 ```
 
 Summary: Download file
@@ -258,7 +259,8 @@ This method may return different T based on the response code:
 getFileMetadataHeaders(
    id: string,
    params?: GetFileMetadataHeadersParams,
-   options?: RequestInit): Promise<FetchResponse<void>>;
+   options?: RequestInit
+): Promise<FetchResponse<void>>;
 ```
 
 Summary: Check file information
@@ -423,7 +425,8 @@ Add a middleware function to the fetch chain
 replaceFile(
    id: string,
    body: ReplaceFileBody,
-   options?: RequestInit): Promise<FetchResponse<FileMetadata>>;
+   options?: RequestInit
+): Promise<FetchResponse<FileMetadata>>;
 ```
 
 Summary: Replace file
@@ -484,7 +487,7 @@ This method may return different T based on the response code:
 #### metadata?
 
 ```ts
-optional metadata?: FileSummary[];
+metadata?: FileSummary[];
 ```
 
 ---
@@ -496,7 +499,7 @@ optional metadata?: FileSummary[];
 #### files?
 
 ```ts
-optional files?: string[];
+files?: string[];
 ```
 
 ---
@@ -510,7 +513,7 @@ Error information returned by the API.
 #### error?
 
 ```ts
-optional error?: ErrorResponseError;
+error?: ErrorResponseError;
 ```
 
 Error details.
@@ -526,7 +529,7 @@ Error details.
 #### data?
 
 ```ts
-optional data?: Record<string, unknown>;
+data?: Record<string, unknown>;
 ```
 
 Additional data related to the error, if any.
@@ -552,7 +555,7 @@ Error information returned by the API.
 #### error?
 
 ```ts
-optional error?: ErrorResponseWithProcessedFilesError;
+error?: ErrorResponseWithProcessedFilesError;
 ```
 
 Error details.
@@ -560,7 +563,7 @@ Error details.
 #### processedFiles?
 
 ```ts
-optional processedFiles?: FileMetadata[];
+processedFiles?: FileMetadata[];
 ```
 
 List of files that were successfully processed before the error occurred.
@@ -576,7 +579,7 @@ Error details.
 #### data?
 
 ```ts
-optional data?: Record<string, unknown>;
+data?: Record<string, unknown>;
 ```
 
 Additional data related to the error, if any.
@@ -653,7 +656,7 @@ isUploaded: boolean;
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Custom metadata associated with the file.
@@ -704,7 +707,7 @@ updatedAt: string;
 #### uploadedByUserId?
 
 ```ts
-optional uploadedByUserId?: string;
+uploadedByUserId?: string;
 ```
 
 ID of the user who uploaded the file.
@@ -769,7 +772,7 @@ Parameters for the getFileMetadataHeaders method.
 #### b?
 
 ```ts
-optional b?: number;
+b?: number;
 ```
 
 Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
@@ -777,7 +780,7 @@ Blur the image using this sigma value. Only applies to image files. Values above
 #### f?
 
 ```ts
-optional f?: OutputImageFormat;
+f?: OutputImageFormat;
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -787,7 +790,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 #### h?
 
 ```ts
-optional h?: number;
+h?: number;
 ```
 
 Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
@@ -795,7 +798,7 @@ Maximum height, in pixels, to resize image to while maintaining aspect ratio. On
 #### q?
 
 ```ts
-optional q?: number;
+q?: number;
 ```
 
 Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
@@ -803,7 +806,7 @@ Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 #### w?
 
 ```ts
-optional w?: number;
+w?: number;
 ```
 
 Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
@@ -819,7 +822,7 @@ Parameters for the getFile method.
 #### b?
 
 ```ts
-optional b?: number;
+b?: number;
 ```
 
 Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
@@ -827,7 +830,7 @@ Blur the image using this sigma value. Only applies to image files. Values above
 #### f?
 
 ```ts
-optional f?: OutputImageFormat;
+f?: OutputImageFormat;
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -837,7 +840,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 #### h?
 
 ```ts
-optional h?: number;
+h?: number;
 ```
 
 Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
@@ -845,7 +848,7 @@ Maximum height, in pixels, to resize image to while maintaining aspect ratio. On
 #### q?
 
 ```ts
-optional q?: number;
+q?: number;
 ```
 
 Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
@@ -853,7 +856,7 @@ Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 #### w?
 
 ```ts
-optional w?: number;
+w?: number;
 ```
 
 Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
@@ -867,7 +870,7 @@ Maximum width, in pixels, to resize image to while maintaining aspect ratio. Onl
 #### metadata?
 
 ```ts
-optional metadata?: FileSummary[];
+metadata?: FileSummary[];
 ```
 
 ---
@@ -879,7 +882,7 @@ optional metadata?: FileSummary[];
 #### metadata?
 
 ```ts
-optional metadata?: FileSummary[];
+metadata?: FileSummary[];
 ```
 
 ---
@@ -891,7 +894,7 @@ optional metadata?: FileSummary[];
 #### files?
 
 ```ts
-optional files?: string[];
+files?: string[];
 ```
 
 ---
@@ -931,7 +934,7 @@ url: string;
 #### file?
 
 ```ts
-optional file?: Blob;
+file?: Blob;
 ```
 
 New file content to replace the existing file
@@ -940,7 +943,7 @@ Format - binary
 #### metadata?
 
 ```ts
-optional metadata?: UpdateFileMetadata;
+metadata?: UpdateFileMetadata;
 ```
 
 Metadata that can be updated for an existing file.
@@ -956,7 +959,7 @@ Metadata that can be updated for an existing file.
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Updated custom metadata to associate with the file.
@@ -965,7 +968,7 @@ Example - `{"alt":"Updated image description","category":"profile"}`
 #### name?
 
 ```ts
-optional name?: string;
+name?: string;
 ```
 
 New name to assign to the file.
@@ -982,7 +985,7 @@ Metadata provided when uploading a new file.
 #### id?
 
 ```ts
-optional id?: string;
+id?: string;
 ```
 
 Optional custom ID for the file. If not provided, a UUID will be generated.
@@ -991,7 +994,7 @@ Example - `"custom-id-123"`
 #### metadata?
 
 ```ts
-optional metadata?: Record<string, unknown>;
+metadata?: Record<string, unknown>;
 ```
 
 Custom metadata to associate with the file.
@@ -1000,7 +1003,7 @@ Example - `{"alt":"Custom image","category":"document"}`
 #### name?
 
 ```ts
-optional name?: string;
+name?: string;
 ```
 
 Name to assign to the file. If not provided, the original filename will be used.
@@ -1015,7 +1018,7 @@ Example - `"custom-filename.png"`
 #### bucket-id?
 
 ```ts
-optional bucket-id?: string;
+"bucket-id"?: string;
 ```
 
 Target bucket identifier where files will be stored.
@@ -1024,7 +1027,7 @@ Example - `"user-uploads"`
 #### file\[\]
 
 ```ts
-file[]: Blob[];
+"file[]": Blob[];
 ```
 
 (`Blob[]`) - Array of files to upload.
@@ -1032,7 +1035,7 @@ file[]: Blob[];
 #### metadata\[\]?
 
 ```ts
-optional metadata[]?: UploadFileMetadata[];
+"metadata[]"?: UploadFileMetadata[];
 ```
 
 Optional custom metadata for each uploaded file. Must match the order of the file[] array.
@@ -1075,13 +1078,7 @@ buildVersion: string;
 
 ```ts
 type OutputImageFormat =
-  | "auto"
-  | "same"
-  | "jpeg"
-  | "webp"
-  | "png"
-  | "avif"
-  | "heic";
+  "auto" | "same" | "jpeg" | "webp" | "png" | "avif" | "heic";
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -1109,10 +1106,10 @@ function createAPIClient(
 
 ### Parameters
 
-| Parameter        | Type                                        | Default value |
-| ---------------- | ------------------------------------------- | ------------- |
-| `baseURL`        | `string`                                    | `undefined`   |
-| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
+| Parameter         | Type                                        | Default value |
+| ----------------- | ------------------------------------------- | ------------- |
+| `baseURL`         | `string`                                    | `undefined`   |
+| `chainFunctions?` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          |
 
 ### Returns
 

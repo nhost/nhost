@@ -1,14 +1,11 @@
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { twMerge } from 'tailwind-merge';
-import type { AlertProps } from '@/components/ui/v2/Alert';
-import { Alert } from '@/components/ui/v2/Alert';
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
+import type { ComponentPropsWithoutRef, HTMLAttributes } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
 
-export type ErrorMessageProps = DetailedHTMLProps<
-  HTMLProps<HTMLDivElement>,
-  HTMLDivElement
-> & {
+type AlertProps = ComponentPropsWithoutRef<typeof Alert>;
+
+export type ErrorMessageProps = HTMLAttributes<HTMLDivElement> & {
   /**
    * Props to be passed to the Alert component.
    */
@@ -38,19 +35,24 @@ export default function ErrorMessage({
   className,
   ...props
 }: ErrorMessageProps) {
+  const { className: alertClassName, ...restAlertProps } = alertProps || {};
   const { className: buttonClassName, ...restButtonProps } = buttonProps || {};
 
   return (
-    <div className={twMerge('grid gap-2', className)} {...props}>
-      <Alert className="w-full" severity="error" {...alertProps}>
-        {children}
+    <div className={cn('grid gap-2', className)} {...props}>
+      <Alert
+        variant="destructive"
+        className={cn('w-full', alertClassName)}
+        {...restAlertProps}
+      >
+        <AlertDescription>{children}</AlertDescription>
       </Alert>
 
       {onReset && (
         <Button
-          className={twMerge('justify-self-center', buttonClassName)}
-          variant="outlined"
-          color="secondary"
+          type="button"
+          className={cn('justify-self-center', buttonClassName)}
+          variant="outline"
           onClick={onReset}
           {...restButtonProps}
         >

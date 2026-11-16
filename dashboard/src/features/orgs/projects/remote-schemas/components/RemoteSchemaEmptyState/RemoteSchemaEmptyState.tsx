@@ -1,7 +1,6 @@
 import { Anchor } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Text } from '@/components/ui/v2/Text';
 
 export interface RemoteSchemaEmptyStateProps
   extends Omit<
@@ -36,11 +35,9 @@ export default function RemoteSchemaEmptyState({
         <Anchor className="h-12 w-12" />
       </div>
 
-      <Text variant="h3" component="h1">
-        {title}
-      </Text>
+      <h1 className="font-medium text-lg">{title}</h1>
 
-      <Text>{description}</Text>
+      <p className="text-sm+">{description}</p>
     </div>
   );
 }

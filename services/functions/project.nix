@@ -51,6 +51,7 @@ let
       ./server.js
       ./local-wrapper.js
       ./start.sh
+      ./nhost-install-deps.sh
       ./tsconfig.json
       ./package.json
       ./pnpm-lock.yaml
@@ -69,6 +70,7 @@ let
         ./server.js
         ./local-wrapper.js
         ./start.sh
+        ./nhost-install-deps.sh
         ./tsconfig.json
       ];
     };
@@ -78,13 +80,23 @@ let
     installPhase = ''
       mkdir -p $out/opt/server
       cp server.js local-wrapper.js tsconfig.json $out/opt/server/
-      cp start.sh $out/opt/server/
+      cp start.sh nhost-install-deps.sh $out/opt/server/
       chmod +x $out/opt/server/start.sh
     '';
   };
 
+  glibcLoader = pkgs.runCommand "glibc-loader" { } ''
+    loader="${pkgs.stdenv.cc.bintools.dynamicLinker}"
+    mkdir -p $out/lib64 $out/lib
+    ln -s "$loader" "$out/lib64/$(basename "$loader")"
+    ln -s "$loader" "$out/lib/$(basename "$loader")"
+  '';
+
   mkDockerImage =
-    { nodeRuntime }:
+    {
+      nodeRuntime,
+      extraPaths ? [ ],
+    }:
     pkgs.runCommand "image-as-dir" { } ''
       ${
         (nix2containerPkgs.nix2container.buildImage {
@@ -95,6 +107,8 @@ let
           copyToRoot = pkgs.buildEnv {
             name = "image";
             paths = [
+              pkgs.fakeNss
+              glibcLoader
               serverFiles
               pkgs.busybox
               nodeRuntime
@@ -111,7 +125,8 @@ let
                 text = "";
                 destination = "/opt/project/.keep";
               })
-            ];
+            ]
+            ++ extraPaths;
           };
 
           config = {
@@ -119,10 +134,9 @@ let
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
-              "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+              "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
               "NHOST_PROJECT_PATH=/opt/project"
-              "PACKAGE_MANAGER=pnpm"
               "NODE_OPTIONS=--enable-source-maps"
               "NPM_CONFIG_STORE_DIR=/opt/project/node_modules/.pnpm-store"
             ];
@@ -171,6 +185,20 @@ in
 
   package = serverFiles;
 
-  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_22; };
-  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_24; };
+  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nhost.nodejs_22; };
+  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nhost.nodejs_24; };
+  # Node >= 25 no longer bundles corepack, so add the standalone package (its
+  # bins are corepack/pnpm/pnpx/yarn — no overlap with nodejs' node/npm/npx).
+  # Without it, the shared install lib falls back to `npm install corepack`,
+  # whose `#!/usr/bin/env node` shim fails in this minimal image (no /usr/bin/env).
+  node26DockerImage = mkDockerImage {
+    nodeRuntime = pkgs.nhost.nodejs_26;
+    extraPaths = [ pkgs.corepack ];
+  };
+
+  nhostInstallDepsScript = pkgs.writeTextFile {
+    name = "nhost-install-deps.sh";
+    text = builtins.readFile ./nhost-install-deps.sh;
+    executable = true;
+  };
 }

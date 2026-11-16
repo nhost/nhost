@@ -2,16 +2,16 @@
 import { vi } from 'vitest';
 import type { MetricsTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetFunctionsMetricsDashboardQuery } from '@/generated/graphql';
 import { act, renderHook } from '@/tests/testUtils';
-import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
 import useFunctionMetrics from './useFunctionMetrics';
 
 // Mock the generated query hook so we can assert the variables/skip the hook
 // computes and drive its result deterministically, exercising the hook's own
 // logic (render-phase re-anchor, width gating, keep-previous-data, refetch
 // branches) without hitting Apollo/MSW.
-vi.mock('@/utils/__generated__/graphql', async () => {
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+vi.mock('@/generated/graphql', async () => {
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetFunctionsMetricsDashboardQuery: vi.fn(),

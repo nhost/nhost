@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   DeleteCronTriggerArgs,
   DeleteCronTriggerOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteCronTriggerVariables {
@@ -15,13 +15,13 @@ export default async function deleteCronTrigger({
   args,
 }: MetadataOperationOptions & DeleteCronTriggerVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'delete_cron_trigger',
         args,
       } satisfies DeleteCronTriggerOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

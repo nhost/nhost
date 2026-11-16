@@ -1,0 +1,50 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'React Flow',
+  seoTitle: 'How React Flow Shipped a Subscription Platform',
+  seoDescription:
+    'How React Flow built a subscription platform in two months with one frontend developer using Nhost auth, database, and GraphQL APIs.',
+  website: {
+    url: 'https://reactflow.dev',
+    display: 'reactflow.dev',
+  },
+  description:
+    "React Flow streamlines auth and builds a successful subscription platform in 2 months with the help of Nhost's integrated solution.",
+  logo: { src: '/customers/react-flow.svg', width: 168, height: 41 },
+  ogImage: {
+    src: '/images/customers/react-flow/og.png',
+    width: 1920,
+    height: 1080,
+  },
+  industry: 'Dev Tool',
+  location: 'Berlin, Germany',
+  timeToProduction: '8 weeks',
+  problem:
+    'React Flow needed a backend solution to support their SaaS platform and handle increased customer demands efficiently.',
+  solution:
+    'React Flow chose Nhost as their backend solution, which allowed them to build and ship their product effectively, leading to the successful acquisition of high-profile customers such as Stripe, OneSignal, and LinkedIn.',
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+## Introduction
+
+React Flow is a small company based in Berlin that focuses on developing a frontend library for building node-based interfaces, workflow editors, and interactive diagrams. The library is widely used, and to secure its financial stability, the company has introduced a subscription payment model powered by Nhost.
+
+## Problem
+
+The team at React Flow consists of frontend developers with limited backend knowledge. Therefore, they needed a solution to handle complicated auth functionality with ease.
+
+## Solution
+
+The team chose Nhost over its competitors as it integrated well with React Flow's stack and offered them all necessary features through its SDKs and GraphQL API. The active support team on Discord with fast response times was crucial in ensuring React Flow's confidence in their choice.
+
+## Benefits of Nhost
+
+Using Nhost enabled React Flow to build its subscription platform in just two months with one frontend developer working on it. The team made heavy use of the NextJS integration, and access to the Hasura console was helpful for debugging. The ability to test features and make changes in the dev environment before deploying with a simple Git command, was also important to ensure a good release process for the team.
+
+## Conclusion
+
+React Flow recommends Nhost to other developers and teams, especially frontend (React) developers who need reliable authentication and database for any project size. Paired with great SDKs for React and Next.js.

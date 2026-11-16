@@ -1,7 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import redeliverEvent, { type RedeliverEventVariables } from './redeliverEvent';
 
@@ -25,20 +24,16 @@ export interface UseRedeliverEventMutationOptions {
 export default function useRedeliverEventMutation({
   mutationOptions,
 }: UseRedeliverEventMutationOptions = {}) {
-  const { project } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const mutation = useMutation<
     MetadataOperation200,
     unknown,
     RedeliverEventVariables
   >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+    const appUrl = adminApi!.appUrl;
 
-    const adminSecret = project!.config!.hasura.adminSecret;
+    const adminSecret = adminApi!.adminSecret;
 
     return redeliverEvent({
       args: variables.args,

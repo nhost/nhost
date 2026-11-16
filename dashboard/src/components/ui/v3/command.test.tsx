@@ -6,14 +6,7 @@ import {
   CommandInput,
   CommandList,
 } from '@/components/ui/v3/command';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
-
-mockPointerEvent();
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 
 /**
  * `CommandCreateItem` is a repo-local addition to the shadcn-generated

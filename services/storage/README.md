@@ -73,6 +73,12 @@ sequenceDiagram
 
 This feature can be enabled with the flag `--clamav-server string`, where `string` is the tcp address for the clamd service.
 
+## Orphan cleanup
+
+`POST /ops/delete-orphans` re-checks metadata before deleting each candidate with a UUID filename. Any existing row protects the object, including pending uploads: `InitializeFile` creates the row before uploading content, and its `etag` remains NULL until `PopulateMetadata` completes. The metadata adapter must tolerate these nullable fields; checking only `isUploaded` would not protect uploads in progress.
+
+This check narrows same-ID re-upload races but is not atomic with object deletion. A new upload can still race between the metadata check and the delete.
+
 ## Documentation
 
 - [Official Documentation](https://docs.nhost.io/products/storage/overview).

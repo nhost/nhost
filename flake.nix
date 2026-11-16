@@ -18,7 +18,6 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  # asdasdasd
   outputs =
     {
       self,
@@ -27,7 +26,6 @@
       nix2container,
     }:
     {
-      #nixops
       lib = import ./nixops/lib/lib.nix;
       overlays.default = import ./nixops/overlays/default.nix;
     }
@@ -37,13 +35,19 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            (import ./nixops/overlays/default.nix)
-          ];
+          overlays = [ self.overlays.default ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
+
+        aif = import ./services/ai/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
 
         authf = import ./services/auth/project.nix {
           inherit
@@ -69,6 +73,14 @@
             ;
         };
 
+        configdocsf = import ./tools/configdocs/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         constellationf = import ./services/constellation/project.nix {
           inherit
             self
@@ -86,6 +98,14 @@
         };
 
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        betterleaksf = import ./tools/betterleaks/project.nix {
           inherit
             self
             pkgs
@@ -128,6 +148,14 @@
             ;
         };
 
+        landingf = import ./landing/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         guidesf = import ./examples/guides/project.nix {
           inherit
             self
@@ -161,8 +189,14 @@
             ;
         };
 
+        sharedCI = import ./ci/shared-ci.nix {
+          inherit pkgs;
+          revision = self.rev or null;
+        };
+
         nixopsf = import ./nixops/project.nix {
           inherit
+            self
             pkgs
             nix2containerPkgs
             nixops-lib
@@ -179,6 +213,14 @@
         };
 
         nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        pgmigratef = import ./internal/lib/pgmigrate/project.nix {
           inherit
             self
             pkgs
@@ -214,9 +256,13 @@
       in
       {
         checks = {
+          ai = aif.check;
           auth = authf.check;
+          betterleaks = betterleaksf.check;
+          ci = import ./ci/ci.nix { inherit pkgs; };
           cli = clif.check;
           codegen = codegenf.check;
+          configdocs = configdocsf.check;
           constellation = constellationf.check;
           ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
@@ -225,15 +271,22 @@
           functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          landing = landingf.check;
           jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
+          pgmigrate = pgmigratef.check;
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
+        };
+
+        apps.sync-ci = {
+          type = "app";
+          program = "${sharedCI.sync}/bin/sync-ci";
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -243,11 +296,18 @@
               gh
               git-cliff
               gnused
+              nhost.mcp-publisher
               skopeo
 
               # cli
+              bash
+              dash
               nhost.certbot-full
               python312Packages.certbot-dns-route53
+              kubectl
+              dnsutils
+              jq
+              shellcheck
 
               nhost.nhost-cli
 
@@ -269,7 +329,7 @@
               nhost.gqlgen
               nhost.gqlgenc
               nhost.oapi-codegen
-              mockgen
+              nhost.mockgen
               nhost.sqlc
               vacuum-go
               nhost.govulncheck
@@ -307,6 +367,12 @@
           cliff = pkgs.mkShell {
             buildInputs = with pkgs; [
               git-cliff
+            ];
+          };
+
+          mcp-publisher = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              nhost.mcp-publisher
             ];
           };
 
@@ -348,9 +414,12 @@
             ];
           };
 
+          ai = aif.devShell;
           auth = authf.devShell;
+          betterleaks = betterleaksf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          configdocs = configdocsf.devShell;
           constellation = constellationf.devShell;
           ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
@@ -358,6 +427,7 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          landing = landingf.devShell;
           functions = functionsf.devShell;
           jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
@@ -365,19 +435,25 @@
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
+          pgmigrate = pgmigratef.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
+          ai = aif.package;
+          ai-docker-image = aif.dockerImage;
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
+          betterleaks = betterleaksf.package;
+          ci-files = sharedCI.files;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          configdocs = configdocsf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
           ghactivity = ghactivityf.package;
@@ -395,21 +471,25 @@
           functions = functionsf.package;
           functions-node22-docker-image = functionsf.node22DockerImage;
           functions-node24-docker-image = functionsf.node24DockerImage;
+          functions-node26-docker-image = functionsf.node26DockerImage;
+          functions-nhost-install-deps = functionsf.nhostInstallDepsScript;
           guides = guidesf.package;
           docs-vercel-build-preview = docsf.vercelBuildPreview;
           docs-vercel-deploy-preview = docsf.vercelDeployPreview;
           docs-vercel-build-production = docsf.vercelBuildProduction;
           docs-vercel-deploy-production = docsf.vercelDeployProduction;
+          landing-vercel-build-preview = landingf.vercelBuildPreview;
+          landing-vercel-deploy-preview = landingf.vercelDeployPreview;
+          landing-vercel-build-production = landingf.vercelBuildProduction;
+          landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
+          mcp-publisher = pkgs.nhost.mcp-publisher;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           pi-agent = pkgs.nhost.pi-agent;
-          postgres-pg16 = postgresf.packages.pg16-package;
-          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
-          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
           postgres-pg17 = postgresf.packages.pg17-package;
           postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
           postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
@@ -419,6 +499,7 @@
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           storage-vips = storagef.vips;
+          sync-ci = sharedCI.sync;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };

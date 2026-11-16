@@ -1,0 +1,36 @@
+table:
+  name: movies
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_root_fields:
+    delete: deleteMovies
+    delete_by_pk: deleteMovie
+    insert: insertMovies
+    insert_one: insertMovie
+    select: movies
+    select_aggregate: moviesAggregate
+    select_by_pk: movie
+    select_stream: moviesStream
+    update: updateMovies
+    update_by_pk: updateMovie
+    update_many: updateMoviesMany
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - createdAt
+        - updatedAt
+        - name
+        - score
+        - genre
+        - overview
+        - crew
+        - budget
+        - revenue
+        - country
+        - embeddings
+        - outdated
+      filter: {}

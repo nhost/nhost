@@ -1,4 +1,4 @@
-import { TriangleAlert } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -24,26 +24,25 @@ export default function ConfirmTrackAsQueryDialog({
 }: ConfirmTrackAsQueryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-foreground">
+      <DialogContent className="p-12 text-foreground">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Track as Query</DialogTitle>
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
+            Track as Query
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to track this VOLATILE function as a query?
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <TriangleAlert className="size-5 shrink-0 text-amber-500" />
-            <p className="text-pretty text-muted-foreground text-sm">
-              Queries should typically use STABLE or IMMUTABLE functions.
-              Tracking a VOLATILE function as a query may cause unexpected
-              behavior if the function has side effects.
-            </p>
-          </div>
-        </div>
+        <Alert variant="warning">
+          <AlertDescription className="text-pretty text-muted-foreground">
+            Queries should typically use STABLE or IMMUTABLE functions. Tracking
+            a VOLATILE function as a query may cause unexpected behavior if the
+            function has side effects.
+          </AlertDescription>
+        </Alert>
 
-        <DialogFooter>
+        <DialogFooter className="mt-8">
           <Button
             variant="outline"
             className="text-foreground"
@@ -53,7 +52,6 @@ export default function ConfirmTrackAsQueryDialog({
             Cancel
           </Button>
           <ButtonWithLoading
-            variant="secondary"
             onClick={onConfirm}
             loading={isPending}
             disabled={isPending}

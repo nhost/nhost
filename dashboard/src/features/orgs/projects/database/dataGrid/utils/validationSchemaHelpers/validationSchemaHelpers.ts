@@ -106,6 +106,10 @@ export function createDynamicValidationSchema(
   columns: DataBrowserColumnMetadata[],
 ) {
   const schema = columns.reduce((currentSchema, column) => {
+    if (column.isGenerated) {
+      return currentSchema;
+    }
+
     const isNullable = column.isNullable;
     const isIdentity = column.isIdentity;
 

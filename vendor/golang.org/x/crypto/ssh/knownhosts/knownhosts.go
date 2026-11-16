@@ -142,6 +142,15 @@ func keyEq(a, b ssh.PublicKey) bool {
 	return bytes.Equal(a.Marshal(), b.Marshal())
 }
 
+// plainKeyBlob returns the serialized public portion of key: for a
+// certificate this is the certified key, otherwise the key itself.
+func plainKeyBlob(key ssh.PublicKey) string {
+	if cert, ok := key.(*ssh.Certificate); ok {
+		return string(cert.Key.Marshal())
+	}
+	return string(key.Marshal())
+}
+
 // IsHostAuthority can be used as a callback in ssh.CertChecker
 func (db *hostKeyDB) IsHostAuthority(remote ssh.PublicKey, address string) bool {
 	h, p, err := net.SplitHostPort(address)
@@ -160,10 +169,10 @@ func (db *hostKeyDB) IsHostAuthority(remote ssh.PublicKey, address string) bool 
 
 // IsRevoked can be used as a callback in ssh.CertChecker
 func (db *hostKeyDB) IsRevoked(key *ssh.Certificate) bool {
-	if _, ok := db.revoked[string(key.Marshal())]; ok {
+	if _, ok := db.revoked[plainKeyBlob(key)]; ok {
 		return true
 	}
-	if _, ok := db.revoked[string(key.SignatureKey.Marshal())]; ok {
+	if _, ok := db.revoked[plainKeyBlob(key.SignatureKey)]; ok {
 		return true
 	}
 	return false
@@ -178,7 +187,7 @@ func nextWord(line []byte) (string, []byte) {
 		return string(line), nil
 	}
 
-	return string(line[:i]), bytes.TrimSpace(line[i:])
+	return string(line[:i]), trimSpace(line[i:])
 }
 
 func parseLine(line []byte) (marker, host string, key ssh.PublicKey, err error) {
@@ -188,12 +197,17 @@ func parseLine(line []byte) (marker, host string, key ssh.PublicKey, err error) 
 	}
 
 	host, line = nextWord(line)
+	// If the extracted 'host' starts with '@', it means we either encountered
+	// a second marker (e.g., "@cert-authority @revoked") or an unknown marker
+	// (e.g., "@unknown"). Both are invalid.
+	if len(host) > 0 && host[0] == '@' {
+		return "", "", nil, fmt.Errorf("knownhosts: unexpected marker: %q", host)
+	}
 	if len(line) == 0 {
 		return "", "", nil, errors.New("knownhosts: missing host pattern")
 	}
 
-	// ignore the keytype as it's in the key blob anyway.
-	_, line = nextWord(line)
+	wantType, line := nextWord(line)
 	if len(line) == 0 {
 		return "", "", nil, errors.New("knownhosts: missing key type pattern")
 	}
@@ -209,6 +223,10 @@ func parseLine(line []byte) (marker, host string, key ssh.PublicKey, err error) 
 		return "", "", nil, err
 	}
 
+	if key.Type() != wantType {
+		return "", "", nil, fmt.Errorf("knownhosts: key type mismatch: found %q, want %q", key.Type(), wantType)
+	}
+
 	return marker, host, key, nil
 }
 
@@ -219,7 +237,7 @@ func (db *hostKeyDB) parseLine(line []byte, filename string, linenum int) error 
 	}
 
 	if marker == markerRevoked {
-		db.revoked[string(key.Marshal())] = &KnownKey{
+		db.revoked[plainKeyBlob(key)] = &KnownKey{
 			Key:      key,
 			Filename: filename,
 			Line:     linenum,
@@ -332,7 +350,7 @@ func (r *RevokedError) Error() string {
 // check checks a key against the host database. This should not be
 // used for verifying certificates.
 func (db *hostKeyDB) check(address string, remote net.Addr, remoteKey ssh.PublicKey) error {
-	if revoked := db.revoked[string(remoteKey.Marshal())]; revoked != nil {
+	if revoked := db.revoked[plainKeyBlob(remoteKey)]; revoked != nil {
 		return &RevokedError{Revoked: *revoked}
 	}
 
@@ -387,7 +405,7 @@ func (db *hostKeyDB) Read(r io.Reader, filename string) error {
 	for scanner.Scan() {
 		lineNum++
 		line := scanner.Bytes()
-		line = bytes.TrimSpace(line)
+		line = trimSpace(line)
 		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
@@ -534,4 +552,9 @@ func newHashedHost(encoded string) (*hashedHost, error) {
 
 func (h *hashedHost) match(a addr) bool {
 	return bytes.Equal(hashHost(Normalize(a.String()), h.salt), h.hash)
+}
+
+// trimSpace removes leading and trailing ASCII space and tab.
+func trimSpace(in []byte) []byte {
+	return bytes.Trim(in, " \t")
 }

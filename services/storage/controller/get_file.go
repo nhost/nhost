@@ -263,32 +263,32 @@ func (ctrl *Controller) processFileToDownload(
 		download.StatusCode = http.StatusOK
 	}
 
-	updateAt := fileMetadata.UpdatedAt.Format(time.RFC1123)
+	// Transformations retain the source modification time advertised in Last-Modified.
+	statusCode, apiErr := checkConditionals(
+		fileMetadata.Etag,
+		fileMetadata.UpdatedAt.Format(time.RFC1123),
+		params,
+		download.StatusCode,
+	)
+	if apiErr != nil {
+		download.Body.Close()
+
+		return nil, apiErr
+	}
 
 	body := download.Body
 	contentLength := download.ContentLength
 
-	if !opts.IsEmpty() {
+	// Explicit options are already validated. Bodyless conditional responses take
+	// precedence over decoding or transformation errors and need no transformed bytes.
+	if !opts.IsEmpty() && statusCode != http.StatusNotModified &&
+		statusCode != http.StatusPreconditionFailed {
 		body, contentLength, apiErr = ctrl.manipulateImage(
 			body, uint64(contentLength), opts, //nolint:gosec
 		)
 		if apiErr != nil {
 			return nil, apiErr
 		}
-
-		updateAt = time.Now().Format(time.RFC3339)
-	}
-
-	statusCode, apiErr := checkConditionals(
-		fileMetadata.Etag,
-		updateAt,
-		params,
-		download.StatusCode,
-	)
-	if apiErr != nil {
-		body.Close()
-
-		return nil, apiErr
 	}
 
 	filename, mimeType := getFileNameAndMimeType(fileMetadata, opts)

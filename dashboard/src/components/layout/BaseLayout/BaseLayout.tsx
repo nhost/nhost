@@ -1,12 +1,9 @@
-import { useTheme } from '@mui/material';
 import type { NextSeoProps } from 'next-seo';
 import { NextSeo } from 'next-seo';
-import type { PropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
 
-export interface BaseLayoutProps extends PropsWithoutRef<BoxProps> {
+export interface BaseLayoutProps extends ComponentPropsWithoutRef<'div'> {
   /**
    * Title of the page.
    */
@@ -25,13 +22,11 @@ export default function BaseLayout({
   className,
   ...props
 }: BaseLayoutProps) {
-  const theme = useTheme();
-
   return (
-    <Box className={twMerge(theme.palette.mode, className)} {...props}>
+    <div className={twMerge('box', className)} {...props}>
       <NextSeo title={title} {...seoProps} />
 
       {children}
-    </Box>
+    </div>
   );
 }

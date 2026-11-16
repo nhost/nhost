@@ -1,6 +1,7 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -22,6 +23,7 @@ function useSignInWithSecurityKey({ onNeedsEmailVerification }: Props) {
       await nhost.auth.verifySignInWebauthn({
         credential,
       });
+      saveLastSignInMethod('security-key');
     } catch (error) {
       let errorMessage =
         error?.message ||

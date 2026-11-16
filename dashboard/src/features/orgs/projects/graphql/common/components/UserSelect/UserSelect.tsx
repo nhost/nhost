@@ -1,17 +1,18 @@
-import { debounce } from '@mui/material/utils';
+import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
-import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type RemoteAppGetUsersAndAuthRolesQuery,
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 
 export interface UserSelectProps {
   /**
-   * Function to be called when the user changes.
+   * Function to be called when the user changes. The Admin pseudo-entry
+   * emits an empty `userId` because it does not represent a real user.
    */
   onUserChange: (userId: string, availableRoles: string[]) => void;
   /**
@@ -92,7 +93,9 @@ export default function UserSelect({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: only want to run the effect when adminAuthRoles changes
   useEffect(() => {
-    onUserChange('admin', getAdminRoles(adminAuthRoles));
+    if (selectedUserId === 'admin') {
+      onUserChange('', getAdminRoles(adminAuthRoles));
+    }
   }, [adminAuthRoles]);
 
   const autocompleteOptions = [
@@ -124,7 +127,7 @@ export default function UserSelect({
           setSelectedUserId(value);
 
           if (value === 'admin') {
-            onUserChange('admin', getAdminRoles(adminAuthRoles));
+            onUserChange('', getAdminRoles(adminAuthRoles));
             return;
           }
 
@@ -136,7 +139,7 @@ export default function UserSelect({
         }}
         options={autocompleteOptions}
         placeholder="Select user..."
-        className="w-full"
+        className="h-10 w-full"
         popoverContentClassName="w-80"
         onSearchChange={setInputValue}
       />

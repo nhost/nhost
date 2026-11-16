@@ -27,7 +27,7 @@ import type { Request, Response } from 'express'
 import process from 'node:process'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.HASURA_GRAPHQL_JWT_SECRET
+const JWT_SECRET = JSON.parse(process.env.NHOST_JWT_SECRET).key
 
 export default (req: Request, res: Response) => {
   const authHeader = req.headers.authorization

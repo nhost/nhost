@@ -1,7 +1,5 @@
 import { isObjectType } from 'graphql';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
   FormControl,
@@ -141,25 +139,25 @@ export default function SchemaToArgumentMapSelector({
 
   if (!selectedTargetField) {
     return (
-      <Box className="space-y-4 rounded border-1 p-4">
-        <Text className="text-muted-foreground text-sm">
+      <div className="box space-y-4 rounded border-1 p-4">
+        <p className="text-muted-foreground text-sm">
           Select a target field to configure argument mappings.
-        </Text>
-      </Box>
+        </p>
+      </div>
     );
   }
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-col space-y-4">
-        <Text className="font-semibold text-lg">
+    <div className="box space-y-4 rounded border-1 p-4">
+      <div className="flex flex-col space-y-4">
+        <h4 className="font-semibold text-lg">
           Configure arguments for {selectedTargetField}
-        </Text>
+        </h4>
 
         {targetArguments.length === 0 ? (
-          <Text className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm">
             No selectable items available for this type
-          </Text>
+          </p>
         ) : (
           <div className="space-y-3">
             {targetArguments.map((argument) => {
@@ -248,7 +246,7 @@ export default function SchemaToArgumentMapSelector({
             })}
           </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

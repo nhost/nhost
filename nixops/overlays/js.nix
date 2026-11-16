@@ -1,49 +1,83 @@
 (
   final: prev:
   let
-    biome_version = "2.5.3";
+    biome_version = "2.5.11";
+
+    # Keep runtime overrides under `pkgs.nhost.*`. Overriding global nixpkgs
+    # Node attrs taints unrelated build closures and defeats binary caches.
+    mkNodejsSlim =
+      {
+        version,
+        sha256,
+        obsoletePatches ? [ ],
+      }:
+      prev.${"nodejs-slim_${prev.lib.versions.major version}"}.overrideAttrs (oldAttrs: {
+        inherit version;
+        src = prev.fetchurl {
+          url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
+          inherit sha256;
+        };
+        patches = builtins.filter (
+          p: !builtins.any (name: prev.lib.hasInfix name (toString p)) obsoletePatches
+        ) (oldAttrs.patches or [ ]);
+
+        # These releases expose Brotli error codes missing from nixpkgs' shared
+        # library. Use the matching bundled Brotli without changing global deps.
+        configureFlags = builtins.filter (
+          flag: !(prev.lib.hasPrefix "--shared-brotli" flag)
+        ) oldAttrs.configureFlags;
+        buildInputs = builtins.filter (input: input != prev.brotli) oldAttrs.buildInputs;
+
+        # These network tests fail only inside the macOS Nix sandbox:
+        # 127.0.0.2 is denied with EPERM and the HTTPS local-port test hangs.
+        checkFlags = map (
+          f:
+          if prev.lib.hasPrefix "CI_SKIP_TESTS=" f then
+            f
+            + prev.lib.optionalString final.stdenv.buildPlatform.isDarwin ",test-dgram-connect-sync,test-https-connect-localport"
+          else
+            f
+        ) oldAttrs.checkFlags;
+      });
+
+    # Reuse nixpkgs' wrapper, including each release's bundled npm/corepack.
+    # Unwrap nixpkgs' `lib.warn` from `nodejs.src` for source consumers.
+    mkNodejs =
+      nodejs-slim:
+      (prev.${"nodejs_${prev.lib.versions.major nodejs-slim.version}"}.override {
+        inherit nodejs-slim;
+      }).overrideAttrs
+        (oldAttrs: {
+          passthru = oldAttrs.passthru // {
+            inherit (nodejs-slim) src;
+          };
+        });
   in
   rec {
-    # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
-    # (see default.nix). Deliberately NOT exported as global
-    # `nodejs`/`nodejs-slim_24`: overriding those globally taints every nixpkgs
-    # package with node in its build closure (npm hooks, docs themes, scons,
-    # ...), forcing source rebuilds of huge dependency cones instead of
-    # substituting them from cache.nixos.org.
-    nodejs-slim = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.16.0";
-      src = prev.fetchurl {
-        url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-L/hKbecLYWUpARGw/GVt7RrSB6eZgW/nIMx8MSMt8w8=";
-      };
-      # The TLS test patch (dd25d8f2…) was upstreamed in Node 24.16.0, so the
-      # nixpkgs patch no longer applies. Drop it from the inherited patch set.
-      patches = builtins.filter (
-        p: !(prev.lib.hasInfix "dd25d8f29d3ddadcf5a5ebfdf98ece55f9df96c6" (toString p))
-      ) (oldAttrs.patches or [ ]);
-    });
-
-    nodejs = final.symlinkJoin {
-      name = "nodejs";
-      version = final.nhost.nodejs-slim.version;
-      paths = [
-        final.nhost.nodejs-slim
-        npm_11
-      ];
-
-      passthru = {
-        inherit (final.nhost.nodejs-slim)
-          version
-          python
-          meta
-          src
-          ;
-
-        pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
-          nodejs = final.nhost.nodejs;
-        };
-      };
+    nodejs-slim_22 = mkNodejsSlim {
+      version = "22.23.4";
+      sha256 = "7b9adc82d612d0a2a863d96c46de2292552e250cee51956ebbe0146c42aacae9";
+      # The OpenSSL CCM test fix is already included upstream.
+      obsoletePatches = [ "40eac4a32f3676b286fd44435be4514962a40b79" ];
     };
+    nodejs-slim_24 = mkNodejsSlim {
+      version = "24.22.1";
+      sha256 = "4f5379796280cdaeb0c2f358fd04b6a16cc4fb7dfa83b5a8c91a9d963b435231";
+      # The OpenSSL CCM test fix is already included upstream.
+      obsoletePatches = [ "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d" ];
+    };
+    nodejs-slim_26 = mkNodejsSlim {
+      version = "26.12.1";
+      sha256 = "053e3b296859b6d8d93f99ef97fa9cec1c4ee171c72968100c649978c1dbd38c";
+      # Upstream now supports Temporal with system ICU directly.
+      obsoletePatches = [ "fix-temporal-integration-with-shared-icu.patch" ];
+    };
+
+    nodejs_22 = mkNodejs nodejs-slim_22;
+    nodejs_24 = mkNodejs nodejs-slim_24;
+    nodejs_26 = mkNodejs nodejs-slim_26;
+    nodejs-slim = nodejs-slim_24;
+    nodejs = nodejs_24;
 
     vercel =
       (import ./vercel {
@@ -51,64 +85,7 @@
         nodejs = final.nhost.nodejs;
       })."vercel-53.3.2";
 
-    npm_11 = final.stdenv.mkDerivation rec {
-      pname = "npm";
-      version = "11.7.0";
-      src = final.fetchurl {
-        url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
-        sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
-      };
-      nativeBuildInputs = [ final.nhost.nodejs-slim.out ];
-      dontBuild = true;
-      installPhase = ''
-        mkdir -p $out/lib/node_modules/npm
-        cp -r . $out/lib/node_modules/npm
-        mkdir -p $out/bin
-        ln -s $out/lib/node_modules/npm/bin/npm-cli.js $out/bin/npm
-        ln -s $out/lib/node_modules/npm/bin/npx-cli.js $out/bin/npx
-        patchShebangs $out/lib/node_modules/npm/bin
-      '';
-    };
-
-    pnpm =
-      (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
-        nodejs = final.nhost.nodejs;
-        version = "11.1.0";
-        hash = "sha256-VzyCrTVuiwl+bKxIG3OB+d7tM6MYr38xGYSFjr4fl+8=";
-      }).overrideAttrs
-        (oldAttrs: {
-          # In pnpm 11, bin/pnpm.cjs is a non-executable compatibility shim; the
-          # real entrypoint moved to bin/pnpm.mjs. Upstream generic.nix still
-          # symlinks to pnpm.cjs, which yields "permission denied" at runtime.
-          installPhase = ''
-            runHook preInstall
-
-            install -d $out/{bin,libexec}
-            cp -R . $out/libexec/pnpm
-            ln -s $out/libexec/pnpm/bin/pnpm.mjs $out/bin/pnpm
-            ln -s $out/libexec/pnpm/bin/pnpx.mjs $out/bin/pnpx
-
-            runHook postInstall
-          '';
-
-          # macOS-only: Node's worker_threads fd tracker (trackUnmanagedFds, on
-          # by default) races under pnpm's parallel workers and aborts the
-          # process ("File descriptor N opened in unmanaged mode" then
-          # SIGABRT/SIGKILL). pnpm churns fds via graceful-fs' EAGAIN retry loop;
-          # libuv recycles those numbers for internal pipes, and worker-exit
-          # cleanup then closes fds it doesn't own. Disable the tracker on pnpm's
-          # WorkerPool. The --replace-fail target is minified and pinned to this
-          # pnpm version; revisit it on the next pnpm bump. Remove once fixed
-          # upstream: https://github.com/NixOS/nixpkgs/issues/525627
-          postPatch =
-            (oldAttrs.postPatch or "")
-            + final.lib.optionalString final.stdenv.isDarwin ''
-              substituteInPlace dist/pnpm.mjs \
-                --replace-fail \
-                  'resourceLimits: this._workerResourceLimits' \
-                  'resourceLimits: this._workerResourceLimits, trackUnmanagedFds: false'
-            '';
-        });
+    pnpm = prev.pnpm_12;
 
     biome = final.biome.overrideAttrs (
       finalAttrs: previousAttrs: {
@@ -118,12 +95,12 @@
           owner = "biomejs";
           repo = "biome";
           rev = "@biomejs/biome@${biome_version}";
-          hash = "sha256-ctN3CmzLXw350U6tFXwGHCySZul09C30VMPDkM38LdU=";
+          hash = "sha256-8xiYWucmPrvvizvsAo1swmrJPiSdlvTdynM2c/+rJnI=";
         };
 
         cargoDeps = final.rustPlatform.fetchCargoVendor {
           inherit (finalAttrs) pname version src;
-          hash = "sha256-znFmtMwdvLEBpq5TjRnm9IURFxIlexYQ16Sj6hlcCXA=";
+          hash = "sha256-cy29RkqgU1ok/MNc/KK7svRAr/vq/ntaQT43yJ5mrrA=";
         };
       }
     );

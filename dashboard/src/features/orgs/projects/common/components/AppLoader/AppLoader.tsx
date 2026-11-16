@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectInfoCards } from '@/features/orgs/projects/common/components/ProjectInfoCards';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
@@ -69,30 +69,30 @@ export default function AppLoader({
   }
 
   return (
-    <div className="grid grid-flow-row gap-2">
-      <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h1">
+    <div className="grid grid-flow-row gap-8">
+      <div className="grid grid-flow-row gap-2">
+        <h1 className="font-medium text-foreground text-lg">
           {restoring && `Restoring ${project?.name} from backup`}
           {!restoring && unpause && `Unpausing ${project?.name}`}
           {!restoring && !unpause && `Provisioning ${project?.name}`}
-        </Text>
-        <Text>This normally takes around 2 minutes</Text>
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          This normally takes around 2 minutes
+        </p>
       </div>
 
-      {timeElapsed <= 5 && (
-        <Text color="disabled">Setting up authentication</Text>
-      )}
-      {timeElapsed > 5 && timeElapsed <= 10 && (
-        <Text color="disabled">Setting up file storage</Text>
-      )}
-      {timeElapsed > 10 && timeElapsed <= 15 && (
-        <Text color="disabled">Setting up database</Text>
-      )}
-      {timeElapsed > 15 && timeElapsed <= 20 && (
-        <Text color="disabled">Setting up Hasura</Text>
-      )}
-      {timeElapsed > 20 && <Text color="disabled">Doing final cleanup</Text>}
-      <Spinner size="xs" />
+      <div className="mx-auto w-full max-w-72">
+        <ProjectInfoCards layout="stacked" />
+      </div>
+
+      <div className="flex items-center justify-center gap-2 text-disabled text-sm">
+        <Spinner size="xs" />
+        {timeElapsed <= 5 && <p>Setting up authentication</p>}
+        {timeElapsed > 5 && timeElapsed <= 10 && <p>Setting up file storage</p>}
+        {timeElapsed > 10 && timeElapsed <= 15 && <p>Setting up database</p>}
+        {timeElapsed > 15 && timeElapsed <= 20 && <p>Setting up Hasura</p>}
+        {timeElapsed > 20 && <p>Doing final cleanup</p>}
+      </div>
 
       {timeElapsed > 180 && (
         <Link

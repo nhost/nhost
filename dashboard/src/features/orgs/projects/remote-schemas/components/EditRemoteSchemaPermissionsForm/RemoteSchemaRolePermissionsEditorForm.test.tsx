@@ -11,13 +11,7 @@ import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import RemoteSchemaRolePermissionsEditorForm from './RemoteSchemaRolePermissionsEditorForm';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -108,9 +102,9 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetRolesPermissionsQuery: mocks.useGetRolesPermissionsQuery,
@@ -197,7 +191,6 @@ describe('RemoteSchemaRolePermissionsEditorForm', () => {
 
   beforeEach(() => {
     capturedMigrations = [];
-    mockPointerEvent();
     mocks.useGetRolesPermissionsQuery.mockReturnValue({});
     mocks.useRouter.mockReturnValue({
       basePath: '',

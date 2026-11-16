@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nhost/nhost/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
-	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -139,6 +139,23 @@ func (h *webSocketHandler) OnSubscribe(
 	)
 	if err != nil {
 		h.sendSubscriptionError(id, err)
+		return
+	}
+
+	plan, err := h.state.queryPlanner.Plan(operation, fragments, h.session.Role, validatedVariables)
+	if err != nil {
+		h.sendError(id, fmt.Errorf("planning subscription: %w", err).Error())
+		return
+	}
+
+	if plan.HasRemoteQueries() {
+		// Hasura rejects both physical and computed remote relationships in
+		// subscriptions. Do not register or start a SQL poll that drops them.
+		h.sendErrors(id, []map[string]any{{
+			"message":    "Remote relationships are not allowed in subscriptions",
+			"extensions": map[string]any{"code": "not-supported", "path": "$"},
+		}})
+
 		return
 	}
 

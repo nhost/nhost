@@ -9,8 +9,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
+import { controlHeight, controlText } from '@/components/ui/v3/control';
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
@@ -58,6 +60,12 @@ export interface ComboboxProps {
    */
   triggerLabel?: ReactNode;
   /**
+   * Optional override for the whole trigger content node. When provided,
+   * replaces the default label/placeholder and chevron content while keeping
+   * the trigger button unchanged.
+   */
+  triggerContent?: ReactNode;
+  /**
    * Extra content rendered at the bottom of the command list, inside the same
    * `Command`. `FreeCombobox` uses this to inject its "create custom value"
    * row without duplicating the popover/command scaffolding.
@@ -70,8 +78,14 @@ export interface ComboboxProps {
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onCloseAutoFocus?: (event: Event) => void;
   onSearchChange?: (search: string) => void;
   popoverContentClassName?: string;
+  /**
+   * Optional external element used as the popover positioning anchor instead of
+   * the trigger button.
+   */
+  popoverAnchor?: HTMLElement | null;
   id?: string;
   'data-testid'?: string;
   'aria-label'?: string;
@@ -93,11 +107,14 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       options,
       filter,
       triggerLabel,
+      triggerContent,
       footerSlot,
       open,
       onOpenChange,
+      onCloseAutoFocus,
       onSearchChange,
       popoverContentClassName,
+      popoverAnchor,
       id,
       'data-testid': dataTestId,
       'aria-label': ariaLabel,
@@ -130,6 +147,11 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       return Array.from(groups.entries());
     }, [options]);
 
+    const popoverAnchorVirtualRef = useMemo(
+      () => (popoverAnchor ? { current: popoverAnchor } : undefined),
+      [popoverAnchor],
+    );
+
     const selected = options.find((option) => option.value === value);
     const displayLabel: ReactNode =
       triggerLabel ??
@@ -138,6 +160,9 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
 
     return (
       <Popover open={isOpen} onOpenChange={setOpen}>
+        {popoverAnchorVirtualRef && (
+          <PopoverAnchor virtualRef={popoverAnchorVirtualRef} />
+        )}
         <PopoverTrigger asChild>
           <Button
             ref={ref}
@@ -151,18 +176,25 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
             aria-describedby={ariaDescribedBy}
             aria-invalid={ariaInvalid}
             className={cn(
+              controlHeight,
+              controlText,
               'w-full justify-between font-normal',
               !displayLabel && 'text-muted-foreground',
               className,
             )}
             onBlur={onBlur}
           >
-            <span className="truncate">{displayLabel ?? placeholder}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            {triggerContent ?? (
+              <>
+                <span className="truncate">{displayLabel ?? placeholder}</span>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
           align="start"
+          onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
             popoverContentClassName,
@@ -171,7 +203,6 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
           <Command filter={filter}>
             <CommandInput
               placeholder={searchPlaceholder}
-              className="h-9"
               disabled={disabled}
               onValueChange={onSearchChange}
             />

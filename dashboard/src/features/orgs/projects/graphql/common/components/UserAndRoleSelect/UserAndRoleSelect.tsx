@@ -7,38 +7,45 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
+import type { GraphQLPlaygroundSelection } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 
 /**
  * Component that combines user selection and role selection functionality
  */
 interface UserAndRoleSelectProps {
   /**
-   * Function to be called when the user changes.
+   * Function to be called when the user or role changes.
    */
-  onUserChange: (userId: string) => void;
-  /**
-   * Function to be called when the role changes.
-   */
-  onRoleChange: (role: string) => void;
+  onSelectionChange: (selection: GraphQLPlaygroundSelection) => void;
 }
 
 export default function UserAndRoleSelect({
-  onUserChange,
-  onRoleChange,
+  onSelectionChange,
 }: UserAndRoleSelectProps) {
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
-  const [role, setRole] = useState<string>(() => availableRoles[0]);
+  const [userId, setUserId] = useState('');
+  const [role, setRole] = useState('');
 
-  const handleUserChange = (userId: string, availableUserRoles: string[]) => {
-    onUserChange(userId);
+  const handleUserChange = (
+    nextUserId: string,
+    availableUserRoles: string[],
+  ) => {
     setAvailableRoles(availableUserRoles);
 
-    const newRole = availableUserRoles[0];
+    const shouldKeepCurrentRole =
+      nextUserId === userId && availableUserRoles.includes(role);
+    const nextRole = shouldKeepCurrentRole
+      ? role
+      : (availableUserRoles[0] ?? '');
 
-    if (newRole) {
-      setRole(newRole);
-      onRoleChange(newRole);
-    }
+    setUserId(nextUserId);
+    setRole(nextRole);
+    onSelectionChange({ userId: nextUserId, role: nextRole });
+  };
+
+  const handleRoleChange = (nextRole: string) => {
+    setRole(nextRole);
+    onSelectionChange({ userId, role: nextRole });
   };
 
   return (
@@ -52,13 +59,7 @@ export default function UserAndRoleSelect({
         <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
           Role
         </span>
-        <Select
-          value={role}
-          onValueChange={(value) => {
-            setRole(value);
-            onRoleChange(value);
-          }}
-        >
+        <Select value={role} onValueChange={handleRoleChange}>
           <SelectTrigger
             aria-label="Role"
             data-testid="graphql-role-select"

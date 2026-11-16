@@ -1,14 +1,21 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { alpha } from '@mui/system';
 import { CopyIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Button } from '@/components/ui/v3/button';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -41,11 +48,11 @@ export default function ResetDatabasePasswordSettings() {
   const {
     setValue,
     getValues,
-    register,
-    formState: { errors, dirtyFields, isSubmitting },
+    formState: { dirtyFields, errors, isSubmitting },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
+  const hasDatabasePasswordError = Boolean(errors.databasePassword);
 
   useLeaveConfirm({ isDirty });
 
@@ -78,7 +85,7 @@ export default function ResetDatabasePasswordSettings() {
       );
     } catch (e) {
       triggerToast(
-        `An error occured while trying to update the database password for ${project?.name}`,
+        `An error occurred while trying to update the database password for ${project?.name}`,
       );
       await discordAnnounce(
         `An error occurred while trying to update the database password: ${project?.name} (${user?.email}): ${e.message}`,
@@ -101,87 +108,68 @@ export default function ResetDatabasePasswordSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Reset Password"
-          description="This password will be used for accessing your database."
-          submitButtonText="Save"
-          slotProps={{
-            root: {
-              sx: {
-                borderColor: (theme) =>
-                  isDirty
-                    ? theme.palette.error.main
-                    : alpha(theme.palette.error.main, 0.5),
-                '@media (prefers-reduced-motion: no-preference)': {
-                  transition: (theme) =>
-                    theme.transitions.create('border-color'),
-                },
-              },
-            },
-            submitButton: {
-              variant: isDirty ? 'contained' : 'outlined',
-              color: isDirty ? 'error' : 'secondary',
-              disabled: !isDirty,
-              loading: isSubmitting || resetPasswordLoading,
-            },
-          }}
-          className="grid grid-flow-row pb-4"
-        >
-          <Input
-            {...register('databasePassword')}
-            name="databasePassword"
-            id="databasePassword"
-            autoComplete="new-password"
-            type="password"
-            error={Boolean(errors?.databasePassword)}
-            fullWidth
-            hideEmptyHelperText
-            slotProps={{
-              input: { className: 'lg:w-1/2' },
-              inputRoot: { className: '!pr-8' },
-              helperText: { component: 'div' },
-            }}
-            helperText={
-              <div className="grid grid-flow-row items-center justify-start gap-1 pt-1">
-                {errors?.databasePassword?.message}
-                <div className="grid grid-flow-col items-center justify-start gap-1">
-                  The root Postgres password for your database - it must be
-                  strong and hard to guess.
-                  <Button
-                    onClick={handleGenerateRandomPassword}
-                    className="h-auto px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                    variant="link"
-                  >
-                    Generate a password
-                  </Button>
-                </div>
-              </div>
-            }
-            endAdornment={
-              <InputAdornment
-                position="end"
-                className={twMerge(
-                  'absolute right-2',
-                  Boolean(errors?.databasePassword) && 'invisible',
-                )}
-              >
-                <Button
-                  variant="ghost"
-                  className="h-auto min-w-0 p-0"
-                  onClick={() => {
-                    copy(
-                      getValues('databasePassword') as string,
-                      'Postgres password',
-                    );
-                  }}
-                  aria-label="Copy password"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </Button>
-              </InputAdornment>
-            }
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Reset Password"
+            description="The root password used to access your database. Make it strong and hard to guess."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="pb-4">
+            <FormInput
+              control={form.control}
+              name="databasePassword"
+              type="password"
+              autoComplete="new-password"
+              aria-label="Database password"
+              containerClassName="lg:w-1/2"
+              helperText={
+                <Button
+                  onClick={handleGenerateRandomPassword}
+                  variant="link"
+                  size="inline"
+                  className="text-xs underline underline-offset-2 hover:underline"
+                >
+                  Generate a password
+                </Button>
+              }
+              addonEnd={
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="subtle"
+                      size="icon-sm"
+                      onClick={() => {
+                        copy(
+                          getValues('databasePassword') as string,
+                          'Postgres password',
+                        );
+                      }}
+                      aria-label="Copy password"
+                      className={
+                        hasDatabasePasswordError ? 'invisible' : undefined
+                      }
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy password</TooltipContent>
+                </Tooltip>
+              }
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              variant="destructive"
+              disabled={!isDirty}
+              loading={isSubmitting || resetPasswordLoading}
+              className="w-full sm:w-auto"
+            >
+              Reset password
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

@@ -1,12 +1,12 @@
-import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Switch } from '@/components/ui/v2/Switch';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Input } from '@/components/ui/v3/input';
+import { Label } from '@/components/ui/v3/label';
+import { Switch } from '@/components/ui/v3/switch';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { cn } from '@/lib/utils';
 
 export default function HealthCheckFormSection() {
   const {
@@ -19,7 +19,7 @@ export default function HealthCheckFormSection() {
   const healthCheck = watch('healthCheck');
   const [healthCheckEnabled, setHealthCheckEnabled] = useState(!!healthCheck);
 
-  const toggleHealthCheckEnabled = async (enabled: boolean) => {
+  const toggleHealthCheckEnabled = (enabled: boolean) => {
     setHealthCheckEnabled(enabled);
 
     if (!enabled) {
@@ -28,85 +28,98 @@ export default function HealthCheckFormSection() {
   };
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Health Check
-          </Text>
+    <div className="space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h4 className="font-semibold">Health Check</h4>
 
-          <Tooltip
-            title={
-              <span>
-                Monitor the health and availability of a service. Refer to{' '}
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="https://docs.nhost.io/products/run/health-checks"
-                  className="underline"
-                >
-                  Health Check
-                </a>{' '}
-                for more information.
-              </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-          </Tooltip>
-        </Box>
+          <InfoTooltip>
+            Monitor the health and availability of a service. Refer to{' '}
+            <TextLink
+              href="https://docs.nhost.io/products/run/health-checks"
+              external
+              className="font-medium"
+            >
+              Health Check
+            </TextLink>{' '}
+            for more information.
+          </InfoTooltip>
+        </div>
 
         <Switch
           checked={healthCheckEnabled}
-          onChange={(e) => toggleHealthCheckEnabled(e.target.checked)}
+          onCheckedChange={toggleHealthCheckEnabled}
           className="self-center"
         />
-      </Box>
+      </div>
 
       {healthCheckEnabled && (
-        <Box className="flex flex-col space-y-4">
-          <Input
-            {...register(`healthCheck.port`)}
-            id="healthCheck.port"
-            label="Port"
-            placeholder="3000"
-            className="w-full"
-            hideEmptyHelperText
-            error={!!errors?.healthCheck?.port}
-            helperText={errors?.healthCheck?.port?.message}
-            fullWidth
-            autoComplete="off"
-            type="number"
-          />
+        <div className="flex flex-col space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="healthCheck.port">Port</Label>
+            <Input
+              {...register('healthCheck.port')}
+              id="healthCheck.port"
+              placeholder="3000"
+              className={cn({
+                'border-destructive': errors.healthCheck?.port,
+              })}
+              aria-invalid={!!errors.healthCheck?.port}
+              autoComplete="off"
+              type="number"
+            />
+            {errors.healthCheck?.port?.message && (
+              <p className="text-destructive text-sm">
+                {errors.healthCheck.port.message}
+              </p>
+            )}
+          </div>
 
-          <Input
-            {...register(`healthCheck.initialDelaySeconds`)}
-            id="healthCheck.initialDelaySeconds"
-            label="Initial delay seconds"
-            placeholder="30"
-            className="w-full"
-            hideEmptyHelperText
-            error={!!errors?.healthCheck?.initialDelaySeconds}
-            helperText={errors?.healthCheck?.initialDelaySeconds?.message}
-            fullWidth
-            autoComplete="off"
-            type="number"
-          />
+          <div className="space-y-2">
+            <Label htmlFor="healthCheck.initialDelaySeconds">
+              Initial delay seconds
+            </Label>
+            <Input
+              {...register('healthCheck.initialDelaySeconds')}
+              id="healthCheck.initialDelaySeconds"
+              placeholder="30"
+              className={cn({
+                'border-destructive': errors.healthCheck?.initialDelaySeconds,
+              })}
+              aria-invalid={!!errors.healthCheck?.initialDelaySeconds}
+              autoComplete="off"
+              type="number"
+            />
+            {errors.healthCheck?.initialDelaySeconds?.message && (
+              <p className="text-destructive text-sm">
+                {errors.healthCheck.initialDelaySeconds.message}
+              </p>
+            )}
+          </div>
 
-          <Input
-            {...register(`healthCheck.probePeriodSeconds`)}
-            id="healthCheck.probePeriodSeconds"
-            label="Probe period seconds"
-            placeholder="60"
-            className="w-full"
-            hideEmptyHelperText
-            error={!!errors?.healthCheck?.probePeriodSeconds}
-            helperText={errors?.healthCheck?.probePeriodSeconds?.message}
-            fullWidth
-            autoComplete="off"
-            type="number"
-          />
-        </Box>
+          <div className="space-y-2">
+            <Label htmlFor="healthCheck.probePeriodSeconds">
+              Probe period seconds
+            </Label>
+            <Input
+              {...register('healthCheck.probePeriodSeconds')}
+              id="healthCheck.probePeriodSeconds"
+              placeholder="60"
+              className={cn({
+                'border-destructive': errors.healthCheck?.probePeriodSeconds,
+              })}
+              aria-invalid={!!errors.healthCheck?.probePeriodSeconds}
+              autoComplete="off"
+              type="number"
+            />
+            {errors.healthCheck?.probePeriodSeconds?.message && (
+              <p className="text-destructive text-sm">
+                {errors.healthCheck.probePeriodSeconds.message}
+              </p>
+            )}
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

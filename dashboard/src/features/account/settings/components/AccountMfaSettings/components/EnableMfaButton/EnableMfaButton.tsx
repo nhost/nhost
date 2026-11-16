@@ -1,3 +1,4 @@
+import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -8,8 +9,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
+import MfaQRCodeAndTOTPSecret from '@/features/account/settings/components/AccountMfaSettings/components/EnableMfaButton/MfaQRCodeAndTOTPSecret';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
-import MfaQRCodeAndTOTPSecret from './MfaQRCodeAndTOTPSecret';
 
 function EnableMfaButton() {
   const [open, setOpen] = useState(false);
@@ -24,17 +25,16 @@ function EnableMfaButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={buttonDisabled}
-          className="h-9 gap-2 border-green-600 p-y[0.375rem] px-2 text-green-600 hover:bg-destructive hover:bg-green-600"
-        >
+        <Button variant="outline" disabled={buttonDisabled}>
+          <ShieldCheck className="mr-2 h-4 w-4" />
           Enable multi-factor authentication
         </Button>
       </DialogTrigger>
-      <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+      <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Enable multi-factor authentication</DialogTitle>
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Enable multi-factor authentication
+          </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
           Enable multi-factor authentication

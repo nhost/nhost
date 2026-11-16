@@ -21,6 +21,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import AggregationQuerySection from './sections/AggregationQuerySection';
@@ -255,6 +256,7 @@ export default function RolePermissionEditorForm({
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
   const { project } = useProject();
+  const track = useTrackEvent();
   const {
     mutateAsync: managePermission,
     error,
@@ -343,6 +345,7 @@ export default function RolePermissionEditorForm({
     await execPromiseWithErrorToast(
       async () => {
         await managePermissionPromise;
+        track('Permissions Configured', { role, action });
         onDirtyStateChange(false, location);
         onSubmit?.();
       },
@@ -425,7 +428,7 @@ export default function RolePermissionEditorForm({
 
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={resetError}
             >
@@ -438,7 +441,6 @@ export default function RolePermissionEditorForm({
       <Form
         onSubmit={handleSubmit}
         className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1"
-        sx={{ backgroundColor: 'background.default' }}
       >
         <div className="grid min-h-0 flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
@@ -492,7 +494,7 @@ export default function RolePermissionEditorForm({
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleCancelClick}
             tabIndex={isDirty ? -1 : 0}

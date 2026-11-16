@@ -1,5 +1,5 @@
 import { type JSX, useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface UnreadCountResponse {

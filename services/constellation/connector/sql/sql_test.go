@@ -526,6 +526,97 @@ func TestNewConnector_RecordsInvalidHasuraRemoteRelationshipType(t *testing.T) {
 	t.Fatalf("expected invalid relationship_type inconsistency, got %+v", inc.Snapshot())
 }
 
+// A malformed, named computation in a permission filter must revoke only
+// that permission, not make root construction fail for the whole source.
+func TestNewConnector_MalformedComputedMemberKeepsOtherRoots(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name   string
+		member string
+	}{
+		{name: "table argument", member: `"definition":{"function":"f","table_argument":17},"name":"broken"`},
+		{name: "comment", member: `"comment":false,"name":"broken","definition":{"function":"f"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertMalformedComputedMemberKeepsOtherRoots(t, tc.member)
+		})
+	}
+}
+
+func assertMalformedComputedMemberKeepsOtherRoots(t *testing.T, member string) {
+	t.Helper()
+
+	input := `{"version":3,"sources":[{"name":"default","kind":"postgres","configuration":{"connection_info":{"database_url":"postgres://localhost/db"}},"tables":[{"table":{"schema":"public","name":"items"},"computed_fields":[{` + member + `}],"select_permissions":[{"role":"affected","permission":{"columns":["id"],"filter":{"broken":{"_eq":"value"}}}},{"role":"healthy","permission":{"columns":["id"],"filter":{}}}]}]}]}`
+
+	md, err := metadata.FromHasuraJSON([]byte(input))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	field := md.Databases[0].Tables[0].ComputedFields[0]
+	if field.Name != "broken" || field.DecodeError == "" {
+		t.Fatalf("converted computed field: %+v", field)
+	}
+
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"items": {
+				Schema: "public", Name: "items",
+				Columns:     []introspection.Column{{Name: "id", Type: "text"}},
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+
+	driver := mock.NewMockDriver(gomock.NewController(t))
+	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
+	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(objects, nil)
+	driver.EXPECT().Close().AnyTimes()
+
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(t.Context(), driver, &md.Databases[0], inc, nil)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	t.Cleanup(conn.Close)
+
+	want := map[string]string{
+		metadata.InconsistencyKindComputedField:    "public.items.broken",
+		metadata.InconsistencyKindSelectPermission: "public.items.affected",
+	}
+
+	snapshot := inc.Snapshot()
+	if len(snapshot) != len(want) {
+		t.Fatalf("inconsistencies: %+v", snapshot)
+	}
+
+	for _, item := range snapshot {
+		if item.Name != want[item.Kind] || item.Source != "default" {
+			t.Errorf("unexpected inconsistency: %+v", item)
+		}
+	}
+
+	schemas, err := conn.GetSchema()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, role := range []string{"admin", "healthy"} {
+		if !computedQueryHasField(schemas[role], "items") {
+			t.Errorf("%s lost items root", role)
+		}
+	}
+
+	if computedQueryHasField(schemas["affected"], "items") {
+		t.Error("affected role retained invalid select root")
+	}
+}
+
 func TestConnector_Close(t *testing.T) {
 	t.Parallel()
 

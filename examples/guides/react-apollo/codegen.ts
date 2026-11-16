@@ -27,7 +27,7 @@ const config: CodegenConfig = {
           timestamptz: 'string',
           jsonb: 'Record<string, any>',
           bigint: 'number',
-          bytea: 'Buffer',
+          bytea: 'string',
           citext: 'string',
         },
       },

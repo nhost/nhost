@@ -32,6 +32,17 @@ type Objects struct {
 	EnumValues map[string][]EnumValue
 	// Functions maps "schema.function_name" to the function metadata.
 	Functions map[string]*Function
+	// ComputedFunctions maps a table identity then metadata field name to a
+	// resolved PostgreSQL signature or field-local invalidity. It is not
+	// part of the existing introspection JSON/golden contract or root functions.
+	ComputedFunctions map[ComputedTable]map[string]ComputedFunctionLookup `json:"-"`
+}
+
+// ComputedTable identifies a computed field's owning table without ambiguity
+// for quoted PostgreSQL identifiers containing periods.
+type ComputedTable struct {
+	Schema string
+	Name   string
 }
 
 // NewObjects returns an Objects with all three required maps initialised to empty.
@@ -39,9 +50,10 @@ type Objects struct {
 // lookup helpers (GetTable, GetEnumValues, GetFunction) can rely on non-nil maps.
 func NewObjects() *Objects {
 	return &Objects{
-		Schemas:    map[string]*Schema{},
-		EnumValues: map[string][]EnumValue{},
-		Functions:  map[string]*Function{},
+		Schemas:           map[string]*Schema{},
+		EnumValues:        map[string][]EnumValue{},
+		Functions:         map[string]*Function{},
+		ComputedFunctions: nil,
 	}
 }
 
@@ -76,6 +88,20 @@ func (o *Objects) GetFunction(schemaName, funcName string) (*Function, bool) {
 	return fn, ok
 }
 
+// GetComputedFunction returns the lookup result for a table-owned field.
+func (o *Objects) GetComputedFunction(
+	schemaName, tableName, fieldName string,
+) (ComputedFunctionLookup, bool) {
+	fields, ok := o.ComputedFunctions[ComputedTable{Schema: schemaName, Name: tableName}]
+	if !ok {
+		return ComputedFunctionLookup{Function: nil, Reason: ""}, false
+	}
+
+	result, ok := fields[fieldName]
+
+	return result, ok
+}
+
 // Schema represents a database schema with its tables.
 // The schema name is the key in Objects.Schemas.
 type Schema struct {
@@ -88,20 +114,32 @@ type Column struct {
 	Name string
 	// Type is the database-native type name (e.g. "text", "int4", "_text").
 	Type string
+	// PhysicalSQLType is the PostgreSQL catalog's original, schema-qualified
+	// and SQL-quoted pg_type identity, without the column typmod. Unlike Type
+	// it does not unwrap domains or array element types. Empty on SQLite and
+	// hand-built test objects.
+	PhysicalSQLType string
+	// RestoreSQLType is the typmod-bearing SQL type for a plain bpchar(n)
+	// column. Restoring captured text to this same column re-pads its value;
+	// cross-column FK replay must use PhysicalSQLType instead. Empty for all
+	// other types and on SQLite.
+	RestoreSQLType string
 	// IsNullable is true if the column accepts NULL.
 	IsNullable bool
-	// IsGenerated is true if the column is computed by the database and
-	// therefore must be omitted from insert/update mutations.
+	// IsGenerated is true for computed columns and GENERATED ALWAYS AS
+	// IDENTITY columns. Both must be omitted from insert/update inputs
+	// because the database rejects explicit non-DEFAULT values.
 	IsGenerated bool
 	// IsIdentity is true if the column auto-populates from a database-managed
 	// source the insert payload cannot meaningfully precompute: PostgreSQL
 	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
 	// and SQLite INTEGER PRIMARY KEY rowid aliases. The metadata for these
-	// columns lives outside pg_attrdef / PRAGMA dflt_value, so IsGenerated and
-	// the Default field stay zero — IsIdentity is the dedicated bit that lets
-	// the queries layer recognise them and force the insert-check predicate to
-	// run after the INSERT (against the inserted row) rather than against the
-	// payload.
+	// columns lives outside pg_attrdef / PRAGMA dflt_value, so Default stays
+	// nil. IsGenerated is also true for ALWAYS identities, but false for
+	// BY DEFAULT identities and rowid aliases, which accept explicit values.
+	// IsIdentity lets the queries layer recognise all of them and force the
+	// insert-check predicate to run after the INSERT (against the inserted row)
+	// rather than against the payload.
 	IsIdentity bool
 	// IsArray is true if the column is a PostgreSQL array type (e.g. "_text").
 	// SQLite columns always set this to false.
@@ -125,6 +163,13 @@ type Column struct {
 
 // ForeignKey represents a foreign key relationship from a column to another table.
 type ForeignKey struct {
+	// Constraint identifies the constraint this column pair belongs to, so
+	// the columns of a multi-column foreign key can be grouped back
+	// together. Drivers must emit all column pairs for each constraint and
+	// use a Constraint value only for entries belonging to that same
+	// constraint. PostgreSQL reports the constraint name; SQLite reports
+	// the PRAGMA foreign_key_list id.
+	Constraint string
 	// ColumnName is the column in the source table that holds the foreign
 	// key.
 	ColumnName string
@@ -237,38 +282,159 @@ func (t *Table) EnumColumns() (string, string, error) {
 	return valueCol, descCol, nil
 }
 
-// LookupForwardFKTarget walks fkColumns against t.ForeignKeys and returns the
-// shared (ForeignSchema, ForeignTable) all listed columns reference. It returns
-// empty strings when any column has no matching foreign key or when the listed
-// columns disagree on the target — both indicate a metadata/introspection
-// mismatch that callers treat as a misconfigured relationship.
-func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
-	var (
-		schema string
-		name   string
-	)
+// LookupForwardFK returns the ForeignKey entries for fkColumns, in fkColumns
+// order. A non-nil result contains exactly one entry per fkColumns element.
+// A constraint whose column set is exactly fkColumns wins; when no constraint
+// matches exactly, each column is paired with its first matching entry. It
+// returns nil when any column has no matching foreign key.
+func (t *Table) LookupForwardFK(fkColumns []string) []ForeignKey {
+	if len(fkColumns) == 0 {
+		return nil
+	}
+
+	if fks := t.exactForwardFK(fkColumns, nil); fks != nil {
+		return fks
+	}
+
+	fks := make([]ForeignKey, 0, len(fkColumns))
 
 	for _, col := range fkColumns {
 		matched := false
 
 		for _, fk := range t.ForeignKeys {
-			if fk.ColumnName != col {
+			if fk.ColumnName == col {
+				fks = append(fks, fk)
+				matched = true
+
+				break
+			}
+		}
+
+		if !matched {
+			return nil
+		}
+	}
+
+	return fks
+}
+
+// LookupExactForwardFKForTarget returns entries from one constraint whose
+// columns are exactly fkColumns and whose referenced table matches foreignSchema
+// and foreignTable. A non-nil result contains exactly one entry per fkColumns
+// element, in fkColumns order. It returns nil when no such constraint exists,
+// including when introspection provides no Constraint values. An empty
+// ForeignSchema is treated as the source table's schema, matching SQLite
+// introspection semantics.
+func (t *Table) LookupExactForwardFKForTarget(
+	fkColumns []string,
+	foreignSchema string,
+	foreignTable string,
+) []ForeignKey {
+	if len(fkColumns) == 0 {
+		return nil
+	}
+
+	return t.exactForwardFK(fkColumns, func(fk ForeignKey) bool {
+		schema := fk.ForeignSchema
+		if schema == "" {
+			schema = t.Schema
+		}
+
+		return schema == foreignSchema && fk.ForeignTable == foreignTable
+	})
+}
+
+// exactForwardFK finds a single constraint whose columns are exactly
+// fkColumns and whose entries all satisfy matchTarget when it is non-nil.
+func (t *Table) exactForwardFK(
+	fkColumns []string,
+	matchTarget func(ForeignKey) bool,
+) []ForeignKey {
+	groups := make(map[string][]ForeignKey)
+	constraints := make([]string, 0)
+
+	for _, fk := range t.ForeignKeys {
+		if fk.Constraint == "" {
+			continue
+		}
+
+		if _, exists := groups[fk.Constraint]; !exists {
+			constraints = append(constraints, fk.Constraint)
+		}
+
+		groups[fk.Constraint] = append(groups[fk.Constraint], fk)
+	}
+
+	for _, constraint := range constraints {
+		fks := matchGroup(groups[constraint], fkColumns)
+		if fks == nil {
+			continue
+		}
+
+		matchesTarget := true
+		for _, fk := range fks {
+			if matchTarget != nil && !matchTarget(fk) {
+				matchesTarget = false
+				break
+			}
+		}
+
+		if matchesTarget {
+			return fks
+		}
+	}
+
+	return nil
+}
+
+func matchGroup(group []ForeignKey, fkColumns []string) []ForeignKey {
+	if len(group) != len(fkColumns) {
+		return nil
+	}
+
+	fks := make([]ForeignKey, 0, len(fkColumns))
+	used := make([]bool, len(group))
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for i, fk := range group {
+			if used[i] || fk.ColumnName != col {
 				continue
 			}
 
-			if schema == "" && name == "" {
-				schema = fk.ForeignSchema
-				name = fk.ForeignTable
-			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
-				return "", ""
-			}
-
+			fks = append(fks, fk)
+			used[i] = true
 			matched = true
 
 			break
 		}
 
 		if !matched {
+			return nil
+		}
+	}
+
+	return fks
+}
+
+// LookupForwardFKTarget resolves fkColumns through LookupForwardFK and returns
+// the shared (ForeignSchema, ForeignTable) all listed columns reference. It
+// returns empty strings when any column has no matching foreign key or when
+// the listed columns disagree on the target — both indicate a
+// metadata/introspection mismatch that callers treat as a misconfigured
+// relationship.
+func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, fk := range t.LookupForwardFK(fkColumns) {
+		if schema == "" && name == "" {
+			schema = fk.ForeignSchema
+			name = fk.ForeignTable
+		} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
 			return "", ""
 		}
 	}

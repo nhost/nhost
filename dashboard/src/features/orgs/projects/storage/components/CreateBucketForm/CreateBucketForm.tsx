@@ -8,7 +8,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetBucketsQuery,
   useInsertBucketMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreateBucketFormProps
   extends Pick<BaseBucketFormProps, 'onCancel' | 'location'> {
@@ -50,7 +50,7 @@ export default function CreateBucketForm({
         closeDrawer();
 
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${encodeURIComponent(values.name)}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(values.name)}`,
         );
       },
       {

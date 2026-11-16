@@ -3,8 +3,7 @@ package openapi3
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
+	"maps"
 	"strconv"
 
 	"github.com/go-openapi/jsonpointer"
@@ -14,7 +13,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#operation-object
 type Operation struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
 	// Optional tags for documentation.
 	Tags []string `json:"tags,omitempty" yaml:"tags,omitempty"`
@@ -34,8 +33,8 @@ type Operation struct {
 	// Optional body parameter.
 	RequestBody *RequestBodyRef `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
 
-	// Responses.
-	Responses *Responses `json:"responses" yaml:"responses"` // Required
+	// Responses are required in OpenAPI 3.0 and optional in OpenAPI 3.1 and later.
+	Responses *Responses `json:"responses" yaml:"responses"`
 
 	// Optional callbacks
 	Callbacks Callbacks `json:"callbacks,omitempty" yaml:"callbacks,omitempty"`
@@ -69,9 +68,7 @@ func (operation Operation) MarshalJSON() ([]byte, error) {
 // MarshalYAML returns the YAML encoding of Operation.
 func (operation Operation) MarshalYAML() (any, error) {
 	m := make(map[string]any, 12+len(operation.Extensions))
-	for k, v := range operation.Extensions {
-		m[k] = v
-	}
+	maps.Copy(m, operation.Extensions)
 	if x := operation.Tags; len(x) != 0 {
 		m["tags"] = x
 	}
@@ -90,7 +87,9 @@ func (operation Operation) MarshalYAML() (any, error) {
 	if x := operation.RequestBody; x != nil {
 		m["requestBody"] = x
 	}
-	m["responses"] = operation.Responses
+	if x := operation.Responses; x != nil {
+		m["responses"] = x
+	}
 	if x := operation.Callbacks; len(x) != 0 {
 		m["callbacks"] = x
 	}
@@ -116,8 +115,11 @@ func (operation *Operation) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &x); err != nil {
 		return unmarshalError(err)
 	}
+
 	_ = json.Unmarshal(data, &x.Extensions)
-	delete(x.Extensions, originKey)
+	if value, present := x.Extensions["responses"]; present && value == nil {
+		x.Responses = &Responses{explicitlyNull: true}
+	}
 	delete(x.Extensions, "tags")
 	delete(x.Extensions, "summary")
 	delete(x.Extensions, "description")
@@ -193,32 +195,36 @@ func (operation *Operation) AddResponse(status int, response *Response) {
 // Validate returns an error if Operation does not comply with the OpenAPI spec.
 func (operation *Operation) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
 
 	if v := operation.Parameters; v != nil {
-		if err := v.Validate(ctx); err != nil {
+		if err := me.emit(v.Validate(ctx)); err != nil {
 			return err
 		}
 	}
 
 	if v := operation.RequestBody; v != nil {
-		if err := v.Validate(ctx); err != nil {
+		if err := me.emit(v.Validate(ctx)); err != nil {
 			return err
 		}
 	}
 
-	if v := operation.Responses; v != nil {
-		if err := v.Validate(ctx); err != nil {
+	if v := operation.Responses; v != nil && !v.isExplicitlyNull() {
+		if err := me.emit(v.Validate(ctx)); err != nil {
 			return err
 		}
-	} else {
-		return errors.New("value of responses must be an object")
+	} else if v != nil || !getValidationOptions(ctx).isOpenAPI31OrLater {
+		if err := me.emit(newOperationResponsesRequired(operation.Origin)); err != nil {
+			return err
+		}
 	}
 
 	if v := operation.ExternalDocs; v != nil {
-		if err := v.Validate(ctx); err != nil {
-			return fmt.Errorf("invalid external docs: %w", err)
+		wrap := func(e error) error { return &SectionValidationError{Section: "external docs", Cause: e} }
+		if err := me.emitWrapped(wrap, v.Validate(ctx)); err != nil {
+			return err
 		}
 	}
 
-	return validateExtensions(ctx, operation.Extensions)
+	return me.finalize(validateExtensions(ctx, operation.Extensions, operation.Origin))
 }

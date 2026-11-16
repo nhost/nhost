@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaPermissionsOptions {
   appUrl: string;
@@ -48,7 +48,7 @@ export default async function updateRemoteSchemaPermissions({
         ],
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

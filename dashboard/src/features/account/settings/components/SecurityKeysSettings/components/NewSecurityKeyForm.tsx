@@ -33,6 +33,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
               <FormControl>
                 <Input
                   placeholder="Name"
+                  autoFocus
                   {...field}
                   className="!bg-transparent"
                 />
@@ -41,11 +42,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          variant="outline"
-          className="!bg-transparent w-full"
-        >
+        <Button type="submit" className="mt-8 justify-self-end">
           Add new security key
         </Button>
       </form>

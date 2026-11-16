@@ -1,9 +1,18 @@
-import { Loader2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -12,131 +21,213 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/v3/alert-dialog';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { Separator } from '@/components/ui/v3/separator';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Form } from '@/components/ui/v3/form';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useDeleteOrganizationMutation } from '@/utils/__generated__/graphql';
+import { useDeleteOrganizationMutation } from '@/generated/graphql';
+
+interface DeleteOrgFormValues {
+  confirmation: string;
+  acknowledgeDeletion: boolean;
+  acknowledgeIrreversible: boolean;
+}
 
 export default function DeleteOrg() {
   const router = useRouter();
   const { org } = useCurrentOrg();
+  const isOrgAdmin = useIsOrgAdmin();
   const { refetch: refetchOrgs } = useOrgs();
+  const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [deleteCheck1, setDeleteCheck1] = useState(false);
-  const [deleteCheck2, setDeleteCheck2] = useState(false);
   const [deleteOrgMutation] = useDeleteOrganizationMutation();
+  const deleteDisabled = deleting || !isOrgAdmin;
+  const requiredOrganizationConfirmation = org?.name;
+
+  const validationSchema = useMemo(
+    () =>
+      z.object({
+        confirmation: z
+          .string()
+          .min(1, { message: 'Typing the organization name is required' })
+          .refine((value) => value === requiredOrganizationConfirmation, {
+            message: 'Value does not match',
+          }),
+        acknowledgeDeletion: z
+          .boolean()
+          .refine((value) => value, { message: '' }),
+        acknowledgeIrreversible: z
+          .boolean()
+          .refine((value) => value, { message: '' }),
+      }),
+    [requiredOrganizationConfirmation],
+  );
+
+  const form = useForm<DeleteOrgFormValues>({
+    resolver: zodResolver(validationSchema),
+    mode: 'onChange',
+    defaultValues: {
+      confirmation: '',
+      acknowledgeDeletion: false,
+      acknowledgeIrreversible: false,
+    },
+  });
+  const { isValid } = form.formState;
+  const canDeleteOrganization = isValid && isOrgAdmin && !deleting;
 
   const handleDeleteOrg = async () => {
+    if (!isOrgAdmin || deleting) {
+      return;
+    }
+
     setDeleting(true);
 
-    await execPromiseWithErrorToast(
-      async () => {
-        await deleteOrgMutation({
-          variables: {
-            id: org?.id,
-          },
-          onCompleted: async () => {
-            await refetchOrgs();
-            setDeleting(false);
-            await router.push('/');
-          },
-        });
-      },
-      {
-        loadingMessage: 'Deleting the organization',
-        successMessage: 'Successfully deleted the organization',
-        errorMessage: 'An error occurred while deleting the organization!',
-      },
-    );
+    try {
+      await execPromiseWithErrorToast(
+        async () => {
+          await deleteOrgMutation({
+            variables: {
+              id: org?.id,
+            },
+            onCompleted: async () => {
+              await refetchOrgs();
+              await router.push('/');
+            },
+          });
+        },
+        {
+          loadingMessage: 'Deleting the organization',
+          successMessage: 'Successfully deleted the organization',
+          errorMessage: 'An error occurred while deleting the organization!',
+        },
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
-    <div className="flex w-full flex-col rounded-md border border-destructive bg-background">
-      <div className="flex w-full flex-col gap-2 border-b p-4 font-medium">
-        <h3>Delete Organization</h3>
-        <p className="font-normal text-muted-foreground text-sm">
-          Proceed with caution, as this action is irreversible and will
-          permanently remove the organization.
-        </p>
-      </div>
+    <SettingsCard>
+      <SettingsCardHeader
+        size="lg"
+        title="Delete organization"
+        description="Proceed with caution, as this action is irreversible and will permanently remove the organization."
+        control={
+          <AlertDialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen && deleting) {
+                return;
+              }
 
-      <div className="flex justify-end gap-2 p-2">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" disabled={deleting}>
-              Delete
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="flex w-full max-w-sm flex-col gap-6 p-6 text-left text-foreground">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Organization</AlertDialogTitle>
-              <AlertDialogDescription className="flex flex-col gap-1">
-                Are you sure you want to delete this Organization?
-                <span className="font-bold text-red-500">
-                  This cannot be undone.
-                </span>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+              setOpen(nextOpen);
 
-            <div className="flex flex-col gap-2">
-              <Separator />
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="delete-check1"
-                  checked={deleteCheck1}
-                  onCheckedChange={(checked) =>
-                    setDeleteCheck1(Boolean(checked))
-                  }
-                />
-                <label
-                  htmlFor="delete-check1"
-                  className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              if (!nextOpen) {
+                form.reset();
+              }
+            }}
+          >
+            <span className={deleteDisabled ? 'cursor-not-allowed' : undefined}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  disabled={deleteDisabled}
+                  className="w-full sm:w-auto"
                 >
-                  I&apos;m sure I want to delete this Organization
-                </label>
-              </div>
-              <Separator />
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="delete-check2"
-                  checked={deleteCheck2}
-                  onCheckedChange={(checked) =>
-                    setDeleteCheck2(Boolean(checked))
-                  }
-                />
-                <label
-                  htmlFor="delete-check2"
-                  className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+            </span>
+            <AlertDialogContent className="flex w-full max-w-lg flex-col gap-6 p-12 text-left text-foreground">
+              <AlertDialogHeader className="gap-2">
+                <AlertDialogTitle className="text-xl">
+                  {org?.name ? `Delete ${org.name}` : 'Delete organization'}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Deleting an organization removes it and all its projects, and
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <Form {...form}>
+                <form
+                  id="delete-org-form"
+                  onSubmit={form.handleSubmit(handleDeleteOrg)}
+                  className="flex flex-col gap-6"
                 >
-                  I understand this action cannot be undone
-                </label>
-              </div>
-              <Separator />
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={async (e) => {
-                  e.preventDefault();
-                  await handleDeleteOrg();
-                }}
-                data-testid="deleteOrgButton"
-                className={buttonVariants({ variant: 'destructive' })}
-                disabled={deleting || !(deleteCheck1 && deleteCheck2)}
-              >
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Delete'
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </div>
+                  <div className="flex flex-col gap-3 rounded-lg border p-4">
+                    <FormCheckbox
+                      control={form.control}
+                      name="acknowledgeDeletion"
+                      label="I'm sure I want to delete this organization"
+                    />
+
+                    <FormCheckbox
+                      control={form.control}
+                      name="acknowledgeIrreversible"
+                      label="I understand this action cannot be undone"
+                    />
+                  </div>
+
+                  <FormInput
+                    control={form.control}
+                    name="confirmation"
+                    autoComplete="off"
+                    className="border-border font-mono"
+                    disabled={!requiredOrganizationConfirmation}
+                    label={
+                      requiredOrganizationConfirmation ? (
+                        <>
+                          Type{' '}
+                          <InlineCode className="max-w-full whitespace-pre-wrap break-words bg-input text-foreground text-sm dark:bg-input">
+                            {requiredOrganizationConfirmation}
+                          </InlineCode>{' '}
+                          to confirm
+                        </>
+                      ) : (
+                        'Organization confirmation is unavailable.'
+                      )
+                    }
+                    helperText={
+                      requiredOrganizationConfirmation
+                        ? undefined
+                        : 'An organization name is required to enable deletion.'
+                    }
+                  />
+                </form>
+              </Form>
+
+              <AlertDialogFooter className="mt-6 gap-2 sm:space-x-0">
+                <AlertDialogCancel disabled={deleting}>
+                  Cancel
+                </AlertDialogCancel>
+                <ButtonWithLoading
+                  type="submit"
+                  form="delete-org-form"
+                  variant="destructive"
+                  data-testid="deleteOrgButton"
+                  disabled={!canDeleteOrganization}
+                  loading={deleting}
+                >
+                  Delete organization
+                </ButtonWithLoading>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        }
+      />
+      {!isOrgAdmin && (
+        <SettingsCardContent>
+          <Alert>
+            <AlertDescription>
+              Only organization admins can delete this organization.
+            </AlertDescription>
+          </Alert>
+        </SettingsCardContent>
+      )}
+    </SettingsCard>
   );
 }

@@ -38,14 +38,12 @@ func NewCloud(cfg *config.Config) *Cloud {
 
 func (t *Cloud) Register(server *server.MCPServer) {
 	server.AddResource(
-		mcp.Resource{
+		mcp.Resource{ //nolint:exhaustruct // mcp.Resource is an external type; omitted embedded Annotated is intentional
 			URI:  CloudResourceURI,
 			Name: "nhost-cloud",
-			Annotated: mcp.Annotated{
-				Annotations: &mcp.Annotations{
-					Audience: []mcp.Role{"agent"},
-					Priority: 9.0, //nolint:mnd
-				},
+			Annotations: &mcp.Annotations{
+				Audience: []mcp.Role{mcp.RoleAssistant},
+				Priority: 1.0,
 			},
 			Description: CloudDescription,
 			MIMEType:    "text/plain",

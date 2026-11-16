@@ -1,4 +1,4 @@
-import type { GetProjectLogsQuery } from '@/utils/__generated__/graphql';
+import type { GetProjectLogsQuery } from '@/generated/graphql';
 import { updateQuery } from './useProjectLogs';
 
 // Mock log data helper

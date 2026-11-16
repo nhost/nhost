@@ -7,15 +7,13 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,11 +27,11 @@ import { CreateRoleForm } from '@/features/orgs/projects/roles/settings/componen
 import { EditRoleForm } from '@/features/orgs/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Role } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Role } from '@/types/application';
 
 export interface RoleSettingsFormValues {
   /**
@@ -154,7 +152,7 @@ export default function RoleSettings() {
       component: <CreateRoleForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -167,7 +165,7 @@ export default function RoleSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
@@ -176,10 +174,10 @@ export default function RoleSettings() {
     openAlertDialog({
       title: 'Delete Allowed Role',
       payload: (
-        <Text>
+        <p>
           Are you sure you want to delete the allowed role &quot;
           <strong>{originalRole.name}</strong>&quot;?.
-        </Text>
+        </p>
       ),
       props: {
         onPrimaryAction: () => handleDeleteRole(originalRole),
@@ -192,43 +190,48 @@ export default function RoleSettings() {
   const availableAllowedRoles = getUserRoles(allowedRoles);
 
   return (
-    <SettingsContainer
-      title="Default Allowed Roles"
-      description="Default Allowed Roles are roles users get automatically when they sign up."
-      docsLink="https://docs.nhost.io/products/auth/users#allowed-roles"
-      rootClassName="gap-0"
-      className={twMerge(
-        'my-2 px-0',
-        availableAllowedRoles.length === 0 && 'gap-2',
-      )}
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="border-b-1 px-4 py-3">
-        <Text className="font-medium">Name</Text>
-      </Box>
+    <SettingsCard className="gap-0">
+      <SettingsCardHeader
+        title="Default Allowed Roles"
+        description="Default Allowed Roles are roles users get automatically when they sign up."
+        docsLink={{
+          href: 'https://docs.nhost.io/products/auth/users#allowed-roles',
+          topic: 'Default Allowed Roles',
+        }}
+      />
 
-      <div className="grid grid-flow-row gap-2">
-        {availableAllowedRoles.length > 0 && (
-          <List>
-            {availableAllowedRoles.map((role, index) => (
-              <Fragment key={role.name}>
-                <ListItem.Root
-                  className="px-4"
-                  secondaryAction={
+      <SettingsCardContent
+        className={twMerge(
+          'my-2 px-0',
+          availableAllowedRoles.length === 0 && 'gap-2',
+        )}
+      >
+        <div className="border-b-1 px-6 py-3">
+          <p className="font-medium">Name</p>
+        </div>
+
+        <div className="grid grid-flow-row gap-2">
+          {availableAllowedRoles.length > 0 && (
+            <div>
+              {availableAllowedRoles.map((role, index) => (
+                <Fragment key={role.name}>
+                  <div className="relative px-6 pr-12">
                     <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        className="absolute top-1/2 right-4 -translate-y-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          size="icon"
+                          className="absolute top-1/2 right-4 -translate-y-1/2"
+                        >
+                          <DotsVerticalIcon className="h-4 w-4" />
+                        </Button>
                       </DropdownMenuTrigger>
 
-                      <DropdownMenuContent align="end" className="w-32 p-0">
+                      <DropdownMenuContent align="end" className="w-32">
                         <DropdownMenuItem
                           onClick={() => handleSetAsDefault(role)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Set as Default</span>
                         </DropdownMenuItem>
@@ -236,7 +239,7 @@ export default function RoleSettings() {
                         <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleOpenEditor(role)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2"
                         >
                           <span>Edit</span>
                         </DropdownMenuItem>
@@ -244,60 +247,47 @@ export default function RoleSettings() {
                         <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleConfirmDelete(role)}
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         >
                           <span>Delete</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  }
-                >
-                  <ListItem.Text
-                    primaryTypographyProps={{
-                      className:
-                        'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
-                    }}
-                    primary={
-                      <>
-                        {role.name}
+                    <div className="inline-grid h-6 grid-flow-col items-center gap-1 font-medium">
+                      {role.name}
 
-                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
-                        {defaultRole === role.name && (
-                          <Chip
-                            component="span"
-                            color="info"
-                            size="small"
-                            label="Default"
-                          />
-                        )}
-                      </>
-                    }
+                      {defaultRole === role.name && (
+                        <Badge variant="secondary">Default</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    className={twMerge(
+                      'border-t',
+                      index === availableAllowedRoles.length - 1
+                        ? '!mt-4'
+                        : '!my-4',
+                    )}
                   />
-                </ListItem.Root>
+                </Fragment>
+              ))}
+            </div>
+          )}
 
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableAllowedRoles.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
-            ))}
-          </List>
-        )}
-
-        <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
-          onClick={handleOpenCreator}
-        >
-          Create Allowed Role
-        </Button>
-      </div>
-    </SettingsContainer>
+          <Button
+            type="button"
+            variant="outline"
+            className="mx-4 justify-self-start"
+            onClick={handleOpenCreator}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Allowed Role
+          </Button>
+        </div>
+      </SettingsCardContent>
+    </SettingsCard>
   );
 }

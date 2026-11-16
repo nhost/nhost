@@ -188,7 +188,7 @@ function InputWithSuggestions({
   return (
     <div ref={containerRef} className={cn('relative', containerClassName)}>
       {endAdornment ? (
-        <InputGroup className="h-10 border-border bg-transparent dark:bg-transparent">
+        <InputGroup className="border-border bg-transparent dark:bg-transparent">
           <InputGroupInput {...sharedInputProps} />
           <InputGroupAddon align="inline-end">{endAdornment}</InputGroupAddon>
         </InputGroup>

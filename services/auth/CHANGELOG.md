@@ -1,3 +1,77 @@
+## [auth@0.53.0] - 2026-11-16
+
+### 🚀 Features
+
+- *(postgres)* Update postgres to 18.6 and drop support for 16 and 17 (#5020)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using TOTP (#4612)
+- *(auth)* Use pgmigrate to support downing migrations (#5264)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using email OTP (#4665)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Elevate sessions using SMS OTP (#4831)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Don't convert OAuth access errors to internal-server-error (#5058)
+- *(auth)* Match email access rules case-insensitively (#5301)
+- *(auth)* Prevent panic in parseClaims on empty claim path (#5268)
+- *(auth)* Bind webauthn elevation proof to the bearer-token user (#5324)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Add generic SMS provider settings to .env.example (#5251)
+
+## [auth@0.52.0] - 2026-09-15
+
+### 🚀 Features
+
+- *(auth)* Added support for generic SMS replacing adhoc implementations (#4314)
+- *(auth)* Add SMS deanonymization and phone number changes (#4576)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Prevent mails from threading in gmail (#4622)
+- *(auth)* Block IPv6 transition addresses in the CIMD SSRF guard (#4784)
+- *(auth)* Guard webauthn challenge storage with a mutex (#4884)
+- *(docs)* Align specs with reality (#4632)
+- *(auth)* Do not panic when signin/webauthn is called without a body (#4956)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(docs)* Fix reversed markdown link and typos in docs (#4988)
+
+## [auth@0.51.0] - 2026-07-31
+
+### 🚀 Features
+
+- *(cli)* Embed email templates instead of fetching at runtime (#4273)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+- *(auth)* Add generic upstreamParams passthrough for OAuth2 providers (#4664)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(auth)* Validate PKCE verifier before consuming authorization code (#4432)
+- *(auth)* Prevent JSON injection in turnstile siteverify request (#4431)
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(auth)* Hash email OTP, make it single-use, and shorten its TTL (#4421)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Require elevated permissions to generate TOTP secret (#4493)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Fix broken links in auth README (#4292)
+- *(ci)* Minor changes to go linter to reduce noise (#4329)
+- *(ci)* Follow-up skill improvements (#4332)
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(nixops)* Bump oapi-codegen (#4523)
+
 ## [auth@0.50.1] - 2026-04-30
 
 ### 🐛 Bug Fixes

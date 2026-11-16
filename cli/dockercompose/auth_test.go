@@ -137,6 +137,7 @@ func expectedAuth() *Service {
 			"AUTH_OAUTH2_PROVIDER_ENABLED":              "true",
 			"AUTH_OAUTH2_PROVIDER_LOGIN_URL":            "https://example.com/oauth2/login",
 			"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL":    "2592000",
+			"AUTH_OTP_SMS_ENABLED":                      "true",
 			"AUTH_RATE_LIMIT_OAUTH2_SERVER_BURST":       "33",
 			"AUTH_RATE_LIMIT_OAUTH2_SERVER_INTERVAL":    "5m",
 			"AUTH_RATE_LIMIT_SIGNUPS_BURST":             "3",

@@ -44,18 +44,21 @@ func generateAggregateTypes(
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
 	caps Capabilities,
+	computedFields []*graph.Field,
 ) {
 	generateMainAggregateType(schema, customTableName, qualifiedName)
 
 	// hasMaxFields/hasMinFields drive optional emission in generateAggregateFieldsType below.
 	hasMaxFields, hasMinFields := generateMinMaxFieldsTypes(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, md,
+		computedFields, caps,
 	)
 
-	hasNumeric := hasNumericColumns(tableInfo, allowedColumns)
+	hasNumeric := hasNumericColumns(tableInfo, allowedColumns) ||
+		(caps.SupportsComputedScalarInput && hasNumericComputedFields(computedFields))
 	if hasNumeric {
 		generateNumericAggregateFieldsTypes(
-			schema, tableMeta, tableInfo, customTableName, allowedColumns, caps,
+			schema, tableMeta, tableInfo, customTableName, allowedColumns, caps, computedFields,
 		)
 	}
 
@@ -221,6 +224,8 @@ func appendNumericAggregateFields(
 
 // generateMinMaxFieldsTypes generates min and max fields types for aggregates.
 // Returns (hasMaxFields, hasMinFields) indicating if the types were generated.
+//
+//nolint:funlen // min/max mirror column and computed eligibility while preserving emission order.
 func generateMinMaxFieldsTypes(
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
@@ -228,6 +233,8 @@ func generateMinMaxFieldsTypes(
 	customTableName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
+	computedFields []*graph.Field,
+	caps Capabilities,
 ) (bool, bool) {
 	maxFields := []*graph.Field{}
 	for _, col := range tableInfo.Columns {
@@ -251,6 +258,10 @@ func generateMinMaxFieldsTypes(
 			Description: getColumnDescription(&col),
 			Type:        postgresTypeToGraphQL(col.Type, true),
 		})
+	}
+
+	if caps.SupportsComputedScalarInput {
+		maxFields = append(maxFields, comparableComputedAggregateFields(computedFields)...)
 	}
 
 	if len(maxFields) > 0 {
@@ -282,6 +293,10 @@ func generateMinMaxFieldsTypes(
 		})
 	}
 
+	if caps.SupportsComputedScalarInput {
+		minFields = append(minFields, comparableComputedAggregateFields(computedFields)...)
+	}
+
 	if len(minFields) > 0 {
 		schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
 			Name:        customTableName + "_min_fields",
@@ -311,6 +326,7 @@ func generateNumericAggregateFieldType(
 	aggregateName string,
 	description string,
 	fieldTypeFunc func(pgType string) *graph.Type,
+	computedFields []*graph.Field,
 ) {
 	fields := []*graph.Field{}
 	for _, col := range tableInfo.Columns {
@@ -328,6 +344,8 @@ func generateNumericAggregateFieldType(
 			Type:        fieldTypeFunc(col.Type),
 		})
 	}
+
+	fields = append(fields, numericComputedAggregateFields(computedFields)...)
 
 	if len(fields) > 0 {
 		schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
@@ -350,19 +368,30 @@ func generateNumericAggregateFieldsTypes(
 	customTableName string,
 	allowedColumns map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
 ) {
+	if !caps.SupportsComputedScalarInput {
+		computedFields = nil
+	}
+
 	floatType := func(_ string) *graph.Type { return graph.NewNamedType("Float") }
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"avg", "aggregate avg on columns", floatType,
+		"avg", "aggregate avg on columns", floatType, computedFields,
 	)
 
 	// sum() preserves the column type rather than promoting to Float.
 	generateNumericAggregateFieldType(
-		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"sum", "aggregate sum on columns",
+		schema,
+		tableMeta,
+		tableInfo,
+		customTableName,
+		allowedColumns,
+		"sum",
+		"aggregate sum on columns",
 		func(pgType string) *graph.Type { return postgresTypeToGraphQL(pgType, true) },
+		computedFields,
 	)
 
 	if !caps.SupportsVarianceAggregates {
@@ -371,32 +400,32 @@ func generateNumericAggregateFieldsTypes(
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"stddev", "aggregate stddev on columns", floatType,
+		"stddev", "aggregate stddev on columns", floatType, computedFields,
 	)
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"stddev_pop", "aggregate stddev_pop on columns", floatType,
+		"stddev_pop", "aggregate stddev_pop on columns", floatType, computedFields,
 	)
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"stddev_samp", "aggregate stddev_samp on columns", floatType,
+		"stddev_samp", "aggregate stddev_samp on columns", floatType, computedFields,
 	)
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"var_pop", "aggregate var_pop on columns", floatType,
+		"var_pop", "aggregate var_pop on columns", floatType, computedFields,
 	)
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"var_samp", "aggregate var_samp on columns", floatType,
+		"var_samp", "aggregate var_samp on columns", floatType, computedFields,
 	)
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"variance", "aggregate variance on columns", floatType,
+		"variance", "aggregate variance on columns", floatType, computedFields,
 	)
 }
 

@@ -112,9 +112,9 @@ export default function PayloadTransformFormSection({
                 </h4>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
                   size="sm"
-                  className="px-4 text-primary hover:bg-muted hover:text-primary"
+                  className="px-4"
                   onClick={() => append({ key: '', value: '' })}
                 >
                   <PlusIcon className="size-5" />
@@ -143,7 +143,7 @@ export default function PayloadTransformFormSection({
                         autoComplete="off"
                       />
                     </div>
-                    <div className="col-span-1 flex h-10 items-center justify-center self-start pt-2">
+                    <div className="col-span-1 flex h-10 items-center justify-center self-start">
                       <span className="text-center text-foreground">:</span>
                     </div>
                     <div className="col-span-4 self-start">
@@ -157,12 +157,12 @@ export default function PayloadTransformFormSection({
                       />
                     </div>
 
-                    <div className="col-span-1 self-start pt-3">
+                    <div className="col-span-1 flex h-10 items-center justify-end self-start">
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="subtle"
                         size="sm"
-                        className="px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="px-4"
                         onClick={() => remove(index)}
                       >
                         <TrashIcon className="size-4" />

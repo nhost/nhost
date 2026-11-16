@@ -1,0 +1,17 @@
+# One reviewed false positive per line, as: path:rule-id:line
+#
+# CI flagged a fake secret in your PR? Read the three values off the finding
+# box in the failed CI log and add the line here, then push:
+#
+#   ┌─private-key──○                    -> rule-id
+#   │ 12 │ const key = "REDACTED"       -> line
+#   │   path ...... path/to/file.go     -> path
+#   => path/to/file.go:private-key:12
+#
+# Even simpler when you can edit the line: put `betterleaks:allow` on it instead.
+# Add a short comment above each entry saying why it is a false positive.
+
+# Sample RSA keypair shipped in Nhost demo/tutorial .secrets.example templates
+# (intentionally public; copied to a real .secrets by the user).
+examples/demos/backend-cats/.secrets.example:private-key:10
+examples/tutorials/backend-notes/.secrets.example:private-key:10

@@ -11,6 +11,7 @@ import type { ColumnInsertOptions } from '@/features/orgs/projects/database/data
 import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { getCreateRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { triggerToast } from '@/utils/toast';
 
 export interface CreateRecordFormProps
@@ -36,6 +37,7 @@ export default function CreateRecordForm({
   const validationSchema = createDynamicValidationSchema(props.columns);
   const currentTablePath = useTablePath();
   const queryClient = useQueryClient();
+  const track = useTrackEvent();
 
   const form = useForm({
     defaultValues: getCreateRecordFormDefaultValues(
@@ -49,6 +51,8 @@ export default function CreateRecordForm({
   async function handleSubmit(values: Record<string, ColumnInsertOptions>) {
     try {
       await insertRow({ columnValues: values });
+
+      track('Row Inserted', { table: currentTablePath });
 
       if (onSubmit) {
         await onSubmit();
@@ -72,17 +76,12 @@ export default function CreateRecordForm({
         <div className="-mt-3 mb-4 px-6">
           <Alert
             variant="destructive"
-            className="grid grid-flow-col items-center justify-between border-none bg-[#f1315433] px-4 py-3"
+            className="grid grid-flow-col items-center justify-between"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
-            <Button
-              onClick={reset}
-              size="sm"
-              variant="destructive"
-              className="bg-transparent text-[#c91737] hover:bg-[#f131541a]"
-            >
+            <Button onClick={reset} size="sm" variant="outline">
               Clear
             </Button>
           </Alert>

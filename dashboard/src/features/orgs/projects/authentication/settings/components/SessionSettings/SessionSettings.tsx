@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -68,7 +74,7 @@ export default function SessionSettings() {
     throw error;
   }
 
-  const { register, formState } = form;
+  const { formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const handleSessionSettingsChange = async (formValues: SessionFormValues) => {
@@ -115,39 +121,41 @@ export default function SessionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSessionSettingsChange}>
-        <SettingsContainer
-          title="Session"
-          description="Change the expiration time of the access and refresh tokens."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-cols-5 grid-rows-2 gap-y-6"
-        >
-          <Input
-            {...register('accessTokenExpiresIn')}
-            id="accessTokenExpiresIn"
-            type="number"
-            label="Access Token Expires In (Seconds)"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            error={Boolean(formState.errors.accessTokenExpiresIn?.message)}
-            helperText={formState.errors.accessTokenExpiresIn?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Session"
+            description="Change the expiration time of the access and refresh tokens."
           />
 
-          <Input
-            {...register('refreshTokenExpiresIn')}
-            id="refreshTokenExpiresIn"
-            type="number"
-            label="Refresh Token Expires In (Seconds)"
-            fullWidth
-            className="col-span-5 row-start-2 lg:col-span-2"
-            error={Boolean(formState.errors.refreshTokenExpiresIn?.message)}
-            helperText={formState.errors.refreshTokenExpiresIn?.message}
-          />
-        </SettingsContainer>
+          <SettingsCardContent className="grid-cols-5 grid-rows-2 gap-y-6">
+            <FormInput
+              control={form.control}
+              name="accessTokenExpiresIn"
+              type="number"
+              label="Access Token Expires In (Seconds)"
+              containerClassName="col-span-5 lg:col-span-2"
+            />
+
+            <FormInput
+              control={form.control}
+              name="refreshTokenExpiresIn"
+              type="number"
+              label="Refresh Token Expires In (Seconds)"
+              containerClassName="col-span-5 row-start-2 lg:col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

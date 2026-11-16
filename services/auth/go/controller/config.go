@@ -30,7 +30,7 @@ type Config struct {
 	HasuraGraphqlURL                         string        `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
 	HasuraAdminSecret                        string        `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
 	AnonymousUsersEnabled                    bool          `json:"AUTH_ANONYMOUS_USERS_ENABLED"`
-	MfaEnabled                               bool          `json:"AUTH_MFA_ENABLED"`
+	TOTPEnabled                              bool          `json:"AUTH_TOTP_ENABLED"`
 	AllowedEmailDomains                      stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
 	AllowedEmails                            stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
 	AllowedRedirectURLs                      []string      `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
@@ -63,13 +63,18 @@ type Config struct {
 	WebauthnRPOrigins                        []string      `json:"AUTH_WEBAUTHN_RP_ORIGINS"`
 	WebauhtnAttestationTimeout               time.Duration `json:"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"`
 	OTPEmailEnabled                          bool          `json:"AUTH_OTP_EMAIL_ENABLED"`
-	SMSPasswordlessEnabled                   bool          `json:"AUTH_SMS_PASSWORDLESS_ENABLED"`
+	OTPSmsEnabled                            bool          `json:"AUTH_OTP_SMS_ENABLED"`
 	SMSProvider                              string        `json:"AUTH_SMS_PROVIDER"`
 	SMSTwilioAccountSid                      string        `json:"AUTH_SMS_TWILIO_ACCOUNT_SID"`
 	SMSTwilioAuthToken                       string        `json:"AUTH_SMS_TWILIO_AUTH_TOKEN"`
 	SMSTwilioMessagingServiceID              string        `json:"AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID"`
 	SMSModicaUsername                        string        `json:"AUTH_SMS_MODICA_USERNAME"`
 	SMSModicaPassword                        string        `json:"AUTH_SMS_MODICA_PASSWORD"`
+	SMSGenericURL                            string        `json:"AUTH_SMS_GENERIC_URL"`
+	SMSGenericContentType                    string        `json:"AUTH_SMS_GENERIC_CONTENT_TYPE"`
+	SMSGenericHeaders                        string        `json:"AUTH_SMS_GENERIC_HEADERS"`
+	SMSGenericTimeout                        time.Duration `json:"AUTH_SMS_GENERIC_TIMEOUT"`
+	SMSGenericBodyTemplate                   string        `json:"AUTH_SMS_GENERIC_BODY_TEMPLATE"`
 	ServerPrefix                             string        `json:"AUTH_SERVER_PREFIX"`
 	DisableAutoSignup                        bool          `json:"AUTH_DISABLE_AUTO_SIGNUP"`
 	OAuth2ProviderEnabled                    bool          `json:"AUTH_OAUTH2_PROVIDER_ENABLED"`

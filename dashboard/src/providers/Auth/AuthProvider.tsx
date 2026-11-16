@@ -1,17 +1,25 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import {
+  type PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-hot-toast';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import {
   clearGitHubToken,
   type GitHubProviderToken,
   saveGitHubToken,
 } from '@/features/orgs/projects/git/common/utils';
+import { useGetAuthUserProvidersLazyQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { consumePKCEVerifier } from '@/lib/pkce';
-import { isNotEmptyValue } from '@/lib/utils';
+import { analytics } from '@/lib/segment';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
-import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { AuthContext, type AuthContextType } from './AuthContext';
 
@@ -41,7 +49,18 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const previousUserId = useRef<string | null>(null);
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
+
+  useEffect(() => {
+    const userId = session?.user?.id ?? null;
+
+    if (previousUserId.current !== null && userId === null) {
+      analytics.reset();
+    }
+
+    previousUserId.current = userId;
+  }, [session?.user?.id]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: The onChange method does not change
   useEffect(() => {
@@ -84,6 +103,10 @@ function AuthProvider({ children }: PropsWithChildren) {
         }
 
         try {
+          // Connecting GitHub from account or project settings runs the same
+          // exchange, but only ever while already signed in.
+          const isSignIn = !nhost.getUserSession();
+
           await nhost.auth.tokenExchange({
             code,
             codeVerifier,
@@ -93,26 +116,34 @@ function AuthProvider({ children }: PropsWithChildren) {
           removeQueryParamsFromUrl(...removableParams);
 
           if (exchangedSession && signinProvider === 'github') {
+            if (isSignIn) {
+              saveLastSignInMethod('github');
+            }
             try {
               const providerTokensResponse =
                 await nhost.auth.getProviderTokens('github');
-              if (providerTokensResponse.body) {
-                const { data } = await getAuthUserProviders();
-                const githubProvider = data?.authUserProviders?.find(
-                  (provider) => provider.providerId === 'github',
-                );
-                const newGitHubToken: GitHubProviderToken =
-                  providerTokensResponse.body;
-                if (
-                  isNotEmptyValue(githubProvider) &&
-                  isNotEmptyValue(githubProvider?.id)
-                ) {
-                  newGitHubToken.authUserProviderId = githubProvider.id;
-                }
-                saveGitHubToken(newGitHubToken);
+              if (isEmptyValue(providerTokensResponse.body)) {
+                throw new Error('Empty provider tokens response');
               }
+              const { data } = await getAuthUserProviders();
+              const githubProvider = data?.authUserProviders?.find(
+                (provider) => provider.providerId === 'github',
+              );
+              const newGitHubToken: GitHubProviderToken =
+                providerTokensResponse.body;
+              if (
+                isNotEmptyValue(githubProvider) &&
+                isNotEmptyValue(githubProvider?.id)
+              ) {
+                newGitHubToken.authUserProviderId = githubProvider.id;
+              }
+              saveGitHubToken(newGitHubToken);
             } catch (err) {
               console.error('Failed to fetch provider tokens:', err);
+              toast.error(
+                'Signed in, but we could not retrieve your GitHub credentials. Please try signing in with GitHub again.',
+                getToastStyleProps(),
+              );
             }
           }
 
@@ -147,7 +178,7 @@ function AuthProvider({ children }: PropsWithChildren) {
         removeQueryParamsFromUrl(...removableParams);
 
         await push(
-          `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
+          `/orgs/${orgSlug}/projects/${projectSubdomain}/deployments/settings?github-modal`,
         );
       }
 
@@ -163,7 +194,7 @@ function AuthProvider({ children }: PropsWithChildren) {
            * If the state isn't handled by Hasura auth, it returns `invalid-state`.
            * However, we check the provider_state search param to see if it has this format:
            * `install-github-app:<org-slug>:<project-subdomain>`.
-           * If it has this format, that means that we connected to GitHub in `/settings/deployments`,
+           * If it has this format, that means that we connected to GitHub in `/deployments/settings`,
            * thus we need to show the connect GitHub modal again.
            * Otherwise, we fall through to default error handling.
            */
@@ -178,7 +209,7 @@ function AuthProvider({ children }: PropsWithChildren) {
               const [, orgSlug, projectSubdomain] = providerState.split(':');
               removeQueryParamsFromUrl(...removableParams);
               await push(
-                `/orgs/${orgSlug}/projects/${projectSubdomain}/settings/deployments?github-modal`,
+                `/orgs/${orgSlug}/projects/${projectSubdomain}/deployments/settings?github-modal`,
               );
               break;
             }

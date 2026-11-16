@@ -1,0 +1,51 @@
+openapi: "3.0.0"
+
+paths:
+  /signin/provider/{provider}:
+    get:
+      summary: "Sign in with an OAuth2 provider"
+      operationId: signInProvider
+      tags:
+        - authentication
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: redirectTo
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: upstreamParams
+          in: query
+          required: false
+          description: "Extra parameters forwarded verbatim to the upstream OAuth2 provider's authorization URL."
+          style: deepObject
+          explode: true
+          schema:
+            $ref: "#/components/schemas/UpstreamAuthParams"
+      responses:
+        302:
+          description: Redirect to the provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+
+components:
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true
+
+  schemas:
+    UpstreamAuthParams:
+      type: object
+      description: "Extra key/value parameters forwarded verbatim to the upstream OAuth2 provider."
+      additionalProperties:
+        type: string

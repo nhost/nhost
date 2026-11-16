@@ -1,0 +1,166 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How to Add Semantic Search to Your App with pgvector',
+  description:
+    'A practical guide to adding semantic search to your app with pgvector: how it beats keyword search, the setup, generating embeddings, and running ranked similarity queries.',
+  image: '/images/blog/semantic-search-with-pgvector/og-semantic-search.png',
+  date: '2026-08-12',
+  seoTitle: 'Add Semantic Search to Your App with pgvector',
+  seoDescription:
+    'Add semantic search with pgvector: enable the extension, index embeddings, generate vectors, and run ranked similarity queries in Postgres.',
+  authors: [
+    {
+      name: 'Max Serdiukov',
+      title: 'Product Marketer',
+      avatarUrl: '/images/avatars/max.jpeg',
+      url: 'https://twitter.com/true_marketer',
+    },
+  ],
+  tags: ['Guide', 'AI', 'pgvector', 'Postgres'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Semantic search matches on meaning instead of exact words. A user types "how do I cancel," and the search returns the page titled "ending your subscription," even though the two share no keywords at all. 
+
+This walks through adding that to an app you already have, using pgvector to store and search the vectors right inside Postgres.
+
+## Semantic search vs keyword search
+
+Traditional search matches the words a user typed against the words in your content. That works until someone phrases things differently than your docs do, which turns out to be most of the time. Semantic search gets around the exact-word problem by comparing meaning instead, and it's worth understanding how before writing any code.
+
+### Where keyword search falls short
+
+Keyword search, including Postgres full-text search, works by matching tokens. It's fast and precise, and it has no idea that "laptop won't turn on" and "notebook fails to boot" are the same question. Synonyms, paraphrases, and typos all slip past it, because none of them share the literal words it's looking for.
+
+You can patch some of this with synonym dictionaries and stemming, but then you're maintaining a list of every way a human might phrase something, and that list never ends. The gap is widest on real user queries, which are messy, conversational, and almost never use your internal vocabulary.
+
+### What "semantic" actually means here
+
+Semantic search runs on embeddings. An embedding model reads a piece of text and returns a vector, a long list of numbers, arranged so that texts with similar meaning appear near each other, whatever words they used. "Cancel my plan" and "end my subscription" come out as vectors sitting close together.
+
+To search, you embed the user's query the same way and look for the stored vectors nearest to it. Nearness is measured with a distance metric, usually cosine distance, and the closest vectors are your most relevant results. 
+
+That's the whole idea: turn text into a position, then look for its neighbors.
+
+## Setting up pgvector
+
+pgvector is a Postgres extension that adds a vector column type and the operators to search it. Your embeddings end up in the same database as the rows they describe, which is what later lets a search filter by ordinary columns and rank by similarity in a single query. 
+
+Getting it running comes down to enabling the extension, indexing the vector column, and generating the embeddings to fill it.
+
+### Enabling the extension and adding a vector column
+
+Everything here runs in any Postgres that has pgvector available. If you'd rather have a ready environment to follow along, spin up an [Nhost project](https://app.nhost.io) and open the SQL editor in the dashboard, then run the commands there.
+
+First, enable the extension. Installing it needs elevated privileges, which on Nhost means starting with `SET ROLE postgres;` in the SQL editor:
+
+```sql
+SET ROLE postgres;
+
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+Then create a table with a vector column to hold the embeddings, and insert a few documents to search:
+
+```sql
+CREATE TABLE documents (
+  id        serial primary key,
+  content   text,
+  embedding vector(1536)
+);
+
+INSERT INTO documents (content) VALUES
+  ('Cancel your subscription at any time from the billing page.'),
+  ('Invoices are sent by email on the first day of each month.'),
+  ('You can enable dark mode in the appearance settings.');
+```
+
+The `embedding` column starts out empty; generating the vectors that fill it comes in a moment.
+
+The number in `vector(1536)` is the embedding's dimension, and it has to match whatever your model produces. OpenAI's `text-embedding-3-small` returns 1536 by default, though it also accepts a `dimensions` parameter to emit shorter vectors (e.g. 512) for smaller, faster indexes. 
+
+### Choosing and creating the index (HNSW vs IVFFlat)
+
+Without an index, a similarity search scans every row and measures the distance to each one. That's exact, and it gets slow as the table grows. An index speeds things up by returning approximate nearest neighbors instead of exact ones, trading a little accuracy for a lot of speed. pgvector gives you two to pick from, HNSW and IVFFlat.
+
+HNSW builds a graph you can query right away, gives strong recall, and is the one to default to. It costs more memory and takes longer to build. IVFFlat is lighter on memory but wants representative data already in the table before you build it, since it works by clustering existing vectors into lists. For most apps getting started, HNSW is the simpler call:
+
+```sql
+CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
+```
+
+The `vector_cosine_ops` part ties the index to cosine distance. Use the matching operator when you query (`<=>` for cosine), or Postgres won't use the index and you're back to a full scan. The index is only used for an `ORDER BY embedding <=> $1 ... LIMIT n` query. A bare `WHERE embedding <=> $1 < threshold` with no ordered limit won't use it.
+
+### Generating and storing embeddings for your rows
+
+With the column and index in place, you fill them. For each row, send its text to an embedding model and store the vector that comes back. This part is deliberately unopinionated: any language and any embedding provider works, because storing the result is just an ordinary UPDATE with the vector written into the column. 
+
+From your backend code, the statement looks like this:
+
+```sql
+UPDATE documents
+SET embedding = $1   -- the model's output: '[0.0128, -0.0301, ...]', all 1,536 numbers
+WHERE id = $2;
+```
+
+A real embedding is too long to print here, but you don't need one to follow along. Fill the column with random stand-in vectors instead, and every statement in the rest of this guide runs as-is:
+
+```sql
+UPDATE documents
+SET embedding = (
+  SELECT array_agg(random())::vector
+  FROM generate_series(1, 1536)
+  WHERE documents.id IS NOT NULL
+);
+```
+
+The `WHERE documents.id IS NOT NULL` looks redundant, and logically it is. It's there to reference the outer row, which forces Postgres to build a fresh vector for each document; without it, the subquery is computed once and every row gets the same vector. Random vectors exercise the plumbing but carry no meaning, so the ranking they produce is arbitrary until real embeddings replace them.
+
+Back to the real pipeline: run the embed-and-update loop wherever your backend code already lives, whether that's a serverless function, a worker, or a one-off script: read the row's text, call the embedding API, write the vector back. On a live app you do this whenever a row is created or updated. 
+
+For a table that already has data, run a one-time backfill in batches, because the embedding API is paid and rate-limited, and a row-by-row loop over a large table is both slow and expensive.
+
+Writing this step and then keeping it running is its own job, and it's exactly the part Nhost's Automatic Embeddings takes over, which we come back to at the end.
+
+## Running a semantic search query
+
+To run a search, embed the user's query with the same model you used on your content, then ask Postgres for the nearest rows:
+
+```sql
+SELECT id, content
+FROM documents
+ORDER BY embedding <=> $1   -- $1 is the query embedding; <=> is cosine distance
+LIMIT 10;
+```
+
+The `<=>` operator returns cosine distance, where smaller means closer, so ordering ascending puts the best matches first. The `LIMIT` is simply how many results you show.
+
+And the "same model" part matters: the query's embedding is only comparable to your stored embeddings if the same model produced both. Mix models and the search returns meaningless rankings.
+
+Filtering composes the same way: because the vectors sit next to your ordinary columns, restricting results to a category, a tenant, or only published rows is just a `WHERE` clause on the same query.
+
+With the stand-in vectors from the previous section, you can run a version of this immediately: borrow one document's embedding as the query, and it comes back first at distance zero with the rest ranked behind it:
+
+```sql
+SELECT id, content,
+       embedding <=> (SELECT embedding FROM documents WHERE id = 1) AS distance
+FROM documents
+ORDER BY embedding <=> (SELECT embedding FROM documents WHERE id = 1)
+LIMIT 10;
+```
+
+One addition matters as soon as real users show up: a distance threshold. Vector search always returns something, even for a query with no good match in your data, because there is always a nearest row. Without a cutoff, a nonsense query hands back your ten least-irrelevant documents and the search looks broken. Discard anything past a distance you'd call "not actually related," and an off-topic query correctly returns nothing. The right cutoff depends on your data and model, so find it by looking at real results rather than picking a number in the abstract.
+
+## Building it on Nhost
+
+That whole loop (calling OpenAI to generate the embedding, storing it in the right column, and regenerating it when the data changes) is what Nhost's [Auto-Embeddings](/blog/auto-embeddings) runs for you. 
+
+You set it up once: add the vector column, give Nhost a way to tell which rows have changed, and point it at a query for those rows plus a mutation to write the vector back. From then on, on a near-real-time cycle, it fetches the changed rows, calls OpenAI, generates the vectors, and writes them to the column, so you never build or run the embedding pipeline yourself.
+
+It also exposes GraphQL queries for natural-language and similarity search over that data, and they respect the same permissions as the rest of your app, so a user only ever searches what they're allowed to see. Everything stays in your own Postgres through pgvector.
+
+Two limits worth knowing: embeddings are OpenAI-only today, and the sync is near real time rather than instant, so a row you just changed may take a short delay to show up in results. The [docs](https://docs.nhost.io/products/ai) cover setup.
+
+Everything in this guide is plain Postgres: one extension, one column, one index, one operator. There's nothing to migrate to and nothing locking you in. The only ongoing work is the embedding pipeline, and that's the part you can hand off: create an [Nhost project](https://app.nhost.io) and it's ready to go, pgvector included.

@@ -17,7 +17,8 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export interface CreateEnvironmentVariableFormProps
   extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {
@@ -45,6 +46,7 @@ export default function CreateEnvironmentVariableForm({
   });
 
   const { project } = useProject();
+  const track = useTrackEvent();
 
   const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
@@ -101,6 +103,7 @@ export default function CreateEnvironmentVariableForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Environment Variable Added');
         await onSubmit?.();
 
         if (!isPlatform) {

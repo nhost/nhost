@@ -13,8 +13,8 @@
 }:
 
 let
-  # Workaround to cope with utillinux in Nixpkgs 20.09 and util-linux in Nixpkgs master
-  utillinux = if pkgs ? utillinux then pkgs.utillinux else pkgs.util-linux;
+  # Workaround to cope with util-linux in Nixpkgs 20.09 and util-linux in Nixpkgs master
+  util-linux = if pkgs ? util-linux then pkgs.util-linux else pkgs.util-linux;
 
   python = if nodejs ? python then nodejs.python else python2;
 
@@ -550,8 +550,8 @@ let
           python
           nodejs
         ]
-        ++ lib.optional (stdenv.isLinux) utillinux
-        ++ lib.optional (stdenv.isDarwin) libtool
+        ++ lib.optional (stdenv.hostPlatform.isLinux) util-linux
+        ++ lib.optional (stdenv.hostPlatform.isDarwin) libtool
         ++ buildInputs;
 
         inherit nodejs;
@@ -672,8 +672,8 @@ let
           python
           nodejs
         ]
-        ++ lib.optional (stdenv.isLinux) utillinux
-        ++ lib.optional (stdenv.isDarwin) libtool
+        ++ lib.optional (stdenv.hostPlatform.isLinux) util-linux
+        ++ lib.optional (stdenv.hostPlatform.isDarwin) libtool
         ++ buildInputs;
 
         inherit dontStrip; # Stripping may fail a build for some package deployments
@@ -771,7 +771,7 @@ let
           python
           nodejs
         ]
-        ++ lib.optional (stdenv.isLinux) utillinux
+        ++ lib.optional (stdenv.hostPlatform.isLinux) util-linux
         ++ buildInputs;
         buildCommand = ''
           mkdir -p $out/bin

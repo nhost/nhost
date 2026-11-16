@@ -1,6 +1,6 @@
 import { ArrowDown, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { Alert } from '@/components/ui/v2/Alert';
+import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
@@ -92,7 +92,7 @@ export default function EditRelationshipsForm({
 
     return (
       <div className="-mt-3 px-6">
-        <Alert severity="error" className="text-left">
+        <Alert variant="destructive" className="text-left">
           <strong>Error:</strong> {errorMessage}
         </Alert>
       </div>

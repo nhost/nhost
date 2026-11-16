@@ -1,4 +1,3 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   TrackTableArgs,
   TrackTableBulkOperation,
@@ -6,6 +5,7 @@ import type {
   UntrackTableBulkOperation,
   UntrackTableStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableTrackingVariables {
@@ -41,7 +41,7 @@ export default async function setTableTracking({
 
   try {
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

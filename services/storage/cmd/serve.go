@@ -69,12 +69,26 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 		AllowedMethods:   []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowHeadersFunc: nil,
 		AllowedHeaders: []string{
-			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
-			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
+			"Authorization",
+			"Origin",
+			"if-match",
+			"if-none-match",
+			"if-modified-since",
+			"if-unmodified-since",
+			"x-hasura-admin-secret",
+			"x-nhost-bucket-id",
+			"x-nhost-file-name",
+			"x-nhost-file-id",
 			"x-hasura-role",
 		},
 		ExposedHeaders: []string{
-			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
+			"Content-Length",
+			"Content-Type",
+			"Cache-Control",
+			"CDN-Cache-Control",
+			"ETag",
+			"Last-Modified",
+			"X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
 		// Conditionally required: the shared CORS middleware is fail-closed and
@@ -238,7 +252,7 @@ func applyMigrations(
 	if postgresMigrations {
 		logger.InfoContext(ctx, "applying postgres migrations")
 
-		if err := migrations.ApplyPostgresMigration(postgresSource); err != nil {
+		if err := migrations.ApplyPostgresMigration(ctx, postgresSource, logger); err != nil {
 			return fmt.Errorf("problem applying postgres migrations: %w", err)
 		}
 	}

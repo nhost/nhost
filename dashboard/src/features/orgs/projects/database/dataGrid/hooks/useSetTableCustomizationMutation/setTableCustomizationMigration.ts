@@ -1,8 +1,8 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   SetTableCustomizationArgs,
   TableConfig,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableCustomizationMigrationVariables {
@@ -12,7 +12,6 @@ export interface SetTableCustomizationMigrationVariables {
 }
 
 export default async function setTableCustomizationMigration({
-  appUrl,
   adminSecret,
   prevConfig,
   customizationType,
@@ -45,7 +44,6 @@ export default async function setTableCustomizationMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

@@ -1,5 +1,5 @@
+import { useSecurityKeysQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
-import { useSecurityKeysQuery } from '@/utils/__generated__/graphql';
 
 function useGetSecurityKeys() {
   const user = useUserData();

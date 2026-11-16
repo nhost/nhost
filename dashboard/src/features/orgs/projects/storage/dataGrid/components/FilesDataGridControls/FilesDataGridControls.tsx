@@ -14,8 +14,8 @@ import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/d
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import type { FileUploadButtonProps } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
 import { FileUploadButton } from '@/features/orgs/projects/storage/dataGrid/components/FileUploadButton';
+import type { Files } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import type { Files } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export interface FilesDataGridControlsProps {
@@ -107,7 +107,7 @@ export default function FilesDataGridControls({
         <div className="flex h-[40px] items-center justify-start gap-2">
           <Badge
             variant="secondary"
-            className="!bg-[#ebf3ff] dark:!bg-[#1b2534] text-primary"
+            className="!bg-primary-highlight text-primary"
           >
             {`${numberOfSelectedFiles} selected`}
           </Badge>
@@ -115,7 +115,7 @@ export default function FilesDataGridControls({
           <Button
             variant="outline"
             size="sm"
-            className="border-none text-destructive hover:bg-[#f131541a] hover:text-destructive"
+            className="border-none bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive"
             loading={deleteLoading}
             onClick={() =>
               openAlertDialog({

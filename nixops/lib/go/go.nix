@@ -80,7 +80,7 @@ in
       shellHook =
         shellHook
         + "\n"
-        + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+        + pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
           export SDKROOT=${pkgs.apple-sdk_14}
           export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
           export DEVELOPER_DIR=${pkgs.apple-sdk_14}
@@ -137,7 +137,7 @@ in
         if grep -qv ': OK$' $TMPDIR/sha1out; then echo "❌ ERROR: go generate changed files" && exit 1; fi
 
         echo "➜ Checking for vulnerabilities"
-        govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=package ./${submodule}/...
+        govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=symbol ./${submodule}/...
 
         echo "➜ Running golangci-lint"
         golangci-lint run \

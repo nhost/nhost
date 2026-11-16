@@ -8,13 +8,13 @@ rec {
   # `buildGoModule`: overriding those globally taints every nixpkgs package
   # with go in its build closure (even libcap), forcing source rebuilds of
   # huge dependency cones instead of substituting them from cache.nixos.org.
-  go = prev.go_1_26.overrideAttrs (
+  go = prev.go_1_27.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.5";
+      version = "1.27.4";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-SVvkvIcXasVnOS5bQRar2YRm0z17SdQedkzMaXay3EI=";
+        sha256 = "sha256-c8+4VxrsDAEXdofbhxY9Rqog6XeWcncokaoXZU2aYJk=";
       };
 
     }
@@ -22,16 +22,118 @@ rec {
 
   buildGoModule = prev.buildGoModule.override { inherit go; };
 
+  betterleaks = final.nhost.buildGoModule rec {
+    pname = "betterleaks";
+    version = "1.8.1";
+    src = final.fetchFromGitHub {
+      owner = "betterleaks";
+      repo = "betterleaks";
+      rev = "v${version}";
+      sha256 = "sha256-TFWjGY5s1/X3JGCvXiK2n0mkedWvcwzOfWYkVBsFBg8=";
+    };
+    vendorHash = "sha256-iawGHP22k96dnpoSMNxlMJ8aHZPOW1Mbaih6vAh3G94=";
+    subPackages = [ "." ];
+    env.CGO_ENABLED = 0;
+    ldflags = [
+      "-s"
+      "-w"
+      "-X=github.com/betterleaks/betterleaks/version.Version=${version}"
+    ];
+    doCheck = false;
+    meta = with final.lib; {
+      description = "Find leaked secrets in git history, files and more";
+      homepage = "https://github.com/betterleaks/betterleaks";
+      license = licenses.mit;
+      maintainers = [ "@nhost" ];
+      mainProgram = "betterleaks";
+    };
+  };
+
+  mcp-publisher = final.nhost.buildGoModule rec {
+    pname = "mcp-publisher";
+    version = "1.8.1";
+
+    src = final.fetchFromGitHub {
+      owner = "modelcontextprotocol";
+      repo = "registry";
+      rev = "v${version}";
+      hash = "sha256-oFV7XCy3XtG7r7gdNvu8AQ6pxAy9RJMT2hQDa9o/E5Y=";
+    };
+
+    vendorHash = "sha256-VXlhv9dBLORtuwGdiyI9Gc4Jf9rQH90DU91knqFaRzA=";
+    subPackages = [ "cmd/publisher" ];
+    env.CGO_ENABLED = 0;
+
+    ldflags = [
+      "-s"
+      "-w"
+      "-X=main.Version=${version}"
+      "-X=main.GitCommit=v${version}"
+      "-X=main.BuildTime=1970-01-01T00:00:00Z"
+    ];
+
+    postInstall = ''
+      mv "$out/bin/publisher" "$out/bin/mcp-publisher"
+    '';
+
+    doCheck = false;
+    doInstallCheck = true;
+    installCheckPhase = ''
+      runHook preInstallCheck
+      "$out/bin/mcp-publisher" --version 2>&1 | grep -F "mcp-publisher ${version}"
+      runHook postInstallCheck
+    '';
+
+    meta = with final.lib; {
+      description = "CLI for publishing MCP servers to the official MCP Registry";
+      homepage = "https://github.com/modelcontextprotocol/registry";
+      license = licenses.asl20;
+      maintainers = [ "@nhost" ];
+      mainProgram = "mcp-publisher";
+    };
+  };
+
+  mockgen = final.nhost.buildGoModule rec {
+    pname = "mockgen";
+    version = "0.6.0";
+
+    src = final.fetchFromGitHub {
+      owner = "uber-go";
+      repo = "mock";
+      tag = "v${version}";
+      hash = "sha256-gYUL+ucnKQncudQDcRt8aDqM7xE5XSKHh4X0qFrvfGs=";
+    };
+
+    vendorHash = "sha256-Cf7lKfMuPFT/I1apgChUNNCG2C7SrW7ncF8OusbUs+A=";
+
+    subPackages = [ "mockgen" ];
+
+    ldflags = [
+      "-X=main.version=${version}"
+      "-X=main.date=1970-01-01T00:00:00Z"
+      "-X=main.commit=${src.rev}"
+    ];
+
+    doInstallCheck = true;
+
+    meta = {
+      description = "Mocking framework for the Go programming language";
+      homepage = "https://github.com/uber-go/mock";
+      changelog = "https://github.com/uber-go/mock/blob/v${version}/CHANGELOG.md";
+      mainProgram = "mockgen";
+    };
+  };
+
   golangci-lint = final.nhost.buildGoModule rec {
     pname = "golangci-lint";
-    version = "2.9.0";
+    version = "2.14.0";
     src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golangci-lint";
       rev = "v${version}";
-      sha256 = "sha256-8LEtm1v0slKwdLBtS41OilKJLXytSxcI9fUlZbj5Gfw=";
+      sha256 = "sha256-HATA7JKHwEouM+8jYZbQrkX7p4gut4IpyTvcBexu/4o=";
     };
-    vendorHash = "sha256-w8JfF6n1ylrU652HEv/cYdsOdDZz9J2uRQDqxObyhkY=";
+    vendorHash = "sha256-ekP/zDhYMpMG+tYAyYHNfLOCt/JkxrXUw1jHUEfsM8k=";
     subPackages = [ "cmd/golangci-lint" ];
     ldflags = [
       "-s"
@@ -45,14 +147,14 @@ rec {
 
   golines = final.nhost.buildGoModule rec {
     pname = "golines";
-    version = "0.14.0";
+    version = "0.15.0";
     src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golines";
       rev = "v${version}";
-      sha256 = "sha256-2eMndvzi1762iPc0tazQQqBb66VVAz1pBr+ow6JnSYY=";
+      sha256 = "sha256-gjm76dGbFTisQdiM0GAQJRcAreQUWIBuqYbLU2ruCNk=";
     };
-    vendorHash = "sha256-4MNSr1a6V88BYVwU+ZZ4kFOx3KKYbCC2v4Ypziln1LQ=";
+    vendorHash = "sha256-cLzCpjifb0lc6UaDW2JZBQABixz98EJ4syLapX7I8y8=";
     meta = with final.lib; {
       description = "A golang formatter that fixes long lines";
       homepage = "https://github.com/golangci/golines";
@@ -63,45 +165,52 @@ rec {
 
   govulncheck = final.nhost.buildGoModule rec {
     pname = "govulncheck";
-    version = "1.1.4";
+    version = "1.8.0";
     src = final.fetchFromGitHub {
       owner = "golang";
       repo = "vuln";
       rev = "v${version}";
-      sha256 = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
+      sha256 = "sha256-OvgAEWf7WtPNXZEZYNeSqy7dZP9cF3wfQSt9WU79OIM=";
     };
-    vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
+    vendorHash = "sha256-wSSxsmEzpFiaDfRsgFWOtA9UnoENm57VVltB+MA6y0E=";
     subPackages = [ "cmd/govulncheck" ];
     doCheck = false;
   };
 
-  gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
-    version = "0.17.86";
-    src = final.fetchFromGitHub {
-      owner = "99designs";
-      repo = "gqlgen";
-      rev = "v${version}";
-      sha256 = "sha256-3lN/hW2LpLUmm+w31XWOJb7rP3Wyk054WcKVwwQ8afs=";
-    };
-    vendorHash = "sha256-mOLFcbodgEn86ZV3mDeoBjoDVlYLo+7Gz930pi/KqAI=";
-    doCheck = false;
-  });
+  gqlgen =
+    (prev.gqlgen.override { inherit (final.nhost) buildGoModule; }).overrideAttrs
+      (oldAttrs: rec {
+        version = "0.17.91";
+        src = final.fetchFromGitHub {
+          owner = "99designs";
+          repo = "gqlgen";
+          rev = "v${version}";
+          sha256 = "sha256-z4VCso3IxV8R9ov9qeyO9UH7DqExe1ybJF6eTaV7odI=";
+        };
+        # golang.org/x/tools < v0.50.0 can't decode the export data written by
+        # go 1.27.2 and breaks code generation. Drop once upstream bumps it.
+        patches = [ ./patches/gqlgen-x-tools-v0.50.0.patch ];
+        vendorHash = "sha256-pOr9U3UmiVV7FL4gDxBqgodY0HNdCLjvXucIY+/dS28=";
+        doCheck = false;
+      });
 
   gqlgenc = final.nhost.buildGoModule rec {
     pname = "gqlgenc";
-    version = "0.33.0";
+    version = "0.38.2";
     src = final.fetchFromGitHub {
-      owner = "Yamashou";
+      owner = "gqlgo";
       repo = pname;
       rev = "v${version}";
-      sha256 = "sha256-SLFfLt41MAGcyHG/XVWehaXGknOJbWltVWG+IYUHCz8=";
+      sha256 = "sha256-zb7hXGULyaLYEhcoJhirzlQCBblO3kPhCjp3obT6XTc=";
     };
-    vendorHash = "sha256-Y2miO13zTW8VWA7vUbfQxTPbZvaaq+fNsKKNFw8iYJY=";
+    # See gqlgen above. Drop once upstream bumps golang.org/x/tools.
+    patches = [ ./patches/gqlgenc-x-tools-v0.50.0.patch ];
+    vendorHash = "sha256-anLcdB4D2ENbdjfm5K5tMCpVFnLaxPu+o1jCJklelE4=";
     doCheck = false;
     subPackages = [ "./." ];
     meta = with final.lib; {
       description = "This is Go library for building GraphQL client with gqlgen";
-      homepage = "https://github.com/Yamashou/gqlgenc";
+      homepage = "https://github.com/gqlgo/gqlgenc";
       license = licenses.mit;
       maintainers = [ "@nhost" ];
     };

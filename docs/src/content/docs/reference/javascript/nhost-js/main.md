@@ -322,9 +322,9 @@ or to force a refresh when needed.
 
 ##### Parameters
 
-| Parameter       | Type     | Default value | Description                                                                                                                                                                       |
-| --------------- | -------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `marginSeconds` | `number` | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
+| Parameter        | Type     | Default value | Description                                                                                                                                                                       |
+| ---------------- | -------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `marginSeconds?` | `number` | `60`          | The number of seconds before the token expiration to refresh the session. If the token is still valid for this duration, it will not be refreshed. Set to 0 to force the refresh. |
 
 ##### Returns
 
@@ -357,7 +357,7 @@ Configuration options for creating an Nhost client
 #### authUrl?
 
 ```ts
-optional authUrl?: string;
+authUrl?: string;
 ```
 
 Complete base URL for the auth service (overrides subdomain/region)
@@ -365,7 +365,7 @@ Complete base URL for the auth service (overrides subdomain/region)
 #### configure?
 
 ```ts
-optional configure?: ClientConfigurationFn[];
+configure?: ClientConfigurationFn[];
 ```
 
 Configuration functions to be applied to the client after initialization.
@@ -374,7 +374,7 @@ These functions receive all clients and can attach middleware or perform other s
 #### functionsUrl?
 
 ```ts
-optional functionsUrl?: string;
+functionsUrl?: string;
 ```
 
 Complete base URL for the functions service (overrides subdomain/region)
@@ -382,7 +382,7 @@ Complete base URL for the functions service (overrides subdomain/region)
 #### graphqlUrl?
 
 ```ts
-optional graphqlUrl?: string;
+graphqlUrl?: string;
 ```
 
 Complete base URL for the GraphQL service (overrides subdomain/region)
@@ -390,7 +390,7 @@ Complete base URL for the GraphQL service (overrides subdomain/region)
 #### region?
 
 ```ts
-optional region?: string;
+region?: string;
 ```
 
 Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services for the Nhost cloud.
@@ -398,7 +398,7 @@ Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services
 #### storage?
 
 ```ts
-optional storage?: SessionStorageBackend;
+storage?: SessionStorageBackend;
 ```
 
 Storage backend to use for session persistence. If not provided, the SDK will
@@ -407,7 +407,7 @@ default to localStorage in the browser or memory in other environments.
 #### storageUrl?
 
 ```ts
-optional storageUrl?: string;
+storageUrl?: string;
 ```
 
 Complete base URL for the storage service (overrides subdomain/region)
@@ -415,7 +415,7 @@ Complete base URL for the storage service (overrides subdomain/region)
 #### subdomain?
 
 ```ts
-optional subdomain?: string;
+subdomain?: string;
 ```
 
 Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for services for the Nhost cloud.
@@ -435,7 +435,7 @@ Configuration options for creating an Nhost client
 #### authUrl?
 
 ```ts
-optional authUrl?: string;
+authUrl?: string;
 ```
 
 Complete base URL for the auth service (overrides subdomain/region)
@@ -447,7 +447,7 @@ Complete base URL for the auth service (overrides subdomain/region)
 #### configure?
 
 ```ts
-optional configure?: ClientConfigurationFn[];
+configure?: ClientConfigurationFn[];
 ```
 
 Configuration functions to be applied to the client after initialization.
@@ -460,7 +460,7 @@ These functions receive all clients and can attach middleware or perform other s
 #### functionsUrl?
 
 ```ts
-optional functionsUrl?: string;
+functionsUrl?: string;
 ```
 
 Complete base URL for the functions service (overrides subdomain/region)
@@ -472,7 +472,7 @@ Complete base URL for the functions service (overrides subdomain/region)
 #### graphqlUrl?
 
 ```ts
-optional graphqlUrl?: string;
+graphqlUrl?: string;
 ```
 
 Complete base URL for the GraphQL service (overrides subdomain/region)
@@ -484,7 +484,7 @@ Complete base URL for the GraphQL service (overrides subdomain/region)
 #### region?
 
 ```ts
-optional region?: string;
+region?: string;
 ```
 
 Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services for the Nhost cloud.
@@ -510,7 +510,7 @@ as the SDK cannot auto-detect an appropriate storage mechanism.
 #### storageUrl?
 
 ```ts
-optional storageUrl?: string;
+storageUrl?: string;
 ```
 
 Complete base URL for the storage service (overrides subdomain/region)
@@ -522,7 +522,7 @@ Complete base URL for the storage service (overrides subdomain/region)
 #### subdomain?
 
 ```ts
-optional subdomain?: string;
+subdomain?: string;
 ```
 
 Nhost project subdomain (e.g., 'abcdefgh'). Used to construct the base URL for services for the Nhost cloud.
@@ -622,7 +622,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 #### user?
 
 ```ts
-optional user?: User;
+user?: User;
 ```
 
 User profile and account information
@@ -704,9 +704,9 @@ client-side applications where long-lived sessions are expected.
 
 ### Parameters
 
-| Parameter | Type                                        | Description                          |
-| --------- | ------------------------------------------- | ------------------------------------ |
-| `options` | [`NhostClientOptions`](#nhostclientoptions) | Configuration options for the client |
+| Parameter  | Type                                        | Description                          |
+| ---------- | ------------------------------------------- | ------------------------------------ |
+| `options?` | [`NhostClientOptions`](#nhostclientoptions) | Configuration options for the client |
 
 ### Returns
 
@@ -766,9 +766,9 @@ configuration functions to set up middleware and other customizations.
 
 ### Parameters
 
-| Parameter | Type                                        | Description                          |
-| --------- | ------------------------------------------- | ------------------------------------ |
-| `options` | [`NhostClientOptions`](#nhostclientoptions) | Configuration options for the client |
+| Parameter  | Type                                        | Description                          |
+| ---------- | ------------------------------------------- | ------------------------------------ |
+| `options?` | [`NhostClientOptions`](#nhostclientoptions) | Configuration options for the client |
 
 ### Returns
 

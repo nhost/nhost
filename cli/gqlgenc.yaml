@@ -28,7 +28,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Time
 
 endpoint:
-  url: https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1
+  url: https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1
   headers:
     Authorization: Bearer $NHOST_ACCESS_TOKEN # # support environment variables
     Content-Type: application/json

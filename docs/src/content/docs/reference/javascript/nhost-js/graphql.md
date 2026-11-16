@@ -9,7 +9,7 @@ but you can also use it directly if you have a specific use case.
 # Import
 
 ```ts
-import { createClient } from "@nhost/nhost-js/graphql";
+import { createAPIClient } from "@nhost/nhost-js/graphql";
 ```
 
 # Usage
@@ -316,7 +316,7 @@ Add a middleware function to the fetch chain
 ##### Call Signature
 
 ```ts
-request<TResponseData, TVariables>(request: GraphQLRequest<TVariables>, options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+request<TResponseData = unknown, TVariables = GraphQLVariables>(request: GraphQLRequest<TVariables>, options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
 ```
 
 Execute a GraphQL query operation
@@ -325,10 +325,10 @@ Queries are used to fetch data and should not modify any data on the server.
 
 ##### Type Parameters
 
-| Type Parameter  | Default type                            |
-| --------------- | --------------------------------------- |
-| `TResponseData` | `unknown`                               |
-| `TVariables`    | [`GraphQLVariables`](#graphqlvariables) |
+| Type Parameter                                            | Default type                            |
+| --------------------------------------------------------- | --------------------------------------- |
+| <a id="type-parameter-tresponsedata"></a> `TResponseData` | `unknown`                               |
+| <a id="type-parameter-tvariables"></a> `TVariables`       | [`GraphQLVariables`](#graphqlvariables) |
 
 ##### Parameters
 
@@ -346,10 +346,11 @@ Promise with the GraphQL response and metadata
 ##### Call Signature
 
 ```ts
-request<TResponseData, TVariables>(
+request<TResponseData, TVariables = GraphQLVariables>(
    document: TypedDocumentNode<TResponseData, TVariables>,
    variables?: TVariables,
-   options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+   options?: RequestInit
+): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
 ```
 
 Execute a GraphQL query operation using a typed document node
@@ -359,10 +360,10 @@ when the document's definition nodes include `loc` offsets.
 
 ##### Type Parameters
 
-| Type Parameter  | Default type                            |
-| --------------- | --------------------------------------- |
-| `TResponseData` | -                                       |
-| `TVariables`    | [`GraphQLVariables`](#graphqlvariables) |
+| Type Parameter                                              | Default type                            |
+| ----------------------------------------------------------- | --------------------------------------- |
+| <a id="type-parameter-tresponsedata-1"></a> `TResponseData` | -                                       |
+| <a id="type-parameter-tvariables-1"></a> `TVariables`       | [`GraphQLVariables`](#graphqlvariables) |
 
 ##### Parameters
 
@@ -389,7 +390,7 @@ Represents a GraphQL error returned from the server.
 #### extensions?
 
 ```ts
-optional extensions?: object;
+extensions?: object;
 ```
 
 Additional error information specific to the GraphQL implementation
@@ -402,7 +403,7 @@ Additional error information specific to the GraphQL implementation
 #### locations?
 
 ```ts
-optional locations?: object[];
+locations?: object[];
 ```
 
 Source locations in the GraphQL document where the error occurred
@@ -423,7 +424,7 @@ Error message
 #### path?
 
 ```ts
-optional path?: string[];
+path?: string[];
 ```
 
 Path in the query where the error occurred
@@ -436,16 +437,16 @@ GraphQL request object used for queries and mutations.
 
 ### Type Parameters
 
-| Type Parameter | Default type                            |
-| -------------- | --------------------------------------- |
-| `TVariables`   | [`GraphQLVariables`](#graphqlvariables) |
+| Type Parameter                                        | Default type                            |
+| ----------------------------------------------------- | --------------------------------------- |
+| <a id="type-parameter-tvariables-2"></a> `TVariables` | [`GraphQLVariables`](#graphqlvariables) |
 
 ### Properties
 
 #### operationName?
 
 ```ts
-optional operationName?: string;
+operationName?: string;
 ```
 
 Optional name of the operation to execute
@@ -461,7 +462,7 @@ The GraphQL query or mutation string
 #### variables?
 
 ```ts
-optional variables?: TVariables;
+variables?: TVariables;
 ```
 
 Optional variables for parameterized queries
@@ -474,16 +475,16 @@ Standard GraphQL response format as defined by the GraphQL specification.
 
 ### Type Parameters
 
-| Type Parameter  | Default type |
-| --------------- | ------------ |
-| `TResponseData` | `unknown`    |
+| Type Parameter                                              | Default type |
+| ----------------------------------------------------------- | ------------ |
+| <a id="type-parameter-tresponsedata-2"></a> `TResponseData` | `unknown`    |
 
 ### Properties
 
 #### data?
 
 ```ts
-optional data?: TResponseData;
+data?: TResponseData;
 ```
 
 The data returned from successful execution
@@ -491,7 +492,7 @@ The data returned from successful execution
 #### errors?
 
 ```ts
-optional errors?: GraphQLError[];
+errors?: GraphQLError[];
 ```
 
 Array of errors if execution was unsuccessful or partially successful
@@ -523,10 +524,10 @@ error handling, and other cross-cutting concerns.
 
 ### Parameters
 
-| Parameter        | Type                                        | Default value | Description                                       |
-| ---------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
-| `url`            | `string`                                    | `undefined`   | Base URL for the GraphQL endpoint                 |
-| `chainFunctions` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
+| Parameter         | Type                                        | Default value | Description                                       |
+| ----------------- | ------------------------------------------- | ------------- | ------------------------------------------------- |
+| `url`             | `string`                                    | `undefined`   | Base URL for the GraphQL endpoint                 |
+| `chainFunctions?` | [`ChainFunction`](./fetch#chainfunction)[] | `[]`          | Array of middleware functions for the fetch chain |
 
 ### Returns
 

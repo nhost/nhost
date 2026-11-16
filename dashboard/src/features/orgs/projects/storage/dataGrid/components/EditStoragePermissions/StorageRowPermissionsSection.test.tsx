@@ -11,13 +11,11 @@ import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import { hasuraColumnMetadataQuery } from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
-import { mockPointerEvent, render, screen, waitFor } from '@/tests/testUtils';
+import { render, screen, waitFor } from '@/tests/testUtils';
 
 import StorageRowPermissionsSection from './StorageRowPermissionsSection';
 import type { StorageAction, StoragePermissionEditorFormValues } from './types';
 import storageValidationSchemas from './validationSchemas';
-
-mockPointerEvent();
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),

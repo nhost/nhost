@@ -1,8 +1,8 @@
 /**
- * Compares two version strings (e.g., "0.46.0") and returns true
- * if `version` is greater than or equal to `minVersion`.
+ * Compares two version strings (e.g., "0.46.0" or "v2.33.0-ce") and returns
+ * true if `version` is greater than or equal to `minVersion`.
  *
- * Only considers numeric major.minor.patch segments.
+ * Ignores a leading "v" and only considers numeric major.minor.patch segments.
  */
 export function isVersionGte(
   version: string | null | undefined,
@@ -14,6 +14,7 @@ export function isVersionGte(
 
   const parse = (v: string) =>
     v
+      .replace(/^v/i, '')
       .split('.')
       .slice(0, 3)
       .map((s) => Number.parseInt(s, 10) || 0);

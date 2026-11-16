@@ -17,8 +17,8 @@ import { StoragePermissionsButton } from '@/features/orgs/projects/storage/compo
 import { useBuckets } from '@/features/orgs/projects/storage/hooks/useBuckets';
 import { useDeleteOrphanedFiles } from '@/features/orgs/projects/storage/hooks/useDeleteOrphanedFiles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteBucketMutation } from '@/generated/graphql';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { useDeleteBucketMutation } from '@/utils/__generated__/graphql';
 
 interface BucketNavItemProps {
   bucketId: string;
@@ -57,11 +57,11 @@ function BucketNavItem({
             className={cn(
               'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
               {
-                'text-primary-main': isSelected,
+                'text-primary': isSelected,
               },
             )}
             onClick={() => onSidebarItemClick?.()}
-            href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${encodeURIComponent(bucketId)}`}
+            href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(bucketId)}`}
           >
             <Archive className="h-4 w-4 shrink-0" />
             <span className="!truncate">{bucketId}</span>
@@ -139,7 +139,7 @@ function StorageSidebarContent({
         await deleteOrphanedFiles();
         if (bucketSlug === bucketToDelete) {
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/storage`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets`,
           );
         }
       },

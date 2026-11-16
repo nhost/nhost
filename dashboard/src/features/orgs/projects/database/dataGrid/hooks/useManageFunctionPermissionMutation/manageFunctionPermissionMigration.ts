@@ -1,8 +1,8 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateFunctionPermissionArgs,
   DropFunctionPermissionArgs,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import type { FunctionPermissionOperationType } from './manageFunctionPermission';
 
@@ -25,7 +25,6 @@ export interface ManageFunctionPermissionMigrationVariables {
 }
 
 export default async function manageFunctionPermissionMigration({
-  appUrl,
   adminSecret,
   type,
   args,
@@ -51,7 +50,6 @@ export default async function manageFunctionPermissionMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

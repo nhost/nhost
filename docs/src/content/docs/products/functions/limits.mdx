@@ -31,6 +31,10 @@ Function execution timeout limits vary by project tier:
 
 If a function exceeds its timeout, the execution is terminated and the client receives an error response.
 
+## Request Payload
+
+Parsed request bodies (JSON and URL-encoded form data) are limited to **6 MB**. Larger payloads are rejected. For raw access to the unparsed body, read `req.rawBody`.
+
 ## Response Payload
 
 All functions have a hard limit of **6 MB** for response payloads, regardless of the project tier.

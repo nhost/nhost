@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { AddRemoteSchemaArgs } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 
 export interface CreateRemoteSchemaOptions {
   appUrl: string;
@@ -16,7 +16,7 @@ export default async function createRemoteSchema({
   args,
 }: CreateRemoteSchemaOptions & CreateRemoteSchemaVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'add_remote_schema',
         args: {
@@ -26,7 +26,7 @@ export default async function createRemoteSchema({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

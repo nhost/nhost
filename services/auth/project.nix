@@ -28,6 +28,8 @@ let
 
       ../../internal/lib/oapi
       ../../internal/lib/hasura/metadata
+      ../../internal/lib/syncmap
+      (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/pgmigrate)
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -48,6 +50,7 @@ let
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
+      ./go/sql/query.sql
       ./test
     ];
   };
@@ -59,7 +62,7 @@ let
 
   checkDeps = with pkgs; [
     nhost.nhost-cli
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.sqlc
     nhost.postgresql_18-client
@@ -128,6 +131,9 @@ rec {
         --ruleset ${src}/${submodule}/vacuum.yaml \
         ${src}/${submodule}/docs/openapi.yaml
       echo ""
+
+      export AUTH_MIGRATION_TEST_DATABASE_REQUIRED=1
+      export AUTH_MIGRATION_TEST_DSN="postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
     '';
 
     extraCheck = ''

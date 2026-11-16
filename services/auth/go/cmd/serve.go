@@ -96,16 +96,22 @@ const (
 	flagAppleAudience                            = "apple-audience"
 	flagGoogleAudience                           = "google-audience"
 	flagOTPEmailEnabled                          = "otp-email-enabled"
-	flagSMSPasswordlessEnabled                   = "sms-passwordless-enabled"
+	flagOTPSmsEnabled                            = "otp-sms-enabled"
 	flagSMSProvider                              = "sms-provider"
 	flagSMSTwilioAccountSid                      = "sms-twilio-account-sid"
 	flagSMSTwilioAuthToken                       = "sms-twilio-auth-token" //nolint:gosec
 	flagSMSTwilioMessagingServiceID              = "sms-twilio-messaging-service-id"
 	flagSMSModicaUsername                        = "sms-modica-username"
 	flagSMSModicaPassword                        = "sms-modica-password" //nolint:gosec
+	flagSMSGenericURL                            = "sms-generic-url"
+	flagSMSGenericContentType                    = "sms-generic-content-type"
+	flagSMSGenericHeaders                        = "sms-generic-headers"
+	flagSMSGenericTimeout                        = "sms-generic-timeout"
+	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
+	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
-	flagMfaEnabled                               = "mfa-enabled"
-	flagMfaTotpIssuer                            = "mfa-totp-issuer"
+	flagTOTPEnabled                              = "totp-enabled"
+	flagTOTPIssuer                               = "totp-issuer"
 	flagGithubEnabled                            = "github-enabled"
 	flagGithubClientID                           = "github-client-id"
 	flagGithubClientSecret                       = "github-client-secret" //nolint:gosec
@@ -188,6 +194,8 @@ const (
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
 )
 
+const defaultSMSGenericTimeout = 10 * time.Second
+
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	return &cli.Command{ //nolint: exhaustruct
 		Name:  "serve",
@@ -227,7 +235,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_ENCRYPTION_KEY"),
 				Required: true,
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct,gosec // G101 "Password in URL": localhost dev default, overridden in every deployment
 				Name:     flagPostgresConnection,
 				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
@@ -522,7 +530,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					},
 					Default: "disabled",
 				},
-				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
+				Usage: "Require x-hasura-auth-elevated claim to perform certain " +
+					"actions: create PATs, change email and/or password, set up " +
+					"TOTP and add security keys. If set to `recommended` the claim " +
+					"check is only performed if the user has a second factor " +
+					"attached. If set to `required` the only actions that won't " +
+					"require the claim are setting up a first second factor, " +
+					"either a security key or TOTP.",
 				Category: "security",
 				Sources:  cli.EnvVars("AUTH_REQUIRE_ELEVATED_CLAIM"),
 			},
@@ -693,14 +707,18 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_OTP_EMAIL_ENABLED"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
-				Name:     flagSMSPasswordlessEnabled,
-				Usage:    "Enable SMS passwordless authentication",
-				Category: "sms",
-				Sources:  cli.EnvVars("AUTH_SMS_PASSWORDLESS_ENABLED"),
+				Name:     flagOTPSmsEnabled,
+				Aliases:  []string{"sms-passwordless-enabled"},
+				Usage:    "Enable OTP via SMS for passwordless authentication and session elevation",
+				Category: "otp",
+				Sources: cli.EnvVars(
+					"AUTH_OTP_SMS_ENABLED",
+					"AUTH_SMS_PASSWORDLESS_ENABLED",
+				),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMSProvider,
-				Usage:    "SMS provider (twilio or modica)",
+				Usage:    "SMS provider (twilio, modica, generic, or dev)",
 				Category: "sms",
 				Value:    "twilio",
 				Sources:  cli.EnvVars("AUTH_SMS_PROVIDER"),
@@ -735,6 +753,57 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_MODICA_PASSWORD"),
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericURL,
+				Usage:    "Webhook URL the generic SMS provider POSTs each request to",
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_URL"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericContentType,
+				Usage: "Content-Type header for the generic SMS request. For " +
+					"application/x-www-form-urlencoded the body template must " +
+					"render to a JSON object whose top-level fields are flattened " +
+					"into form values; any other content type sends the rendered " +
+					"template bytes verbatim. Charset parameters are preserved.",
+				Category: "sms",
+				Value:    "application/json",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_CONTENT_TYPE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericHeaders,
+				Usage: "Additional HTTP headers for the generic SMS request as a " +
+					`JSON object of string-to-string, e.g. ` +
+					`{"Authorization":"Bearer ..."}`,
+				Category: "sms",
+				Value:    "{}",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_HEADERS"),
+			},
+			&cli.DurationFlag{ //nolint: exhaustruct
+				Name:     flagSMSGenericTimeout,
+				Usage:    "Timeout for the generic SMS provider HTTP request",
+				Category: "sms",
+				Value:    defaultSMSGenericTimeout,
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_TIMEOUT"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name: flagSMSGenericBodyTemplate,
+				Usage: "Body template for the generic SMS request. Reference " +
+					"${to} (destination phone) and ${body} (rendered SMS " +
+					"message); whitespace inside ${...} is ignored. Unknown " +
+					"variables cause render-time errors. Values are JSON-escaped " +
+					"when the content type is application/json or " +
+					`application/x-www-form-urlencoded. Example: ` +
+					`{"to":"${to}","message":"${body}"}`,
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSDevOutputDir,
+				Usage:    "Directory where the dev SMS provider writes each SMS body to <phone>.txt (test only)", //nolint:lll
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_DEV_OUTPUT_DIR"),
+			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,
 				Usage:    "Enable anonymous users",
@@ -743,18 +812,20 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_ANONYMOUS_USERS_ENABLED"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
-				Name:     flagMfaEnabled,
-				Usage:    "Enable MFA",
-				Category: "mfa",
+				Name:     flagTOTPEnabled,
+				Aliases:  []string{"mfa-enabled"},
+				Usage:    "Enable TOTP as a second factor",
+				Category: "totp",
 				Value:    false,
-				Sources:  cli.EnvVars("AUTH_MFA_ENABLED"),
+				Sources:  cli.EnvVars("AUTH_TOTP_ENABLED", "AUTH_MFA_ENABLED"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagMfaTotpIssuer,
-				Usage:    "Issuer for MFA TOTP",
-				Category: "mfa",
+				Name:     flagTOTPIssuer,
+				Aliases:  []string{"mfa-totp-issuer"},
+				Usage:    "Issuer for TOTP",
+				Category: "totp",
 				Value:    "auth",
-				Sources:  cli.EnvVars("AUTH_MFA_TOTP_ISSUER"),
+				Sources:  cli.EnvVars("AUTH_TOTP_ISSUER", "AUTH_MFA_TOTP_ISSUER"),
 			},
 			// GitHub provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct
@@ -1527,7 +1598,7 @@ func getController(
 		hibp.NewClient(),
 		oauthProviders,
 		idTokenValidator,
-		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
+		controller.NewTotp(cmd.String(flagTOTPIssuer), time.Now),
 		encrypter,
 		cmd.Root().Version,
 	)

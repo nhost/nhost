@@ -208,7 +208,7 @@ func encryptProviderSession(
 	providerSession api.ProviderSession,
 	logger *slog.Logger,
 ) (string, *APIError) {
-	b, err := json.Marshal(providerSession)
+	b, err := json.Marshal(providerSession) //nolint:gosec // G117: encrypted right after marshal
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to marshal provider session", logError(err))
 		return "", ErrInternalServerError

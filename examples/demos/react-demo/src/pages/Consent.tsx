@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { type JSX, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 
 interface AuthRequestInfo {

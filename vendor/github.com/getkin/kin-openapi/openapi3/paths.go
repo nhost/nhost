@@ -1,9 +1,9 @@
 package openapi3
 
 import (
+	"cmp"
 	"context"
-	"fmt"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -11,7 +11,7 @@ import (
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#paths-object
 type Paths struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
 	m map[string]*PathItem
 }
@@ -40,18 +40,20 @@ func WithPath(path string, pathItem *PathItem) NewPathsOption {
 // Validate returns an error if Paths does not comply with the OpenAPI spec.
 func (paths *Paths) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
 
 	normalizedPaths := make(map[string]string, paths.Len())
 
-	keys := make([]string, 0, paths.Len())
-	for key := range paths.Map() {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, path := range keys {
+	for _, path := range paths.Keys() {
 		pathItem := paths.Value(path)
 		if path == "" || path[0] != '/' {
-			return fmt.Errorf("path %q does not start with a forward slash (/)", path)
+			if err := me.emit(newPathMustStartWithSlash(path, paths.Origin)); err != nil {
+				return err
+			}
+			// Skip validating operations under a malformed path key: any
+			// findings below would be addressed under a path that has no
+			// resolution path until the key itself is fixed.
+			continue
 		}
 
 		if pathItem == nil {
@@ -61,9 +63,16 @@ func (paths *Paths) Validate(ctx context.Context, opts ...ValidationOption) erro
 
 		normalizedPath, _, varsInPath := normalizeTemplatedPath(path)
 		if oldPath, ok := normalizedPaths[normalizedPath]; ok {
-			return fmt.Errorf("conflicting paths %q and %q", path, oldPath)
+			if err := me.emit(newConflictingPaths(path, oldPath, paths.Origin)); err != nil {
+				return err
+			}
+			// Skip validating operations under a duplicate path: the
+			// first occurrence already validated its operations under the
+			// canonical path, so re-running would surface duplicate-but-
+			// identical findings without new information.
+			continue
 		}
-		normalizedPaths[path] = path
+		normalizedPaths[normalizedPath] = path
 
 		var commonParams []string
 		for _, parameterRef := range pathItem.Parameters {
@@ -74,12 +83,7 @@ func (paths *Paths) Validate(ctx context.Context, opts ...ValidationOption) erro
 			}
 		}
 		operations := pathItem.Operations()
-		methods := make([]string, 0, len(operations))
-		for method := range operations {
-			methods = append(methods, method)
-		}
-		sort.Strings(methods)
-		for _, method := range methods {
+		for _, method := range componentNames(operations) {
 			operation := operations[method]
 			var setParams []string
 			for _, parameterRef := range operation.Parameters {
@@ -101,38 +105,36 @@ func (paths *Paths) Validate(ctx context.Context, opts ...ValidationOption) erro
 						missing[name] = struct{}{}
 					}
 				}
-				for name := range varsInPath {
-					got := false
-					for _, othername := range definedParams {
-						if othername == name {
-							got = true
-							break
-						}
+				for _, name := range componentNames(varsInPath) {
+					if slices.Contains(definedParams, name) {
+						break
 					}
-					if !got {
-						missing[name] = struct{}{}
-					}
+					missing[name] = struct{}{}
 				}
 				if len(missing) != 0 {
-					missings := make([]string, 0, len(missing))
-					for name := range missing {
-						missings = append(missings, name)
+					if err := me.emit(&PathParametersError{
+						Path:    path,
+						Method:  method,
+						Missing: componentNames(missing),
+						Origin:  pathItem.Origin,
+					}); err != nil {
+						return err
 					}
-					return fmt.Errorf("operation %s %s must define exactly all path parameters (missing: %v)", method, path, missings)
 				}
 			}
 		}
 
-		if err := pathItem.Validate(ctx); err != nil {
-			return fmt.Errorf("invalid path %s: %v", path, err)
+		wrapPath := func(e error) error { return &PathValidationError{Path: path, Cause: e} }
+		if err := me.emitWrapped(wrapPath, pathItem.Validate(ctx)); err != nil {
+			return err
 		}
 	}
 
-	if err := paths.validateUniqueOperationIDs(); err != nil {
+	if err := me.emit(paths.validateUniqueOperationIDs()); err != nil {
 		return err
 	}
 
-	return validateExtensions(ctx, paths.Extensions)
+	return me.finalize(validateExtensions(ctx, paths.Extensions, paths.Origin))
 }
 
 // InMatchingOrder returns paths in the order they are matched against URLs.
@@ -159,7 +161,7 @@ func (paths *Paths) InMatchingOrder() []string {
 	ordered := make([]string, 0, paths.Len())
 	for c := 0; c <= max; c++ {
 		if ps, ok := vars[c]; ok {
-			sort.Sort(sort.Reverse(sort.StringSlice(ps)))
+			slices.SortFunc(ps, func(a, b string) int { return cmp.Compare(b, a) })
 			ordered = append(ordered, ps...)
 		}
 	}
@@ -186,10 +188,11 @@ func (paths *Paths) Find(key string) *PathItem {
 	}
 
 	normalizedPath, expected, _ := normalizeTemplatedPath(key)
-	for path, pathItem := range paths.Map() {
+	pathsMap := paths.Map()
+	for _, path := range componentNames(pathsMap) {
 		pathNormalized, got, _ := normalizeTemplatedPath(path)
 		if got == expected && pathNormalized == normalizedPath {
-			return pathItem
+			return pathsMap[path]
 		}
 	}
 	return nil
@@ -197,11 +200,15 @@ func (paths *Paths) Find(key string) *PathItem {
 
 func (paths *Paths) validateUniqueOperationIDs() error {
 	operationIDs := make(map[string]string)
-	for urlPath, pathItem := range paths.Map() {
+	pathsMap := paths.Map()
+	for _, urlPath := range componentNames(pathsMap) {
+		pathItem := pathsMap[urlPath]
 		if pathItem == nil {
 			continue
 		}
-		for httpMethod, operation := range pathItem.Operations() {
+		operations := pathItem.Operations()
+		for _, httpMethod := range componentNames(operations) {
+			operation := operations[httpMethod]
 			if operation == nil || operation.OperationID == "" {
 				continue
 			}
@@ -210,8 +217,7 @@ func (paths *Paths) validateUniqueOperationIDs() error {
 				if endpoint > endpointDup { // For make error message a bit more deterministic. May be useful for tests.
 					endpoint, endpointDup = endpointDup, endpoint
 				}
-				return fmt.Errorf("operations %q and %q have the same operation id %q",
-					endpoint, endpointDup, operation.OperationID)
+				return newDuplicateOperationID(endpoint, endpointDup, operation.OperationID, operation.Origin)
 			}
 			operationIDs[operation.OperationID] = endpoint
 		}

@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -37,9 +38,9 @@ type evaluator struct {
 }
 
 func (e *evaluator) lookup(name string) (Value, bool) {
-	for i := len(e.bindings) - 1; i >= 0; i-- {
-		if e.bindings[i].Name == name {
-			return e.bindings[i].Value, true
+	for _, v := range slices.Backward(e.bindings) {
+		if v.Name == name {
+			return v.Value, true
 		}
 	}
 

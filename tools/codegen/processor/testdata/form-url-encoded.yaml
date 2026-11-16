@@ -35,12 +35,15 @@ components:
           type: string
           enum: [access_token, refresh_token]
           nullable: true
+          description: Optional token type hint declared nullable in OpenAPI.
         client_id:
           type: string
           nullable: true
+          description: Optional client identifier declared nullable in OpenAPI.
         client_secret:
           type: string
           nullable: true
+          description: Optional client secret declared nullable in OpenAPI.
       required:
         - token
 

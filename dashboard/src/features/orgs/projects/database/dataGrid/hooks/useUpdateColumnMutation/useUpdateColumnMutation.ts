@@ -1,9 +1,8 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   UpdateColumnOptions,
   UpdateColumnVariables,
@@ -39,20 +38,16 @@ export default function useUpdateColumnMutation({
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
 
-  const { project } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const mutationFn = isPlatform ? updateColumn : updateColumnMigration;
 
   const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+    const appUrl = adminApi!.appUrl;
     return mutationFn({
       ...variables,
       appUrl: customAppUrl || appUrl,
-      adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
+      adminSecret: customAdminSecret || adminApi!.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),

@@ -150,7 +150,7 @@ func HandleExitCoder(err error) {
 	}
 
 	if exitErr, ok := err.(ExitCoder); ok {
-		if err.Error() != "" {
+		if msg := err.Error(); msg != "" {
 			if _, ok := exitErr.(ErrorFormatter); ok {
 				_, _ = fmt.Fprintf(ErrWriter, "%+v\n", err)
 			} else {

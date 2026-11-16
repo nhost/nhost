@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
@@ -39,6 +40,8 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
       };
       if (response.body.mfa) {
         onNeedsMfa(response.body.mfa.ticket);
+      } else {
+        saveLastSignInMethod('email');
       }
     } catch (error) {
       let errorMessage =

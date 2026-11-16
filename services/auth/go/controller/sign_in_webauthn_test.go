@@ -14,7 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSignInWebauthn(t *testing.T) {
+func TestSignInWebauthn(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
@@ -234,6 +234,33 @@ func TestSignInWebauthn(t *testing.T) {
 				Body: &api.SignInWebauthnJSONRequestBody{
 					Email: nil,
 				},
+			},
+			expectedResponse: api.SignInWebauthn200JSONResponse(
+				protocol.PublicKeyCredentialRequestOptions{
+					Challenge:          protocol.URLEncodedBase64("ignoreme"),
+					Timeout:            60000,
+					RelyingPartyID:     "react-apollo.example.nhost.io",
+					AllowedCredentials: nil,
+					UserVerification:   "preferred",
+					Hints:              nil,
+					Extensions:         nil,
+				},
+			),
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "success discoverable login without a body",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInWebauthnRequestObject{
+				Body: nil,
 			},
 			expectedResponse: api.SignInWebauthn200JSONResponse(
 				protocol.PublicKeyCredentialRequestOptions{

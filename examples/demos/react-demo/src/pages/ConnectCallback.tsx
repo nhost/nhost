@@ -1,5 +1,5 @@
 import { type JSX, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 
 /**
  * ConnectCallback renders the result of the provider "connect" (account

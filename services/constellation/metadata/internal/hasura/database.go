@@ -19,7 +19,7 @@ type DatabaseMetadata struct {
 	Tables        []TableMetadata             `json:"tables,omitempty"    yaml:"tables,omitempty"`
 	Functions     []FunctionMetadata          `json:"functions,omitempty" yaml:"functions,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling to handle !include directives.
@@ -60,7 +60,8 @@ func (d *DatabaseMetadata) UnmarshalYAML(ctx context.Context, unmarshal func(any
 // directive string or inline data. For unknown shapes the destination is left
 // unchanged. The context carries the current !include base directory so the
 // inline-decode path can resolve nested !include strings the same way the
-// top-level decoder does.
+// top-level decoder does. Inline arrays retain the legacy decode/re-marshal
+// path so YAML escapes and merge overrides are resolved by the first decode.
 func resolveIncludeOrInline[T any](ctx context.Context, raw any, dst *[]T, fieldName string) error {
 	switch v := raw.(type) {
 	case string:
@@ -90,7 +91,7 @@ func resolveIncludeOrInline[T any](ctx context.Context, raw any, dst *[]T, field
 
 // DatabaseURL is a Hasura connection URL that can either be a literal string
 // (URL) or a reference to an environment variable (FromEnv).
-type DatabaseURL struct {
+type DatabaseURL struct { //nolint:recvcheck // Unmarshal needs ptr recv; MarshalJSON value recv intentional
 	FromEnv string `json:"from_env,omitempty" yaml:"from_env"`
 	URL     string `json:"-"                  yaml:"-"`
 }
@@ -173,12 +174,12 @@ func (d DatabaseURL) MarshalJSON() ([]byte, error) {
 type DatabaseConnectionInfo struct {
 	DatabaseURL DatabaseURL `json:"database_url" yaml:"database_url"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // DatabaseConfiguration wraps the per-database connection block.
 type DatabaseConfiguration struct {
 	ConnectionInfo DatabaseConnectionInfo `json:"connection_info" yaml:"connection_info"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }

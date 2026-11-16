@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import useOnSignInWithEmailAndPasswordHandler from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useOnSignInWithEmailAndPasswordHandler';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -49,6 +50,7 @@ function SignInWithEmailAndPassword() {
         ticket: mfaTicket.current!,
         otp,
       });
+      saveLastSignInMethod('email');
     } finally {
       setIsMfaLoading(false);
     }

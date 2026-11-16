@@ -5,6 +5,7 @@ import {
   isMetricsRangePreset,
   type MetricsTimeRange,
 } from '@/features/orgs/projects/common/metrics/utils/timeRange';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 const RANGE_KEY = 'metricRange';
 const FROM_KEY = 'metricFrom';
@@ -15,13 +16,6 @@ interface MetricsTimeRangeUrlState {
   setRange: (next: MetricsTimeRange) => void;
 }
 
-function readSingle(value: string | string[] | undefined): string | undefined {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-  return value;
-}
-
 function isValidIso(value: string): boolean {
   return !Number.isNaN(new Date(value).getTime());
 }
@@ -30,9 +24,9 @@ export default function useMetricsTimeRangeUrlState(): MetricsTimeRangeUrlState 
   const router = useRouter();
   // Read each relevant key individually so unrelated URL changes (e.g. opening a
   // panel via the eye icon) don't churn `range`'s identity and trigger refetches.
-  const rangeParam = readSingle(router.query[RANGE_KEY]);
-  const fromParam = readSingle(router.query[FROM_KEY]);
-  const toParam = readSingle(router.query[TO_KEY]);
+  const rangeParam = getSingleQueryParam(router.query[RANGE_KEY]);
+  const fromParam = getSingleQueryParam(router.query[FROM_KEY]);
+  const toParam = getSingleQueryParam(router.query[TO_KEY]);
 
   const range = useMemo<MetricsTimeRange>(() => {
     if (rangeParam && isMetricsRangePreset(rangeParam)) {

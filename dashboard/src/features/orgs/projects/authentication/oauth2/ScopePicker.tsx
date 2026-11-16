@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import useAvailableScopes from '@/features/orgs/projects/authentication/oauth2/useAvailableScopes';
+import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 
 interface ScopePickerProps {
   selected: Set<string>;

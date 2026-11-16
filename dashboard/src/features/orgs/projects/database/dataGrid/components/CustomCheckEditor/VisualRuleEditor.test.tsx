@@ -16,7 +16,7 @@ import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -116,7 +116,7 @@ describe('VisualRuleEditor', () => {
   });
 
   beforeEach(() => {
-    mockPointerEvent();
+    mockScrollIntoViewAndPointerCapture();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',
@@ -1740,7 +1740,7 @@ describe('VisualRuleEditor', () => {
 
       const conditionRow = screen
         .getByRole('button', { name: /delete condition/i })
-        .closest('[class*="transition-colors"]');
+        .parentElement?.closest('[class*="transition-colors"]');
       expect(conditionRow).not.toBeNull();
       expect(conditionRow?.className).toContain('hover:bg-accent');
       expect(conditionRow?.className).toContain('transition-colors');

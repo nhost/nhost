@@ -130,6 +130,16 @@ func (response ErrorResponse) VisitChangeUserEmailResponse(w http.ResponseWriter
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitChangeUserPhoneNumberResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyChangeUserPhoneNumberResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitChangeUserPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
@@ -149,6 +159,10 @@ func (response ErrorResponse) VisitCreatePATResponse(w http.ResponseWriter) erro
 }
 
 func (response ErrorResponse) VisitDeanonymizeUserResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitDeanonymizeUserSmsResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -205,6 +219,30 @@ func (response ErrorResponse) VisitElevateWebauthnResponse(w http.ResponseWriter
 }
 
 func (response ErrorResponse) VisitVerifyElevateWebauthnResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitElevateTotpResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetElevationMethodsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitElevateOTPSmsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyElevateOTPSmsResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -726,4 +764,13 @@ func sqlIsDuplcateError(err error, fkey string) bool {
 
 	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), fkey)
+}
+
+func sqlIsForeignKeyError(err error, constraint string) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(err.Error(), "SQLSTATE 23503") &&
+		strings.Contains(err.Error(), `"`+constraint+`"`)
 }

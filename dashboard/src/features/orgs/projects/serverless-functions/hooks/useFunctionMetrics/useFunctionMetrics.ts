@@ -11,7 +11,7 @@ import {
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 import { transformFunctionMetrics } from '@/features/orgs/projects/serverless-functions/utils/transformFunctionMetrics';
-import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
+import { useGetFunctionsMetricsDashboardQuery } from '@/generated/graphql';
 
 // Escapes regex metacharacters in a function route so it matches literally.
 const ROUTE_REGEX_METACHARACTERS = /[.*+?^${}()|[\]\\]/g;

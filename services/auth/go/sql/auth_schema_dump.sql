@@ -4,7 +4,7 @@
 
 
 -- Dumped from database version 14.6 (Debian 14.6-1.pgdg110+1)
--- Dumped by pg_dump version 18.4
+-- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -346,6 +346,34 @@ COMMENT ON TABLE auth.roles IS 'Persistent Hasura roles for users. Don''t modify
 
 
 --
+-- Name: schema_migration_catalog; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.schema_migration_catalog (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    version bigint NOT NULL,
+    previous_id uuid,
+    identifier text NOT NULL,
+    up_sql bytea NOT NULL,
+    down_sql bytea NOT NULL,
+    up_sha256 bytea NOT NULL,
+    down_sha256 bytea NOT NULL,
+    format_version integer NOT NULL,
+    registered_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    archived_at timestamp with time zone,
+    archive_batch_id uuid,
+    CONSTRAINT schema_migration_catalog_archive_metadata_check CHECK (((archived_at IS NULL) = (archive_batch_id IS NULL))),
+    CONSTRAINT schema_migration_catalog_down_sha256_length CHECK ((octet_length(down_sha256) = 32)),
+    CONSTRAINT schema_migration_catalog_down_sql_nonempty CHECK ((octet_length(down_sql) > 0)),
+    CONSTRAINT schema_migration_catalog_up_sha256_length CHECK ((octet_length(up_sha256) = 32)),
+    CONSTRAINT schema_migration_catalog_up_sql_nonempty CHECK ((octet_length(up_sql) > 0)),
+    CONSTRAINT schema_migration_catalog_version_nonnegative CHECK ((version >= 0))
+);
+
+
+ALTER TABLE auth.schema_migration_catalog OWNER TO postgres;
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -465,6 +493,8 @@ CREATE TABLE auth.users (
     metadata jsonb,
     webauthn_current_challenge text,
     otp_attempts smallint DEFAULT 0 NOT NULL,
+    new_phone_number text,
+    pending_sms_deanonymize_options jsonb,
     CONSTRAINT active_mfa_types_check CHECK (((active_mfa_type = 'totp'::text) OR (active_mfa_type = 'sms'::text)))
 );
 
@@ -580,6 +610,14 @@ ALTER TABLE ONLY auth.refresh_tokens
 
 ALTER TABLE ONLY auth.roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (role);
+
+
+--
+-- Name: schema_migration_catalog schema_migration_catalog_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migration_catalog
+    ADD CONSTRAINT schema_migration_catalog_pkey PRIMARY KEY (id);
 
 
 --
@@ -730,6 +768,34 @@ CREATE INDEX pkce_authorization_codes_expires_at_idx ON auth.pkce_authorization_
 --
 
 CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.refresh_tokens USING btree (refresh_token_hash, expires_at, user_id);
+
+
+--
+-- Name: schema_migration_catalog_active_successor; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE UNIQUE INDEX schema_migration_catalog_active_successor ON auth.schema_migration_catalog USING btree (previous_id) WHERE ((archived_at IS NULL) AND (previous_id IS NOT NULL));
+
+
+--
+-- Name: schema_migration_catalog_active_version; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE UNIQUE INDEX schema_migration_catalog_active_version ON auth.schema_migration_catalog USING btree (version) WHERE (archived_at IS NULL);
+
+
+--
+-- Name: schema_migration_catalog_one_active_root; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE UNIQUE INDEX schema_migration_catalog_one_active_root ON auth.schema_migration_catalog USING btree (((previous_id IS NULL))) WHERE ((archived_at IS NULL) AND (previous_id IS NULL));
+
+
+--
+-- Name: users_new_phone_number_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX users_new_phone_number_idx ON auth.users USING btree (new_phone_number) WHERE (new_phone_number IS NOT NULL);
 
 
 --
@@ -907,6 +973,14 @@ ALTER TABLE ONLY auth.pkce_authorization_codes
 
 ALTER TABLE ONLY auth.refresh_tokens
     ADD CONSTRAINT refresh_tokens_types_fkey FOREIGN KEY (type) REFERENCES auth.refresh_token_types(value) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: schema_migration_catalog schema_migration_catalog_previous_id_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migration_catalog
+    ADD CONSTRAINT schema_migration_catalog_previous_id_fkey FOREIGN KEY (previous_id) REFERENCES auth.schema_migration_catalog(id) ON DELETE RESTRICT;
 
 
 --

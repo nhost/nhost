@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   RemoteSchemaInfo,
   UpdateRemoteSchemaBulkOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaOptions {
   appUrl: string;
@@ -36,7 +36,7 @@ export default async function updateRemoteSchema({
         ],
       } satisfies UpdateRemoteSchemaBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

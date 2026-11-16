@@ -16,7 +16,7 @@ func validateAndFillService(
 	svc *Service,
 	secrets model.Secrets,
 ) (*model.ConfigRunServiceConfig, error) {
-	if _, err := svc.ResolveConfig(sch, true, secrets); err != nil {
+	if err := svc.validateConfig(sch, secrets); err != nil {
 		return nil, err
 	}
 

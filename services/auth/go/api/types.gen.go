@@ -137,6 +137,30 @@ func (e CredentialType) Valid() bool {
 	}
 }
 
+// Defines values for ElevationMethod.
+const (
+	ElevationMethodOtpEmail ElevationMethod = "otp-email"
+	ElevationMethodOtpSms   ElevationMethod = "otp-sms"
+	ElevationMethodTotp     ElevationMethod = "totp"
+	ElevationMethodWebauthn ElevationMethod = "webauthn"
+)
+
+// Valid indicates whether the value is a known member of the ElevationMethod enum.
+func (e ElevationMethod) Valid() bool {
+	switch e {
+	case ElevationMethodOtpEmail:
+		return true
+	case ElevationMethodOtpSms:
+		return true
+	case ElevationMethodTotp:
+		return true
+	case ElevationMethodWebauthn:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ErrorResponseError.
 const (
 	CannotSendSms                   ErrorResponseError = "cannot-send-sms"
@@ -397,16 +421,16 @@ func (e UserDeanonymizeRequestSignInMethod) Valid() bool {
 
 // Defines values for UserMfaRequestActiveMfaType.
 const (
-	Empty UserMfaRequestActiveMfaType = ""
-	Totp  UserMfaRequestActiveMfaType = "totp"
+	UserMfaRequestActiveMfaTypeEmpty UserMfaRequestActiveMfaType = ""
+	UserMfaRequestActiveMfaTypeTotp  UserMfaRequestActiveMfaType = "totp"
 )
 
 // Valid indicates whether the value is a known member of the UserMfaRequestActiveMfaType enum.
 func (e UserMfaRequestActiveMfaType) Valid() bool {
 	switch e {
-	case Empty:
+	case UserMfaRequestActiveMfaTypeEmpty:
 		return true
-	case Totp:
+	case UserMfaRequestActiveMfaTypeTotp:
 		return true
 	default:
 		return false
@@ -1036,6 +1060,39 @@ type CredentialPropertiesOutput struct {
 // CredentialType The valid credential types
 type CredentialType string
 
+// ElevateOTPEmailVerifyRequest defines model for ElevateOTPEmailVerifyRequest.
+type ElevateOTPEmailVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevateOTPSmsVerifyRequest defines model for ElevateOTPSmsVerifyRequest.
+type ElevateOTPSmsVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevateTotpRequest defines model for ElevateTotpRequest.
+type ElevateTotpRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
+// ElevationMethod Method that can be used to elevate a session
+type ElevationMethod string
+
+// ElevationMethodsResponse Elevation status of the user
+type ElevationMethodsResponse struct {
+	// ElevationRequired Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+	ElevationRequired bool `json:"elevationRequired"`
+
+	// Methods Methods the user can use to elevate their session
+	Methods []ElevationMethod `json:"methods"`
+
+	// SessionElevated Whether the bearer token has an elevated claim matching its subject
+	SessionElevated bool `json:"sessionElevated"`
+}
+
 // ErrorResponse Standardized error response
 type ErrorResponse struct {
 	// Error Error code identifying the specific application error
@@ -1559,6 +1616,9 @@ type TotpGenerateResponse struct {
 // URLEncodedBase64 Base64url-encoded binary data
 type URLEncodedBase64 = []byte
 
+// UpstreamAuthParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+type UpstreamAuthParams map[string]string
+
 // User User profile and account information
 type User struct {
 	// ActiveMfaType Active MFA type for the user
@@ -1627,6 +1687,14 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
+// UserDeanonymizeSmsRequest defines model for UserDeanonymizeSmsRequest.
+type UserDeanonymizeSmsRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
+}
+
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
 	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -1688,6 +1756,21 @@ type UserPasswordResetRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
+// UserPhoneNumberChangeRequest defines model for UserPhoneNumberChangeRequest.
+type UserPhoneNumberChangeRequest struct {
+	// NewPhoneNumber New phone number to bind to the user once verified via SMS OTP
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+
+// UserPhoneNumberChangeVerifyRequest defines model for UserPhoneNumberChangeVerifyRequest.
+type UserPhoneNumberChangeVerifyRequest struct {
+	// NewPhoneNumber The phone number that was previously requested via /user/phone-number/change
+	NewPhoneNumber string `json:"newPhoneNumber"`
+
+	// Otp One-time password received via SMS at the new phone number
+	Otp string `json:"otp"`
 }
 
 // UserVerificationRequirement A requirement for user verification for the operation
@@ -1821,6 +1904,9 @@ type SignInProviderParams struct {
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
 
+	// UpstreamParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+	UpstreamParams *UpstreamAuthParams `json:"upstreamParams,omitempty"`
+
 	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
@@ -1915,6 +2001,9 @@ type SignUpProviderParams struct {
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
 
+	// UpstreamParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+	UpstreamParams *UpstreamAuthParams `json:"upstreamParams,omitempty"`
+
 	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
@@ -1942,6 +2031,15 @@ type VerifyTicketParams struct {
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
 type VerifyTicketParamsType string
+
+// VerifyElevateOTPEmailJSONRequestBody defines body for VerifyElevateOTPEmail for application/json ContentType.
+type VerifyElevateOTPEmailJSONRequestBody = ElevateOTPEmailVerifyRequest
+
+// VerifyElevateOTPSmsJSONRequestBody defines body for VerifyElevateOTPSms for application/json ContentType.
+type VerifyElevateOTPSmsJSONRequestBody = ElevateOTPSmsVerifyRequest
+
+// ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
+type ElevateTotpJSONRequestBody = ElevateTotpRequest
 
 // VerifyElevateWebauthnJSONRequestBody defines body for VerifyElevateWebauthn for application/json ContentType.
 type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
@@ -2045,6 +2143,9 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
 
+// DeanonymizeUserSmsJSONRequestBody defines body for DeanonymizeUserSms for application/json ContentType.
+type DeanonymizeUserSmsJSONRequestBody = UserDeanonymizeSmsRequest
+
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest
 
@@ -2059,6 +2160,12 @@ type ChangeUserPasswordJSONRequestBody = UserPasswordRequest
 
 // SendPasswordResetEmailJSONRequestBody defines body for SendPasswordResetEmail for application/json ContentType.
 type SendPasswordResetEmailJSONRequestBody = UserPasswordResetRequest
+
+// ChangeUserPhoneNumberJSONRequestBody defines body for ChangeUserPhoneNumber for application/json ContentType.
+type ChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeRequest
+
+// VerifyChangeUserPhoneNumberJSONRequestBody defines body for VerifyChangeUserPhoneNumber for application/json ContentType.
+type VerifyChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeVerifyRequest
 
 // VerifyAddSecurityKeyJSONRequestBody defines body for VerifyAddSecurityKey for application/json ContentType.
 type VerifyAddSecurityKeyJSONRequestBody = VerifyAddSecurityKeyRequest

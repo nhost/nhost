@@ -19,6 +19,7 @@ on:
       - "pnpm-lock.yaml"
       - "turbo.json"
       - "docs/**"
+      - "services/postgres/plugins.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,6 +29,7 @@ jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
+      RUNS_ON: nhost-x86_64-2c4g
       NAME: docs
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: production

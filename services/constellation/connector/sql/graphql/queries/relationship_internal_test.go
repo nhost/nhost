@@ -3,6 +3,7 @@ package queries
 import (
 	"errors"
 	"maps"
+	"slices"
 	"strings"
 	"testing"
 
@@ -162,6 +163,258 @@ func TestRelationshipFKSourceColumns(t *testing.T) {
 	}
 }
 
+func TestNewLocalRelationshipSharedForwardForeignKey(t *testing.T) {
+	t.Parallel()
+
+	orders := &introspection.Table{
+		Schema: "public",
+		Name:   "orders",
+		ForeignKeys: []introspection.ForeignKey{
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "user_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "id",
+			},
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "org_id",
+			},
+			{
+				Constraint:        "orders_org_id_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "orgs",
+				ForeignColumnName: "id",
+			},
+		},
+	}
+	orgs := &introspection.Table{Schema: "public", Name: "orgs"}
+	orgUsers := &introspection.Table{Schema: "public", Name: "org_users"}
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			orders.Name:   orders,
+			orgs.Name:     orgs,
+			orgUsers.Name: orgUsers,
+		},
+	}
+	orgsQueryTable := &table{schemaName: "public", tableName: "orgs"}
+	orgUsersQueryTable := &table{schemaName: "public", tableName: "org_users"}
+	queryTables := []*table{orgsQueryTable, orgUsersQueryTable}
+
+	tests := []struct {
+		name              string
+		fkColumns         []string
+		wantTable         *table
+		wantTargetColumns []string
+		wantJoin          string
+	}{
+		{
+			name:              "single column selects its exact constraint",
+			fkColumns:         []string{"org_id"},
+			wantTable:         orgsQueryTable,
+			wantTargetColumns: []string{"id"},
+			wantJoin:          `"orders"."org_id" = "id"`,
+		},
+		{
+			name:              "composite columns select their exact constraint",
+			fkColumns:         []string{"org_id", "user_id"},
+			wantTable:         orgUsersQueryTable,
+			wantTargetColumns: []string{"org_id", "id"},
+			wantJoin: `"orders"."org_id" = "org_id" AND ` +
+				`"orders"."user_id" = "id"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			rel, err := newLocalRelationship(
+				"organization",
+				metadata.RelationshipUsing{ForeignKeyColumns: tt.fkColumns},
+				false,
+				orders,
+				objects,
+				queryTables,
+			)
+			if err != nil {
+				t.Fatalf("newLocalRelationship() error = %v", err)
+			}
+
+			if rel.table != tt.wantTable {
+				t.Errorf(
+					"newLocalRelationship() table = %s.%s, want %s.%s",
+					rel.table.schemaName,
+					rel.table.tableName,
+					tt.wantTable.schemaName,
+					tt.wantTable.tableName,
+				)
+			}
+
+			if !slices.Equal(rel.parentColumns, tt.fkColumns) {
+				t.Errorf(
+					"newLocalRelationship() parentColumns = %v, want %v",
+					rel.parentColumns,
+					tt.fkColumns,
+				)
+			}
+
+			if !slices.Equal(rel.targetColumns, tt.wantTargetColumns) {
+				t.Errorf(
+					"newLocalRelationship() targetColumns = %v, want %v",
+					rel.targetColumns,
+					tt.wantTargetColumns,
+				)
+			}
+
+			if got := rel.buildJoinConditionForSelection("orders"); got != tt.wantJoin {
+				t.Errorf("buildJoinConditionForSelection() = %q, want %q", got, tt.wantJoin)
+			}
+		})
+	}
+}
+
+func TestNewLocalRelationshipSharedReverseForeignKey(t *testing.T) {
+	t.Parallel()
+
+	orders := &introspection.Table{
+		Schema: "public",
+		Name:   "orders",
+		ForeignKeys: []introspection.ForeignKey{
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "user_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "id",
+			},
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "org_id",
+			},
+			{
+				Constraint:        "orders_org_id_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "orgs",
+				ForeignColumnName: "id",
+			},
+		},
+	}
+	orgs := &introspection.Table{Schema: "public", Name: "orgs"}
+	orgUsers := &introspection.Table{Schema: "public", Name: "org_users"}
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			orders.Name:   orders,
+			orgs.Name:     orgs,
+			orgUsers.Name: orgUsers,
+		},
+	}
+	ordersQueryTable := &table{schemaName: "public", tableName: "orders"}
+
+	tests := []struct {
+		name              string
+		fkColumns         []string
+		parentTable       *introspection.Table
+		joinAlias         string
+		wantParentColumns []string
+		wantTargetColumns []string
+		wantJoin          string
+	}{
+		{
+			name:              "single column selects its exact constraint",
+			fkColumns:         []string{"org_id"},
+			parentTable:       orgs,
+			joinAlias:         "orgs",
+			wantParentColumns: []string{"id"},
+			wantTargetColumns: []string{"org_id"},
+			wantJoin:          `"org_id" = "orgs"."id"`,
+		},
+		{
+			name:              "composite in introspection order",
+			fkColumns:         []string{"user_id", "org_id"},
+			parentTable:       orgUsers,
+			joinAlias:         "org_users",
+			wantParentColumns: []string{"id", "org_id"},
+			wantTargetColumns: []string{"user_id", "org_id"},
+			wantJoin:          `"user_id" = "org_users"."id" AND "org_id" = "org_users"."org_id"`,
+		},
+		{
+			name:              "composite in reversed metadata order",
+			fkColumns:         []string{"org_id", "user_id"},
+			parentTable:       orgUsers,
+			joinAlias:         "org_users",
+			wantParentColumns: []string{"org_id", "id"},
+			wantTargetColumns: []string{"org_id", "user_id"},
+			wantJoin:          `"org_id" = "org_users"."org_id" AND "user_id" = "org_users"."id"`,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rel, err := newLocalRelationship(
+				"orders",
+				metadata.RelationshipUsing{
+					ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+						Columns: tc.fkColumns,
+						Table: metadata.TableSource{
+							Schema: "public",
+							Name:   "orders",
+						},
+					},
+				},
+				true,
+				tc.parentTable,
+				objects,
+				[]*table{ordersQueryTable},
+			)
+			if err != nil {
+				t.Fatalf("newLocalRelationship() error = %v", err)
+			}
+
+			if rel.table != ordersQueryTable {
+				t.Errorf("newLocalRelationship() table = %v, want orders query table", rel.table)
+			}
+
+			if !slices.Equal(rel.parentColumns, tc.wantParentColumns) {
+				t.Errorf(
+					"newLocalRelationship() parentColumns = %v, want %v",
+					rel.parentColumns,
+					tc.wantParentColumns,
+				)
+			}
+
+			if !slices.Equal(rel.targetColumns, tc.wantTargetColumns) {
+				t.Errorf(
+					"newLocalRelationship() targetColumns = %v, want %v",
+					rel.targetColumns,
+					tc.wantTargetColumns,
+				)
+			}
+
+			if got := rel.buildJoinConditionForSelection(tc.joinAlias); got != tc.wantJoin {
+				t.Errorf(
+					"buildJoinConditionForSelection() = %q, want %q",
+					got,
+					tc.wantJoin,
+				)
+			}
+		})
+	}
+}
+
 func TestBuildManualJoinConditionMultiColumn(t *testing.T) {
 	t.Parallel()
 
@@ -310,7 +563,10 @@ func TestBuildReverseJoinUnmatchedColumn(t *testing.T) {
 	}
 
 	fk, parentCols, targetCols, _, err := buildReverseJoin(
-		using, []string{"user_id"}, objects,
+		using,
+		[]string{"user_id"},
+		&introspection.Table{Schema: "public", Name: "users"},
+		objects,
 	)
 	if err == nil {
 		t.Fatal("buildReverseJoin: expected error for unmatched column, got nil")
@@ -377,7 +633,10 @@ func TestBuildReverseJoinMatchedColumn(t *testing.T) {
 	}
 
 	_, parentCols, targetCols, isReversed, err := buildReverseJoin(
-		using, []string{"user_id"}, objects,
+		using,
+		[]string{"user_id"},
+		&introspection.Table{Schema: "public", Name: "users"},
+		objects,
 	)
 	if err != nil {
 		t.Fatalf("buildReverseJoin: unexpected error: %v", err)

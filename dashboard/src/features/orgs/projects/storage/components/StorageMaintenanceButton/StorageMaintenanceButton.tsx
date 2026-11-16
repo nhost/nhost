@@ -71,8 +71,8 @@ export default function StorageMaintenanceButton() {
             {orphanCount > 0 && (
               <Button
                 variant="destructive"
-                size="sm"
-                className="h-7 text-xs"
+                size="xs"
+                className="text-xs"
                 onClick={handleDeleteOrphans}
               >
                 Delete
@@ -88,8 +88,8 @@ export default function StorageMaintenanceButton() {
             {brokenMetadataCount > 0 && (
               <Button
                 variant="destructive"
-                size="sm"
-                className="h-7 text-xs"
+                size="xs"
+                className="text-xs"
                 onClick={handleDeleteBroken}
               >
                 Delete

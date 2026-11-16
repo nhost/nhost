@@ -197,6 +197,8 @@ func buildRouter(
 		middleware.Logger(logger), //nolint:contextcheck
 	)
 
+	router.GET("/healthz", healthzHandler)
+
 	mcpHandler := gin.WrapH(mcpHTTP)
 
 	a, err := auth.New(
@@ -252,6 +254,10 @@ func IsBrowserRequest(r *http.Request) bool {
 	accept := r.Header.Get("Accept")
 
 	return strings.Contains(accept, "text/html")
+}
+
+func healthzHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func browserMiddleware(html string) gin.HandlerFunc {

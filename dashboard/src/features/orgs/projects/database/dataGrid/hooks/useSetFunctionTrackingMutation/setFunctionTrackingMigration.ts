@@ -1,9 +1,9 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   TrackFunctionArgs,
   TrackFunctionStep,
   UntrackFunctionStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetFunctionTrackingMigrationVariables {
@@ -12,7 +12,6 @@ export interface SetFunctionTrackingMigrationVariables {
 }
 
 export default async function setFunctionTrackingMigration({
-  appUrl,
   adminSecret,
   tracked,
   args,
@@ -39,7 +38,6 @@ export default async function setFunctionTrackingMigration({
 
   try {
     const response = await executeMigration(migrationRequest, {
-      baseUrl: appUrl,
       adminSecret,
     });
 

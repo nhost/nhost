@@ -1,11 +1,11 @@
 import { useRouter } from 'next/router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAuth } from '@/providers/Auth';
 import {
   type Exact,
   type GetOrganizationQuery,
   useGetOrganizationQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAuth } from '@/providers/Auth';
 
 export type Org = GetOrganizationQuery['organizations'][0];
 

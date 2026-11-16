@@ -9,7 +9,7 @@ import {
   Software_Type_Enum,
   useGetConfiguredVersionsQuery,
   useGetRecommendedSoftwareVersionsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface UseSoftwareVersionsInfoOptions
   extends QueryHookOptions<

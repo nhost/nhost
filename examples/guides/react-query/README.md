@@ -351,7 +351,7 @@ import {
 } from "../lib/graphql/__generated__/graphql";
 import { useState } from "react";
 import { useAuth } from "../lib/nhost/AuthProvider";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Home(): JSX.Element {

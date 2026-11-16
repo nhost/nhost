@@ -1,7 +1,7 @@
 import { InMemoryCache } from '@apollo/client';
 import { vi } from 'vitest';
+import { useGetPipelineRunLogsQuery } from '@/generated/graphql';
 import { renderHook } from '@/tests/testUtils';
-import { useGetPipelineRunLogsQuery } from '@/utils/__generated__/graphql';
 import useDeploymentLogs, {
   type UseDeploymentLogsProps,
 } from './useDeploymentLogs';
@@ -45,9 +45,9 @@ vi.mock('@/utils/splitGraphqlClient', () => ({
   },
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetPipelineRunLogsQuery: vi.fn(),

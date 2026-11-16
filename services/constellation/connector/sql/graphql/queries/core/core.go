@@ -45,6 +45,59 @@ type SQLOperation struct {
 	// JSON results under this operation's Name. This is used by update_many so
 	// later updates observe earlier ones, matching Hasura's sequential semantics.
 	Sequential []SQLOperation `json:",omitempty"`
+	// Insert is a PostgreSQL dependent insert plan, mutually exclusive with SQL
+	// and Sequential. SQLite rejects it explicitly.
+	Insert *InsertPlan `json:",omitempty"`
+}
+
+// InsertPlan executes dependent rows in one source transaction and then reads
+// the root's captured physical rows through FinalSQL. Flat inserts keep their
+// ordinary, single-statement SQLOperation.
+type InsertPlan struct {
+	Root            InsertLevel
+	FinalSQL        string
+	FinalParameters []any
+	Collection      bool
+}
+
+// InsertLevel has one statement when no row at this level has relationships;
+// otherwise each object is executed separately in input order.
+type InsertLevel struct {
+	Batch   *InsertStatement
+	Objects []InsertNode
+}
+
+// InsertNode holds same-table objects before its row, then arrays and implicit
+// remote-FK objects after its row. Each slice is already in metadata hash order.
+type InsertNode struct {
+	Row          InsertStatement
+	Before       []InsertBranch
+	Arrays       []InsertBranch
+	AfterObjects []InsertBranch
+}
+
+// InsertBranch is a nested relationship and its recursively planned data.
+type InsertBranch struct {
+	Name  string
+	Level InsertLevel
+}
+
+// InsertStatement returns a JSON array of complete physical rows captured as
+// per-column ::text values; NULL columns remain JSON null. TableRef is the
+// quoted, schema-qualified table type, not a user-provided SQL fragment.
+type InsertStatement struct {
+	SQL        string
+	Parameters []any
+	TableRef   string
+}
+
+// InsertFKValue selects a column from an earlier returned physical row.
+// Source is "$parent" (not a GraphQL name) for array/after-parent descendants,
+// or the metadata relationship name for a before-parent target.
+type InsertFKValue struct {
+	Source   string
+	TableRef string
+	Column   string
 }
 
 // StreamCursorInfo carries metadata for a single cursor column on a stream
@@ -75,8 +128,6 @@ type StreamCursorInfo struct {
 // UnmarshalJSON requires a pointer receiver to mutate; the read-only methods
 // (SQL, IsDescending, MarshalJSON) keep value receivers because they don't,
 // mirroring the standard library convention for JSON-marshalable scalar types.
-//
-//nolint:recvcheck // mixed receivers are intentional; see godoc above.
 type OrderDirection int
 
 // OrderDirection constants. The zero value (OrderAsc) is the implicit default

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 )
@@ -14,8 +14,7 @@ import (
 var errFileNotInserted = errors.New("file was not inserted")
 
 func parseGraphqlError(err error) *controller.APIError {
-	var ghErr *clientv2.ErrorResponse
-	if errors.As(err, &ghErr) {
+	if ghErr, ok := errors.AsType[*clientv2.ErrorResponse](err); ok {
 		code, ok := (*ghErr.GqlErrors)[0].Extensions["code"]
 		if !ok {
 			return controller.InternalServerError(err)
@@ -56,17 +55,29 @@ func (md *BucketMetadataFragment) ToControllerType() controller.BucketMetadata {
 	}
 }
 
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func valueOrZero[T any](value *T) T {
+	if value == nil {
+		var zero T
+		return zero
+	}
+
+	return *value
+}
+
+// ToControllerType maps nullable scalars to their zero values. In particular,
+// InitializeFile leaves etag NULL until the upload completes.
 func (md *FileMetadataFragment) ToControllerType() api.FileMetadata {
 	return api.FileMetadata{
 		Id:               md.GetID(),
-		Name:             *md.GetName(),
-		Size:             *md.GetSize(),
+		Name:             valueOrZero(md.GetName()),
+		Size:             valueOrZero(md.GetSize()),
 		BucketId:         md.GetBucketID(),
-		Etag:             *md.GetEtag(),
+		Etag:             valueOrZero(md.GetEtag()),
 		CreatedAt:        *md.GetCreatedAt(),
 		UpdatedAt:        *md.GetUpdatedAt(),
-		IsUploaded:       *md.GetIsUploaded(),
-		MimeType:         *md.GetMimeType(),
+		IsUploaded:       valueOrZero(md.GetIsUploaded()),
+		MimeType:         valueOrZero(md.GetMimeType()),
 		Metadata:         new(md.GetMetadata()),
 		UploadedByUserId: md.GetUploadedByUserID(),
 	}

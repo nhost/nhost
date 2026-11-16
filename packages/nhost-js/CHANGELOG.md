@@ -1,3 +1,49 @@
+## [@nhost/nhost-js@4.9.0] - 2026-09-30
+
+### 🚀 Features
+
+- *(auth)* Add SMS deanonymization and phone number changes (#4576)
+
+
+### 🐛 Bug Fixes
+
+- *(codegen)* Emit nullable schemas as `T | null` in the typescript plugin (#4916)
+- *(docs)* Correct submodule import in docstring examples (#5002)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4815)
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4973)
+- *(deps)* Update vulnerable dependencies (#4998)
+
+## [@nhost/nhost-js@4.8.0] - 2026-07-31
+
+### 🚀 Features
+
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+- *(auth)* Add generic upstreamParams passthrough for OAuth2 providers (#4664)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+- *(deps)* Update vulnerable dependencies (#4726)
+
 ## [@nhost/nhost-js@4.7.3] - 2026-06-29
 
 ### 🐛 Bug Fixes

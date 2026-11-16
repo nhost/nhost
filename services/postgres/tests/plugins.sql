@@ -1,5 +1,30 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_jsonschema;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT
+            1
+        FROM
+            pg_extension_update_paths('pg_jsonschema') AS update_path
+        WHERE
+            update_path.source = '0.3.3'
+            AND update_path.target = (
+                SELECT
+                    default_version
+                FROM
+                    pg_available_extensions
+                WHERE
+                    name = 'pg_jsonschema'
+            )
+            AND update_path.path IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'pg_jsonschema has no update path from 0.3.3 to its default version';
+    END IF;
+END;
+$$;
+
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS http;
 CREATE EXTENSION IF NOT EXISTS hypopg;
@@ -11,10 +36,42 @@ CREATE EXTENSION IF NOT EXISTS pg_hashids;
 CREATE EXTENSION IF NOT EXISTS pg_ivm;
 CREATE EXTENSION IF NOT EXISTS pg_repack;
 CREATE EXTENSION IF NOT EXISTS pgmq;
+CREATE EXTENSION IF NOT EXISTS pgrouting;
 CREATE EXTENSION IF NOT EXISTS pg_search;
+CREATE EXTENSION IF NOT EXISTS pg_durable;
+
+DO $$
+BEGIN
+    IF current_setting('pg_durable.database') IS DISTINCT FROM current_database()::TEXT THEN
+        RAISE EXCEPTION 'pg_durable.database expected %, got %',
+            current_database(), current_setting('pg_durable.database');
+    END IF;
+
+    IF current_setting('pg_durable.worker_role') IS DISTINCT FROM current_user::TEXT THEN
+        RAISE EXCEPTION 'pg_durable.worker_role expected %, got %',
+            current_user, current_setting('pg_durable.worker_role');
+    END IF;
+END
+$$;
 
 SELECT
     extname AS extension_name,
     extversion AS version
 FROM
     pg_extension;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT
+            1
+        FROM
+            pg_available_extensions
+        WHERE
+            installed_version IS NOT NULL
+            AND installed_version <> default_version
+    ) THEN
+        RAISE EXCEPTION 'one or more extensions were not updated to their packaged default version';
+    END IF;
+END;
+$$;

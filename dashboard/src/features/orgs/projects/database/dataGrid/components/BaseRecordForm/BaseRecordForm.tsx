@@ -168,7 +168,6 @@ export default function BaseRecordForm({
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
           variant="outline"
-          className="border-none"
           type="button"
           size="sm"
           onClick={onCancel}

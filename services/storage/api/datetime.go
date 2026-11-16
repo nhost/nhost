@@ -6,7 +6,7 @@ import (
 
 const format = time.RFC1123
 
-type Time time.Time //nolint:recvcheck
+type Time time.Time
 
 func (dt *Time) UnmarshalText(text []byte) error {
 	if len(text) == 0 || string(text) == `""` {

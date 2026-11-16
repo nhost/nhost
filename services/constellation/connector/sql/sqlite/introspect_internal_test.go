@@ -1,6 +1,45 @@
 package sqlite
 
-import "testing"
+import (
+	"errors"
+	"path/filepath"
+	"testing"
+)
+
+func TestGetForeignKeysRejectsImplicitReferenceWithTooFewPrimaryKeyColumns(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "invalid_implicit_foreign_key.db")
+
+	db, err := Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close sqlite: %v", err)
+		}
+	})
+
+	if err := db.ExecContext(t.Context(), `
+CREATE TABLE parent (
+    id INTEGER PRIMARY KEY
+);
+CREATE TABLE child (
+    first_parent_id INTEGER NOT NULL,
+    second_parent_id INTEGER NOT NULL,
+    FOREIGN KEY (first_parent_id, second_parent_id) REFERENCES parent
+);
+`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	_, err = getForeignKeys(t.Context(), db, "child")
+	if !errors.Is(err, errImplicitForeignKeyPrimaryKey) {
+		t.Fatalf("getForeignKeys() error = %v, want %v", err, errImplicitForeignKeyPrimaryKey)
+	}
+}
 
 func TestMapSQLiteType(t *testing.T) {
 	t.Parallel()

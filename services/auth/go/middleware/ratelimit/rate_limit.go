@@ -12,6 +12,7 @@ import (
 // endpints that send emails.
 func sendsEmail(path string, verifyEmailEnabled bool) bool {
 	base := []string{
+		"/elevate/otp/email",
 		"/signin/passwordless/email",
 		"/signin/otp/email",
 		"/signup/passwordless/email",
@@ -34,14 +35,18 @@ func sendsEmail(path string, verifyEmailEnabled bool) bool {
 // endpoints that send SMS.
 func sendsSMS(path string) bool {
 	return slices.Contains([]string{
+		"/elevate/otp/sms",
 		"/signin/passwordless/sms",
 		"/signup/passwordless/sms",
+		"/user/deanonymize/sms",
+		"/user/phone-number/change",
 	}, path)
 }
 
 // endpnits that can be brute forced.
 func bruteForceProtected(path string) bool {
 	return strings.HasPrefix(path, "/signin") ||
+		strings.HasPrefix(path, "/elevate/") ||
 		strings.HasSuffix(path, "/verify") ||
 		strings.HasSuffix(path, "/otp") ||
 		path == "/oauth2/authorize" ||

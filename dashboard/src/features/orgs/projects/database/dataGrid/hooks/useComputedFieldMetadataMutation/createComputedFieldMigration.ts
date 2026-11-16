@@ -1,5 +1,5 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type { AddComputedFieldArgs } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateComputedFieldMigrationVariables {
@@ -7,7 +7,6 @@ export interface CreateComputedFieldMigrationVariables {
 }
 
 export default async function createComputedFieldMigration({
-  appUrl,
   adminSecret,
   args,
 }: MigrationOperationOptions & CreateComputedFieldMigrationVariables) {
@@ -36,7 +35,6 @@ export default async function createComputedFieldMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

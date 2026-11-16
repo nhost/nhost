@@ -1,1 +1,4 @@
-export { default as useSettingsDisabled } from './useSettingsDisabled';
+export {
+  default as useSettingsDisabled,
+  isSettingsDisabled,
+} from './useSettingsDisabled';

@@ -7,7 +7,6 @@ import type {
 import deleteComputedFieldMigration from './deleteComputedFieldMigration';
 
 const baseOptions = {
-  appUrl: 'https://local.hasura.local.nhost.run',
   adminSecret: 'test-secret',
 };
 

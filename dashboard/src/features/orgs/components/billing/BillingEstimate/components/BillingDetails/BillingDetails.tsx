@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
+import { useBillingGetNextInvoiceQuery } from '@/generated/graphql';
 
 export default function BillingDetails() {
   const { org } = useCurrentOrg();
@@ -75,7 +75,7 @@ export default function BillingDetails() {
         <AccordionContent className="border-t-1 pb-0">
           <div className="rounded-md">
             <Table>
-              <TableHeader className="w-full bg-accent-background">
+              <TableHeader className="w-full bg-background">
                 <TableRow>
                   <TableHead colSpan={3} className="w-full rounded-tl-md">
                     Item
@@ -95,7 +95,7 @@ export default function BillingDetails() {
                   </TableRow>
                 ))}
               </TableBody>
-              <TableFooter className="bg-accent-background">
+              <TableFooter className="bg-background">
                 <TableRow>
                   <TableCell colSpan={3} className="rounded-bl-md">
                     Total

@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
-import { Chip } from '@/components/ui/v2/Chip';
+import { Badge } from '@/components/ui/v3/badge';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
+
+const WARNING_BADGE =
+  'pointer-events-none min-w-0 whitespace-nowrap border-transparent font-medium bg-warning/20 text-warning';
 
 export default function ProjectStatus() {
   const { project, refetch: refetchProject } = useProject();
@@ -28,12 +31,18 @@ export default function ProjectStatus() {
   }, [isProjectUpdating, isProjectMigratingDatabase, refetchProject]);
 
   if (isProjectUpdating) {
-    return <Chip size="small" label="Updating" color="warning" />;
+    return (
+      <Badge variant="outline" className={WARNING_BADGE}>
+        <span className="truncate">Updating</span>
+      </Badge>
+    );
   }
 
   if (isProjectMigratingDatabase) {
     return (
-      <Chip size="small" label="Upgrading Postgres version" color="warning" />
+      <Badge variant="outline" className={WARNING_BADGE}>
+        <span className="truncate">Upgrading Postgres version</span>
+      </Badge>
     );
   }
 

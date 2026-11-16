@@ -38,8 +38,8 @@ import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
 const xHasuraString = 'x-hasura-';
@@ -143,7 +143,7 @@ function ConditionValue({
 
   if (operator === '_is_null') {
     const triggerClasses =
-      'border hover:bg-accent-background hover:text-accent-foreground focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+      'border focus:ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
     return (
       <Select
         name={inputName}

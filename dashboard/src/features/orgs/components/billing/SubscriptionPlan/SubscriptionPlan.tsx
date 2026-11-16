@@ -29,14 +29,15 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { cn } from '@/lib/utils';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -44,6 +45,7 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { org, refetch: refetchOrg } = useCurrentOrg();
+  const track = useTrackEvent();
   const [open, setOpen] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
@@ -105,6 +107,12 @@ export default function SubscriptionPlan() {
               organizationID,
               planID,
             },
+          });
+
+          const newPlan = plans.find((p) => p.id === planID);
+          track('Plan Changed', {
+            from_plan: plan.name,
+            to_plan: newPlan?.name,
           });
 
           await refetchOrg();
@@ -244,19 +252,15 @@ export default function SubscriptionPlan() {
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <ButtonWithLoading
-                className="h-fit truncate"
-                variant="secondary"
+                className="truncate"
+                variant="outline"
                 onClick={handleUpdatePaymentDetails}
                 disabled={isFreeOrg}
                 loading={loading}
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button
-                disabled={loading}
-                className="h-fit"
-                onClick={() => setOpen(true)}
-              >
+              <Button disabled={loading} onClick={() => setOpen(true)}>
                 Upgrade
               </Button>
             </div>
@@ -325,7 +329,7 @@ export default function SubscriptionPlan() {
                 />
                 <DialogFooter>
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     type="button"
                     disabled={form.formState.isSubmitting}
                     onClick={() => setOpen(false)}

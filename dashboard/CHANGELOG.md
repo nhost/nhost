@@ -1,3 +1,454 @@
+## [@nhost/dashboard@3.9.0] - 2026-11-10
+
+### 🚀 Features
+
+- *(dashboard)* Add a stacked bar metrics chart (#5221)
+- *(dashboard)* Add a multi-column unique constraint editor (#5095)
+- *(dashboard)* Deploy a branch, tag or commit from the Deployments page (#5232)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Buttons round 4, remove one off button styles (#5235)
+- *(dashboard)* One edit icon and one look for three dots menus (#5248)
+- *(dashboard)* Make the name in the delete confirmation popups easy to copy and see (#5233)
+- *(dashboard)* Untick the delete account checkbox on cancel (#5291)
+- *(dashboard)* Icon buttons use the subtle style (#5231)
+- *(dashboard)* Give most popups the same look (#5217)
+- *(dashboard)* One copy button look everywhere (#5249)
+- *(dashboard)* Compact GitHub sync notice on settings pages (#5288)
+- *(dashboard)* Consistent settings cards (#5289)
+- *(dashboard)* Keep the metrics chart legend from interfering with tooltips (#5209)
+- *(dashboard)* More inner padding on settings cards (#5299)
+- *(dashboard)* Docs links as a help icon next to settings card titles (#5300)
+- *(dashboard)* Settings page titles (#5298)
+- *(dashboard)* Clear cached project config when switching projects (#5255)
+- *(dashboard)* Secondary button refresh (#5311)
+- *(dashboard)* Easier to see checkbox outlines (#5302)
+- *(dashboard)* Tooltips no longer block the buttons under them (#5312)
+- *(dashboard)* No top line on flat outline buttons (#5327)
+- *(dashboard)* Configuration editor in the settings column (#5315)
+- *(dashboard)* Redesign the General page in project settings (#5303)
+- *(dashboard)* Save local metadata changes to the project files (#5326)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use the primary token instead of primary-main (#5250)
+- *(ci)* Update dependencies due to CVEs (#5307)
+
+
+### Chore
+
+- *(deps)* Fix workspace minimatch, glob and graphql-scalars audits (#5330)
+
+## [@nhost/dashboard@3.8.1] - 2026-10-26
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Remove the old navy from the data grid cells (#5214)
+- *(dashboard)* Ghost button (#5196)
+- *(dashboard)* Fix popover scroll in sheets and tooltip warning (#5228)
+- *(dashboard)* Show completion message after logical backup restore (#5230)
+- *(dashboard)* Design tokens round 2, base components (#5215)
+- *(dashboard)* One alert look with an automatic icon per type (#5224)
+- *(dashboard)* Remove workspaces GraphQL fields from queries (#5284)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Move metrics chart interactions into shared hooks (#5208)
+- *(dashboard)* Correct local dashboard setup commands (#5111)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5161)
+- *(deps)* Update vulnerable dependencies (#5226)
+- *(deps)* Update vulnerable dependencies (#5242)
+- *(deps)* Update vulnerable dependencies (#5256)
+
+## [@nhost/dashboard@3.8.0] - 2026-10-20
+
+### 🚀 Features
+
+- *(dashboard)* Add support for composite foreign keys (#4494)
+- *(dashboard)* Render DialogProvider with v3 dialog, sheet and alert-dialog (#5170)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Gate native queries when running old graphql engine version (#5121)
+- *(dashboard)* Allow editing AI assistants without GraphQL or webhook tools (#5197)
+- *(dashboard)* Keep query params when resolving placeholder links (#5107)
+- *(dashboard)* Fix switching projects from a database page (#5108)
+- *(dashboard)* Split UnauthenticatedLayout into AuthFlowLayout and GuestGuard (#4982)
+- *(dashboard)* New metrics icon (#5194)
+- *(dashboard)* Move dashboard version to help and support (#5185)
+- *(dashboard)* Merge outline-emboss and secondary buttons into outline (#5187)
+- *(dashboard)* Handle composite foreign key constraints when reading relationships (#5061)
+- *(dashboard)* Allow unique indexes as referenced foreign key keys (#5065)
+- *(dashboard)* Fix saving run services and NaN replicas (#5198)
+- *(dashboard)* Move remaining v2 and MUI consumers to v3 (#5178)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Lint logs files hidden by root gitignore (#5191)
+- *(dashboard)* Remove unused ui/v2 components, MUI and Emotion (#5179)
+
+## [@nhost/dashboard@3.7.1] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Added CA flag (#5175)
+
+## [@nhost/dashboard@3.7.0] - 2026-10-14
+
+### 🚀 Features
+
+- *(dashboard)* New dashboard design (#5137)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Add recovery for stale metadata conflicts (#5078)
+- *(dashboard)* Route relationship creation through the shared error toast (#5082)
+- *(dashboard)* Preserve user-entered values when cloning rows (#5081)
+- *(dashboard)* Fix PAT token contrast in dark mode and unstyled toasts (#5124)
+- *(dashboard)* Toggle MultiSelect values from the controlled prop (#4983)
+- *(dashboard)* Align field-array row controls with their inputs (#5115)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+
+## [@nhost/dashboard@3.6.0] - 2026-09-30
+
+### 🚀 Features
+
+- *(dashboard)* Add last sign-in method badge (#4984)
+- *(dashboard)* Manage logical models and native queries (#4792)
+- *(dashboard)* Manage logical model and native queries permissions (#4793)
+- *(dashboard)* Manage native queries relationships (#4777)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Isolate project config errors (#4818)
+- *(dashboard)* Improve multiline text tooltip accessibility with keyboard (#4978)
+- *(dashboard)* Stop unscheduled deployments hiding the live one (#5023)
+- *(dashboard)* Prevent unintended permission changes (#5062)
+- *(dashboard)* Refetch metadata version before tracking a new table (#5076)
+- *(dashboard)* Prepare shared UI for native queries (#4823)
+- *(dashboard)* Generalize PermissionsGrid actions and allow locking RoleActionSwitcher (#4824)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(dashboard)* Add native query and logical model metadata contracts (#4791)
+- *(dashboard)* Use jsdom's native PointerEvent in tests (#5068)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4973)
+- *(deps)* Update vulnerable dependencies (#4998)
+- *(deps)* Update vulnerable dependencies (#5056)
+
+## [@nhost/dashboard@3.5.3] - 2026-09-07
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Require typed confirmation to delete projects and orgs  (#4949)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update schema in biome.json (#4939)
+
+## [@nhost/dashboard@3.5.2] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Exclude generated columns from validation (#4919)
+- *(dashboard)* Migrate toasts to v3 (#4921)
+- *(dashboard)* Do not retry mutations in the Apollo retry link (#4927)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump flake, bump nodejs and tooling (#4894)
+- *(dashboard)* Remove ControlledSwitch (#4923)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4928)
+
+## [@nhost/dashboard@3.5.1] - 2026-08-25
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Preserve roles and omit the Admin user-id header (#4870)
+- *(dashboard)* Migrate auth/users page (#4827)
+- *(dashboard)* Prevent an error boundary when editing playground headers (#4882)
+- *(dashboard)* Migrate oauth2 clients page to v3 (#4829)
+
+## [@nhost/dashboard@3.5.0] - 2026-08-24
+
+### 🚀 Features
+
+- *(dashboard)* Allow copying nhost-registry (#4838)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Restore billing button padding (#4847)
+- *(dashboard)* Add background to avatar for transparent images (#4845)
+- *(dashboard)* Fix avatar CSP and disable Stripe advanced fraud signals (#4830)
+- *(dashboard)* Improve cleanup of event triggers and cron triggers invocations in e2e tests (#4851)
+- *(dashboard)* Fix graphiql editor suggestion design (#4859)
+- *(dashboard)* Prevent composite foreign key crashing data grid (#4866)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add Segment event tracking across the app (#4684)
+
+## [@nhost/dashboard@3.4.1] - 2026-08-18
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Reuse project info cards on the provisioning screen (#4837)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add AU flag (#4842)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4815)
+
+## [@nhost/dashboard@3.4.0] - 2026-08-17
+
+### 🚀 Features
+
+- *(dashboard)* Add import logical backup ui (#4696)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve member menu overflow on mobile screens (#4652)
+- *(dashboard)* Migrate v2 shared foundation (#4766)
+- *(dashboard)* Migrate authenticated layout to v3 (#4779)
+- *(dashboard)* Migrate leaf pages v3 (#4775)
+- *(dashboard)* Raise error when provider tokens request fails after sign-in (#4782)
+- *(dashboard)* Migrate project layout & graphiql styling to v3 (#4781)
+- *(dashboard)* Refactor account menu (#4787)
+- *(dashboard)* Migrate SelcetOrg component (#4789)
+- *(dashboard)* Migrate upgrade banner, metrics, graphql & new-project to v3 (#4790)
+- *(dashboard)* Catch table constraints to show more descriptive errors (#4788)
+- *(dashboard)* Render toasts above elevated dialogs (#4797)
+- *(dashboard)* Migrate billing & members components to v3 (#4796)
+- *(dashboard)* Exclude unnamed columns from foreign key column select (#4798)
+- *(dashboard)* Migrate Pagination to v3 (#4799)
+- *(dashboard)* Make URL the single source of truth for pagination (#4800)
+- *(dashboard)* Converge data grid pagination onto useUrlPagination (#4803)
+- *(dashboard)* Migrate provisioning & application-state components to v3 (#4808)
+- *(dashboard)* Migrate support, new and reset password pages to v3 (#4816)
+- *(dashboard)* Migrate SelectOrgAndProject and ProjectStatus (#4819)
+- *(dashboard)* Remove v2 InlineCode component (#4820)
+- *(dashboard)* Disable delete project/organization actions for non-admins (#4822)
+- *(dashboard)* Remove unnecessary CSS rules (#4836)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4786)
+
+## [@nhost/dashboard@3.3.0] - 2026-08-04
+
+### 🚀 Features
+
+- *(dashboard)* Show project subdomain and region in AppLoader while initializing (#4739)
+- *(dashboard)* Add GraphQL Actions management UI (#4595)
+- *(dashboard)* Add permissions management to GraphQL actions (#4694)
+- *(dashboard)* Add action relationship editor (#4695)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate sign-in methods settings page (#4703)
+- *(dashboard)* Migrate remaining storage and database page to v3 (#4698)
+- *(dashboard)* Migrate smtp settings page (#4704)
+- *(dashboard)* Migrate oauth2 provider settings page (#4705)
+- *(dashboard)* Migrate jwt settings page (#4706)
+- *(dashboard)* Migrate storage settings page (#4707)
+- *(dashboard)* Migrate metrics settings page (#4713)
+- *(dashboard)* Migrate database settings page (#4708)
+- *(dashboard)* Migrate compute resources settings page (#4709)
+- *(dashboard)* Migrate custom domains settings page (#4710)
+- *(dashboard)* Migrate deployments settings page (#4711)
+- *(dashboard)* Migrate environment variables settings page (#4712)
+- *(dashboard)* Migrate rate limiting settings page (#4714)
+- *(dashboard)* Migrate roles permissions settings page (#4715)
+- *(dashboard)* Migrate secrets settings page (#4716)
+- *(dashboard)* Migrate deployment page (#4687)
+- *(dashboard)* Migrate account settings page (#4753)
+- *(dashboard)* Migrate run service page (#4754)
+- *(dashboard)* Migrate AI assistants page (#4755)
+- *(dashboard)* Migrate AI auto-embeddings page (#4759)
+- *(dashboard)* Remove SettingsContainer(v2) (#4760)
+- *(dashboard)* Migrate AI file stores page (#4763)
+- *(dashboard)* Migrate overview page (#4764)
+- *(dashboard)* Preserve GraphQL playground user selection (#4768)
+- *(dashboard)* Make primary key columns searchable (#4769)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+
+## [@nhost/dashboard@3.2.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+- *(dashboard)* Migrate ai settings page (#4701)
+- *(dashboard)* Migrate authentication settings page (#4702)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+- *(dashboard)* Centralize admin API targeting in hooks (#4735)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4726)
+
+## [@nhost/dashboard@3.2.0] - 2026-07-24
+
+### 🚀 Features
+
+- *(dashboard)* Add warning|info|success variant to v3 alert (#4721)
+- *(dashboard)* Authenticate Zendesk support with OAuth (#4727)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate hasura settings page to v3 (#4686)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+- *(dashboard)* Show the correct dashboard version (#4691)
+- *(dashboard)* Fix fetching postgres logs when upgrading postgres version (#4719)
+- *(dashboard)* Standardize generated GraphQL imports (#4697)
+- *(dashboard)* Migrate hasura page to v3 (#4692)
+
+
+### 🧪 Testing
+
+- *(dashboard)* Add unit tests for AuthProvider state changes (#4663)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4693)
+
+## [@nhost/dashboard@3.1.0] - 2026-07-21
+
+### 🚀 Features
+
+- *(dashboard)* Add sample context UI for event trigger tests (#4602)
+- *(dashboard)* Add clone, edit, and delete actions to database table grid (#4516)
+- *(dashboard)* Add ⌘/Ctrl+Enter shortcut to run SQL editor query (#4648)
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(dashboard)* Introduce command palette for project & org navigation (#4603)
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve CI failures on main branch (#4605)
+- *(dashboard)* Align additional headers input fields (#4601)
+- *(dashboard)* Fallback to getFile download for storage files in private buckets (#4598)
+- *(dashboard)* Use custom date/time picker when inserting row (#4596)
+- *(dashboard)* Migrate select to v3 (#4615)
+- *(dashboard)* Resolve mobile layout overflows on auth users & schema toolbar (#4616)
+- *(dashboard)* Migrate X icon in DialogTitle (#4625)
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(dashboard)* Resolve account settings layout shifting on mobile sc… (#4631)
+- *(dashboard)* Migrate dashboard dropdown menus (#4636)
+- *(dashboard)* Migrate settings page spinners (#4623)
+- *(dashboard)* Auto-populate user data when creating a ticket (#4638)
+- *(dashboard)* Send support ticket services as strings (#4628)
+- *(dashboard)* Extract shared form, permissions, and metadata components (#4588)
+- *(dashboard)* Update biome to 2.5.3 (#4641)
+- *(dashboard)* Migrate remote schema and data grid spinners (#4653)
+- *(dashboard)* Migrate settings page spinners (#4642)
+- *(dashboard)* Migrate deployments and overview spinners (#4654)
+- *(dashboard)* Migrate org, billing, and dialog spinners (#4655)
+- *(dashboard)* Migrate remaining page spinners (#4656)
+- *(dashboard)* Migrate layout, guard, and shared component spinners (#4657)
+- *(dashboard)* Remove the v2 icons and ActivityIndicator (#4669)
+- *(dashboard)* Migrate project feature areas from Button v2 to v3 (#4670)
+- *(dashboard)* Stabilize run service menu selection in e2e tests (#4677)
+- *(dashboard)* Migrate remote schema page to v3 (#4676)
+- *(dashboard)* Migrate leaf auth/support/password pages from Buttonv2 to v3 (#4662)
+- *(dashboard)* Migrate account/settings forms from Button v2 to v3 (#4667)
+- *(dashboard)* Extract shared query and shortcut helpers (#4668)
+
+
+### 💼 Other
+
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+# Conflicts:
+#	dashboard/pnpm-lock.yaml
+#	docs/pnpm-lock.yaml
+#	examples/demos/express/pnpm-lock.yaml
+#	examples/demos/pnpm-lock.yaml
+#	examples/demos/react-demo/pnpm-lock.yaml
+#	examples/guides/codegen-nhost/pnpm-lock.yaml
+#	examples/guides/pnpm-lock.yaml
+#	examples/guides/react-apollo/pnpm-lock.yaml
+#	examples/guides/react-query/pnpm-lock.yaml
+#	examples/guides/react-urql/pnpm-lock.yaml
+#	examples/quickstarts/nextjs/pnpm-lock.yaml
+#	examples/quickstarts/react/pnpm-lock.yaml
+#	examples/quickstarts/reactnative/pnpm-lock.yaml
+#	examples/quickstarts/svelte/pnpm-lock.yaml
+#	examples/quickstarts/vue/pnpm-lock.yaml
+#	examples/tutorials/nhost-nextjs-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-react-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-reactnative-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-svelte-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-vue-tutorial/pnpm-lock.yaml
+#	examples/tutorials/pnpm-lock.yaml
+#	packages/nhost-js/pnpm-lock.yaml
+#	packages/stripe-graphql-js/pnpm-lock.yaml
+#	pnpm-lock.yaml
+#	pnpm-workspace.yaml
+#	services/functions/pnpm-lock.yaml
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use jsdom localStorage in tests (#4621)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+
 ## [@nhost/dashboard@3.0.0] - 2026-06-29
 
 ### 🚀 Features

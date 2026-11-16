@@ -1,33 +1,125 @@
+# All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
 version: "2"
 run:
   tests: true
+formatters:
+  enable:
+    - golines
+    - gofumpt
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/vektah)
+    golines:
+      # Target maximum line length.
+      # Default: 100
+      max-len: 100
+      shorten-comments: true
+  exclusions:
+    paths:
+      - generated
+      - node_modules
+      - bin
+      - third_party$
+      - builtin$
+      - examples$
 linters:
   default: none
   enable:
+#    - asasalint
+#    - asciicheck
+#    - bidichk
     - bodyclose
+#    - copyloopvar
     - dupl
+#    - dupword
+#    - durationcheck
     - errcheck
     - gocritic
     - govet
     - ineffassign
     - misspell
     - nakedret
-    - prealloc
+#    - nolintlint
+#    - perfsprint
+#    - reassign
     - revive
     - staticcheck
+#    - testableexamples
     - testifylint
     - unconvert
+#    - unparam
     - unused
+#    - usestdlibvars
+#    - usetesting
+#    - wastedassign
+#    - prealloc # disabled because it is a huge pain
   settings:
     errcheck:
       exclude-functions:
         - (io.Writer).Write
+        - (http.ResponseWriter).Write
+        - (*bytes.Buffer).WriteByte
+        - (*strings.Builder).WriteByte
+        - (*strings.Builder).WriteString
         - io.Copy
         - io.WriteString
+        - fmt.Fprintln
+    gocritic:
+      enabled-checks:
+        - emptyStringTest
+        - equalFold
+        - httpNoBody
+        - nilValReturn
+        - paramTypeCombine
+        - preferFprint
+        - yodaStyleExpr
+    govet:
+      disable:
+        - fieldalignment
+        - shadow
+        - unusedwrite
+      enable-all: true
+    perfsprint:
+      int-conversion: false
+      err-error: false
+      errorf: true
+      sprintf1: false
+      strconcat: false
     revive:
       enable-all-rules: false
       rules:
         - name: empty-lines
+        - name: use-any
+        # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md#struct-tag
+#        - name: struct-tag
+#          exclude: ["**/*_go124_test.go"]
+#        - name: blank-imports
+#        - name: context-as-argument
+#        - name: context-keys-type
+#        - name: error-return
+#        - name: error-naming
+#        - name: exported
+#          disabled: true
+#        - name: if-return
+#        - name: increment-decrement
+#        - name: var-declaration
+#        - name: package-comments
+#          disabled: true
+#        - name: range
+#        - name: receiver-naming
+#        - name: time-naming
+#        - name: unexported-return
+#        - name: indent-error-flow
+#        - name: errorf
+#        - name: superfluous-else
+#        - name: unused-parameter
+#          disabled: true
+#        - name: unreachable-code
+#        - name: redefines-builtin-id
     testifylint:
       disable-all: true
       enable:
@@ -49,17 +141,6 @@ linters:
           - dupl
           - errcheck
         path: _test\.go
-    paths:
-      - bin
-      - third_party$
-      - builtin$
-      - examples$
-formatters:
-  enable:
-    - gofmt
-    - goimports
-  exclusions:
-    generated: lax
     paths:
       - bin
       - third_party$

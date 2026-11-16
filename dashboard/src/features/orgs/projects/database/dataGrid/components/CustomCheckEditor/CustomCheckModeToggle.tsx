@@ -28,9 +28,9 @@ export default function CustomCheckModeToggle() {
               type="button"
               aria-pressed={isActive}
               variant="ghost"
-              size="sm"
+              size="xs"
               className={cn(
-                'h-7 px-2.5 text-xs',
+                'px-2.5 text-xs',
                 isActive
                   ? 'bg-background shadow-sm hover:bg-background'
                   : 'text-muted-foreground hover:bg-transparent hover:text-foreground',

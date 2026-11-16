@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { type JSX, useId, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignUp(): JSX.Element {

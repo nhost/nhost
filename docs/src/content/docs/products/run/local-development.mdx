@@ -13,7 +13,7 @@ You can start Nhost Run services alongside your Nhost project very easily using 
 
 ![cli](/images/run/local_development_1.png)
 
-Let's first take a look at the commend above, the first thing you can notice is that multiple `--run-service` flags are supported. You can pass as many as you need and they all will be added to your project. You can also add or remove Run services to an already running instance by re-running the command specifying the final list of `--run-service` you want. Any missing service will be removed and any new one will be added.
+Let's first take a look at the command above, the first thing you can notice is that multiple `--run-service` flags are supported. You can pass as many as you need and they all will be added to your project. You can also add or remove Run services to an already running instance by re-running the command specifying the final list of `--run-service` you want. Any missing service will be removed and any new one will be added.
 
 The second thing you will notice is that one of the `--run-service` flags contains the suffix `:mysvc` while the other one doesn't. If you add to the configuration path the suffix `:overlay_name` the [configuration overlay](/products/run/configuration-overlays) with name `overlay_name` will be applied.
 
@@ -51,7 +51,7 @@ nhost up \
 
 The format for `--run-service-volume` is `service-name=/local/path:/container/path`. You can pass this flag multiple times to mount multiple directories or for different services.
 
-For example, given the following service configuration:
+For example, given the following [service configuration](/products/run/configuration):
 
 <Tabs>
 <TabItem label="nhost-run-service.toml">
@@ -113,7 +113,7 @@ You can also use the environment variable `NHOST_RUN_SERVICE_VOLUME` passing com
 
 # Quick Development
 
-While developing your service, you may want to run it locally outside of the Nhost CLI to quickly iterate on it. To simplify this the Nhost CLI includes a command to generate an `.env` file based on your environment variables configuration and secrets. For instance, imagine a service with the following configuration:
+While developing your service, you may want to run it locally outside of the Nhost CLI to quickly iterate on it. To simplify this the Nhost CLI includes a command to generate an `.env` file based on your environment variables configuration and [secrets](/platform/cloud/secrets). For instance, imagine a service with the following configuration:
 
 <Tabs>
 <TabItem label="run-service.toml">
@@ -160,7 +160,7 @@ SECRET_KEY = '#asdasd;l;kq23\\n40-0as9d"$\\'
 </TabItem>
 </Tabs>
 
-We can then generate an `env` file for our service with the folllowing command:
+We can then generate an `env` file for our service with the following command:
 
 ```
 $ nhost run env --config ../mysvc/nhost-run-service.toml --overlay-name local-dev > .env

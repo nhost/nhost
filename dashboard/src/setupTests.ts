@@ -21,4 +21,19 @@ class ResizeObserverMock {
 // Stub the global ResizeObserver
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
 
+// Mock the IntersectionObserver (jsdom has none)
+class IntersectionObserverMock {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  takeRecords = vi.fn(() => []);
+}
+
+vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
+
+// Many tests replace `@uiw/react-codemirror` with a bare stub, which breaks
+// this module's top-level `Prec`/`EditorView` calls. The theme is purely
+// visual, so tests get an empty extension instead.
+vi.mock('@/lib/codeMirrorAppTheme', () => ({ codeMirrorAppBackground: [] }));
+
 expect.extend(matchers);

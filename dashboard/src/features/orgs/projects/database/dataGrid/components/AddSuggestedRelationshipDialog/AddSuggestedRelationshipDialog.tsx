@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 import { useCreateRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
 import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareSuggestedRelationshipDTO';
@@ -54,7 +54,7 @@ interface AddSuggestedRelationshipDialogProps {
 type AddSuggestedRelationshipFormValues = z.infer<typeof validationSchema>;
 
 const validationSchema = z.object({
-  relationshipName: getRelationshipNameSchema('Relationship name'),
+  relationshipName: getGraphQLIdentifierSchema('Relationship name'),
 });
 
 export default function AddSuggestedRelationshipDialog({
@@ -198,13 +198,13 @@ export default function AddSuggestedRelationshipDialog({
       </Button>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent
-          className="sm:max-w-[425px]"
+          className="p-12 sm:max-w-xl"
           hideCloseButton
           disableOutsideClick={isSubmitting}
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Add Suggested Relationship
             </DialogTitle>
             <DialogDescription>
@@ -234,27 +234,23 @@ export default function AddSuggestedRelationshipDialog({
                 name="relationshipName"
                 label="Relationship Name"
                 containerClassName="mt-0"
+                autoFocus
               />
 
-              <DialogFooter className="gap-2 pt-2 sm:flex sm:flex-col sm:space-x-0">
+              <DialogFooter className="mt-8">
+                <DialogClose asChild>
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
+                </DialogClose>
+
                 <ButtonWithLoading
                   type="submit"
                   loading={isSubmitting}
                   disabled={isSubmitting}
-                  className="!text-sm+"
                 >
                   Create Relationship
                 </ButtonWithLoading>
-
-                <DialogClose asChild>
-                  <Button
-                    variant="outline"
-                    className="!text-sm+ text-foreground"
-                    type="button"
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
               </DialogFooter>
             </form>
           </Form>

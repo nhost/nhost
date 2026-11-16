@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -57,7 +63,7 @@ export default function ClientURLSettings() {
     throw error;
   }
 
-  const { register, formState } = form;
+  const { formState } = form;
 
   const handleClientURLChange = async (values: ClientURLFormValues) => {
     const updateConfigPromise = updateConfig({
@@ -103,31 +109,37 @@ export default function ClientURLSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleClientURLChange}>
-        <SettingsContainer
-          title="Client URL"
-          description="This should be the URL of your frontend app where users are redirected after authenticating."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
-          className="grid grid-flow-row lg:grid-cols-5"
-        >
-          <Input
-            {...register('clientUrl')}
-            name="clientUrl"
-            id="clientUrl"
-            placeholder="http://localhost:3000"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            aria-label="Client URL"
-            error={!!formState.errors?.clientUrl}
-            helperText={formState.errors?.clientUrl?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Client URL"
+            description="This should be the URL of your frontend app where users are redirected after authenticating."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url',
+              topic: 'Client URL',
+            }}
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="clientUrl"
+              placeholder="http://localhost:3000"
+              containerClassName="col-span-2"
+              aria-label="Client URL"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

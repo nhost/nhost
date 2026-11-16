@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
@@ -133,6 +134,264 @@ func TestIntrospect(t *testing.T) {
 	}
 
 	testhelpers.GoldenJSON(t, goldenPath, got, *updateGolden)
+}
+
+func TestIntrospectForeignKeySharedColumn(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "foreign_key_shared_column.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), `
+CREATE TABLE orgs (
+    id INTEGER PRIMARY KEY
+);
+CREATE TABLE org_users (
+    id INTEGER NOT NULL,
+    org_id INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (id, org_id),
+    FOREIGN KEY (org_id) REFERENCES orgs (id)
+);
+CREATE TABLE orders (
+    id INTEGER PRIMARY KEY,
+    org_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (org_id) REFERENCES orgs (id),
+    FOREIGN KEY (user_id, org_id) REFERENCES org_users (id, org_id)
+);
+`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	objects, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "orgs"}},
+			{Table: metadata.TableSource{Name: "org_users"}},
+			{Table: metadata.TableSource{Name: "orders"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	orders, ok := objects.GetTable("", "orders")
+	if !ok {
+		t.Fatal("introspection did not return orders")
+	}
+
+	wantForeignKeys := []introspection.ForeignKey{
+		{
+			Constraint:        "0",
+			ColumnName:        "user_id",
+			ForeignSchema:     "",
+			ForeignTable:      "org_users",
+			ForeignColumnName: "id",
+		},
+		{
+			Constraint:        "0",
+			ColumnName:        "org_id",
+			ForeignSchema:     "",
+			ForeignTable:      "org_users",
+			ForeignColumnName: "org_id",
+		},
+		{
+			Constraint:        "1",
+			ColumnName:        "org_id",
+			ForeignSchema:     "",
+			ForeignTable:      "orgs",
+			ForeignColumnName: "id",
+		},
+	}
+
+	if diff := cmp.Diff(wantForeignKeys, orders.ForeignKeys); diff != "" {
+		t.Fatalf("ForeignKeys mismatch (-want +got):\n%s", diff)
+	}
+
+	schema, table := orders.LookupForwardFKTarget([]string{"org_id"})
+	if schema != "" || table != "orgs" {
+		t.Fatalf(
+			"LookupForwardFKTarget([org_id]) = %q.%q, want %q.%q",
+			schema, table, "", "orgs",
+		)
+	}
+
+	wantExactForeignKeys := []introspection.ForeignKey{wantForeignKeys[2]}
+
+	exactForeignKeys := orders.LookupExactForwardFKForTarget(
+		[]string{"org_id"},
+		"",
+		"orgs",
+	)
+	if diff := cmp.Diff(wantExactForeignKeys, exactForeignKeys); diff != "" {
+		t.Fatalf(
+			"LookupExactForwardFKForTarget() mismatch (-want +got):\n%s",
+			diff,
+		)
+	}
+}
+
+func TestIntrospectImplicitForeignKey(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "implicit_foreign_key.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), `
+CREATE TABLE orgs (
+    id INTEGER PRIMARY KEY
+);
+CREATE TABLE org_users (
+    id INTEGER PRIMARY KEY,
+    org_id INTEGER REFERENCES orgs
+);
+CREATE TABLE desc_parent (
+    id INTEGER PRIMARY KEY DESC
+);
+CREATE TABLE desc_child (
+    parent_id INTEGER REFERENCES desc_parent
+);
+CREATE TABLE without_rowid_parent (
+    id INTEGER PRIMARY KEY
+) WITHOUT ROWID;
+CREATE TABLE without_rowid_child (
+    parent_id INTEGER REFERENCES without_rowid_parent
+);
+CREATE TABLE composite_parent (
+    a INTEGER NOT NULL,
+    b INTEGER NOT NULL,
+    non_pk TEXT,
+    PRIMARY KEY (b, a)
+);
+CREATE TABLE composite_child (
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    FOREIGN KEY (x, y) REFERENCES composite_parent
+);
+`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	objects, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "orgs"}},
+			{Table: metadata.TableSource{Name: "org_users"}},
+			{Table: metadata.TableSource{Name: "desc_parent"}},
+			{Table: metadata.TableSource{Name: "desc_child"}},
+			{Table: metadata.TableSource{Name: "without_rowid_parent"}},
+			{Table: metadata.TableSource{Name: "without_rowid_child"}},
+			{Table: metadata.TableSource{Name: "composite_parent"}},
+			{Table: metadata.TableSource{Name: "composite_child"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	for _, test := range []struct {
+		name        string
+		childTable  string
+		childColumn string
+		parentTable string
+	}{
+		{
+			name:        "rowid alias parent",
+			childTable:  "org_users",
+			childColumn: "org_id",
+			parentTable: "orgs",
+		},
+		{
+			name:        "descending primary key parent",
+			childTable:  "desc_child",
+			childColumn: "parent_id",
+			parentTable: "desc_parent",
+		},
+		{
+			name:        "without rowid parent",
+			childTable:  "without_rowid_child",
+			childColumn: "parent_id",
+			parentTable: "without_rowid_parent",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			child, ok := objects.GetTable("", test.childTable)
+			if !ok {
+				t.Fatalf("introspection did not return %s", test.childTable)
+			}
+
+			want := []introspection.ForeignKey{
+				{
+					Constraint:        "0",
+					ColumnName:        test.childColumn,
+					ForeignSchema:     "",
+					ForeignTable:      test.parentTable,
+					ForeignColumnName: "id",
+				},
+			}
+			if diff := cmp.Diff(want, child.ForeignKeys); diff != "" {
+				t.Fatalf("ForeignKeys mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+
+	compositeChild, ok := objects.GetTable("", "composite_child")
+	if !ok {
+		t.Fatal("introspection did not return composite_child")
+	}
+
+	wantComposite := []introspection.ForeignKey{
+		{
+			Constraint:        "0",
+			ColumnName:        "x",
+			ForeignSchema:     "",
+			ForeignTable:      "composite_parent",
+			ForeignColumnName: "b",
+		},
+		{
+			Constraint:        "0",
+			ColumnName:        "y",
+			ForeignSchema:     "",
+			ForeignTable:      "composite_parent",
+			ForeignColumnName: "a",
+		},
+	}
+	if diff := cmp.Diff(wantComposite, compositeChild.ForeignKeys); diff != "" {
+		t.Fatalf("composite ForeignKeys mismatch (-want +got):\n%s", diff)
+	}
 }
 
 func TestIntrospectSkipsPartialUniqueIndexes(t *testing.T) {

@@ -8,6 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
+- `services/ai` - AI service providing auto-embeddings (native OpenAI) and multi-provider agents through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
@@ -23,6 +24,8 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `internal/lib/oapi` - shared OpenAPI middleware and utilities
 - `internal/lib/clidocs` - CLI documentation generation
+- `internal/lib/pgmigrate` - target-oriented PostgreSQL migrations with immutable database-backed SQL catalogs
+- `internal/lib/syncmap` - typed generic map safe for concurrent use
 
 ### Dashboard (`dashboard/`)
 
@@ -52,7 +55,9 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Tools (`tools/`)
 
+- `tools/betterleaks` - secret-scanning configuration, ignore list and per-rule tests, plus a wrapper that bakes them into the pinned `betterleaks` build from `nixops/overlays/go.nix`
 - `tools/codegen` - code generation utilities
+- `tools/configdocs` - Go generator for the `nhost.toml` configuration reference, checked and built through its own Nix project
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
 
@@ -61,14 +66,14 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
-- JS/TS packages use pnpm 11.1.0 (not npm or yarn) with Turbo for orchestration
+- JS/TS packages use pnpm 12.3.4 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
 
 ## Code Standards
 
 Authoritative design rules live in `.claude/docs/`. Load the one that matches the file you are touching before writing or reviewing code:
 
-- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.26.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
+- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
@@ -76,10 +81,14 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 ## CI/CD
 
 - GitHub Actions workflows in `.github/workflows/`.
-- Separate check and release workflows per project (e.g., `auth_checks.yaml`, `auth_wf_release.yaml`).
+- Project check/release callers use `.github/workflows/wf_check.yaml` for checks and optional builds; releases set `CHECKS: false`. Every caller must explicitly set the full runner-label list with `RUNS_ON`; checks run on the first entry.
+- Linux CI uses ephemeral Nhost NixOS runners: `nhost-<aarch64|x86_64>-<profile>` with `1c1g`, `2c2g`, `2c4g`, `4c8g`, `8c16g`, or `16c32g`. Use profile labels, not generic `self-hosted`; job containers are unsupported. macOS cache warming stays on `blacksmith-6vcpu-macos-latest`; the two npm trusted-publishing jobs must stay on GitHub-hosted `ubuntu-latest`. See `ci/README.md` for workload sizing.
+- `checks.<system>.ci` tests workflows, caching, Makefile contracts, and shared-file synchronization offline; it is included in the `nixops` check.
+- `ci/shared-ci.nix` defines the verbatim `ci-files` bundle and `sync-ci` app. Receivers select files in `build/shared-ci.json`. Apply/check requires a clean Git source revision; dirty/`path:` sources allow previews only. See `ci/README.md` for CI contracts and synchronization safety rules.
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.
+- Secret-bearing `pull_request_target` checks are gated by `.github/actions/check-permissions`, which approves one commit at a time (see `ci_safe_to_test.yaml`). Gated jobs must check out or fetch `github.event.pull_request.head.sha`, never a moving ref like `refs/pull/N/head`.
 
 ## Review Guidelines
 

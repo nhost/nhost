@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { SetTableCustomizationArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableCustomizationVariables {
@@ -27,7 +27,7 @@ export default async function setTableCustomization({
         ],
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -6,10 +6,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import slugify from 'slugify';
 import { z } from 'zod';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
@@ -28,15 +26,17 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-import { isNotEmptyValue } from '@/lib/utils';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const projectSchema = z.object({
   organizationId: z.string().min(1, 'Please select an organization'),
@@ -149,7 +149,7 @@ export default function OnboardingProjectPage() {
       {
         loadingMessage: 'Creating your project...',
         successMessage: 'Project created successfully!',
-        errorMessage: 'Failed to create project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
       },
     );
   };
@@ -192,14 +192,14 @@ export default function OnboardingProjectPage() {
           </div>
         </div>
 
-        <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border border-border p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 font-bold text-2xl">
+            <h2 className="mb-2 font-bold text-2xl">
               Create Your First Project
-            </Text>
-            <Text className="text-muted-foreground">
+            </h2>
+            <p className="text-muted-foreground">
               Projects contain your backend services, database, and APIs
-            </Text>
+            </p>
           </div>
           <div>
             <Form {...form}>
@@ -253,7 +253,11 @@ export default function OnboardingProjectPage() {
                     <FormItem>
                       <FormLabel>Project Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="My awesome project" {...field} />
+                        <Input
+                          placeholder="My awesome project"
+                          autoFocus
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -316,7 +320,7 @@ export default function OnboardingProjectPage() {
               </form>
             </Form>
           </div>
-        </Box>
+        </div>
       </div>
     </Container>
   );
@@ -324,8 +328,8 @@ export default function OnboardingProjectPage() {
 
 OnboardingProjectPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Onboarding - Create Project">
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Onboarding - Create Project">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };

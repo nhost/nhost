@@ -5,7 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -14,6 +21,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean(),
@@ -26,6 +34,7 @@ export default function MagicLinkSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -75,6 +84,9 @@ export default function MagicLinkSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && values.enabled) {
+          track('Sign In Method Enabled', { method: 'magiclink' });
+        }
         form.reset(values);
 
         if (!isPlatform) {
@@ -101,21 +113,40 @@ export default function MagicLinkSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleMagicLinkSettingsUpdate}>
-        <SettingsContainer
-          title="Magic Link"
-          description="Allow users to sign in with a Magic Link."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/sign-in-magic-link"
-          docsTitle="how to sign in users with Magic Link"
-          switchId="enabled"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Magic Link"
+            description="Allow users to sign in with a Magic Link."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Magic Link"
+                  />
+                )}
+              />
+            }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/sign-in-magic-link',
+              topic: 'how to sign in users with Magic Link',
+            }}
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

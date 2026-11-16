@@ -2,11 +2,23 @@ import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import type { Stripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PK
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK)
-  : null;
+loadStripe.setLoadParameters({ advancedFraudSignals: false });
+
+let stripePromise: Promise<Stripe | null> | null = null;
+
+// Loaded on first render, not on import: the header imports this module on
+// every page, including in CLI and self-hosted mode, but only checkout needs
+// Stripe.js. The promise is cached because the provider needs a stable prop.
+function getStripe() {
+  if (!stripePromise && process.env.NEXT_PUBLIC_STRIPE_PK) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK);
+  }
+
+  return stripePromise;
+}
 
 export default function StripeEmbeddedForm({
   clientSecret,
@@ -16,7 +28,7 @@ export default function StripeEmbeddedForm({
   return (
     <div className="h-[80vh] overflow-y-scroll">
       <EmbeddedCheckoutProvider
-        stripe={stripePromise}
+        stripe={getStripe()}
         options={{
           clientSecret,
         }}

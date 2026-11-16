@@ -67,7 +67,7 @@ On every `sync-period` graphite will perform a graphql query to get all the rows
 In this example we are going to opt for the following mechanism to detect outdated embeddings:
 
 1. Add a column `outdated` (boolean) to indicated whether the row is outdated or not.
-2. Add a postgres trigger and function that will set the `outdated` column to true everytime there is a change to our data.
+2. Add a postgres trigger and function that will set the `outdated` column to true every time there is a change to our data.
 
 With this in mind we are going to create a migration with the following contents:
 
@@ -172,7 +172,7 @@ mutation {
 
 #### Embeddings Generation
 
-After executing the mutation above two things will happen; the first one is that if we look at our logs we will start seeing entries like this on the next `sync-period`:
+After executing the mutation above two things will happen; the first one is that if we look at our [logs](/platform/cloud/logs) we will start seeing entries like this on the next `sync-period`:
 
 ![logs](/images/ai/auto-embeddings/logs.png)
 
@@ -188,7 +188,7 @@ Until eventually it reaches 0.
 
 #### Natural Language and Similarity Search
 
-The second thing that will happen is that the queries `graphiteSearchMovies`, `graphiteSearchMoviesAggregate`, `graphiteSimilarMovies` and `graphiteSimilarMoviesAggregate` will be created. These queries will work similar to the standard `movies` and `moviesAggregate` queries provided by hasura and will respect the same permissions but they will also allow you to query movies using natural language or other movies for comparison. For instance:
+The second thing that will happen is that the queries `graphiteSearchMovies`, `graphiteSearchMoviesAggregate`, `graphiteSimilarMovies` and `graphiteSimilarMoviesAggregate` will be created. These queries will work similar to the standard `movies` and `moviesAggregate` queries provided by hasura and will respect the same [permissions](/products/graphql/permissions) but they will also allow you to query movies using natural language or other movies for comparison. For instance:
 
 ![auto-embeddings-search](/images/ai/auto-embeddings/search.png)
 ![auto-embeddings-similar](/images/ai/auto-embeddings/similar.png)

@@ -33,6 +33,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 	columns, relationships, err := t.astToQuerySelection(
 		field,
 		fragments,
+		role,
 	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
@@ -42,7 +43,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 
 	params, err := t.buildUpdateByPkSQL(
 		b, update, columns, relationships, fragments, variables, role, sessionVariables, roots,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -59,6 +60,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -105,8 +107,7 @@ func (t *table) buildUpdateByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil, // no nested selection CTEs
-		nil, // no nested force-ref CTEs
+
 		fragments,
 		variables,
 		role,

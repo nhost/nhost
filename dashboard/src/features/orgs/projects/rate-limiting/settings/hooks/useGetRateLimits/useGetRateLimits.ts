@@ -3,7 +3,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
 import { parseIntervalNameUnit } from '@/features/orgs/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
-import { useGetRateLimitConfigQuery } from '@/utils/__generated__/graphql';
+import { useGetRateLimitConfigQuery } from '@/generated/graphql';
 
 export default function useGetRateLimits() {
   const { project } = useProject();

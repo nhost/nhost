@@ -1,4 +1,5 @@
 {
+  self,
   pkgs,
   nix2containerPkgs,
   nixops-lib,
@@ -19,6 +20,17 @@ let
     ];
   };
 
+  # Format provisioning Nix sources without making them part of the shared
+  # toolchain package source (and its ready-cache gate).
+  nixfmtSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      ../flake.nix
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
+      (fs.fileFilter (f: f.hasExt "nix") ../ci)
+    ];
+  };
+
   checkDeps = [ ];
 
   # we use this to just build and cache the packages.
@@ -26,21 +38,28 @@ let
   # `nativeBuildInputs` referenced by every `project.nix` in the repo,
   # plus the per-devShell extras (e.g. `go-migrate` from auth, `certbot-*`
   # from cli) and the root `flake.nix` devShell extras (`gh`, `git-cliff`,
-  # `gnused`, `nixfmt`), so a single `nix build .#nixops` warms the cache
+  # `gnused`, `mcp-publisher`, `nixfmt`), so a single
+  # `nix build .#nixops` warms the cache
   # for every project's dev-shell and `make check`.
   buildInputs =
     (with pkgs; [
       nhost.biome
+      actionlint
+      bash
+      nhost.betterleaks
       bun
       cacert
       nhost.certbot-full
       clang
       curl
+      dash
       diffutils
+      dnsutils
       docker-client
       geos
       gh
       git-cliff
+      gnumake
       gnused
       nhost.go
       go-migrate
@@ -51,8 +70,10 @@ let
       nhost.gqlgen
       nhost.gqlgenc
       jq
+      kubectl
       lychee
-      mockgen
+      nhost.mcp-publisher
+      nhost.mockgen
       nhost.nhost-cli
       nixfmt
       nhost.nodejs
@@ -62,24 +83,25 @@ let
       nhost.playwright-driver
       nhost.pnpm
       nhost.postgresql_14-client
-      nhost.postgresql_15
       nhost.postgresql_15-client
-      nhost.postgresql_16
       nhost.postgresql_16-client
       nhost.postgresql_17
       nhost.postgresql_17-client
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
+      (python3.withPackages (p: [ p.pyyaml ]))
+      shellcheck
       skopeo
       nhost.sqlc
       vacuum-go
       vale
       nhost.wal-g
+      zip
     ])
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.apple-sdk_14
     ];
 
@@ -137,7 +159,8 @@ in
   check = pkgs.symlinkJoin {
     name = "check-nixops";
     paths = [
-      (nixops-lib.nix.check { inherit src; })
+      (nixops-lib.nix.check { src = nixfmtSrc; })
+      (import ../ci/ci.nix { inherit pkgs; })
       (nixops-lib.nix.checkPinnedToolchains {
         # Repo-wide: toolchain regressions tend to land in the individual
         # projects' project.nix, not under nixops/.
@@ -145,6 +168,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        overlay = self.overlays.default;
       })
     ];
   };
@@ -184,7 +208,7 @@ in
                 name = "root";
                 paths = with pkgs; [
                   coreutils
-                  nixVersions.nix_2_28
+                  nixVersions.nix_2_31
                   bash
                   gnugrep
                   gnumake

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.nhost/mcp",
+  "title": "Nhost",
+  "description": "Let your users work with their own data through an AI assistant, limited to what they can see.",
+  "version": "0.2.0",
+  "websiteUrl": "https://docs.nhost.io/products/ai/mcp",
+  "repository": {
+    "url": "https://github.com/nhost/nhost",
+    "source": "github",
+    "id": "337414495",
+    "subfolder": "services/mcp"
+  },
+  "icons": [
+    {
+      "src": "https://docs.nhost.io/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    },
+    {
+      "src": "https://app.nhost.io/assets/favicon.png",
+      "mimeType": "image/png",
+      "sizes": ["128x128"]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "docker.io/nhost/mcp:0.2.0",
+      "runtimeHint": "docker",
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:3000/"
+      },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "-p",
+          "value": "3000:3000"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "MCP_GRAPHQL_ENDPOINT",
+          "description": "GraphQL endpoint of the Nhost project the server exposes, e.g. http://hasura-service:8080/v1/graphql",
+          "isRequired": true
+        },
+        {
+          "name": "MCP_AUTH_URL",
+          "description": "Nhost Auth URL used as the OAuth2 authorization server, e.g. https://SUBDOMAIN.auth.REGION.nhost.run/v1",
+          "isRequired": true
+        }
+      ]
+    }
+  ]
+}

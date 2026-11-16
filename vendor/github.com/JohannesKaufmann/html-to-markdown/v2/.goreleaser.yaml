@@ -1,0 +1,67 @@
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    # Note: We only use goreleaser for the CLI,
+    # so we have to go into the "cli" directory.
+    dir: cli/html2markdown
+    binary: html2markdown
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+
+brews:
+  - name: html2markdown
+    repository:
+      owner: JohannesKaufmann
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+
+nfpms:
+  - id: default
+    package_name: html2markdown
+
+    vendor: JohannesKaufmann
+    homepage: https://github.com/JohannesKaufmann/html-to-markdown
+    maintainer: Johannes Kaufmann <johannes@joina.de>
+    description: |
+      Convert HTML to Markdown. Even works with entire websites.
+    license: MIT
+
+    formats:
+      - deb
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

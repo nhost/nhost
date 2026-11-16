@@ -3,8 +3,10 @@ const { describe, it, expect, beforeAll } = require('@jest/globals');
 const PORTS = {
   node22: 3001,
   node24: 3002,
+  node26: 3005,
   npm: 3003,
   yarn: 3004,
+  pnpmStrict: 3006,
 };
 
 const EXPECTED_METADATA = [
@@ -33,6 +35,7 @@ async function waitForHealthy(port, label, maxAttempts = 60) {
 describe.each([
   ['node22 (pnpm)', PORTS.node22, 'nodejs22.x'],
   ['node24 (pnpm)', PORTS.node24, 'nodejs24.x'],
+  ['node26 (pnpm)', PORTS.node26, 'nodejs26.x'],
   ['node24 (npm)', PORTS.npm, 'nodejs24.x'],
   ['node24 (yarn)', PORTS.yarn, 'nodejs24.x'],
 ])('functions runtime (%s)', (label, port, expectedRuntime) => {
@@ -144,5 +147,31 @@ describe.each([
       functions: expect.arrayContaining(expected),
     });
     expect(body.functions).toHaveLength(expected.length);
+  });
+});
+
+// Regression for a pnpm 11 project with an unapproved dependency build script.
+// The shared installer disables lifecycle scripts, so the frozen install must
+// complete without running esbuild's postinstall. Container health is the
+// assertion that dependency installation did not abort.
+describe('functions runtime — pnpm 11 with unapproved build scripts', () => {
+  const base = `http://127.0.0.1:${PORTS.pnpmStrict}`;
+
+  beforeAll(async () => {
+    await waitForHealthy(PORTS.pnpmStrict, 'pnpm-strict');
+  }, 120_000);
+
+  it('GET /healthz returns ok (install was not aborted by ignored build scripts)', async () => {
+    const res = await fetch(`${base}/healthz`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('ok');
+  });
+
+  it('GET / serves the bundled function', async () => {
+    const res = await fetch(`${base}/`);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain(
+      'pnpm strict-build-scripts function is running',
+    );
   });
 });

@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 import NotificationBell from './NotificationBell';
 

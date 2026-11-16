@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Divider } from '@/components/ui/v2/Divider';
+import { FormSwitch } from '@/components/form/FormSwitch';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -16,7 +22,8 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   type ConfigConfigUpdateInput,
   useUpdateRateLimitConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
@@ -32,6 +39,7 @@ export interface RateLimitingFormProps {
   defaultValues: RateLimitDefaultValues;
   serviceName: keyof ConfigConfigUpdateInput;
   title: string;
+  description?: string;
   loading: boolean;
 }
 
@@ -41,12 +49,14 @@ export default function RateLimitingForm({
   defaultValues,
   serviceName,
   title,
+  description,
   loading,
 }: RateLimitingFormProps) {
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateRateLimitConfig] = useUpdateRateLimitConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -73,12 +83,7 @@ export default function RateLimitingForm({
     }
   }, [loading, defaultValues, form]);
 
-  const {
-    register,
-    formState: { errors },
-    formState,
-    watch,
-  } = form;
+  const { formState, watch } = form;
 
   const enabled = watch('enabled');
 
@@ -101,6 +106,10 @@ export default function RateLimitingForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Rate Limit Configured', {
+          service: serviceName,
+          enabled: formValues.enabled,
+        });
         form.reset(formValues);
 
         if (!isPlatform) {
@@ -129,26 +138,36 @@ export default function RateLimitingForm({
         onSubmit={handleSubmit}
         className="flex h-full flex-col overflow-hidden"
       >
-        <SettingsContainer
-          title={title}
-          switchId="enabled"
-          showSwitch
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="flex flex-col px-0"
-        >
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.rateLimit}
-            id="rateLimit"
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Rate limiting"
+            description={description}
+            control={
+              <FormSwitch
+                control={form.control}
+                name="enabled"
+                label={`Toggle ${title} rate limiting`}
+                labelClassName="sr-only"
+                containerClassName="space-y-0"
+              />
+            }
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="flex flex-col px-0">
+            <RateLimitField disabled={!enabled} id="rateLimit" />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

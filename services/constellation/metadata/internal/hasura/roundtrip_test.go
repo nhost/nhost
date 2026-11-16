@@ -16,7 +16,7 @@ import (
 // TestRoundTripJSON_RealMetadata verifies that the existing 39 KB real-world
 // Hasura metadata blob round-trips through FromJSON ∘ ToJSON ∘ FromJSON
 // without losing structure. Fields the engine doesn't model are preserved by
-// the `json:",unknown"` tags on every wire struct.
+// the `json:",embed"` tags on every wire struct.
 func TestRoundTripJSON_RealMetadata(t *testing.T) {
 	t.Parallel()
 
@@ -49,7 +49,7 @@ func TestRoundTripJSON_RealMetadata(t *testing.T) {
 	}
 }
 
-// TestRoundTripJSON_PreservesUnknownFields verifies that the `,unknown` tag
+// TestRoundTripJSON_PreservesUnknownFields verifies that the `,embed` tag
 // captures and re-emits envelope-level and per-struct Hasura fields the
 // engine does not model. This is the property /v1/metadata's `export_metadata`
 // relies on to faithfully return the on-disk blob.

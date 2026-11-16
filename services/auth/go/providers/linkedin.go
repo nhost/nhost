@@ -23,7 +23,7 @@ func NewLinkedInProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/linkedin/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://www.linkedin.com/oauth/v2/authorization",
 				TokenURL: "https://www.linkedin.com/oauth/v2/accessToken",
 			},

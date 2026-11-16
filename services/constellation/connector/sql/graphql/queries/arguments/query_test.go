@@ -299,6 +299,7 @@ func TestParseOrderBy(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 		tbl.EXPECT().ColumnFromGraphqlName("bogus").Return(nil)
+		tbl.EXPECT().ComputedScalarFromGraphqlName("bogus", "").Return(nil)
 		tbl.EXPECT().Relationship("bogus").Return(nil)
 		tbl.EXPECT().TableName().Return("users")
 
@@ -665,8 +666,7 @@ func TestParseQueryNegativeLimitValidationError(t *testing.T) {
 
 	err := parseNegativeQueryArgument(t, "limit")
 
-	var dataErr *arguments.DataExceptionError
-	if errors.As(err, &dataErr) {
+	if dataErr, ok := errors.AsType[*arguments.DataExceptionError](err); ok {
 		t.Fatalf("negative limit returned DataExceptionError: %v", dataErr)
 	}
 
@@ -747,8 +747,7 @@ func TestParseQueryNegativeOffsetDataExceptionError(t *testing.T) {
 
 	err := parseNegativeQueryArgument(t, "offset")
 
-	var vErr *arguments.QueryValidationError
-	if errors.As(err, &vErr) {
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
 		t.Fatalf("negative offset returned validation-failed error: %v", vErr.AsMap())
 	}
 

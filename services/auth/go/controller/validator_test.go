@@ -51,9 +51,9 @@ func getConfig() *controller.Config {
 		WebauthnRPOrigins:                        []string{"https://react-apollo.example.nhost.io"},
 		WebauhtnAttestationTimeout:               time.Minute,
 		OTPEmailEnabled:                          true,
-		MfaEnabled:                               true,
+		OTPSmsEnabled:                            true,
+		TOTPEnabled:                              true,
 		ServerPrefix:                             "",
-		SMSPasswordlessEnabled:                   true,
 		SMSProvider:                              "twilio",
 		SMSTwilioAccountSid:                      "smsAccountSid",
 		SMSTwilioAuthToken:                       "smsAuthToken",
@@ -67,6 +67,11 @@ func getConfig() *controller.Config {
 		OAuth2ProviderRefreshTokenTTL:            2592000,
 		OAuth2ProviderCIMDEnabled:                false,
 		OAuth2ProviderCIMDAllowInsecureTransport: false,
+		SMSGenericURL:                            "",
+		SMSGenericContentType:                    "",
+		SMSGenericHeaders:                        "",
+		SMSGenericTimeout:                        0,
+		SMSGenericBodyTemplate:                   "",
 	}
 }
 
@@ -211,6 +216,16 @@ func TestValidateEmail(t *testing.T) {
 		},
 
 		{
+			name:           "blocked domain matches case-insensitively",
+			blockedDomains: []string{"Acme.com"},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@aCME.COM",
+			expected:       false,
+		},
+
+		{
 			name:           "blocked domain doesnt match",
 			blockedDomains: []string{"acme.com"},
 			blockedEmails:  []string{},
@@ -227,6 +242,16 @@ func TestValidateEmail(t *testing.T) {
 			allowedDomains: []string{},
 			allowedEmails:  []string{},
 			email:          "test@acme.com",
+			expected:       false,
+		},
+
+		{
+			name:           "blocked email matches case-insensitively",
+			blockedDomains: []string{},
+			blockedEmails:  []string{"Test@Acme.com"},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "tEST@aCME.COM",
 			expected:       false,
 		},
 
@@ -251,6 +276,16 @@ func TestValidateEmail(t *testing.T) {
 		},
 
 		{
+			name:           "allowed domain matches case-insensitively",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{"Acme.com"},
+			allowedEmails:  []string{},
+			email:          "test@aCME.COM",
+			expected:       true,
+		},
+
+		{
 			name:           "allowed domain doesnt match",
 			blockedDomains: []string{},
 			blockedEmails:  []string{},
@@ -267,6 +302,16 @@ func TestValidateEmail(t *testing.T) {
 			allowedDomains: []string{},
 			allowedEmails:  []string{"test@acme.com"},
 			email:          "test@acme.com",
+			expected:       true,
+		},
+
+		{
+			name:           "allowed email matches case-insensitively",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{"Test@Acme.com"},
+			email:          "tEST@aCME.COM",
 			expected:       true,
 		},
 

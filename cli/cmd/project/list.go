@@ -42,9 +42,9 @@ func List(ctx context.Context, ce *clienv.CliEnv, jsonOutput bool) error {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
+	orgs, err := cl.GetOrganizationsApps(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get workspaces: %w", err)
+		return fmt.Errorf("failed to get projects: %w", err)
 	}
 
 	if jsonOutput {
@@ -61,7 +61,7 @@ func List(ctx context.Context, ce *clienv.CliEnv, jsonOutput bool) error {
 
 func printListStyled(
 	ce *clienv.CliEnv,
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 ) error {
 	bold := lipgloss.NewStyle().Bold(true)
 	bullet := lipgloss.NewStyle().Foreground(clienv.ANSIColorGreen).Render("●")
@@ -69,10 +69,6 @@ func printListStyled(
 
 	for _, org := range orgs.GetOrganizations() {
 		printOrgApps(ce, org.Name, org.Apps, bold, bullet, dim)
-	}
-
-	for _, ws := range orgs.GetWorkspaces() {
-		printOrgApps(ce, ws.Name+" *", ws.Apps, bold, bullet, dim)
 	}
 
 	return nil
@@ -108,13 +104,9 @@ type projectJSON struct {
 }
 
 func collectProjects(
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 ) []projectJSON {
-	projects := make(
-		[]projectJSON,
-		0,
-		len(orgs.GetOrganizations())+len(orgs.GetWorkspaces()),
-	)
+	projects := make([]projectJSON, 0, len(orgs.GetOrganizations()))
 
 	for _, org := range orgs.GetOrganizations() {
 		for _, app := range org.Apps {
@@ -127,22 +119,11 @@ func collectProjects(
 		}
 	}
 
-	for _, ws := range orgs.GetWorkspaces() {
-		for _, app := range ws.Apps {
-			projects = append(projects, projectJSON{
-				Name:         app.Name,
-				Subdomain:    app.Subdomain,
-				Organization: ws.Name,
-				Region:       app.Region.Name,
-			})
-		}
-	}
-
 	return projects
 }
 
 func printListJSON(
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 ) error {
 	projects := collectProjects(orgs)
 

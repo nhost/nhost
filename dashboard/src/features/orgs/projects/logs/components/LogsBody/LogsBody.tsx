@@ -1,5 +1,5 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { LogsDetailSheet } from '@/features/orgs/projects/logs/components/LogsDetailSheet';
 import {
   ACTIONS_WIDTH,
   LOG_CELL_PADDING,
@@ -9,19 +9,19 @@ import {
   SERVICE_WIDTH,
   TIMESTAMP_WIDTH,
 } from '@/features/orgs/projects/logs/components/LogsBody/columns';
+import { isSameLogEntry } from '@/features/orgs/projects/logs/components/LogsBody/isSameLogEntry';
 import {
   LogsTable,
   type LogsTableHandle,
 } from '@/features/orgs/projects/logs/components/LogsBody/LogsTable';
-import { isSameLogEntry } from '@/features/orgs/projects/logs/components/LogsBody/isSameLogEntry';
 import type {
   LogEntry,
   LogsData,
 } from '@/features/orgs/projects/logs/components/LogsBody/types';
 import { useGlobalSearchShortcut } from '@/features/orgs/projects/logs/components/LogsBody/useGlobalSearchShortcut';
 import { useLogSearch } from '@/features/orgs/projects/logs/components/LogsBody/useLogSearch';
+import { LogsDetailSheet } from '@/features/orgs/projects/logs/components/LogsDetailSheet';
 import { LogsSearchBar } from '@/features/orgs/projects/logs/components/LogsSearchBar';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Static, render-independent — hoisted so it is not re-created on every render.
 const loadingIndicator = (
@@ -107,21 +107,27 @@ function LogsBodyContent({
   }, [searchedQuery]);
 
   const goNext = () => {
-    if (totalMatches === 0) return;
+    if (totalMatches === 0) {
+      return;
+    }
     const next = (currentMatch + 1) % totalMatches;
     setCurrentMatchIndex(next);
     tableRef.current?.scrollToRow(matches[next].rowIndex);
   };
 
   const goPrev = () => {
-    if (totalMatches === 0) return;
+    if (totalMatches === 0) {
+      return;
+    }
     const prev = (currentMatch - 1 + totalMatches) % totalMatches;
     setCurrentMatchIndex(prev);
     tableRef.current?.scrollToRow(matches[prev].rowIndex);
   };
 
   const toggleSelection = (entry: LogEntry) => {
-    setSelectedEntry((current) => (isSameLogEntry(current, entry) ? null : entry));
+    setSelectedEntry((current) =>
+      isSameLogEntry(current, entry) ? null : entry,
+    );
   };
 
   return (
@@ -202,8 +208,8 @@ export default function LogsBody({
 
   if (error) {
     return (
-      <div className="h-full w-full bg-paper p-2.5">
-        <p className="truncate font-mono text-xs- font-normal text-destructive">
+      <div className="h-full w-full p-2.5">
+        <p className="truncate font-mono font-normal text-destructive text-xs-">
           {error?.message.includes('the query time range exceeds the limit')
             ? 'The query time range exceeds the limit, please select a shorter range.'
             : error?.message}
@@ -214,8 +220,8 @@ export default function LogsBody({
 
   if (logsData?.logs?.length === 0) {
     return (
-      <div className="h-full w-full bg-paper p-2.5">
-        <p className="truncate font-mono text-xs- font-normal">
+      <div className="h-full w-full p-2.5">
+        <p className="truncate font-mono font-normal text-xs-">
           There are no logs for the selected period.
         </p>
       </div>
@@ -223,7 +229,7 @@ export default function LogsBody({
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-paper">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       <LogsBodyContent
         key={filterKey}
         data={data}

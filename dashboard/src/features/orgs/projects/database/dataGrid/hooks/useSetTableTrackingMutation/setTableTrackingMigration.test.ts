@@ -5,12 +5,11 @@ const mocks = vi.hoisted(() => ({
   executeMigration: vi.fn(),
 }));
 
-vi.mock('@/utils/hasura-api/generated/default/default', () => ({
+vi.mock('@/utils/hasura-api/migrationFetch', () => ({
   executeMigration: mocks.executeMigration,
 }));
 
 const baseOptions = {
-  appUrl: 'https://test.hasura.app',
   adminSecret: 'test-secret',
 };
 
@@ -44,7 +43,7 @@ describe('setTableTrackingMigration', () => {
         datasource: 'default',
         skip_execution: false,
       },
-      { baseUrl: baseOptions.appUrl, adminSecret: baseOptions.adminSecret },
+      { adminSecret: baseOptions.adminSecret },
     );
   });
 
@@ -68,7 +67,7 @@ describe('setTableTrackingMigration', () => {
         datasource: 'default',
         skip_execution: false,
       },
-      { baseUrl: baseOptions.appUrl, adminSecret: baseOptions.adminSecret },
+      { adminSecret: baseOptions.adminSecret },
     );
   });
 

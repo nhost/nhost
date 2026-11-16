@@ -1,4 +1,11 @@
-import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
+import {
+  type ChangeEventHandler,
+  type ComponentProps,
+  type FocusEventHandler,
+  type ForwardedRef,
+  forwardRef,
+  type ReactNode,
+} from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
@@ -30,6 +37,17 @@ interface FormTextareaProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
+  autoComplete?: ComponentProps<typeof Textarea>['autoComplete'];
+  autoFocus?: ComponentProps<typeof Textarea>['autoFocus'];
+  /**
+   * Called after the field's onChange runs. Use for side effects like live
+   * validation.
+   */
+  onChange?: ChangeEventHandler<HTMLTextAreaElement>;
+  /**
+   * Called after the field's onBlur runs.
+   */
+  onBlur?: FocusEventHandler<HTMLTextAreaElement>;
 }
 
 function FormTextareaImpl<
@@ -45,6 +63,10 @@ function FormTextareaImpl<
     inline,
     helperText,
     transform,
+    autoComplete,
+    autoFocus,
+    onChange: onChangeProp,
+    onBlur: onBlurProp,
   }: FormTextareaProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
@@ -53,9 +75,24 @@ function FormTextareaImpl<
       control={control}
       name={name}
       render={({ field }) => {
-        const fieldProps = isNotEmptyValue(transform)
+        const baseFieldProps = isNotEmptyValue(transform)
           ? getTransformedFieldProps(field, transform)
           : field;
+        const {
+          onChange: fieldOnChange,
+          onBlur: fieldOnBlur,
+          ...restFieldProps
+        } = baseFieldProps;
+        const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (
+          event,
+        ) => {
+          fieldOnChange(event);
+          onChangeProp?.(event);
+        };
+        const handleBlur: FocusEventHandler<HTMLTextAreaElement> = (event) => {
+          fieldOnBlur();
+          onBlurProp?.(event);
+        };
         return (
           <FormItem
             className={cn({
@@ -79,7 +116,11 @@ function FormTextareaImpl<
               <FormControl>
                 <Textarea
                   placeholder={placeholder}
-                  {...fieldProps}
+                  autoComplete={autoComplete}
+                  autoFocus={autoFocus}
+                  {...restFieldProps}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   ref={mergeRefs([field.ref, ref])}
                   className={cn(inputClasses, className)}
                 />

@@ -4,8 +4,8 @@ import {
   Navigate,
   Outlet,
   Route,
-  RouterProvider,
-} from 'react-router-dom';
+} from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './lib/nhost/AuthProvider';

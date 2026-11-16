@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { UpdateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaRelationshipOptions {
   appUrl: string;
@@ -17,7 +17,7 @@ export default async function updateRemoteSchemaRelationship({
 }: UpdateRemoteSchemaRelationshipOptions &
   UpdateRemoteSchemaRelationshipVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'update_remote_schema_remote_relationship',
         args: {
@@ -28,7 +28,7 @@ export default async function updateRemoteSchemaRelationship({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

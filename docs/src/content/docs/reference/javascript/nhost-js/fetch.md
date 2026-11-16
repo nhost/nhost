@@ -28,19 +28,20 @@ extracted from common error response formats.
 
 ### Type Parameters
 
-| Type Parameter | Default type | Description                   |
-| -------------- | ------------ | ----------------------------- |
-| `T`            | `unknown`    | The type of the response body |
+| Type Parameter                    | Default type | Description                   |
+| --------------------------------- | ------------ | ----------------------------- |
+| <a id="type-parameter-t"></a> `T` | `unknown`    | The type of the response body |
 
 ### Constructors
 
 #### Constructor
 
 ```ts
-new FetchError<T>(
+new FetchError<T = unknown>(
    body: T,
    status: number,
-   headers: Headers): FetchError<T>;
+   headers: Headers
+): FetchError<T>;
 ```
 
 Creates a new FetchError instance
@@ -59,9 +60,7 @@ Creates a new FetchError instance
 
 ##### Overrides
 
-```ts
-Error.constructor;
-```
+`Error.constructor`
 
 ### Properties
 
@@ -90,7 +89,7 @@ Hasura admin secret for elevated permissions (sets x-hasura-admin-secret header)
 #### role?
 
 ```ts
-optional role?: string;
+role?: string;
 ```
 
 Hasura role to use for the request (sets x-hasura-role header)
@@ -98,7 +97,7 @@ Hasura role to use for the request (sets x-hasura-role header)
 #### sessionVariables?
 
 ```ts
-optional sessionVariables?: Record<string, string>;
+sessionVariables?: Record<string, string>;
 ```
 
 Additional Hasura session variables to attach to requests.
@@ -127,9 +126,9 @@ offering access to the parsed response body along with status and headers.
 
 ### Type Parameters
 
-| Type Parameter | Description                   |
-| -------------- | ----------------------------- |
-| `T`            | The type of the response body |
+| Type Parameter                      | Description                   |
+| ----------------------------------- | ----------------------------- |
+| <a id="type-parameter-t-1"></a> `T` | The type of the response body |
 
 ### Properties
 
@@ -255,9 +254,9 @@ intercept both the request (before calling next) and the response
 
 ### Parameters
 
-| Parameter        | Type                                | Default value | Description                                |
-| ---------------- | ----------------------------------- | ------------- | ------------------------------------------ |
-| `chainFunctions` | [`ChainFunction`](#chainfunction)[] | `[]`          | Array of chain functions to apply in order |
+| Parameter         | Type                                | Default value | Description                                |
+| ----------------- | ----------------------------------- | ------------- | ------------------------------------------ |
+| `chainFunctions?` | [`ChainFunction`](#chainfunction)[] | `[]`          | Array of chain functions to apply in order |
 
 ### Returns
 
@@ -369,7 +368,7 @@ This middleware:
 
 1. Sets the x-hasura-admin-secret header, which grants full admin access to Hasura
 2. Optionally sets the x-hasura-role header if a role is provided
-3. Optionally sets additional x-hasura-\* headers for custom session variables
+3. Optionally sets additional x-hasura-* headers for custom session variables
 
 **Security Warning**: Never use this middleware in client-side code or expose
 the admin secret to end users. Admin secrets grant unrestricted access to your

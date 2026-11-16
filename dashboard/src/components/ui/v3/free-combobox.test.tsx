@@ -1,13 +1,13 @@
 import { vi } from 'vitest';
 import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
 } from '@/tests/testUtils';
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const OPTIONS = [{ value: 'now()', label: 'now()' }];
 

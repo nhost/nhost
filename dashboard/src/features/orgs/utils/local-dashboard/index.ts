@@ -1,9 +1,6 @@
 import type { Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { type GetProjectQuery, Sla_Level_Enum } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
-import {
-  type GetProjectQuery,
-  Sla_Level_Enum,
-} from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret, getLocalAppId } from '@/utils/env';
 
 export const localApplication: GetProjectQuery['apps'][0] = {
@@ -34,7 +31,6 @@ export const localApplication: GetProjectQuery['apps'][0] = {
   repositoryProductionBranch: '',
   nhostBaseFolder: '',
   automaticDeploys: true,
-  legacyPlan: null,
   config: {
     observability: {
       grafana: {
@@ -55,7 +51,6 @@ export const localOrganization: Org = {
     id: 'abc',
     name: 'Pro',
     deprecated: false,
-    individual: false,
     isFree: false,
     price: 25,
     featureMaxDbSize: 1,

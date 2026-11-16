@@ -12,11 +12,13 @@ import {
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
+import type { Apps } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
-import type { Apps } from '@/utils/__generated__/graphql';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
-const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
+const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/console/default`;
+const projectMetadataUrl = `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`;
+const e2eTriggerNamePattern = /^e2e_/;
 
 /**
  * Runs a SQL statement using the SQL Editor UI.
@@ -365,19 +367,19 @@ export async function selectOrgByName(
 }
 
 /**
- * Navigates to a page within the currently selected organization via the header
- * page switcher. Assumes the page is already on a route within the org.
+ * Navigates directly to a page within the given organization.
  *
  * @param page - The Playwright page object.
- * @param label - The visible label of the org page to navigate to.
- * @returns A promise that resolves once the option has been selected.
+ * @param orgSlug - The slug of the organization.
+ * @param pageSlug - The org page to navigate to.
+ * @returns A promise that resolves once the page has loaded.
  */
-export async function gotoOrgPageViaSwitcher(
+export async function gotoOrgPage(
   page: Page,
-  label: 'Billing' | 'Settings' | 'Members' | 'Projects',
+  orgSlug: string,
+  pageSlug: 'billing' | 'settings' | 'members' | 'projects',
 ) {
-  await page.getByTestId('org-pages-switcher').click();
-  await page.getByRole('option', { name: label, exact: true }).click();
+  await gotoUrl(page, `/orgs/${orgSlug}/${pageSlug}`);
 }
 
 export function getCardExpiration() {
@@ -457,32 +459,40 @@ export async function fillStripeCheckout(page: Page) {
 /**
  * Deletes the organization the page is currently scoped to. Assumes the page is
  * on a route within the organization (it navigates to its settings) and that
- * the org is empty enough to be deletable. Drives the two-checkbox confirmation
- * dialog and waits for the success toast and the redirect to the empty state.
+ * the signed-in user is an organization admin. Drives the acknowledgment
+ * checkboxes and the typed name confirmation, then waits for the success toast
+ * and the redirect to the empty state.
  *
  * @param page - The Playwright page object.
  * @param orgSlug - The slug of the organization to delete.
  * @returns A promise that resolves once the organization has been deleted.
  */
 export async function deleteOrganization(page: Page, orgSlug: string) {
-  await gotoOrgPageViaSwitcher(page, 'Settings');
-  await page.waitForURL(`**/orgs/${orgSlug}/settings`);
+  await gotoOrgPage(page, orgSlug, 'settings');
 
   await expect(
-    page.getByRole('heading', { name: 'Delete Organization' }),
+    page.getByRole('heading', { name: 'Delete organization' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
-  await expect(
-    page.getByRole('alertdialog').getByText('Delete Organization'),
-  ).toBeVisible();
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toBeVisible();
 
-  const confirmButton = page.getByTestId('deleteOrgButton');
+  const confirmButton = dialog.getByTestId('deleteOrgButton');
   await expect(confirmButton).toBeDisabled();
 
-  await page.getByLabel("I'm sure I want to delete this Organization").check();
+  await dialog
+    .getByLabel("I'm sure I want to delete this organization")
+    .check();
   await expect(confirmButton).toBeDisabled();
-  await page.getByLabel('I understand this action cannot be undone').check();
+
+  await dialog.getByLabel('I understand this action cannot be undone').check();
+  await expect(confirmButton).toBeDisabled();
+
+  const requiredConfirmation =
+    (await dialog.getByRole('code').textContent()) ?? '';
+  expect(requiredConfirmation).not.toBe('');
+  await dialog.getByRole('textbox').fill(requiredConfirmation);
   await expect(confirmButton).toBeEnabled();
 
   await confirmButton.click();
@@ -566,20 +576,17 @@ export async function cleanupOnboardingTestIfNeeded() {
 
 export async function cleanupRemoteSchemaTestIfNeeded() {
   try {
-    const response = await fetch(
-      `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
-      {
-        method: 'POST',
-        headers: {
-          'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
-        },
-        body: JSON.stringify({
-          type: 'export_metadata',
-          version: 2,
-          args: {},
-        }),
+    const response = await fetch(projectMetadataUrl, {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
       },
-    );
+      body: JSON.stringify({
+        type: 'export_metadata',
+        version: 2,
+        args: {},
+      }),
+    });
     const data = (await response.json()) as ExportMetadataResponse;
 
     const remoteSchemas = data.metadata?.remote_schemas;
@@ -594,28 +601,105 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
 
     await Promise.all(
       schemasToDelete.map((remoteSchema) =>
-        fetch(
-          `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
-          {
-            method: 'POST',
-            headers: {
-              'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
-            },
-            body: JSON.stringify({
-              args: [
-                {
-                  type: 'remove_remote_schema',
-                  args: {
-                    name: remoteSchema.name,
-                  },
-                },
-              ],
-              source: 'default',
-              type: 'bulk',
-            }),
+        fetch(projectMetadataUrl, {
+          method: 'POST',
+          headers: {
+            'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
           },
-        ),
+          body: JSON.stringify({
+            args: [
+              {
+                type: 'remove_remote_schema',
+                args: {
+                  name: remoteSchema.name,
+                },
+              },
+            ],
+            source: 'default',
+            type: 'bulk',
+          }),
+        }),
       ),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function cleanupTriggerTestIfNeeded(kind: 'cron' | 'event') {
+  try {
+    const response = await fetch(projectMetadataUrl, {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+      },
+      body: JSON.stringify({
+        type: 'export_metadata',
+        version: 2,
+        args: {},
+      }),
+    });
+    const data = (await response.json()) as Partial<ExportMetadataResponse> & {
+      code?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(`[${data.code}]:${data.error}`);
+    }
+
+    const operations: Array<{
+      type: 'delete_cron_trigger' | 'pg_delete_event_trigger';
+      args: { name: string; source?: 'default' };
+    }> = [];
+
+    if (kind === 'cron') {
+      for (const trigger of data.metadata?.cron_triggers ?? []) {
+        if (e2eTriggerNamePattern.test(trigger.name)) {
+          operations.push({
+            type: 'delete_cron_trigger',
+            args: { name: trigger.name },
+          });
+        }
+      }
+    } else {
+      const source = data.metadata?.sources?.find(
+        ({ name }) => name === 'default',
+      );
+
+      for (const table of source?.tables ?? []) {
+        for (const trigger of table.event_triggers ?? []) {
+          if (e2eTriggerNamePattern.test(trigger.name)) {
+            operations.push({
+              type: 'pg_delete_event_trigger',
+              args: { name: trigger.name, source: 'default' },
+            });
+          }
+        }
+      }
+    }
+
+    await Promise.all(
+      operations.map(async (operation) => {
+        const deleteResponse = await fetch(projectMetadataUrl, {
+          method: 'POST',
+          headers: {
+            'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+          },
+          body: JSON.stringify(operation),
+        });
+        const deleteBody = (await deleteResponse.json()) as {
+          code?: string;
+          error?: string;
+        };
+
+        if (!deleteResponse.ok) {
+          throw new Error(
+            `Failed to delete trigger "${operation.args.name}": [${deleteBody.code}]:${deleteBody.error}`,
+          );
+        }
+      }),
     );
   } catch (error) {
     console.error(error);
@@ -741,8 +825,14 @@ export async function openRelationshipDialog({
   page: Page;
   tableName: string;
 }) {
+  // A drawer that is still animating out restores focus when it unmounts,
+  // which can dismiss the sidebar menu we are about to open.
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
   await page
-    .locator(`li:has-text("${tableName}") #table-management-menu-${tableName}`)
+    .locator(
+      `li:has-text("${tableName}") [data-testid="table-management-menu-${tableName}"]`,
+    )
     .click();
 
   await page.getByRole('menuitem', { name: /edit relationships/i }).click();
@@ -887,7 +977,7 @@ export async function navigateToGraphQLPlayground({
 /**
  * Selects a role in the GraphiQL playground's Role dropdown
  * (`UserAndRoleSelect`). Unlike editing the Headers JSON, this Radix Select
- * updates `userHeaders` synchronously (no debounce), so the rebuilt fetcher
+ * updates `selection` synchronously (no debounce), so the rebuilt fetcher
  * carries `x-hasura-role: <role>` on the next request the caller triggers.
  *
  * @param page - The Playwright page object.

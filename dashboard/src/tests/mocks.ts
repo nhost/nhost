@@ -4,9 +4,9 @@ import { faker } from '@faker-js/faker';
 import type { StoredSession } from '@nhost/nhost-js/session';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
+import { Organization_Status_Enum } from '@/generated/graphql';
 import type { Organization, Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 
 export const mockMatchMediaValue = (query: any) => ({
   matches: false,
@@ -68,13 +68,6 @@ export const mockApplication: Project = {
   repositoryProductionBranch: '',
   nhostBaseFolder: '',
   automaticDeploys: true,
-  legacyPlan: {
-    id: '1',
-    name: 'Starter',
-    isFree: true,
-    price: 0,
-    featureMaxDbSize: 1,
-  },
   config: {
     observability: {
       grafana: {
@@ -91,8 +84,8 @@ export const mockSession: StoredSession = {
   accessToken:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   accessTokenExpiresIn: 86400,
-  refreshToken: faker.datatype.uuid(),
-  refreshTokenId: faker.datatype.uuid(),
+  refreshToken: faker.string.uuid(),
+  refreshTokenId: faker.string.uuid(),
   decodedToken: {
     sub: '1234567890',
     iat: 1516239022,
@@ -104,9 +97,9 @@ export const mockSession: StoredSession = {
     },
   },
   user: {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     email: faker.internet.email(),
-    displayName: faker.name.fullName(),
+    displayName: faker.person.fullName(),
     createdAt: faker.date.past().toISOString(),
     avatarUrl: faker.image.avatar(),
     locale: 'en',
@@ -129,7 +122,6 @@ export const mockOrganization: Organization = {
     id: 'abc',
     name: 'Pro',
     deprecated: false,
-    individual: false,
     isFree: false,
     featureMaxDbSize: 1,
     price: 25,
@@ -151,7 +143,6 @@ export const mockOrganizations: Organization[] = [
       name: 'Starter',
       price: 0,
       deprecated: false,
-      individual: true,
       isFree: true,
       featureMaxDbSize: 1,
       __typename: 'plans',
@@ -170,7 +161,6 @@ export const mockOrganizations: Organization[] = [
       name: 'Pro',
       price: 25,
       deprecated: false,
-      individual: false,
       isFree: false,
       featureMaxDbSize: 10,
       __typename: 'plans',

@@ -90,12 +90,14 @@ The package owns no business logic — see `controller/websocket/doc.go` for its
 
 ```go
 operation, fragments, validatedVariables, err := parseAndValidateQuery(...)
+plan, err := state.queryPlanner.Plan(operation, fragments, session.Role, validatedVariables)
+if plan.HasRemoteQueries() { /* send not-supported error frame; do not start polling */ return }
 dbName := getConnectorForOperation(state, operation)
 subHandler := state.subHandlers[dbName]
 h.startSubscription(ctx, id, payload, subHandler, operation, fragments, validatedVariables, logger)
 ```
 
-`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors (the planner rejects subscriptions with remote relationships in `Controller.execute`).
+`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors: `OnSubscribe` rejects operations with remote relationships before registering the subscription or starting SQL polling.
 
 `startSubscription` calls `subHandler.Start`, gets a `<-chan subscription.Update`, and spawns `forwardUpdates` to translate updates into `next`/`error` frames.
 
@@ -248,7 +250,7 @@ When a cohort's last subscriber leaves, the next poll-tick observes `c.isEmpty()
 | `connector/sql/subscription/doc.go` | Package architecture diagram and details |
 | `connector/sql/graphql/queries/multiplexed/multiplexed.go` | SQL rewrite: `UNNEST` + JSON path operators |
 | `connector/sql/postgres/postgres.go` | `ExecuteMultiplexedOperation` for pgx |
-| `internal/lib/syncmap/syncmap.go` | Typed concurrent map used by `webSocketHandler.subs` |
+| `github.com/nhost/nhost/internal/lib/syncmap` (repo root, not under constellation's `internal/`) | Typed concurrent map used by `webSocketHandler.subs` |
 
 ## See also
 

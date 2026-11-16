@@ -1,3 +1,21 @@
+## [mcp@0.3.1] - 2026-11-11
+
+### 🐛 Bug Fixes
+
+- *(cli)* Enforce MCP allowlist on scalar root fields and fragments (#5362)
+
+## [mcp@0.3.0] - 2026-09-18
+
+### 🚀 Features
+
+- *(mcp)* Add unauthenticated /healthz for probes (#4948)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(mcp)* Publish the MCP service to the official MCP Registry (#5039)
+
 ## [mcp@0.2.0] - 2026-06-29
 
 ### 🚀 Features

@@ -18,6 +18,10 @@ cd nixops/overlays/vercel
 nix-shell -p node2nix --run "node2nix --pkg-name nodejs_22 -i node-packages.json"
 ```
 
+  After regeneration, replace deprecated `stdenv.isLinux` / `stdenv.isDarwin`
+  checks in `default.nix` and `node-env.nix` with
+  `stdenv.hostPlatform.isLinux` / `stdenv.hostPlatform.isDarwin`.
+
 3. Add esbuild platform binaries. node2nix does not resolve esbuild's platform-specific
 optional dependencies (`@esbuild/<platform>`), so they must be added manually to
 `node-packages.nix`:

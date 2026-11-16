@@ -186,6 +186,7 @@ func (ctrl *Controller) signinWithOTPSignUp(
 				Metadata:          metadata,
 				Roles:             deptr(options.AllowedRoles),
 				PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+				NewPhoneNumber:    pgtype.Text{}, //nolint:exhaustruct
 				Otp:               otp,
 				OtpHashExpiresAt:  sql.TimestampTz(otpExpiresAt),
 				OtpMethodLastUsed: sql.Text("email"),

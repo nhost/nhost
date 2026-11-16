@@ -1,15 +1,9 @@
--- Reproduction for the nested array-relationship + post-check + parent-CTE
--- substitution bug. Mirrors the queries-package fixture in
+-- Fixture for a nested array relationship whose child insert check reads
+-- both its DB-defaulted visibility and the parent through a relationship.
+-- Mirrors the queries-package fixture in
 -- services/constellation/connector/sql/graphql/queries/testdata/pg_schema.sql.
---
--- The child's insert check references both a sibling relationship to the
--- parent (notes.author_id, walked via the note_id FK) AND a DB-defaulted
--- column on the child itself (visibility), so requiresPostInsertCheck fires
--- for the child. When inserted as the nested side of an array relationship
--- from notes, buildSingleInsertCTEPostCheck (single-row) /
--- buildMultiNestedInsertCTEPostCheck (multi-row) must thread tableSubs so
--- the post-check's EXISTS reads from mutation_result (the parent's in-flight
--- CTE) instead of the underlying empty public.notes table.
+-- The parent row is inserted before the child, so the child's check reads
+-- its own inserted row and sees the parent in the base table.
 
 CREATE TABLE public.notes (
   id        uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,

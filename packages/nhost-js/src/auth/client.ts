@@ -858,6 +858,67 @@ export interface SignInIdTokenRequest {
 }
 
 /**
+ * Method that can be used to elevate a session
+ */
+export type ElevationMethod = 'webauthn' | 'totp' | 'otp-email' | 'otp-sms';
+
+/**
+ * Elevation status of the user
+ @property elevationRequired (`boolean`) - Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+    *    Example - `true`
+ @property methods (`ElevationMethod[]`) - Methods the user can use to elevate their session
+    *    Example - `["webauthn","totp"]`
+ @property sessionElevated (`boolean`) - Whether the bearer token has an elevated claim matching its subject
+    *    Example - `false`*/
+export interface ElevationMethodsResponse {
+  /**
+   * Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+   *    Example - `true`
+   */
+  elevationRequired: boolean;
+  /**
+   * Methods the user can use to elevate their session
+   *    Example - `["webauthn","totp"]`
+   */
+  methods: ElevationMethod[];
+  /**
+   * Whether the bearer token has an elevated claim matching its subject
+   *    Example - `false`
+   */
+  sessionElevated: boolean;
+}
+
+/**
+ * 
+ @property otp (`string`) - One time password*/
+export interface ElevateTotpRequest {
+  /**
+   * One time password
+   */
+  otp: string;
+}
+
+/**
+ * 
+ @property otp (`string`) - One time password*/
+export interface ElevateOTPEmailVerifyRequest {
+  /**
+   * One time password
+   */
+  otp: string;
+}
+
+/**
+ * 
+ @property otp (`string`) - One time password*/
+export interface ElevateOTPSmsVerifyRequest {
+  /**
+   * One time password
+   */
+  otp: string;
+}
+
+/**
  * 
  @property ticket (`string`) - Ticket
     *    Pattern - ^mfaTotp:.*$
@@ -1370,7 +1431,7 @@ export type URLEncodedBase64 = string;
     *    Example - `"en"`
     *    MinLength - 2
     *    MaxLength - 3
- @property metadata (`Record<string, unknown>`) - Custom metadata associated with the user
+ @property metadata (`Record<string, unknown> | null`) - Custom metadata associated with the user
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property phoneNumber? (`string`) - User's phone number
     *    Example - `"+12025550123"`
@@ -1434,7 +1495,7 @@ export interface User {
    * Custom metadata associated with the user
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
   /**
    * User's phone number
    *    Example - `"+12025550123"`
@@ -1516,6 +1577,23 @@ export interface UserDeanonymizeRequest {
 
 /**
  * 
+ @property phoneNumber (`string`) - Phone number of the user
+    *    Example - `"+123456789"`
+ @property options? (`SignUpOptions`) - */
+export interface UserDeanonymizeSmsRequest {
+  /**
+   * Phone number of the user
+   *    Example - `"+123456789"`
+   */
+  phoneNumber: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
  @property newEmail (`string`) - A valid email
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
@@ -1542,6 +1620,37 @@ export interface UserEmailChangeRequest {
    *    MaxLength - 43
    */
   codeChallenge?: string;
+}
+
+/**
+ * 
+ @property newPhoneNumber (`string`) - New phone number to bind to the user once verified via SMS OTP
+    *    Example - `"+123456789"`*/
+export interface UserPhoneNumberChangeRequest {
+  /**
+   * New phone number to bind to the user once verified via SMS OTP
+   *    Example - `"+123456789"`
+   */
+  newPhoneNumber: string;
+}
+
+/**
+ * 
+ @property newPhoneNumber (`string`) - The phone number that was previously requested via /user/phone-number/change
+    *    Example - `"+123456789"`
+ @property otp (`string`) - One-time password received via SMS at the new phone number
+    *    Example - `"123456"`*/
+export interface UserPhoneNumberChangeVerifyRequest {
+  /**
+   * The phone number that was previously requested via /user/phone-number/change
+   *    Example - `"+123456789"`
+   */
+  newPhoneNumber: string;
+  /**
+   * One-time password received via SMS at the new phone number
+   *    Example - `"123456"`
+   */
+  otp: string;
 }
 
 /**
@@ -2265,6 +2374,10 @@ export interface Oauth2AuthorizePostBody {
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   
+    @property upstreamParams? (Record<string, string>) - Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
     @property codeChallenge? (string) - PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   */
 export interface SignInProviderParams {
@@ -2314,6 +2427,13 @@ export interface SignInProviderParams {
    */
   providerSpecificParams?: ProviderSpecificParams;
   /**
+   * Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
+   */
+  upstreamParams?: Record<string, string>;
+  /**
    * PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   
    */
@@ -2337,6 +2457,10 @@ export interface SignInProviderParams {
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   
+    @property upstreamParams? (Record<string, string>) - Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
     @property codeChallenge? (string) - PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   */
 export interface SignUpProviderParams {
@@ -2380,6 +2504,13 @@ export interface SignUpProviderParams {
   
    */
   providerSpecificParams?: ProviderSpecificParams;
+  /**
+   * Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
+   */
+  upstreamParams?: Record<string, string>;
   /**
    * PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   
@@ -2527,6 +2658,17 @@ export interface Client {
   getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
 
   /**
+     Summary: Get available elevation methods
+     List the authenticated user's available elevation methods, whether elevation is required under the configured mode, and whether the current session is elevated.
+
+     This method may return different T based on the response code:
+     - 200: ElevationMethodsResponse
+     */
+  getElevationMethods(
+    options?: RequestInit,
+  ): Promise<FetchResponse<ElevationMethodsResponse>>;
+
+  /**
      Summary: Elevate access for an already signed in user using FIDO2 Webauthn
      Generate a Webauthn challenge for elevating user permissions
 
@@ -2546,6 +2688,60 @@ export interface Client {
      */
   verifyElevateWebauthn(
     body: SignInWebauthnVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
+     Summary: Elevate access for an already signed in user using TOTP MFA
+     Verify a TOTP code to elevate the permissions of an already signed in user
+
+     This method may return different T based on the response code:
+     - 200: SessionPayload
+     */
+  elevateTotp(
+    body: ElevateTotpRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
+     Summary: Request a one-time password by email to elevate an already signed in user
+     Send a one-time password to the signed in user's email address to start elevation
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  elevateOTPEmail(options?: RequestInit): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Elevate access for an already signed in user using a one-time password sent by email
+     Verify a one-time password sent by email to elevate the permissions of an already signed in user
+
+     This method may return different T based on the response code:
+     - 200: SessionPayload
+     */
+  verifyElevateOTPEmail(
+    body: ElevateOTPEmailVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
+     Summary: Request a one-time password by SMS to elevate an already signed in user
+     Send a one-time password to the signed in user's verified phone number to start elevation
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  elevateOTPSms(options?: RequestInit): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Elevate access for an already signed in user using a one-time password sent by SMS
+     Verify a one-time password sent by SMS to elevate the permissions of an already signed in user
+
+     This method may return different T based on the response code:
+     - 200: SessionPayload
+     */
+  verifyElevateOTPSms(
+    body: ElevateOTPSmsVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>>;
 
@@ -2713,8 +2909,8 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
   ): Promise<FetchResponse<OKResponse>>;
 
   /**
-     Summary: Verify SMS OTP
-     Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+     Summary: Verify SMS OTP and complete authentication
+     Complete passwordless SMS authentication by verifying the one-time password and returning a session.
 
      This method may return different T based on the response code:
      - 200: SignInPasswordlessSmsOtpResponse
@@ -2966,6 +3162,21 @@ If the user already exists at callback time, they are redirected with `error=use
   ): Promise<FetchResponse<OKResponse>>;
 
   /**
+     Summary: Deanonymize an anonymous user with SMS OTP
+     Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  deanonymizeUserSms(
+    body: UserDeanonymizeSmsRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
      Summary: Change user email
      Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
 
@@ -2974,6 +3185,37 @@ If the user already exists at callback time, they are redirected with `error=use
      */
   changeUserEmail(
     body: UserEmailChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Change user phone number
+     Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  changeUserPhoneNumber(
+    body: UserPhoneNumberChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Verify phone number change
+     Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  verifyChangeUserPhoneNumber(
+    body: UserPhoneNumberChangeVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
@@ -3258,6 +3500,38 @@ export const createAPIClient = (
     } as FetchResponse<JWKSet>;
   };
 
+  const getElevationMethods = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<ElevationMethodsResponse>> => {
+    const url = `${baseURL}/elevate`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ElevationMethodsResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<ElevationMethodsResponse>;
+  };
+
   const elevateWebauthn = async (
     options?: RequestInit,
   ): Promise<FetchResponse<PublicKeyCredentialRequestOptions>> => {
@@ -3295,6 +3569,171 @@ export const createAPIClient = (
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
     const url = `${baseURL}/elevate/webauthn/verify`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: SessionPayload = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<SessionPayload>;
+  };
+
+  const elevateTotp = async (
+    body: ElevateTotpRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>> => {
+    const url = `${baseURL}/elevate/totp`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: SessionPayload = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<SessionPayload>;
+  };
+
+  const elevateOTPEmail = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/elevate/otp/email`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const verifyElevateOTPEmail = async (
+    body: ElevateOTPEmailVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>> => {
+    const url = `${baseURL}/elevate/otp/email/verify`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: SessionPayload = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<SessionPayload>;
+  };
+
+  const elevateOTPSms = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/elevate/otp/sms`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const verifyElevateOTPSms = async (
+    body: ElevateOTPSmsVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>> => {
+    const url = `${baseURL}/elevate/otp/sms/verify`;
     const res = await fetch(url, {
       ...options,
       method: 'POST',
@@ -3834,6 +4273,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -3846,6 +4288,20 @@ export const createAPIClient = (
               );
             }
             return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          if (key === 'upstreamParams') {
+            // deepObject with explode: true - upstreamParams[prop]=value
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) =>
+                  `upstreamParams[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [];
           }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
@@ -4246,6 +4702,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -4258,6 +4717,20 @@ export const createAPIClient = (
               );
             }
             return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          if (key === 'upstreamParams') {
+            // deepObject with explode: true - upstreamParams[prop]=value
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) =>
+                  `upstreamParams[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [];
           }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
@@ -4440,11 +4913,110 @@ export const createAPIClient = (
     } as FetchResponse<OKResponse>;
   };
 
+  const deanonymizeUserSms = async (
+    body: UserDeanonymizeSmsRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/deanonymize/sms`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
   const changeUserEmail = async (
     body: UserEmailChangeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
     const url = `${baseURL}/user/email/change`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const changeUserPhoneNumber = async (
+    body: UserPhoneNumberChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/phone-number/change`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const verifyChangeUserPhoneNumber = async (
+    body: UserPhoneNumberChangeVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/phone-number/change/verify`;
     const res = await fetch(url, {
       ...options,
       method: 'POST',
@@ -4712,6 +5284,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -4829,6 +5404,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -4856,28 +5434,28 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2TokenResponse>> => {
     const url = `${baseURL}/oauth2/token`;
     const params = new URLSearchParams();
-    if (body['grant_type'] !== undefined) {
+    if (body['grant_type'] !== undefined && body['grant_type'] !== null) {
       params.append('grant_type', String(body['grant_type']));
     }
-    if (body['code'] !== undefined) {
+    if (body['code'] !== undefined && body['code'] !== null) {
       params.append('code', String(body['code']));
     }
-    if (body['redirect_uri'] !== undefined) {
+    if (body['redirect_uri'] !== undefined && body['redirect_uri'] !== null) {
       params.append('redirect_uri', String(body['redirect_uri']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
-    if (body['code_verifier'] !== undefined) {
+    if (body['code_verifier'] !== undefined && body['code_verifier'] !== null) {
       params.append('code_verifier', String(body['code_verifier']));
     }
-    if (body['refresh_token'] !== undefined) {
+    if (body['refresh_token'] !== undefined && body['refresh_token'] !== null) {
       params.append('refresh_token', String(body['refresh_token']));
     }
-    if (body['resource'] !== undefined) {
+    if (body['resource'] !== undefined && body['resource'] !== null) {
       params.append('resource', String(body['resource']));
     }
 
@@ -5013,16 +5591,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<void>> => {
     const url = `${baseURL}/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5057,16 +5638,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
     const url = `${baseURL}/oauth2/introspect`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5108,6 +5692,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -5188,8 +5775,14 @@ export const createAPIClient = (
     baseURL,
     pushChainFunction,
     getJWKs,
+    getElevationMethods,
     elevateWebauthn,
     verifyElevateWebauthn,
+    elevateTotp,
+    elevateOTPEmail,
+    verifyElevateOTPEmail,
+    elevateOTPSms,
+    verifyElevateOTPSms,
     healthCheckGet,
     healthCheckHead,
     linkIdToken,
@@ -5223,7 +5816,10 @@ export const createAPIClient = (
     verifyToken,
     getUser,
     deanonymizeUser,
+    deanonymizeUserSms,
     changeUserEmail,
+    changeUserPhoneNumber,
+    verifyChangeUserPhoneNumber,
     sendVerificationEmail,
     verifyChangeUserMfa,
     changeUserPassword,

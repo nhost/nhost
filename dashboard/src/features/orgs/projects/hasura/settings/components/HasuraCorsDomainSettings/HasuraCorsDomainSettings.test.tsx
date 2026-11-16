@@ -56,7 +56,9 @@ describe('HasuraCorsDomainSettings', () => {
 
     expect(await screen.findByText(/configure cors/i)).toBeInTheDocument();
 
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    expect(
+      screen.getByRole('switch', { name: /toggle cors configuration/i }),
+    ).not.toBeChecked();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
@@ -93,7 +95,11 @@ describe('HasuraCorsDomainSettings', () => {
 
     expect(await screen.findByText(/configure cors/i)).toBeInTheDocument();
 
-    await waitFor(() => expect(screen.getByRole('checkbox')).toBeChecked());
+    await waitFor(() =>
+      expect(
+        screen.getByRole('switch', { name: /toggle cors configuration/i }),
+      ).toBeChecked(),
+    );
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveValue(

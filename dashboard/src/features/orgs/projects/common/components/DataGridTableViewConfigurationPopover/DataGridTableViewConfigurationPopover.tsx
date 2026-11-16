@@ -42,7 +42,7 @@ function DataGridTableViewConfigurationPopover() {
           container={containerRef.current}
           ref={refs.setFloating}
           style={floatingStyles}
-          className="box flex flex-col gap-6 p-4 md:w-[30rem] md:max-w-[30rem]"
+          className="box flex flex-col gap-6 p-4 md:w-screen md:max-w-lg"
           align="end"
         >
           <h2>Customize Table View </h2>

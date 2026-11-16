@@ -94,7 +94,7 @@ func TestJWTSecretValidate(t *testing.T) {
 				Type: jwtconfig.AlgorithmHS256,
 				Key:  "key",
 				Header: &jwtconfig.HeaderJSON{
-					HeaderConfig: jwtconfig.HeaderConfig{Type: jwtconfig.HeaderTypeCookie},
+					Type: jwtconfig.HeaderTypeCookie,
 				},
 			},
 			wantErr: true,
@@ -105,10 +105,8 @@ func TestJWTSecretValidate(t *testing.T) {
 				Type: jwtconfig.AlgorithmHS256,
 				Key:  "key",
 				Header: &jwtconfig.HeaderJSON{
-					HeaderConfig: jwtconfig.HeaderConfig{
-						Type: jwtconfig.HeaderTypeCookie,
-						Name: "jwt",
-					},
+					Type: jwtconfig.HeaderTypeCookie,
+					Name: "jwt",
 				},
 			},
 			wantErr: false,
@@ -119,7 +117,7 @@ func TestJWTSecretValidate(t *testing.T) {
 				Type: jwtconfig.AlgorithmHS256,
 				Key:  "key",
 				Header: &jwtconfig.HeaderJSON{
-					HeaderConfig: jwtconfig.HeaderConfig{Type: jwtconfig.HeaderTypeCustomHeader},
+					Type: jwtconfig.HeaderTypeCustomHeader,
 				},
 			},
 			wantErr: true,
@@ -140,7 +138,7 @@ func TestJWTSecretValidate(t *testing.T) {
 				Type: jwtconfig.AlgorithmHS256,
 				Key:  "key",
 				Header: &jwtconfig.HeaderJSON{
-					HeaderConfig: jwtconfig.HeaderConfig{Type: "InvalidType"},
+					Type: "InvalidType",
 				},
 			},
 			wantErr: true,

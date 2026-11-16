@@ -1,12 +1,10 @@
 import { formatDistance } from 'date-fns';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Text } from '@/components/ui/v2/Text';
+import { Avatar } from '@/components/ui/v3/avatar';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
-import { ifNullconvertToUndefined } from '@/lib/utils';
 import type {
   DeploymentRowFragment,
   PipelineRunRowFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface DeploymentStatusMessageProps {
   pipelineRun?: Partial<PipelineRunRowFragment>;
@@ -48,12 +46,11 @@ export default function DeploymentStatusMessage({
       <span className="flex flex-row justify-start">
         <Avatar
           alt={`Avatar of ${userName}`}
-          src={ifNullconvertToUndefined(avatarUrl)}
+          name={userName ?? undefined}
+          src={avatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
-        <Text component="span" className="self-center text-sm">
-          {userName} updated just now
-        </Text>
+        <span className="self-center text-sm">{userName} updated just now</span>
       </span>
     );
   }
@@ -65,20 +62,21 @@ export default function DeploymentStatusMessage({
       <div className="relative flex flex-row">
         <Avatar
           alt={`Avatar of ${userName}`}
-          src={ifNullconvertToUndefined(avatarUrl)}
+          name={userName ?? undefined}
+          src={avatarUrl}
           className="mt-1 mr-2 h-4 w-4"
         />
-        <div className="flex flex-col text-muted-foreground text-sm">
-          <p className="line-clamp-1 break-all">{userName}</p>
-          <p>{statusMessage}</p>
+        <div className="flex flex-col">
+          <p className="line-clamp-1 break-all font-medium text-foreground text-sm">
+            {userName}
+          </p>
+          <p className="text-muted-foreground text-xs">{statusMessage}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <Text component="span" className="text-muted-foreground text-sm">
-      No deployments
-    </Text>
+    <span className="text-muted-foreground text-sm">No deployments yet</span>
   );
 }

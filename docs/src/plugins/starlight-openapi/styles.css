@@ -47,6 +47,11 @@
   --sl-openapi-method-border-trace: hsl(var(--sl-openapi-method-hue-trace), 10%, 70%);
 }
 
+/* Pinned because these badges inherit caution-variant text color, which the theme retints. */
+.sidebar-content a:not([aria-current='page']) [class*='sl-openapi-method-'] {
+  --sl-color-text-badge: #fff;
+}
+
 .sidebar-content a:not([aria-current='page']) .sl-openapi-method-get {
   --sl-color-bg-badge: var(--sl-openapi-method-bg-get);
   --sl-color-border-badge: var(--sl-openapi-method-border-get);

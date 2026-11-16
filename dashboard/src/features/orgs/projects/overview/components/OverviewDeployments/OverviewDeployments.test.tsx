@@ -140,7 +140,7 @@ test('should render an empty state when GitHub is connected, but there are no de
   expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
   expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
-    '/orgs/xyz/projects/test-project/settings/deployments',
+    '/orgs/xyz/projects/test-project/deployments/settings',
   );
 });
 
@@ -198,10 +198,7 @@ test('should render a list of deployments', async () => {
   render(<OverviewDeployments />);
 
   expect(await screen.findByText(/test commit message/i)).toBeInTheDocument();
-  expect(await screen.findByAltText('test.user')).toHaveAttribute(
-    'src',
-    'http://images.example.com/avatar.png',
-  );
+  expect(await screen.findByText('T')).toBeInTheDocument();
   expect(
     await screen.findByRole('link', {
       name: /test commit message/i,

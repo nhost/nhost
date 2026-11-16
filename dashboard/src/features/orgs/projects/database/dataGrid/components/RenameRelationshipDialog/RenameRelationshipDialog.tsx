@@ -17,7 +17,7 @@ import {
 import { Form } from '@/components/ui/v3/form';
 import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
@@ -50,7 +50,7 @@ const RELATIONSHIP_NAME_HELPER_TEXT =
   'GraphQL fields are limited to letters, numbers, and underscores.';
 
 const validationSchema = z.object({
-  newRelationshipName: getRelationshipNameSchema('Relationship name'),
+  newRelationshipName: getGraphQLIdentifierSchema('Relationship name'),
 });
 
 type RenameRelationshipFormValues = z.infer<typeof validationSchema>;
@@ -157,7 +157,7 @@ export default function RenameRelationshipDialog({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="subtle"
         size="icon"
         onClick={() => setOpen(true)}
       >
@@ -166,13 +166,13 @@ export default function RenameRelationshipDialog({
 
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent
-          className="sm:max-w-[425px]"
+          className="p-12 sm:max-w-xl"
           hideCloseButton
           disableOutsideClick={isSubmitting}
           onEscapeKeyDown={(e) => e.stopPropagation()}
         >
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
               Rename{' '}
               <TextWithTooltip
                 text={relationshipToRename}
@@ -202,25 +202,23 @@ export default function RenameRelationshipDialog({
                 }
               />
 
-              <DialogFooter className="gap-2 pt-4 sm:flex sm:flex-col sm:space-x-0">
-                <ButtonWithLoading
-                  type="submit"
-                  loading={isSubmitting}
-                  disabled={isSubmitting || !formState.isDirty}
-                  className="!text-sm+"
-                >
-                  Rename
-                </ButtonWithLoading>
+              <DialogFooter className="mt-10">
                 <DialogClose asChild>
                   <Button
                     variant="outline"
-                    className="!text-sm+ text-foreground"
                     type="button"
                     disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
                 </DialogClose>
+                <ButtonWithLoading
+                  type="submit"
+                  loading={isSubmitting}
+                  disabled={isSubmitting || !formState.isDirty}
+                >
+                  Rename
+                </ButtonWithLoading>
               </DialogFooter>
             </form>
           </Form>

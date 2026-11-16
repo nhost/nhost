@@ -1,15 +1,12 @@
+import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import type { TableCellProps } from '@/components/ui/v2/TableCell';
-import { TableCell } from '@/components/ui/v2/TableCell';
-import type { TableRowProps } from '@/components/ui/v2/TableRow';
-import { TableRow } from '@/components/ui/v2/TableRow';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import type { RemoteSchemaAccessLevel } from '@/features/orgs/projects/remote-schemas/types';
 
-export interface RolePermissionsProps extends TableRowProps {
+export interface RolePermissionsProps extends ComponentPropsWithoutRef<'tr'> {
   /**
    * Role name.
    */
@@ -34,7 +31,7 @@ export interface RolePermissionsProps extends TableRowProps {
     /**
      * Props passed to every cell in the table row.
      */
-    cell?: Partial<TableCellProps>;
+    cell?: ComponentPropsWithoutRef<'td'>;
   };
 }
 
@@ -83,22 +80,18 @@ export default function RolePermissions({
         {...cellProps}
         className={twMerge(
           'inline-grid h-full w-full items-center border-0 p-0 text-center',
-          disabled && 'justify-center',
           cellProps.className,
         )}
       >
-        {disabled ? (
+        <button
+          type="button"
+          aria-label={`Edit permissions for ${name}`}
+          className="flex h-full w-full items-center justify-center rounded-none p-2 hover:bg-muted/50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          disabled={disabled}
+          onClick={onActionSelect}
+        >
           <AccessLevelIcon level={accessLevel} />
-        ) : (
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            className="h-full w-full rounded-none"
-            onClick={onActionSelect}
-          >
-            <AccessLevelIcon level={accessLevel} />
-          </IconButton>
-        )}
+        </button>
       </TableCell>
     </TableRow>
   );

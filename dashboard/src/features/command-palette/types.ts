@@ -1,0 +1,58 @@
+import type { ReactElement } from 'react';
+import type { PaletteGate } from '@/features/command-palette/catalog';
+
+export type NodeKind = 'page' | 'group' | 'setting' | 'org' | 'project' | 'doc';
+
+export interface CommandNode {
+  id: string;
+  title: string;
+  icon?: ReactElement;
+  kind: NodeKind;
+  path?: string;
+  scope?: 'org' | 'project' | 'external';
+  keywords?: string[];
+  hint?: string;
+  // Titles of the navigable ancestors (outermost first), mirroring the
+  // header breadcrumb levels.
+  breadcrumb?: string[];
+  children?: CommandNode[];
+  gate?: PaletteGate;
+  // Gates only the node's own path; its children keep their own gates, so a
+  // gated-off group still lets them through as a drill-only container.
+  pathGate?: PaletteGate;
+  // Search flattening stops here; drilling still descends into children.
+  searchBoundary?: boolean;
+  // Present only on runtime clones (recents, org/project switch nodes);
+  // static tree nodes never carry it.
+  commandPalette?: CommandNodeMetadata;
+}
+
+export interface CommandNodeMetadata {
+  // Generic tree node behind a runtime clone; drives navigation and recents.
+  originalNode?: CommandNode;
+  orgSlug?: string;
+  appSubdomain?: string;
+}
+
+export interface PaletteOrg {
+  slug: string;
+  name: string;
+  apps: Array<{ name: string; subdomain: string }>;
+}
+
+export type TitleRange = [start: number, end: number];
+
+export interface ScoredNode {
+  node: CommandNode;
+  score: number;
+  titleRanges: TitleRange[];
+}
+
+export interface RecentEntry {
+  nodeId: string;
+  title: string;
+  path: string;
+  accessedAt: number;
+  orgSlug?: string;
+  appSubdomain?: string;
+}

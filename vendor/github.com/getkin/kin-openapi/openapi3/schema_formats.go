@@ -7,18 +7,19 @@ import (
 	"regexp"
 )
 
-type (
-	// FormatValidator is an interface for custom format validators.
-	FormatValidator[T any] interface {
-		Validate(value T) error
-	}
-	// StringFormatValidator is a type alias for FormatValidator[string]
-	StringFormatValidator = FormatValidator[string]
-	// NumberFormatValidator is a type alias for FormatValidator[float64]
-	NumberFormatValidator = FormatValidator[float64]
-	// IntegerFormatValidator is a type alias for FormatValidator[int64]
-	IntegerFormatValidator = FormatValidator[int64]
-)
+// FormatValidator is an interface for custom format validators.
+type FormatValidator[T any] interface {
+	Validate(value T) error
+}
+
+// StringFormatValidator is a type alias for FormatValidator[string]
+type StringFormatValidator = FormatValidator[string]
+
+// NumberFormatValidator is a type alias for FormatValidator[float64]
+type NumberFormatValidator = FormatValidator[float64]
+
+// IntegerFormatValidator is a type alias for FormatValidator[int64]
+type IntegerFormatValidator = FormatValidator[int64]
 
 var (
 	// SchemaStringFormats is a map of custom string format validators.
@@ -33,6 +34,11 @@ const (
 	// FormatOfStringForUUIDOfRFC4122 is an optional predefined format for UUID v1-v5 as specified by RFC4122
 	FormatOfStringForUUIDOfRFC4122 = `^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$`
 
+	// FormatOfStringForUUIDOfRFC9562 is an optional predefined format for UUID v1-v8 as specified by RFC9562,
+	// which obsoletes RFC4122. In addition to the versioned layout it also accepts the special Nil UUID
+	// (all zeroes) and Max UUID (all ones) defined in sections 5.9 and 5.10 of the RFC.
+	FormatOfStringForUUIDOfRFC9562 = `^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|[fF]{8}-[fF]{4}-[fF]{4}-[fF]{4}-[fF]{12})$`
+
 	// FormatOfStringForEmail pattern catches only some suspiciously wrong-looking email addresses.
 	// Use DefineStringFormat(...) if you need something stricter.
 	FormatOfStringForEmail = `^[^@]+@[^@<>",\s]+$`
@@ -44,7 +50,7 @@ const (
 	FormatOfStringDate = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])$`
 
 	// FormatOfStringDateTime is a RFC3339 date-time format regexp, for example "2017-07-21T17:32:28Z".
-	FormatOfStringDateTime = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])T([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})?$`
+	FormatOfStringDateTime = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])T([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})$`
 )
 
 func init() {

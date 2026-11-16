@@ -12,8 +12,11 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector"
+	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/controller"
+	"github.com/nhost/nhost/services/constellation/controller/planner"
+	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -86,8 +89,41 @@ const remoteSchemaIntrospectionResponse = `{
               },
               "isDeprecated": false,
               "deprecationReason": ""
+            },
+            {
+              "name": "capital",
+              "description": "",
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {"kind": "OBJECT", "name": "City", "ofType": null}
+              },
+              "isDeprecated": false,
+              "deprecationReason": ""
             }
           ],
+          "inputFields": [],
+          "interfaces": [],
+          "enumValues": [],
+          "possibleTypes": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "City",
+          "description": "",
+          "fields": [{
+            "name": "id",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {"kind": "SCALAR", "name": "ID", "ofType": null}
+            },
+            "isDeprecated": false,
+            "deprecationReason": ""
+          }],
           "inputFields": [],
           "interfaces": [],
           "enumValues": [],
@@ -106,7 +142,10 @@ type Query {
 type Country {
   code: String!
   name: String!
+  capital: City!
 }
+
+type City { id: ID! }
 `
 
 type remoteSchemaGraphQLRequest struct {
@@ -119,8 +158,32 @@ type validatingRemoteSchemaDoer struct {
 	requests chan remoteSchemaGraphQLRequest
 }
 
+// The composed schema includes the cross-connector field; the native remote
+// schema still excludes it, so the validating doer rejects unstripped joins.
+type remoteSchemaWithLocal struct{ connector.Connector }
+
+func (c remoteSchemaWithLocal) GetSchema() (map[string]*graph.Schema, error) {
+	schemas, err := c.Connector.GetSchema()
+	if err != nil {
+		return nil, fmt.Errorf("remote schema for local relationship: %w", err)
+	}
+
+	for _, schema := range schemas {
+		for _, typ := range schema.Types {
+			if typ.Name == "City" {
+				typ.Fields = append(
+					typ.Fields,
+					memconnector.Field("local", memconnector.Named("Target")),
+				)
+			}
+		}
+	}
+
+	return schemas, nil
+}
+
 func newValidatingRemoteSchemaController(
-	t *testing.T,
+	t *testing.T, target ...connector.Connector,
 ) (*controller.Controller, *validatingRemoteSchemaDoer) {
 	t.Helper()
 
@@ -151,11 +214,23 @@ func newValidatingRemoteSchemaController(
 		t.Fatalf("remoteschema.New: %v", err)
 	}
 
+	connectors := map[string]connector.Connector{"remote": remoteConn}
+
+	var relationships map[string][]*planner.RelationshipMetadata
+	if len(target) != 0 {
+		connectors["db"] = target[0]
+		connectors["remote"] = remoteSchemaWithLocal{Connector: remoteConn}
+		relationships = map[string][]*planner.RelationshipMetadata{
+			"remote": {{
+				Name: "local", SourceType: "City", TargetConnector: "db",
+				TargetTable: "targets", TargetTableSchema: "",
+				JoinMapping: map[string]string{"id": "id"}, IsRemote: true,
+			}},
+		}
+	}
+
 	ctrl, err := controller.NewFromConnectors(
-		testAdminSecret,
-		map[string]connector.Connector{"remote": remoteConn},
-		nil,
-		slog.New(slog.DiscardHandler),
+		testAdminSecret, connectors, relationships, slog.New(slog.DiscardHandler),
 	)
 	if err != nil {
 		t.Fatalf("NewFromConnectors(remote): %v", err)
@@ -189,8 +264,13 @@ func (d *validatingRemoteSchemaDoer) Do(req *http.Request) (*http.Response, erro
 		), nil
 	}
 
+	capital := `{"id":"1"}`
+	if strings.Contains(gqlReq.Query, "_constellation_phantom_id: id") {
+		capital = `{"id":"1","_constellation_phantom_id":"1"}`
+	}
+
 	return remoteSchemaHTTPResponse(
-		`{"data":{"countries":[{"code":"US","name":"United States"}]}}`,
+		`{"data":{"countries":[{"code":"US","name":"United States","capital":` + capital + `}]}}`,
 	), nil
 }
 
@@ -212,6 +292,120 @@ func (d *validatingRemoteSchemaDoer) nextRequest(t *testing.T) remoteSchemaGraph
 		t.Fatal("remote schema execute request was not sent")
 
 		return remoteSchemaGraphQLRequest{}
+	}
+}
+
+func TestResolve_RemoteSchemaRelationshipOnlySiblingKeepsExplicitKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		query string
+	}{
+		{
+			name:  "duplicate field",
+			query: `{ countries { capital { local { id } } capital { id } } }`,
+		},
+		{
+			name: "inline siblings",
+			query: `{ countries {
+				... on Country { capital { local { id } } }
+				... on Country { capital { id } }
+			} }`,
+		},
+		{
+			name: "colocated fragments",
+			query: `{ countries { ...A ...B } }
+				fragment A on Country { capital { local { id } } }
+				fragment B on Country { capital { id } }`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl, remote := newValidatingRemoteSchemaRelationshipController(t)
+
+			resp, err := ctrl.Resolve(
+				adminSessionContext(t),
+				controller.GraphQLRequest{Query: tt.query},
+			)
+			if err != nil || resp.Errors != nil {
+				t.Fatalf("remote relationship response=%+v err=%v", resp, err)
+			}
+
+			assertRemoteSchemaSiblingResult(t, resp)
+
+			forwarded := remote.nextRequest(t).Query
+			if !strings.Contains(forwarded, "_constellation_phantom_id: id") {
+				t.Fatalf("missing internally aliased join key: %s", forwarded)
+			}
+		})
+	}
+}
+
+func newValidatingRemoteSchemaRelationshipController(
+	t *testing.T,
+) (*controller.Controller, *validatingRemoteSchemaDoer) {
+	t.Helper()
+
+	target, err := memconnector.New(
+		[]*graph.ObjectType{memconnector.Object("Target", memconnector.ID("id"))},
+		[]memconnector.QueryDef{memconnector.Query(
+			"targets", graph.NewNonNullListType(graph.NewNonNullType("Target")), nil,
+		)},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	schemas, err := target.GetSchema()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Unlike memconnector's canned Execute response, the resolver needs the
+	// target root keyed by its field name when it has no alias.
+	return newValidatingRemoteSchemaController(t, staticConnector{
+		schemas: schemas,
+		types:   map[string]string{"targets": "targets"},
+		execute: func() (map[string]any, error) {
+			return map[string]any{"targets": []any{map[string]any{"id": "1"}}}, nil
+		},
+	})
+}
+
+func assertRemoteSchemaSiblingResult(t *testing.T, resp *controller.GraphQLResponse) {
+	t.Helper()
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected data object, got %T (%v)", resp.Data, resp.Data)
+	}
+
+	countries, ok := data["countries"].([]any)
+	if !ok || len(countries) != 1 {
+		t.Fatalf("expected one country, got %v", data)
+	}
+
+	country, ok := countries[0].(map[string]any)
+	if !ok {
+		t.Fatalf("expected country object, got %v", countries[0])
+	}
+
+	capital, ok := country["capital"].(map[string]any)
+	if !ok || capital["id"] != "1" {
+		t.Fatalf("explicit capital.id was lost: %v", country)
+	}
+
+	local, ok := capital["local"].(map[string]any)
+	if !ok || local["id"] != "1" {
+		t.Fatalf("local relationship was not stitched: %v", capital)
+	}
+
+	if _, leaked := capital["_constellation_phantom_id"]; leaked {
+		t.Fatalf("internal join key leaked into response: %v", capital)
 	}
 }
 

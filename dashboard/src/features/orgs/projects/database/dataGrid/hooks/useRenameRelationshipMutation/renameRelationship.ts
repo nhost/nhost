@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { RenameRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface RenameRelationshipVariables {
@@ -14,7 +14,7 @@ export default async function renameRelationship({
   args,
 }: MetadataOperationOptions & RenameRelationshipVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'bulk',
         resource_version: resourceVersion,
@@ -26,7 +26,7 @@ export default async function renameRelationship({
         ],
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

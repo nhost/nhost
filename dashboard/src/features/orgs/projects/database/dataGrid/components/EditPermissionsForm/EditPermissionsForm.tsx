@@ -17,9 +17,9 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
 import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
+import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 
 const actionLabels: Record<DatabaseAction, string> = {

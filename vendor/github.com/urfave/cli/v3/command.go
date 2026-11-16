@@ -90,7 +90,7 @@ type Command struct {
 	// default behavior.
 	ExitErrHandler ExitErrHandlerFunc `json:"-"`
 	// Other custom info
-	Metadata map[string]interface{} `json:"metadata"`
+	Metadata map[string]any `json:"metadata"`
 	// Carries a function which returns app specific info.
 	ExtraInfo func() map[string]string `json:"-"`
 	// CustomRootCommandHelpTemplate the text template for app help topic.
@@ -161,19 +161,12 @@ type Command struct {
 	globaHelpFlagAdded bool
 	// whether global version flag was added
 	globaVersionFlagAdded bool
-}
-
-// FullName returns the full name of the command.
-// For commands with parents this ensures that the parent commands
-// are part of the command path.
-func (cmd *Command) FullName() string {
-	namePath := []string{}
-
-	if cmd.parent != nil {
-		namePath = append(namePath, cmd.parent.FullName())
-	}
-
-	return strings.Join(append(namePath, cmd.Name), " ")
+	// generated root version flag
+	versionFlag Flag
+	// whether this is a completion command
+	isCompletionCommand bool
+	// whether this is the built-in help command
+	builtInHelp bool
 }
 
 func (cmd *Command) Command(name string) *Command {
@@ -301,6 +294,9 @@ func (cmd *Command) appendFlag(fl Flag) {
 
 // VisiblePersistentFlags returns a slice of [LocalFlag] with Persistent=true and Hidden=false.
 func (cmd *Command) VisiblePersistentFlags() []Flag {
+	if cmd.isCompletionCommand {
+		return nil
+	}
 	var flags []Flag
 	for _, fl := range cmd.Root().Flags {
 		pfl, ok := fl.(LocalFlag)
@@ -334,14 +330,10 @@ func (cmd *Command) handleExitCoder(ctx context.Context, err error) error {
 }
 
 func (cmd *Command) argsWithDefaultCommand(oldArgs Args) Args {
-	if cmd.DefaultCommand != "" {
-		rawArgs := append([]string{cmd.DefaultCommand}, oldArgs.Slice()...)
-		newArgs := &stringSliceArgs{v: rawArgs}
+	rawArgs := append([]string{cmd.DefaultCommand}, oldArgs.Slice()...)
+	newArgs := &stringSliceArgs{v: rawArgs}
 
-		return newArgs
-	}
-
-	return oldArgs
+	return newArgs
 }
 
 // Root returns the Command at the root of the graph
@@ -370,6 +362,22 @@ func (cmd *Command) lFlag(name string) Flag {
 		}
 	}
 	return nil
+}
+
+func (cmd *Command) hasPersistentFlagOnAncestor(fl Flag) bool {
+	for pCmd := cmd.parent; pCmd != nil; pCmd = pCmd.parent {
+		for _, pFl := range pCmd.allFlags() {
+			if pFl != fl {
+				continue
+			}
+
+			pfl, ok := pFl.(LocalFlag)
+			if ok && !pfl.IsLocal() {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (cmd *Command) lookupFlag(name string) Flag {
@@ -410,6 +418,12 @@ func (cmd *Command) checkRequiredFlag(f Flag) (bool, string) {
 }
 
 func (cmd *Command) checkAllRequiredFlags() requiredFlagsErr {
+	// The help and completion commands are allowed to run without
+	// enforcement of required flags, since they do not invoke user
+	// actions that depend on those flag values.
+	if cmd.builtInHelp || cmd.isCompletionCommand {
+		return nil
+	}
 	for pCmd := cmd; pCmd != nil; pCmd = pCmd.parent {
 		if err := pCmd.checkRequiredFlags(); err != nil {
 			return err
@@ -552,6 +566,39 @@ func (cmd *Command) Lineage() []*Command {
 	return lineage
 }
 
+// FullName returns the full name of the command.
+// Includes parent commands separated by space.
+func (cmd *Command) FullName() string {
+	return strings.Join(cmd.Path(), " ")
+}
+
+// Path returns the path of command names from the root to cmd, inclusive.
+// Each element is a Command.Name. Path traverses upward via parent pointers
+// similar to Lineage. FullName() is equivalent to strings.Join(cmd.Path(), " ").
+func (cmd *Command) Path() []string {
+	if cmd.parent != nil {
+		return append(cmd.parent.Path(), cmd.Name)
+	}
+	return []string{cmd.Name}
+}
+
+// Walk visits cmd and every descendant. If fn returns a non-nil error, the
+// walk terminates and the error is returned to the caller.
+func (cmd *Command) Walk(fn func(*Command) error) error {
+	if fn == nil {
+		return nil
+	}
+	if err := fn(cmd); err != nil {
+		return err
+	}
+	for _, sub := range cmd.Commands {
+		if err := sub.Walk(fn); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Count returns the num of occurrences of this flag
 func (cmd *Command) Count(name string) int {
 	if cf, ok := cmd.lookupFlag(name).(Countable); ok {
@@ -561,7 +608,7 @@ func (cmd *Command) Count(name string) int {
 }
 
 // Value returns the value of the flag corresponding to `name`
-func (cmd *Command) Value(name string) interface{} {
+func (cmd *Command) Value(name string) any {
 	if fs := cmd.lookupFlag(name); fs != nil {
 		tracef("value found for name %[1]q (cmd=%[2]q)", name, cmd.Name)
 		return fs.Get()
@@ -584,19 +631,14 @@ func (cmd *Command) NArg() int {
 
 func (cmd *Command) runFlagActions(ctx context.Context) error {
 	tracef("runFlagActions")
-	for fl := range cmd.setFlags {
-		/*tracef("checking %v:%v", fl.Names(), fl.IsSet())
-		if !fl.IsSet() {
-			continue
-		}*/
-
-		//if pf, ok := fl.(LocalFlag); ok && !pf.IsLocal() {
-		//	continue
-		//}
-
-		if af, ok := fl.(ActionableFlag); ok {
-			if err := af.RunAction(ctx, cmd); err != nil {
-				return err
+	// run the flag actions in the same order that they are defined
+	// to maintain consistency.
+	for _, fl := range cmd.appliedFlags {
+		if _, inSet := cmd.setFlags[fl]; inSet {
+			if af, ok := fl.(ActionableFlag); ok {
+				if err := af.RunAction(ctx, cmd); err != nil {
+					return err
+				}
 			}
 		}
 	}

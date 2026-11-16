@@ -1,9 +1,9 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateArrayRelationshipBulkOperation,
   CreateLocalRelationshipArgs,
   CreateObjectRelationshipBulkOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateRelationshipVariables {
@@ -43,8 +43,8 @@ export default async function createRelationship({
         } satisfies CreateArrayRelationshipBulkOperation);
 
   try {
-    const response = await metadataOperation(payload, {
-      baseUrl: appUrl,
+    const response = await writeMetadata(payload, {
+      appUrl,
       adminSecret,
     });
 

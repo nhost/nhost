@@ -71,6 +71,13 @@ export const ENV = {
   get AUTH_SMS_TEST_PHONE_NUMBERS() {
     return castStringArrayEnv('AUTH_SMS_TEST_PHONE_NUMBERS', []);
   },
+  // Host side of the dev SMS provider's output bind mount.
+  get AUTH_SMS_DEV_OUTPUT_DIR() {
+    return castStringEnv(
+      'AUTH_SMS_DEV_OUTPUT_DIR',
+      '/tmp/nhost-auth-sms-output',
+    );
+  },
 
   // TWILIO
   get AUTH_SMS_TWILIO_ACCOUNT_SID() {
@@ -174,8 +181,8 @@ export const ENV = {
   get AUTH_EMAIL_PASSWORDLESS_ENABLED() {
     return castBooleanEnv('AUTH_EMAIL_PASSWORDLESS_ENABLED', false);
   },
-  get AUTH_SMS_PASSWORDLESS_ENABLED() {
-    return castBooleanEnv('AUTH_SMS_PASSWORDLESS_ENABLED', false);
+  get AUTH_OTP_SMS_ENABLED() {
+    return castBooleanEnv('AUTH_OTP_SMS_ENABLED', false);
   },
   get AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
     return castBooleanEnv('AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
@@ -185,14 +192,14 @@ export const ENV = {
   // },
   get AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS() {
     return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS').map(
-      (v) => v.toLowerCase()
+      (v) => v.toLowerCase(),
     );
   },
-  get AUTH_MFA_ENABLED() {
-    return castBooleanEnv('AUTH_MFA_ENABLED', false);
+  get AUTH_TOTP_ENABLED() {
+    return castBooleanEnv('AUTH_TOTP_ENABLED', false);
   },
-  get AUTH_MFA_TOTP_ISSUER() {
-    return castStringEnv('AUTH_MFA_TOTP_ISSUER', 'hasura-auth');
+  get AUTH_TOTP_ISSUER() {
+    return castStringEnv('AUTH_TOTP_ISSUER', 'hasura-auth');
   },
 
   // TOKENS
@@ -238,7 +245,7 @@ export const ENV = {
 
   get AUTH_VERSION() {
     return castStringEnv('AUTH_VERSION', '0.0.0-dev');
-  }
+  },
 
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {

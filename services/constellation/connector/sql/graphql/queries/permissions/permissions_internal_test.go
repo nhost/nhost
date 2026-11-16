@@ -35,6 +35,24 @@ func (f *fakeTable) ColumnFromSQLName(name string) *core.Column {
 	return f.columns[name]
 }
 
+func (f *fakeTable) ColumnFromGraphqlName(name string) *core.Column {
+	for _, col := range f.columns {
+		if col.GraphqlName == name {
+			return col
+		}
+	}
+
+	return nil
+}
+
+func (f *fakeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
+func (f *fakeTable) ComputedTableFromGraphqlName(string, string) core.ComputedTableExpression {
+	return nil
+}
+
 func (f *fakeTable) LookupRelationship(name string) Relationship {
 	r, ok := f.relationships[name]
 	if !ok {
@@ -2007,7 +2025,7 @@ func TestRequiresPostInsertCheck(t *testing.T) {
 	}
 
 	insertCheck := func(cols ...string) where.Clause {
-		clause := where.Clause{}
+		clause := make(where.Clause, 0, len(cols))
 		for _, c := range cols {
 			clause = append(
 				clause,

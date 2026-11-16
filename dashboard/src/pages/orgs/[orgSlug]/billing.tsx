@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function OrgBilling() {
@@ -14,7 +15,7 @@ export default function OrgBilling() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
+    <div className="flex min-h-full flex-col gap-4 bg-background p-4">
       <SubscriptionPlan />
       {showBillingEstimate && <BillingEstimate />}
     </div>
@@ -22,5 +23,9 @@ export default function OrgBilling() {
 }
 
 OrgBilling.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout isOrgPage>{page}</OrgLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };

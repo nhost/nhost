@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { ReloadRemoteSchemaArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface ReloadRemoteSchemaVariables {
@@ -20,7 +20,7 @@ export default async function reloadRemoteSchema({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -1,10 +1,10 @@
 import { FolderX } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { InlineCode } from '@/components/presentational/InlineCode';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
-import { useGetBucketQuery } from '@/utils/__generated__/graphql';
+import { useGetBucketQuery } from '@/generated/graphql';
 
 export default function Bucket() {
   const {
@@ -41,7 +41,7 @@ export default function Bucket() {
     return (
       <div className="grid w-full place-content-center gap-2 px-4 py-16 text-center">
         <FolderX className="mx-auto h-[72px] w-[72px] text-muted-foreground" />
-        <h1 className="!leading-6 font-inter-var font-medium text-[1.125rem]">
+        <h1 className="!leading-6 font-medium text-[1.125rem]">
           Bucket not found
         </h1>
         <p>

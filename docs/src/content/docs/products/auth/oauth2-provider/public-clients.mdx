@@ -40,7 +40,7 @@ The response will have `clientSecretHash: null`, confirming it is a public clien
 
 ## PKCE Requirement
 
-Public clients **must** use PKCE. The authorization request will be rejected without a `code_challenge`.
+Public clients **must** use PKCE. The [authorization request](/products/auth/oauth2-provider/authorization-flow) will be rejected without a `code_challenge`.
 
 Only the **S256** method is supported — the `plain` method is explicitly rejected.
 

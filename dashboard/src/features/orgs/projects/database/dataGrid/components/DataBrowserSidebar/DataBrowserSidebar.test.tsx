@@ -1,14 +1,6 @@
 import { vi } from 'vitest';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import DataBrowserSidebar from './DataBrowserSidebar';
-
-mockPointerEvent();
 
 const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';
@@ -483,16 +475,14 @@ describe('DataBrowserSidebar', () => {
 
 async function openGraphQLSettingsDrawer(
   user: TestUserEvent,
-  triggerId: string,
+  triggerTestId: string,
   objectName: string,
 ) {
   await waitFor(() => {
     expect(screen.getByText(objectName)).toBeInTheDocument();
   });
 
-  const trigger = document.getElementById(triggerId);
-  expect(trigger).not.toBeNull();
-  await user.click(trigger as HTMLElement);
+  await user.click(screen.getByTestId(triggerTestId));
 
   await user.click(
     await screen.findByRole('menuitem', { name: /Edit GraphQL/ }),

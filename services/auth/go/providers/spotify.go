@@ -30,7 +30,7 @@ func NewSpotifyProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  redirectURL,
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://accounts.spotify.com/authorize",
 				TokenURL: "https://accounts.spotify.com/api/token",
 			},

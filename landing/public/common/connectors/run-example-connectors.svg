@@ -1,0 +1,17 @@
+<svg width="555" height="92" viewBox="0 0 555 92" fill="none"
+  xmlns="http://www.w3.org/2000/svg">
+  <path d="M0 48L555 48" stroke="url(#paint0_linear_1662_6516)" stroke-dasharray="4 6"/>
+  <path d="M278 0V48" stroke="#262626" stroke-dasharray="4 6"/>
+  <path d="M278 48V92" stroke="#262626" stroke-dasharray="4 6"/>
+  <path d="M450 0V48" stroke="#262626" stroke-dasharray="4 6"/>
+  <path d="M117 0V48" stroke="#262626" stroke-dasharray="4 6"/>
+  <defs>
+    <linearGradient id="paint0_linear_1662_6516" x1="0" y1="48" x2="555" y2="47.9999" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#262626" stop-opacity="0"/>
+      <stop offset="0.0566652" stop-color="#262626"/>
+      <stop offset="0.949922" stop-color="#262626"/>
+      <stop offset="1" stop-color="#262626" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
+  

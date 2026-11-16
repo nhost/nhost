@@ -1,4 +1,3 @@
-import type { InputProps } from '@/components/ui/v2/Input';
 import { POSTGRESQL_NUMERIC_TYPES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import {
   isDateType,
@@ -16,7 +15,7 @@ import {
  */
 export default function getInputType(
   baseType?: string | null,
-): InputProps['type'] {
+): 'datetime-local' | 'time' | 'date' | 'number' | 'text' {
   if (isTimestampType(baseType)) {
     return 'datetime-local';
   }

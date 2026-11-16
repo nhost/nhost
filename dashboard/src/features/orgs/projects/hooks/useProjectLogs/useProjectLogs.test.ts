@@ -2,9 +2,9 @@ import { InMemoryCache } from '@apollo/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { useGetProjectLogsQuery } from '@/generated/graphql';
 import { mockApplication as mockProject } from '@/tests/mocks';
 import { renderHook } from '@/tests/testUtils';
-import { useGetProjectLogsQuery } from '@/utils/__generated__/graphql';
 import useProjectLogs, { type UseProjectLogsProps } from './useProjectLogs';
 
 // Mock the dependencies
@@ -48,9 +48,9 @@ vi.mock('@/utils/splitGraphqlClient', () => ({
   },
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetProjectLogsQuery: vi.fn(),

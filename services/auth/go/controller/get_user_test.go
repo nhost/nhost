@@ -57,6 +57,7 @@ func TestGetUser(t *testing.T) {
 					Ticket:                   pgtype.Text{},
 					TicketExpiresAt:          pgtype.Timestamptz{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				// Mock GetUserRoles call

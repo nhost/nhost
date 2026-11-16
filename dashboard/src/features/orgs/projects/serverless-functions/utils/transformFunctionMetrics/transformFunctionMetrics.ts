@@ -3,7 +3,7 @@ import type {
   FunctionMetricsResponse,
   RequestsTableRow,
 } from '@/features/orgs/projects/serverless-functions/types';
-import type { GetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
+import type { GetFunctionsMetricsDashboardQuery } from '@/generated/graphql';
 
 export default function transformFunctionMetrics(
   data: GetFunctionsMetricsDashboardQuery,

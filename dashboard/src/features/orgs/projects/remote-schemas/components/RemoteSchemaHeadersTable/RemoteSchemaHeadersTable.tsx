@@ -1,4 +1,3 @@
-import { Text } from '@/components/ui/v2/Text';
 import {
   Table,
   TableBody,
@@ -19,9 +18,7 @@ export default function RemoteSchemaHeadersTable({
 }: RemoteSchemaHeadersTableProps) {
   return (
     <div>
-      <Text variant="h3" className="pb-2">
-        Headers
-      </Text>
+      <h3 className="pb-2 font-medium text-lg">Headers</h3>
       <Table>
         <TableHeader>
           <TableRow>

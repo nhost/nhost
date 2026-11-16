@@ -3,16 +3,18 @@ package openapi3
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"maps"
 )
 
 // Info is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#info-object
+// and https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#info-object
 type Info struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
-	Title          string   `json:"title" yaml:"title"` // Required
+	Title          string   `json:"title" yaml:"title"`                         // Required
+	Summary        string   `json:"summary,omitempty" yaml:"summary,omitempty"` // OpenAPI >=3.1
 	Description    string   `json:"description,omitempty" yaml:"description,omitempty"`
 	TermsOfService string   `json:"termsOfService,omitempty" yaml:"termsOfService,omitempty"`
 	Contact        *Contact `json:"contact,omitempty" yaml:"contact,omitempty"`
@@ -34,11 +36,12 @@ func (info *Info) MarshalYAML() (any, error) {
 	if info == nil {
 		return nil, nil
 	}
-	m := make(map[string]any, 6+len(info.Extensions))
-	for k, v := range info.Extensions {
-		m[k] = v
-	}
+	m := make(map[string]any, 7+len(info.Extensions))
+	maps.Copy(m, info.Extensions)
 	m["title"] = info.Title
+	if x := info.Summary; x != "" {
+		m["summary"] = x
+	}
 	if x := info.Description; x != "" {
 		m["description"] = x
 	}
@@ -63,8 +66,8 @@ func (info *Info) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
-	delete(x.Extensions, originKey)
 	delete(x.Extensions, "title")
+	delete(x.Extensions, "summary")
 	delete(x.Extensions, "description")
 	delete(x.Extensions, "termsOfService")
 	delete(x.Extensions, "contact")
@@ -80,26 +83,37 @@ func (info *Info) UnmarshalJSON(data []byte) error {
 // Validate returns an error if Info does not comply with the OpenAPI spec.
 func (info *Info) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
+
+	if info.Summary != "" && !getValidationOptions(ctx).isOpenAPI31OrLater {
+		if err := me.emit(newInfoSummaryFieldFor31Plus(info.Origin)); err != nil {
+			return err
+		}
+	}
 
 	if contact := info.Contact; contact != nil {
-		if err := contact.Validate(ctx); err != nil {
+		if err := me.emit(contact.Validate(ctx)); err != nil {
 			return err
 		}
 	}
 
 	if license := info.License; license != nil {
-		if err := license.Validate(ctx); err != nil {
+		if err := me.emit(license.Validate(ctx)); err != nil {
 			return err
 		}
 	}
 
 	if info.Version == "" {
-		return errors.New("value of version must be a non-empty string")
+		if err := me.emit(newInfoVersionRequired(info.Origin)); err != nil {
+			return err
+		}
 	}
 
 	if info.Title == "" {
-		return errors.New("value of title must be a non-empty string")
+		if err := me.emit(newInfoTitleRequired(info.Origin)); err != nil {
+			return err
+		}
 	}
 
-	return validateExtensions(ctx, info.Extensions)
+	return me.finalize(validateExtensions(ctx, info.Extensions, info.Origin))
 }

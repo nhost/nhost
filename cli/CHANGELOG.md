@@ -1,3 +1,185 @@
+## [cli@1.53.0] - 2026-11-11
+
+### 🚀 Features
+
+- *(cli)* Support auth.method.otp.sms configuration (#5310)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Enforce MCP allowlist on scalar root fields and fragments (#5362)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.52.2
+- *(ci)* Update dependencies due to CVEs (#5307)
+- *(dashboard)* Bump references to 3.9.0
+
+## [cli@1.52.2] - 2026-10-26
+
+### 🐛 Bug Fixes
+
+- *(cli)* Stop querying workspaces and refresh cloud schema (#5286)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.52.1
+- *(dashboard)* Bump references to 3.8.1
+
+## [cli@1.52.1] - 2026-10-23
+
+### 🐛 Bug Fixes
+
+- *(cli)* Filter psql guards from initial migration (#5181)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.52.0
+- *(dashboard)* Bump references to 3.7.1
+- *(dashboard)* Bump references to 3.8.0
+- *(cli)* Update schema (#5234)
+- *(functions)* Bump references to 2.3.3
+
+## [cli@1.52.0] - 2026-10-14
+
+### 🚀 Features
+
+- *(postgres)* Expose WAL and extension configuration (#5080)
+- *(cli)* Added support for ca-central-1 (#5171)
+
+
+### 🐛 Bug Fixes
+
+- *(cli)* Use spec-compliant annotations for MCP resources (#5138)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.2
+- *(cli)* Use production to generate bindings instead of staging for stability (#5119)
+- *(cli)* Update certs (#5174)
+- *(dashboard)* Bump references to 3.7.0
+
+
+### Chore
+
+- *(deps)* Bump go and govulncheck (#5162)
+
+## [cli@1.51.2] - 2026-09-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.1
+- *(postgres)* Generate extension reference (#5024)
+- *(functions)* Bump references to 2.3.2
+- *(dashboard)* Bump references to 3.6.0
+- *(cli)* Update schema and versions (#5088)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+
+## [cli@1.51.1] - 2026-09-16
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.0
+- *(cli)* Change cli_wf_release runner so provenance check doesn't … (#4994)
+- *(functions)* Bump references to 2.3.0
+- *(functions)* Bump references to 2.3.1
+
+## [cli@1.51.0] - 2026-09-12
+
+### 🚀 Features
+
+- *(cli)* Added support for ap-southeast-2 and eu-north-1 (#4832)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Update cli install instructions (#4879)
+- *(cli)* Fix broken rootless docker/podman because uid:gid is set (#4778)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.2
+- *(dashboard)* Bump references to 3.4.0
+- *(dashboard)* Bump references to 3.4.1
+- *(dashboard)* Bump references to 3.5.0
+- *(dashboard)* Bump references to 3.5.1
+- *(dashboard)* Bump references to 3.5.2
+- *(cli)* Update certs (#4929)
+- *(cli)* Update schema (#4941)
+- *(dashboard)* Bump references to 3.5.3
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(cli)* Mirror third party images (#4986)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4928)
+
+## [cli@1.50.2] - 2026-08-12
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add body to echo example (#4806)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.1
+- *(dashboard)* Bump references to 3.3.0
+- *(cli)* Update functions validation (#4745)
+
+## [cli@1.50.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+- *(functions)* Bump references to 2.2.0
+- *(dashboard)* Bump references to 3.2.1
+
+## [cli@1.50.0] - 2026-07-17
+
+### 🚀 Features
+
+- *(constellation)* Set up proxying to hasura at the application layer (#4456)
+- *(cli)* Publish CLI to npm registry (#4527)
+- *(docs)* Update cli quickstart, cli commands ref, cli platform pages (#4564)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(cli)* Correct broken Auth and Storage links in README (#4524)
+- *(cli)* Route container-to-container traffic via traefik aliases (#4587)
+- *(cli)* Make sure local files belong to the user running nhost (#4538)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.49.0
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(dashboard)* Bump references to 2.66.0
+- *(nixops)* Bump oapi-codegen (#4523)
+- *(cli)* Update graphql types (#4586)
+- *(dashboard)* Bump references to 3.0.0
+- *(cli)* Automate wildcard certificate DNS challenges (#4678)
+
 ## [cli@1.49.0] - 2026-06-05
 
 ### 🚀 Features

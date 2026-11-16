@@ -10,7 +10,7 @@ import (
 func TestCollectProjectsEmptyEncodesAsArray(t *testing.T) {
 	t.Parallel()
 
-	var orgs graphql.GetOrganizationsAndWorkspacesApps
+	var orgs graphql.GetOrganizationsApps
 
 	projects := collectProjects(&orgs)
 	if projects == nil {

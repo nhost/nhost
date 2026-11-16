@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"maps"
 	"mime"
 	"net/http"
 	"strings"
@@ -30,7 +31,7 @@ func determineResponseContentType(
 		return acceptApplicationJson
 	}
 
-	for _, acceptPart := range strings.Split(accept, ",") {
+	for acceptPart := range strings.SplitSeq(accept, ",") {
 		mediaType, _, err := mime.ParseMediaType(strings.TrimSpace(acceptPart))
 		if err != nil {
 			continue
@@ -69,11 +70,7 @@ func writeHeaders(w http.ResponseWriter, headers map[string][]string) {
 
 func mergeHeaders(baseHeaders, additionalHeaders map[string][]string) map[string][]string {
 	result := make(map[string][]string)
-	for k, v := range baseHeaders {
-		result[k] = v
-	}
-	for key, values := range additionalHeaders {
-		result[key] = values
-	}
+	maps.Copy(result, baseHeaders)
+	maps.Copy(result, additionalHeaders)
 	return result
 }

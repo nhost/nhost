@@ -163,7 +163,7 @@ export default function FunctionDetailsPanel({
         </div>
       )}
       {activeTab === 'execute' && (
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-auto lg:overflow-hidden">
           <ExecuteTab endpointUrl={defaultEndpointUrl} />
         </div>
       )}
@@ -186,6 +186,7 @@ export default function FunctionDetailsPanel({
               rootClassName="bg-transparent"
             >
               <UpgradeToProBanner
+                section="serverless-functions-metrics"
                 title="To unlock Function Metrics, transfer this project to a Pro or Team organization."
                 description=""
               />

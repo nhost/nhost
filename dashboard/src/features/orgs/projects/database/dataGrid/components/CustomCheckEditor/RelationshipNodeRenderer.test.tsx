@@ -15,7 +15,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { mockPointerEvent, render, screen } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import VisualRuleEditor from './VisualRuleEditor';
 
 const mocks = vi.hoisted(() => ({
@@ -84,7 +84,6 @@ describe('RelationshipNodeRenderer - nested context propagation', () => {
   });
 
   beforeEach(() => {
-    mockPointerEvent();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',

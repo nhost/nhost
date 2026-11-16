@@ -1,6 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Box } from '@/components/ui/v2/Box';
-import { Chip } from '@/components/ui/v2/Chip';
+import { Badge } from '@/components/ui/v3/badge';
 import { isDevOrStaging } from '@/utils/helpers';
 
 interface StatusProps {
@@ -21,26 +20,54 @@ export enum StatusEnum {
 
 function Status({ children, status = StatusEnum.Live }: StatusProps) {
   if (status === StatusEnum.Deploying || status === StatusEnum.Medium) {
-    return <Chip color="warning" size="small" label={children} />;
+    return (
+      <Badge
+        variant="outline"
+        className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      >
+        {children}
+      </Badge>
+    );
   }
 
   if (status === StatusEnum.Live) {
-    return <Chip color="success" size="small" label={children} />;
+    return (
+      <Badge
+        variant="outline"
+        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      >
+        {children}
+      </Badge>
+    );
   }
 
   if (status === StatusEnum.Plan) {
-    return <Chip color="primary" size="small" label={children} />;
+    return (
+      <Badge
+        variant="outline"
+        className="border-primary/30 bg-primary/10 text-primary"
+      >
+        {children}
+      </Badge>
+    );
   }
 
   if (status === StatusEnum.Soon) {
-    return <Chip color="info" size="small" label={children} />;
+    return (
+      <Badge
+        variant="outline"
+        className="border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+      >
+        {children}
+      </Badge>
+    );
   }
 
   if (status === StatusEnum.Error) {
-    return <Chip color="error" size="small" label={children} />;
+    return <Badge variant="destructive">{children}</Badge>;
   }
 
-  return <Chip color="default" size="small" label={children} />;
+  return <Badge variant="secondary">{children}</Badge>;
 }
 
 export default function StagingMetadata({
@@ -49,10 +76,10 @@ export default function StagingMetadata({
   return (
     isDevOrStaging() && (
       <div className="mx-auto max-w-sm">
-        <Box className="mx-auto grid grid-flow-row justify-items-center rounded-md border p-5 text-center">
+        <div className="mx-auto grid grid-flow-row justify-items-center rounded-md border p-5 text-center text-foreground">
           <Status status={StatusEnum.Deploying}>Internal info</Status>
           {children}
-        </Box>
+        </div>
       </div>
     )
   );

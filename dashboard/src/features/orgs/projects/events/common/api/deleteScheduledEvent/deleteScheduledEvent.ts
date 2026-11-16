@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   DeleteScheduledEventArgs,
   DeleteScheduledEventOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteScheduledEventVariables {
@@ -21,7 +21,7 @@ export default async function deleteScheduledEvent({
         args,
       } satisfies DeleteScheduledEventOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

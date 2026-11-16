@@ -13,6 +13,7 @@
       "@/types/*": ["types/*"],
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
+      "@/generated/graphite": ["utils/__generated__/graphite.graphql"],
       "@/generated/*": ["utils/__generated__/*"],
       "@/features/*": ["features/*"],
       "@nhost/nextjs": ["../../packages/nextjs/src/index.ts"],

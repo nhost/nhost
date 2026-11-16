@@ -1,33 +1,30 @@
-import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
-import { Fragment } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Button } from '@/components/ui/v3/button';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { EnvironmentVariable } from '@/types/application';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { EnvironmentVariable } from '@/types/application';
 
 export interface EnvironmentVariableSettingsFormValues {
   /**
@@ -115,18 +112,22 @@ export default function EnvironmentVariableSettings() {
 
   function handleOpenCreator() {
     openDialog({
-      title: 'Create Environment Variable',
+      title: 'Create environment variable',
       component: <CreateEnvironmentVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
     openDialog({
-      title: 'Edit Environment Variable',
+      title: (
+        <span className="block truncate" title={originalVariable.name}>
+          Edit {originalVariable.name}
+        </span>
+      ),
       component: (
         <EditEnvironmentVariableForm
           originalEnvironmentVariable={originalVariable}
@@ -135,20 +136,25 @@ export default function EnvironmentVariableSettings() {
       ),
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-xl' },
       },
     });
   }
 
   function handleConfirmDelete(originalVariable: EnvironmentVariable) {
     openAlertDialog({
-      title: 'Delete Environment Variable',
+      title: 'Delete environment variable',
       payload: (
-        <Text>
-          Are you sure you want to delete the &quot;
-          <strong>{originalVariable.name}</strong>&quot; environment variable?
-          This cannot be undone.
-        </Text>
+        <p>
+          Are you sure you want to delete the{' '}
+          <strong
+            className="inline-block max-w-full truncate align-bottom"
+            title={originalVariable.name}
+          >
+            {originalVariable.name}
+          </strong>{' '}
+          environment variable? This cannot be undone.
+        </p>
       ),
       props: {
         primaryButtonColor: 'error',
@@ -159,87 +165,68 @@ export default function EnvironmentVariableSettings() {
   }
 
   return (
-    <SettingsContainer
-      title="Project Environment Variables"
-      description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
-      docsLink="https://docs.nhost.io/platform/cloud/environment-variables"
-      docsTitle="Environment Variables"
-      rootClassName="gap-0"
-      className={twMerge(
-        'my-2 px-0',
-        availableEnvironmentVariables.length === 0 && 'gap-2',
-      )}
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
-        <Text className="font-medium">Variable Name</Text>
-      </Box>
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Project environment variables"
+        description="Key-value pairs for configuration settings, available to all your services, including Run services and Functions."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables',
+          topic: 'Environment Variables',
+        }}
+        actions={
+          <Button type="button" variant="outline" onClick={handleOpenCreator}>
+            <PlusIcon className="mr-2" />
+            Create environment variable
+          </Button>
+        }
+      />
 
-      <div className="grid grid-flow-row gap-2">
-        {availableEnvironmentVariables.length > 0 && (
-          <List>
-            {availableEnvironmentVariables.map((environmentVariable, index) => (
-              <Fragment key={environmentVariable.id}>
-                <ListItem.Root
-                  className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
-                  secondaryAction={
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        className="absolute top-1/2 right-4 -translate-y-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end" className="w-32 p-0">
-                        <DropdownMenuItem
+      {availableEnvironmentVariables.length > 0 && (
+        <SettingsCardContent className="mt-2">
+          <VariableGroup>
+            {availableEnvironmentVariables.map((environmentVariable) => (
+              <TableRow key={environmentVariable.id} className="group">
+                <TableCell className="break-all font-mono">
+                  {environmentVariable.name}
+                </TableCell>
+                <TableCell className="w-24">
+                  <div className="flex justify-end gap-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          aria-label={`Edit ${environmentVariable.name}`}
                           onClick={() => handleOpenEditor(environmentVariable)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
+                          <PencilIcon />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Edit</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          className="hover:text-destructive dark:hover:text-destructive"
+                          aria-label={`Delete ${environmentVariable.name}`}
                           onClick={() =>
                             handleConfirmDelete(environmentVariable)
                           }
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  }
-                >
-                  <ListItem.Text className="truncate">
-                    {environmentVariable.name}
-                  </ListItem.Text>
-                </ListItem.Root>
-
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableEnvironmentVariables.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
+                          <Trash2Icon />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </List>
-        )}
-
-        <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
-          onClick={handleOpenCreator}
-        >
-          Create Environment Variable
-        </Button>
-      </div>
-    </SettingsContainer>
+          </VariableGroup>
+        </SettingsCardContent>
+      )}
+    </SettingsCard>
   );
 }

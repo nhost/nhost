@@ -1,8 +1,7 @@
-import { twMerge } from 'tailwind-merge';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
+import type { HTMLAttributes } from 'react';
+import { cn } from '@/lib/utils';
 
-export interface ContainerProps extends BoxProps {
+export interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Class name passed to the root element.
    */
@@ -16,13 +15,10 @@ export default function Container({
   ...props
 }: ContainerProps) {
   return (
-    <Box className={twMerge('mx-auto w-full', rootClassName)} {...props}>
-      <Box
-        className={twMerge('mx-auto max-w-7xl px-5 py-4', className)}
-        {...props}
-      >
+    <div className={cn('mx-auto w-full', rootClassName)} {...props}>
+      <div className={cn('mx-auto max-w-7xl px-5 py-4', className)}>
         {children}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

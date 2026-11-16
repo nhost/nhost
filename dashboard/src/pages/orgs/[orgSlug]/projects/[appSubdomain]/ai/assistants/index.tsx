@@ -3,33 +3,27 @@ import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
+import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
-  type GetAssistantsQuery,
   useGetAssistantsQuery,
   useGetGraphiteFileStoresQuery,
-} from '@/utils/__generated__/graphite.graphql';
-
-export type Assistant = Omit<
-  NonNullable<GetAssistantsQuery['graphite']>['assistants'][number],
-  '__typename'
->;
+} from '@/generated/graphite';
 
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
@@ -45,6 +39,8 @@ export default function AssistantsPage() {
   const { isFileStoreSupported, loading: fileStoreLoading } =
     useIsFileStoreSupported();
 
+  const isProjectReady = !isPlatform || !!project;
+
   const {
     data: assistantsData,
     loading: assistantsLoading,
@@ -55,18 +51,22 @@ export default function AssistantsPage() {
     variables: {
       isFileStoresSupported: isFileStoreSupported ?? false,
     },
-    skip: isFileStoreSupported === null || fileStoreLoading,
+    skip: !isProjectReady || isFileStoreSupported === null || fileStoreLoading,
   });
-  const { data: fileStoresData, error: fileStoresError } =
-    useGetGraphiteFileStoresQuery({
-      client: remoteProjectGQLClient,
-    });
+  const {
+    data: fileStoresData,
+    loading: fileStoresLoading,
+    error: fileStoresError,
+  } = useGetGraphiteFileStoresQuery({
+    client: remoteProjectGQLClient,
+    skip: !isProjectReady || !isFileStoreSupported,
+  });
 
-  const assistants = useMemo(
+  const assistants = useMemo<Assistant[]>(
     () => assistantsData?.graphite?.assistants || [],
     [assistantsData],
   );
-  const fileStores = useMemo(
+  const fileStores = useMemo<GraphiteFileStore[]>(
     () => fileStoresData?.graphite?.fileStores || [],
     [fileStoresData],
   );
@@ -83,23 +83,33 @@ export default function AssistantsPage() {
     });
   };
 
-  if (loadingOrg || loadingProject || loadingGraphite || assistantsLoading) {
+  const isPageDataLoading =
+    loadingOrg ||
+    loadingProject ||
+    loadingGraphite ||
+    fileStoreLoading ||
+    assistantsLoading ||
+    fileStoresLoading;
+  const shouldShowLoadingState = isPageDataLoading || !isProjectReady;
+
+  if (shouldShowLoadingState) {
     return (
-      <Box className="flex h-full w-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         <Spinner size="medium" wrapperClassName="gap-2">
           Loading Assistants...
         </Spinner>
-      </Box>
+      </div>
     );
   }
 
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid max-w-5xl grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="ai-assistants"
           title="To unlock Nhost Assistants, transfer this project to a Pro or Team organization."
           description=""
         />
@@ -107,32 +117,26 @@ export default function AssistantsPage() {
     );
   }
   const slug = isPlatform ? org?.slug : 'local';
+  const aiServiceUnavailable =
+    isPlatform && !org?.plan?.isFree && !project?.config?.ai;
 
-  if (
-    (isPlatform && !org?.plan?.isFree && !project?.config?.ai) ||
-    !isGraphiteEnabled
-  ) {
+  if (aiServiceUnavailable || !isGraphiteEnabled) {
     return (
-      <Box
-        className="w-full p-4"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="w-full px-4 pt-8 pb-8">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
-          <Text className="grid grid-flow-row justify-items-start gap-0.5">
-            <Text component="span">
-              To enable graphite, configure the service first in{' '}
-              <Link
-                href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                AI Settings
-              </Link>
-              .
-            </Text>
-          </Text>
+          <p>
+            To enable graphite, configure the service first in{' '}
+            <Link
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              AI Settings
+            </Link>
+            .
+          </p>
         </Alert>
-      </Box>
+      </div>
     );
   }
 
@@ -142,19 +146,16 @@ export default function AssistantsPage() {
 
   if (assistants.length === 0 && !assistantsLoading) {
     return (
-      <Box
-        className="w-full p-6"
-        sx={{ backgroundColor: 'background.default' }}
-      >
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+      <div className="w-full px-6 pt-8 pb-8">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-raised">
           <span className="text-6xl">🤖</span>
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h2 className="text-center font-medium text-lg">
               No Assistants are configured
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h2>
+            <p className="text-center text-muted-foreground text-sm">
               All your assistants will be listed here.
-            </Text>
+            </p>
           </div>
           <div className="flex flex-row place-content-between rounded-lg">
             <Button className="w-full" onClick={openCreateAssistantForm}>
@@ -162,19 +163,19 @@ export default function AssistantsPage() {
               Create a new assistant
             </Button>
           </div>
-        </Box>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box className="flex w-full flex-col overflow-hidden">
-      <Box className="flex flex-row place-content-end border-b-1 p-4">
+    <div className="flex w-full flex-col overflow-x-hidden">
+      <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateAssistantForm}>
           <PlusIcon className="mr-2 h-4 w-4" />
           New
         </Button>
-      </Box>
+      </div>
       <div>
         <AssistantsList
           assistants={assistants}
@@ -183,22 +184,16 @@ export default function AssistantsPage() {
           onCreateOrUpdate={() => assistantsRefetch()}
         />
       </div>
-    </Box>
+    </div>
   );
 }
 
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <AIArea>{page}</AIArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

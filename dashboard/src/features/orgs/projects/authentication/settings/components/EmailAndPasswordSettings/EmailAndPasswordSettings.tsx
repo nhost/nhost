@@ -6,8 +6,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -77,7 +83,7 @@ export default function EmailAndPasswordSettings() {
     throw error;
   }
 
-  const { formState, register } = form;
+  const { formState } = form;
 
   async function handleSubmit(formValues: EmailAndPasswordFormValues) {
     const updateConfigPromise = updateConfig({
@@ -123,49 +129,51 @@ export default function EmailAndPasswordSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Email and Password"
-          description="Allow users to sign in with email and password."
-          docsLink="https://docs.nhost.io/products/auth/sign-in-email-password"
-          docsTitle="how to sign in users with email and password"
-          className="grid grid-flow-row"
-          showSwitch
-          enabled
-          slotProps={{
-            switch: { disabled: true },
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-        >
-          <Input
-            {...register('passwordMinLength')}
-            id="passwordMinLength"
-            name="passwordMinLength"
-            type="number"
-            label="Minimum required password length"
-            fullWidth
-            className="lg:max-w-[50%]"
-            error={Boolean(formState.errors.passwordMinLength?.message)}
-            helperText={formState.errors.passwordMinLength?.message}
-            slotProps={{ inputRoot: { min: 3 } }}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Email and Password"
+            description="Email and password sign-in is always available. Set its rules below."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/sign-in-email-password',
+              topic: 'how to sign in users with email and password',
+            }}
           />
 
-          <FormCheckbox
-            control={form.control}
-            name="emailVerificationRequired"
-            label="Require Verified Emails"
-            helperText="Users must verify their email to be able to sign in."
-          />
+          <SettingsCardContent>
+            <FormInput
+              control={form.control}
+              name="passwordMinLength"
+              type="number"
+              label="Minimum required password length"
+              containerClassName="lg:max-w-[50%]"
+            />
 
-          <FormCheckbox
-            control={form.control}
-            name="hibpEnabled"
-            label="Password Protection"
-            helperText="Passwords must pass haveibeenpwned.com during sign-up."
-          />
-        </SettingsContainer>
+            <FormCheckbox
+              control={form.control}
+              name="emailVerificationRequired"
+              label="Require Verified Emails"
+              helperText="Users must verify their email to be able to sign in."
+            />
+
+            <FormCheckbox
+              control={form.control}
+              name="hibpEnabled"
+              label="Password Protection"
+              helperText="Passwords must pass haveibeenpwned.com during sign-up."
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

@@ -48,8 +48,8 @@
   --accent-9: #000;
 
   --font-sans:
-    -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue", "Helvetica",
-    sans-serif;
+    "Figtree", -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue",
+    "Helvetica", sans-serif;
 }
 
 [data-theme="dark"] {
@@ -99,8 +99,6 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--primary);
-  color: var(--text-primary);
 }
 
 body {

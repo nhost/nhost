@@ -124,10 +124,8 @@ func TestNewStaticSecretHappyPath(t *testing.T) {
 				Type: jwtconfig.AlgorithmHS256,
 				Key:  "k",
 				Header: &jwtconfig.HeaderJSON{
-					HeaderConfig: jwtconfig.HeaderConfig{
-						Type: jwtconfig.HeaderTypeCookie,
-						Name: "jwt",
-					},
+					Type: jwtconfig.HeaderTypeCookie,
+					Name: "jwt",
 				},
 			},
 		},

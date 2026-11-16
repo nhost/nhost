@@ -3,8 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { MakeRequired } from '@/types/common';
 
 export interface BaseSecretFormProps {
@@ -56,8 +57,9 @@ export default function BaseSecretForm({
   const form = useFormContext<BaseSecretFormValues>();
 
   const {
-    register,
-    formState: { errors, dirtyFields, isSubmitting },
+    control,
+    setFocus,
+    formState: { dirtyFields, isSubmitting },
   } = form;
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
@@ -68,46 +70,43 @@ export default function BaseSecretForm({
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
+  useEffect(() => {
+    setFocus(mode === 'create' ? 'name' : 'value');
+  }, [mode, setFocus]);
+
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <Input
-          {...register('name')}
-          id="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          hideEmptyHelperText
-          error={!!errors.name}
-          helperText={errors?.name?.message}
-          fullWidth
-          autoComplete="off"
-          autoFocus={mode === 'create'}
-          disabled={mode === 'edit'}
+        {mode === 'edit' ? (
+          <p className="text-muted-foreground text-sm">
+            The current value is hidden. Saving replaces it.
+          </p>
+        ) : (
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+          />
+        )}
+
+        <FormTextarea
+          control={control}
+          name="value"
+          label={mode === 'edit' ? 'New value' : 'Value'}
+          placeholder={mode === 'edit' ? 'Enter a new value' : 'Enter value'}
+          className="min-h-32"
         />
 
-        <Input
-          {...register('value')}
-          id="value"
-          label="Value"
-          placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.value}
-          helperText={errors?.value?.message}
-          fullWidth
-          multiline
-          rows={5}
-          autoComplete="off"
-          autoFocus={mode === 'edit'}
-        />
-
-        <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </Button>
-
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

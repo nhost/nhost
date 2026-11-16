@@ -44,7 +44,9 @@ test('should create and delete a run service', async ({
 
   await expect(page.getByRole('heading', { name: serviceName })).toBeVisible();
 
-  await page.getByLabel(/more options/i).click();
+  await page
+    .getByLabel(`More options for ${serviceName}`, { exact: true })
+    .click();
 
   await page.getByRole('menuitem', { name: /delete service/i }).click();
 

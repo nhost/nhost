@@ -1,4 +1,3 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -7,17 +6,14 @@ import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
 } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
-import {
-  BaseSecretForm,
-  baseSecretFormValidationSchema,
-} from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
+import { BaseSecretForm } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Secret } from '@/types/application';
-import type { MakeRequired } from '@/types/common';
 import {
   GetSecretsDocument,
   useUpdateSecretMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Secret } from '@/types/application';
+import type { MakeRequired } from '@/types/common';
 
 export interface EditSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {
@@ -44,8 +40,6 @@ export default function EditSecretForm({
       name: originalSecret.name,
       value: '',
     },
-    reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseSecretFormValidationSchema),
   });
 
   const { project } = useProject();
@@ -89,7 +83,7 @@ export default function EditSecretForm({
     <FormProvider {...form}>
       <BaseSecretForm
         mode="edit"
-        submitButtonText="Save"
+        submitButtonText="Replace"
         onSubmit={handleSubmit}
         {...props}
       />

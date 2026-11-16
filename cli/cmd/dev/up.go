@@ -42,12 +42,13 @@ const (
 	flagRunServiceVolume   = "run-service-volume"
 	flagDownOnError        = "down-on-error"
 	flagCACertificates     = "ca-certificates"
+	flagUser               = "user"
 )
 
 const (
 	defaultHTTPPort         = 443
 	defaultPostgresPort     = 5432
-	defaultFunctionsVersion = "2.1.0"
+	defaultFunctionsVersion = "2.3.3"
 )
 
 func CommandUp() *cli.Command { //nolint:funlen
@@ -109,7 +110,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:3.0.0",
+				Value:   "nhost/dashboard:3.9.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -144,6 +145,14 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage:   "Mounts and overrides path to CA certificates in the containers",
 				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name: flagUser,
+				Usage: "User to run containers that write into bind mounts as. 'auto' maps " +
+					"them to your uid:gid on Linux with a local rootful docker daemon, " +
+					"'none' keeps the images' default user, or pass an explicit uid:gid",
+				Value:   dockercompose.HostUserAuto,
+				Sources: cli.EnvVars("NHOST_DOCKER_USER"),
+			},
 		},
 		Commands: []*cli.Command{
 			CommandCloud(),
@@ -175,6 +184,11 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 
 	applySeeds := cmd.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
 
+	hostUser, err := dockercompose.ResolveHostUser(ctx, cmd.String(flagUser))
+	if err != nil {
+		return fmt.Errorf("failed to resolve --%s: %w", flagUser, err)
+	}
+
 	return Up(
 		ctx,
 		ce,
@@ -194,6 +208,7 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 		cmd.String(flagFunctionsVersion),
 		configserverImage,
 		cmd.String(flagCACertificates),
+		hostUser,
 		cmd.StringSlice(flagRunService),
 		cmd.StringSlice(flagRunServiceVolume),
 		cmd.Bool(flagDownOnError),
@@ -411,6 +426,7 @@ func up( //nolint:funlen
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 ) error {
@@ -467,6 +483,7 @@ func up( //nolint:funlen
 	r.StartPhase("Setting up environment")
 
 	composeFile, err := dockercompose.ComposeFileFromConfig(
+		ctx,
 		cfg,
 		ce.LocalSubdomain(),
 		ce.ProjectName(),
@@ -483,6 +500,7 @@ func up( //nolint:funlen
 		configserverImage,
 		appID,
 		clienv.PathExists(ce.Path.Functions()),
+		hostUser,
 		caCertificatesPath,
 		runServicesCfg...,
 	)
@@ -532,6 +550,7 @@ func up( //nolint:funlen
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
+		hostUser,
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",
@@ -829,6 +848,7 @@ func Up(
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 	downOnError bool,
@@ -838,14 +858,14 @@ func Up(
 		return upWithTUI(
 			ctx, ce, appVersion, httpPort, useTLS, postgresPort,
 			applySeeds, ports, dashboardVersion, functionsVersion, configserverImage,
-			caCertificatesPath, runServices, runServiceVolumes, downOnError,
+			caCertificatesPath, hostUser, runServices, runServiceVolumes, downOnError,
 		)
 	}
 
 	return upWithText(
 		ctx, ce, appVersion, httpPort, useTLS, postgresPort,
 		applySeeds, ports, dashboardVersion, functionsVersion, configserverImage,
-		caCertificatesPath, runServices, runServiceVolumes, downOnError,
+		caCertificatesPath, hostUser, runServices, runServiceVolumes, downOnError,
 	)
 }
 
@@ -862,6 +882,7 @@ func upWithText(
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 	downOnError bool,
@@ -875,7 +896,7 @@ func upWithText(
 	if err := up(
 		ctx, ce, appVersion, dc, docker, reporter, httpPort, useTLS,
 		postgresPort, applySeeds, ports, dashboardVersion, functionsVersion,
-		configserverImage, caCertificatesPath, runServices,
+		configserverImage, caCertificatesPath, hostUser, runServices,
 		runServiceVolumes,
 	); err != nil {
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
@@ -897,6 +918,7 @@ func upWithTUI(
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 	downOnError bool,
@@ -929,7 +951,7 @@ func upWithTUI(
 		return up(
 			runCtx, tuiCE, appVersion, dc, docker, r, httpPort, useTLS,
 			postgresPort, applySeeds, ports, dashboardVersion, functionsVersion,
-			configserverImage, caCertificatesPath, runServices,
+			configserverImage, caCertificatesPath, hostUser, runServices,
 			runServiceVolumes,
 		)
 	})

@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { getScheduledEventInvocations } from '@/features/orgs/projects/events/common/api/getScheduledEventInvocations';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -45,6 +45,7 @@ export default function useGetInvocationLogsById(
   { queryOptions }: UseGetInvocationLogsByIdQueryOptions = {},
 ) {
   const { project, loading } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const query = useQuery<
     GetScheduledEventInvocationsResponse,
@@ -60,13 +61,9 @@ export default function useGetInvocationLogsById(
       args.offset ?? 0,
     ] as const,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = adminApi!.adminSecret;
 
       return getScheduledEventInvocations({
         appUrl,

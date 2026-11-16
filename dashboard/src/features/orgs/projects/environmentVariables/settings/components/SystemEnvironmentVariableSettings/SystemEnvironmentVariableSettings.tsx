@@ -1,26 +1,25 @@
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { InlineCode } from '@/components/presentational/InlineCode';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
+import { Button } from '@/components/ui/v3/button';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   defaultRemoteBackendSlugs,
   generateAppServiceUrl,
 } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/orgs/projects/environmentVariables/settings/components/EditJwtSecretForm';
+import { MaskedValue } from '@/features/orgs/projects/environmentVariables/settings/components/MaskedValue';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -29,8 +28,6 @@ export default function SystemEnvironmentVariableSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
-  const [showAdminSecret, setShowAdminSecret] = useState(false);
-  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
@@ -55,12 +52,12 @@ export default function SystemEnvironmentVariableSettings() {
     openDialog({
       title: (
         <span className="grid grid-flow-row">
-          <span>Auth JWT Secret</span>
+          <span>Auth JWT secret</span>
 
-          <Text variant="subtitle1" component="span">
+          <span className="text-muted-foreground text-sm">
             This is the key used for generating JWTs. It&apos;s the same as
             configured in Hasura.
-          </Text>
+          </span>
         </span>
       ),
       component: (
@@ -69,9 +66,12 @@ export default function SystemEnvironmentVariableSettings() {
     });
   }
 
-  const systemEnvironmentVariables = [
+  const projectVariables = [
     { key: 'NHOST_SUBDOMAIN', value: project!.subdomain },
     { key: 'NHOST_REGION', value: project!.region.name },
+  ];
+
+  const serviceUrlVariables = [
     {
       key: 'NHOST_HASURA_URL',
       value:
@@ -94,120 +94,91 @@ export default function SystemEnvironmentVariableSettings() {
   ];
 
   return (
-    <SettingsContainer
-      title="System Environment Variables"
-      description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
-      docsLink="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
-      rootClassName="gap-0"
-      className="mt-2 mb-2.5 px-0"
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
-        <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium lg:col-span-2">Value</Text>
-      </Box>
+    <SettingsCard>
+      <SettingsCardHeader
+        title="System environment variables"
+        description="Set automatically from your configuration file and your project's subdomain and region."
+        docsLink={{
+          href: 'https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables',
+          topic: 'System Environment Variables',
+        }}
+      />
 
-      <List>
-        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
+      <SettingsCardContent className="mt-2 gap-6">
+        <VariableGroup label="Project">
+          {projectVariables.map((variable) => (
+            <ValueRow
+              key={variable.key}
+              name={variable.key}
+              value={variable.value}
+            />
+          ))}
+        </VariableGroup>
 
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" color="secondary">
-              {showAdminSecret ? (
-                <InlineCode className="!text-sm font-medium">
-                  {adminSecret}
-                </InlineCode>
-              ) : (
-                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-              )}
-            </Text>
+        <VariableGroup label="Service URLs">
+          {serviceUrlVariables.map((variable) => (
+            <ValueRow
+              key={variable.key}
+              name={variable.key}
+              value={variable.value}
+            />
+          ))}
+        </VariableGroup>
 
-            <IconButton
-              variant="borderless"
-              color="secondary"
-              aria-label={
-                showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
-              }
-              onClick={() => setShowAdminSecret((show) => !show)}
-            >
-              {showAdminSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
-            </IconButton>
-          </div>
-        </ListItem.Root>
+        <VariableGroup label="Secrets">
+          <TableRow className="group">
+            <TableCell className="break-all font-mono">
+              NHOST_ADMIN_SECRET
+            </TableCell>
+            <TableCell>
+              <MaskedValue name="NHOST_ADMIN_SECRET" value={adminSecret} />
+            </TableCell>
+          </TableRow>
+          <TableRow className="group">
+            <TableCell className="break-all font-mono">
+              NHOST_WEBHOOK_SECRET
+            </TableCell>
+            <TableCell>
+              <MaskedValue name="NHOST_WEBHOOK_SECRET" value={webhookSecret} />
+            </TableCell>
+          </TableRow>
+          <TableRow className="group">
+            <TableCell className="break-all font-mono">
+              NHOST_JWT_SECRET
+            </TableCell>
+            <TableCell>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={showViewJwtSecretModal}
+              >
+                Show JWT secret
+              </Button>
+            </TableCell>
+          </TableRow>
+        </VariableGroup>
+      </SettingsCardContent>
+    </SettingsCard>
+  );
+}
 
-        <Divider component="li" className="!my-4" />
-
-        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
-
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" color="secondary">
-              {showWebhookSecret ? (
-                <InlineCode className="!text-sm font-medium">
-                  {webhookSecret}
-                </InlineCode>
-              ) : (
-                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-              )}
-            </Text>
-
-            <IconButton
-              variant="borderless"
-              color="secondary"
-              aria-label={
-                showWebhookSecret
-                  ? 'Hide Webhook Secret'
-                  : 'Show Webhook Secret'
-              }
-              onClick={() => setShowWebhookSecret((show) => !show)}
-            >
-              {showWebhookSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
-            </IconButton>
-          </div>
-        </ListItem.Root>
-
-        <Divider component="li" className="!my-4" />
-
-        {systemEnvironmentVariables.map((environmentVariable, index) => (
-          <Fragment key={environmentVariable.key}>
-            <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-              <ListItem.Text>{environmentVariable.key}</ListItem.Text>
-
-              <Text className="truncate lg:col-span-2">
-                {environmentVariable.value}
-              </Text>
-            </ListItem.Root>
-
-            {index !== systemEnvironmentVariables.length - 1 && (
-              <Divider className="!my-4" />
-            )}
-          </Fragment>
-        ))}
-
-        <Divider component="li" className="!mb-2.5 !mt-4" />
-
-        <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
-
-          <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
-            <Button
-              variant="borderless"
-              onClick={showViewJwtSecretModal}
-              size="small"
-            >
-              Show JWT Secret
-            </Button>
-          </div>
-        </ListItem.Root>
-      </List>
-    </SettingsContainer>
+// A variable with a plain value, copied from the icon that shows on row hover.
+function ValueRow({ name, value }: { name: string; value: string }) {
+  return (
+    <TableRow className="group">
+      <TableCell className="break-all font-mono">{name}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <span className="min-w-0 break-all text-muted-foreground">
+            {value}
+          </span>
+          <CopyToClipboardButton
+            className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+            textToCopy={value}
+            title={name}
+          />
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }

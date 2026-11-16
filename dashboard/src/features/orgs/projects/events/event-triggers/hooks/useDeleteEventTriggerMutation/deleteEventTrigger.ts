@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   DeleteEventTriggerBulkOperation,
   DeleteEventTriggerStepArgs,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteEventTriggerVariables {
@@ -32,7 +32,7 @@ export async function deleteEventTrigger({
         ],
       } satisfies DeleteEventTriggerBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

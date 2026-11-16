@@ -1,6 +1,6 @@
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
 import { useEffect, useId, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 
 export default function SignUp() {

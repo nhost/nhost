@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 import { isNotEmptyValue as isNotNull } from '@/lib/utils';
-import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 
 function useIsPiTREnabled() {
   const { project } = useProject();

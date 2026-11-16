@@ -11,9 +11,12 @@ export const INSUFFICIENT_PERMISSIONS_MESSAGE =
 export const READ_ONLY_SCHEMAS = ['auth', 'storage', 'graphite'];
 
 /**
- * Key used to store the color preference in local storage.
+ * Key used to store the theme preference in local storage.
+ *
+ * The value stays `'nhost-color-preference'` (the pre-rename key) so existing
+ * users keep their saved theme; only the constant name was updated.
  */
-export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
+export const THEME_STORAGE_KEY = 'nhost-color-preference';
 
 /**
  * For every CPU, we allocate N times the amount of RAM.

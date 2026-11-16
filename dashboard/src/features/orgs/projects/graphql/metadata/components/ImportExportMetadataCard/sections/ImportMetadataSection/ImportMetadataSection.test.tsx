@@ -1,6 +1,12 @@
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { fireEvent, render, screen, waitFor } from '@/tests/testUtils';
+import {
+  fireEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import ImportMetadataSection from './ImportMetadataSection';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -174,7 +180,9 @@ describe('ImportMetadataSection', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: /^import$/i }),
+    );
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith(

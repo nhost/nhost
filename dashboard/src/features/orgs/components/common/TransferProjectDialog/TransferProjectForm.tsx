@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
+import { ArrowLeftRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Badge } from '@/components/ui/v3/badge';
+import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import {
   Form,
@@ -25,13 +25,14 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { cn, isNotEmptyValue } from '@/lib/utils';
-import { ApplicationStatus } from '@/types/application';
 import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
+import { ApplicationStatus } from '@/types/application';
 
 const CREATE_NEW_ORG = 'createNewOrg';
 
@@ -57,6 +58,7 @@ function TransferProjectForm({
   const { project } = useProject();
   const { state } = useAppState();
   const user = useUserData();
+  const track = useTrackEvent();
   const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
@@ -102,6 +104,10 @@ function TransferProjectForm({
             },
           });
 
+          track('Project Transferred', {
+            destination_org_id: organization,
+          });
+
           const targetOrg = orgs.find((o) => o.id === organization);
           if (targetOrg) {
             await push(`/orgs/${targetOrg.slug}/projects`);
@@ -132,17 +138,11 @@ function TransferProjectForm({
                       placeholder={
                         <span className="flex items-center">
                           {currentOrg?.name}
-                          <Badge
-                            variant={
-                              currentOrg?.plan.isFree ? 'outline' : 'default'
-                            }
-                            className={cn(
-                              currentOrg?.plan.isFree ? 'bg-muted' : '',
-                              'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                            )}
-                          >
-                            {currentOrg?.plan.name}
-                          </Badge>
+                          {currentOrg && (
+                            <OrganizationPlanBadge
+                              plan={currentOrg.plan.name}
+                            />
+                          )}
                         </span>
                       }
                     />
@@ -161,15 +161,7 @@ function TransferProjectForm({
                           !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                         }
                       >
-                        <Badge
-                          variant={org.plan.isFree ? 'outline' : 'default'}
-                          className={cn(
-                            org.plan.isFree ? 'bg-muted' : '',
-                            'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                          )}
-                        >
-                          {org.plan.name}
-                        </Badge>
+                        <OrganizationPlanBadge plan={org.plan.name} />
                       </SelectItem>
                     ))}
                   <SelectItem key={CREATE_NEW_ORG} value={CREATE_NEW_ORG}>
@@ -185,9 +177,9 @@ function TransferProjectForm({
           )}
         />
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 pt-8">
           <Button
-            variant="secondary"
+            variant="outline"
             type="button"
             disabled={form.formState.isSubmitting}
             onClick={onCancel}
@@ -198,7 +190,12 @@ function TransferProjectForm({
             type="submit"
             disabled={form.formState.isSubmitting || !form.formState.isDirty}
             loading={form.formState.isSubmitting}
+            className="gap-2"
+            loaderClassName="mr-0"
           >
+            {!createNewFormSelected && !form.formState.isSubmitting && (
+              <ArrowLeftRight />
+            )}
             {submitButtonText}
           </Button>
         </div>

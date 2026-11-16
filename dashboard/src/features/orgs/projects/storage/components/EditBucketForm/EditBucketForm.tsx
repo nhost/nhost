@@ -10,7 +10,7 @@ import {
   useGetBucketQuery,
   useGetBucketsQuery,
   useUpdateBucketMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface EditBucketFormProps
   extends Pick<BaseBucketFormProps, 'onCancel' | 'location'> {
@@ -92,7 +92,7 @@ export default function EditBucketForm({
           await refetchBuckets();
           closeDrawer();
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${encodeURIComponent(values.name)}`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(values.name)}`,
           );
         } else {
           await refetchBucket();

@@ -8,9 +8,16 @@ import {
 export default function parseConfigFromInstallLink(
   base64Config: string,
 ): ServiceFormInitialData {
-  const decodedConfig = atob(base64Config);
-  const parsedConfig: RunServiceConfig = JSON.parse(decodedConfig);
-  const initialData = {
+  let parsedConfig: RunServiceConfig;
+
+  try {
+    const decodedConfig = atob(base64Config);
+    parsedConfig = JSON.parse(decodedConfig);
+  } catch {
+    throw new Error('Invalid service configuration');
+  }
+
+  return {
     ...parsedConfig,
     autoscaler:
       parsedConfig?.resources?.autoscaler ??
@@ -43,6 +50,4 @@ export default function parseConfigFromInstallLink(
     replicas: parsedConfig?.resources?.replicas,
     storage: parsedConfig?.resources?.storage ?? undefined,
   };
-
-  return initialData;
 }

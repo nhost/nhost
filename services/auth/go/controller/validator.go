@@ -62,10 +62,8 @@ func ValidateRedirectTo(
 			return true
 		}
 
-		redirectToClean := strings.Split(
-			strings.Split(redirectTo, "#")[0],
-			"?",
-		)[0]
+		redirectToClean, _, _ := strings.Cut(redirectTo, "#")
+		redirectToClean, _, _ = strings.Cut(redirectToClean, "?")
 
 		for _, m := range matches {
 			if m.Match(redirectToClean) || m.Match(redirectToClean+"/") {
@@ -90,20 +88,22 @@ func ValidateEmail(
 		}
 
 		domain := parts[1]
+		matchesEmail := func(candidate string) bool { return strings.EqualFold(candidate, email) }
+		matchesDomain := func(candidate string) bool { return strings.EqualFold(candidate, domain) }
 
-		if slices.Contains(blockedEmails, email) {
+		if slices.ContainsFunc(blockedEmails, matchesEmail) {
 			return false
 		}
 
-		if slices.Contains(allowedEmails, email) {
+		if slices.ContainsFunc(allowedEmails, matchesEmail) {
 			return true
 		}
 
-		if slices.Contains(blockedEmailDomains, domain) {
+		if slices.ContainsFunc(blockedEmailDomains, matchesDomain) {
 			return false
 		}
 
-		if slices.Contains(allowedEmailDomains, domain) {
+		if slices.ContainsFunc(allowedEmailDomains, matchesDomain) {
 			return true
 		}
 

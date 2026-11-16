@@ -1,12 +1,11 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import {
   type baseServices,
   type ServiceHealthInfo,
-  serviceStateToThemeColor,
+  serviceStateToIndicatorClassName,
 } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 export interface RunStatusTooltipProps {
   servicesStatusInfo: Array<ServiceHealthInfo>;
@@ -27,25 +26,16 @@ export default function RunStatusTooltip({
             key={service.name}
             className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5"
           >
-            <Box
-              sx={{
-                backgroundColor: serviceStateToThemeColor.get(service.state),
-              }}
-              className={`h-3 w-3 flex-shrink-0 rounded-full ${
-                service.state === ServiceState.Updating ? 'animate-pulse' : ''
-              }`}
+            <span
+              className={cn(
+                'h-3 w-3 flex-shrink-0 rounded-full',
+                serviceStateToIndicatorClassName.get(service.state),
+                service.state === ServiceState.Updating && 'animate-pulse',
+              )}
             />
-            <Text
-              sx={{
-                color: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'text.primary'
-                    : 'text.primary',
-              }}
-              className="font-semibold"
-            >
+            <span className="font-semibold text-foreground">
               {service.name}
-            </Text>
+            </span>
           </li>
         ))}
       </ol>

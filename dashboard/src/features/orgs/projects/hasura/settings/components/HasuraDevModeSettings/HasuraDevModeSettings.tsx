@@ -5,7 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -91,10 +98,10 @@ export default function HasuraDevModeSettings() {
         }
       },
       {
-        loadingMessage: 'Dev Mode settings are being updated...',
-        successMessage: 'Dev Mode settings have been updated successfully.',
+        loadingMessage: 'Dev mode settings are being updated...',
+        successMessage: 'Dev mode settings have been updated successfully.',
         errorMessage:
-          'An error occurred while trying to update Dev Mode settings.',
+          'An error occurred while trying to update dev mode settings.',
       },
     );
   }
@@ -102,21 +109,40 @@ export default function HasuraDevModeSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Dev Mode"
-          description="Enable or disable Dev Mode."
-          slotProps={{
-            submitButton: {
-              disabled: !form.formState.isDirty,
-              loading: form.formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          docsTitle="enabling or disabling Dev Mode"
-          docsLink="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Dev Mode"
+            description="Enable or disable dev mode."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle dev mode"
+                  />
+                )}
+              />
+            }
+            docsLink={{
+              href: 'https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/',
+              topic: 'enabling or disabling Dev Mode',
+            }}
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

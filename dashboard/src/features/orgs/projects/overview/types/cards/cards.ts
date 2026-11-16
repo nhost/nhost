@@ -1,7 +1,6 @@
-import type { ReactElement } from 'react';
-import type { BoxProps } from '@/components/ui/v2/Box';
+import type { HTMLAttributes, ReactElement } from 'react';
 
-export interface CardProps extends BoxProps {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Title for the framework.
    */

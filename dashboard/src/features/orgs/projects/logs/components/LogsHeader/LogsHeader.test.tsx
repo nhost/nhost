@@ -1,15 +1,14 @@
+import { setupServer } from 'msw/node';
+import { vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { setupServer } from 'msw/node';
-import { vi } from 'vitest';
 import LogsHeader from './LogsHeader';
 
 const server = setupServer(tokenQuery);
@@ -38,15 +37,15 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
   })),
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetServiceLabelValuesQuery: () => ({
@@ -73,9 +72,7 @@ describe('LogsHeader', () => {
         onRefetch={onRefetchMock}
       />,
     );
-    await TestUserEvent.fireClickEvent(
-      await screen.findByTestId('ServicePicker')
-    );
+    await user.click(await screen.findByTestId('ServicePicker'));
 
     const runBillingOption = await screen.findByRole('option', {
       name: 'run-service',
@@ -92,7 +89,7 @@ describe('LogsHeader', () => {
     onSubmitMock.mockReset();
 
     await user.type(regexInput, 'Random text');
-    fireEvent.submit(regexInput.closest('form')!);
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(onSubmitMock).toHaveBeenCalledTimes(1);
     });

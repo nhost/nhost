@@ -1,9 +1,9 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   InvokeEventTriggerArgs,
   InvokeEventTriggerOperation,
   InvokeEventTriggerResponse,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 /**
@@ -44,7 +44,7 @@ export default async function invokeEventTrigger({
     };
 
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

@@ -1,12 +1,15 @@
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { TextLink } from '@/components/ui/v3/text-link';
 import type { DialogFormProps } from '@/types/common';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
   /**
@@ -81,11 +84,13 @@ export default function BaseEnvironmentVariableForm({
   location,
 }: BaseEnvironmentVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const router = useRouter();
+  const secretsPath = `/orgs/${getSingleQueryParam(router.query.orgSlug)}/projects/${getSingleQueryParam(router.query.appSubdomain)}/settings?tab=secrets`;
   const form = useFormContext<BaseEnvironmentVariableFormValues>();
 
   const {
-    register,
-    formState: { errors, dirtyFields, isSubmitting },
+    control,
+    formState: { dirtyFields, isSubmitting },
   } = form;
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
@@ -97,50 +102,45 @@ export default function BaseEnvironmentVariableForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      <Text variant="subtitle1" component="span">
-        Environment Variables are made available to all your services. All
-        values are encrypted.
-      </Text>
+    <div className="grid grid-flow-row gap-6 px-12 pb-12">
+      <p className="text-muted-foreground text-sm">
+        Available to all your services. For API keys and passwords, use{' '}
+        <TextLink href={secretsPath} external>
+          Secrets
+        </TextLink>
+        .
+      </p>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <Input
-          {...register('name')}
-          id="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          hideEmptyHelperText
-          error={!!errors.name}
-          helperText={errors?.name?.message}
-          fullWidth
-          autoComplete="off"
-          autoFocus={mode === 'create'}
-          disabled={mode === 'edit'}
-        />
+        {mode === 'create' && (
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+            autoFocus
+          />
+        )}
 
-        <Input
-          {...register('value')}
-          id="value"
+        <FormTextarea
+          control={control}
+          name="value"
           label="Value"
           placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.value}
-          helperText={errors?.value?.message}
-          fullWidth
-          multiline
-          rows={5}
+          className="min-h-32"
           autoComplete="off"
           autoFocus={mode === 'edit'}
         />
 
-        <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </Button>
-
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
         </div>
       </Form>
     </div>

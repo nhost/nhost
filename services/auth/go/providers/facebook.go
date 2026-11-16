@@ -23,7 +23,7 @@ func NewFacebookProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/facebook/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://www.facebook.com/v22.0/dialog/oauth",
 				TokenURL: "https://graph.facebook.com/v22.0/oauth/access_token",
 			},

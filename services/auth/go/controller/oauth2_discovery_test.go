@@ -200,7 +200,7 @@ func TestOauth2Jwks(t *testing.T) {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request:          api.Oauth2JwksRequestObject{},
-			expectedResponse: api.Oauth2Jwks200JSONResponse{Keys: nil},
+			expectedResponse: api.Oauth2Jwks200JSONResponse{Keys: []api.JWK{}},
 		},
 	}
 

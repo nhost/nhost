@@ -158,6 +158,8 @@ let
       '';
 
   vercelPrepare = ''
+    export NEXT_PUBLIC_DASHBOARD_VERSION=${version}
+
     cp -r ${node_modules}/node_modules/ node_modules
     cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
     chmod +w -R node_modules dashboard/node_modules

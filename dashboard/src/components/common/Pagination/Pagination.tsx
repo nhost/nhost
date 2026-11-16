@@ -1,10 +1,14 @@
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { twMerge } from 'tailwind-merge';
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  Pagination as PaginationRoot,
+} from '@/components/ui/v3/pagination';
+import { cn } from '@/lib/utils';
 
 export type PaginationProps = DetailedHTMLProps<
   HTMLProps<HTMLDivElement>,
@@ -14,7 +18,6 @@ export type PaginationProps = DetailedHTMLProps<
    * Total number of pages.
    */
   totalNrOfPages: number;
-
   /**
    * Number of total elements per page.
    */
@@ -40,23 +43,55 @@ export type PaginationProps = DetailedHTMLProps<
    */
   onNextPageClick: VoidFunction;
   /**
-   * Function to be called when a new page number is submitted.
+   * Function to be called when a new page number is selected.
    */
   onPageChange: (page: number) => void;
-  /**
-   * Props for component slots.
-   */
-  slotProps?: {
-    /**
-     * Props to be passed to the next button component.
-     */
-    nextButton?: Partial<ButtonProps>;
-    /**
-     * Props to be passed to the previous button component.
-     */
-    prevButton?: Partial<ButtonProps>;
-  };
 };
+
+const SIBLING_COUNT = 1;
+
+function range(start: number, end: number): number[] {
+  return Array.from(
+    { length: Math.max(end - start + 1, 0) },
+    (_, i) => start + i,
+  );
+}
+
+function getPageItems(
+  currentPage: number,
+  totalPages: number,
+): (number | 'ellipsis')[] {
+  const totalPageNumbers = SIBLING_COUNT * 2 + 5;
+
+  if (totalPages <= totalPageNumbers) {
+    return range(1, totalPages);
+  }
+
+  const leftSibling = Math.max(currentPage - SIBLING_COUNT, 1);
+  const rightSibling = Math.min(currentPage + SIBLING_COUNT, totalPages);
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < totalPages - 1;
+
+  if (!showLeftEllipsis && showRightEllipsis) {
+    return [...range(1, 3 + 2 * SIBLING_COUNT), 'ellipsis', totalPages];
+  }
+
+  if (showLeftEllipsis && !showRightEllipsis) {
+    return [
+      1,
+      'ellipsis',
+      ...range(totalPages - (2 + 2 * SIBLING_COUNT), totalPages),
+    ];
+  }
+
+  return [
+    1,
+    'ellipsis',
+    ...range(leftSibling, rightSibling),
+    'ellipsis',
+    totalPages,
+  ];
+}
 
 export default function Pagination({
   className,
@@ -64,82 +99,69 @@ export default function Pagination({
   currentPageNumber,
   onPrevPageClick,
   onNextPageClick,
-  slotProps,
   elementsPerPage,
   onPageChange,
   totalNrOfElements,
   itemsLabel,
   ...props
 }: PaginationProps) {
+  const pageItems = getPageItems(currentPageNumber, totalNrOfPages);
+  const rangeStart = (currentPageNumber - 1) * elementsPerPage + 1;
+  const rangeEnd = Math.min(
+    currentPageNumber * elementsPerPage,
+    totalNrOfElements,
+  );
+
   return (
     <div
-      className={twMerge('grid grid-flow-col items-center gap-2', className)}
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-2',
+        className,
+      )}
       {...props}
     >
-      <div className="grid grid-flow-col justify-start gap-2">
-        <Button
-          variant="outlined"
-          color="secondary"
-          className="text-xs"
-          disabled={currentPageNumber === 1}
-          aria-label="Previous page"
-          onClick={onPrevPageClick}
-          startIcon={<ChevronLeftIcon className="h-4 w-4" />}
-        >
-          Back
-        </Button>
+      <PaginationRoot className="mx-0 w-auto justify-start">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              aria-label="Previous page"
+              disabled={currentPageNumber === 1}
+              onClick={onPrevPageClick}
+            />
+          </PaginationItem>
 
-        <div className="grid-col grid grid-cols-3 items-center gap-1 text-center">
-          <Text className="align-middle text-xs" color="secondary">
-            Page
-          </Text>
-          <Input
-            value={currentPageNumber}
-            onChange={(e) => {
-              const page = parseInt(e.target.value, 10);
-              if (page > 0 && page <= totalNrOfPages) {
-                onPageChange(page);
-              }
-            }}
-            disabled={totalNrOfPages === 1}
-            color="secondary"
-            slotProps={{
-              inputRoot: {
-                className: 'w-4 h-2.5 text-center !text-[11.5px]',
-              },
-            }}
-          />
-          <Text className="self-center align-middle text-xs" color="secondary">
-            of {totalNrOfPages}
-          </Text>
-        </div>
+          {pageItems.map((item, index) =>
+            item === 'ellipsis' ? (
+              // biome-ignore lint/suspicious/noArrayIndexKey: ellipsis position is stable within a render
+              <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={item}>
+                <PaginationLink
+                  aria-label={`Go to page ${item}`}
+                  isActive={item === currentPageNumber}
+                  onClick={() => onPageChange(item)}
+                >
+                  {item}
+                </PaginationLink>
+              </PaginationItem>
+            ),
+          )}
 
-        <Button
-          variant="outlined"
-          color="secondary"
-          className="text-xs"
-          aria-label="Next page"
-          disabled={currentPageNumber === totalNrOfPages}
-          onClick={onNextPageClick}
-          endIcon={<ChevronRightIcon className="h-4 w-4" />}
-          {...slotProps?.nextButton}
-        >
-          Next
-        </Button>
-      </div>
-      <div className="flex flex-row items-center justify-end gap-x-1 text-center">
-        <Text className="text-xs" color="secondary">
-          {currentPageNumber === 1 && currentPageNumber}
-          {currentPageNumber === 2 && elementsPerPage + currentPageNumber - 1}
-          {currentPageNumber > 2 &&
-            (currentPageNumber - 1) * elementsPerPage + 1}{' '}
-          -{' '}
-          {totalNrOfElements < currentPageNumber * elementsPerPage
-            ? totalNrOfElements
-            : currentPageNumber * elementsPerPage}{' '}
-          of {totalNrOfElements} {itemsLabel}
-        </Text>
-      </div>
+          <PaginationItem>
+            <PaginationNext
+              aria-label="Next page"
+              disabled={currentPageNumber === totalNrOfPages}
+              onClick={onNextPageClick}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </PaginationRoot>
+
+      <span className="text-muted-foreground text-xs">
+        {rangeStart} - {rangeEnd} of {totalNrOfElements} {itemsLabel}
+      </span>
     </div>
   );
 }

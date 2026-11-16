@@ -1,13 +1,17 @@
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import {
+  getPageNumberFromQuery,
+  useUrlPagination,
+} from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetRunServicesQuery,
   useGetLocalRunServiceConfigsQuery,
   useGetRunServicesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RunService = Pick<
@@ -28,32 +32,30 @@ export type RunServiceConfig = Omit<
   '__typename'
 >;
 
+const ELEMENTS_PER_PAGE = 25;
+
 export default function useRunServices() {
-  const limit = useRef(25);
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
 
-  const [nrOfPages, setNrOfPages] = useState(0);
-  const [totalServicesCount, setTotalServicesCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(router.query.page as string, 10) || 1,
-  );
+  const currentPage = getPageNumberFromQuery(router.query.page);
   const offset = useMemo(
-    () => getPaginationOffset(currentPage, limit.current),
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 
   const {
     data,
     loading: loadingPlatformServices,
+    error: platformServicesError,
     refetch: refetchPlatformServices,
   } = useGetRunServicesQuery({
     variables: {
       appID: project?.id,
       resolve: false,
-      limit: limit.current,
+      limit: ELEMENTS_PER_PAGE,
       offset,
     },
     skip: !isPlatform,
@@ -62,6 +64,7 @@ export default function useRunServices() {
   const {
     loading: loadingLocalServices,
     data: localServicesData,
+    error: localServicesError,
     refetch: refetchLocalServices,
   } = useGetLocalRunServiceConfigsQuery({
     variables: { appID: project?.id as string, resolve: false },
@@ -81,35 +84,34 @@ export default function useRunServices() {
 
   const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
+  const error = isPlatform ? platformServicesError : localServicesError;
   const refetch = isPlatform ? refetchPlatformServices : refetchLocalServices;
 
-  useEffect(() => {
-    if (!isPlatform) {
-      return;
-    }
+  const totalServicesCount = isPlatform
+    ? (data?.app?.runServices_aggregate.aggregate?.count ?? 0)
+    : 0;
 
-    if (loading) {
-      return;
-    }
-
-    const userCount = data?.app?.runServices_aggregate.aggregate?.count ?? 0;
-
-    setTotalServicesCount(
-      data?.app?.runServices_aggregate.aggregate?.count ?? 0,
-    );
-    setNrOfPages(Math.ceil(userCount / limit.current));
-  }, [data, loading, isPlatform]);
+  const { nrOfPages, goToPage, goToNextPage, goToPreviousPage } =
+    useUrlPagination({
+      currentPage,
+      elementsPerPage: ELEMENTS_PER_PAGE,
+      totalNrOfElements: totalServicesCount,
+      loading,
+    });
 
   return {
     services,
     loading,
+    error,
     refetch,
 
-    limit,
+    limit: ELEMENTS_PER_PAGE,
     totalServicesCount,
     nrOfPages,
 
     currentPage,
-    setCurrentPage,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
   };
 }

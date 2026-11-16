@@ -132,9 +132,8 @@ export default function RootFieldPermissionsSection() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="text-primary"
                 onClick={toggleQueryRootFields}
               >
                 {isQueryAllSelected ? 'Deselect All' : 'Select All'}
@@ -171,9 +170,8 @@ export default function RootFieldPermissionsSection() {
 
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="text-primary"
                 onClick={toggleSubscriptionRootFields}
               >
                 {isSubscriptionAllSelected ? 'Deselect All' : 'Select All'}

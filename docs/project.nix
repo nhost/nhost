@@ -44,18 +44,34 @@ let
       (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
+      # GraphQL schemas gen.sh publishes into public/graphql.
+      ../cli/mcp/resources/cloud_schema.graphql
+      ../cli/mcp/resources/cloud_schema-with-mutations.graphql
+      ../services/postgres/plugins.md
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
+      # Go sources for gen.sh's configuration reference generator (tools/configdocs).
+      ../go.mod
+      ../go.sum
+      ../tools/configdocs
+      ../vendor/modules.txt
+      ../vendor/cuelang.org/go
+      ../vendor/github.com/cockroachdb/apd
+      ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
     ];
   };
 
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
     vale
+    jq # check_broken_links.sh parses the linkinator JSON report with it
   ];
 
-  buildInputs = with pkgs; [ nhost.nodejs ];
+  buildInputs = with pkgs; [
+    nhost.nodejs
+    nhost.go # used by gen.sh to generate the configuration reference from the CUE schema
+  ];
 
   nativeBuildInputs = with pkgs; [
     nhost.pnpm

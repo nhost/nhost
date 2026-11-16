@@ -20,8 +20,8 @@ var (
 	)
 )
 
-func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
-	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
+func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsApps) error {
+	if len(orgs.GetOrganizations()) == 0 {
 		return errNoProjects
 	}
 
@@ -38,7 +38,7 @@ func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) erro
 		Rows:   make([]string, 0),
 	}
 	organization := Column{
-		Header: "Organization/Workspace",
+		Header: "Organization",
 		Rows:   make([]string, 0),
 	}
 	region := Column{
@@ -56,18 +56,7 @@ func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) erro
 		}
 	}
 
-	for _, ws := range orgs.GetWorkspaces() {
-		for _, app := range ws.Apps {
-			num.Rows = append(num.Rows, strconv.Itoa(len(num.Rows)+1))
-			subdomain.Rows = append(subdomain.Rows, app.Subdomain)
-			project.Rows = append(project.Rows, app.Name)
-			organization.Rows = append(organization.Rows, ws.Name+"*")
-			region.Rows = append(region.Rows, app.Region.Name)
-		}
-	}
-
 	ce.Println("%s", Table(num, subdomain, project, organization, region))
-	ce.Println("* Legacy Workspace")
 
 	return nil
 }
@@ -88,51 +77,22 @@ func confirmApp(ce *CliEnv, app *graphql.AppSummaryFragment) error {
 }
 
 func getApp(
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 	idx string,
 ) (*graphql.AppSummaryFragment, error) {
 	x := 1
 
-	var app *graphql.AppSummaryFragment
-
-OUTER:
-
-	for _, orgs := range orgs.GetOrganizations() {
-		for _, a := range orgs.GetApps() {
+	for _, org := range orgs.GetOrganizations() {
+		for _, a := range org.GetApps() {
 			if strconv.Itoa(x) == idx {
-				a := a
-				app = a
-
-				break OUTER
+				return a, nil
 			}
 
 			x++
 		}
 	}
 
-	if app != nil {
-		return app, nil
-	}
-
-OUTER2:
-	for _, ws := range orgs.GetWorkspaces() {
-		for _, a := range ws.GetApps() {
-			if strconv.Itoa(x) == idx {
-				a := a
-				app = a
-
-				break OUTER2
-			}
-
-			x++
-		}
-	}
-
-	if app == nil {
-		return nil, errInvalidSelection
-	}
-
-	return app, nil
+	return nil, errInvalidSelection
 }
 
 type AppEntry struct {
@@ -142,18 +102,18 @@ type AppEntry struct {
 
 func (ce *CliEnv) FetchApps(
 	ctx context.Context,
-) ([]AppEntry, *graphql.GetOrganizationsAndWorkspacesApps, error) {
+) ([]AppEntry, *graphql.GetOrganizationsApps, error) {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
+	orgs, err := cl.GetOrganizationsApps(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get workspaces: %w", err)
+		return nil, nil, fmt.Errorf("failed to get projects: %w", err)
 	}
 
-	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
+	if len(orgs.GetOrganizations()) == 0 {
 		return nil, nil, errNoProjects
 	}
 
@@ -175,19 +135,13 @@ func (ce *CliEnv) SaveLink(
 }
 
 func collectApps(
-	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+	orgs *graphql.GetOrganizationsApps,
 ) []AppEntry {
 	var apps []AppEntry
 
 	for _, org := range orgs.GetOrganizations() {
 		for _, a := range org.Apps {
 			apps = append(apps, AppEntry{App: a, Org: org.Name})
-		}
-	}
-
-	for _, ws := range orgs.GetWorkspaces() {
-		for _, a := range ws.Apps {
-			apps = append(apps, AppEntry{App: a, Org: ws.Name})
 		}
 	}
 
@@ -204,11 +158,11 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 		return nil, err
 	}
 
-	ce.PromptMessage("Select the workspace # to link: ")
+	ce.PromptMessage("Select the project # to link: ")
 
 	idx, err := ce.PromptInput(false)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read workspace: %w", err)
+		return nil, fmt.Errorf("failed to read input: %w", err)
 	}
 
 	app, err := getApp(orgs, idx)

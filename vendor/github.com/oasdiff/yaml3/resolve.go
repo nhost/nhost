@@ -123,7 +123,12 @@ func resolvableTag(tag string) bool {
 
 var yamlStyleFloat = regexp.MustCompile(`^[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?$`)
 
-func resolve(tag string, in string) (rtag string, out interface{}) {
+// resolve infers the resolved tag and Go value for an unmarshalled scalar.
+// When disableTimestamps is true, the timestamp branch is skipped and
+// date-shaped scalars (e.g. "1344-08-22") fall through to int / float / string
+// resolution rather than being parsed into time.Time. Encode-side callers
+// pass false to preserve the historical behaviour.
+func resolve(tag string, in string, disableTimestamps bool) (rtag string, out interface{}) {
 	tag = shortTag(tag)
 	if !resolvableTag(tag) {
 		return tag, in
@@ -180,8 +185,11 @@ func resolve(tag string, in string) (rtag string, out interface{}) {
 		case 'D', 'S':
 			// Int, float, or timestamp.
 			// Only try values as a timestamp if the value is unquoted or there's an explicit
-			// !!timestamp tag.
-			if tag == "" || tag == timestampTag {
+			// !!timestamp tag. disableTimestamps suppresses implicit tagging only: an explicit
+			// "!!timestamp" tag in the source still resolves to time.Time, since that is the
+			// caller's explicit intent. The flag's purpose is to keep date-shaped UNTAGGED
+			// scalars (e.g. map keys like "1344-08-22") as strings instead.
+			if (tag == "" && !disableTimestamps) || tag == timestampTag {
 				t, ok := parseTimestamp(in)
 				if ok {
 					return timestampTag, t

@@ -20,8 +20,8 @@ import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/ut
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import ColumnPresetValueCombobox from './ColumnPresetValueCombobox';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
@@ -193,12 +193,12 @@ export default function ColumnPresetsSection({
         </div>
 
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           type="button"
           onClick={() => append({ column: '', value: '' })}
           disabled={isAddColumnDisabled}
-          className="justify-self-start text-primary hover:text-primary"
+          className="justify-self-start"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Column

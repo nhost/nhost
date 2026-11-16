@@ -3,14 +3,14 @@ package openapi3
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"maps"
 )
 
 // Example is specified by OpenAPI/Swagger 3.0 standard.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#example-object
 type Example struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
 	Summary       string `json:"summary,omitempty" yaml:"summary,omitempty"`
 	Description   string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -34,9 +34,7 @@ func (example Example) MarshalJSON() ([]byte, error) {
 // MarshalYAML returns the YAML encoding of Example.
 func (example Example) MarshalYAML() (any, error) {
 	m := make(map[string]any, 4+len(example.Extensions))
-	for k, v := range example.Extensions {
-		m[k] = v
-	}
+	maps.Copy(m, example.Extensions)
 	if x := example.Summary; x != "" {
 		m["summary"] = x
 	}
@@ -60,7 +58,6 @@ func (example *Example) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
-	delete(x.Extensions, originKey)
 	delete(x.Extensions, "summary")
 	delete(x.Extensions, "description")
 	delete(x.Extensions, "value")
@@ -77,17 +74,11 @@ func (example *Example) Validate(ctx context.Context, opts ...ValidationOption) 
 	ctx = WithValidationOptions(ctx, opts...)
 
 	if example.Value != nil && example.ExternalValue != "" {
-		return errors.New("value and externalValue are mutually exclusive")
+		return newExampleValueExternalValueExclusive(example.Origin)
 	}
 	if example.Value == nil && example.ExternalValue == "" {
-		return errors.New("no value or externalValue field")
+		return newExampleValueOrExternalValueRequired(example.Origin)
 	}
 
-	return validateExtensions(ctx, example.Extensions)
-}
-
-// UnmarshalJSON sets Examples to a copy of data.
-func (examples *Examples) UnmarshalJSON(data []byte) (err error) {
-	*examples, _, err = unmarshalStringMapP[ExampleRef](data)
-	return
+	return validateExtensions(ctx, example.Extensions, example.Origin)
 }

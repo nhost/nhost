@@ -1,4 +1,3 @@
-import GlobalStyles from '@mui/material/GlobalStyles';
 import type { ErrorResponse, OAuth2LoginResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import Image from 'next/image';
@@ -6,7 +5,6 @@ import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -47,7 +45,7 @@ export default function OAuth2AuthorizePage() {
       const consentPath = requestId
         ? `/oauth2/authorize?request_id=${encodeURIComponent(requestId)}`
         : '/oauth2/authorize';
-      // Both are needed: the query param is used by UnauthenticatedLayout for
+      // Both are needed: the query param is used by GuestGuard for
       // email/password sign-in, while sessionStorage is used by AuthProvider for
       // OAuth sign-in (where the redirect to the external provider loses the query param).
       sessionStorage.setItem('postSignInRedirect', consentPath);
@@ -109,20 +107,20 @@ export default function OAuth2AuthorizePage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner size="small">
-          <span className="text-[#A2B3BE] text-sm">Loading...</span>
+          <span className="text-muted-foreground text-sm">Loading...</span>
         </Spinner>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <Container
         rootClassName="bg-transparent"
         className="flex max-w-md flex-col items-center gap-8 bg-transparent py-12"
       >
         <div className="relative flex items-center justify-center">
-          <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-[56px]" />
+          <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary opacity-80 blur-3xl" />
           <Image
             src="/assets/logo.svg"
             width={119}
@@ -135,7 +133,7 @@ export default function OAuth2AuthorizePage() {
           {isFetching ? (
             <div className="flex items-center justify-center py-8">
               <Spinner size="small">
-                <span className="text-[#A2B3BE] text-sm">
+                <span className="text-muted-foreground text-sm">
                   Loading authorization request...
                 </span>
               </Spinner>
@@ -149,7 +147,7 @@ export default function OAuth2AuthorizePage() {
             <div className="grid gap-6">
               <div className="grid gap-2 text-center">
                 <h3 className="font-semibold text-xl">Authorize Application</h3>
-                <p className="text-[#A2B3BE]">
+                <p className="text-muted-foreground">
                   The application with client ID{' '}
                   <strong>{authRequest.clientId}</strong> running on{' '}
                   <strong>{clientDisplayName(authRequest)}</strong> is
@@ -159,19 +157,21 @@ export default function OAuth2AuthorizePage() {
 
               <div className="grid gap-3">
                 <div>
-                  <p className="font-medium text-[#A2B3BE] text-sm">
+                  <p className="font-medium text-muted-foreground text-sm">
                     Client ID
                   </p>
                   <p className="break-all text-sm">{authRequest.clientId}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-[#A2B3BE] text-sm">
+                  <p className="font-medium text-muted-foreground text-sm">
                     Redirect URI
                   </p>
                   <p className="break-all text-sm">{authRequest.redirectUri}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-[#A2B3BE] text-sm">Scopes</p>
+                  <p className="font-medium text-muted-foreground text-sm">
+                    Scopes
+                  </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {authRequest.scopes.map((scope) => (
                       <Badge key={scope} variant="secondary">
@@ -191,7 +191,7 @@ export default function OAuth2AuthorizePage() {
               {error && <p className="text-center text-red-500">{error}</p>}
 
               {user && (
-                <p className="text-center text-[#A2B3BE] text-sm">
+                <p className="text-center text-muted-foreground text-sm">
                   Signed in as <strong>{user.email}</strong>
                 </p>
               )}
@@ -231,20 +231,10 @@ export default function OAuth2AuthorizePage() {
 
 OAuth2AuthorizePage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ThemeProvider color="dark">
-      <BaseLayout title="Authorize Application">
-        <GlobalStyles
-          styles={{
-            'html, body': {
-              backgroundColor: '#000 !important',
-            },
-            '#__next': {
-              overflow: 'auto',
-            },
-          }}
-        />
+    <BaseLayout title="Authorize Application">
+      <div className="dark h-screen overflow-auto bg-background text-foreground">
         {page}
-      </BaseLayout>
-    </ThemeProvider>
+      </div>
+    </BaseLayout>
   );
 };

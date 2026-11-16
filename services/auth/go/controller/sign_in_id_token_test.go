@@ -632,7 +632,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl
+				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
 				).Return(
@@ -777,7 +777,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - user disabled",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
@@ -891,6 +891,60 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error:   "unverified-user",
 				Message: "User is not verified.",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
+
+		{
+			name:   "signin - email found - user disabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@myapp.local"),
+				).Return(
+
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      true,
+						DisplayName:   "Jane",
+						Email:         sql.Text("jane@myapp.local"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil,
+				)
+
+				return mock
+			},
+			getControllerOpts: []getControllerOptsFunc{
+				withIDTokenValidatorProviders(getTestIDTokenValidatorProviders()),
+			},
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  token,
+					Nonce:    new(nonce),
+					Options:  nil,
+					Provider: "fake",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-user",
+				Message: "User is disabled",
 				Status:  401,
 			},
 			expectedJWT: nil,

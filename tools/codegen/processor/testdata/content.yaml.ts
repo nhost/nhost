@@ -56,6 +56,8 @@ export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "disco
   
     @property defaultRole? (string) - Default role for the user
   
+    @property filter? (string) - Optional query parameter declared nullable in OpenAPI
+  
     @property displayName? (string) - Display name for the user
   
     @property locale? (string) - A two-characters locale
@@ -79,6 +81,11 @@ export interface SignInProviderParams {
   
    */
   defaultRole?: string;
+  /**
+   * Optional query parameter declared nullable in OpenAPI
+  
+   */
+  filter?: string;
   /**
    * Display name for the user
   
@@ -151,6 +158,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         if (key === "providerSpecificParams") {
           // Object with explode: true - each property as separate parameter
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {

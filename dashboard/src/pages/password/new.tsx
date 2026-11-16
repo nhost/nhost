@@ -1,17 +1,17 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Turnstile } from '@marsidev/react-turnstile';
-import { styled } from '@mui/material';
 import { type ReactElement, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
+import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { GuestGuard } from '@/features/auth/GuestGuard';
+import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -20,17 +20,15 @@ const validationSchema = Yup.object({
   email: Yup.string().label('Email').email().required(),
   turnstileToken: Yup.string()
     .label('Verification')
-    .required('Please complete the CAPTCHA'),
+    .defined()
+    .test(
+      'captcha',
+      'Please complete the CAPTCHA',
+      (token) => !isTurnstileEnabled() || !!token,
+    ),
 });
 
 export type NewPasswordFormValues = Yup.InferType<typeof validationSchema>;
-
-const StyledInput = styled(Input)({
-  backgroundColor: 'transparent',
-  [`& .${inputClasses.input}`]: {
-    backgroundColor: 'transparent !important',
-  },
-});
 
 export default function NewPasswordPage() {
   const nhost = useNhostClient();
@@ -45,7 +43,7 @@ export default function NewPasswordPage() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, getValues, setValue } = form;
+  const { formState, getValues, setValue } = form;
 
   async function handleSubmit({
     email,
@@ -66,9 +64,9 @@ export default function NewPasswordPage() {
           },
         },
         {
-          headers: {
-            'x-cf-turnstile-response': turnstileToken,
-          },
+          headers: isTurnstileEnabled()
+            ? { 'x-cf-turnstile-response': turnstileToken }
+            : {},
         },
       );
       setIsSent(true);
@@ -91,93 +89,85 @@ export default function NewPasswordPage() {
 
   return (
     <>
-      <Text
-        variant="h2"
-        component="h1"
-        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
-      >
+      <h1 className="text-center font-semibold text-3.5xl lg:text-4.5xl">
         Reset Password
-      </Text>
+      </h1>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
-            className="grid grid-flow-row gap-4 bg-transparent"
+            className="grid grid-flow-row gap-4 [&&]:bg-transparent"
           >
-            <StyledInput
-              {...register('email')}
+            <FormInput
+              control={form.control}
+              name="email"
               type="email"
-              id="email"
               label="Email"
               placeholder="Email"
-              fullWidth
               autoFocus
-              inputProps={{ min: 2, max: 128 }}
-              error={!!formState.errors.email}
-              helperText={formState.errors.email?.message}
+              className="!bg-transparent border-border"
             />
 
-            <Box className="grid grid-flow-row gap-2">
-              <Text variant="body2" className="text-sm">
-                Verification
-              </Text>
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                options={{ theme: 'dark', size: 'flexible' }}
-                onSuccess={(token) => {
-                  setValue('turnstileToken', token, {
-                    shouldValidate: true,
-                  });
-                }}
-                onError={() => {
-                  setValue('turnstileToken', '', {
-                    shouldValidate: true,
-                  });
-                }}
-                onExpire={() => {
-                  setValue('turnstileToken', '', {
-                    shouldValidate: true,
-                  });
-                }}
-              />
-              {formState.errors.turnstileToken && (
-                <Text variant="body2" className="text-red-500 text-sm">
-                  {formState.errors.turnstileToken.message}
-                </Text>
-              )}
-            </Box>
+            {isTurnstileEnabled() && (
+              <div className="grid grid-flow-row gap-2">
+                <p className="text-sm">Verification</p>
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                  options={{ theme: 'dark', size: 'flexible' }}
+                  onSuccess={(token) => {
+                    setValue('turnstileToken', token, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  onError={() => {
+                    setValue('turnstileToken', '', {
+                      shouldValidate: true,
+                    });
+                  }}
+                  onExpire={() => {
+                    setValue('turnstileToken', '', {
+                      shouldValidate: true,
+                    });
+                  }}
+                />
+                {formState.errors.turnstileToken && (
+                  <p className="text-destructive text-sm">
+                    {formState.errors.turnstileToken.message}
+                  </p>
+                )}
+              </div>
+            )}
 
-            <Button
-              className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-              size="large"
+            <ButtonWithLoading
+              size="lg"
               type="submit"
               disabled={formState.isSubmitting}
               loading={formState.isSubmitting}
             >
               Send Reset Instructions
-            </Button>
+            </ButtonWithLoading>
           </Form>
         </FormProvider>
-      </Box>
+      </div>
 
-      <Text color="secondary" className="text-center text-base lg:text-lg">
+      <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
         Is your password okay?{' '}
-        <NavLink
-          href="/signin/email"
-          className="px-0 font-medium text-[1.125rem] text-white"
-        >
+        <NavLink href="/signin/email" className="px-0 font-medium text-lg">
           Sign In
         </NavLink>
-      </Text>
+      </div>
     </>
   );
 }
 
 NewPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout title="Request Password Reset">
-      {page}
-    </UnauthenticatedLayout>
+    <AuthFlowLayout
+      title="Request Password Reset"
+      rightColumnContent={<SignInRightColumn />}
+    >
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };

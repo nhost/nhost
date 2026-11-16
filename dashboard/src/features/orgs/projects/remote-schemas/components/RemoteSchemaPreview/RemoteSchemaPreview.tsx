@@ -155,7 +155,7 @@ export default function RemoteSchemaPreview({
   }
 
   return (
-    <div className="rounded-lg border bg-card">
+    <div className="rounded-lg border">
       <div className="border-b p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -166,7 +166,10 @@ export default function RemoteSchemaPreview({
           </div>
         </div>
 
-        <form onSubmit={handleSearch} className="flex w-full gap-2">
+        <form
+          onSubmit={handleSearch}
+          className="flex w-full items-center gap-2"
+        >
           <div className="relative max-w-xs flex-1 text-foreground">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 text-muted-foreground peer-disabled:opacity-50">
               <SearchIcon className="z-10 h-4 w-4" />
@@ -189,7 +192,7 @@ export default function RemoteSchemaPreview({
             />
             {searchTerm && (
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
                 type="button"
                 onClick={() => {
@@ -206,7 +209,7 @@ export default function RemoteSchemaPreview({
           </div>
           <Button
             type="submit"
-            variant="secondary"
+            variant="outline"
             disabled={!searchTerm.trim() || isSearching}
             loading={isSearching}
           >

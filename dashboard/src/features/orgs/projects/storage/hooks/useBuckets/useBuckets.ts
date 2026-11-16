@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+import { useGetBucketsQuery } from '@/generated/graphql';
 
 const DEFAULT_BUCKET_ID = 'default';
 

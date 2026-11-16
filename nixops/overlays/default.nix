@@ -1,9 +1,7 @@
 final: prev: {
   # Everything Nhost pins or builds from source lives under `pkgs.nhost.*`.
-  # The overlay deliberately exports nothing else: shadowing global nixpkgs
-  # attrs (go, nodejs, buildGoModule, ...) taints every nixpkgs package that
-  # builds with them, defeating cache.nixos.org.
-  # `nixops-lib.nix.checkPinnedToolchains` enforces this.
+  # This Nhost overlay deliberately exports nothing else; the nixops check
+  # guards its top-level API against accidentally shadowing nixpkgs inputs.
   nhost = {
     certbot-full = prev.certbot.overrideAttrs (old: {
       doCheck = false;

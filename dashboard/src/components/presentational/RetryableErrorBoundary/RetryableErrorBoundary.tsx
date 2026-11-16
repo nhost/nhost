@@ -4,9 +4,9 @@ import type {
   FallbackProps,
 } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
-import { twMerge } from 'tailwind-merge';
 import type { ErrorMessageProps } from '@/components/presentational/ErrorMessage';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
+import { cn } from '@/lib/utils';
 
 export interface RetryableErrorBoundaryProps
   extends PropsWithChildren<
@@ -23,7 +23,7 @@ function RetryableErrorBoundaryFallback({
 }: FallbackProps & RetryableErrorBoundaryProps['errorMessageProps']) {
   return (
     <ErrorMessage
-      className={twMerge('mx-auto w-full max-w-7xl px-10 pt-4', className)}
+      className={cn('mx-auto w-full max-w-7xl px-10 pt-4', className)}
       onReset={resetErrorBoundary}
       {...props}
     >

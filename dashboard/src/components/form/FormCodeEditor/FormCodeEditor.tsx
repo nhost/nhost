@@ -2,7 +2,6 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { type ReactCodeMirrorProps } from '@uiw/react-codemirror';
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import {
   FormControl,
   FormField,
@@ -10,7 +9,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { cn } from '@/lib/utils';
+import { useThemePreference } from '@/providers/Theme';
 
 interface FormCodeEditorProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -28,6 +29,7 @@ interface FormCodeEditorProps<
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
   readOnly?: boolean;
+  autoFocus?: boolean;
   className?: string;
   'aria-label'?: string;
 }
@@ -43,10 +45,11 @@ export default function FormCodeEditor<
   children,
   extensions,
   readOnly = false,
+  autoFocus,
   className,
   'aria-label': ariaLabel,
 }: FormCodeEditorProps<TFieldValues, TName>) {
-  const { color } = useColorPreference();
+  const { resolvedTheme } = useThemePreference();
 
   return (
     <FormField
@@ -65,10 +68,11 @@ export default function FormCodeEditor<
                 field.onChange(value);
                 onChange?.(value);
               }}
-              theme={color === 'light' ? githubLight : githubDark}
-              extensions={extensions}
+              theme={resolvedTheme === 'light' ? githubLight : githubDark}
+              extensions={[...(extensions ?? []), codeMirrorAppBackground]}
               readOnly={readOnly}
               editable={!readOnly}
+              autoFocus={autoFocus}
               basicSetup={{
                 foldGutter: false,
                 highlightActiveLine: !readOnly,
