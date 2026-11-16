@@ -51,7 +51,7 @@ function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
         }
       }}
     >
-      <DialogContent className="z-[9999] max-w-[28rem] text-foreground">
+      <DialogContent className="max-w-[28rem] text-foreground">
         <DialogHeader>
           <DialogTitle>Verify it&apos;s you</DialogTitle>
           <DialogDescription>
