@@ -15,7 +15,7 @@ function ElevationProvider({ children }: PropsWithChildren) {
   const claims = useHasuraClaims();
   const [methods, setMethods] = useState<ElevationMethod[]>([]);
   const [open, setOpen] = useState(false);
-  const pendingRequests = useRef<((elevated: boolean) => void)[]>([]);
+  const pendingRequest = useRef<((elevated: boolean) => void) | null>(null);
 
   const isElevated = Boolean(
     user && claims?.['x-hasura-auth-elevated'] === user.id,
@@ -24,12 +24,9 @@ function ElevationProvider({ children }: PropsWithChildren) {
   const settle = useCallback((elevated: boolean) => {
     setOpen(false);
 
-    const requests = pendingRequests.current;
-    pendingRequests.current = [];
-
-    for (const resolve of requests) {
-      resolve(elevated);
-    }
+    const resolve = pendingRequest.current;
+    pendingRequest.current = null;
+    resolve?.(elevated);
   }, []);
 
   const requestElevation = useCallback(async () => {
@@ -56,7 +53,10 @@ function ElevationProvider({ children }: PropsWithChildren) {
       setOpen(true);
 
       return await new Promise<boolean>((resolve) => {
-        pendingRequests.current.push(resolve);
+        // A double click can start a second request before the dialog opens;
+        // only the latest one goes on, so the earlier one is cancelled.
+        pendingRequest.current?.(false);
+        pendingRequest.current = resolve;
       });
     } catch (error) {
       toast.error(
