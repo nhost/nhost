@@ -15,7 +15,7 @@ const (
 func CommandQuery() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name: "query",
-		Usage: "Send a query, or a mutation with --with-mutations, to the Nhost Cloud API " +
+		Usage: "Send a query, or a mutation with `--with-mutations`, to the Nhost Cloud API " +
 			"and print its data as JSON",
 		ArgsUsage: "<document>",
 		Flags: []cli.Flag{
