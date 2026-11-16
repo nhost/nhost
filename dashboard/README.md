@@ -112,7 +112,7 @@ The platform dashboard includes a native support workspace:
 
 This uses the existing dashboard Nhost session and GraphQL endpoint. There is **no separate support login, OAuth client, admin secret, or Zendesk credential**. The old `/api/support/create-ticket` route is removed; clients must use the native GraphQL API instead. Existing Zendesk tickets are not imported.
 
-Before deploying the dashboard, deploy the console-next `support` schema migration and metadata. Grant staff the native `support_agents` allowed role while retaining `user`, then renew their session. A role cannot be granted by browser metadata or a UI toggle. Customers use the same live organization-membership permissions as application visibility; agents can read the global support queue without gaining general access to customer projects. Creating a ticket still requires current membership, even for staff.
+Before deploying the dashboard, deploy the console-next `support` schema migration and metadata. Grant staff the native `support_agent` allowed role while retaining `user`, then renew their session. A role cannot be granted by browser metadata or a UI toggle. Customers use the same live organization-membership permissions as application visibility; agents can read the global support queue without gaining general access to customer projects. Creating a ticket still requires current membership, even for staff.
 
 Support is available only with `NEXT_PUBLIC_NHOST_PLATFORM=true`. Keep normal platform Auth/GraphQL URLs pointed at console-next. Do not point the support workspace at an arbitrary customer project's backend. GraphQL documents live in `src/gql/support/`; regenerate types with `pnpm codegen` against a migrated console-next endpoint.
 

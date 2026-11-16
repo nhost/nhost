@@ -108,8 +108,8 @@ When creating a new feature page, check whether it needs to be added to:
 ### Native support
 
 - Platform support lives in `features/support/`, with `/support` (queues), `/support/ticket` (new ticket), and `/support/tickets/[ticketId]` (conversation). Pages share `getSupportLayout` and stay outside project-state gates so paused projects can still receive help.
-- Operations in `gql/support/` use the console-next `support` schema's camel-cased API and generated types from `@/generated/graphql`. Use the native Nhost client with a per-request `user` / `support_agents` role, never a shared role override or admin secret.
-- Support queries are scoped by native user ID and role, discard inactive data, and hide stale results after errors. Ticket status, assignment, and severity controls require the `support_agents` allowed role, and their requests must pass `x-hasura-role: support_agents`; customers can view and reply but cannot update ticket fields. Create tickets and load organizations as `user`, including for agents. Membership, attribution, transitions, and closed-state rules are enforced by the backend, not the UI.
+- Operations in `gql/support/` use the console-next `support` schema's camel-cased API and generated types from `@/generated/graphql`. Use the native Nhost client with a per-request `user` / `support_agent` role, never a shared role override or admin secret.
+- Support queries are scoped by native user ID and role, discard inactive data, and hide stale results after errors. Ticket status, assignment, and severity controls require the `support_agent` allowed role, and their requests must pass `x-hasura-role: support_agent`; customers can view and reply but cannot update ticket fields. Create tickets and load organizations as `user`, including for agents. Membership, attribution, transitions, and closed-state rules are enforced by the backend, not the UI.
 - The old Zendesk API route and credentials are retired. See the support section in `README.md` for deployment prerequisites and limitations.
 
 ### Helpers and references

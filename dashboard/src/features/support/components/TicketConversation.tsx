@@ -104,7 +104,7 @@ export default function TicketConversation({
                 <p className="font-semibold text-sm">
                   {comment.authorName}
                   <span className="ml-2 rounded bg-muted px-2 py-1 font-normal text-muted-foreground text-xs">
-                    {comment.authorRole === 'support_agents'
+                    {comment.authorRole === 'support_agent'
                       ? 'Nhost Support'
                       : 'Customer'}
                   </span>

@@ -2,7 +2,7 @@ import { type DocumentNode, print } from 'graphql';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
-export type SupportRole = 'user' | 'support_agents';
+export type SupportRole = 'user' | 'support_agent';
 
 export function useSupportSession() {
   const { user, session } = useAuth();
@@ -12,8 +12,8 @@ export function useSupportSession() {
       'x-hasura-allowed-roles'
     ];
   const isAgent =
-    Array.isArray(allowedRoles) && allowedRoles.includes('support_agents');
-  const role: SupportRole = isAgent ? 'support_agents' : 'user';
+    Array.isArray(allowedRoles) && allowedRoles.includes('support_agent');
+  const role: SupportRole = isAgent ? 'support_agent' : 'user';
   const queryKey = ['support', user?.id, role] as const;
 
   async function request<TData>(
