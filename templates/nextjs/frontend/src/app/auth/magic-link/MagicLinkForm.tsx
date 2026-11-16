@@ -1,7 +1,6 @@
 'use client';
 
 import { type FormEvent, useId, useState } from 'react';
-import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,13 +44,10 @@ export default function MagicLinkForm({ next }: { next: string }) {
   if (sent) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <CheckYourInbox />
-          <p className="text-muted-foreground text-sm">
-            A sign-in link is on its way to {email}. Open it in this browser to
-            sign in here.
-          </p>
-        </div>
+        <p className="text-muted-foreground text-sm">
+          A sign-in link is on its way to {email}. Open it in this browser to
+          sign in here.
+        </p>
         <Button
           type="button"
           variant="ghost"

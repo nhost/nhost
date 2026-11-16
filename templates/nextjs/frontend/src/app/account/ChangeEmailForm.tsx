@@ -2,7 +2,6 @@
 
 import { type FormEvent, useId, useState } from 'react';
 import { changeEmail, resendVerification } from '@/app/account/actions';
-import CheckYourInbox from '@/components/CheckYourInbox';
 import { DialogClose, DialogFooter } from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,14 +70,11 @@ export default function ChangeEmailForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1 text-sm" role="status">
-          <CheckYourInbox />
-          <p className="text-muted-foreground">
-            {sent.kind === 'change'
-              ? `We sent a confirmation link to ${sent.to}. The address changes when you open it.`
-              : `Another verification link is on its way to ${email}.`}
-          </p>
-        </div>
+        <p className="text-muted-foreground text-sm" role="status">
+          {sent.kind === 'change'
+            ? `We sent a confirmation link to ${sent.to}. The address changes when you open it.`
+            : `Another verification link is on its way to ${email}.`}
+        </p>
         <DialogFooter>
           <DialogClose>Done</DialogClose>
         </DialogFooter>

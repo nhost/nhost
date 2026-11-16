@@ -12,7 +12,6 @@ import PasswordRequirements from '@/app/auth/password/PasswordRequirements';
 import { meetsRequirements } from '@/app/auth/password/requirements';
 import type { Intent } from '@/app/signin/intent';
 import { signInQuery } from '@/app/signin/query';
-import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -157,24 +156,18 @@ export default function PasswordForm({
 
   if (sent === 'verification') {
     return (
-      <div className="flex flex-col gap-2 text-sm">
-        <CheckYourInbox />
-        <p className="text-muted-foreground">
-          We sent a verification link to {email}. Opening it confirms the
-          address and signs you in.
-        </p>
-      </div>
+      <p className="text-muted-foreground text-sm">
+        We sent a verification link to {email}. Opening it confirms the address
+        and signs you in.
+      </p>
     );
   }
 
   if (sent === 'reset') {
     return (
-      <div className="flex flex-col gap-2 text-sm">
-        <CheckYourInbox />
-        <p className="text-muted-foreground">
-          If that address has an account, a reset link is on its way.
-        </p>
-      </div>
+      <p className="text-muted-foreground text-sm">
+        If that address has an account, a reset link is on its way.
+      </p>
     );
   }
 
