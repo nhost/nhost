@@ -75,13 +75,12 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={show}>
       <CurrentToast value={toast}>{children}</CurrentToast>
-      {/* Clear of the footer, which is pinned to the bottom of the window. */}
       <div
         ref={region}
         popover="manual"
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-0 top-auto bottom-20 m-0 flex h-auto w-auto max-w-none justify-center overflow-visible border-0 bg-transparent px-4 py-0"
+        className="pointer-events-none fixed inset-x-0 top-auto bottom-6 m-0 flex h-auto w-auto max-w-none justify-center overflow-visible border-0 bg-transparent px-4 py-0"
       >
         {toast ? (
           <p

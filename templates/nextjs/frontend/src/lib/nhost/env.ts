@@ -1,6 +1,6 @@
 const LOCAL = 'local';
 
-/** Backend coordinates, read on the server and by the footer's status check. */
+/** Backend coordinates. */
 export const nhostSubdomain = (): string =>
   process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || LOCAL;
 
@@ -36,21 +36,6 @@ export const localMailboxURL = (): string | null =>
 
 /** Whether the app targets the stack `nhost up` runs rather than a project. */
 export const isLocalBackend = (): boolean => nhostRegion() === LOCAL;
-
-/**
- * Where to manage the backend: the local stack's own dashboard, or the cloud
- * project's page on the Nhost dashboard.
- */
-export const dashboardURL = (): string => {
-  if (isLocalBackend()) {
-    return localServiceURL('dashboard');
-  }
-
-  const orgSlug = process.env.NEXT_PUBLIC_NHOST_ORG_SLUG;
-  return orgSlug
-    ? `https://app.nhost.io/orgs/${orgSlug}/projects/${nhostSubdomain()}`
-    : `https://app.nhost.io/orgs/_/projects/${nhostSubdomain()}`;
-};
 
 if (
   process.env.NODE_ENV === 'production' &&
