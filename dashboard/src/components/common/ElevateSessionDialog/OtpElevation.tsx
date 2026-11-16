@@ -1,14 +1,17 @@
 import type { ElevationMethod } from '@nhost/nhost-js/auth';
 import { useMutation } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { useInterval } from '@/hooks/useInterval';
 import { useNhostClient } from '@/providers/nhost';
 
 type OtpMethod = Exclude<ElevationMethod, 'webauthn'>;
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 interface Props {
   method: OtpMethod;
@@ -17,12 +20,14 @@ interface Props {
 
 function OtpElevation({ method, onElevated }: Props) {
   const nhost = useNhostClient();
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const sendCode = useMutation<unknown, Error>({
     mutationFn: () =>
       method === 'otp-email'
         ? nhost.auth.elevateOTPEmail()
         : nhost.auth.elevateOTPSms(),
+    onSuccess: () => setResendCooldown(RESEND_COOLDOWN_SECONDS),
   });
 
   const verifyCode = useMutation({
@@ -46,6 +51,11 @@ function OtpElevation({ method, onElevated }: Props) {
       sendCode.mutate();
     }
   }, []);
+
+  useInterval(
+    () => setResendCooldown((seconds) => seconds - 1),
+    resendCooldown > 0 ? 1000 : null,
+  );
 
   if (method !== 'totp' && (sendCode.isIdle || sendCode.isPending)) {
     return (
@@ -82,10 +92,12 @@ function OtpElevation({ method, onElevated }: Props) {
       {method !== 'totp' && (
         <Button
           variant="outline"
-          disabled={verifyCode.isPending}
+          disabled={verifyCode.isPending || resendCooldown > 0}
           onClick={() => sendCode.mutate()}
         >
-          Resend code
+          {resendCooldown > 0
+            ? `Resend code in ${resendCooldown}s`
+            : 'Resend code'}
         </Button>
       )}
     </>
