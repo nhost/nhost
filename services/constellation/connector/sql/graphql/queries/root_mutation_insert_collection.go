@@ -139,6 +139,13 @@ func (t *table) buildInsertColumnsClause(
 	b *strings.Builder,
 	columns []string,
 ) {
+	if len(columns) == 0 {
+		// PostgreSQL inserts one default row per zero-column source row.
+		b.WriteString(" SELECT ")
+
+		return
+	}
+
 	b.WriteString(" (")
 
 	for i, col := range columns {
@@ -208,6 +215,10 @@ func (t *table) buildInsertMutationCTEBody(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	if len(allColumns) == 0 && !t.dialect.SupportsZeroColumnSelect() {
+		return nil, 0, errEmptyColumnInsertUnsupported
+	}
+
 	presentCols := insertPresentColumns(insertObjs)
 	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildInsertMutationCTEPostCheck(

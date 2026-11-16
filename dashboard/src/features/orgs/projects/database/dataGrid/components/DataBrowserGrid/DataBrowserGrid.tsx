@@ -432,8 +432,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
         <div className="flex items-center gap-1">
           <Button
             variant="subtle"
-            size="icon"
-            className="h-8 w-8"
+            size="icon-sm"
             onClick={(e) => {
               e.stopPropagation();
               handleCloneClick(row.original);
@@ -445,8 +444,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           </Button>
           <Button
             variant="subtle"
-            size="icon"
-            className="h-8 w-8"
+            size="icon-sm"
             onClick={(e) => {
               e.stopPropagation();
               handleEditClick(row);
@@ -458,8 +456,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           </Button>
           <Button
             variant="subtle"
-            size="icon"
-            className="h-8 w-8"
+            size="icon-sm"
             onClick={(e) => {
               e.stopPropagation();
               handleDeleteClick(row);

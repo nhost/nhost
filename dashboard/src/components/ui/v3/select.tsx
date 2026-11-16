@@ -2,6 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import * as React from 'react';
 
+import { controlHeight, controlText } from '@/components/ui/v3/control';
 import { cn } from '@/lib/utils';
 
 const Select = SelectPrimitive.Root;
@@ -17,7 +18,9 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors placeholder:text-muted-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-input [&>span]:line-clamp-1',
+      controlHeight,
+      controlText,
+      'flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 ring-offset-background transition-colors placeholder:text-muted-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-input [&>span]:line-clamp-1',
       className,
     )}
     {...props}

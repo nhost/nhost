@@ -2,6 +2,7 @@ import type { SignUpOptions } from '@nhost/nhost-js/auth';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { getAnonId } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
@@ -37,9 +38,9 @@ function useOnSignUpWithSecurityKeyHandler() {
           options,
         },
         {
-          headers: {
-            'x-cf-turnstile-response': turnstileToken,
-          },
+          headers: isTurnstileEnabled()
+            ? { 'x-cf-turnstile-response': turnstileToken }
+            : {},
         },
       );
       const { body: webAuthnOptions } = webAuthnResponse;
