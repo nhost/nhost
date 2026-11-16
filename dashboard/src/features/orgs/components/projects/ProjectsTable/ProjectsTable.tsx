@@ -86,7 +86,7 @@ function ProjectRow({
   return (
     <TableRow className="relative cursor-pointer hover:bg-muted/50">
       <TableCell className="py-3">
-        <div className="flex min-w-0 max-w-[320px] items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <Link
             href={`/orgs/${orgSlug}/projects/${project.subdomain}`}
             aria-label={linkLabel}
@@ -101,10 +101,10 @@ function ProjectRow({
           )}
         </div>
       </TableCell>
-      <TableCell className="max-w-[160px] py-3">
+      <TableCell className="py-3">
         <ProjectRegion region={project.region} />
       </TableCell>
-      <TableCell className="max-w-[240px] py-3">
+      <TableCell className="py-3">
         <ProjectRepository project={project} />
       </TableCell>
       {/* Without a repo the dashboard hides deployments everywhere else,
@@ -142,15 +142,15 @@ export default function ProjectsTable({ projects }: ProjectsTableProps) {
       <div className="mx-auto w-full max-w-5xl px-5 py-4">
         <Table
           containerClassName="rounded-lg border bg-background"
-          className="min-w-[720px]"
+          className="min-w-[720px] table-fixed"
         >
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Name</TableHead>
-              <TableHead>Region</TableHead>
-              <TableHead>Repository</TableHead>
-              <TableHead>Last deployment</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="w-[24%]">Name</TableHead>
+              <TableHead className="w-[19%]">Region</TableHead>
+              <TableHead className="w-[19%]">Repository</TableHead>
+              <TableHead className="w-[19%]">Last deployment</TableHead>
+              <TableHead className="w-[19%]">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
