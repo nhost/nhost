@@ -1,6 +1,6 @@
 import type { Project } from '@/features/orgs/components/projects/ProjectsGrid';
 import { PipelineRunStatus_Enum } from '@/generated/graphql';
-import { render, screen, within } from '@/tests/testUtils';
+import { render, screen, TestUserEvent, within } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectsTable from './ProjectsTable';
 
@@ -58,18 +58,12 @@ function rowOf(linkName: string) {
 }
 
 describe('ProjectsTable', () => {
-  it('shows the column headers', () => {
+  it('shows the column headers in order', () => {
     render(<ProjectsTable projects={[makeProject('a')]} />);
 
-    for (const name of [
-      'Name',
-      'Region',
-      'Repository',
-      'Last deployment',
-      'Status',
-    ]) {
-      expect(screen.getByRole('columnheader', { name })).toBeInTheDocument();
-    }
+    expect(
+      screen.getAllByRole('columnheader').map((header) => header.textContent),
+    ).toEqual(['Name', 'Last deployment', 'Repository', 'Region', 'Status']);
   });
 
   it('tells same-name projects apart by region', () => {
@@ -168,5 +162,95 @@ describe('ProjectsTable', () => {
     render(<ProjectsTable projects={[makeProject('a', { name })]} />);
 
     expect(screen.getByTitle(name)).toBeInTheDocument();
+  });
+
+  it('shows Locked with its reason instead of the status', () => {
+    render(
+      <ProjectsTable
+        projects={[
+          makeProject('a', {
+            isLocked: true,
+            isLockedReason: 'Unpaid invoice',
+            appStates: [
+              {
+                id: 's',
+                appId: 'a',
+                message: null,
+                stateId: ApplicationStatus.Paused,
+                createdAt: '2026-11-01T00:00:00Z',
+              },
+            ],
+          }),
+        ]}
+      />,
+    );
+
+    const row = within(rowOf('Open shop (us-east-1)'));
+    const locked = row.getByRole('button', {
+      name: 'Locked: Unpaid invoice',
+    });
+    expect(locked).toHaveTextContent('Locked');
+    expect(row.queryByText('Paused')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Open shop (us-east-1)' }),
+    ).not.toContainElement(locked);
+  });
+
+  it('fills the empty cells of a project without a repository', () => {
+    render(<ProjectsTable projects={[makeProject('a')]} />);
+
+    const row = within(rowOf('Open shop (us-east-1)'));
+    // A muted dash in Last deployment and Repository alike.
+    expect(row.getAllByText('—')).toHaveLength(2);
+  });
+
+  it('sorts by last deployment first, then by the clicked column', async () => {
+    const deployedAt = (
+      startedAt: string,
+    ): Project['pipelineRuns'][number] => ({
+      ...failedRun(),
+      status: PipelineRunStatus_Enum.Succeeded,
+      startedAt,
+    });
+    const repo = { fullName: 'nhost/x' };
+
+    render(
+      <ProjectsTable
+        projects={[
+          makeProject('b', { name: 'beta' }),
+          makeProject('c', {
+            name: 'charlie',
+            githubRepository: repo,
+            pipelineRuns: [deployedAt('2026-11-01T00:00:00Z')],
+          }),
+          makeProject('a', {
+            name: 'alpha',
+            githubRepository: repo,
+            pipelineRuns: [deployedAt('2026-11-10T00:00:00Z')],
+          }),
+        ]}
+      />,
+    );
+
+    const names = () =>
+      screen
+        .getAllByRole('link', { name: /^Open / })
+        .map((link) => link.textContent);
+
+    // Newest deployment first, never deployed last.
+    expect(names()).toEqual(['alpha', 'charlie', 'beta']);
+
+    const user = new TestUserEvent();
+    const nameHeader = screen.getByRole('button', { name: 'Name' });
+
+    await user.click(nameHeader);
+    expect(names()).toEqual(['alpha', 'beta', 'charlie']);
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
+
+    await user.click(nameHeader);
+    expect(names()).toEqual(['charlie', 'beta', 'alpha']);
   });
 });
