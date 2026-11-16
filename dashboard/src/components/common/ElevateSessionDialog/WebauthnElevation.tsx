@@ -1,6 +1,7 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getElevationErrorMessage } from '@/components/common/ElevateSessionDialog/getElevationErrorMessage';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -31,8 +32,10 @@ function WebauthnElevation({ onElevated }: Props) {
       onElevated();
     } catch (err) {
       setError(
-        err?.message ||
+        getElevationErrorMessage(
+          err,
           'Make sure your security key is connected and try again.',
+        ),
       );
       setIsVerifying(false);
     }

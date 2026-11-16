@@ -2,6 +2,7 @@ import type { ElevationMethod } from '@nhost/nhost-js/auth';
 import { useMutation } from '@tanstack/react-query';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getElevationErrorMessage } from '@/components/common/ElevateSessionDialog/getElevationErrorMessage';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -31,16 +32,25 @@ function OtpElevation({ method, onElevated }: Props) {
   });
 
   const verifyCode = useMutation({
-    mutationFn: (otp: string) => {
-      if (method === 'totp') {
-        return nhost.auth.elevateTotp({ otp });
-      }
+    mutationFn: async (otp: string) => {
+      try {
+        if (method === 'totp') {
+          return await nhost.auth.elevateTotp({ otp });
+        }
 
-      if (method === 'otp-email') {
-        return nhost.auth.verifyElevateOTPEmail({ otp });
-      }
+        if (method === 'otp-email') {
+          return await nhost.auth.verifyElevateOTPEmail({ otp });
+        }
 
-      return nhost.auth.verifyElevateOTPSms({ otp });
+        return await nhost.auth.verifyElevateOTPSms({ otp });
+      } catch (error) {
+        throw new Error(
+          getElevationErrorMessage(
+            error,
+            'An error occurred. Please try again.',
+          ),
+        );
+      }
     },
     onSuccess: () => onElevated(),
   });
@@ -74,7 +84,10 @@ function OtpElevation({ method, onElevated }: Props) {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Couldn&apos;t send the code</AlertTitle>
           <AlertDescription>
-            {sendCode.error.message || 'Please try again in a few moments.'}
+            {getElevationErrorMessage(
+              sendCode.error,
+              'Please try again in a few moments.',
+            )}
           </AlertDescription>
         </Alert>
         <Button onClick={() => sendCode.mutate()}>Resend code</Button>
