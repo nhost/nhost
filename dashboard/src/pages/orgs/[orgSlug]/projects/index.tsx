@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectsGrid } from '@/features/orgs/components/projects/ProjectsGrid';
+import { ProjectsTable } from '@/features/orgs/components/projects/ProjectsTable';
 import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useGetProjectsQuery } from '@/generated/graphql';
@@ -60,7 +60,7 @@ export default function OrgProjects() {
 
   return (
     <div className="h-full bg-background">
-      <ProjectsGrid projects={apps} />
+      <ProjectsTable projects={apps} />
     </div>
   );
 }
