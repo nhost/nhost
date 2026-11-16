@@ -1,6 +1,6 @@
 const LOCAL = 'local';
 
-/** Backend coordinates shared by the browser client and the server client. */
+/** Backend coordinates, read on the server and by the footer's status check. */
 export const nhostSubdomain = (): string =>
   process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || LOCAL;
 
