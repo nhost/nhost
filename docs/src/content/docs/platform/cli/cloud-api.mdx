@@ -32,7 +32,7 @@ To use a personal access token instead, for example in CI, set the `NHOST_PAT` e
 Configure your agent's command permissions to:
 
 - Allow only the exact command `nhost api schema`, with no other arguments or flags.
-- Ask for your approval before `nhost api query`. Only a call with `--with-mutations` can change your projects, so review those carefully.
+- Ask for your approval before `nhost api query`. Only a call with `--allow-mutations` can change your projects, so review those carefully.
 
 :::caution
 Reads can return secrets into your agent's context. Mutations run as-is with your permissions, without confirmation or additional safety checks. Review the operation and variables before approving a mutation.
@@ -60,14 +60,14 @@ nhost api query 'query {
 }'
 ```
 
-`query` takes one quoted GraphQL document and an optional `--variables` JSON object. It refuses mutations unless you pass `--with-mutations`, and always refuses subscriptions.
+`query` takes one quoted GraphQL document and an optional `--variables` JSON object. It refuses mutations unless you pass `--allow-mutations`, and always refuses subscriptions.
 
 ## Send a mutation
 
 Inspect `updateApp` in the schema first. To rename an existing project, replace `<project-id>` with its ID and review the new name:
 
 ```bash
-nhost api query --with-mutations 'mutation RenameProject($id: uuid!, $name: String!) {
+nhost api query --allow-mutations 'mutation RenameProject($id: uuid!, $name: String!) {
   updateApp(pk_columns: {id: $id}, _set: {name: $name}) {
     id
     name
@@ -75,7 +75,7 @@ nhost api query --with-mutations 'mutation RenameProject($id: uuid!, $name: Stri
 }' --variables '{"id":"<project-id>","name":"New project name"}'
 ```
 
-With `--with-mutations`, the mutation is sent as-is. Requests aren't retried. After a network error, a mutation may or may not have been applied; check the result before trying again.
+With `--allow-mutations`, the mutation is sent as-is. Requests aren't retried. After a network error, a mutation may or may not have been applied; check the result before trying again.
 
 On success, both commands print only the response's `data` as JSON to stdout. Any failure exits with code `1` and writes the error to stderr, including the server's response for GraphQL or HTTP errors.
 
