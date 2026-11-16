@@ -18,7 +18,6 @@ vi.mock('@/lib/nhost/server', () => ({
   createNhostClient: async () => ({ auth }),
 }));
 
-const _options = { challenge: 'c' };
 // Stand-ins: the actions pass these through untouched, so their shape is the
 // backend's concern.
 const creation = { id: 'cred' } as unknown as CredentialCreationResponse;

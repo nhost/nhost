@@ -20,7 +20,6 @@ vi.mock('@/lib/nhost/server', () => ({
 }));
 
 const creation = { id: 'cred' } as unknown as CredentialCreationResponse;
-const _signedOut = { error: 'You are signed out. Sign in and try again.' };
 
 beforeEach(() => {
   client.session = { accessToken: 'token' };

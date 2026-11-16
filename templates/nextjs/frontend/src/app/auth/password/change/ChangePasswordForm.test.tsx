@@ -42,9 +42,6 @@ async function submit(): Promise<void> {
   );
 }
 
-const _text = (role: string): string | null =>
-  container.querySelector(`[role="${role}"]`)?.textContent ?? null;
-
 describe('change password form', () => {
   beforeEach(async () => {
     changePassword.mockReset();

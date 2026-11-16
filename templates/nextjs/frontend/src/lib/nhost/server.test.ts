@@ -361,20 +361,6 @@ describe('session cookies from server actions', () => {
     vi.restoreAllMocks();
   });
 
-  const _signIn = async (accessToken: string): Promise<NextResponse> => {
-    fetchMock.mockImplementation(async () =>
-      json({ session: await refreshed(accessToken).json() }, 200),
-    );
-
-    const nhost = await createNhostClient();
-    await nhost.auth.signInEmailPassword({
-      email: 'user@example.com',
-      password: 'password',
-    });
-
-    return written.response as NextResponse;
-  };
-
   it('deletes both cookies on sign-out', async () => {
     cookie.value = storedSession(900);
     fetchMock.mockImplementation(async () => json('OK', 200));

@@ -32,18 +32,8 @@ async function render(canRemove: boolean): Promise<void> {
   );
 }
 
-const _byText = (label: string): HTMLButtonElement | undefined =>
-  [...container.querySelectorAll('button')].find(
-    (candidate) => candidate.textContent === label,
-  );
-
 const fileInput = (): HTMLInputElement | null =>
   container.querySelector<HTMLInputElement>('input[type="file"]');
-
-const _byLabel = (label: string): HTMLButtonElement | undefined =>
-  [...container.querySelectorAll('button')].find(
-    (candidate) => candidate.getAttribute('aria-label') === label,
-  );
 
 // What the browser does when a file is picked: the input holds it, then the
 // input fires `change`.

@@ -54,13 +54,6 @@ async function submit(): Promise<void> {
   );
 }
 
-async function _click(label: string): Promise<void> {
-  const button = [...container.querySelectorAll('button')].find(
-    (candidate) => candidate.textContent === label,
-  );
-  await act(async () => button?.click());
-}
-
 const text = (role: string): string | null =>
   container.querySelector(`[role="${role}"]`)?.textContent ?? null;
 

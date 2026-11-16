@@ -58,13 +58,6 @@ async function submit(): Promise<void> {
   );
 }
 
-async function _click(text: string): Promise<void> {
-  const button = [...container.querySelectorAll('button')].find(
-    (candidate) => candidate.textContent === text,
-  );
-  await act(async () => button?.click());
-}
-
 const hasLabel = (label: string): boolean =>
   [...container.querySelectorAll('label')].some(
     (candidate) => candidate.textContent === label,

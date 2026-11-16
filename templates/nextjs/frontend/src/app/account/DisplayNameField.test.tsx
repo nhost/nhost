@@ -53,9 +53,6 @@ async function submit(): Promise<void> {
   );
 }
 
-const _text = (role: string): string | null =>
-  container.querySelector(`[role="${role}"]`)?.textContent ?? null;
-
 describe('display name field', () => {
   beforeEach(async () => {
     router.refresh.mockReset();

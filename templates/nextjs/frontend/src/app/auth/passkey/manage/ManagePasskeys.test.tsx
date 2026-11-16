@@ -63,9 +63,6 @@ async function submit(): Promise<void> {
   );
 }
 
-const _alertText = (): string | null =>
-  container.querySelector('[role="alert"]')?.textContent ?? null;
-
 describe('manage passkeys', () => {
   beforeEach(async () => {
     for (const fn of [
