@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	flagVariables     = "variables"
-	flagWithMutations = "with-mutations"
+	flagVariables      = "variables"
+	flagAllowMutations = "allow-mutations"
 )
 
 func CommandQuery() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name: "query",
-		Usage: "Send a query, or a mutation with `--with-mutations`, to the Nhost Cloud API " +
+		Usage: "Send a query, or a mutation with `--allow-mutations`, to the Nhost Cloud API " +
 			"and print its data as JSON",
 		ArgsUsage: "<document>",
 		Flags: []cli.Flag{
@@ -25,7 +25,7 @@ func CommandQuery() *cli.Command {
 				Value: "{}",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
-				Name:  flagWithMutations,
+				Name:  flagAllowMutations,
 				Usage: "Allow mutations; they run as-is with your permissions",
 			},
 		},
@@ -44,13 +44,13 @@ func commandQuery(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	mutations := []string{}
-	if cmd.Bool(flagWithMutations) {
+	if cmd.Bool(flagAllowMutations) {
 		mutations = []string{"*"}
 	}
 
 	return execute(
 		ctx, cmd, cmd.Args().First(), variables, []string{"*"}, mutations,
-		"nhost api query sends mutations only with --with-mutations. "+
+		"nhost api query sends mutations only with --allow-mutations. "+
 			"Subscriptions are not supported.",
 	)
 }
