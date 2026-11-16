@@ -7,20 +7,16 @@ const logos = [
     href: 'https://nhost.io',
     name: 'Nhost',
     Logo: NhostLogo,
-    // Two shadows, a tight one under the wide one: the mark is thin lines,
-    // and a single wide shadow barely showed around them.
-    glow: 'hover:[filter:drop-shadow(0_0_0.4rem_#3d7fff)_drop-shadow(0_0_1.5rem_#3d7fff)]',
   },
   {
     href: 'https://nextjs.org',
     name: 'Next.js',
     Logo: NextjsLogo,
-    glow: 'hover:drop-shadow-[0_0_1.5rem_#ffffff88]',
   },
 ] as const;
 
 function LogoLink({
-  logo: { href, name, Logo, glow },
+  logo: { href, name, Logo },
   className,
 }: {
   logo: (typeof logos)[number];
@@ -36,7 +32,7 @@ function LogoLink({
         className,
       )}
     >
-      <Logo className={cn('size-16 transition-[filter] duration-300', glow)} />
+      <Logo className="size-16" />
       <span className="sr-only">{name}</span>
     </a>
   );
@@ -44,8 +40,7 @@ function LogoLink({
 
 /**
  * The home page's title, with each mark centred over its own name and linking
- * to its project, glowing in its own colour on hover the way the Vite starters
- * do.
+ * to its project.
  */
 export default function StackTitle() {
   const [backend, framework] = logos;
