@@ -1,5 +1,4 @@
 import { startAuthentication } from '@simplewebauthn/browser';
-import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getElevationErrorMessage } from '@/components/common/ElevateSessionDialog/getElevationErrorMessage';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
@@ -59,7 +58,6 @@ function WebauthnElevation({ onElevated }: Props) {
   return (
     <>
       <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
         <AlertTitle>Couldn&apos;t verify your security key</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
