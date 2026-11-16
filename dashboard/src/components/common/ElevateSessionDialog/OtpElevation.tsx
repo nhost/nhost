@@ -73,11 +73,22 @@ function OtpElevation({ method, onElevated }: Props) {
   }
 
   return (
-    <MfaOtpForm
-      loading={verifyCode.isPending}
-      sendMfaOtp={verifyCode.mutateAsync}
-      placeholder="Enter the 6-digit code"
-    />
+    <>
+      <MfaOtpForm
+        loading={verifyCode.isPending}
+        sendMfaOtp={verifyCode.mutateAsync}
+        placeholder="Enter the 6-digit code"
+      />
+      {method !== 'totp' && (
+        <Button
+          variant="outline"
+          disabled={verifyCode.isPending}
+          onClick={() => sendCode.mutate()}
+        >
+          Resend code
+        </Button>
+      )}
+    </>
   );
 }
 
