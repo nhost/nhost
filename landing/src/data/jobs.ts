@@ -25,6 +25,7 @@ export interface Job {
 export const jobs: Job[] = [
   {
     slug: 'senior-software-engineer-backend-operations',
+    hidden: true,
     title: 'Senior Software Engineer, Backend & Operations',
     shortTitle: 'Backend & Operations',
     department: 'Engineering',
