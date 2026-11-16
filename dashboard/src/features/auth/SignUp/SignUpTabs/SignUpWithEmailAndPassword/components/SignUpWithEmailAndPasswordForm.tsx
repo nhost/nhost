@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/v3/form';
 import useOnSignUpWithPasswordHandler from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useOnSignUpWithPasswordHandler';
 import useSignUpWithEmailAndPasswordForm from '@/features/auth/SignUp/SignUpTabs/SignUpWithEmailAndPassword/hooks/useSignUpWithEmailAndPasswordForm';
+import { isTurnstileEnabled } from '@/features/auth/utils/turnstile';
 
 function SignUpWithEmailAndPasswordForm() {
   const form = useSignUpWithEmailAndPasswordForm();
@@ -43,37 +44,39 @@ function SignUpWithEmailAndPasswordForm() {
           type="password"
           placeholder="Password"
         />
-        <FormField
-          control={form.control}
-          name="turnstileToken"
-          render={() => (
-            <FormItem>
-              <FormLabel>Verification</FormLabel>
-              <FormControl>
-                <Turnstile
-                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                  options={{ theme: 'dark', size: 'flexible' }}
-                  onSuccess={(token) => {
-                    form.setValue('turnstileToken', token, {
-                      shouldValidate: true,
-                    });
-                  }}
-                  onError={() => {
-                    form.setValue('turnstileToken', '', {
-                      shouldValidate: true,
-                    });
-                  }}
-                  onExpire={() => {
-                    form.setValue('turnstileToken', '', {
-                      shouldValidate: true,
-                    });
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isTurnstileEnabled() && (
+          <FormField
+            control={form.control}
+            name="turnstileToken"
+            render={() => (
+              <FormItem>
+                <FormLabel>Verification</FormLabel>
+                <FormControl>
+                  <Turnstile
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                    options={{ theme: 'dark', size: 'flexible' }}
+                    onSuccess={(token) => {
+                      form.setValue('turnstileToken', token, {
+                        shouldValidate: true,
+                      });
+                    }}
+                    onError={() => {
+                      form.setValue('turnstileToken', '', {
+                        shouldValidate: true,
+                      });
+                    }}
+                    onExpire={() => {
+                      form.setValue('turnstileToken', '', {
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <Button type="submit" className="w-full">
           Sign Up
         </Button>
