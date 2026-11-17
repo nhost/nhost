@@ -35,6 +35,12 @@
     // tooling; remove when the quickstart's Expo/Metro supports patched v2.
     "GHSA-w3rx-r6r6-pgpr|*>metro>image-size", // CVE-2025-71330
     "GHSA-5p2g-fcmc-qvqq|*>metro>image-size", // CVE-2025-71329
+    // SvelteKit fixes these remote functions bugs only in 3.x. The Svelte
+    // tutorial, the only consumer, uses no remote functions (`form`,
+    // `query.batch`), so the major upgrade is deferred. Remove when the
+    // tutorial is upgraded to SvelteKit 3.
+    "GHSA-3r8g-jcqq-3p5j", // remote functions `form` DoS
+    "GHSA-6cf5-gc4q-fm3x", // remote functions `query.batch` collision
     // braces stack-exhaustion DoS via deeply nested patterns. No fixed release
     // exists yet: every published version (<=3.0.3) is affected. Only pulled in
     // transitively via micromatch/chokidar by dev/build tooling (tailwindcss,
