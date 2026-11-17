@@ -9,14 +9,14 @@ sidebar:
   label: Relationships
 ---
 import { Icon, Steps } from '@astrojs/starlight/components';
-import { Pencil, SquarePen, Trash2 } from '@lucide/astro';
+import { Pencil, Trash2 } from '@lucide/astro';
 
-A relationship is a field on a table's GraphQL type that returns the related rows of another table. An object relationship returns one row, and an array relationship returns a list. Relationships live in your project's metadata, not in the database, so adding one never changes your tables.
+A relationship is a field on a table's GraphQL type that returns the related rows of another table. An object relationship returns one row, and an array relationship returns a list. Relationships are stored in your project's metadata, so adding one doesn't change your tables.
 
 :::caution[Requirements]
 - A project on Nhost Cloud or a local project run with `nhost up`.
 - The tables you want to relate, tracked in your GraphQL API.
-- To relate a table outside its database, a [remote schema](/products/graphql/remote-schemas) added to the project or a second database connected to it.
+- For a relationship that leaves the table's database: a [remote schema](/products/graphql/remote-schemas) or a second database connected to the project.
 :::
 
 ## Example tables
@@ -40,29 +40,38 @@ CREATE TABLE public.community_members (
 );
 ```
 
-The examples relate these tables in both directions: an object relationship `community` on `community_members` returns a member's community, and an array relationship `community_members` on `communities` returns a community's members. To follow along, create and track these tables in your project, or apply the same steps to your own tables.
+The examples relate these tables in both directions. An object relationship `community` on `community_members` returns a member's community, and an array relationship `community_members` on `communities` returns a community's members.
+
+To follow along, run the SQL in <a href="https://app.nhost.io/orgs/_/projects/_/database/console/default" target="_blank" rel="noopener noreferrer"><strong>Database → SQL Console</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a> with **Track this** on. That tracks the tables but adds no relationships, which is the starting point the next sections assume. If you create the tables in the table form instead, the dashboard adds the `user` relationship right away, and [Add a suggested relationship](#add-a-suggested-relationship) has nothing to suggest. You can also apply the same steps to your own tables.
 
 ## Open a table's relationships
 
-![Table edit relationships nav](/images/products/graphql/relationships/table-edit-relationships-nav.png)
-
 Open <a href="https://app.nhost.io/orgs/_/projects/_/database/browser/default" target="_blank" rel="noopener noreferrer"><strong>Database → Table editor & Browser</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a>, open the **⋯** menu next to `communities`, and select **Edit Relationships**.
 
-![Table edit relationships](/images/products/graphql/relationships/table-edit-relationships.png)
+![The communities table menu in the Table editor with Edit Relationships highlighted](/images/products/graphql/relationships/table-edit-relationships-nav.png)
 
-The drawer has two lists. **Relationships** lists the table's relationships. Each row shows the type and the joined columns. **Suggested Relationships** holds the ones the dashboard can create from the table's foreign keys.
+The drawer that opens has two lists. **Relationships** shows the name, source, type, and joined columns of each relationship on the table. **Suggested Relationships** shows the ones the dashboard can create from foreign keys. For `communities`, both lists stay empty until you add the foreign key in the next section.
+
+![The Edit Relationships drawer for public.communities with both lists empty](/images/products/graphql/relationships/table-edit-relationships.png)
 
 ## Create relationships with a foreign key
 
-Adding a foreign key in the table form creates the relationships for both tables. To add the one on `community_members.community_id`:
+When you add a foreign key in the table form, the dashboard also creates a relationship on each of the two tables. To add the foreign key on `community_members.community_id`:
 
 <Steps>
 
-1. Open the **⋯** menu next to `community_members` and select **Edit Table**. ![Table edit table](/images/products/graphql/relationships/table-edit-table.png)
+1. Open the **⋯** menu next to `community_members` and select **Edit Table**. ![The community_members table menu with Edit Table highlighted](/images/products/graphql/relationships/table-edit-table.png)
 
-2. Under **Foreign Keys**, click **Add Foreign Key**. ![Table foreign keys](/images/products/graphql/relationships/table-foreign-keys.png)
+2. Under **Foreign Keys**, click **Add Foreign Key**. ![The Foreign Keys section of the Edit Table form with the Add Foreign Key button](/images/products/graphql/relationships/table-foreign-keys.png)
 
-3. Pick the **Schema** `public`, the **Table** `communities` and, under **Referenced key**, the primary key on `id`. Under **Column**, pick `community_id` in the row that references `id`, then click **Add**. ![Table add foreign key](/images/products/graphql/relationships/table-add-foreign-key.png)
+3. In the **Add a Foreign Key Relation** dialog, set:
+
+   - **Schema**: `public`
+   - **Table**: `communities`
+   - **Referenced key**: the primary key on `id`
+   - **Column**: `community_id`, in the row that references `id`
+
+   Then click **Add**. ![The Add a Foreign Key Relation dialog with community_id referencing communities.id](/images/products/graphql/relationships/table-add-foreign-key.png)
 
 4. Click **Save**.
 
@@ -70,24 +79,28 @@ Adding a foreign key in the table form creates the relationships for both tables
 
 The dashboard then creates two relationships:
 
-| Table | Relationship | Type | Name rule |
+| Table | Relationship | Type | Named after |
 | --- | --- | --- | --- |
-| `community_members` | `community` | Object | the referenced table's name, in the singular |
-| `communities` | `community_members` | Array | this table's name, in the plural |
+| `community_members` | `community` | Object | the referenced table, `communities`, in the singular |
+| `communities` | `community_members` | Array | the table with the foreign key, `community_members`, in the plural |
 
-When the foreign key columns contain a unique key of `community_members`, so at most one member can point at a community, the second relationship is an object relationship named in the singular. When another foreign key relationship already uses the name, the dashboard appends the foreign key's column names, as in `community_community_id`. If the name belongs to a relationship created with **Relationship +** or a remote relationship, the dashboard does not rename the new one, and the save fails. Rename or delete that relationship first.
+Three cases change the names or the result:
+
+- If the foreign key columns include a whole unique key of `community_members`, each community can have at most one member row. The relationship on `communities` is then an object relationship named in the singular, `community_member`.
+- If another foreign key on `community_members` already has a relationship with the same name, or both new relationships get the same name, the dashboard adds the foreign key's column names, as in `community_community_id`.
+- If any other relationship already has the name, the dashboard saves the foreign key but creates neither relationship. Rename or delete the existing relationship, then add the two from [Suggested Relationships](#add-a-suggested-relationship).
 
 ## Add a suggested relationship
 
-A foreign key created in SQL, through the **SQL Console** or a migration, creates no relationships, but you can add them from **Suggested Relationships**. It lists each relationship the table's foreign keys allow that does not exist yet, in both directions.
+A foreign key created in SQL, through the **SQL Console** or a migration, comes with no relationships. **Suggested Relationships** lists the ones that are missing. In each table's drawer, it shows the relationships that start from that table, through a foreign key on the table or one that points at it.
 
 The example SQL creates the foreign key from `community_members.user_id` to `auth.users`, so the `community_members` drawer suggests an object relationship named `user`:
 
 <Steps>
 
-1. Open the **⋯** menu next to `community_members`, select **Edit Relationships**, and click **Add** on the `user` row. ![Table add suggested relationship](/images/products/graphql/relationships/table-add-suggested-relationship.png)
+1. Open the **⋯** menu next to `community_members`, select **Edit Relationships**, and click **Add** on the `user` row. ![Suggested Relationships for community_members with the user row and its Add button](/images/products/graphql/relationships/table-add-suggested-relationship.png)
 
-2. The **Add Suggested Relationship** dialog shows the type, **Object Relationship**, and the join, `public.community_members / user_id → auth.users / id`. Set the **Relationship Name** to `user`. ![Table create relationship](/images/products/graphql/relationships/table-create-relationship.png)
+2. The **Add Suggested Relationship** dialog shows the type, **Object Relationship**, and the join, `public.community_members / user_id → auth.users / id`. The **Relationship Name** is already `user`. Keep it or change it. ![The Add Suggested Relationship dialog with the name user](/images/products/graphql/relationships/table-create-relationship.png)
 
 3. Click **Create Relationship**.
 
@@ -106,11 +119,11 @@ FROM public.community_members
 GROUP BY community_id;
 ```
 
-Run it in <a href="https://app.nhost.io/orgs/_/projects/_/database/console/default" target="_blank" rel="noopener noreferrer"><strong>Database → SQL Console</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a> with **Track this** on; the dialog lists only tracked tables and views.
+Run it in the **SQL Console** with **Track this** on, as you did for the tables. The dialog lists only tracked tables and views.
 
 <Steps>
 
-1. Open the **⋯** menu next to `communities`, select **Edit Relationships**, and click **Relationship +**. ![Table add relationship](/images/products/graphql/relationships/table-add-relationship.png)
+1. Open the **⋯** menu next to `communities`, select **Edit Relationships**, and click **Relationship +**. ![The Edit Relationships drawer for communities with the Relationship + button highlighted](/images/products/graphql/relationships/table-add-relationship.png)
 
 2. Fill in the **Create Relationship** dialog:
 
@@ -120,13 +133,15 @@ Run it in <a href="https://app.nhost.io/orgs/_/projects/_/database/console/defau
      - **Schema**: `public`
      - **Table**: `community_member_counts`
    - **Relationship Type**: **Object Relationship**
-   - Click **Add New Mapping**, then set **Source Column** to `id` and **Reference Column** to `community_id` ![Table create relationship column mapping](/images/products/graphql/relationships/table-create-relationship-column-mapping.png)
+   - Click **Add New Mapping**, then set **Source Column** to `id` and **Reference Column** to `community_id`. ![The Create Relationship dialog mapping communities.id to community_member_counts.community_id](/images/products/graphql/relationships/table-create-relationship-column-mapping.png)
 
 3. Click **Create Relationship**.
 
 </Steps>
 
-The relationship name becomes the field name on the `communities` type, so it must start with a letter or an underscore and contain only letters, numbers, and underscores. To join on more than one pair of columns, click **Add New Mapping** again for each pair.
+To join on more than one pair of columns, click **Add New Mapping** again for each pair.
+
+A relationship name becomes a field name on the table's GraphQL type, so in every dialog it must start with a letter or an underscore and contain only letters, numbers, and underscores.
 
 ## Relate a table to a remote schema
 
@@ -144,7 +159,7 @@ type CommunityActivity {
 
 <Steps>
 
-1. Open the **⋯** menu next to `communities`, select **Edit Relationships**, and click **Relationship +**. ![Table add relationship](/images/products/graphql/relationships/table-add-relationship.png)
+1. Open the **⋯** menu next to `communities`, select **Edit Relationships**, and click **Relationship +**.
 
 2. Fill in the **Create Relationship** dialog:
 
@@ -152,30 +167,49 @@ type CommunityActivity {
    - **To Reference**:
      - **Source**: `rs`, under **Remote schemas**
      - **Schema** and **Table**: `N/A`, set automatically
-   - **Relationship Details**: under **Query**, check `communityActivity`
-   - **Selected field tree**: check the argument `communityId`, then set:
+   - **Relationship Details**: under **Root operation fields** → **Query**, check `communityActivity`
+   - **Selected field tree**: under **Arguments**, check `communityId`, then set:
      - **Fill from**: **Source Field**
-     - **Source field**: `id` ![Table create relationship remote schema](/images/products/graphql/relationships/table-create-relationship-remote-schema.png)
+     - **Source field**: `id` ![The Create Relationship dialog for the rs remote schema with communityId filled from id](/images/products/graphql/relationships/table-create-relationship-remote-schema.png)
 
-3. Check that **Remote field preview** shows `communityActivity` with `communityId` mapped to `$id`, then click **Create Relationship**.
+3. Check that **Remote field preview**, at the top of **Relationship Details**, shows `communityActivity` with `communityId` mapped to `$id`, then click **Create Relationship**.
 
 </Steps>
 
 To send a fixed value instead of a column, set **Fill from** to **Static Value**.
- 
+
 ## Relate a table to another database
 
-If your project connects to more than one database, the **Source** dropdown under **To Reference** lists each one under **Databases**. Pick the other database, then fill in the dialog as for a [column mapping](#create-a-relationship-by-column-mapping). Because the rows live in a different database, the dashboard saves this as a remote relationship. For example, a relationship from `communities` to a `page_views` table in a database named `analytics` maps `id` to `page_views.community_id`.
+If your project connects to more than one database, the **Source** dropdown under **To Reference** lists each one under **Databases**. Because the rows live in a different database, the dashboard saves the relationship as a remote relationship.
+
+For example, to give `communities` the page views stored in a `page_views` table in a database named `analytics`:
+
+<Steps>
+
+1. Open the **⋯** menu next to `communities`, select **Edit Relationships**, and click **Relationship +**.
+
+2. Fill in the **Create Relationship** dialog:
+
+   - **Relationship Name**: `page_views`
+   - **To Reference**:
+     - **Source**: `analytics`, under **Databases**
+     - **Schema**: `public`
+     - **Table**: `page_views`
+   - **Relationship Type**: **Array Relationship**
+   - Click **Add New Mapping**, then set **Source Column** to `id` and **Reference Column** to `community_id`.
+
+3. Click **Create Relationship**.
+
+</Steps>
 
 ## Rename, edit, or delete a relationship
 
-Each row under **Relationships** ends in two of these actions:
+Each row under **Relationships** has two buttons:
 
-- <Pencil size={16} style="display: inline; vertical-align: middle; margin: 0;" /> - renames a relationship in the same database, for example `communities.community_members` to `members`. The rename changes the GraphQL field name, so update the queries that use it.
-- <SquarePen size={16} style="display: inline; vertical-align: middle; margin: 0;" /> - takes the pencil's place on remote relationships and opens **Edit Relationship**, where everything except the name can change. Click **Save Changes**.
-- <Trash2 size={16} style="display: inline; vertical-align: middle; margin: 0;" /> - deletes the relationship from the metadata. The tables and their foreign keys stay.
+- <Trash2 size={16} style="display: inline; vertical-align: middle; margin: 0;" /> deletes the relationship from the metadata. The tables and their foreign keys stay.
+- <Pencil size={16} style="display: inline; vertical-align: middle; margin: 0;" /> renames a relationship in the same database, for example `communities.community_members` to `members`. Renaming changes the GraphQL field name, so update the queries that use it. On a remote relationship, the same button opens **Edit Relationship** instead, where you can change everything except the name, then click **Save Changes**.
 
-You cannot edit the join of a relationship in the same database; delete it and create it again.
+To change the join of a relationship in the same database, delete it and create it again.
 
 ## Define relationships in metadata
 
@@ -191,7 +225,7 @@ object_relationships:
       foreign_key_constraint_on: community_id
 ```
 
-A relationship through a foreign key on the other table names that table too. A column mapping uses `manual_configuration`, and remote relationships go under `remote_relationships`:
+When the foreign key is on the other table, as for `communities.community_members`, the entry names that table as well as the column. A column mapping uses `manual_configuration`, and remote relationships go under `remote_relationships`:
 
 ```yaml title="nhost/metadata/databases/default/tables/public_communities.yaml"
 table:
@@ -239,6 +273,8 @@ remote_relationships:
 
 The `activity` and `page_views` entries work only if the `rs` remote schema and the `analytics` database exist, so leave them out if you skipped those sections. Add these keys to the table's existing file rather than replacing it, then run `nhost up` to apply the files to your local project.
 
+### Keep dashboard changes in a local project
+
 In a local project, the dashboard writes to these files only when it saves a change as a migration, as the table form does when you add a foreign key. Relationships you add from a suggestion or with **Relationship +**, and any you edit, rename, or delete, change only the running project. Export the metadata to keep them before you commit:
 
 ```bash
@@ -249,7 +285,7 @@ nhost dev hasura metadata export \
 
 ## Query across a relationship
 
-A relationship is a field like any column. This query returns each community with its members and its member count:
+You select a relationship the same way you select a column. This query returns each community with its members and its member count:
 
 ```graphql
 query CommunitiesWithMembers {
@@ -279,11 +315,11 @@ query EngineeringMembers {
 }
 ```
 
-[Permissions](/products/graphql/permissions/rule-editor) traverse relationships the same way: a rule on `communities` can let a user update a community only when `community_members` contains a row with their `user_id`.
+[Permission rules](/products/graphql/permissions/rule-editor) can use relationships too. For example, a rule on `communities` can let a user update a community only when `community_members` has a row with their `user_id`.
 
 ## Limitations
 
-- **Edit Relationships** is disabled for tables and views that are not tracked in GraphQL, and is not offered for functions.
+- **Edit Relationships** is unavailable for tables and views that aren't tracked in GraphQL, and the menu doesn't show it for functions.
 - Suggestions come only from foreign keys between tables in the same database.
 - A remote schema relationship can only target fields of the remote schema's `Query` type.
 
