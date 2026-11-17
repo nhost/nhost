@@ -83,6 +83,8 @@ test('should be able to upgrade an organization', async () => {
   await page.getByLabel(/describe your organization/i).click();
   await page.getByRole('option', { name: 'Personal Project' }).click();
 
+  await page.getByText('Starter', { exact: true }).click();
+
   await page.getByRole('button', { name: 'Create Organization' }).click();
 
   await expect(

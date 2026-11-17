@@ -82,26 +82,21 @@ function CreateOrgForm({
   const orderablePlans = plans.filter(
     (plan) => !plan.name.toLowerCase().startsWith('enterprise'),
   );
-  const starterPlan = plans.find(({ name }) => name === 'Starter');
-  const proPlan = plans.find(({ name }) => name === 'Pro')!;
 
   const hasStarterOrg = orgs.some(
     (org) => org.plan.name === 'Starter' || org.plan.isFree,
   );
 
-  const defaultPlan =
-    !hasStarterOrg && starterPlan && !isStarterDisabled
-      ? starterPlan.id
-      : proPlan?.id || '';
-
   const form = useForm<z.infer<typeof createOrgFormSchema>>({
     resolver: zodResolver(createOrgFormSchema),
     defaultValues: {
       name: '',
-      plan: defaultPlan,
+      plan: '',
       organizationType: '',
     },
   });
+
+  const selectedPlan = form.watch('plan');
 
   return (
     <Form {...form}>
@@ -172,7 +167,6 @@ function CreateOrgForm({
                         isMonthly={!plan.isFree}
                         description={planDescriptions[plan.name]}
                         isSelected={field.value === plan.id}
-                        isPopular={plan.name === 'Team'}
                         disabled={isDisabled}
                         className={cn({ 'opacity-50': isDisabled })}
                       />
@@ -224,6 +218,7 @@ function CreateOrgForm({
           </Button>
           <ButtonWithLoading
             type="submit"
+            disabled={!selectedPlan}
             loading={form.formState.isSubmitting}
           >
             Create organization

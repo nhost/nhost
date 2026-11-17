@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowUpRight, Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -72,11 +72,6 @@ const PLAN_HIGHLIGHTS: Record<string, string[]> = {
   ],
 };
 
-const POPULAR_PLAN_NAME = 'Team';
-
-/** Tier order used to auto-select the next plan up from the org's current one. */
-const PLAN_ORDER = ['Starter', 'Pro', 'Team', 'Enterprise'];
-
 /** Sentinel form value for the contact-only Enterprise tier (not a real plan id). */
 const ENTERPRISE_PLAN_VALUE = 'enterprise';
 
@@ -112,38 +107,13 @@ export default function SubscriptionPlan() {
     },
   });
 
-  const hasSetDefaultPlan = useRef(false);
-
-  // Preselect the next tier up each time the dialog opens.
+  // Nothing is picked when the dialog opens, so the user chooses a plan
+  // instead of seeing one already selected next to the current one.
   useEffect(() => {
-    if (!open) {
-      hasSetDefaultPlan.current = false;
-      return;
+    if (open) {
+      form.reset({ plan: '' });
     }
-
-    if (hasSetDefaultPlan.current || !org || orderablePlans.length === 0) {
-      return;
-    }
-
-    hasSetDefaultPlan.current = true;
-
-    const currentIndex = PLAN_ORDER.indexOf(org.plan.name);
-    const nextTierName =
-      currentIndex === -1 ? null : PLAN_ORDER[currentIndex + 1];
-
-    if (!nextTierName) {
-      form.setValue('plan', org.plan.id, { shouldDirty: false });
-    } else if (nextTierName === 'Enterprise') {
-      form.setValue('plan', ENTERPRISE_PLAN_VALUE, { shouldDirty: false });
-    } else {
-      const nextPlan = orderablePlans.find(
-        (plan) => plan.name === nextTierName,
-      );
-      form.setValue('plan', nextPlan ? nextPlan.id : org.plan.id, {
-        shouldDirty: false,
-      });
-    }
-  }, [open, org, orderablePlans, form]);
+  }, [open, form]);
 
   useEffect(() => {
     if (isReady && openUpgradeModal) {
@@ -276,7 +246,6 @@ export default function SubscriptionPlan() {
             highlights={PLAN_HIGHLIGHTS[plan.name]}
             isSelected={selectedPlanId === plan.id}
             isCurrent={org?.plan?.id === plan.id}
-            isPopular={plan.name === POPULAR_PLAN_NAME}
             disabled={
               plan.isFree ||
               plan.name === 'Starter' ||
@@ -449,8 +418,9 @@ export default function SubscriptionPlan() {
                       data-testid="upgradeOrgSubmitButton"
                       type="submit"
                       disabled={
-                        !isEnterpriseSelected &&
-                        selectedPlanId === org?.plan?.id
+                        !selectedPlanId ||
+                        (!isEnterpriseSelected &&
+                          selectedPlanId === org?.plan?.id)
                       }
                       loading={form.formState.isSubmitting}
                     >

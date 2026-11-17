@@ -27,7 +27,6 @@ export interface PlanCardProps
   highlights?: string[];
   isSelected?: boolean;
   isCurrent?: boolean;
-  isPopular?: boolean;
   disabled?: boolean;
   /**
    * One row per plan with less information, for narrow dialogs: details on
@@ -85,7 +84,6 @@ const PlanCard = forwardRef(
       highlights = [],
       isSelected = false,
       isCurrent = false,
-      isPopular = false,
       disabled = false,
       compact = false,
       className,
@@ -107,12 +105,12 @@ const PlanCard = forwardRef(
       isCurrent && 'cursor-not-allowed bg-muted/30',
       !isCurrent &&
         isSelected &&
-        'border-primary bg-primary/[0.03] ring-1 ring-primary',
+        'border-primary bg-primary/[0.03]',
       !isCurrent && !isSelected && disabled && 'cursor-not-allowed',
       !isCurrent &&
         !isSelected &&
         !disabled &&
-        'hover:border-primary hover:bg-muted/20',
+        'bg-muted/10 hover:border-primary/50 hover:bg-muted/20',
       // Compact cards sit inside a tinted container, so they keep a solid
       // background in every state to stand out from it.
       compact && 'bg-background hover:bg-background',
@@ -165,11 +163,6 @@ const PlanCard = forwardRef(
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-sm">{name}</span>
-            {isPopular && (
-              <Badge className="px-2 py-0 text-[10px] uppercase tracking-wide">
-                Most popular
-              </Badge>
-            )}
             {currentBadge}
             {radio}
           </div>
@@ -186,12 +179,6 @@ const PlanCard = forwardRef(
 
     const content = (
       <>
-        {isPopular && (
-          <Badge className="absolute -top-2.5 left-4 uppercase tracking-wide">
-            Most popular
-          </Badge>
-        )}
-
         <div className="flex flex-wrap items-start justify-between gap-2">
           <span className="font-semibold text-base">{name}</span>
           {currentBadge}
