@@ -38,11 +38,15 @@ export default function rehypeBaseLinks({ base }) {
     }
 
     if (
-      (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') &&
+      (node.type === 'mdxJsxFlowElement' ||
+        node.type === 'mdxJsxTextElement') &&
       node.attributes
     ) {
       for (const attribute of node.attributes) {
-        if (attribute.type === 'mdxJsxAttribute' && URL_ATTRIBUTES.has(attribute.name)) {
+        if (
+          attribute.type === 'mdxJsxAttribute' &&
+          URL_ATTRIBUTES.has(attribute.name)
+        ) {
           attribute.value = withBase(attribute.value);
         }
       }

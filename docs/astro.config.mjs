@@ -8,10 +8,10 @@ import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
+import rehypeBaseLinks from './src/plugins/rehype-base-links.mjs';
 import starlightOpenAPI, {
   createOpenAPISidebarGroup,
 } from './src/plugins/starlight-openapi/index.ts';
-import rehypeBaseLinks from './src/plugins/rehype-base-links.mjs';
 
 // POC: serve the docs under nhost.com/docs (nhost/projects#277).
 const base = '/docs';
