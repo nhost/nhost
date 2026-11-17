@@ -151,7 +151,7 @@ export default function MembersHeader() {
             }}
           >
             <DialogTrigger asChild>
-              <Button className="shrink-0 gap-2">
+              <Button size="xs" className="shrink-0 gap-2">
                 <Plus />
                 Add member
               </Button>

@@ -70,17 +70,17 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
 
   return (
     <div className="mx-auto h-full overflow-auto bg-background pb-16">
-      <div className="mx-auto flex w-full max-w-5xl flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pt-8 pb-4">
+      <div className="mx-auto flex w-full max-w-page flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pt-8 pb-4">
         <h1 className="font-semibold text-3xl">Projects</h1>
-        <Button asChild>
+        <Button asChild size="xs" className="gap-2">
           <Link href={`/orgs/${org?.slug}/projects/new`}>
-            <Plus className="mr-2 h-5 w-5" strokeWidth={2} />
+            <Plus />
             Create project
           </Link>
         </Button>
       </div>
       {/* auto-rows-fr: every row as tall as the tallest card, deployment or not. */}
-      <div className="mx-auto grid w-full max-w-5xl auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-page auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

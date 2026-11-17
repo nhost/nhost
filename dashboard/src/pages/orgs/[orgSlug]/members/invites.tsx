@@ -18,7 +18,7 @@ export default function OrgMemberInvites() {
   }, [org, isFree, replace]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 py-8">
+    <div className="mx-auto flex w-full max-w-page flex-col gap-4 px-5 py-8">
       <MembersHeader />
       {org && !isFree && <PendingInvites />}
     </div>

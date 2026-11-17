@@ -222,6 +222,9 @@ module.exports = {
         '8.4xl': '1424px',
         '8.5xl': '1444px',
         '9xl': '1600px',
+        // Shared width for regular pages. Full width pages (database,
+        // tables) don't use it.
+        page: '1280px',
         qhd: '2560px',
         features: '579px',
       },
