@@ -12,6 +12,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/nhost/nhost/services/ai/internal/providerconfig"
+
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 	"github.com/openai/openai-go/responses"
@@ -70,7 +72,7 @@ func newOpenAIResponses(configuration endpointConfiguration) *openAIResponses {
 
 	options := []option.RequestOption{
 		option.WithBaseURL(configuration.baseURL),
-		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithHTTPClient(providerconfig.NewNoRedirectHTTPClient()),
 		option.WithMaxRetries(openAIResponsesMaxRetries),
 	}
 	options = slices.Grow(options, len(headerNames))
@@ -81,7 +83,7 @@ func newOpenAIResponses(configuration endpointConfiguration) *openAIResponses {
 
 	return &openAIResponses{
 		service:       responses.NewResponseService(options...),
-		logRedactions: providerLogRedactions(configuration.headers),
+		logRedactions: providerconfig.LogRedactions(configuration.headers),
 	}
 }
 

@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/nhost/nhost/services/ai/internal/providerconfig"
+
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
@@ -61,7 +63,7 @@ func newOpenAIChatCompletions(
 
 	options := []option.RequestOption{
 		option.WithBaseURL(configuration.baseURL),
-		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithHTTPClient(providerconfig.NewNoRedirectHTTPClient()),
 		option.WithMaxRetries(openAIChatCompletionsMaxRetries),
 	}
 	options = slices.Grow(options, len(headerNames))
@@ -72,7 +74,7 @@ func newOpenAIChatCompletions(
 
 	return &openAIChatCompletions{
 		completions:   openai.NewChatCompletionService(options...),
-		logRedactions: providerLogRedactions(configuration.headers),
+		logRedactions: providerconfig.LogRedactions(configuration.headers),
 	}
 }
 

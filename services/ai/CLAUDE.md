@@ -48,6 +48,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 - `agents/` — multi-provider agent orchestration, SSE streaming, approval flow, and tools.
 - `agents/provider/` — strict aggregate configuration plus OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters. Each instance owns one trusted startup endpoint and header set and never supplies auto-embedding configuration.
 - `agents/tool/` — GraphQL, MCP, web search, and web fetch tools.
+- `internal/providerconfig/` — shared strict declaration parsing, endpoint/header validation, credential redaction, and no-redirect HTTP clients. Callers supply their configuration-error sentinel and adapter configuration lookup; adapter-specific URL rules remain with the adapters.
 - `autoai/` — auto-embeddings configuration and database functionality.
 - `autoai/embeddings/` — background embedding synchronization.
 - `openai/` — narrow OpenAI embedding client built on `github.com/openai/openai-go`.
@@ -95,3 +96,5 @@ Migration integration tests create and drop an isolated, cryptographically rando
 4. From the repository root run `golines -w --base-formatter=gofumpt .`.
 5. From the repository root run `golangci-lint run --fix ./...`.
 6. Run `go test ./services/ai/...` and `make check` when the required development services are available.
+
+Root-wide lint also type-checks `services/storage`, whose `pkg-config`/libvips dependencies are not included in the AI dev shell. Supply those dependencies for the root gate; AI-only lint (`golangci-lint run --fix ./services/ai/...`) is useful for local iteration but does not replace it.
