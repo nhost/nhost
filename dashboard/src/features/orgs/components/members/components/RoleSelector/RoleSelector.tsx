@@ -41,7 +41,7 @@ export default function RoleSelector({ value, onChange }: RoleSelectorProps) {
             key={roleValue}
             value={roleValue}
             aria-label={label}
-            className="group h-auto flex-1 flex-col items-start justify-start gap-1.5 whitespace-normal rounded-lg border border-input bg-background px-4 py-3 text-left data-[state=on]:border-primary data-[state=on]:bg-background data-[state=off]:hover:border-muted-foreground/50 data-[state=off]:hover:bg-muted/40 [&_svg]:size-6"
+            className="group h-auto flex-1 flex-col items-start justify-start gap-1.5 whitespace-normal rounded-lg border bg-muted/10 px-4 py-3 text-left hover:bg-muted/20 data-[state=on]:border-primary data-[state=on]:bg-primary/[0.03] data-[state=off]:hover:border-primary/50 data-[state=on]:hover:bg-primary/[0.03] [&_svg]:size-6"
           >
             <div className="flex flex-row items-center gap-2.5 text-muted-foreground group-data-[state=on]:text-primary">
               <Icon />
