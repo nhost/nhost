@@ -376,7 +376,8 @@ func populateTableColumns( //nolint:funlen
 				THEN pg_catalog.format('%I.%I(%s)', type_ns.nspname, t.typname, a.atttypmod - 4)
 				ELSE '' END AS restore_type,
 			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
-			a.attgenerated != '' as is_generated,
+			-- ALWAYS identities reject explicit writes; BY DEFAULT identities do not.
+			(a.attgenerated != '' OR a.attidentity = 'a') as is_generated,
 			a.attidentity != '' as is_identity,
 			t.typcategory = 'A' as is_array,
 			COALESCE(ta.supports_min_max, false) as supports_min_max,

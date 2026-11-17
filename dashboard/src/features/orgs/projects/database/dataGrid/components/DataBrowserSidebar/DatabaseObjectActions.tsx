@@ -98,10 +98,10 @@ function DatabaseObjectActions({
         <Button
           data-testid={`${idPrefix}-management-menu-${objectName}`}
           variant="subtle"
-          size="icon"
-          className={cn('h-6 w-6', triggerClassName)}
+          size="icon-xs"
+          className={triggerClassName}
         >
-          {triggerIcon ?? <Ellipsis />}
+          {triggerIcon ?? <Ellipsis className="size-6" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-52">

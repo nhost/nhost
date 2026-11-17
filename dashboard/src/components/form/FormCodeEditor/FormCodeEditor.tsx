@@ -29,6 +29,7 @@ interface FormCodeEditorProps<
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
   readOnly?: boolean;
+  autoFocus?: boolean;
   className?: string;
   'aria-label'?: string;
 }
@@ -44,6 +45,7 @@ export default function FormCodeEditor<
   children,
   extensions,
   readOnly = false,
+  autoFocus,
   className,
   'aria-label': ariaLabel,
 }: FormCodeEditorProps<TFieldValues, TName>) {
@@ -70,6 +72,7 @@ export default function FormCodeEditor<
               extensions={[...(extensions ?? []), codeMirrorAppBackground]}
               readOnly={readOnly}
               editable={!readOnly}
+              autoFocus={autoFocus}
               basicSetup={{
                 foldGutter: false,
                 highlightActiveLine: !readOnly,

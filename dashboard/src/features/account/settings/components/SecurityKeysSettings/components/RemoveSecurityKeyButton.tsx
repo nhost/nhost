@@ -7,7 +7,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import useRemoveSecurityKey from '@/features/account/settings/components/SecurityKeysSettings/hooks/useRemoveSecurityKey';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 interface Props {
   id: string;
@@ -17,12 +16,7 @@ function RemoveSecurityKeyButton({ id }: Props) {
   const removeSecurityKey = useRemoveSecurityKey();
 
   function handleClick() {
-    execPromiseWithErrorToast(async () => removeSecurityKey(id), {
-      loadingMessage: 'Removing passkey...',
-      successMessage: 'Passkey removed.',
-      errorMessage:
-        'An error occurred while trying to remove the passkey. Please try again.',
-    });
+    removeSecurityKey(id);
   }
 
   return (
