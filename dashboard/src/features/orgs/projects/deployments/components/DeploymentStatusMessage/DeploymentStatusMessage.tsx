@@ -50,7 +50,9 @@ export default function DeploymentStatusMessage({
           src={avatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
-        <span className="self-center text-sm">{userName} updated just now</span>
+        <span className="self-center text-muted-foreground text-xs">
+          {userName} updated just now
+        </span>
       </span>
     );
   }
@@ -67,7 +69,8 @@ export default function DeploymentStatusMessage({
           className="mt-1 mr-2 h-4 w-4"
         />
         <div className="flex flex-col">
-          <p className="line-clamp-1 break-all font-medium text-foreground text-sm">
+          {/* Same size and colour as the repository line above it on the card. */}
+          <p className="line-clamp-1 break-all text-muted-foreground text-xs">
             {userName}
           </p>
           <p className="text-muted-foreground text-xs">{statusMessage}</p>
