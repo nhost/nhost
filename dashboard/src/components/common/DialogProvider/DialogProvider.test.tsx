@@ -506,11 +506,37 @@ describe('DialogProvider Radix layers', () => {
     const alert = await screen.findByRole('alertdialog', {
       name: 'Unsaved changes',
     });
+    expect(within(alert).getByRole('button', { name: 'Cancel' })).toHaveFocus();
     await user.click(within(alert).getByRole('button', { name: 'Discard' }));
     expect(onPrimaryAction).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
     );
+  });
+
+  it('focuses the primary action when the alert has no secondary action', async () => {
+    const user = new TestUserEvent();
+    function Opener() {
+      const dialog = useDialog();
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            dialog.openAlertDialog({
+              title: 'Done',
+              payload: 'All set',
+              props: { primaryButtonText: 'Ok', hideSecondaryAction: true },
+            })
+          }
+        >
+          Open
+        </button>
+      );
+    }
+    render(<Opener />);
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    const alert = await screen.findByRole('alertdialog', { name: 'Done' });
+    expect(within(alert).getByRole('button', { name: 'Ok' })).toHaveFocus();
   });
 
   it('calls onExited after action close and Escape, and focuses the first content control without actions', async () => {

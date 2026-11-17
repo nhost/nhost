@@ -64,7 +64,6 @@ export default function EmailsFormSection() {
                   <Button
                     variant="subtle"
                     size="icon"
-                    className="h-10"
                     aria-label="Remove email"
                     onClick={() => remove(index)}
                   >

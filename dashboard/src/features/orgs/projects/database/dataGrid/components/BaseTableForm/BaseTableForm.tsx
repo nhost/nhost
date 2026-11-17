@@ -168,6 +168,7 @@ function NameInput() {
       label="Name"
       inline
       autoComplete="off"
+      autoFocus
       className="border-border"
       containerClassName="col-span-8"
       data-testid="tableNameInput"
@@ -260,7 +261,7 @@ export default function BaseTableForm({
             </label>
             <div className="col-span-6">
               <Select value={schema ?? ''} onValueChange={onSchemaChange}>
-                <SelectTrigger id="schema" className="h-10 w-full">
+                <SelectTrigger id="schema" className="w-full">
                   <SelectValue placeholder="Select schema" />
                 </SelectTrigger>
                 <SelectContent>
