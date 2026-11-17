@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"slices"
 
+	"github.com/nhost/nhost/services/ai/internal/providerconfig"
+
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
@@ -158,10 +160,10 @@ func openAIProviderErrorLogValue(err error, redactions []string) string {
 			return "provider request failed"
 		}
 
-		return providerErrorLogValue(requestError.Err, redactions)
+		return providerconfig.ErrorLogValue(requestError.Err, redactions)
 	}
 
-	return providerErrorLogValue(err, redactions)
+	return providerconfig.ErrorLogValue(err, redactions)
 }
 
 func logOpenAIProviderError(
