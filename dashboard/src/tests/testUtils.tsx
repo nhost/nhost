@@ -32,6 +32,7 @@ import { vi } from 'vitest';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AuthProvider } from '@/providers/Auth';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
@@ -111,7 +112,9 @@ function Providers({ children }: PropsWithChildren) {
               <AuthProvider>
                 <Toaster position="bottom-center" />
                 <ThemePreferenceProvider>
-                  <DialogProvider>{children}</DialogProvider>
+                  <DialogProvider>
+                    <ElevationProvider>{children}</ElevationProvider>
+                  </DialogProvider>
                 </ThemePreferenceProvider>
               </AuthProvider>
             </ApolloProvider>

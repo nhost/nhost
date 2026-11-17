@@ -763,6 +763,7 @@ WITH selected_user AS (
     SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
     WHERE ticket = $1  AND ticket_expires_at > now()
     LIMIT 1
+    FOR UPDATE
 )
 UPDATE auth.users
 SET ticket = NULL, ticket_expires_at = now()
