@@ -51,7 +51,7 @@ export default function DeploymentStatusMessage({
           className="mr-1 h-4 w-4 self-center"
         />
         <span className="self-center text-muted-foreground text-xs">
-          {userName} updated just now
+          <span className="text-foreground">{userName}</span> updated just now
         </span>
       </span>
     );
@@ -69,8 +69,9 @@ export default function DeploymentStatusMessage({
           className="mt-1 mr-2 h-4 w-4"
         />
         <div className="flex flex-col">
-          {/* Same size and colour as the repository line above it on the card. */}
-          <p className="line-clamp-1 break-all text-muted-foreground text-xs">
+          {/* Same size as the repository line above it on the card, but in the
+              title colour so the committer stands out from the time. */}
+          <p className="line-clamp-1 break-all text-foreground text-xs">
             {userName}
           </p>
           <p className="text-muted-foreground text-xs">{statusMessage}</p>

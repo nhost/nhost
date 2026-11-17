@@ -35,7 +35,7 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-muted/10 p-4 transition-colors group-hover:border-primary/50 group-hover:bg-muted/20">
         <div className="flex flex-col gap-0.5 overflow-hidden">
           <div className="flex items-center gap-2">
-            <p title={project.name} className="min-w-0 truncate font-medium">
+            <p title={project.name} className="min-w-0 truncate font-semibold">
               {project.name}
             </p>
             {project.githubRepository && (
