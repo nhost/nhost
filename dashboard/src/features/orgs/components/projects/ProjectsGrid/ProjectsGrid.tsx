@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { DeploymentFailedWarning } from '@/features/orgs/components/projects/DeploymentFailedWarning';
+import { ProjectCardMenu } from '@/features/orgs/components/projects/ProjectCardMenu';
 import { ProjectLastDeployment } from '@/features/orgs/components/projects/ProjectLastDeployment';
 import { ProjectRegion } from '@/features/orgs/components/projects/ProjectRegion';
 import { ProjectRepository } from '@/features/orgs/components/projects/ProjectRepository';
@@ -23,7 +24,7 @@ export function ProjectCard({ project }: { project: Project }) {
     : `Open ${project.name}`;
 
   // The link is a layer under the whole card, not a wrapper: the warning icon
-  // sits above it, so its tooltip opens without opening the project.
+  // and the menu sit above it, so they open without opening the project.
   return (
     <div className="group relative flex h-full min-h-44 flex-col rounded-lg">
       <Link
@@ -31,7 +32,7 @@ export function ProjectCard({ project }: { project: Project }) {
         aria-label={linkLabel}
         className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-background p-4 transition-colors group-hover:border-primary/50 group-hover:bg-muted/20">
+      <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-muted/10 p-4 transition-colors group-hover:border-primary/50 group-hover:bg-muted/20">
         <div className="flex flex-col gap-0.5 overflow-hidden">
           <div className="flex items-center gap-2">
             <p title={project.name} className="min-w-0 truncate font-medium">
@@ -40,6 +41,7 @@ export function ProjectCard({ project }: { project: Project }) {
             {project.githubRepository && (
               <DeploymentFailedWarning latest={latestDeployment} />
             )}
+            <ProjectCardMenu project={project} orgSlug={org?.slug} />
           </div>
           <ProjectRepository project={project} />
         </div>

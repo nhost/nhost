@@ -16,13 +16,13 @@ function flags() {
 }
 
 describe('ProjectRegion', () => {
-  it('shows the city as text, without a flag', () => {
+  it('shows the region code as text, without a flag', () => {
     render(<ProjectRegion region={frankfurt} />);
 
     const button = screen.getByRole('button', {
       name: 'Region: Frankfurt (eu-central-1)',
     });
-    expect(button).toHaveTextContent('Frankfurt');
+    expect(button).toHaveTextContent('eu-central-1');
     expect(flags()).toHaveLength(0);
   });
 
@@ -68,12 +68,12 @@ describe('ProjectRegion', () => {
     expect(flags()).toHaveLength(0);
   });
 
-  it('falls back to the region name when the city is missing', () => {
-    render(<ProjectRegion region={{ ...frankfurt, city: '' }} />);
+  it('falls back to the city when the region code is missing', () => {
+    render(<ProjectRegion region={{ ...frankfurt, name: '' }} />);
 
     expect(
-      screen.getByRole('button', { name: 'Region: eu-central-1' }),
-    ).toHaveTextContent('eu-central-1');
+      screen.getByRole('button', { name: 'Region: Frankfurt' }),
+    ).toHaveTextContent('Frankfurt');
   });
 
   it('labels an unknown region when name and city are missing', () => {

@@ -34,8 +34,8 @@ export default function ProjectRegion({
   const { countryCode } = region;
   const showFlag = !!countryCode && countryCode !== failedCode;
 
-  // The region reads as plain text, so many cards stay calm; the flag only
-  // shows in the tooltip. A button, not a span: it sits above the card link
+  // The region code reads as plain text (it's what the SDK takes), so many
+  // cards stay calm; the flag and city only show in the tooltip. A button, not a span: it sits above the card link
   // (like the warning icon), so hovering or focusing it shows the region
   // without opening the project.
   return (
@@ -49,7 +49,7 @@ export default function ProjectRegion({
             className,
           )}
         >
-          {region.city || region.name || 'Unknown region'}
+          {region.name || region.city || 'Unknown region'}
         </button>
       </TooltipTrigger>
       <TooltipContent className="flex items-center gap-2">
