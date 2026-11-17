@@ -450,14 +450,19 @@ func ParseInsertCollection(
 
 	insertObjs := make([]InsertObject, 0, len(children))
 
-	for _, child := range children {
-		if child.Value.Kind != ast.ObjectValue {
+	for i, child := range children {
+		objectValue, err := values.ResolveVariable(child.Value, variables)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve object at index %d: %w", i, err)
+		}
+
+		if objectValue.Kind != ast.ObjectValue {
 			return nil, nil, fmt.Errorf(
 				"%w: each element in objects must be an object", ErrInvalidArgument,
 			)
 		}
 
-		insertObj, err := parseInsertObject(t, child.Value, variables, role, sessionVariables)
+		insertObj, err := parseInsertObject(t, objectValue, variables, role, sessionVariables)
 		if err != nil {
 			return nil, nil, err
 		}
