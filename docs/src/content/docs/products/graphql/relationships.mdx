@@ -42,7 +42,7 @@ CREATE TABLE public.community_members (
 
 The examples relate these tables in both directions. An object relationship `community` on `community_members` returns a member's community, and an array relationship `community_members` on `communities` returns a community's members. You can apply the same steps to your own tables instead.
 
-To follow along with the example, run the SQL in <a href="https://app.nhost.io/orgs/_/projects/_/database/console/default" target="_blank" rel="noopener noreferrer"><strong>Database → SQL Console</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a> with **Track this** on. That tracks the tables but adds no relationships. The next sections start from there.
+To follow along with the example, run the SQL in <a href="https://app.nhost.io/orgs/_/projects/_/database/console/default" target="_blank" rel="noopener noreferrer"><strong>Database → SQL Console</strong><span class="not-content" style="display:inline-block;vertical-align:-0.2em;margin-left:.1em"><Icon name="external" /></span></a> with **Track this** on. That tracks the tables but adds no relationships.
 
 If you create the tables in the table form instead, with the foreign key on `user_id`, the dashboard adds the `user` relationship and its reverse on `auth.users` right away, and [Add a suggested relationship](#add-a-suggested-relationship) has nothing left to suggest.
 
@@ -52,11 +52,11 @@ Open <a href="https://app.nhost.io/orgs/_/projects/_/database/browser/default" t
 
 ![The communities table menu in the Table editor with Edit Relationships highlighted](/images/products/graphql/relationships/table-edit-relationships-nav.png)
 
-The drawer that opens has two lists. **Relationships** shows each relationship's name, source, and type, and under **Relationship**, the columns it joins. **Suggested Relationships** shows the ones the dashboard can create from foreign keys. For `communities`, both lists are empty for now. You add the first relationship in the next section, by adding a foreign key.
+The drawer that opens has two lists. **Relationships** shows each relationship's name, source, and type, and the columns it joins in the **Relationship** column. **Suggested Relationships** shows the ones the dashboard can create from foreign keys. For `communities`, both lists are empty for now. You add the first relationship in the next section, by adding a foreign key.
 
 ![The Edit Relationships drawer for public.communities with both lists empty](/images/products/graphql/relationships/table-edit-relationships.png)
 
-A relationship name becomes a field name on the table's GraphQL type, so every dialog that asks for a name requires it to start with a letter or an underscore and contain only letters, numbers, and underscores.
+A relationship name becomes a field name on the table's GraphQL type. Every dialog that asks for a name requires it to start with a letter or an underscore and to contain only letters, numbers, and underscores.
 
 ## Create relationships with a foreign key
 
@@ -88,16 +88,16 @@ The dashboard then creates two relationships:
 | `community_members` | `community` | Object | the referenced table, `communities`, in the singular |
 | `communities` | `community_members` | Array | the table with the foreign key, `community_members`, in the plural |
 
-The names or the result differ in these cases:
+The dashboard names or creates them differently in these cases:
 
 - If the foreign key's columns are also a primary key or unique constraint on `community_members` (say `community_id` alone were unique), each community has at most one member row. The relationship on `communities` is then an object relationship named in the singular, `community_member`.
 - If another foreign key on `community_members` already has a relationship with the same name, the dashboard adds the new foreign key's column names to the name, as in `community_community_id`.
-- The same happens to both names when you add two foreign keys in one save that would get the same name on the same table, for example two columns that both reference `auth.users`.
-- If any other relationship already has either name, the dashboard saves the foreign key, shows an error, and creates neither relationship. Rename or delete the existing relationship, then add each one from its own table's [Suggested Relationships](#add-a-suggested-relationship).
+- If you add two foreign keys in one save and their relationships would get the same name on the same table, each one gets its column names added. This happens, for example, with two columns that both reference `auth.users`.
+- If either name is already taken on its table, by a column or another relationship, the dashboard saves the foreign key, shows an error, and creates neither relationship. Add each one from its own table's [Suggested Relationships](#add-a-suggested-relationship) instead, where you can give it a name that isn't taken.
 
 ## Add a suggested relationship
 
-A foreign key created in SQL, through the **SQL Console** or a migration, comes with no relationships. **Suggested Relationships** lists the ones that are missing. In each table's drawer, it shows the relationships that start from that table, through a foreign key on the table or one that points at it.
+A foreign key created in SQL, through the **SQL Console** or a migration, comes with no relationships. **Suggested Relationships** lists the ones that are missing. Each table's drawer suggests relationships from that table, whether the foreign key is on the table or on a table that references it.
 
 The example SQL creates the foreign key from `community_members.user_id` to `auth.users`, so the `community_members` drawer suggests an object relationship named `user`:
 
@@ -234,7 +234,7 @@ query CommunitiesWithMembers {
 }
 ```
 
-If you created the remote schema relationship, select `activity { uploadsThisWeek }` the same way.
+If you created the remote schema or database relationships, select them the same way: `activity { uploadsThisWeek }`, or `page_views` with the columns of your `page_views` table.
 
 You can also filter on a relationship in the same database. This query returns the members of a community named `Engineering`:
 
@@ -263,7 +263,7 @@ object_relationships:
       foreign_key_constraint_on: community_id
 ```
 
-The `communities` file shows the other three shapes. When the foreign key is on the other table, as for `communities.community_members`, the entry names that table as well as the column. A column mapping uses `manual_configuration`, and remote relationships go under `remote_relationships`:
+The `communities` file shows the other shapes. When the foreign key is on the other table, as for `communities.community_members`, the entry names that table as well as the column. A column mapping uses `manual_configuration`, and remote relationships, to a remote schema or another database, go under `remote_relationships`:
 
 ```yaml title="nhost/metadata/databases/default/tables/public_communities.yaml"
 table:
