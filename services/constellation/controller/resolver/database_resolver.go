@@ -1,10 +1,12 @@
 package resolver
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -13,6 +15,8 @@ import (
 type databaseResolver struct {
 	joinColumns     map[string]string // local col → remote col
 	targetTableName string            // Target table's GraphQL root query name
+	jsonColumns     map[string]bool   // Target fields with JSON/JSONB scalar types
+	jsonTextColumns map[string]bool   // SQLite JSON values returned as stored text
 }
 
 // newDatabaseResolver creates a new databaseResolver.
@@ -20,6 +24,53 @@ func newDatabaseResolver(joinColumns map[string]string, targetTableName string) 
 	return &databaseResolver{
 		joinColumns:     joinColumns,
 		targetTableName: targetTableName,
+		jsonColumns:     nil,
+		jsonTextColumns: nil,
+	}
+}
+
+// setTargetTypes derives the target column's type without granting access to
+// that column. Physical relationships may join through columns hidden from the
+// caller, so consult the admin schema only for types missing in the role schema.
+// Execution and target row/column projection still use the caller's role.
+func (r *databaseResolver) setTargetTypes(
+	roleSchema, adminSchema *graph.Schema, customizedNames ...string,
+) {
+	targetTypeName := r.targetTableName
+	if len(customizedNames) != 0 && customizedNames[0] != "" {
+		targetTypeName = customizedNames[0]
+	}
+
+	r.jsonColumns = make(map[string]bool)
+	r.jsonTextColumns = make(map[string]bool)
+	seen := make(map[string]bool)
+
+	for _, schema := range []*graph.Schema{roleSchema, adminSchema} {
+		if schema == nil {
+			continue
+		}
+
+		for _, object := range schema.Types {
+			if object.Name != targetTypeName {
+				continue
+			}
+
+			for _, field := range object.Fields {
+				if seen[field.Name] {
+					continue
+				}
+
+				seen[field.Name] = true
+				r.jsonColumns[field.Name] = field.Type != nil &&
+					(field.Type.NamedType == "json" || field.Type.NamedType == "jsonb")
+				// SQLite maps both JSON and JSONB declarations to the json
+				// scalar and returns their stored text, unlike PostgreSQL JSONB.
+				r.jsonTextColumns[field.Name] = field.Type != nil &&
+					field.Type.NamedType == "json"
+			}
+
+			break
+		}
 	}
 }
 
@@ -78,7 +129,9 @@ func (r *databaseResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinit
 	// Copy over any existing arguments except 'where' (we override it)
 	for _, arg := range rq.sourceField.Arguments {
 		if arg.Name != "where" {
-			remoteField.Arguments = append(remoteField.Arguments, arg)
+			remoteField.Arguments = append(
+				remoteField.Arguments,
+				resolveArgumentVariables(ast.ArgumentList{arg}, nil)...)
 		}
 	}
 
@@ -104,7 +157,7 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 				continue
 			}
 
-			key := joinValueDedupKey(val)
+			key := joinValueKey(val, r.jsonColumns[remoteCol])
 			if _, ok := seen[key]; ok {
 				continue
 			}
@@ -122,10 +175,7 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 
 				for _, v := range values {
 					inChildren = append(inChildren, &ast.ChildValue{ //nolint:exhaustruct
-						Value: &ast.Value{ //nolint:exhaustruct
-							Kind: valueKindForType(v),
-							Raw:  fmt.Sprintf("%v", v),
-						},
+						Value: joinTargetLiteral(v, r.jsonColumns[remoteCol]),
 					})
 				}
 
@@ -215,10 +265,22 @@ func (r *databaseResolver) BuildResultLookup(rq *remoteQuery, results []any) map
 			}
 
 			val := resultMap[lookupKey]
-			keyParts = append(keyParts, fmt.Sprintf("%v", val))
+			if r.jsonTextColumns[remoteCol] {
+				// Ordinary SQLite rows expose JSON-declared columns as stored
+				// text. Decode for typed stitching, just as grouped collection
+				// results decode the json(...) _join_key. Invalid stored JSON
+				// cannot represent a typed parent key.
+				if raw, text := val.(string); text {
+					if err := json.Unmarshal([]byte(raw), &val); err != nil {
+						val = nil
+					}
+				}
+			}
+
+			keyParts = append(keyParts, joinValueKey(val, r.jsonColumns[remoteCol]))
 		}
 
-		key := strings.Join(keyParts, "|")
+		key := joinPartsKey(keyParts)
 		resultLookup[key] = append(resultLookup[key], result)
 	}
 
@@ -245,10 +307,10 @@ func (r *databaseResolver) GetJoinKeyFromParent(rq *remoteQuery, parentRow map[s
 		}
 
 		val := parentRow[lookupKey]
-		keyParts = append(keyParts, fmt.Sprintf("%v", val))
+		keyParts = append(keyParts, joinValueKey(val, r.jsonColumns[r.joinColumns[localCol]]))
 	}
 
-	return strings.Join(keyParts, "|")
+	return joinPartsKey(keyParts)
 }
 
 // buildColumnAliasMap builds a map from field name to its alias in the selection set.
@@ -317,7 +379,7 @@ func andMergeWhereValues(generated, user *ast.Value) *ast.Value {
 					Kind: ast.ListValue,
 					Children: ast.ChildValueList{
 						{Value: generated},
-						{Value: user},
+						{Value: resolveValueVariables(user, nil)},
 					},
 				},
 			},
@@ -419,7 +481,67 @@ func responseKey(field *ast.Field) string {
 }
 
 func joinValueDedupKey(v any) string {
-	return fmt.Sprintf("%#v", v)
+	// Keep JSON strings separate from JSON numbers while allowing canonical
+	// object/array comparisons independent of map iteration order.
+	switch v.(type) {
+	case map[string]any, []any:
+		encoded, err := json.Marshal(v)
+		if err == nil {
+			return "json:" + string(encoded)
+		}
+	}
+
+	return fmt.Sprintf("%T:%#v", v, v)
+}
+
+func joinValueKey(v any, jsonTarget bool) string {
+	if jsonTarget {
+		return joinValueDedupKey(v)
+	}
+
+	// Non-JSON relationship keys retain their existing cross-scalar matching:
+	// a remote-schema ID string "1" may refer to a database integer 1.
+	if _, ok := v.(map[string]any); ok {
+		return joinValueDedupKey(v)
+	}
+
+	return fmt.Sprintf("%v", v)
+}
+
+func joinPartsKey(parts []string) string {
+	if len(parts) == 1 {
+		return parts[0]
+	}
+
+	encoded, err := json.Marshal(parts)
+	if err != nil {
+		// []string has no unsupported JSON values.
+		return strings.Join(parts, "|")
+	}
+
+	return string(encoded)
+}
+
+func joinTargetLiteral(v any, jsonTarget bool) *ast.Value {
+	if jsonTarget {
+		encoded, err := json.Marshal(v)
+		if err == nil {
+			return &ast.Value{Kind: ast.StringValue, Raw: string(encoded)} //nolint:exhaustruct
+		}
+	}
+
+	return joinLiteral(v)
+}
+
+func joinLiteral(v any) *ast.Value {
+	if _, ok := v.(map[string]any); ok {
+		encoded, err := json.Marshal(v)
+		if err == nil {
+			return &ast.Value{Kind: ast.StringValue, Raw: string(encoded)} //nolint:exhaustruct
+		}
+	}
+
+	return &ast.Value{Kind: valueKindForType(v), Raw: fmt.Sprintf("%v", v)} //nolint:exhaustruct
 }
 
 // valueKindForType returns the appropriate AST value kind for a Go value.

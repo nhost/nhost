@@ -253,7 +253,7 @@ export default function SubscriptionPlan() {
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <ButtonWithLoading
                 className="truncate"
-                variant="secondary"
+                variant="outline"
                 onClick={handleUpdatePaymentDetails}
                 disabled={isFreeOrg}
                 loading={loading}
@@ -329,7 +329,7 @@ export default function SubscriptionPlan() {
                 />
                 <DialogFooter>
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     type="button"
                     disabled={form.formState.isSubmitting}
                     onClick={() => setOpen(false)}

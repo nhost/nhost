@@ -1,12 +1,14 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { DatabaseArea } from '@/features/orgs/projects/database/layout';
 
 function DataBrowserDatabaseDetailsContent() {
   const {
@@ -62,16 +64,17 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <DataBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <DatabaseArea>
+          <div className="flex h-full">
+            <DataBrowserSidebar />
+            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+              {page}
+            </div>
+          </div>
+        </DatabaseArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

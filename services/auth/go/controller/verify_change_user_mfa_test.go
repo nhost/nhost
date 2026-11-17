@@ -75,7 +75,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -110,7 +110,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -149,7 +149,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "123456",
 				},
 			},
@@ -231,7 +231,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -292,7 +292,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			name: "mfa disabled",
 			config: func() *controller.Config {
 				cfg := getConfig()
-				cfg.MfaEnabled = false
+				cfg.TOTPEnabled = false
 
 				return cfg
 			},
@@ -304,7 +304,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -333,7 +333,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: nil,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -370,7 +370,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},
@@ -405,7 +405,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: jwtTokenFn,
 			request: api.VerifyChangeUserMfaRequestObject{
 				Body: &api.VerifyChangeUserMfaJSONRequestBody{
-					ActiveMfaType: ptr(api.Totp),
+					ActiveMfaType: ptr(api.UserMfaRequestActiveMfaTypeTotp),
 					Code:          "373186",
 				},
 			},

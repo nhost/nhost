@@ -1,5 +1,6 @@
 import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -7,9 +8,7 @@ import {
 } from '@/components/layout/SettingsCard';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { RunServicePortDomain } from '@/features/orgs/projects/custom-domains/settings/components/RunServicePortDomain';
-
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 export interface RunServiceDomainsProps {
   services: RunService[];
@@ -18,8 +17,9 @@ export interface RunServiceDomainsProps {
 export default function RunServiceDomains({
   services,
 }: RunServiceDomainsProps) {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
+  const router = useRouter();
+  const orgSlug = getSingleQueryParam(router.query.orgSlug);
+  const appSubdomain = getSingleQueryParam(router.query.appSubdomain);
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,7 +34,7 @@ export default function RunServiceDomains({
                     {service.config?.name ?? 'unset'}
                   </p>
                   <Link
-                    href={`/orgs/${org?.slug}/projects/${project?.subdomain}/services`}
+                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/run`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium text-primary hover:underline"

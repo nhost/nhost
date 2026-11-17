@@ -13,9 +13,9 @@
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
     "@nhost/nhost-js": "workspace:^",
-    "@react-navigation/bottom-tabs": "^7.20.0",
-    "@react-navigation/elements": "^2.9.44",
-    "@react-navigation/native": "^7.5.0",
+    "@react-navigation/bottom-tabs": "^7.21.0",
+    "@react-navigation/elements": "^2.9.45",
+    "@react-navigation/native": "^7.5.1",
     "expo": "~53.0.27",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.8",

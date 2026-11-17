@@ -9,6 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 
@@ -28,6 +29,7 @@ interface FormCodeEditorProps<
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
   readOnly?: boolean;
+  autoFocus?: boolean;
   className?: string;
   'aria-label'?: string;
 }
@@ -43,6 +45,7 @@ export default function FormCodeEditor<
   children,
   extensions,
   readOnly = false,
+  autoFocus,
   className,
   'aria-label': ariaLabel,
 }: FormCodeEditorProps<TFieldValues, TName>) {
@@ -66,9 +69,10 @@ export default function FormCodeEditor<
                 onChange?.(value);
               }}
               theme={resolvedTheme === 'light' ? githubLight : githubDark}
-              extensions={extensions}
+              extensions={[...(extensions ?? []), codeMirrorAppBackground]}
               readOnly={readOnly}
               editable={!readOnly}
+              autoFocus={autoFocus}
               basicSetup={{
                 foldGutter: false,
                 highlightActiveLine: !readOnly,

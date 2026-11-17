@@ -25,7 +25,7 @@ func TestSignUpPasswordlessSms(t *testing.T) { //nolint:maintidx
 
 	getConfig := func() *controller.Config {
 		config := getConfig()
-		config.SMSPasswordlessEnabled = true
+		config.OTPSmsEnabled = true
 
 		return config
 	}
@@ -222,10 +222,10 @@ func TestSignUpPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "error - sms passwordless disabled",
+			name: "error - sms otp disabled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.SMSPasswordlessEnabled = false
+				config.OTPSmsEnabled = false
 
 				return config
 			},

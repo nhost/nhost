@@ -304,6 +304,7 @@ export default function BaseEventTriggerForm({
                     name="triggerName"
                     label="Trigger Name"
                     placeholder="trigger_name"
+                    autoFocus
                     disabled={isEditing}
                     className="max-w-lg"
                     autoComplete="off"
@@ -618,7 +619,7 @@ export default function BaseEventTriggerForm({
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   className="text-foreground"
                   disabled={form.formState.isSubmitting}
                 >

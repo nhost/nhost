@@ -94,10 +94,10 @@ export default function HasuraDomain() {
 
     if (isNotEmptyValue(formValues.hasura_fqdn)) {
       ingresses = [{ fqdn: [formValues.hasura_fqdn] }];
-      successMessage = 'Hasura domain has been updated successfully.';
+      successMessage = 'GraphQL custom domain has been updated successfully.';
     } else {
       ingresses = null;
-      successMessage = 'Custom Hasura domain has been removed successfully.';
+      successMessage = 'GraphQL custom domain has been removed successfully.';
     }
 
     const updateConfigPromise = updateConfig({
@@ -137,10 +137,10 @@ export default function HasuraDomain() {
         }
       },
       {
-        loadingMessage: 'Hasura domain is being updated...',
+        loadingMessage: 'GraphQL custom domain is being updated...',
         successMessage,
         errorMessage:
-          'An error occurred while trying to update the Hasura domain.',
+          'An error occurred while trying to update the GraphQL custom domain.',
       },
     );
   }
@@ -150,8 +150,8 @@ export default function HasuraDomain() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Hasura Domain"
-            description="Enter below your custom domain for the Hasura/GraphQL service."
+            title="GraphQL Custom Domain"
+            description="Enter below your custom domain for the GraphQL service."
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">

@@ -173,4 +173,4 @@ const response = await nhost.graphql.request<{
 const files = response.body.data?.files ?? []
 ```
 
-This is the same GraphQL API used for the rest of your application data. Permissions are evaluated automatically based on the user's session.
+This is the same GraphQL API used for the rest of your application data. [Permissions](/products/storage/permissions) are evaluated automatically based on the user's session.

@@ -16,8 +16,8 @@ const mocks = vi.hoisted(() => ({
   userApplicationClient: {},
 }));
 
-vi.mock('@mui/material/utils', () => ({
-  debounce: (callback: (...args: unknown[]) => unknown) => callback,
+vi.mock('lodash.debounce', () => ({
+  default: (callback: (...args: unknown[]) => unknown) => callback,
 }));
 
 vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({

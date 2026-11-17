@@ -86,13 +86,12 @@ export default function EventTriggerOverview({
                   : eventTrigger.webhook_from_env}
               </span>
               <CopyToClipboardButton
-                className="dark:bg-[#1e2942]/70 dark:hover:bg-[#253252]"
                 textToCopy={
                   'webhook' in eventTrigger
                     ? eventTrigger.webhook
                     : eventTrigger.webhook_from_env
                 }
-                title="Copy webhook URL"
+                title="Webhook URL"
               />
             </div>
           </div>

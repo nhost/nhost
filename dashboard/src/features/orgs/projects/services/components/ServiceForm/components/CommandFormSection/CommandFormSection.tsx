@@ -74,7 +74,7 @@ export default function CommandFormSection() {
           <CommandTooltip />
         </div>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add command argument"
           onClick={() => append({ argument: '' })}
@@ -106,9 +106,8 @@ export default function CommandFormSection() {
                 )}
               </div>
               <Button
-                variant="ghost"
+                variant="subtle"
                 size="icon"
-                className="text-destructive hover:text-destructive"
                 aria-label="Remove command argument"
                 onClick={() => remove(index)}
               >
@@ -121,7 +120,7 @@ export default function CommandFormSection() {
           <Alert variant="warning" className="flex flex-col gap-3 text-left">
             <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
               <p className="flex items-start gap-1 font-semibold">
-                <span>⚠</span> Warning: Space in command
+                Warning: Space in command
               </p>
             </div>
             <div>

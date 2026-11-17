@@ -114,7 +114,7 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
       id: SELECTION_COLUMN_ID,
       header: ({ table }) => (
         <Checkbox
-          className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
+          className="data-[state=checked]:!border-transparent border-foreground"
           checked={table.getIsAllRowsSelected()}
           disabled={table.getRowModel().rows.length === 0}
           onCheckedChange={(checked) =>
@@ -129,7 +129,7 @@ export default function useDataGrid<T extends UnknownDataGridRow>({
       cell: ({ row }) => {
         return (
           <Checkbox
-            className="data-[state=checked]:!border-transparent border-[#21324b] dark:border-[#dfecf5]"
+            className="data-[state=checked]:!border-transparent border-foreground"
             checked={row.getIsSelected()}
             disabled={!row.getCanSelect()}
             onCheckedChange={row.getToggleSelectedHandler()}

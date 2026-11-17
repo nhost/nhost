@@ -1,4 +1,3 @@
-import { TriangleAlert } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ResetMetadataDialog } from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog';
 
@@ -14,7 +13,6 @@ export default function ResetMetadataCard() {
       </p>
 
       <Alert variant="warning">
-        <TriangleAlert className="size-5" />
         <AlertDescription className="text-pretty text-muted-foreground">
           This action is irreversible. Make sure to export a backup before
           resetting metadata.

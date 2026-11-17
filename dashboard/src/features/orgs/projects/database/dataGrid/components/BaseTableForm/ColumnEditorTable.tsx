@@ -52,7 +52,7 @@ export default function ColumnEditorTable() {
               </span>
             </Label>
           </div>
-          <div className="w-8 flex-none">
+          <div className="w-11 flex-none md:w-9">
             <Label asChild className="hidden">
               <span>Comment</span>
             </Label>
@@ -83,9 +83,9 @@ export default function ColumnEditorTable() {
       <div className="col-span-8 py-3">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="gap-2 text-primary hover:text-primary"
+          className="gap-2"
           onClick={() =>
             append({
               name: '',

@@ -60,7 +60,7 @@ export default function FieldToColumnMapSelectorItem({
         control={form.control}
         name={`fieldMapping.${itemIndex}.sourceField`}
         render={({ field: sourceFieldControl }) => (
-          <FormItem className="col-span-3">
+          <FormItem className="col-span-3 self-start">
             <Popover open={sourceFieldOpen} onOpenChange={setSourceFieldOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -89,7 +89,7 @@ export default function FieldToColumnMapSelectorItem({
               </PopoverTrigger>
               <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                 <Command>
-                  <CommandInput placeholder="Search field..." className="h-9" />
+                  <CommandInput placeholder="Search field..." />
                   <CommandList>
                     <CommandEmpty>Select a source type first.</CommandEmpty>
                     <CommandGroup>
@@ -125,13 +125,15 @@ export default function FieldToColumnMapSelectorItem({
         )}
       />
 
-      <span className="col-span-1 text-center">:</span>
+      <div className="col-span-1 flex h-9 items-center justify-center self-start">
+        <span className="text-center">:</span>
+      </div>
 
       <FormField
         control={form.control}
         name={`fieldMapping.${itemIndex}.referenceColumn`}
         render={({ field: columnField }) => (
-          <FormItem className="col-span-3">
+          <FormItem className="col-span-3 self-start">
             <Popover
               open={referenceColumnOpen}
               onOpenChange={setReferenceColumnOpen}
@@ -160,10 +162,7 @@ export default function FieldToColumnMapSelectorItem({
               </PopoverTrigger>
               <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                 <Command>
-                  <CommandInput
-                    placeholder="Search column..."
-                    className="h-9"
-                  />
+                  <CommandInput placeholder="Search column..." />
                   <CommandList>
                     <CommandEmpty>Select a target table first.</CommandEmpty>
                     <CommandGroup>

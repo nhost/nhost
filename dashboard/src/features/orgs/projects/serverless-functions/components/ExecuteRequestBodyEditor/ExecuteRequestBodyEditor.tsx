@@ -33,7 +33,7 @@ export default function ExecuteRequestBodyEditor() {
     <Textarea
       {...register('body')}
       placeholder={placeholder}
-      className="min-h-32 font-mono text-sm"
+      className="min-h-32 font-mono"
     />
   );
 }

@@ -76,7 +76,7 @@ function ActionsBrowserSidebarContent() {
               placeholder="Search actions..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="h-10 pl-8 text-sm"
+              className="pl-8"
             />
           </div>
         )}
@@ -114,7 +114,7 @@ function ActionsBrowserSidebarContent() {
           className={cn(
             '!text-sm+ flex rounded-none border text-foreground hover:bg-accent hover:no-underline',
             {
-              'bg-table-selected text-primary-main': asPath === customTypesHref,
+              'bg-table-selected text-primary': asPath === customTypesHref,
             },
           )}
         >

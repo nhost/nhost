@@ -25,7 +25,7 @@ export function createActionRelationshipFormSchema(
         message: 'An output field with this name already exists.',
       }),
     type: z.enum(['object', 'array'], {
-      required_error: 'Relationship type is required',
+      error: 'Relationship type is required',
     }),
     source: z.string().min(1, { message: 'Source is required' }),
     schema: z.string().min(1, { message: 'Schema is required' }),

@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: used with value*/
 
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
-import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
@@ -41,6 +40,8 @@ import {
   useSQLEditorPagination,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
 
 function InfoTooltip({ title }: { title: string }) {
   return (
@@ -69,7 +70,7 @@ export default function SQLEditor({
   initialSQL,
   hideEmptyResults = false,
 }: SQLEditorProps) {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const isPlatform = useIsPlatform();
   const trackEvent = useTrackEvent();
 
@@ -138,7 +139,7 @@ export default function SQLEditor({
       <div className="flex flex-col space-y-2 border-b p-4">
         <p className="font-semibold">Raw SQL</p>
         <div className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
+          <div className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-9">
             <div className="flex items-center gap-2">
               <Switch id="track" checked={track} onCheckedChange={setTrack} />
               <Label htmlFor="track" className="font-normal">
@@ -190,7 +191,7 @@ export default function SQLEditor({
                     name="migrationName"
                     id="migrationName"
                     placeholder="migration_name"
-                    className="h-auto w-auto max-w-md"
+                    className="w-auto max-w-md"
                     onChange={(e) => setMigrationName(e.target.value)}
                   />
                 )}
@@ -218,7 +219,7 @@ export default function SQLEditor({
         value={sqlCode}
         height="100%"
         className="min-h-[100px] flex-1 overflow-y-auto"
-        theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+        theme={resolvedTheme === 'light' ? githubLight : githubDark}
         extensions={[
           sql({ dialect: PostgreSQL }),
           Prec.highest(
@@ -232,6 +233,7 @@ export default function SQLEditor({
               },
             ]),
           ),
+          codeMirrorAppBackground,
         ]}
         onChange={onChange}
       />
@@ -251,11 +253,11 @@ export default function SQLEditor({
               <div className="flex shrink-0 items-center justify-between border-b px-4 py-1">
                 <span className="text-muted-foreground text-xs">Result</span>
                 <Button
-                  variant="ghost"
-                  size="icon"
+                  variant="subtle"
+                  size="icon-sm"
                   aria-label="Close results"
                   onClick={reset}
-                  className="h-7 w-7 text-muted-foreground"
+                  className="text-muted-foreground"
                 >
                   <XIcon className="h-4 w-4" />
                 </Button>
@@ -281,7 +283,10 @@ export default function SQLEditor({
 
             {!loading && !errorMessage && commandOk && rows.length === 0 && (
               <div className="flex flex-1 items-center justify-center p-4">
-                <Alert className="grid grid-flow-row place-content-center gap-2 border-green-600/50 text-green-600 dark:border-green-500/50 dark:text-green-500">
+                <Alert
+                  variant="success"
+                  className="grid grid-flow-row place-content-center gap-2"
+                >
                   <code>Success, no rows returned</code>
                 </Alert>
               </div>
@@ -336,7 +341,7 @@ export default function SQLEditor({
                       >
                         <SelectTrigger
                           aria-label="Rows per page"
-                          className="h-7 min-w-[60px] px-2 text-xs"
+                          className="h-7 min-w-[60px] px-2 text-xs md:h-7 md:text-xs"
                         >
                           <SelectValue />
                         </SelectTrigger>

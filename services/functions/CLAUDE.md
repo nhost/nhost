@@ -38,7 +38,7 @@ services/functions/
 - **local-wrapper.js**: Template that wraps each user function in an Express mini-app with JSON/URL-encoded body parsing (6MB limit), raw body preservation, invocation ID tracking, and error handling. The placeholder `%FUNCTION_PATH%` is replaced at build time.
 - **start.sh**: Docker entrypoint that detects whether `package.json` is at `./functions/` or `./`, validates a lock file exists, copies default `tsconfig.json`, installs dependencies with the lockfile-selected package manager, and starts the server.
 - **Routing**: `functions/hello.ts` -> `/hello`, `functions/sub/index.ts` -> `/sub/`, `functions/_utils/` -> ignored. Route lookup is flexible: tries exact match, then without trailing slash, then with trailing slash.
-- **Docker images**: Built with nix2container. Three variants: Node 22 (default), Node 24, and Node 26. Images include Node.js, pnpm, git, python3, make, and g++ for native dependency compilation.
+- **Docker images**: Built with nix2container. Three variants: Node 22 (default), Node 24, and Node 26. Runtime versions use `pkgs.nhost.nodejs_22`, `pkgs.nhost.nodejs_24`, and `pkgs.nhost.nodejs_26`, pinned in `nixops/overlays/js.nix`; development tooling uses `pkgs.nhost.nodejs` (Node 24). Images include Node.js, pnpm, git, python3, make, and g++ for native dependency compilation.
 
 ## Development
 

@@ -53,7 +53,7 @@ func (s *Service) ResolveConfig(
 		return s.resolvedConfig, nil
 	}
 
-	cfg, err := appconfig.SecretsResolver(s.Config, secrets, sch.FillRunServiceConfig)
+	cfg, err := appconfig.SecretsResolver(s.Config, secrets, sch.ApplyRunServiceConfigDefaults)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config: %w", err)
 	}
@@ -93,7 +93,8 @@ func (a *App) IndexService(id string) (int, error) {
 	return 0, ErrServiceNotFound
 }
 
-// ResolveConfig resolves the config with all the templates.
+// ResolveConfig resolves templates and applies available defaults without
+// validating stored values against current schema constraints.
 // As this is a somewhat expensive operation, we cache the result if
 // the cached object is nil or if refresh is set to true.
 func (a *App) ResolveConfig(sch *schema.Schema, refresh bool) (*model.ConfigConfig, error) {
@@ -101,7 +102,7 @@ func (a *App) ResolveConfig(sch *schema.Schema, refresh bool) (*model.ConfigConf
 		return a.resolvedConfig, nil
 	}
 
-	cfg, err := appconfig.SecretsResolver(a.Config, a.Secrets, sch.Fill)
+	cfg, err := appconfig.SecretsResolver(a.Config, a.Secrets, sch.ApplyDefaults)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve config: %w", err)
 	}
@@ -112,7 +113,7 @@ func (a *App) ResolveConfig(sch *schema.Schema, refresh bool) (*model.ConfigConf
 }
 
 func (a *App) ResolveSystemConfig(sch *schema.Schema) (*model.ConfigSystemConfig, error) {
-	cfg, err := sch.FillSystemConfig(a.SystemConfig)
+	cfg, err := sch.ApplySystemConfigDefaults(a.SystemConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fill system config: %w", err)
 	}

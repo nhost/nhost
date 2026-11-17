@@ -37,7 +37,6 @@ export default function prepareCreateTableQuery({
         return `${columnBase} ${format('GENERATED ALWAYS AS IDENTITY')}`;
       }
 
-      const uniqueClause = column.isUnique ? format('UNIQUE') : '';
       const notNullClause = !column.isNullable ? format('NOT NULL') : '';
 
       let defaultClause = '';
@@ -46,7 +45,7 @@ export default function prepareCreateTableQuery({
         defaultClause = format('DEFAULT %s', column.defaultValue);
       }
 
-      return [columnBase, defaultClause, uniqueClause, notNullClause]
+      return [columnBase, defaultClause, notNullClause]
         .filter(Boolean)
         .join(' ');
     })
@@ -59,6 +58,20 @@ export default function prepareCreateTableQuery({
     );
   }
 
+  if (isNotEmptyValue(table.uniqueKeys)) {
+    columnsAndConstraints = format(
+      '%s, %s',
+      columnsAndConstraints,
+      table.uniqueKeys
+        .map(({ newName, columns }) =>
+          newName
+            ? format('CONSTRAINT %I UNIQUE (%I)', newName, columns)
+            : format('UNIQUE (%I)', columns),
+        )
+        .join(', '),
+    );
+  }
+
   if (isNotEmptyValue(table.foreignKeyRelations)) {
     columnsAndConstraints = format(
       `${columnsAndConstraints}, %s`,
@@ -66,10 +79,10 @@ export default function prepareCreateTableQuery({
         .map((foreignKeyRelation) =>
           format(
             'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
-            foreignKeyRelation.columnName,
+            foreignKeyRelation.columns,
             foreignKeyRelation.referencedSchema || schema,
             foreignKeyRelation.referencedTable,
-            foreignKeyRelation.referencedColumn,
+            foreignKeyRelation.referencedColumns,
             foreignKeyRelation.updateAction,
             foreignKeyRelation.deleteAction,
           ),

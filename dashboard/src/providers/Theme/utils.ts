@@ -5,6 +5,12 @@ import type {
 
 const themePreferences: ThemePreference[] = ['light', 'dark', 'system'];
 
+// Disables transitions while the theme class changes, so colors switch
+// instantly instead of animating (e.g. buttons with transition-colors).
+export const NO_TRANSITION_STYLE_ID = 'nhost-theme-no-transition';
+export const NO_TRANSITION_CSS =
+  '*,*::before,*::after{transition:none!important}';
+
 export function isThemePreference(
   value: string | null,
 ): value is ThemePreference {

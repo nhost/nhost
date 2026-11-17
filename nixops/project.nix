@@ -20,6 +20,17 @@ let
     ];
   };
 
+  # Format provisioning Nix sources without making them part of the shared
+  # toolchain package source (and its ready-cache gate).
+  nixfmtSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      ../flake.nix
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
+      (fs.fileFilter (f: f.hasExt "nix") ../ci)
+    ];
+  };
+
   checkDeps = [ ];
 
   # we use this to just build and cache the packages.
@@ -33,6 +44,7 @@ let
   buildInputs =
     (with pkgs; [
       nhost.biome
+      actionlint
       bash
       nhost.betterleaks
       bun
@@ -47,6 +59,7 @@ let
       geos
       gh
       git-cliff
+      gnumake
       gnused
       nhost.go
       go-migrate
@@ -77,12 +90,14 @@ let
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
+      (python3.withPackages (p: [ p.pyyaml ]))
       shellcheck
       skopeo
       nhost.sqlc
       vacuum-go
       vale
       nhost.wal-g
+      zip
     ])
     ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
@@ -144,7 +159,8 @@ in
   check = pkgs.symlinkJoin {
     name = "check-nixops";
     paths = [
-      (nixops-lib.nix.check { inherit src; })
+      (nixops-lib.nix.check { src = nixfmtSrc; })
+      (import ../ci/ci.nix { inherit pkgs; })
       (nixops-lib.nix.checkPinnedToolchains {
         # Repo-wide: toolchain regressions tend to land in the individual
         # projects' project.nix, not under nixops/.

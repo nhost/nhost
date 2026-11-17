@@ -79,14 +79,20 @@ export default function prepareUpdateTableQuery({
     );
   }
 
+  const originalUniqueKeyNames = new Set(
+    originalColumns.flatMap(({ uniqueConstraints }) => uniqueConstraints ?? []),
+  );
+
   args = args.concat(
     ...updatedTable.columns.reduce<HasuraOperation[]>((updatedArgs, column) => {
+      // UNIQUE constraints come from `uniqueKeys`, not from each column.
       const baseVariables = {
         dataSource,
         schema,
         table: originalTableName,
         column: {
           ...column,
+          isUnique: false,
           isIdentity: updatedTable.identityColumn === column.name,
         },
         enableForeignKeys: false,
@@ -102,7 +108,7 @@ export default function prepareUpdateTableQuery({
         ...updatedArgs,
         ...prepareUpdateColumnQuery({
           ...baseVariables,
-          originalColumn,
+          originalColumn: { ...originalColumn, isUnique: false },
         }),
       ];
     }, []),
@@ -176,6 +182,46 @@ export default function prepareUpdateTableQuery({
       ),
     );
   }
+
+  // Between the foreign key drops and creates, which may depend on these.
+  const keptUniqueKeyNames = new Set(
+    updatedTable.uniqueKeys?.map(({ name }) => name),
+  );
+  const droppedUniqueKeyNames = [...originalUniqueKeyNames].filter(
+    (name) => !keptUniqueKeyNames.has(name),
+  );
+
+  args = args.concat(
+    ...droppedUniqueKeyNames.map((name) =>
+      getPreparedHasuraQuery(
+        dataSource,
+        'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
+        schema,
+        originalTableName,
+        name,
+      ),
+    ),
+    ...(updatedTable.uniqueKeys ?? [])
+      .filter(({ name }) => !name)
+      .map(({ newName, columns }) =>
+        newName
+          ? getPreparedHasuraQuery(
+              dataSource,
+              'ALTER TABLE %I.%I ADD CONSTRAINT %I UNIQUE (%I)',
+              schema,
+              originalTableName,
+              newName,
+              columns,
+            )
+          : getPreparedHasuraQuery(
+              dataSource,
+              'ALTER TABLE %I.%I ADD UNIQUE (%I)',
+              schema,
+              originalTableName,
+              columns,
+            ),
+      ),
+  );
 
   if (isNotEmptyValue(updatedTable?.foreignKeyRelations)) {
     const originalForeignKeyRelationMap = originalForeignKeyRelations.reduce(

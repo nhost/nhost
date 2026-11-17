@@ -52,12 +52,12 @@ export default function DeleteCronTriggerDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="p-12"
         hideCloseButton
         disableOutsideClick={isDeletingCronTrigger}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
             Delete Cron Trigger
           </DialogTitle>
           <DialogDescription>
@@ -68,20 +68,17 @@ export default function DeleteCronTriggerDialog({
             cron trigger?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+        <DialogFooter className="mt-8">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           <ButtonWithLoading
             variant="destructive"
-            className="!text-sm+ text-white"
             onClick={handleDeleteDialogClick}
             loading={isDeletingCronTrigger}
           >
             Delete
           </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

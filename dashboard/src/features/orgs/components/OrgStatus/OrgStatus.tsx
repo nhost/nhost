@@ -13,7 +13,7 @@ function StatusBanner({
   description: React.ReactNode;
 }) {
   return (
-    <div className="m-4 rounded-lg bg-destructive p-4 text-white">
+    <div className="m-4 shrink-0 rounded-lg bg-destructive p-4 text-white">
       <div className="flex items-center gap-2">
         <TriangleAlert className="h-4 w-4" />
         <h3 className="font-medium">{title}</h3>

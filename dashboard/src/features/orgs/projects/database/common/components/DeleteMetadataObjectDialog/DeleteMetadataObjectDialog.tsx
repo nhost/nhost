@@ -34,12 +34,14 @@ export default function DeleteMetadataObjectDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="p-12"
         hideCloseButton
         disableOutsideClick={isPending}
       >
         <DialogHeader>
-          <DialogTitle className="text-foreground">{title}</DialogTitle>
+          <DialogTitle className="text-foreground text-xl leading-7 tracking-normal">
+            {title}
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
@@ -49,10 +51,12 @@ export default function DeleteMetadataObjectDialog({
           </DialogDescription>
         </DialogHeader>
         {warning}
-        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+        <DialogFooter className="mt-8">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
           <ButtonWithLoading
             variant="destructive"
-            className="!text-sm+ text-white"
             onClick={async () => {
               const succeeded = await onConfirm();
               if (succeeded) {
@@ -63,11 +67,6 @@ export default function DeleteMetadataObjectDialog({
           >
             Delete
           </ButtonWithLoading>
-          <DialogClose asChild>
-            <Button variant="outline" className="!text-sm+ text-foreground">
-              Cancel
-            </Button>
-          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

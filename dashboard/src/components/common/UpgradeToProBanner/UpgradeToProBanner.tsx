@@ -31,14 +31,14 @@ export default function UpgradeToProBanner({
   const handleTransferDialogOpen = () => setTransferProjectDialogOpen(true);
 
   return (
-    <div className="flex flex-col justify-between space-y-4 rounded-md bg-primary-light p-4 text-foreground lg:flex-row lg:items-center lg:space-y-0 dark:bg-[#1b2534]">
+    <div className="flex flex-col justify-between space-y-4 rounded-md bg-primary/[0.04] p-4 text-foreground lg:flex-row lg:items-center lg:space-y-0">
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
           <div className="flex xs:flex-row flex-col xs:space-x-2 space-y-2 xs:space-y-0">
             <p className="text-sm">Available with</p>
             <div className="flex flex-row space-x-2">
               <NhostIcon />
-              <p className="font-semibold text-primary-main text-sm">
+              <p className="font-semibold text-primary text-sm">
                 Nhost Pro & Team
               </p>
             </div>

@@ -122,18 +122,6 @@ func (q *Queries) ConsumePKCEAuthorizationCode(ctx context.Context, arg ConsumeP
 	return i, err
 }
 
-const countSecurityKeysUser = `-- name: CountSecurityKeysUser :one
-SELECT COUNT(*) FROM auth.user_security_keys
-WHERE user_id = $1
-`
-
-func (q *Queries) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, countSecurityKeysUser, userID)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const deleteExpiredOAuth2AuthRequests = `-- name: DeleteExpiredOAuth2AuthRequests :exec
 DELETE FROM auth.oauth2_auth_requests
 WHERE expires_at < now()
@@ -271,6 +259,39 @@ func (q *Queries) FindUserProviderByProviderId(ctx context.Context, arg FindUser
 		&i.RefreshToken,
 		&i.ProviderID,
 		&i.ProviderUserID,
+	)
+	return i, err
+}
+
+const getElevationMethods = `-- name: GetElevationMethods :one
+SELECT
+    EXISTS (
+        SELECT 1 FROM auth.user_security_keys AS k
+        WHERE k.user_id = u.id
+    ) AS has_security_key,
+    COALESCE(u.active_mfa_type = 'totp' AND u.totp_secret <> '', false) AS has_totp,
+    COALESCE(u.email <> '' AND u.email_verified, false) AS has_verified_email,
+    COALESCE(u.phone_number <> '' AND u.phone_number_verified, false)
+        AS has_verified_phone_number
+FROM auth.users AS u
+WHERE u.id = $1
+`
+
+type GetElevationMethodsRow struct {
+	HasSecurityKey         bool
+	HasTotp                pgtype.Bool
+	HasVerifiedEmail       pgtype.Bool
+	HasVerifiedPhoneNumber pgtype.Bool
+}
+
+func (q *Queries) GetElevationMethods(ctx context.Context, id uuid.UUID) (GetElevationMethodsRow, error) {
+	row := q.db.QueryRow(ctx, getElevationMethods, id)
+	var i GetElevationMethodsRow
+	err := row.Scan(
+		&i.HasSecurityKey,
+		&i.HasTotp,
+		&i.HasVerifiedEmail,
+		&i.HasVerifiedPhoneNumber,
 	)
 	return i, err
 }

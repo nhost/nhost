@@ -15,7 +15,7 @@ This page explains how to narrow that further, and the practices we recommend wh
 
 ## How access is scoped
 
-The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Backend MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's Hasura claims — so the effective boundary is the role the token carries.
+The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Backend MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's [Hasura claims](/products/graphql/permissions/permission-variables) — so the effective boundary is the role the token carries.
 
 That makes the token's role the main lever for controlling AI access.
 

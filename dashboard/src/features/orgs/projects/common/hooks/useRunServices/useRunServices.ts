@@ -49,6 +49,7 @@ export default function useRunServices() {
   const {
     data,
     loading: loadingPlatformServices,
+    error: platformServicesError,
     refetch: refetchPlatformServices,
   } = useGetRunServicesQuery({
     variables: {
@@ -63,6 +64,7 @@ export default function useRunServices() {
   const {
     loading: loadingLocalServices,
     data: localServicesData,
+    error: localServicesError,
     refetch: refetchLocalServices,
   } = useGetLocalRunServiceConfigsQuery({
     variables: { appID: project?.id as string, resolve: false },
@@ -82,6 +84,7 @@ export default function useRunServices() {
 
   const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
+  const error = isPlatform ? platformServicesError : localServicesError;
   const refetch = isPlatform ? refetchPlatformServices : refetchLocalServices;
 
   const totalServicesCount = isPlatform
@@ -99,6 +102,7 @@ export default function useRunServices() {
   return {
     services,
     loading,
+    error,
     refetch,
 
     limit: ELEMENTS_PER_PAGE,

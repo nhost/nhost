@@ -50,7 +50,7 @@ export default function CreateBucketForm({
         closeDrawer();
 
         await router.push(
-          `/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${encodeURIComponent(values.name)}`,
+          `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(values.name)}`,
         );
       },
       {

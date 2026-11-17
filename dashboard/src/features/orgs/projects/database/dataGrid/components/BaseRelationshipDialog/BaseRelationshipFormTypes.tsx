@@ -65,7 +65,7 @@ const baseRelationshipFormSchema = z.object({
       table: z.string().min(1),
       source: z.string().min(1),
     },
-    { required_error: 'From source is required' },
+    { error: 'From source is required' },
   ),
 });
 
@@ -86,7 +86,7 @@ const tableRelationshipFormSchema = baseRelationshipFormSchema.extend({
   relationshipType: z.enum(
     ['pg_create_array_relationship', 'pg_create_object_relationship'],
     {
-      required_error: 'Relationship type is required',
+      error: 'Relationship type is required',
     },
   ),
   fieldMapping: z

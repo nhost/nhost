@@ -150,6 +150,13 @@ func (router *Router) FindRoute(req *http.Request) (*routers.Route, map[string]s
 		if pathItem.GetOperation(method) == nil {
 			return nil, nil, &routers.RouteError{Reason: routers.ErrMethodNotAllowed.Error()}
 		}
+		if node == nil {
+			// The document declares this operation but the route trie holds no
+			// matching node, so there is nothing to extract path parameters
+			// from. This happens when the document was mutated after the
+			// router was built.
+			return nil, nil, &routers.RouteError{Reason: routers.ErrPathNotFound.Error()}
+		}
 	}
 
 	if pathParams == nil {

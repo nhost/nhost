@@ -298,7 +298,7 @@ export default function EditFunctionGraphQLSettingsForm({
                     : 'Track as Mutation'}
                 </ButtonWithLoading>
                 <ButtonWithLoading
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowConfirmDialog(true)}
                   disabled={disabled || isTrackingPending}
@@ -461,7 +461,7 @@ export default function EditFunctionGraphQLSettingsForm({
                       Reset to default
                     </Button>
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       type="button"
                       onClick={handleMakeCamelCaseClick}
                       disabled={isFunctionCustomizationError || isSubmitting}

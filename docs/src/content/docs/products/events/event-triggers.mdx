@@ -98,7 +98,7 @@ The webhook target can be any HTTP endpoint that returns a 2xx status code. By d
 
 ### Webhook Payload
 
-Event triggers deliver the old and new row data, the operation type, and session variables identifying who made the change.
+Event triggers deliver the old and new row data, the operation type, and [session variables](/products/graphql/permissions/permission-variables) identifying who made the change.
 
 ```json
 {
@@ -167,7 +167,7 @@ Selecting a trigger opens its detail page with two tabs:
 
 ### Overview
 
-Displays the trigger configuration: data source, schema, table, webhook URL, trigger operations, update columns, retry settings, request headers, and transformation configuration.
+Displays the trigger configuration: data source, schema, table, webhook URL, trigger operations, update columns, [retry settings](/products/events/retry-configuration), request headers, and transformation configuration.
 
 ![Event Trigger Overview](/images/events/event-trigger-overview.png)
 

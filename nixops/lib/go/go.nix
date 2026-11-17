@@ -137,7 +137,7 @@ in
         if grep -qv ': OK$' $TMPDIR/sha1out; then echo "❌ ERROR: go generate changed files" && exit 1; fi
 
         echo "➜ Checking for vulnerabilities"
-        govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=package ./${submodule}/...
+        govulncheck-wrapper -config ${src}/govulncheck.yaml -- -scan=symbol ./${submodule}/...
 
         echo "➜ Running golangci-lint"
         golangci-lint run \

@@ -57,11 +57,11 @@ function BucketNavItem({
             className={cn(
               'flex min-w-0 flex-1 items-center gap-1.5 p-[0.625rem] text-left',
               {
-                'text-primary-main': isSelected,
+                'text-primary': isSelected,
               },
             )}
             onClick={() => onSidebarItemClick?.()}
-            href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/bucket/${encodeURIComponent(bucketId)}`}
+            href={`/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets/${encodeURIComponent(bucketId)}`}
           >
             <Archive className="h-4 w-4 shrink-0" />
             <span className="!truncate">{bucketId}</span>
@@ -139,7 +139,7 @@ function StorageSidebarContent({
         await deleteOrphanedFiles();
         if (bucketSlug === bucketToDelete) {
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/storage`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/storage/buckets`,
           );
         }
       },

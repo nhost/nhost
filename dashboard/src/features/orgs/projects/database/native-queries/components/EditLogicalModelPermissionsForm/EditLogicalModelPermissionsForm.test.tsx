@@ -197,7 +197,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Settings page' })).toHaveAttribute(
       'href',
-      '/orgs/test-org/projects/test-project/settings/roles-and-permissions',
+      '/orgs/test-org/projects/test-project/auth/settings?tab=roles-and-permissions',
     );
 
     expect(

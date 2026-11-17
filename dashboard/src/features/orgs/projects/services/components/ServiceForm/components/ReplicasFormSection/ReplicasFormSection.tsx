@@ -15,7 +15,7 @@ export default function ReplicasFormSection() {
     trigger: triggerValidation,
     formState: { errors },
   } = useFormContext<ServiceFormValues>();
-  const { replicas, autoscaler } = useWatch<ServiceFormValues>();
+  const { autoscaler } = useWatch<ServiceFormValues>();
   const [autoscalerEnabled, setAutoscalerEnabled] = useState(!!autoscaler);
 
   const toggleAutoscalerEnabled = (enabled: boolean) => {
@@ -26,14 +26,6 @@ export default function ReplicasFormSection() {
     } else {
       setValue('autoscaler.maxReplicas', 10);
     }
-  };
-
-  const handleReplicasChange = (value: string) => {
-    const updatedReplicas = parseInt(value, 10);
-
-    setValue('replicas', updatedReplicas, { shouldDirty: true });
-
-    // TODO Trigger revalidate storage
   };
 
   const handleMaxReplicasChange = (value: string) => {
@@ -47,7 +39,7 @@ export default function ReplicasFormSection() {
   return (
     <div className="space-y-4 rounded border-1 p-4">
       <div className="flex flex-row items-center space-x-2">
-        <h4 className="font-semibold">Replicas ({replicas})</h4>
+        <h4 className="font-semibold">Replicas</h4>
         <InfoTooltip>
           Learn more about{' '}
           <TextLink
@@ -68,8 +60,7 @@ export default function ReplicasFormSection() {
             </Label>
             <div className="space-y-1">
               <Input
-                {...register('replicas')}
-                onChange={(event) => handleReplicasChange(event.target.value)}
+                {...register('replicas', { valueAsNumber: true })}
                 type="number"
                 id="replicas"
                 placeholder="Replicas"
@@ -97,7 +88,11 @@ export default function ReplicasFormSection() {
             </Label>
             <div className="space-y-1">
               <Input
-                value={autoscaler?.maxReplicas ?? ''}
+                value={
+                  Number.isFinite(autoscaler?.maxReplicas)
+                    ? autoscaler?.maxReplicas
+                    : ''
+                }
                 onChange={(event) =>
                   handleMaxReplicasChange(event.target.value)
                 }

@@ -48,11 +48,7 @@ export function Spinner({
     <span className={cn(spinnerVariants({ show }), wrapperClassName)}>
       <Loader2
         role="progressbar"
-        className={cn(
-          loaderVariants({ size }),
-          className,
-          'stroke-[#1e324b] dark:stroke-[#dfecf5]',
-        )}
+        className={cn(loaderVariants({ size }), 'text-foreground', className)}
       />
       {children}
     </span>

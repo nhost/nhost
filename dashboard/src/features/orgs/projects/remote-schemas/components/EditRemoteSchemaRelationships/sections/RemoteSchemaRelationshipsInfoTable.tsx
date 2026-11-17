@@ -1,6 +1,6 @@
 import {
   Ellipsis as DotsHorizontalIcon,
-  SquarePen as PencilIcon,
+  Pencil as PencilIcon,
   PlusIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';
@@ -160,13 +160,13 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon">
+                      <Button type="button" variant="subtle" size="icon">
                         <DotsHorizontalIcon />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52 p-0">
+                    <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuItem
-                        className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                        className="cursor-pointer gap-2"
                         onClick={() =>
                           handleEditRelationshipClick(relationship)
                         }
@@ -175,7 +175,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                         <span>Edit Relationship</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                        className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
                         onClick={() =>
                           handleDeleteRelationshipClick(
                             relationship,

@@ -2,6 +2,7 @@ import { ArrowRight, Link as LinkIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatColumnList } from '@/features/orgs/projects/database/dataGrid/utils/formatColumnList';
 
 export interface ForeignKeyEditorRowProps {
   /**
@@ -33,34 +34,24 @@ export default function ForeignKeyEditorRow({
         <LinkIcon className="h-4 w-4" />
 
         <p className="m-0 grid grid-flow-col items-center gap-1.5 truncate font-medium">
-          <span className="truncate">{foreignKeyRelation.columnName}</span>{' '}
+          <span className="truncate">
+            {formatColumnList(foreignKeyRelation.columns)}
+          </span>{' '}
           <ArrowRight className="h-4 w-4" />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.
-            {foreignKeyRelation.referencedColumn}
+            {formatColumnList(foreignKeyRelation.referencedColumns)}
           </span>
         </p>
       </div>
 
       <div className="grid grid-flow-col justify-start sm:justify-end">
-        <Button
-          type="button"
-          onClick={onEdit}
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-primary hover:text-primary"
-        >
+        <Button type="button" onClick={onEdit} variant="outline" size="xs">
           Edit
         </Button>
 
-        <Button
-          type="button"
-          onClick={onDelete}
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-primary hover:text-primary"
-        >
+        <Button type="button" onClick={onDelete} variant="outline" size="xs">
           Delete
         </Button>
       </div>

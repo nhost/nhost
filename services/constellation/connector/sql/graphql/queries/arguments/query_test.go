@@ -299,6 +299,7 @@ func TestParseOrderBy(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 		tbl.EXPECT().ColumnFromGraphqlName("bogus").Return(nil)
+		tbl.EXPECT().ComputedScalarFromGraphqlName("bogus", "").Return(nil)
 		tbl.EXPECT().Relationship("bogus").Return(nil)
 		tbl.EXPECT().TableName().Return("users")
 

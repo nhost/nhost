@@ -26,7 +26,7 @@ test('should be able to delete a user', async ({
     .click();
   await page.getByRole('menuitem', { name: /delete user/i }).click();
 
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('alertdialog')).toBeVisible();
   await expect(
     page.getByRole('heading', { name: /delete user/i }),
   ).toBeVisible();
@@ -36,7 +36,7 @@ test('should be able to delete a user', async ({
 
   await page.getByRole('button', { name: /delete/i, exact: true }).click();
 
-  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect(page.getByRole('alertdialog')).not.toBeVisible();
 
   await expect(
     page.getByRole('button', { name: `View ${email}`, exact: true }),
@@ -63,7 +63,7 @@ test('should be able to delete a user from the details page', async ({
   await page.getByRole('button', { name: /actions/i }).click();
   await page.getByRole('menuitem', { name: /delete user/i }).click();
 
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('alertdialog')).toBeVisible();
   await expect(
     page.getByRole('heading', { name: /delete user/i }),
   ).toBeVisible();

@@ -1,14 +1,17 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ServiceVersionGate } from '@/features/orgs/guards/ServiceVersionGate';
+import { DatabaseArea } from '@/features/orgs/projects/database/layout';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import { NativeQueriesUpgradeRequired } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesUpgradeRequired';
 import { NoLogicalModelsEmptyState } from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
+import { MIN_HASURA_VERSION_NATIVE_QUERIES } from '@/features/orgs/projects/database/native-queries/constants';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 function NativeQueriesIndexContent() {
   const { data: models = [], isLoading, error } = useGetLogicalModels();
@@ -39,8 +42,6 @@ function NativeQueriesIndexContent() {
 }
 
 export default function NativeQueriesIndexPage() {
-  const { project } = useProject();
-  const isPlatform = useIsPlatform();
   const { dataSourceSlug } = useRouter().query;
 
   if (dataSourceSlug !== 'default') {
@@ -56,20 +57,29 @@ export default function NativeQueriesIndexPage() {
     );
   }
 
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
-    return <LoadingScreen />;
-  }
-
   return <NativeQueriesIndexContent />;
 }
 
 NativeQueriesIndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout mainContainerProps={{ className: 'flex h-full' }}>
-      <NativeQueriesBrowserSidebar />
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <DatabaseArea>
+          <ServiceVersionGate
+            service="hasura"
+            minVersion={MIN_HASURA_VERSION_NATIVE_QUERIES}
+            fallback={<NativeQueriesUpgradeRequired />}
+            loadingFallback={<LoadingScreen />}
+          >
+            <div className="flex h-full">
+              <NativeQueriesBrowserSidebar />
+              <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
+                {page}
+              </div>
+            </div>
+          </ServiceVersionGate>
+        </DatabaseArea>
+      </ProjectScope>
+    </AppLayout>
   );
 };

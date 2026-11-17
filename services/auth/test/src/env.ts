@@ -181,8 +181,8 @@ export const ENV = {
   get AUTH_EMAIL_PASSWORDLESS_ENABLED() {
     return castBooleanEnv('AUTH_EMAIL_PASSWORDLESS_ENABLED', false);
   },
-  get AUTH_SMS_PASSWORDLESS_ENABLED() {
-    return castBooleanEnv('AUTH_SMS_PASSWORDLESS_ENABLED', false);
+  get AUTH_OTP_SMS_ENABLED() {
+    return castBooleanEnv('AUTH_OTP_SMS_ENABLED', false);
   },
   get AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
     return castBooleanEnv('AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
@@ -195,11 +195,11 @@ export const ENV = {
       (v) => v.toLowerCase(),
     );
   },
-  get AUTH_MFA_ENABLED() {
-    return castBooleanEnv('AUTH_MFA_ENABLED', false);
+  get AUTH_TOTP_ENABLED() {
+    return castBooleanEnv('AUTH_TOTP_ENABLED', false);
   },
-  get AUTH_MFA_TOTP_ISSUER() {
-    return castStringEnv('AUTH_MFA_TOTP_ISSUER', 'hasura-auth');
+  get AUTH_TOTP_ISSUER() {
+    return castStringEnv('AUTH_TOTP_ISSUER', 'hasura-auth');
   },
 
   // TOKENS

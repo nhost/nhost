@@ -132,7 +132,19 @@ export default function AssistantForm({
       )
     : null;
 
-  const formDefaultValues = { ...initialData, fileStores: [] };
+  // The API returns null for empty tool lists, which the array schemas reject.
+  const formDefaultValues = {
+    ...initialData,
+    graphql: (initialData?.graphql ?? []).map((tool) => ({
+      ...tool,
+      arguments: tool.arguments ?? [],
+    })),
+    webhooks: (initialData?.webhooks ?? []).map((tool) => ({
+      ...tool,
+      arguments: tool.arguments ?? [],
+    })),
+    fileStores: [],
+  };
   formDefaultValues.fileStore = assistantFileStore ? assistantFileStore.id : '';
 
   const form = useForm<AssistantFormValues>({

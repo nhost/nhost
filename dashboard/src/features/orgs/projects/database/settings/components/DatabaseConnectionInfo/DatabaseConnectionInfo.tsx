@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CopyIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -11,13 +10,13 @@ import {
   SettingsCardFooter,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/v3/input-group';
 import { Label } from '@/components/ui/v3/label';
@@ -31,7 +30,6 @@ import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { copy } from '@/utils/copy';
 
 const databasePublicAccessValidationSchema = Yup.object({
   enablePublicAccess: Yup.bool(),
@@ -204,21 +202,16 @@ export default function DatabaseConnectionInfo() {
                           className="truncate"
                         />
                         <InputGroupAddon align="inline-end">
-                          <InputGroupButton
-                            aria-label={`Copy ${label}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copy(inputValue as string, `${label}`);
-                            }}
-                          >
-                            <CopyIcon className="h-4 w-4" />
-                          </InputGroupButton>
+                          <CopyToClipboardButton
+                            textToCopy={inputValue as string}
+                            title={label}
+                          />
                         </InputGroupAddon>
                       </InputGroup>
                     </div>
                   ),
                 )}
-                <Alert variant="info" className="col-span-6 text-left">
+                <Alert className="col-span-6 text-left">
                   To connect to the Postgres database directly, generate a new
                   password, securely save it, and then modify your connection
                   string with the newly created password.

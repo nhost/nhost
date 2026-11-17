@@ -254,6 +254,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="actionDefinitionSdl"
                 aria-label="Action Definition"
+                autoFocus
                 extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>
@@ -470,7 +471,7 @@ export default function BaseActionForm({
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             className="text-foreground"
             onClick={handleCancel}
             disabled={isSubmitting}

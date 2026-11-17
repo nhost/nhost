@@ -492,7 +492,7 @@ func TestTailLogsCtxCancel(t *testing.T) {
 	// Channel must be closed even with canceled ctx.
 	if _, ok := <-ch; ok {
 		// drain in case a racing send happened
-		for range ch { //nolint:revive
+		for range ch {
 		}
 	}
 }
@@ -627,7 +627,7 @@ func TestTailFunctionsLogsInvalidRegex(t *testing.T) {
 	}
 
 	// Channel must be closed; no panic.
-	for range ch { //nolint:revive
+	for range ch {
 	}
 }
 
@@ -721,6 +721,6 @@ func TestTailLogsPartialContainerLogsFailure(t *testing.T) {
 
 	// Channel must be closed; no panic. Drain in case c1 delivered anything
 	// before we bailed out (should be nothing, since we open readers first).
-	for range ch { //nolint:revive
+	for range ch {
 	}
 }

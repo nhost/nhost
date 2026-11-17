@@ -149,8 +149,26 @@ func (loader *Loader) loadSingleElementFromURI(ref string, rootPath *url.URL, el
 
 // rememberOriginTree retains doc's origin tree for attachOriginToResolved.
 // tree is nil when IncludeOrigin is off or the data took the json path.
+//
+// The tree is kept only for a document a $ref can reach into untyped, which is
+// what attachOriginToResolved exists to re-origin. In practice that means a
+// file of shared fragments, whose top level is the fragment name itself rather
+// than the fields of an OpenAPI Object:
+//
+//	User:            # a $ref to "./schemas.yaml#/User" lands here, untyped
+//	  type: object
+//
+// Anything OpenAPI defines a field for resolves through typed structures and
+// keeps its origins on the way, so its tree could never be read. That includes
+// a referenced document that is itself an OpenAPI Object: a $ref to
+// "#/components/schemas/User" needs no tree. (A top-level x- extension is
+// undefined by the same rule, so a document carrying one keeps its tree too,
+// whether or not anything ever points at it.)
+//
+// Worth the condition: on a 22 MB spec the retained tree was a third of
+// everything the loader held.
 func (loader *Loader) rememberOriginTree(doc *T, tree *originTree) {
-	if tree == nil {
+	if tree == nil || len(doc.Extensions) == 0 {
 		return
 	}
 	if loader.originTrees == nil {
@@ -452,10 +470,12 @@ func (loader *Loader) resolveComponent(doc *T, ref string, path *url.URL, resolv
 			// Special case due to multijson
 			case *SchemaRef:
 				if pathPart == "additionalProperties" {
-					if ap := c.Value.AdditionalProperties.Has; ap != nil {
-						cursor = *ap
-					} else {
-						cursor = c.Value.AdditionalProperties.Schema
+					if s := c.Value; s != nil {
+						if ap := s.AdditionalProperties.Has; ap != nil {
+							cursor = *ap
+						} else {
+							cursor = s.AdditionalProperties.Schema
+						}
 					}
 					attempted = true
 				}
@@ -1116,19 +1136,25 @@ func (loader *Loader) resolveSchemaRef(doc *T, component *SchemaRef, documentPat
 	}
 	// Discriminator mapping refs are a special case since they are not full
 	// ref objects but are plain strings that reference schema objects.
-	// Only resolve refs that look like external references (contain a path).
-	// Plain schema names like "Dog" or internal refs like "#/components/schemas/Dog"
-	// don't need to be resolved by the loader.
+	// Plain schema names like "Dog" are not references and are left alone.
 	if value.Discriminator != nil {
+		inExternalDoc := documentPath != nil && documentPath.Path != "" && documentPath.Path != loader.rootLocation
 		for _, k := range componentNames(value.Discriminator.Mapping) {
 			v := value.Discriminator.Mapping[k]
-			// Only resolve if it looks like an external ref (contains path separator)
-			if strings.Contains(v.Ref, "/") && !strings.HasPrefix(v.Ref, "#") {
-				if err := loader.resolveSchemaRef(doc, (*SchemaRef)(&v), documentPath, visited); err != nil {
-					return err
-				}
-				value.Discriminator.Mapping[k] = v
+			if !strings.Contains(v.Ref, "/") {
+				continue
 			}
+			// A document-local mapping needs resolving only when it lives in
+			// another document, because InternalizeRefs then has to rewrite it
+			// against that document. One in the root document is already
+			// written against the document it will end up in.
+			if strings.HasPrefix(v.Ref, "#") && !inExternalDoc {
+				continue
+			}
+			if err := loader.resolveSchemaRef(doc, (*SchemaRef)(&v), documentPath, visited); err != nil {
+				return err
+			}
+			value.Discriminator.Mapping[k] = v
 		}
 	}
 

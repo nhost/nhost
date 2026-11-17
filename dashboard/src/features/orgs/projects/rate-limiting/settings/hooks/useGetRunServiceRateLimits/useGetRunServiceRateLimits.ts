@@ -1,3 +1,4 @@
+import type { ApolloError } from '@apollo/client';
 import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -38,27 +39,34 @@ export interface UseGetRunServiceRateLimitsReturn {
     }[];
   }[];
   loading: boolean;
+  error?: ApolloError;
 }
 
 export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimitsReturn {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { data, loading: loadingPlatformServices } =
-    useGetRunServicesRateLimitQuery({
-      variables: {
-        appID: project?.id,
-        resolve: false,
-      },
-      skip: !isPlatform,
-    });
+  const {
+    data,
+    loading: loadingPlatformServices,
+    error: platformServicesError,
+  } = useGetRunServicesRateLimitQuery({
+    variables: {
+      appID: project?.id,
+      resolve: false,
+    },
+    skip: !isPlatform,
+  });
 
-  const { loading: loadingLocalServices, data: localServicesData } =
-    useGetLocalRunServiceRateLimitQuery({
-      variables: { appID: project?.id, resolve: false },
-      skip: isPlatform,
-      client: localMimirClient,
-    });
+  const {
+    loading: loadingLocalServices,
+    data: localServicesData,
+    error: localServicesError,
+  } = useGetLocalRunServiceRateLimitQuery({
+    variables: { appID: project?.id, resolve: false },
+    skip: isPlatform,
+    client: localMimirClient,
+  });
 
   const platformServices = useMemo(
     () => data?.app?.runServices.map((service) => service) ?? [],
@@ -72,6 +80,7 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
 
   const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
+  const error = isPlatform ? platformServicesError : localServicesError;
 
   const servicesInfo = services.map((service) => {
     const enabled = service?.config?.ports?.some(
@@ -103,5 +112,5 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
     };
   });
 
-  return { services: servicesInfo, loading };
+  return { services: servicesInfo, loading, error };
 }

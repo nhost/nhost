@@ -16,14 +16,15 @@ import (
 )
 
 type relationship struct {
-	name           string
-	aggregateName  string
-	table          *table
-	isArray        bool
-	fkColumns      []string
-	parentColumns  []string
-	targetColumns  []string
-	joinIsReversed bool
+	name              string
+	aggregateName     string
+	table             *table
+	isArray           bool
+	insertAfterParent bool
+	fkColumns         []string
+	parentColumns     []string
+	targetColumns     []string
+	joinIsReversed    bool
 
 	// Cross-database relationship fields. joinColumns maps the local column
 	// name to its counterpart on the remote table; the controller resolves
@@ -106,6 +107,7 @@ func newLocalRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             table,
 		isArray:           isArray,
+		insertAfterParent: !isArray && using.ForeignKeyConstraint != nil,
 		fkColumns:         fkColumns,
 		parentColumns:     parentColumns,
 		targetColumns:     targetColumns,
@@ -150,6 +152,7 @@ func newRemoteRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             nil, // No local table for remote relationships
 		isArray:           isArray,
+		insertAfterParent: false,
 		fkColumns:         nil,
 		parentColumns:     parentColumns,
 		targetColumns:     nil,
@@ -192,6 +195,7 @@ func newRemoteSchemaRelationship(
 		aggregateName:     name + "_aggregate",
 		table:             nil, // No local table for remote schema relationships
 		isArray:           isArray,
+		insertAfterParent: false,
 		fkColumns:         nil,
 		parentColumns:     nil,
 		targetColumns:     nil,
@@ -307,7 +311,6 @@ func (r *relationship) buildSelectionSQL(
 		relationshipAlias,
 		r.table.tableFromClause(),
 		r.table.tableSourceRef(),
-		nil,
 		parentArgumentPath,
 	)
 }
@@ -326,7 +329,6 @@ func (r *relationship) buildSelectionSQLFromSource( //nolint:funlen
 	relationshipAlias string,
 	targetFromClause string,
 	targetSourceRef string,
-	nestedCTEs map[string]nestedReturningCTERef,
 	parentArgumentPath string,
 ) ([]any, int, error) {
 	if r.isRemote {
@@ -376,7 +378,6 @@ func (r *relationship) buildSelectionSQLFromSource( //nolint:funlen
 			outputName,
 			targetFromClause,
 			targetSourceRef,
-			nestedCTEs,
 			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
@@ -397,7 +398,6 @@ func (r *relationship) buildSelectionSQLFromSource( //nolint:funlen
 			outputName,
 			targetFromClause,
 			targetSourceRef,
-			nestedCTEs,
 			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers

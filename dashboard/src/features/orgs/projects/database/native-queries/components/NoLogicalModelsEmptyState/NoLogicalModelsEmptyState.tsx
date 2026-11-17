@@ -9,7 +9,7 @@ export default function NoLogicalModelsEmptyState() {
   return (
     <div className="flex h-full w-full flex-col items-center bg-background px-4 py-16">
       <div className="flex max-w-md flex-col items-center text-center">
-        <div className="mb-7 flex size-16 items-center justify-center rounded-2xl border bg-card shadow-sm">
+        <div className="mb-7 flex size-16 items-center justify-center rounded-2xl border shadow-sm">
           <Shapes className="size-8 text-primary" />
         </div>
         <h3 className="font-semibold text-2xl tracking-tight">

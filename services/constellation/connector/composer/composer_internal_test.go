@@ -11,13 +11,23 @@ import (
 // white-box tests that cannot import the mock/ subpackage (import cycle).
 type stubSchemaProvider struct {
 	typeName string
+	schemas  map[string]*graph.Schema
+	names    map[string]string
 }
 
 func (s stubSchemaProvider) GetSchema() (map[string]*graph.Schema, error) {
-	return nil, nil //nolint:nilnil
+	return s.schemas, nil
 }
 
 func (s stubSchemaProvider) GetTypeName(identifier string) string {
+	if s.names != nil {
+		if name, ok := s.names[identifier]; ok {
+			return name
+		}
+
+		return identifier
+	}
+
 	return s.typeName + ":" + identifier
 }
 

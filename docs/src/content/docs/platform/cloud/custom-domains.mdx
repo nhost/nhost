@@ -11,14 +11,21 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Custom domains empower you to offer a tailored and branded experience for your users. Available only as an add-on for projects on the pro and enterprise plans, custom domains not only enhance your brand's visibility but also provide a more professional appearance compared to using Nhost's default domain.
 
-You can configure Custom Domains for Auth, GraphQL, PostgreSQL, and your own Run services using both the Nhost Dashboard or the Config file.
+You can configure Custom Domains for Auth, GraphQL, PostgreSQL, and your own [Run services](/products/run) using both the Nhost Dashboard or the Config file.
 
 The following examples assume we are configuring custom domains at `*.custom-domain.com`.
 
 
 <Tabs>
   <TabItem label="Dashboard">
-    Follow the instructions in the Custom Domain section of your project's settings:
+    Each service has its own **Custom Domain** tab in its settings. Open the one for the service you want to configure and follow the instructions there:
+
+    - **Auth -> Settings -> Custom Domain**
+    - **GraphQL -> Settings -> Custom Domain**
+    - **Database -> Settings -> Custom Domain**
+    - **Functions -> Settings -> Custom Domain**
+    - **Run -> Settings -> Custom Domain**
+
 
     1. Add a CNAME record in your DNS provider for each of the services you want a custom domain for, and click "Verify". The verification might take a few seconds to succeed.
     2. Once the verification succeeds, click "Save" to update your project.

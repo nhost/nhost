@@ -1,11 +1,5 @@
-query GetOrganizationsAndWorkspacesApps {
+query GetOrganizationsApps {
   organizations {
-    name
-    apps {
-      ...AppSummaryFragment
-    }
-  }
-  workspaces {
     name
     apps {
       ...AppSummaryFragment

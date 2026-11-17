@@ -10,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
@@ -44,9 +43,10 @@ import {
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { removeTypename } from '@/utils/helpers';
 
+// Has docs links inside, so it stays open while hovered.
 function InfoTooltip({ children }: { children: ReactNode }) {
   return (
-    <Tooltip>
+    <Tooltip interactive>
       <TooltipTrigger asChild>
         <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
       </TooltipTrigger>
@@ -305,6 +305,10 @@ export default function JWTSettings() {
           <SettingsCardHeader
             title="JSON Web Token Settings"
             description="Select how JSON Web Tokens (JWTs) are signed and verified."
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/jwt',
+              topic: 'JSON Web Token (JWT) Settings',
+            }}
           />
 
           <SettingsCardContent className="gap-x-4 gap-y-2">
@@ -398,11 +402,6 @@ export default function JWTSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/jwt"
-              title="JSON Web Token (JWT) Settings"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

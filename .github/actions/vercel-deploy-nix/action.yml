@@ -79,6 +79,11 @@ runs:
         fi
         chmod 640 "$env_file"
 
+        if [ -n "${NIX_CACHE_ROOTS:-}" ]; then
+          system=$(nix eval --impure --raw --expr builtins.currentSystem)
+          nix path-info --derivation ".#devShells.$system.vercel" \
+            >> "$NIX_CACHE_ROOTS"
+        fi
         rm -rf "$vercel_environment_dir"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
           VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
@@ -108,6 +113,14 @@ runs:
         find "$vercel_environment_dir" -type d -exec chmod 750 {} +
         find "$vercel_environment_dir" -type f -exec chmod 640 {} +
 
+        if [ -n "${NIX_CACHE_ROOTS:-}" ]; then
+          VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
+            VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
+            VERCEL_CACHE_BUSTER="$INPUT_VERCEL_CACHE_BUSTER" \
+            nix path-info --derivation --impure \
+              ".#${INPUT_NAME}-vercel-deploy-${INPUT_ENVIRONMENT}" \
+              >> "$NIX_CACHE_ROOTS"
+        fi
         rm -f "$result_link"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
           VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \

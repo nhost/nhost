@@ -3,23 +3,43 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
   "allowlist": [
-    // image-size DoS (infinite loop) advisories. No fixed release exists yet:
-    // every published version (<=2.0.2) is affected. Only pulled in transitively
-    // by the React Native example dev/build tooling (metro), not shipped to prod.
-    // Remove once image-size ships a patched version.
-    "GHSA-w3rx-r6r6-pgpr", // https://github.com/advisories/GHSA-w3rx-r6r6-pgpr (CVE-2025-71330)
-    "GHSA-5p2g-fcmc-qvqq", // https://github.com/advisories/GHSA-5p2g-fcmc-qvqq (CVE-2025-71329)
+    // GHSA-g3hv-75wg-m249 describes firstPhasePreProcess with optimizationLevel
+    // >= 2. The minimatch 3.1.5/5.1.9 code used by these legacy callers has
+    // neither feature; replacing it with v11 breaks their callable/RegExp API.
+    // Modern glob callers are forced to patched v14 in pnpm-workspace.yaml.
+    // Remove these path exceptions when the callers migrate to minimatch 11.
+    "GHSA-g3hv-75wg-m249|glob>minimatch",
+    "GHSA-g3hv-75wg-m249|*>glob>minimatch",
+    "GHSA-g3hv-75wg-m249|*>test-exclude>minimatch",
+    "GHSA-g3hv-75wg-m249|eslint>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint>minimatch",
+    "GHSA-g3hv-75wg-m249|*>@eslint/config-array>minimatch",
+    "GHSA-g3hv-75wg-m249|*>@eslint/eslintrc>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-import>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-jsx-a11y>minimatch",
+    "GHSA-g3hv-75wg-m249|*>eslint-plugin-react>minimatch",
+    // TypeDoc 0.28.20 needs Minimatch#matchOne (removed in v11). All three of
+    // its Minimatch constructors use the default optimization level 1, so the
+    // affected level-2 preprocessing cannot run. Remove when TypeDoc supports
+    // minimatch 11; keep this exception specific to its dependency path.
+    "GHSA-g3hv-75wg-m249|typedoc>minimatch",
+    "GHSA-g3hv-75wg-m249|*>typedoc>minimatch",
+    // Expo CLI still requires Zod 3, which has no patched release for this
+    // collection-validation DoS. Scope the exception to Expo's local dev CLI;
+    // other Zod consumers must use patched v4. Remove when Expo migrates to v4
+    // or Zod publishes a v3 fix.
+    "GHSA-mrhx-c7xc-m3w5|*>@expo/cli>zod",
+    // Metro in the Expo 53 quickstart still calls image-size's v1 CommonJS
+    // function export. Patched v2 (>=2.0.3) removes it, so overriding the major
+    // breaks asset bundling. Scope these DoS exceptions to Metro's local build
+    // tooling; remove when the quickstart's Expo/Metro supports patched v2.
+    "GHSA-w3rx-r6r6-pgpr|*>metro>image-size", // CVE-2025-71330
+    "GHSA-5p2g-fcmc-qvqq|*>metro>image-size", // CVE-2025-71329
     // braces stack-exhaustion DoS via deeply nested patterns. No fixed release
     // exists yet: every published version (<=3.0.3) is affected. Only pulled in
     // transitively via micromatch/chokidar by dev/build tooling (tailwindcss,
     // jest, graphql-codegen, orval, metro, starlight), not shipped to prod.
     // Remove once braces ships a patched version.
-    "GHSA-vfj7-8cjw-p6xm", // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
-    // node-forge RSA PKCS#1 v1.5 signature forgery via nested DigestAlgorithm
-    // elements. No fixed release exists yet: every published version (<=1.4.0)
-    // is affected. Only pulled in transitively by @expo/cli in the React Native
-    // examples (local dev tooling), not shipped to prod.
-    // Remove once node-forge ships a patched version.
-    "GHSA-86w9-cpqp-85rv" // https://github.com/advisories/GHSA-86w9-cpqp-85rv (CVE-2026-85393)
+    "GHSA-vfj7-8cjw-p6xm" // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
   ]
 }

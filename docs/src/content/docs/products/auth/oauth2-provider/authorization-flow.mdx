@@ -48,7 +48,7 @@ You don't need to implement any of this — Nhost Auth takes care of it automati
 - **Validating the authorization request** — checks that the client exists, the redirect URI matches, and the requested scopes are allowed
 - **Redirecting to your consent page** — sends the user to the `loginURL` you configured in `nhost.toml`, with a `request_id` parameter
 - **Issuing authorization codes** — after your consent page submits approval, Auth generates a one-time code
-- **Exchanging codes for tokens** — the third-party app calls the token endpoint and Auth returns access tokens, ID tokens, and refresh tokens
+- **Exchanging codes for tokens** — the third-party app calls the token endpoint and Auth returns [access tokens, ID tokens, and refresh tokens](/products/auth/oauth2-provider/tokens-and-scopes)
 - **PKCE validation** — if the third-party app used PKCE (required for public clients), Auth verifies the code challenge automatically
 
 ## What the Third-Party App Handles

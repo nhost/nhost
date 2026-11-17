@@ -18,8 +18,7 @@ const ARGUMENT_TYPES = [
   'boolean',
 ];
 
-const argumentFieldClasses =
-  '!border-input !bg-background dark:!bg-accent-background';
+const argumentFieldClasses = '!border-input !bg-background';
 
 type AssistantFormPath = Path<AssistantFormValues>;
 
@@ -47,7 +46,7 @@ export default function ArgumentsFormSection({
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Add argument"
           onClick={() => append({})}
@@ -92,7 +91,7 @@ export default function ArgumentsFormSection({
                     control={form.control}
                     name={typeField}
                     placeholder="Select argument type"
-                    className="border-input bg-background dark:bg-accent-background"
+                    className="border-input bg-background"
                     containerClassName="space-y-0"
                     contentClassName="z-[10000] w-[270px] min-w-0"
                   >
@@ -108,15 +107,14 @@ export default function ArgumentsFormSection({
                     name={requiredField}
                     label="Required"
                     className="border-muted-foreground/60 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted-foreground/35 dark:data-[state=checked]:border-primary dark:data-[state=checked]:bg-primary dark:data-[state=unchecked]:bg-slate-500"
-                    containerClassName="flex h-10 flex-row-reverse items-center gap-2 space-y-0 px-1"
+                    containerClassName="flex flex-row-reverse items-center gap-2 space-y-0 px-1"
                     labelClassName="font-normal text-muted-foreground"
                   />
 
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
-                    className="h-10 text-destructive hover:text-destructive"
                     aria-label="Remove argument"
                     onClick={() => remove(index)}
                   >

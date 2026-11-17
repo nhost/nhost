@@ -1,4 +1,4 @@
-import { TriangleAlert, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import ImportMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/sections/ImportMetadataSection/ImportMetadataDialog';
 
@@ -16,7 +16,6 @@ export default function ImportMetadataSection() {
         file.
       </p>
       <Alert variant="warning">
-        <TriangleAlert className="size-5" />
         <AlertDescription className="text-muted-foreground">
           Importing will overwrite all existing metadata. Make sure to export a
           backup first.

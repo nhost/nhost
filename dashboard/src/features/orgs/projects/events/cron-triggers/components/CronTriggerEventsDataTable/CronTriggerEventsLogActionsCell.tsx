@@ -49,10 +49,9 @@ export default function CronTriggerEventsLogActionsCell({
   return (
     <div className="inline-flex w-fit items-center gap-0.5">
       <Button
-        variant="ghost"
-        size="sm"
+        variant="subtle"
+        size="icon-sm"
         onClick={row.getToggleExpandedHandler()}
-        className="h-7 w-7 p-0"
       >
         {row.getIsExpanded() ? (
           <Minimize className="size-4" />
@@ -64,10 +63,9 @@ export default function CronTriggerEventsLogActionsCell({
         <Tooltip>
           <TooltipTrigger asChild>
             <ButtonWithLoading
-              variant="ghost"
-              size="sm"
+              variant="subtle"
+              size="icon-sm"
               onClick={handleDeleteScheduledEvent}
-              className="h-7 w-7 p-0"
               disabled={isDeleteScheduledEventLoading}
               loading={isThisDeleteScheduledEventActionLoading}
               loaderClassName="mr-0 size-5"

@@ -32,7 +32,7 @@ export default function SelectOrganization() {
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
   const goToOrgPage = async (org: { name: string; value: string }) => {
-    const { slug } = router.query;
+    const { slug, ...query } = router.query;
     await router.push({
       pathname: `${org.value}/${(() => {
         if (!slug) {
@@ -40,6 +40,7 @@ export default function SelectOrganization() {
         }
         return Array.isArray(slug) ? slug.join('/') : slug;
       })()}`,
+      query,
     });
   };
 

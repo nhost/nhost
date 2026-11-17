@@ -11,13 +11,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { LogicalModelListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/LogicalModelListItem';
 import { NativeQueriesBrowserSidebarSkeleton } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebarSkeleton';
 import { NativeQueryListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const CreateLogicalModelForm = dynamic(
   () =>
@@ -87,7 +85,7 @@ function NativeQueriesBrowserSidebarContent() {
             placeholder="Search objects..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="h-10 pl-8 text-sm"
+            className="pl-8"
           />
         </div>
       </div>
@@ -115,9 +113,9 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-primary"
+                      variant="subtle"
+                      size="icon-xs"
+                      className="text-primary"
                       aria-label="New native query"
                       onClick={() =>
                         openDrawer({
@@ -169,9 +167,9 @@ function NativeQueriesBrowserSidebarContent() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-primary"
+                      variant="subtle"
+                      size="icon-xs"
+                      className="text-primary"
                       aria-label="New logical model"
                       onClick={() =>
                         openDrawer({
@@ -208,13 +206,6 @@ function NativeQueriesBrowserSidebarContent() {
 }
 
 export default function NativeQueriesBrowserSidebar() {
-  const isPlatform = useIsPlatform();
-  const { project } = useProject();
-
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
-    return null;
-  }
-
   return (
     <FeatureSidebar toggleOffset="left-8">
       <NativeQueriesBrowserSidebarContent />

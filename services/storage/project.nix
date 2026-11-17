@@ -41,6 +41,7 @@ let
 
           ../../internal/lib/oapi
           ../../internal/lib/hasura/metadata
+          (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/pgmigrate)
         ])
         (
           fs.unions [
@@ -140,6 +141,8 @@ rec {
       ;
 
     preCheck = ''
+      export PGMIGRATE_TEST_DATABASE_REQUIRED=1
+      export PGMIGRATE_TEST_DSN="postgres://postgres:hejsan@localhost:5432/postgres?sslmode=disable"
       export GIN_MODE=release
       export HASURA_AUTH_BEARER=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5ODAwNTYxNTAsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJhZG1pbiJdLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJhZG1pbiIsIngtaGFzdXJhLXVzZXItaWQiOiJhYjViYTU4ZS05MzJhLTQwZGMtODdlOC03MzM5OTg3OTRlYzIiLCJ4LWhhc3VyYS11c2VyLWlzQW5vbnltb3VzIjoiZmFsc2UifSwiaWF0IjoxNjY0Njk2MTUwLCJpc3MiOiJoYXN1cmEtYXV0aCIsInN1YiI6ImFiNWJhNThlLTkzMmEtNDBkYy04N2U4LTczMzk5ODc5NGVjMiJ9.OMVYu-30oOuUNZeSbzhP0u0pq5bf-U2Z49LWkqr3hyc
       export TEST_S3_ACCESS_KEY=5a7bdb5f42c41e0622bf61d6e08d5537
@@ -152,6 +155,7 @@ rec {
         --ignore-file ${src}/${submodule}/vacuum-ignore.yaml \
         ${src}/${submodule}/controller/openapi.yaml
     '';
+
   };
 
   devShell = nixops-lib.go.devShell {

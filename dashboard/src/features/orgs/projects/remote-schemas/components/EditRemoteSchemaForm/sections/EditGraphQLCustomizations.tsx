@@ -2,7 +2,7 @@ import {
   Check,
   ChevronsUpDown,
   InfoIcon,
-  SquarePen as PencilIcon,
+  Pencil as PencilIcon,
   PlusIcon,
   Trash2 as TrashIcon,
 } from 'lucide-react';
@@ -211,7 +211,7 @@ export default function EditGraphQLCustomizations({
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="mt-2 gap-1 border-blue-600 px-2 text-blue-600 hover:bg-blue-50 hover:text-blue-800"
+          className="mt-2 gap-2"
         >
           <PencilIcon className="h-4 w-4" />
           Edit GraphQL Customization
@@ -297,7 +297,7 @@ export default function EditGraphQLCustomizations({
           <Button
             aria-label="Add type remap"
             type="button"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={addFirstAvailableTypeRemap}
             disabled={!canAddTypeRemap}
@@ -333,9 +333,9 @@ export default function EditGraphQLCustomizations({
                 </div>
                 <div className="flex">
                   <Button
-                    className="h-10 self-end text-destructive hover:text-destructive"
+                    className="self-end"
                     aria-label="Remove type remap"
-                    variant="ghost"
+                    variant="subtle"
                     size="icon"
                     onClick={() => removeTypeRemap(fromType)}
                   >
@@ -356,7 +356,7 @@ export default function EditGraphQLCustomizations({
           </div>
           <Button
             aria-label="Add field name"
-            variant="ghost"
+            variant="subtle"
             size="icon"
             onClick={() =>
               appendFieldName({} as RemoteSchemaCustomizationFieldNamesItem)
@@ -405,10 +405,7 @@ export default function EditGraphQLCustomizations({
                           </PopoverTrigger>
                           <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                             <Command>
-                              <CommandInput
-                                placeholder="Search type..."
-                                className="h-9"
-                              />
+                              <CommandInput placeholder="Search type..." />
                               <CommandList>
                                 <CommandEmpty>No type found.</CommandEmpty>
                                 <CommandGroup>
@@ -502,9 +499,9 @@ export default function EditGraphQLCustomizations({
                   </div>
                   <div className="flex">
                     <Button
-                      className="h-10 self-end text-destructive hover:text-destructive"
+                      className="self-end"
                       aria-label="Remove field name"
-                      variant="ghost"
+                      variant="subtle"
                       size="icon"
                       onClick={() => removeFieldName(index)}
                     >

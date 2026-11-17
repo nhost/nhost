@@ -1,5 +1,4 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/material';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -11,7 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardFooter,
   SettingsCardHeader,
-  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { FormField } from '@/components/ui/v3/form';
@@ -32,9 +30,10 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { useThemePreference } from '@/providers/Theme';
 
 export default function GitHubProviderSettings() {
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
@@ -136,7 +135,7 @@ export default function GitHubProviderSettings() {
             title="GitHub"
             description="Allow users to sign in with GitHub."
             icon={
-              theme.palette.mode === 'dark'
+              resolvedTheme === 'dark'
                 ? '/assets/brands/light/github.svg'
                 : '/assets/brands/github.svg'
             }
@@ -153,11 +152,15 @@ export default function GitHubProviderSettings() {
                 )}
               />
             }
+            docsLink={{
+              href: 'https://docs.nhost.io/products/auth/providers/sign-in-github',
+              topic: 'how to sign in users with GitHub',
+            }}
           />
 
           <SettingsCardContent
             className={twMerge(
-              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 py-2',
               !authEnabled && 'hidden',
             )}
           >
@@ -174,11 +177,6 @@ export default function GitHubProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-github"
-              title="how to sign in users with GitHub"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

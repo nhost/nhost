@@ -24,21 +24,20 @@ function DataGridFilterValuePopup({
   }
 
   return (
-    <div className="absolute top-1 right-1">
+    <div className="absolute inset-y-0 right-1 flex items-center">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
+            variant="subtle"
+            size="icon-xs"
             title="Expand filter value"
-            className="h-6 w-6 hover:bg-[#eaedf0] dark:hover:bg-[#2f363d]"
           >
             <ExpandIcon strokeWidth={1} className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[28rem] p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
+          className="w-screen max-w-md p-0 data-[state=closed]:duration-100 data-[state=open]:duration-100"
           align="end"
         >
           <Textarea

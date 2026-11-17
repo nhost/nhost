@@ -2,6 +2,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import { mockMatchMediaValue } from '@/tests/mocks';
+import { saveMetadataHandler } from '@/tests/msw/mocks/rest/saveMetadata';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import {
   mockScrollIntoViewAndPointerCapture,
@@ -22,6 +23,7 @@ Object.defineProperty(window, 'matchMedia', {
 const metadataUrl = 'https://local.hasura.local.nhost.run/v1/metadata';
 
 const server = setupServer(
+  saveMetadataHandler,
   tableQuery,
   http.post(metadataUrl, async ({ request }) => {
     const { type } = (await request.json()) as { type: string };

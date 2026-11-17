@@ -71,6 +71,7 @@ export default function CreateOneOffForm() {
                     name="comment"
                     label="Comment"
                     placeholder="A statement to help describe the scheduled event in brief"
+                    autoFocus
                     className="max-w-lg"
                     autoComplete="off"
                   />
@@ -134,8 +135,7 @@ export default function CreateOneOffForm() {
             <div className="flex flex-1 flex-row items-start justify-between gap-2">
               <SheetClose asChild>
                 <Button
-                  variant="ghost"
-                  className="text-foreground"
+                  variant="outline"
                   disabled={form.formState.isSubmitting}
                 >
                   Cancel

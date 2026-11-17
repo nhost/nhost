@@ -87,7 +87,9 @@ export default async function updateTableMigration({
     return;
   }
 
-  const normalizedError = normalizeQueryError(responseData);
+  const normalizedError = normalizeQueryError(responseData, {
+    table: updatedTable,
+  });
 
   throw new Error(normalizedError);
 }

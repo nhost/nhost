@@ -28,9 +28,9 @@ describe('isSameLogEntry', () => {
 
   it('returns false when any field differs', () => {
     const base = entry();
-    expect(isSameLogEntry(base, entry({ timestamp: '2026-05-01T00:00:01Z' }))).toBe(
-      false,
-    );
+    expect(
+      isSameLogEntry(base, entry({ timestamp: '2026-05-01T00:00:01Z' })),
+    ).toBe(false);
     expect(isSameLogEntry(base, entry({ service: 'postgres' }))).toBe(false);
     expect(isSameLogEntry(base, entry({ log: 'different' }))).toBe(false);
   });

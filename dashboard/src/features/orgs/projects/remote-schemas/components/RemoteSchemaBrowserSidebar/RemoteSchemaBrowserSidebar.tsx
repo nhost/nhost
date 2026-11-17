@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Ellipsis as DotsHorizontalIcon,
   LinkIcon,
-  SquarePen as PencilIcon,
+  Pencil as PencilIcon,
   PlusIcon,
   Trash2 as TrashIcon,
   UsersIcon,
@@ -74,8 +74,7 @@ const EditRemoteSchemaRelationships = dynamic(
   },
 );
 
-const menuItemClassName =
-  'flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg';
+const menuItemClassName = 'cursor-pointer gap-2';
 
 export interface RemoteSchemaBrowserSidebarProps {
   className?: string;
@@ -239,7 +238,7 @@ function RemoteSchemaBrowserSidebarContent({
                           className={cn(
                             'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
                             {
-                              'text-primary-main': isSelected,
+                              'text-primary': isSelected,
                             },
                           )}
                         >
@@ -264,18 +263,17 @@ function RemoteSchemaBrowserSidebarContent({
                             )}
                           >
                             <Button
-                              variant="outline"
-                              size="icon"
+                              variant="subtle"
+                              size="icon-xs"
                               aria-label="Remote schema options"
-                              className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
                             >
-                              <DotsHorizontalIcon />
+                              <DotsHorizontalIcon className="size-6" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             side="bottom"
                             align="start"
-                            className="w-60 p-0"
+                            className="w-60"
                           >
                             <DropdownMenuItem
                               key="edit-table"
@@ -327,7 +325,7 @@ function RemoteSchemaBrowserSidebarContent({
                               key="delete-remote-schema"
                               className={cn(
                                 menuItemClassName,
-                                '!text-destructive',
+                                'text-destructive focus:bg-destructive-hover focus:text-destructive',
                               )}
                               onClick={() =>
                                 handleDeleteRemoteSchemaClick(remoteSchema)

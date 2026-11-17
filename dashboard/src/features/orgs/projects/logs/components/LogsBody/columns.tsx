@@ -1,18 +1,18 @@
+import type { CellContext, ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { useMemo } from 'react';
 import {
   highlightLog,
   type SearchRange,
 } from '@/features/orgs/projects/logs/components/LogsBody/highlightLog';
 import { getServiceStyle } from '@/features/orgs/projects/logs/components/LogsBody/serviceStyle';
 import {
+  detectSeverity,
   SEVERITY_LABEL,
   SEVERITY_TEXT,
-  detectSeverity,
 } from '@/features/orgs/projects/logs/components/LogsBody/severity';
 import type { LogEntry } from '@/features/orgs/projects/logs/components/LogsBody/types';
 import { cn } from '@/lib/utils';
-import type { CellContext, ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { useMemo } from 'react';
 
 export const ACTIONS_WIDTH = 44;
 export const TIMESTAMP_WIDTH = 145;
@@ -52,7 +52,7 @@ function LogLevelCell({ row }: CellContext<LogEntry, string>) {
   return (
     <span
       className={cn(
-        'font-mono text-[11px] font-semibold uppercase tracking-wide tabular-nums',
+        'font-mono font-semibold text-[11px] uppercase tabular-nums tracking-wide',
         SEVERITY_TEXT[severity],
       )}
     >

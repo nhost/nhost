@@ -1,7 +1,4 @@
-import {
-  getOrgUrl,
-  getProjectUrl,
-} from '@/components/layout/MainNav/nav-config';
+import { getOrgUrl, getProjectUrl } from '@/features/command-palette/catalog';
 import type { CommandNode } from '@/features/command-palette/types';
 
 interface ResolvePathContext {
