@@ -54,15 +54,15 @@ describe('ProjectsGrid', () => {
     expect(usLink).toHaveAttribute('href', '/orgs/test-org/projects/us');
     expect(euLink).toHaveAttribute('href', '/orgs/test-org/projects/eu');
 
-    const usFlag = screen.getByRole('button', {
+    const usRegion = screen.getByRole('button', {
       name: 'Region: Virginia (us-east-1)',
     });
     expect(
       screen.getByRole('button', { name: 'Region: Frankfurt (eu-central-1)' }),
     ).toBeInTheDocument();
-    // The flag sits above the link, never inside it, so clicking it
+    // The region sits above the link, never inside it, so clicking it
     // does not open the project.
-    expect(usLink).not.toContainElement(usFlag);
+    expect(usLink).not.toContainElement(usRegion);
   });
 
   it('keeps the plain link name when the region has no name', () => {

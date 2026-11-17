@@ -1,10 +1,10 @@
-import { ArrowRight, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { DeploymentFailedWarning } from '@/features/orgs/components/projects/DeploymentFailedWarning';
 import { ProjectLastDeployment } from '@/features/orgs/components/projects/ProjectLastDeployment';
-import { ProjectRegionFlag } from '@/features/orgs/components/projects/ProjectRegionFlag';
+import { ProjectRegion } from '@/features/orgs/components/projects/ProjectRegion';
 import { ProjectRepository } from '@/features/orgs/components/projects/ProjectRepository';
 import { getLatestDeployment } from '@/features/orgs/components/projects/utils/getLatestDeployment';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -25,22 +25,18 @@ export function ProjectCard({ project }: { project: Project }) {
   // The link is a layer under the whole card, not a wrapper: the warning icon
   // sits above it, so its tooltip opens without opening the project.
   return (
-    <div className="group relative flex h-full min-h-44 flex-col rounded-lg transition-colors duration-300">
+    <div className="group relative flex h-full min-h-44 flex-col rounded-lg">
       <Link
         href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
         aria-label={linkLabel}
         className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-background p-4 transition-[border-color,box-shadow] duration-300 group-hover:border-primary group-hover:shadow-[0_0_12px_hsl(var(--primary)/20%)]">
+      <div className="relative flex flex-1 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border bg-background p-4 transition-colors group-hover:border-primary/50 group-hover:bg-muted/20">
         <div className="flex flex-col gap-0.5 overflow-hidden">
           <div className="flex items-center gap-2">
-            <p
-              title={project.name}
-              className="min-w-0 truncate font-bold text-lg"
-            >
+            <p title={project.name} className="min-w-0 truncate font-medium">
               {project.name}
             </p>
-            <ProjectRegionFlag region={project.region} />
             {project.githubRepository && (
               <DeploymentFailedWarning latest={latestDeployment} />
             )}
@@ -58,7 +54,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
         <div className="flex w-full flex-row items-center justify-between gap-2">
           <ProjectStatusPill status={status} />
-          <ArrowRight className="ml-auto flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+          <ProjectRegion region={project.region} />
         </div>
       </div>
     </div>

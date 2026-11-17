@@ -8,8 +8,6 @@ query getProjects($orgSlug: String!) {
     slug
     createdAt
     subdomain
-    isLocked
-    isLockedReason
     region {
       id
       name
