@@ -24,8 +24,37 @@ let
     };
   };
 
+  # The root workspace's audit-ci and its config, which the examples run too.
+  rootNodeModules = nixops-lib.js.mkNodeModules {
+    name = "node-modules-${name}-root";
+    inherit version;
+
+    src = fs.toSource {
+      root = ../.;
+      fileset = fs.unions [
+        ../.npmrc
+        ../package.json
+        ../pnpm-workspace.yaml
+        ../pnpm-lock.yaml
+      ];
+    };
+
+    pnpmOpts = "--filter .";
+  };
+
+  auditSrc = fs.toSource {
+    root = ../.;
+    fileset = fs.unions [
+      ../.npmrc
+      ../audit-ci.jsonc
+      ../package.json
+      ../pnpm-workspace.yaml
+      ../pnpm-lock.yaml
+    ];
+  };
+
   src = fs.toSource {
-    root = ./.;
+    root = ../.;
     fileset = ./nextjs;
   };
 
@@ -43,8 +72,7 @@ let
 
     cp -r ${src} src
     chmod +w -R src
-    cd src/nextjs/frontend
-    cp -r ${nextjsNodeModules}/node_modules node_modules
+    cp -r ${nextjsNodeModules}/node_modules src/templates/nextjs/frontend/node_modules
   '';
 in
 {
@@ -60,6 +88,15 @@ in
       }
       ''
         ${setup}
+
+        cp -r ${auditSrc}/. src
+        chmod +w -R src
+        cp -r ${rootNodeModules}/node_modules src/node_modules
+
+        echo "➜ nextjs: audit"
+        (cd src && pnpm audit-ci --directory templates/nextjs/frontend)
+
+        cd src/templates/nextjs/frontend
 
         echo "➜ nextjs: lint"
         pnpm lint
@@ -81,6 +118,8 @@ in
       }
       ''
         ${setup}
+
+        cd src/templates/nextjs/frontend
 
         echo "➜ nextjs: build"
         pnpm build

@@ -14,6 +14,13 @@ on:
       - "nixops/**"
       - "build/**"
 
+      # common javascript
+      - ".npmrc"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+
       # templates
       - "templates/**"
   merge_group:
@@ -35,6 +42,11 @@ jobs:
         flake.lock
         nixops/**
         build/**
+        .npmrc
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
         templates/**
 
   check-permissions:
