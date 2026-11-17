@@ -1190,6 +1190,184 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 	}
 }
 
+func TestParseInsertNestedArrayVariableElements(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		data       *ast.Value
+		variables  map[string]any
+		wantTitles []string
+		wantErr    error
+		wantErrMsg string
+	}{
+		{
+			name:       "single object variable in list",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": map[string]any{"title": "First"}},
+			wantTitles: []string{"First"},
+		},
+		{
+			name: "multiple object variables in list",
+			data: listValue(child("", variableValue("a")), child("", variableValue("b"))),
+			variables: map[string]any{
+				"a": map[string]any{"title": "First"},
+				"b": map[string]any{"title": "Second"},
+			},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name: "mixed variable and inline object",
+			data: listValue(
+				child("", variableValue("post")),
+				child("", objectValue(child("title", variableValue("title")))),
+			),
+			variables: map[string]any{
+				"post": map[string]any{"title": "First"}, "title": "Second",
+			},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name: "whole list variable",
+			data: variableValue("posts"),
+			variables: map[string]any{"posts": []any{
+				map[string]any{"title": "First"}, map[string]any{"title": "Second"},
+			}},
+			wantTitles: []string{"First", "Second"},
+		},
+		{
+			name:       "single object variable coerced to list",
+			data:       variableValue("post"),
+			variables:  map[string]any{"post": map[string]any{"title": "First"}},
+			wantTitles: []string{"First"},
+		},
+		{
+			name:       "single inline object coerced to list",
+			data:       objectValue(child("title", stringValue("First"))),
+			wantTitles: []string{"First"},
+		},
+		{
+			name:       "null variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": nil},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "scalar variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": "First"},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "list variable is not an object",
+			data:       listValue(child("", variableValue("post"))),
+			variables:  map[string]any{"post": []any{map[string]any{"title": "First"}}},
+			wantErr:    arguments.ErrInvalidArgument,
+			wantErrMsg: "each element of data for array relationship posts must be an object",
+		},
+		{
+			name:       "missing variable reports first element index",
+			data:       listValue(child("", variableValue("missing"))),
+			wantErr:    values.ErrVariableNotFound,
+			wantErrMsg: "failed to resolve posts data[0]",
+		},
+		{
+			name: "missing variable reports later element index",
+			data: listValue(
+				child("", objectValue(child("title", stringValue("First")))),
+				child("", variableValue("missing")),
+			),
+			wantTitles: []string{"First"},
+			wantErr:    values.ErrVariableNotFound,
+			wantErrMsg: "failed to resolve posts data[1]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			parent := mock.NewMockTable(ctrl)
+			target := mock.NewMockTable(ctrl)
+			rel := mock.NewMockRelationship(ctrl)
+
+			parent.EXPECT().Relationship("posts").Return(rel)
+			rel.EXPECT().TargetTable().Return(target)
+			rel.EXPECT().IsArray().Return(true)
+
+			if tt.wantErr == nil {
+				parent.EXPECT().InsertPresets("user").Return(nil)
+				rel.EXPECT().FKColumns().Return([]string{"author_id"})
+				rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+				rel.EXPECT().InsertAfterParent().Return(false)
+			}
+
+			for range tt.wantTitles {
+				target.EXPECT().Relationship("title").Return(nil)
+				target.EXPECT().
+					ColumnFromGraphqlName("title").
+					Return(newColumn("title", "title", "text"))
+				target.EXPECT().InsertPresets("user").Return(nil)
+			}
+
+			args := ast.ArgumentList{&ast.Argument{
+				Name: "object",
+				Value: objectValue(child("posts", objectValue(
+					child("data", tt.data),
+				))),
+			}}
+			before := args[0].Value.String()
+
+			obj, _, err := arguments.ParseInsert(parent, args, tt.variables, "user", nil)
+			if after := args[0].Value.String(); after != before {
+				t.Errorf("input AST changed: before=%s after=%s", before, after)
+			}
+
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("ParseInsert error = %v, want %v", err, tt.wantErr)
+				}
+
+				if !strings.Contains(err.Error(), tt.wantErrMsg) {
+					t.Errorf("error = %q, want it to contain %q", err, tt.wantErrMsg)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ParseInsert: %v", err)
+			}
+
+			assertNestedPostTitles(t, obj, tt.wantTitles)
+		})
+	}
+}
+
+func assertNestedPostTitles(t *testing.T, obj arguments.InsertObject, titles []string) {
+	t.Helper()
+
+	if len(obj.NestedInserts) != 1 {
+		t.Fatalf("got %d nested inserts, want 1", len(obj.NestedInserts))
+	}
+
+	nested := obj.NestedInserts[0]
+	if nested.RelationshipName != "posts" || !nested.IsArrayRelationship ||
+		len(nested.NestedObjects) != len(titles) {
+		t.Fatalf("unexpected nested insert: %+v", nested)
+	}
+
+	for i, title := range titles {
+		cols := nested.NestedObjects[i].Columns
+		if len(cols) != 1 || cols[0].Column.SQLName != "title" || cols[0].Value != title {
+			t.Errorf("nested object %d columns = %+v, want title=%q", i, cols, title)
+		}
+	}
+}
+
 func TestParseInsert_NestedRelationshipFailures(t *testing.T) {
 	t.Parallel()
 

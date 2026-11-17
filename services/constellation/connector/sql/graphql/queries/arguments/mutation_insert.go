@@ -761,15 +761,20 @@ func parseNestedDataObjects(
 
 	objects := make([]InsertObject, 0, len(children))
 
-	for _, c := range children {
-		if c.Value.Kind != ast.ObjectValue {
+	for i, c := range children {
+		objectValue, err := values.ResolveVariable(c.Value, variables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve %s data[%d]: %w", fieldName, i, err)
+		}
+
+		if objectValue.Kind != ast.ObjectValue {
 			return nil, fmt.Errorf(
 				"%w: each element of data for array relationship %s must be an object",
 				ErrInvalidArgument, fieldName,
 			)
 		}
 
-		obj, err := parseInsertObject(target, c.Value, variables, role, sessionVariables)
+		obj, err := parseInsertObject(target, objectValue, variables, role, sessionVariables)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse nested insert for %s: %w", fieldName, err)
 		}
