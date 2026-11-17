@@ -17,16 +17,16 @@ func isTTY() bool {
 	return term.IsTerminal(int(os.Stdout.Fd()))
 }
 
-func resolveNameValue(cmd *cli.Command) (string, string, error) {
+func resolveNameValue(cmd *cli.Command, interactive bool) (string, string, error) {
 	switch cmd.NArg() {
 	case 2: //nolint:mnd
 		return cmd.Args().Get(0), cmd.Args().Get(1), nil
 	case 1:
-		val, err := promptSecretValue(cmd.Args().Get(0))
+		val, err := promptSecretValue(cmd.Args().Get(0), interactive)
 
 		return cmd.Args().Get(0), val, err
 	case 0:
-		if !isTTY() {
+		if !interactive {
 			return "", "", errors.New( //nolint:err113
 				"expected at least 1 argument: NAME [VALUE]",
 			)
@@ -46,13 +46,13 @@ func promptNameAndValue() (string, string, error) {
 		return "", "", errors.New("secret name is required") //nolint:err113
 	}
 
-	val, err := promptSecretValue(name)
+	val, err := promptSecretValue(name, true)
 
 	return name, val, err
 }
 
-func promptSecretValue(name string) (string, error) {
-	if !isTTY() {
+func promptSecretValue(name string, interactive bool) (string, error) {
+	if !interactive {
 		return "", errors.New( //nolint:err113
 			"VALUE argument is required in non-interactive mode",
 		)
@@ -71,6 +71,7 @@ func resolveDeleteName(
 	cmd *cli.Command,
 	ce *clienv.CliEnv,
 	appID string,
+	interactive bool,
 ) (string, error) {
 	if cmd.NArg() == 1 {
 		return cmd.Args().Get(0), nil
@@ -80,7 +81,7 @@ func resolveDeleteName(
 		return "", errors.New("expected at most 1 argument: NAME") //nolint:err113
 	}
 
-	if !isTTY() {
+	if !interactive {
 		return "", errors.New("expected 1 argument: NAME") //nolint:err113
 	}
 

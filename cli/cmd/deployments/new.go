@@ -2,8 +2,11 @@ package deployments
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -60,6 +63,10 @@ func CommandNew() *cli.Command {
 					Name:  flagUserAvatarURL,
 					Usage: "Commit user avatar URL",
 				},
+				&cli.BoolFlag{ //nolint:exhaustruct
+					Name:  flagJSON,
+					Usage: "Output as JSON. Progress and logs go to stderr",
+				},
 			}...,
 		),
 	}
@@ -67,13 +74,14 @@ func CommandNew() *cli.Command {
 
 func commandNew(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	jsonOutput := cmd.Bool(flagJSON)
 
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), true)
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), !jsonOutput)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -101,33 +109,84 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 		)
 	}
 
-	ce.Println("Deployment created: %s", resp.InsertPipelineRun.ID)
+	run := resp.InsertPipelineRun
 
+	// With --json, stdout carries only the JSON result.
+	out := ce
+	if jsonOutput {
+		out = ce.WithStdout(os.Stderr)
+	}
+
+	out.Println("Deployment created: %s", run.ID)
+
+	status := string(run.Status)
+
+	var followErr error
 	if cmd.Bool(flagFollow) {
-		ce.Println("")
-
-		ctxWithTimeout, cancel := context.WithTimeout(ctx, cmd.Duration(flagTimeout))
-		defer cancel()
-
-		now := time.Now()
-
-		status, err := showPipelineRunLogsFollow(
-			ctxWithTimeout, ce, cl, proj.ID, resp.InsertPipelineRun.ID, &now,
+		status, followErr = followDeployment(
+			ctx, out, cl, proj.ID, run.ID, cmd.Duration(flagTimeout),
 		)
-		if err != nil {
-			if ctxWithTimeout.Err() != nil {
-				ce.Println(
-					"Timed out waiting for deployment. It may still be running. " +
-						"Check status with: nhost deployments list",
-				)
-			}
+	}
 
-			return fmt.Errorf("error streaming logs: %w", err)
+	if jsonOutput {
+		if err := printNewDeploymentJSON(os.Stdout, run.ID, status); err != nil {
+			return err
+		}
+	}
+
+	return followErr
+}
+
+// followDeployment streams the deployment's logs until it finishes and returns
+// its final status. It fails if the deployment doesn't succeed, or with an
+// empty status if the logs can't be followed until the end.
+func followDeployment(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	cl *graphql.Client,
+	appID string,
+	pipelineRunID string,
+	timeout time.Duration,
+) (string, error) {
+	ce.Println("")
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	now := time.Now()
+
+	status, err := showPipelineRunLogsFollow(
+		ctxWithTimeout, ce, cl, appID, pipelineRunID, &now,
+	)
+	if err != nil {
+		if ctxWithTimeout.Err() != nil {
+			ce.Println(
+				"Timed out waiting for deployment. It may still be running. " +
+					"Check status with: nhost deployments list",
+			)
 		}
 
-		if status != string(graphql.PipelineRunStatusEnumSucceeded) {
-			return fmt.Errorf("deployment failed: %s", status) //nolint:err113
-		}
+		return "", fmt.Errorf("error streaming logs: %w", err)
+	}
+
+	if status != string(graphql.PipelineRunStatusEnumSucceeded) {
+		return status, fmt.Errorf("deployment failed: %s", status) //nolint:err113
+	}
+
+	return status, nil
+}
+
+type newDeploymentJSON struct {
+	ID     string `json:"id"`
+	Status string `json:"status,omitempty"`
+}
+
+func printNewDeploymentJSON(w io.Writer, id, status string) error {
+	if err := json.NewEncoder(w).Encode(newDeploymentJSON{
+		ID:     id,
+		Status: status,
+	}); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
 	}
 
 	return nil

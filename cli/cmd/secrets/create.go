@@ -15,13 +15,13 @@ func CommandCreate() *cli.Command {
 		Aliases:   []string{},
 		Usage:     "Create secret in the cloud environment",
 		Action:    commandCreate,
-		Flags:     commonFlags(),
+		Flags:     append(commonFlags(), jsonFlag()),
 	}
 }
 
 func commandCreate(ctx context.Context, cmd *cli.Command) error {
 	return runSecretMutation(
-		ctx, cmd, "Secret created successfully!",
+		ctx, cmd, "created",
 		func(cl *graphql.Client, appID, name, value string) error {
 			if _, err := cl.CreateSecret(ctx, appID, name, value); err != nil {
 				return fmt.Errorf("failed to create secret: %w", err)

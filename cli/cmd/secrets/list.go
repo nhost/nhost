@@ -22,10 +22,7 @@ func CommandList() *cli.Command {
 		Aliases: []string{},
 		Usage:   "List secrets in the cloud environment",
 		Action:  commandList,
-		Flags: append(commonFlags(), &cli.BoolFlag{ //nolint:exhaustruct
-			Name:  flagJSON,
-			Usage: "Output as JSON",
-		}),
+		Flags:   append(commonFlags(), jsonFlag()),
 	}
 }
 

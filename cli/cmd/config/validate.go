@@ -32,6 +32,10 @@ func CommandValidate() *cli.Command {
 				Usage:   "Validate this subdomain's configuration. Defaults to linked project",
 				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
+			},
 		},
 	}
 }
@@ -41,11 +45,70 @@ func commandValidate(ctx context.Context, cmd *cli.Command) error {
 	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
 	subdomain := cmd.String(flagSubdomain)
+
+	if cmd.Bool(flagJSON) {
+		return commandValidateJSON(ctx, ce, subdomain)
+	}
+
 	if subdomain != "" && subdomain != "local" {
 		return commandValidateRemote(ctx, ce, subdomain, isTTY)
 	}
 
 	return commandValidateLocal(ce, isTTY)
+}
+
+// commandValidateJSON validates the same configuration as the other modes but
+// prints only the result, as JSON. An invalid configuration still fails the
+// command, after the result is printed.
+func commandValidateJSON(ctx context.Context, ce *clienv.CliEnv, subdomain string) error {
+	quiet := ce.WithStdout(io.Discard)
+
+	var validationErr error
+
+	if subdomain != "" && subdomain != "local" {
+		proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, subdomain, false)
+		if err != nil {
+			return fmt.Errorf("failed to get app info: %w", err)
+		}
+
+		subdomain = proj.GetSubdomain()
+		_, _, validationErr = ValidateRemote(ctx, quiet, subdomain, proj.GetID())
+	} else {
+		subdomain = "local"
+		validationErr = validateLocalConfig(quiet)
+	}
+
+	if err := printValidationJSON(os.Stdout, subdomain, validationErr); err != nil {
+		return err
+	}
+
+	return validationErr
+}
+
+type validationJSON struct {
+	Subdomain string `json:"subdomain"`
+	Valid     bool   `json:"valid"`
+	Error     string `json:"error,omitempty"`
+}
+
+func printValidationJSON(w io.Writer, subdomain string, validationErr error) error {
+	result := validationJSON{
+		Subdomain: subdomain,
+		Valid:     validationErr == nil,
+		Error:     "",
+	}
+	if validationErr != nil {
+		result.Error = validationErr.Error()
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(result); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
+
+	return nil
 }
 
 func commandValidateLocal(ce *clienv.CliEnv, isTTY bool) error {

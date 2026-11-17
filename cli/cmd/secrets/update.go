@@ -15,13 +15,13 @@ func CommandUpdate() *cli.Command {
 		Aliases:   []string{},
 		Usage:     "Update secret in the cloud environment",
 		Action:    commandUpdate,
-		Flags:     commonFlags(),
+		Flags:     append(commonFlags(), jsonFlag()),
 	}
 }
 
 func commandUpdate(ctx context.Context, cmd *cli.Command) error {
 	return runSecretMutation(
-		ctx, cmd, "Secret updated successfully!",
+		ctx, cmd, "updated",
 		func(cl *graphql.Client, appID, name, value string) error {
 			if _, err := cl.UpdateSecret(ctx, appID, name, value); err != nil {
 				return fmt.Errorf("failed to update secret: %w", err)
