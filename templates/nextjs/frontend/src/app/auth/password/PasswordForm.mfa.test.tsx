@@ -98,4 +98,39 @@ describe('password sign-in with two-factor on', () => {
     expect(actions.verifyMfa).toHaveBeenCalledWith('mfaTotp:abc', '123456');
     expect(router.push).toHaveBeenCalledWith('/account');
   });
+
+  // Auth spends the ticket on the first attempt, even a wrong one, so a retry
+  // on the same ticket could never succeed.
+  it('signs in again for a fresh ticket after a wrong code', async () => {
+    actions.signIn
+      .mockResolvedValueOnce({ mfaTicket: 'mfaTotp:first' })
+      .mockResolvedValueOnce({ mfaTicket: 'mfaTotp:second' });
+    actions.verifyMfa
+      .mockResolvedValueOnce({
+        error: 'Could not verify the code: Invalid TOTP',
+      })
+      .mockResolvedValueOnce({ success: true });
+    await type('Email', 'user@example.com');
+    await type('Password', 'password');
+    await submit();
+
+    await type('Authenticator code', '000000');
+    await submit();
+
+    expect(container.textContent).toContain('Invalid TOTP');
+    expect(router.push).not.toHaveBeenCalled();
+
+    await type('Authenticator code', '123456');
+    await submit();
+
+    expect(actions.signIn).toHaveBeenLastCalledWith(
+      'user@example.com',
+      'password',
+    );
+    expect(actions.verifyMfa).toHaveBeenLastCalledWith(
+      'mfaTotp:second',
+      '123456',
+    );
+    expect(router.push).toHaveBeenCalledWith('/account');
+  });
 });

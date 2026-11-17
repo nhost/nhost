@@ -47,6 +47,9 @@ export default function PasswordForm({
   // Set when the password was right but the account has two-factor on: the
   // backend wants a code from the authenticator app before it issues a session.
   const [mfaTicket, setMfaTicket] = useState<string | undefined>();
+  // Auth spends the ticket on every attempt, right or wrong, so a retry signs
+  // in again with the same password for a fresh one.
+  const [ticketSpent, setTicketSpent] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
@@ -111,8 +114,29 @@ export default function PasswordForm({
     setError(undefined);
     setIsPending(true);
     try {
-      const result = await verifyMfa(mfaTicket ?? '', code);
+      let ticket = mfaTicket;
+      if (ticketSpent) {
+        const fresh = await signIn(email, password);
+        if (fresh.error) {
+          setError(fresh.error);
+          return;
+        }
+
+        // Two-factor was turned off in the meantime: the password alone was
+        // enough.
+        if (!fresh.mfaTicket) {
+          finishSignIn();
+          return;
+        }
+
+        ticket = fresh.mfaTicket;
+        setMfaTicket(ticket);
+        setTicketSpent(false);
+      }
+
+      const result = await verifyMfa(ticket ?? '', code);
       if (result.error) {
+        setTicketSpent(true);
         setError(result.error);
         return;
       }
@@ -120,6 +144,7 @@ export default function PasswordForm({
       finishSignIn();
     } catch (err) {
       console.error('Error verifying the code:', err);
+      setTicketSpent(true);
       setError(NETWORK_ERROR);
     } finally {
       setIsPending(false);
@@ -130,6 +155,7 @@ export default function PasswordForm({
   // ticket lapsed or the authenticator not to hand.
   const startOver = (): void => {
     setMfaTicket(undefined);
+    setTicketSpent(false);
     setCode('');
     setPassword('');
     setError(undefined);
