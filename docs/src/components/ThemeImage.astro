@@ -10,7 +10,14 @@ interface Props {
   class?: string;
 }
 
-const { light, dark, alt, width, height, class: className } = Astro.props;
+const { alt, width, height, class: className } = Astro.props;
+
+// Public paths like "/images/x.svg" need Astro's `base` prepended.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (src: string) =>
+  src.startsWith('/') && !src.startsWith('//') ? `${base}${src}` : src;
+const light = withBase(Astro.props.light);
+const dark = withBase(Astro.props.dark);
 ---
 
 <span class={className} data-theme-image>

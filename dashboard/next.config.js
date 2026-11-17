@@ -99,6 +99,8 @@ module.exports = withBundleAnalyzer({
     // bootstrap into the HTML, which our CSP (no 'unsafe-inline') blocks.
     turbopackSharedRuntime: false,
   },
+  // POC: serve the dashboard under nhost.com/dashboard (nhost/projects#277).
+  basePath: '/dashboard',
   reactStrictMode: false,
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../'),

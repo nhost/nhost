@@ -11,6 +11,10 @@ import starlightSidebarTopics from 'starlight-sidebar-topics';
 import starlightOpenAPI, {
   createOpenAPISidebarGroup,
 } from './src/plugins/starlight-openapi/index.ts';
+import rehypeBaseLinks from './src/plugins/rehype-base-links.mjs';
+
+// POC: serve the docs under nhost.com/docs (nhost/projects#277).
+const base = '/docs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,7 +24,8 @@ const storageAPISidebarGroup = createOpenAPISidebarGroup();
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://docs.nhost.io',
+  site: 'http://localhost:3000',
+  base,
   // Serve URLs without a trailing slash (e.g. /products/auth, not /products/auth/).
   // Keeps the Starlight canonical tag and internal links in the no-slash form, and
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
@@ -48,6 +53,7 @@ export default defineConfig({
   // processor model (then the gfm-on default applies automatically).
   markdown: {
     gfm: true,
+    rehypePlugins: [[rehypeBaseLinks, { base }]],
   },
   adapter: vercel({
     includeFiles: [
@@ -88,6 +94,7 @@ export default defineConfig({
           href: 'https://www.linkedin.com/company/nhost',
         },
       ],
+      routeMiddleware: './src/routeData.ts',
       components: {
         Header: './src/components/Header.astro',
         Head: './src/components/Head.astro',
