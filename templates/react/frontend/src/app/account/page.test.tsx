@@ -40,6 +40,11 @@ vi.mock('@/app/signin/methods', () => ({
   ],
 }));
 
+// It loads the sessions over GraphQL; its own tests cover it.
+vi.mock('@/app/account/SessionsCard', () => ({
+  default: () => <section>Sessions card</section>,
+}));
+
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -118,6 +123,17 @@ describe('account page', () => {
     expect(container.textContent).toContain(
       'Plain method also signs in to this account',
     );
+  });
+
+  it('shows the profile, the sessions and a way to close the account', async () => {
+    getVerifiedUser.mockResolvedValue({ user });
+
+    await open();
+
+    expect(container.textContent).toContain(user.displayName);
+    expect(container.textContent).toContain(user.id);
+    expect(container.textContent).toContain('Sessions card');
+    expect(container.textContent).toContain('Delete account');
   });
 
   // A stored session anyone could have written gets this far; the auth

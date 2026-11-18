@@ -1,6 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import {
+  createBrowserRouter,
+  Outlet,
+  RouterProvider,
+  ScrollRestoration,
+} from 'react-router';
 import SessionGuard from '@/components/SessionGuard';
 import AuthProvider from '@/lib/nhost/AuthProvider';
 import { startSession } from '@/lib/nhost/startSession';
@@ -12,8 +17,11 @@ await startSession();
 
 const router = createBrowserRouter([
   {
+    // ScrollRestoration starts each new page at the top, as Next does, and
+    // puts Back where it was.
     element: (
       <AuthProvider>
+        <ScrollRestoration />
         <SessionGuard>
           <Outlet />
         </SessionGuard>

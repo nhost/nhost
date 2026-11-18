@@ -1,10 +1,14 @@
 import type { User } from '@nhost/nhost-js/auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import DeleteAccountSetting from '@/app/account/DeleteAccountSetting';
 import ProfileSummary from '@/app/account/ProfileSummary';
+import SessionsCard from '@/app/account/SessionsCard';
 import SignInSettings from '@/app/account/SignInSettings';
 import { signInHref } from '@/app/signin/destination';
 import Code from '@/components/Code';
+import { SettingsList } from '@/components/Setting';
+import { Card } from '@/components/ui/card';
 import { getVerifiedUser, nhost } from '@/lib/nhost/client';
 import { useLoad } from '@/lib/useLoad';
 
@@ -59,6 +63,14 @@ export default function Account() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <ProfileSummary user={user} />
       <SignInSettings user={user} />
+      <SessionsCard />
+      {/* Untitled: the label says what the row is, and the dialog it opens
+          spells out what the button does. */}
+      <Card className="gap-0 py-0">
+        <SettingsList>
+          <DeleteAccountSetting />
+        </SettingsList>
+      </Card>
 
       <p className="mt-2 text-center text-muted-foreground text-sm">
         Edit this page in <Code>src/app/account/</Code>.

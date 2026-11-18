@@ -1,5 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
+import ChangeEmailForm from '@/app/account/ChangeEmailForm';
 import { buttonSettings, methods } from '@/app/signin/methods';
+import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 
 /** Every sign-in method, as the account page shows it. */
@@ -20,11 +22,11 @@ export default function SignInSettings({ user }: { user: User }) {
       <h2 className="px-5 pt-4 pb-1 font-semibold text-muted-foreground text-sm">
         Sign-in
       </h2>
-      <ul className="divide-y">
-        <li className="flex min-h-14 items-center gap-3 px-5 py-2 text-sm">
-          <span className="w-24 shrink-0 font-medium sm:w-30">Email</span>
-          <span className="min-w-0 flex-1 truncate text-muted-foreground">
-            {user.email ? (
+      <SettingsList>
+        <DialogSetting
+          label="Email"
+          value={
+            user.email ? (
               <>
                 {user.email}
                 {user.emailVerified ? null : (
@@ -33,9 +35,14 @@ export default function SignInSettings({ user }: { user: User }) {
               </>
             ) : (
               'None'
-            )}
-          </span>
-        </li>
+            )
+          }
+          action="Change"
+          title="Change email"
+          description="We'll send a link to the new address to confirm it."
+        >
+          <ChangeEmailForm email={user.email} verified={user.emailVerified} />
+        </DialogSetting>
         {methods.flatMap((method) =>
           Object.entries(method.account ?? {}).map(([name, Setting]) => (
             <Setting key={`${method.href}#${name}`} user={user} />
@@ -45,7 +52,7 @@ export default function SignInSettings({ user }: { user: User }) {
           // biome-ignore lint/suspicious/noArrayIndexKey: the list is fixed at startup
           <Setting key={`buttons#${index}`} user={user} />
         ))}
-      </ul>
+      </SettingsList>
       {unmanaged.length > 0 ? (
         <p className="border-t px-5 py-3 text-muted-foreground text-xs">
           {`${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, no additional set up needed.`}

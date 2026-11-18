@@ -1,3 +1,5 @@
+import type { AvatarWidth } from '@/app/account/avatar';
+import { useAvatarSrc } from '@/app/account/useAvatarSrc';
 import { cn } from '@/lib/utils';
 
 // Falls back to a dot rather than an empty disc: a display name can be an
@@ -5,14 +7,23 @@ import { cn } from '@/lib/utils';
 const initialOf = (displayName: string): string =>
   displayName.trim().slice(0, 1).toUpperCase() || '·';
 
-/** The account's initial in a disc. */
+/**
+ * The account's picture over its initial, so the initial shows wherever the
+ * picture does not paint.
+ */
 export default function UserAvatar({
+  avatarUrl,
   displayName,
+  width,
   className,
 }: {
+  avatarUrl: string | undefined;
   displayName: string;
+  width: AvatarWidth;
   className?: string;
 }) {
+  const src = useAvatarSrc(avatarUrl, width);
+
   return (
     <div
       aria-hidden="true"
@@ -22,6 +33,13 @@ export default function UserAvatar({
       )}
     >
       {initialOf(displayName)}
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : null}
     </div>
   );
 }

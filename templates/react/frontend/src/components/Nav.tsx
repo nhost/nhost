@@ -39,7 +39,9 @@ export default function Nav() {
                   className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <UserAvatar
+                    avatarUrl={user.avatarUrl}
                     displayName={user.displayName}
+                    width={64}
                     className="size-8 text-xs"
                   />
                   <span className="sr-only">Your account</span>
