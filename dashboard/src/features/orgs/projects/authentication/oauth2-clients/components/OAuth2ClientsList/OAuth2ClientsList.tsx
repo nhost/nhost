@@ -139,8 +139,8 @@ export default function OAuth2ClientsList({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="subtle"
-                    size="icon"
-                    className="absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2"
+                    size="icon-sm"
+                    className="absolute top-1/2 right-2 -translate-y-1/2"
                     aria-label={`More options for ${client.clientId}`}
                   >
                     <DotsHorizontalIcon className="h-4 w-4" />

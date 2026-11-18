@@ -28,6 +28,9 @@ on:
       - tools/configdocs/**
       - services/postgres/plugins.md
 
+      # prose: the Vale styles, shared with the blog and repository Markdown
+      - .vale/styles/**
+
       # nhost-js
       - packages/nhost-js/**
 
@@ -70,6 +73,7 @@ jobs:
         docs/**
         tools/configdocs/**
         services/postgres/plugins.md
+        .vale/styles/**
         packages/nhost-js/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
@@ -78,7 +82,7 @@ jobs:
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -90,7 +94,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      RUNS_ON: '["blacksmith-2vcpu-ubuntu-2404"]'
+      RUNS_ON: '["nhost-aarch64-4c8g"]'
       NAME: docs
       PROJECT: docs
       GIT_REF: >-
@@ -110,6 +114,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: nhost-x86_64-2c4g
       NAME: docs
       GIT_REF: >-
         ${{ github.event_name == 'pull_request_target' &&

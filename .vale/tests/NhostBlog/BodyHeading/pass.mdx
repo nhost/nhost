@@ -1,0 +1,17 @@
+The retry budget decides how long a failed request keeps trying.
+
+## How a retry budget caps retries
+
+A budget caps the total time spent on retries for one request.
+
+```sh
+# install the CLI
+curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+```
+
+1. Set the budget in the config file:
+
+   ```yaml
+   # seconds, not milliseconds
+   retryBudget: 30
+   ```

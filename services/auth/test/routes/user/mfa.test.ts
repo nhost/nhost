@@ -84,12 +84,20 @@ describe('mfa totp', () => {
       .send({ email, password })
       .expect(StatusCodes.OK);
 
+    const ticket = signInBody.mfa?.ticket;
+    const otp = authenticator.generate(totpSecret);
+
+    // a wrong code must not consume the ticket
+    const { body: wrongOtpBody } = await request
+      .post('/signin/mfa/totp')
+      .send({ ticket, otp: otp === '000000' ? '111111' : '000000' })
+      .expect(StatusCodes.UNAUTHORIZED);
+
+    expect(wrongOtpBody.error).toBe('invalid-totp');
+
     const { body: mfaTotpBody }: { body: SignInResponse } = await request
       .post('/signin/mfa/totp')
-      .send({
-        ticket: signInBody.mfa?.ticket,
-        otp: authenticator.generate(totpSecret),
-      })
+      .send({ ticket, otp })
       .expect(StatusCodes.OK);
 
     expect(mfaTotpBody.session).toBeTruthy();
@@ -97,6 +105,14 @@ describe('mfa totp', () => {
     if (!mfaTotpBody.session) {
       throw new Error('session is not set');
     }
+
+    // the ticket is single-use once the code is accepted
+    const { body: reusedTicketBody } = await request
+      .post('/signin/mfa/totp')
+      .send({ ticket, otp })
+      .expect(StatusCodes.UNAUTHORIZED);
+
+    expect(reusedTicketBody.error).toBe('invalid-ticket');
 
     accessToken = mfaTotpBody.session.accessToken;
 

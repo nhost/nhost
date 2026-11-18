@@ -36,8 +36,8 @@ on:
         description: "JSON runner-label list; checks run on the first entry"
         type: string
         default: >-
-          ["blacksmith-4vcpu-ubuntu-2404-arm",
-           "blacksmith-2vcpu-ubuntu-2404"]
+          ["nhost-aarch64-4c8g",
+           "nhost-x86_64-4c8g"]
       DOCKER:
         type: boolean
         default: false

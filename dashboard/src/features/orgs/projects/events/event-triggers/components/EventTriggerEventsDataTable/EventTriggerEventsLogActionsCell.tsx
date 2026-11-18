@@ -14,9 +14,8 @@ export default function EventTriggerEventsLogActionsCell({
     <div className="inline-flex w-fit items-center gap-0.5">
       <Button
         variant="subtle"
-        size="sm"
+        size="icon-sm"
         onClick={row.getToggleExpandedHandler()}
-        className="h-7 w-7 p-0"
         aria-label={row.getIsExpanded() ? 'Collapse row' : 'Expand row'}
       >
         {row.getIsExpanded() ? (

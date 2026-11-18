@@ -39,6 +39,10 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - Astro-based documentation site
 
+### Landing (`landing/`)
+
+- Next.js site for nhost.io, including the blog: MDX posts under `landing/src/pages/blog/`
+
 ### Examples (`examples/`)
 
 - `examples/demos/` - feature demonstrations
@@ -46,6 +50,11 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `examples/quickstarts/` - quick setup examples (Next.js, React, React Native)
 - `examples/tutorials/` - full tutorials (Next.js, Vue, React Native)
 - `examples/docker-compose/` - self-hosting reference
+
+### Templates (`templates/`)
+
+- `templates/nextjs/` - Next.js starter with server-side Nhost auth. A standalone app with its own lockfile, outside the root pnpm workspace, so it builds exactly as a scaffolded copy does
+- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean
 
 ### Build System (`build/`)
 
@@ -60,6 +69,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `tools/configdocs` - Go generator for the `nhost.toml` configuration reference, checked and built through its own Nix project
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
+- `tools/vale` - Nix check for the shared Vale styles in `.vale/`: runs their rule fixtures and lints repository Markdown (READMEs, contributor guides, `CLAUDE.md` files) with the root `.vale.ini`; `make -C tools/vale spellcheck` spell-checks all tracked Markdown with `typos` and the root `.typos.toml`
 
 ## Development Environment
 
@@ -75,14 +85,15 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
+- **Prose (Markdown and MDX)** — Vale, from `.vale/styles/` at the repository root, shared by three configs: `docs/.vale.ini` for the docs site, `landing/.vale.ini` for the blog, and the root `.vale.ini` for every other tracked Markdown file not listed in `.vale/markdown.ignore`. The `Nhost` style runs everywhere, `NhostBlog` on the blog only. Error-level alerts fail the `docs`, `landing` and `vale` Nix checks. Spelling is checked by `typos` (`.vale/spellcheck.sh`), not `Vale.Spelling`. Commands, severity tiers with their measured counts, and the fixture harness (`.vale/test.sh`) are in `.vale/styles/README.md`. A rule's tier moves only on a measured count, and a change under `.vale/styles/` moves every destination.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 
 ## CI/CD
 
 - GitHub Actions workflows in `.github/workflows/`.
-- Project check/release callers use `.github/workflows/wf_check.yaml` for checks and optional builds; releases set `CHECKS: false`. Callers select explicit runner-label lists with `RUNS_ON`; checks run on the first entry.
-- Linux CI uses Blacksmith and GitHub-hosted runners. macOS cache warming uses `blacksmith-6vcpu-macos-latest`; npm trusted publishing uses GitHub-hosted `ubuntu-latest`.
+- Project check/release callers use `.github/workflows/wf_check.yaml` for checks and optional builds; releases set `CHECKS: false`. Every caller must explicitly set the full runner-label list with `RUNS_ON`; checks run on the first entry.
+- Linux CI uses ephemeral Nhost NixOS runners: `nhost-<aarch64|x86_64>-<profile>` with `1c1g`, `2c2g`, `2c4g`, `4c8g`, `8c16g`, or `16c32g`. Use profile labels, not generic `self-hosted`; job containers are unsupported. macOS cache warming stays on `blacksmith-6vcpu-macos-latest`; the two npm trusted-publishing jobs must stay on GitHub-hosted `ubuntu-latest`. See `ci/README.md` for workload sizing.
 - `checks.<system>.ci` tests workflows, caching, Makefile contracts, and shared-file synchronization offline; it is included in the `nixops` check.
 - `ci/shared-ci.nix` defines the verbatim `ci-files` bundle and `sync-ci` app. Receivers select files in `build/shared-ci.json`. Apply/check requires a clean Git source revision; dirty/`path:` sources allow previews only. See `ci/README.md` for CI contracts and synchronization safety rules.
 - Go services are built with Nix and packaged as Docker images.

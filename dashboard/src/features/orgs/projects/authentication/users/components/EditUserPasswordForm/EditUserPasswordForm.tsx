@@ -126,6 +126,7 @@ export default function EditUserPasswordForm({
           control={form.control}
           name="password"
           label="Password"
+          autoFocus
           placeholder="Enter Password"
           autoComplete="off"
         />
