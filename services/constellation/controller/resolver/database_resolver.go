@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -175,7 +176,11 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 
 				for _, v := range values {
 					inChildren = append(inChildren, &ast.ChildValue{ //nolint:exhaustruct
-						Value: joinTargetLiteral(v, r.jsonColumns[remoteCol]),
+						Value: joinTargetLiteral(
+							v,
+							r.jsonColumns[remoteCol],
+							r.jsonTextColumns[remoteCol],
+						),
 					})
 				}
 
@@ -522,7 +527,17 @@ func joinPartsKey(parts []string) string {
 	return string(encoded)
 }
 
-func joinTargetLiteral(v any, jsonTarget bool) *ast.Value {
+func joinTargetLiteral(v any, jsonTarget, jsonTextTarget bool) *ast.Value {
+	if jsonTarget && !jsonTextTarget {
+		// Native JSONB operands retain their value types through the SQL binder.
+		// Serializing them into a GraphQL string would turn objects/numbers into
+		// JSON strings. SQLite JSON targets instead compare their stored text.
+		literal, err := values.GoValueToAST(v)
+		if err == nil {
+			return literal
+		}
+	}
+
 	if jsonTarget {
 		encoded, err := json.Marshal(v)
 		if err == nil {

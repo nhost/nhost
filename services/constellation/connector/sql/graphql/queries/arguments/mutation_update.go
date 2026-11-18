@@ -219,32 +219,32 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 	for _, arg := range arguments {
 		switch arg.Name {
 		case "_set":
-			set, err = parseupdateColumnList(t, arg.Value, variables)
+			set, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _set: %w", err)
 			}
 		case "_inc":
-			inc, err = parseupdateColumnList(t, arg.Value, variables)
+			inc, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _inc: %w", err)
 			}
 		case "_append":
-			appendCols, err = parseupdateColumnList(t, arg.Value, variables)
+			appendCols, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _append: %w", err)
 			}
 		case "_prepend":
-			prependCols, err = parseupdateColumnList(t, arg.Value, variables)
+			prependCols, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _prepend: %w", err)
 			}
 		case "_delete_key":
-			deleteKey, err = parseupdateColumnList(t, arg.Value, variables)
+			deleteKey, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _delete_key: %w", err)
 			}
 		case "_delete_elem":
-			deleteElem, err = parseupdateColumnList(t, arg.Value, variables)
+			deleteElem, err = parseupdateColumnList(t, arg, variables)
 			if err != nil {
 				return Update{}, fmt.Errorf("failed to parse _delete_elem: %w", err)
 			}
@@ -388,15 +388,6 @@ func ApplyUpdatePresets(
 	for _, colName := range colNames {
 		presetValue := presets[colName]
 
-		value, err := permissions.SubstituteSessionVariable(presetValue, sessionVariables)
-		if err != nil {
-			return fmt.Errorf(
-				"failed to substitute session variable for preset column %s: %w",
-				colName,
-				err,
-			)
-		}
-
 		col := t.ColumnFromSQLName(colName)
 		if col == nil {
 			return fmt.Errorf(
@@ -407,9 +398,25 @@ func ApplyUpdatePresets(
 			)
 		}
 
-		value, err = values.CoerceSQLValue(col.SQLType, value)
+		// Match the permission-predicate pipeline so JSONB session wire values
+		// are not mistaken for user strings after substitution.
+		value, err := values.CoerceSQLValue(col.SQLType, presetValue)
 		if err != nil {
 			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+		}
+
+		value, err = permissions.SubstituteSessionVariable(value, sessionVariables)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to substitute session variable for preset column %s: %w",
+				colName,
+				err,
+			)
+		}
+
+		value, err = values.CoerceSQLValue(col.SQLType, value)
+		if err != nil {
+			return fmt.Errorf("failed to coerce resolved preset column %s: %w", colName, err)
 		}
 
 		update.Set = append(update.Set, updateColumn{
@@ -545,13 +552,13 @@ func parsePkColumnsArgument(
 }
 
 // parseupdateColumnList parses the _set/_inc/_append/_prepend/_delete_key/_delete_elem
-// value: an object whose fields are GraphQL column names mapping to scalar values.
+// value using the operator's operand type, which can differ from the column type.
 func parseupdateColumnList(
 	t Table,
-	setValue *ast.Value,
+	arg *ast.Argument,
 	variables map[string]any,
 ) ([]updateColumn, error) {
-	setValue, err := values.ResolveVariable(setValue, variables)
+	setValue, err := values.ResolveVariable(arg.Value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving update argument: %w", err)
 	}
@@ -584,7 +591,15 @@ func parseupdateColumnList(
 			return nil, fmt.Errorf("failed to resolve field %s: %w", customFieldName, err)
 		}
 
-		value, err = values.CoerceSQLValue(column.SQLType, value)
+		sqlType := column.SQLType
+		switch arg.Name {
+		case "_delete_key":
+			sqlType = "text"
+		case "_delete_elem":
+			sqlType = "int4"
+		}
+
+		value, err = values.CoerceSQLValue(sqlType, value)
 		if err != nil {
 			return nil, fmt.Errorf("failed to coerce field %s: %w", customFieldName, err)
 		}

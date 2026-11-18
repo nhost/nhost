@@ -57,6 +57,7 @@ func parseComputedComparison( //nolint:ireturn // The where parser composes Stat
 		value,
 		variables,
 		t.Dialect(),
+		sessionVariables[core.PermissionSessionTemplateKey] == true,
 		t,
 		root,
 	)
@@ -116,6 +117,7 @@ func (c *computedComparison) writeWithRoot(
 		c.value,
 		c.variables,
 		c.dialect,
+		c.sessionVariables[core.PermissionSessionTemplateKey] == true,
 		c.current,
 		c.root,
 	)
@@ -189,7 +191,14 @@ func SupportedComputedPermissionComparison(
 
 	column := computedComparisonColumn(sqlType)
 	target := newColumnComparisonTarget(column)
-	_, err = parseFieldComparisonValue(column, &target, value, nil, dialect.NewPostgresDialect())
+	_, err = parseFieldComparisonValue(
+		column,
+		&target,
+		value,
+		nil,
+		dialect.NewPostgresDialect(),
+		true,
+	)
 
 	return err == nil
 }
@@ -245,7 +254,14 @@ func SupportedComputedTableColumnComparison(sqlType string, isArray bool, compar
 	column := computedComparisonColumn(sqlType)
 	column.IsArray = true
 	target := newColumnComparisonTarget(column)
-	_, err = parseFieldComparisonValue(column, &target, value, nil, dialect.NewPostgresDialect())
+	_, err = parseFieldComparisonValue(
+		column,
+		&target,
+		value,
+		nil,
+		dialect.NewPostgresDialect(),
+		true,
+	)
 
 	return err == nil
 }

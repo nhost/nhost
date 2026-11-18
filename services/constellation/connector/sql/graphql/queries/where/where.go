@@ -231,7 +231,7 @@ func parseFieldOrRelationship(
 			nil,
 			value,
 			variables,
-			t.Dialect(),
+			t.Dialect(), sessionVariables[core.PermissionSessionTemplateKey] == true,
 			t,
 			aliases.root,
 		)
@@ -586,7 +586,7 @@ func ParseFieldComparison(
 	value *ast.Value,
 	variables map[string]any,
 ) (Statement, error) {
-	return parseFieldComparisonValue(column, nil, value, variables, t.Dialect(), t, t)
+	return parseFieldComparisonValue(column, nil, value, variables, t.Dialect(), false, t, t)
 }
 
 func parseFieldComparisonValue(
@@ -595,6 +595,7 @@ func parseFieldComparisonValue(
 	value *ast.Value,
 	variables map[string]any,
 	d dialect.Dialect,
+	permission bool,
 	tables ...Table,
 ) (Statement, error) {
 	value, err := values.ResolveVariables(value, variables)
@@ -609,7 +610,14 @@ func parseFieldComparisonValue(
 	conditions := make([]Statement, 0, len(value.Children))
 
 	for _, child := range value.Children {
-		cond, err := parseComparisonEntry(column, target, child, variables, d, tables...)
+		cond, err := parseComparisonEntry(
+			column,
+			target,
+			child,
+			variables,
+			d,
+			permission,
+			tables...)
 		if err != nil {
 			return nil, err
 		}
@@ -629,12 +637,18 @@ func parseFieldComparisonValue(
 	}
 }
 
-func parseComparisonEntry(column *core.Column, target *comparisonTarget,
-	child *ast.ChildValue, variables map[string]any, d dialect.Dialect, tables ...Table,
+func parseComparisonEntry(
+	column *core.Column,
+	target *comparisonTarget,
+	child *ast.ChildValue,
+	variables map[string]any,
+	d dialect.Dialect,
+	permission bool,
+	tables ...Table,
 ) (Statement, error) {
 	name := canonicalComparisonOperator(child.Name)
 	if name == "_cast" && len(tables) == columnComparisonTableCount {
-		return parseComparisonCast(column, target, child.Value, variables, d, tables...)
+		return parseComparisonCast(column, target, child.Value, variables, d, permission, tables...)
 	}
 
 	if columnComparisonOperator(name) != "" {
@@ -644,6 +658,21 @@ func parseComparisonEntry(column *core.Column, target *comparisonTarget,
 
 		return parseColumnComparison(column, target, child.Value, variables, d,
 			tables[0], tables[1], name)
+	}
+
+	if permission && (name == "_in" || name == "_nin") &&
+		comparisonTargetFor(column, target).sqlType == "jsonb" {
+		stmt, handled, err := parseJSONBPermissionMembership(
+			column,
+			target,
+			child.Value,
+			variables,
+			d,
+			name == "_nin",
+		)
+		if handled || err != nil {
+			return stmt, err
+		}
 	}
 
 	parser, ok := operatorParserFor(child.Name)

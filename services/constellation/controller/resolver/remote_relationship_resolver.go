@@ -371,8 +371,8 @@ func removeRemoteResultPhantoms(results []any, fields []string) {
 	}
 }
 
-// The JSON/JSONB _in predicate accepts JSON text, not a raw GraphQL
-// string/array. The admin schema supplies type information for physical
+// JSONB join operands retain their JSON value types; SQLite JSON keys instead
+// use stored text. The admin schema supplies type information for physical
 // relationships whose target join column is hidden from the caller.
 func (r *RemoteRelationshipResolver) setDatabaseTargetTypes(rq *remoteQuery, role string) error {
 	db, ok := rq.resolver.(*databaseResolver)

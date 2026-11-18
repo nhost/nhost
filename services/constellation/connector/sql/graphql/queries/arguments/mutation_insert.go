@@ -608,7 +608,15 @@ func ApplyInsertPresets(
 			)
 		}
 
-		value, err := permissions.SubstituteSessionVariable(presetValue, sessionVariables)
+		// Coerce metadata before substitution, like permission predicates: JSONB
+		// session references must retain the distinction between user strings
+		// and the already-serialized JSON supplied by a session header.
+		value, err := values.CoerceSQLValue(col.SQLType, presetValue)
+		if err != nil {
+			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+		}
+
+		value, err = permissions.SubstituteSessionVariable(value, sessionVariables)
 		if err != nil {
 			return fmt.Errorf(
 				"failed to substitute session variable for preset column %s: %w",
@@ -619,7 +627,7 @@ func ApplyInsertPresets(
 
 		value, err = values.CoerceSQLValue(col.SQLType, value)
 		if err != nil {
-			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+			return fmt.Errorf("failed to coerce resolved preset column %s: %w", colName, err)
 		}
 
 		insertObj.Columns = append(insertObj.Columns, InsertColumn{

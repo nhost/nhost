@@ -55,9 +55,10 @@ func (unsupportedArrayMembershipSessionFilter) WriteCondition(
 	return nil, 0, errArrayMembershipSessionOperand
 }
 
-// writeArrayColumnMembership compares whole arrays, not their scalar elements.
-// Binding each candidate separately also permits arrays of different lengths.
-func writeArrayColumnMembership(
+// writeCandidateMembership binds each complete typed candidate separately.
+// Array columns compare whole arrays of possibly different lengths; JSONB
+// permission candidates retain scalar casts for per-subscriber substitution.
+func writeCandidateMembership(
 	b *strings.Builder,
 	source string,
 	target comparisonTarget,

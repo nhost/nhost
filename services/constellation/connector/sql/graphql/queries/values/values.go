@@ -248,11 +248,27 @@ func AnyToString(val any) string {
 	}
 }
 
-// CoerceSQLValue converts values that need type-specific SQL constructors into
-// the parameter representation those constructors expect. PostGIS spatial
-// constructors accept GeoJSON text, so object/list literals and variables are
-// marshalled to deterministic JSON strings while raw string values pass through.
+// CoerceSQLValue converts GraphQL values to typed SQL parameters. JSONB strings
+// need explicit encoding: pgx otherwise treats Go strings as serialized JSON.
+// json.RawMessage marks encoded values so repeated coercion leaves them intact.
+// Permission-owned parameters are subsequently substituted by permissions, which
+// distinguishes encoded session references from already-serialized session JSON.
+// SQL NULL remains nil. PostGIS constructors instead expect GeoJSON text, so
+// spatial strings pass through while objects/lists are marshalled to JSON text.
 func CoerceSQLValue(sqlType string, val any) (any, error) {
+	if sqlType == "jsonb" {
+		if text, ok := val.(string); ok {
+			b, err := stdjson.Marshal(text)
+			if err != nil {
+				return nil, fmt.Errorf("marshalling JSON string value: %w", err)
+			}
+
+			return stdjson.RawMessage(b), nil
+		}
+
+		return val, nil
+	}
+
 	if !pgtypes.IsSpatial(sqlType) || val == nil {
 		return val, nil
 	}
@@ -272,10 +288,10 @@ func CoerceSQLValue(sqlType string, val any) (any, error) {
 	}
 }
 
-// CoerceSQLValues applies CoerceSQLValue to a slice, preserving byte-for-byte
-// identity for non-spatial SQL types.
+// CoerceSQLValues applies CoerceSQLValue to each typed operand without mutating
+// the input slice. Types that need no coercion retain the original slice.
 func CoerceSQLValues(sqlType string, vals []any) ([]any, error) {
-	if !pgtypes.IsSpatial(sqlType) {
+	if !pgtypes.IsSpatial(sqlType) && sqlType != "jsonb" {
 		return vals, nil
 	}
 
@@ -283,7 +299,7 @@ func CoerceSQLValues(sqlType string, vals []any) ([]any, error) {
 	for i, val := range vals {
 		coerced, err := CoerceSQLValue(sqlType, val)
 		if err != nil {
-			return nil, fmt.Errorf("coercing spatial value %d: %w", i, err)
+			return nil, fmt.Errorf("coercing SQL value %d: %w", i, err)
 		}
 
 		out[i] = coerced

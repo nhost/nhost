@@ -311,7 +311,7 @@ func writeArrayTargetComparison(
 	}
 
 	if column != nil && column.IsArray {
-		params, paramIndex = writeArrayColumnMembership(
+		params, paramIndex = writeCandidateMembership(
 			b, source, target, vals, d, params, paramIndex, negated,
 		)
 
