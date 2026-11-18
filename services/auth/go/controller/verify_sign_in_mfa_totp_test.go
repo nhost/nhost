@@ -56,7 +56,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByActiveTicket(
