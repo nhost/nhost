@@ -70,14 +70,18 @@ func (term *computedTableOrderTerm) writeExpr(
 	return params, paramIndex, nil
 }
 
-//nolint:funlen // Count and numeric aggregate families share one target/alias permission context.
+//nolint:cyclop,funlen // Nullable wrappers, count and numeric families share one target/alias permission context.
 func appendComputedTableOrderBy(
 	t Table, call core.ComputedTableExpression, value *ast.Value, source, role string,
 	sessionVariables map[string]any, gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	target := t.OrderTableBySchemaName(call.TargetSchema(), call.TargetName())
-	if target == nil || value.Kind != ast.ObjectValue {
+	if target == nil || (value.Kind != ast.ObjectValue && value.Kind != ast.NullValue) {
 		return nil, fmt.Errorf("%w: invalid computed aggregate order", ErrInvalidArgument)
+	}
+
+	if value.Kind == ast.NullValue {
+		return nil, nil
 	}
 
 	alias := gen.next()

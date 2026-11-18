@@ -42,7 +42,7 @@ func appendRelationshipOrderBy(
 		)
 	}
 
-	if field.Value.Kind != ast.ObjectValue {
+	if field.Value.Kind != ast.ObjectValue && field.Value.Kind != ast.NullValue {
 		return nil, fmt.Errorf(
 			"%w: order_by on relationship %s must be an object", ErrInvalidArgument, field.Name,
 		)
@@ -57,6 +57,10 @@ func appendRelationshipOrderBy(
 
 	// Object relationship: order by columns of the single related row.
 	if field.Name == rel.Name() && !rel.IsArray() {
+		if field.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			rel, target, field.Value, parentSource, role, sessionVariables, gen,
 		)
@@ -199,7 +203,8 @@ func buildNestedRelationshipOrderItems(
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	childRel := target.Relationship(child.Name)
-	if childRel == nil || child.Value.Kind != ast.ObjectValue {
+	if childRel == nil ||
+		(child.Value.Kind != ast.ObjectValue && child.Value.Kind != ast.NullValue) {
 		return nil, fmt.Errorf(
 			"%w: %s is not an orderable field of table %s",
 			ErrInvalidArgument, child.Name, target.TableName(),
@@ -214,6 +219,10 @@ func buildNestedRelationshipOrderItems(
 	}
 
 	if child.Name == childRel.Name() && !childRel.IsArray() {
+		if child.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			childRel, childTarget, child.Value, parentAlias, role, sessionVariables, gen,
 		)
@@ -243,6 +252,10 @@ func buildAggregateOrderItems(
 	sessionVariables map[string]any,
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
+	if value.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	alias := gen.next()
 
 	var items []OrderByItem

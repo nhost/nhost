@@ -143,6 +143,11 @@ Aggregate ordering has separate relationship and computed-table walkers: nullabl
 term. Test those children inside non-null wrappers; whole-argument/scalar-null
 coverage cannot exercise them. Skip null only for recognized fields/columns so
 unknown inputs still fail, and retain non-null ordering-list element checks.
+Nullable relationship and computed-table aggregate wrappers must also contribute
+no terms or aliases; compare null wrappers with omission before a non-null
+relationship sibling to catch alias drift. Computed-table ordering visibility
+follows the returned table's select permission, not scalar computed-field grants;
+use an argument-taking function or inaccessible target for negative controls.
 When comparing ordering-object variables to literal SQL, match
 `values.GoValueToAST`'s sorted map keys in the literal control; use separate list
 entries when ordering precedence must be explicit.
