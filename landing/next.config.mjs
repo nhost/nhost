@@ -31,12 +31,12 @@ const nextConfig = {
       {
         source: '/dashboard',
         destination:
-          'https://dashboard-staging-k1k4e9c2v-nhost.vercel.app/dashboard',
+          'https://dashboard-staging-4ue5d8cd6-nhost.vercel.app/dashboard',
       },
       {
         source: '/dashboard/:path*',
         destination:
-          'https://dashboard-staging-k1k4e9c2v-nhost.vercel.app/dashboard/:path*',
+          'https://dashboard-staging-4ue5d8cd6-nhost.vercel.app/dashboard/:path*',
       },
       // On Vercel the docs build is served at the root, so strip '/docs'.
       {
