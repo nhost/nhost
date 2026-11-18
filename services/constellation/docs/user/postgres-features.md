@@ -292,6 +292,7 @@ PostgreSQL sources serve table-owned `computed_fields` backed by `STABLE` or `IM
 - **Permission rules** can reference computed fields without user arguments in select/update/delete filters and insert/update checks, even when the role cannot select the field.
 - **`SETOF` scalar returns** are limited to `text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and `public.citext`. A row with no values returns `null`, and a row with several values fails the request (a mutation is rolled back). Filtering on such a field always fails, sorting by it can drop or repeat rows, and selecting it in an aggregate makes `count`, the other aggregates and `nodes` use one row per returned value.
 - **Custom argument types** (domain, enum, composite, range, multirange and array) are passed as strings in PostgreSQL literal syntax, for example `"{happy}"` for an enum array.
+- **Optional variables in `args`** follow input-presence rules: omitting a variable omits the parameter, allowing its SQL default to apply. A missing required SQL parameter is rejected. Explicit `null` is still passed as SQL NULL rather than activating a default.
 
 Invalid definitions, grants and permission references are dropped rather than served; see [inconsistencies](./inconsistencies.md). Remote-relationship join keys are covered in the [metadata support matrix](./hasura-metadata-support.md), and Hasura differences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md#computed-fields).
 
@@ -302,6 +303,24 @@ Each tracked table produces three root query fields (names overridable via `cust
 - `<table>` — collection query with `where`, `order_by`, `limit`, `offset`, `distinct_on`.
 - `<table>_by_pk` — single-row lookup by primary key.
 - `<table>_aggregate` — aggregates over the same filter set.
+
+### Variables and optional inputs
+
+Variables can supply complete input objects/lists or appear inside them, including
+comparison objects, `_in`/`_nin` elements, JSONB objects and paths, ordering
+objects/directions, and `distinct_on` columns. Values remain SQL parameters;
+ordering directions and column names still pass their enum/column validation.
+
+An omitted nullable variable omits the argument or input-object field that
+references it. GraphQL input defaults and SQL column/function defaults can then
+apply. In a nullable list position it contributes `null` without shifting later
+elements. Explicit `null` stays present instead of activating a default; for
+nullable `limit` and `offset` it means no modifier. Missing required variables
+and null at non-null positions are rejected before SQL execution.
+
+Declare variables used to scope updates and deletes as non-null when the filter
+must be supplied. An omitted optional filter field is absent, just as if it had
+not been written in the request.
 
 ### Filter operators
 

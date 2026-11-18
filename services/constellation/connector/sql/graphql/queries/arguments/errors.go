@@ -66,6 +66,18 @@ type QueryValidationError struct {
 	code         string
 }
 
+// NewNullInputError rejects null at a non-null input position. Nullable
+// variables with defaults can legally reference such positions, so variable
+// coercion alone cannot reject a caller explicitly overriding that default with
+// null. Keep this a client validation error, not an internal SQL failure.
+func NewNullInputError() *QueryValidationError {
+	return newQueryValidationError(
+		"unexpected null value for a non-null input",
+		ErrInvalidArgument,
+		"",
+	)
+}
+
 // NewComputedScalarInputError rejects non-string values for PostgreSQL's
 // string-only custom computed argument scalars before executing any SQL.
 func NewComputedScalarInputError(

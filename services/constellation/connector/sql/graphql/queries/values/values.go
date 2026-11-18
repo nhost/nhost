@@ -53,6 +53,50 @@ func ResolveVariable(value *ast.Value, variables map[string]any) (*ast.Value, er
 	return resolved, nil
 }
 
+// ResolveVariables resolves variable references throughout an AST input value.
+// Unlike a round trip through Go values, it preserves literal field/list order,
+// enum kinds and validation metadata. Only changed nodes are copied: cached ASTs
+// and the caller's variable map remain read-only.
+func ResolveVariables(value *ast.Value, variables map[string]any) (*ast.Value, error) {
+	if value.Kind == ast.Variable {
+		return ResolveVariable(value, variables)
+	}
+
+	var children ast.ChildValueList
+
+	for i, child := range value.Children {
+		resolved, err := ResolveVariables(child.Value, variables)
+		if err != nil {
+			if value.Kind == ast.ObjectValue {
+				return nil, fmt.Errorf("resolving field %q: %w", child.Name, err)
+			}
+
+			return nil, fmt.Errorf("resolving list element %d: %w", i, err)
+		}
+
+		if resolved == child.Value {
+			continue
+		}
+
+		if children == nil {
+			children = slices.Clone(value.Children)
+		}
+
+		cloned := *child
+		cloned.Value = resolved
+		children[i] = &cloned
+	}
+
+	if children == nil {
+		return value, nil
+	}
+
+	cloned := *value
+	cloned.Children = children
+
+	return &cloned, nil
+}
+
 // ResolveASTValue resolves an AST value to a Go value, recursively substituting
 // any nested variable references inside objects and lists. ExtractGoValue alone
 // errors on a Variable child because it has no variables map — callers like

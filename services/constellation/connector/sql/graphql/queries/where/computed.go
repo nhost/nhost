@@ -31,6 +31,11 @@ func parseComputedComparison( //nolint:ireturn // The where parser composes Stat
 	variables, sessionVariables map[string]any,
 	root Table,
 ) (Statement, error) {
+	value, err := values.ResolveVariables(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving computed field comparison: %w", err)
+	}
+
 	if value.Kind != ast.ObjectValue {
 		return nil, errFieldComparisonMustBeObject
 	}

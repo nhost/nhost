@@ -587,6 +587,11 @@ func parseFieldComparisonValue(
 	d dialect.Dialect,
 	tables ...Table,
 ) (Statement, error) {
+	value, err := values.ResolveVariables(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving field comparison: %w", err)
+	}
+
 	if value.Kind != ast.ObjectValue {
 		return nil, errFieldComparisonMustBeObject
 	}

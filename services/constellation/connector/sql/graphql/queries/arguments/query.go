@@ -248,6 +248,8 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 	var intVal int
 
 	switch value.Kind { //nolint:exhaustive
+	case ast.NullValue:
+		return nil, nil //nolint:nilnil // A nullable limit/offset applies no modifier.
 	case ast.IntValue:
 		_, err := fmt.Sscanf(value.Raw, "%d", &intVal)
 		if err != nil {
@@ -285,7 +287,7 @@ func ParseOrderBy(
 	sessionVariables map[string]any,
 	parentSource string,
 ) ([]OrderByItem, error) {
-	value, err := values.ResolveVariable(value, variables)
+	value, err := values.ResolveVariables(value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving order_by: %w", err)
 	}
@@ -438,7 +440,7 @@ func ParseDistinctOn(
 	value *ast.Value,
 	variables map[string]any,
 ) ([]string, error) {
-	value, err := values.ResolveVariable(value, variables)
+	value, err := values.ResolveVariables(value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving distinct_on: %w", err)
 	}

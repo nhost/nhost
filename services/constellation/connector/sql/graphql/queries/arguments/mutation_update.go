@@ -633,7 +633,7 @@ func parseDeleteAtPathArgumentValue(
 			)
 		}
 
-		fieldValue, err := values.ResolveVariable(child.Value, variables)
+		fieldValue, err := values.ResolveVariables(child.Value, variables)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve field %s: %w", customFieldName, err)
 		}
