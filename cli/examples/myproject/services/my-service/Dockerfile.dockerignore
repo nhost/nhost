@@ -1,0 +1,8 @@
+**
+!shared/
+!shared/**
+!services/
+!services/my-service/
+!services/my-service/package.json
+!services/my-service/src/
+!services/my-service/src/**
