@@ -1,5 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactNode } from 'react';
+import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting';
+import MfaSetting from '@/app/auth/password/mfa/MfaSetting';
 
 export type AccountSetting = (props: { user: User }) => ReactNode;
 
@@ -30,6 +32,13 @@ export const buttonSettings: AccountSetting[] = [];
 
 /** The sign-in methods this app offers, one entry each. */
 export const methods: SignInMethod[] = [
+  {
+    href: '/auth/password',
+    title: 'Email and password',
+    description: 'Sign up or sign in with a password.',
+    account: { password: ChangePasswordSetting, mfa: MfaSetting },
+    signedOutPaths: ['/auth/password/reset'],
+  },
   {
     href: '/auth/magic-link',
     title: 'Magic link',
