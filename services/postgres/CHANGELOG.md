@@ -11,7 +11,7 @@
   - pg_ivm: 1.15 → 1.17
   - pg_jsonschema: refreshed source revision; SQL version remains 0.3.4
   - pg_search: 0.25.11 → 0.26.7
-    - Breaking changes: startup upgrades from pre-0.26 rebuild all ParadeDB vector-field indexes and reset obsolete options, blocking writes and potentially extending startup. Schedule a maintenance window; failed maintenance rolls back for retry. See the [upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026) for manual upgrades, permission changes, and RLS scoring.
+    - Breaking changes: startup upgrades from pre-0.26 rebuild all ParadeDB vector-field indexes and reset obsolete options, blocking writes and potentially extending startup. Schedule a maintenance window; failed maintenance rolls back for retry. See the [upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026) for permission changes and RLS scoring.
   - pgmq: 1.13.0 → 1.13.1
   - pgvector: 0.8.6 → 0.8.7
   - postgis, postgis_raster, and postgis_topology: 3.6.4 → 3.7.0
