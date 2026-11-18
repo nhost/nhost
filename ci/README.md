@@ -101,6 +101,16 @@ inputs, excluding this repository's per-commit source. It verifies that `CACHE_T
 needs no local build, except for `NAME: nixops` or `SKIP_CACHE_CHECK: "true"`
 (the string form for direct action callers).
 
+The default target, `nixops`, is built from `flake.nix`, `flake.lock`, and
+`nixops/*.nix`. The pull request checks in `nixops_checks.yaml` build and cache
+it; a push to `main` that changes only `flake.nix` does not. A pull request that
+changes `flake.nix` must be up to date with `main` when it merges. When `main`
+has changed `flake.nix` since its last nixops check, update the branch and wait
+for that check to pass again. Otherwise `main` ends up with a `nixops` that was
+never built, and every workflow that verifies the cache fails. To recover, open a
+pull request from current `main` that triggers `nixops_checks.yaml` without
+changing those files, then re-run the failed runs once its builds pass.
+
 Record derivations **before** executing them:
 
 ```sh
