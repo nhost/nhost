@@ -501,6 +501,24 @@ SET ROLE postgres;
 DROP EXTENSION pg_search;
 ```
 
+### Upgrading to pg_search 0.26
+
+Nhost upgrades installed extensions when PostgreSQL starts, but this does not rebuild indexes. When upgrading from pg_search 0.25 to 0.26 (including 0.26.7), plan for these breaking changes:
+
+- **Rebuild vector-field indexes.** Every ParadeDB index containing a vector field must be rebuilt after upgrading, including indexes with quantization disabled. Vector queries fail with a rebuild-required error until the rebuild completes. As the index owner, run the following for each affected index, replacing `public.search_idx` with its name:
+
+  ```sql
+  REINDEX INDEX public.search_idx;
+  ```
+
+  Plain `REINDEX` blocks writes while rebuilding. For a rebuild that allows writes, use `REINDEX INDEX CONCURRENTLY public.search_idx;` outside a transaction block. See ParadeDB's [Reindexing guide](https://www.paradedb.com/docs/operate/index-maintenance/reindexing) for concurrent rebuilds and the replacement-index procedure using `CREATE INDEX CONCURRENTLY`. Concurrent rebuilding does not make old vector storage readable during the rebuild.
+
+- **Recreate indexes with removed options.** `centroid_ratio` and `training_samples_per_centroid` are no longer accepted. Indexes that explicitly store these options must be recreated using the supported `training_sample_ratio` and `max_leaf_size` settings; `REINDEX` alone is not sufficient. See the [0.26.0 release notes](https://www.paradedb.com/docs/project/changelog/0.26.0) for the new settings and vector storage changes.
+
+- **Check standalone index permissions (0.26.5).** Content-reading APIs such as `paradedb.aggregate()` now require table-level `SELECT` on the backing table and reject calls when row-level security (RLS) applies to the effective caller. See the [0.26.5 release notes](https://www.paradedb.com/docs/project/changelog/0.26.5) for the permission rules, including the separate rules for metadata APIs.
+
+- **Review scores under RLS (0.26.7).** An RLS policy no longer adds a constant to `pdb.score`, so applications relying on absolute scores may see different values. Conditions written in the query itself are unchanged. See the [0.26.7 release notes](https://www.paradedb.com/docs/project/changelog/0.26.7).
+
 ### Resources
 
 - [GitHub](https://github.com/paradedb/paradedb/tree/main/pg_search)

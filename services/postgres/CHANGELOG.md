@@ -1,5 +1,22 @@
 ## CHANGELOG
 
+### main
+
+- Updated PostgreSQL to 17.12 and 18.7
+- Updated extensions:
+  - address_standardizer and address_standardizer_data_us: 3.6.4 → 3.7 (now packaged separately from PostGIS)
+  - hypopg: 1.4.3 → 1.4.5
+  - pg_durable: 0.2.8 → 0.2.9
+  - pg_ivm: 1.15 → 1.17
+  - pg_jsonschema: refreshed source revision; SQL version remains 0.3.4
+  - pg_search: 0.25.11 → 0.26.7
+    - Breaking change: rebuild every existing ParadeDB index containing a vector field with `REINDEX` after upgrading, even if quantization is disabled. Indexes storing removed options must be recreated; standalone index permissions and RLS scores also changed. See the [pg_search upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026).
+  - pgmq: 1.13.0 → 1.13.1
+  - pgvector: 0.8.6 → 0.8.7
+  - postgis, postgis_raster, and postgis_topology: 3.6.4 → 3.7.0
+  - postgis_tiger_geocoder: 3.6.4 → 2025.2 (now packaged separately from PostGIS)
+  - timescaledb: 2.30.0 → 2.32.0
+
 ### {17.11,18.6}-20260930-1
 
 - Improved graceful shutdown during database startup and point-in-time recovery.
