@@ -1,13 +1,13 @@
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
-import { bbedit } from '@uiw/codemirror-theme-bbedit';
-import { githubDark } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { useCallback, useEffect, useState } from 'react';
+import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import CodeMirror, { EditorView, Prec } from '@uiw/react-codemirror';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import { SettingsDocsLink } from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -18,6 +18,7 @@ import {
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
 import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
@@ -25,6 +26,18 @@ const removeTOMLIndentation = (tomlStr: string) => {
   const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
   return trimmedLines.join('\n');
 };
+
+// In dark mode the code sits a step darker than the page, on the console
+// background, so it reads as its own surface under the header. Listed before
+// codeMirrorAppBackground so it wins over it: at the same precedence, earlier
+// wins, because EditorView mounts theme styles in reverse order.
+const darkEditorBackground = Prec.highest(
+  EditorView.theme({
+    '&, .cm-scroller, .cm-gutters': {
+      backgroundColor: 'hsl(var(--console-background))',
+    },
+  }),
+);
 
 export default function TOMLEditor() {
   const { resolvedTheme } = useThemePreference();
@@ -36,6 +49,31 @@ export default function TOMLEditor() {
   const [isSaving, setIsSaving] = useState(false); // used to show loading spinner on save
 
   const { openDialog } = useDialog();
+
+  // When the cursor moves up with the arrow keys, the editor scrolls to keep it
+  // visible. The margin keeps it below the sticky header instead of behind it.
+  const headerRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderMargin = useMemo(
+    () =>
+      EditorView.scrollMargins.of(() => ({
+        top: headerRef.current?.offsetHeight ?? 0,
+      })),
+    [],
+  );
+
+  const stickSentinelRef = useRef<HTMLDivElement>(null);
+  const [isStuck, setIsStuck] = useState(false);
+  useEffect(() => {
+    const sentinel = stickSentinelRef.current;
+    if (!sentinel) {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setIsStuck(!entry.isIntersecting),
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const { project } = useProject();
 
@@ -142,45 +180,71 @@ export default function TOMLEditor() {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-background">
-      <div className="flex w-full shrink-0 flex-col space-y-2 border-b p-4">
-        <h3 className="font-semibold text-lg">Configuration Editor</h3>
+    // Not a SettingsCard: that is for settings forms and clips its content,
+    // which would stop the header from sticking. Same border, radius and
+    // spacing, so it reads like the other settings cards.
+    // min-w-0: a very long line scrolls inside the editor instead of
+    // stretching the page and pushing Revert and Save off screen.
+    <section className="min-w-0 rounded-lg border">
+      <div ref={stickSentinelRef} aria-hidden />
+      <div
+        ref={headerRef}
+        className={cn(
+          'sticky top-0 z-10 flex flex-col gap-3 rounded-t-lg border-b bg-background/60 px-6 py-6 backdrop-blur-md backdrop-saturate-150 transition-shadow duration-200 before:pointer-events-none before:absolute before:inset-x-0 before:-bottom-1 before:h-2 before:bg-gradient-to-r before:from-transparent before:via-foreground/10 before:to-transparent before:opacity-0 before:blur-sm before:transition-opacity before:duration-200 after:pointer-events-none after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-gradient-to-r after:from-transparent after:via-foreground/30 after:to-transparent after:opacity-0 after:transition-opacity after:duration-200 motion-reduce:transition-none sm:flex-row sm:items-center sm:justify-between',
+          isStuck && 'shadow-sticky before:opacity-100 after:opacity-100',
+        )}
+      >
+        <p className="min-w-0 text-muted-foreground sm:max-w-lg">
+          Edit your project&apos;s configuration directly in TOML. Use it for
+          settings that don&apos;t have their own page yet.{' '}
+          <span className="inline-flex align-middle">
+            <SettingsDocsLink
+              href="https://docs.nhost.io/reference/configuration"
+              topic="the configuration file"
+            />
+          </span>
+        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading || !isDirty}
+            onClick={handleRevert}
+          >
+            Revert changes
+          </Button>
+          <ButtonWithLoading
+            type="submit"
+            disabled={loading || !isDirty}
+            loading={isSaving}
+            onClick={handleSave}
+          >
+            Save
+          </ButtonWithLoading>
+        </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
+
+      {/* Clips the corners without becoming a scroll container, so the
+          search panel (Cmd+F) can stick to the bottom of the window. */}
+      <div className="overflow-clip rounded-b-lg">
         {loading ? (
-          <div className="h-full w-full animate-pulse bg-muted" />
+          <div className="h-96 w-full animate-pulse bg-muted" />
         ) : (
           <CodeMirror
             value={tomlCode}
-            className="h-full"
-            height="100%"
             width="100%"
-            theme={resolvedTheme === 'light' ? bbedit : githubDark}
-            extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
+            minHeight="24rem"
+            theme={resolvedTheme === 'light' ? vscodeLight : vscodeDark}
+            extensions={[
+              StreamLanguage.define(toml),
+              ...(resolvedTheme === 'light' ? [] : [darkEditorBackground]),
+              codeMirrorAppBackground,
+              stickyHeaderMargin,
+            ]}
             onChange={onChange}
           />
         )}
       </div>
-      <div className="grid w-full shrink-0 grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading || !isDirty}
-          onClick={handleRevert}
-        >
-          Revert changes
-        </Button>
-
-        <ButtonWithLoading
-          type="submit"
-          disabled={loading || !isDirty}
-          loading={isSaving}
-          className="justify-self-end"
-          onClick={handleSave}
-        >
-          Save
-        </ButtonWithLoading>
-      </div>
-    </div>
+    </section>
   );
 }

@@ -218,15 +218,15 @@ describe('SettingsGeneralPage', () => {
   it('selects the lifecycle card from actual state', () => {
     const { rerender } = render(<SettingsGeneralPage />);
 
-    expect(screen.getByText('Pause Project')).toBeInTheDocument();
-    expect(screen.queryByText('Wake up Project')).not.toBeInTheDocument();
+    expect(screen.getByText('Pause project')).toBeInTheDocument();
+    expect(screen.queryByText('Wake up project')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pause' })).toBeEnabled();
 
     mocks.snapshot = { ...stablePausedSnapshot };
     rerender(<SettingsGeneralPage />);
 
-    expect(screen.getByText('Wake up Project')).toBeInTheDocument();
-    expect(screen.queryByText('Pause Project')).not.toBeInTheDocument();
+    expect(screen.getByText('Wake up project')).toBeInTheDocument();
+    expect(screen.queryByText('Pause project')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wake up' })).toBeEnabled();
   });
 
@@ -235,10 +235,11 @@ describe('SettingsGeneralPage', () => {
     render(<SettingsGeneralPage />);
 
     await user.click(screen.getByRole('button', { name: 'Pause' }));
-    expect(await screen.findByText('Pause Project?')).toBeInTheDocument();
+    const dialog = await screen.findByRole('alertdialog');
+    expect(within(dialog).getByText('Pause Test Project')).toBeInTheDocument();
     expect(mocks.pauseApplication).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Pause' }));
 
     expect(mocks.pauseApplication).toHaveBeenCalledOnce();
     expect(mocks.pauseApplication).toHaveBeenCalledWith({
@@ -251,28 +252,28 @@ describe('SettingsGeneralPage', () => {
       label: 'Live -> Paused, a pause request is already submitted',
       state: ApplicationStatus.Live,
       desiredState: ApplicationStatus.Paused,
-      title: 'Pause Project',
+      title: 'Pause project',
       name: 'Pausing...',
     },
     {
       label: 'Pausing -> Paused',
       state: ApplicationStatus.Pausing,
       desiredState: ApplicationStatus.Paused,
-      title: 'Pause Project',
+      title: 'Pause project',
       name: 'Pausing...',
     },
     {
       label: 'Paused -> Live, a wake request is already submitted',
       state: ApplicationStatus.Paused,
       desiredState: ApplicationStatus.Live,
-      title: 'Wake up Project',
+      title: 'Wake up project',
       name: 'Waking up...',
     },
     {
       label: 'Unpausing -> Live',
       state: ApplicationStatus.Unpausing,
       desiredState: ApplicationStatus.Live,
-      title: 'Wake up Project',
+      title: 'Wake up project',
       name: 'Waking up...',
     },
   ])(
@@ -328,23 +329,30 @@ describe('SettingsGeneralPage', () => {
     {
       tab: 'compute-resources',
       title: 'Compute Resources',
-      heading: 'Compute Resources',
+      content: { role: 'heading', name: 'Compute Resources' },
     },
     {
       tab: 'environment-variables',
       title: 'Environment Variables',
-      heading: 'Project Environment Variables',
+      content: { role: 'heading', name: 'Project environment variables' },
     },
-    { tab: 'secrets', title: 'Secrets', heading: 'Secrets' },
-  ])(
+    {
+      tab: 'secrets',
+      title: 'Secrets',
+      content: { role: 'button', name: 'Create secret' },
+    },
+  ] as const)(
     'renders the $tab tab without redirecting',
-    async ({ tab, title, heading }) => {
+    async ({ tab, title, content }) => {
       setTab(tab);
 
       render(<SettingsGeneralPage />);
 
       expect(
-        await screen.findByRole('heading', { level: 3, name: heading }),
+        await screen.findByRole(content.role, {
+          name: content.name,
+          ...(content.role === 'heading' ? { level: 3 } : {}),
+        }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('heading', { level: 1, name: title }),
@@ -383,16 +391,20 @@ describe('SettingsGeneralPage', () => {
     expect(screen.getByText('nhost config pull')).toBeVisible();
   });
 
-  it('renders the editor without a title or the settings area notice', async () => {
+  it('renders the editor in the settings column, like the other tabs', async () => {
     setTab('editor');
 
     render(SettingsGeneralPage.getLayout(<SettingsGeneralPage />));
 
     expect(
-      await screen.findByRole('heading', { name: 'Configuration Editor' }),
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Configuration Editor',
+      }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
-    expect(screen.queryByText('nhost config pull')).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Edit your project's configuration directly in TOML/),
+    ).toBeInTheDocument();
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 

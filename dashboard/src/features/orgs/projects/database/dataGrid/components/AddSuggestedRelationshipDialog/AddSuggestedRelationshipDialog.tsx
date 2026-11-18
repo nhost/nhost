@@ -234,6 +234,7 @@ export default function AddSuggestedRelationshipDialog({
                 name="relationshipName"
                 label="Relationship Name"
                 containerClassName="mt-0"
+                autoFocus
               />
 
               <DialogFooter className="mt-8">

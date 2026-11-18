@@ -1,35 +1,60 @@
+import { useMemo, useState } from 'react';
+import { Pagination } from '@/components/common/Pagination';
 import { OrgMember } from '@/features/orgs/components/members/components/OrgMember';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
+const MEMBERS_PER_PAGE = 25;
+
 export default function MembersList() {
   const { org } = useCurrentOrg();
-  const members = org?.members ?? [];
+  const members = useMemo(
+    () =>
+      [...(org?.members ?? [])].sort(
+        (a, b) =>
+          a.user.displayName.localeCompare(b.user.displayName) ||
+          (a.user.email ?? '').localeCompare(b.user.email ?? ''),
+      ),
+    [org?.members],
+  );
   const isAdmin = useIsOrgAdmin();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const nrOfPages = Math.max(Math.ceil(members.length / MEMBERS_PER_PAGE), 1);
+  const page = Math.min(currentPage, nrOfPages);
+  const pageMembers = members.slice(
+    (page - 1) * MEMBERS_PER_PAGE,
+    page * MEMBERS_PER_PAGE,
+  );
 
   return (
-    <div className="flex w-full flex-col overflow-hidden rounded-md border bg-background">
-      <div className="flex w-full flex-col gap-1 border-b p-4">
-        <h4 className="font-medium">
-          Members {members.length > 0 && `(${members.length})`}
-        </h4>
-        <p className="font-normal text-muted-foreground">
-          People of this organization have the ability to manage all projects
-          within the organization.
-        </p>
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex w-full flex-col overflow-hidden rounded-md border bg-background">
+        {/* Todo add an empty state here */}
+        <div className="flex w-full flex-col divide-y">
+          {pageMembers.map((member) => (
+            <div
+              key={member.id}
+              className="px-4 py-3 transition-colors hover:bg-muted/50"
+            >
+              <OrgMember member={member} isAdmin={isAdmin} />
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Todo add an empty state here */}
-      <div className="flex w-full flex-col divide-y">
-        {members.map((member) => (
-          <div
-            key={member.id}
-            className="px-4 py-3 transition-colors hover:bg-muted/60"
-          >
-            <OrgMember member={member} isAdmin={isAdmin} />
-          </div>
-        ))}
-      </div>
+      {members.length > MEMBERS_PER_PAGE && (
+        <Pagination
+          totalNrOfPages={nrOfPages}
+          currentPageNumber={page}
+          totalNrOfElements={members.length}
+          itemsLabel="members"
+          elementsPerPage={MEMBERS_PER_PAGE}
+          onPrevPageClick={() => setCurrentPage(page - 1)}
+          onNextPageClick={() => setCurrentPage(page + 1)}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

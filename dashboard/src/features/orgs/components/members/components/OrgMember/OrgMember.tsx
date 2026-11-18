@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis } from 'lucide-react';
+import { Trash2, UserCog } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,12 +26,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import {
   Form,
   FormControl,
   FormField,
@@ -41,12 +35,12 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { RoleBadge } from '@/features/orgs/components/members/components/RoleBadge';
+import { RoleSelector } from '@/features/orgs/components/members/components/RoleSelector';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -57,6 +51,7 @@ import {
   useUpdateOrganizationMemberMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { cn } from '@/lib/utils';
 import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
@@ -75,15 +70,30 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
   const user = useUserData();
   const { push } = useRouter();
   const { refetch: refetchOrgs } = useOrgs();
-  const { org: { plan: { isFree } = {} } = {}, refetch: refetchCurrentOrg } =
-    useCurrentOrg();
-  const [dropDownOpen, setDropDownOpen] = useState(false);
+  const {
+    org: { plan: { isFree } = {}, name: orgName } = {},
+    refetch: refetchCurrentOrg,
+  } = useCurrentOrg();
   const [confirmRemoveMemberDialogOpen, setConfirmRemoveMemberDialogOpen] =
     useState(false);
   const [updateMemberRoleDialogOpen, setUpdateMemberRoleDialogOpen] =
     useState(false);
 
   const isSelf = user?.id === member.user.id;
+  const canManage = (isAdmin || isSelf) && !isFree;
+  const canUpdateRole = isAdmin && !isFree;
+
+  const updateRoleTooltip = canUpdateRole
+    ? 'Update role'
+    : isFree
+      ? 'Upgrade your plan to manage member roles.'
+      : 'Only admins can update member roles.';
+
+  const removeMemberTooltip = canManage
+    ? 'Remove from organization'
+    : isFree
+      ? 'Upgrade your plan to manage members.'
+      : 'Only admins can remove other members.';
 
   const [deleteMember] = useDeleteOrganizationMemberMutation({
     variables: {
@@ -165,7 +175,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex min-w-0 flex-row items-center gap-3">
           <Avatar
-            className="shrink-0"
+            className="h-8 w-8 shrink-0"
             alt={member.user.displayName}
             name={member.user.displayName || 'local'}
             src={member.user.avatarUrl}
@@ -177,8 +187,8 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 {member.user.displayName}
               </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary dark:bg-primary">
-                  Me
+                <Badge className="pointer-events-none h-5 shrink-0 border-transparent bg-primary/10 px-1.5 font-bold text-primary text-xs">
+                  You
                 </Badge>
               )}
             </div>
@@ -188,39 +198,59 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-row items-center gap-2 sm:gap-4">
-          <span className="font-medium">{member.role}</span>
+        <div className="flex shrink-0 flex-row items-center gap-4 sm:gap-6">
+          <RoleBadge role={member.role} />
 
-          <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
-            <DropdownMenuTrigger
-              disabled={(!isAdmin && user?.id !== member.user.id) || isFree}
-              asChild
-              className="h-fit"
-            >
-              <Button variant="subtle" size="sm" className="h-8 p-2">
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
-              <DropdownMenuItem
-                disabled={!isAdmin}
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setUpdateMemberRoleDialogOpen(true);
-                }}
-              >
-                Update role
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setDropDownOpen(false);
-                  setConfirmRemoveMemberDialogOpen(true);
-                }}
-              >
-                Remove from organization
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-row items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !canUpdateRole && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Update role"
+                    disabled={!canUpdateRole}
+                    onClick={() => {
+                      form.reset({
+                        email: member.user.email,
+                        role: member.role,
+                      });
+                      setUpdateMemberRoleDialogOpen(true);
+                    }}
+                  >
+                    <UserCog />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{updateRoleTooltip}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={cn(
+                    'inline-flex',
+                    !canManage && 'cursor-not-allowed',
+                  )}
+                >
+                  <Button
+                    variant="subtle"
+                    aria-label="Remove from organization"
+                    className="hover:text-destructive dark:hover:text-destructive"
+                    disabled={!canManage}
+                    onClick={() => setConfirmRemoveMemberDialogOpen(true)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{removeMemberTooltip}</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
@@ -231,10 +261,18 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         <AlertDialogContent className="p-12 text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
-              Are you sure?
+              Remove member?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action will remove the member from organization.
+              This will remove{' '}
+              <strong className="font-semibold text-foreground">
+                {member.user.displayName}
+              </strong>{' '}
+              ({member.user.email}) from{' '}
+              <strong className="font-semibold text-foreground">
+                {orgName}
+              </strong>
+              . They&apos;ll lose access to every project in it.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8">
@@ -243,7 +281,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
               onClick={handleRemoveMemberFromOrg}
               variant="destructive"
             >
-              Continue
+              Remove member
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -294,25 +332,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="email" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.entries(Organization_Members_Role_Enum).map(
-                            (role) => (
-                              <SelectItem key={role[0]} value={role[1]}>
-                                {role[1]}
-                              </SelectItem>
-                            ),
-                          )}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <RoleSelector
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -326,7 +351,12 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Update</Button>
+                <Button
+                  type="submit"
+                  disabled={form.watch('role') === member.role}
+                >
+                  Update
+                </Button>
               </DialogFooter>
             </form>
           </Form>

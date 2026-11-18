@@ -1,0 +1,24 @@
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:16:Nhost.LLMPhrases:Describe what the product does instead of 'powerful'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:32:Nhost.LLMPhrases:Describe what the product does instead of 'leverage'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:5:54:Nhost.LLMPhrases:Describe what the product does instead of 'seamlessly'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:7:5:Nhost.LLMPhrases:Describe what the product does instead of 'comprehensive'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:7:32:Nhost.LLMPhrases:Describe what the product does instead of 'blazing fast'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:7:46:Nhost.LLMPhrases:Describe what the product does instead of 'world-class'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:7:62:Nhost.LLMPhrases:Describe what the product does instead of 'cutting-edge'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:8:13:Nhost.LLMPhrases:Describe what the product does instead of 'streamline'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:8:28:Nhost.LLMPhrases:Describe what the product does instead of 'empower'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:8:44:Nhost.LLMPhrases:Describe what the product does instead of 'unleash'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:8:54:Nhost.LLMPhrases:Describe what the product does instead of 'crucial'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:10:1:Nhost.LLMPhrases:Describe what the product does instead of 'Whether you're'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:10:29:Nhost.LLMPhrases:Describe what the product does instead of 'in today's'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:10:50:Nhost.LLMPhrases:Describe what the product does instead of 'simply'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:10:66:Nhost.LLMPhrases:Describe what the product does instead of 'utilize'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:11:1:Nhost.LLMPhrases:Describe what the product does instead of 'game-changer'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:11:24:Nhost.LLMPhrases:Describe what the product does instead of 'revolutionize'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:13:1:Nhost.LLMPhrases:Describe what the product does instead of 'When it comes to'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:13:27:Nhost.LLMPhrases:Describe what the product does instead of 'keep in mind that'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:13:45:Nhost.LLMPhrases:Describe what the product does instead of 'it's important to note'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:14:11:Nhost.LLMPhrases:Describe what the product does instead of 'not only a folder but also'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:14:61:Nhost.LLMPhrases:Describe what the product does instead of 'Think of it as'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:15:8:Nhost.LLMPhrases:Describe what the product does instead of 'in the world of'.
+.vale/tests/Nhost/LLMPhrases/fail.mdx:15:44:Nhost.LLMPhrases:Describe what the product does instead of 'facilitate'.

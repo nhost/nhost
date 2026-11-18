@@ -32,7 +32,7 @@ function DataGridFilterValue({ value, index, disabled }: FilterValueProps) {
   return (
     <div className="relative flex-1">
       <Input
-        className="h-8 p-2 pr-8"
+        className="p-2 pr-8"
         placeholder="Enter a value"
         value={value}
         onChange={handleValueChange}

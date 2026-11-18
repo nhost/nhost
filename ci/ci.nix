@@ -11,6 +11,7 @@ let
     fileset = pkgs.lib.fileset.unions [
       ../.github
       ../build/makefiles
+      ../nixops/lib/go/go.nix
       ../services/mcp/Makefile
       ../services/functions/Makefile
       ../services/postgres/Makefile
@@ -45,10 +46,12 @@ pkgs.runCommand "check-ci"
     mkdir .git
 
     # Other workflows still use newer action inputs than actionlint knows.
-    # Validate both exported workflows and all project-check callers in full.
+    # Validate exported, frontend, and project-check workflows in full.
     actionlint -config-file .github/actionlint.yaml \
       .github/workflows/wf_check.yaml \
       .github/workflows/wf_docker_push_image_ecr.yaml \
+      .github/workflows/wf_deploy_vercel.yaml \
+      .github/workflows/dashboard_wf_e2e_staging.yaml \
       .github/workflows/*checks.yaml
     shellcheck .github/actions/cache-nix/cache.sh
     python3 .github/actions/cache-nix/test_cache.py

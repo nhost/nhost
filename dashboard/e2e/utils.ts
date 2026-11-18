@@ -471,20 +471,18 @@ export async function deleteOrganization(page: Page, orgSlug: string) {
   await gotoOrgPage(page, orgSlug, 'settings');
 
   await expect(
-    page.getByRole('heading', { name: 'Delete Organization' }),
+    page.getByRole('heading', { name: 'Delete organization' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
-  const dialog = page.getByRole('alertdialog', {
-    name: 'Delete Organization',
-  });
+  const dialog = page.getByRole('alertdialog');
   await expect(dialog).toBeVisible();
 
   const confirmButton = dialog.getByTestId('deleteOrgButton');
   await expect(confirmButton).toBeDisabled();
 
   await dialog
-    .getByLabel("I'm sure I want to delete this Organization")
+    .getByLabel("I'm sure I want to delete this organization")
     .check();
   await expect(confirmButton).toBeDisabled();
 

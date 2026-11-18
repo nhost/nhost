@@ -32,6 +32,8 @@ func (d *PostgresDialect) TypeCast(placeholder string, sqlType string) string {
 
 func (d *PostgresDialect) SupportsDependentInsertSteps() bool { return true }
 
+func (d *PostgresDialect) SupportsZeroColumnSelect() bool { return true }
+
 func (d *PostgresDialect) DependentInsertCapture() string {
 	return `COALESCE(json_agg(row_to_json("_physical")), '[]'::json)`
 }

@@ -77,6 +77,7 @@ export default function BaseRoleForm({
           label="Name"
           placeholder="Enter value"
           autoComplete="off"
+          autoFocus
         />
 
         <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

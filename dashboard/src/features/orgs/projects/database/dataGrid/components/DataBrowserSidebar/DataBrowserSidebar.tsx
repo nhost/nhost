@@ -219,7 +219,7 @@ function DataBrowserSidebarContent({
               placeholder="Search objects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 pl-8 text-sm"
+              className="pl-8"
             />
           </div>
           <DatabaseObjectTypeFilterBar
@@ -281,7 +281,11 @@ export default function DataBrowserSidebar() {
   }
 
   return (
-    <FeatureSidebar toggleOffset="left-8" className="box">
+    <FeatureSidebar
+      toggleOffset="left-8"
+      className="box"
+      resizeStorageKey="data-browser-sidebar-width"
+    >
       {(collapse) => (
         <DataBrowserSidebarContent onSidebarItemClick={collapse} />
       )}
