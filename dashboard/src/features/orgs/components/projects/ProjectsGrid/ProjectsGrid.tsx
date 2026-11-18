@@ -2,7 +2,6 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
-import { DeploymentFailedWarning } from '@/features/orgs/components/projects/DeploymentFailedWarning';
 import { ProjectCardMenu } from '@/features/orgs/components/projects/ProjectCardMenu';
 import { ProjectLastDeployment } from '@/features/orgs/components/projects/ProjectLastDeployment';
 import { ProjectRegion } from '@/features/orgs/components/projects/ProjectRegion';
@@ -23,8 +22,8 @@ export function ProjectCard({ project }: { project: Project }) {
     ? `Open ${project.name} (${project.region.name})`
     : `Open ${project.name}`;
 
-  // The link is a layer under the whole card, not a wrapper: the warning icon
-  // and the menu sit above it, so they open without opening the project.
+  // The link is a layer under the whole card, not a wrapper: the menu and the
+  // region sit above it, so they open without opening the project.
   return (
     <div className="group relative flex h-full min-h-44 flex-col rounded-lg">
       <Link
@@ -38,9 +37,6 @@ export function ProjectCard({ project }: { project: Project }) {
             <p title={project.name} className="min-w-0 truncate font-semibold">
               {project.name}
             </p>
-            {project.githubRepository && (
-              <DeploymentFailedWarning latest={latestDeployment} />
-            )}
             <ProjectCardMenu project={project} orgSlug={org?.slug} />
           </div>
           <ProjectRepository project={project} />
@@ -48,7 +44,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {/* Without a repo the dashboard hides deployments everywhere else,
             so the card shows none either and the spot stays empty. */}
-        <div className="flex flex-1 flex-row items-start gap-2">
+        <div className="flex flex-1 flex-row items-center gap-2">
           {project.githubRepository && (
             <ProjectLastDeployment latest={latestDeployment} />
           )}

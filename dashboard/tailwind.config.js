@@ -80,6 +80,7 @@ module.exports = {
           DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
           foreground: 'hsl(var(--warning-foreground) / <alpha-value>)',
         },
+        success: 'hsl(var(--success) / <alpha-value>)',
         'brand-violet': 'hsl(var(--brand-violet) / <alpha-value>)',
         'on-solid': 'hsl(var(--on-solid) / <alpha-value>)',
         backdrop: 'hsl(var(--backdrop) / <alpha-value>)',
