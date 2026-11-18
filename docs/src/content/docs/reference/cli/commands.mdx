@@ -45,15 +45,14 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 <div class="cli-command cli-l1">
 
-### `nhost api query`
+### `nhost api request`
 
 <div class="cli-body">
 
-Send a query, or a mutation with `--allow-mutations`, to the Nhost Cloud API and print its data as JSON.
+Send a query or mutation to the Nhost Cloud API and print its data as JSON.
 
 | | |
 | --- | --- |
-| `--allow-mutations` | Allow mutations; they run as-is with your permissions. |
 | `--variables=""` | GraphQL variables as one JSON object. Default: `"{}"`. |
 
 </div>
@@ -66,7 +65,11 @@ Send a query, or a mutation with `--allow-mutations`, to the Nhost Cloud API and
 
 <div class="cli-body">
 
-Print the Nhost Cloud schema as introspection JSON.
+Print a summary, or SDL for named query and mutation fields, from the bundled Cloud schema snapshot (offline, no login).
+
+| | |
+| --- | --- |
+| `--depth=""` | Print types through N reference levels (selected fields: 0; return and argument types: 1). Deeper types stay referenced but undefined. Used enums and custom scalars are always included. Use a large N for every needed type; requires at least one field name. Default: `1`. |
 
 </div>
 

@@ -1,0 +1,30 @@
+schema {
+  query: query_root
+}
+type query_root {
+  node(id: uuid!): node
+}
+enum app_status {
+  ACTIVE
+  PAUSED
+}
+"""
+A project managed through the Cloud API.
+"""
+type apps implements node {
+  id: uuid!
+  name: String!
+  status: app_status!
+  createdAt: timestamp!
+  details: app_details
+  config: config
+}
+interface node {
+  id: uuid!
+}
+type team implements node {
+  id: uuid!
+  title: String!
+}
+scalar timestamp
+scalar uuid

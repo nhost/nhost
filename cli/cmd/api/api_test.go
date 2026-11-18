@@ -17,8 +17,9 @@ import (
 
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/api"
-	"github.com/nhost/nhost/cli/mcp/graphql"
 	"github.com/urfave/cli/v3"
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/parser"
 )
 
 func isolateEnv(t *testing.T) {
@@ -46,6 +47,18 @@ type commandResult struct {
 func runCommand(t *testing.T, endpoint string, args []string) commandResult {
 	t.Helper()
 
+	argv := make([]string, 0, 7+len(args))
+	argv = append(argv,
+		"--auth-url", endpoint, "--graphql-url", endpoint+"/graphql",
+		"--oauth2-client-id", "test-client", "api",
+	)
+
+	return runAPICommand(t, append(argv, args...))
+}
+
+func runAPICommand(t *testing.T, args []string) commandResult {
+	t.Helper()
+
 	flags, err := clienv.Flags()
 	if err != nil {
 		t.Fatal(err)
@@ -58,12 +71,7 @@ func runCommand(t *testing.T, endpoint string, args []string) commandResult {
 		Writer: &stdout, ErrWriter: io.Discard,
 		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {},
 	}
-	argv := make([]string, 0, 8+len(args))
-	argv = append(argv,
-		"nhost", "--auth-url", endpoint, "--graphql-url", endpoint+"/graphql",
-		"--oauth2-client-id", "test-client", "api",
-	)
-	err = root.Run(t.Context(), append(argv, args...))
+	err = root.Run(t.Context(), append([]string{"nhost"}, args...))
 
 	return commandResult{stdout: stdout.String(), err: err}
 }
@@ -181,6 +189,9 @@ func TestCommand(t *testing.T) {
 		query      = `query Apps($n: Int) { apps(limit: $n) { id } }`
 		mutation   = "mutation Update {\n  updateApp { id }\n}\n"
 		errorsBody = `{"data":{"apps":[]},"errors":[{"message":"denied"}]}`
+
+		duplicateFragment = `query { ...A } ` +
+			`fragment A on query_root { apps { id } } fragment A on query_root { apps { id } }`
 	)
 
 	tests := []struct {
@@ -196,7 +207,7 @@ func TestCommand(t *testing.T) {
 	}{
 		{
 			name:     "query variables and raw data",
-			args:     []string{"query", query, "--variables", `{"n":9007199254740993}`},
+			args:     []string{"request", query, "--variables", `{"n":9007199254740993}`},
 			body:     ` { "data": { "apps": [], "text": "<>&" }, "extensions": {"ignored":true} } `,
 			wantData: "{ \"apps\": [], \"text\": \"<>&\" }\n",
 			wantRequest: &sentRequest{
@@ -205,84 +216,71 @@ func TestCommand(t *testing.T) {
 			},
 		},
 		{
-			name:        "mutation with --allow-mutations",
-			args:        []string{"query", "--allow-mutations", "--", mutation},
+			name:        "mutation",
+			args:        []string{"request", "--", mutation},
 			body:        `{"data":{"updateApp":{"id":"id"}}}`,
 			wantData:    "{\"updateApp\":{\"id\":\"id\"}}\n",
 			wantRequest: &sentRequest{Query: mutation, Variables: map[string]json.RawMessage{}},
 		},
 		{
 			name:        "mutation sent once when the connection drops",
-			args:        []string{"query", "--allow-mutations", "--", mutation},
+			args:        []string{"request", "--", mutation},
 			hangUp:      true,
 			wantErr:     "failed to query the Nhost Cloud API",
 			wantRequest: &sentRequest{Query: mutation, Variables: map[string]json.RawMessage{}},
 		},
 		{
-			name:        "schema",
-			args:        []string{"schema"},
-			body:        `{"data":{"__schema":{"types":[{"name":"App","description":"kept"}],"unfiltered":true}}}`,
-			wantData:    "{\"__schema\":{\"types\":[{\"name\":\"App\",\"description\":\"kept\"}],\"unfiltered\":true}}\n",
-			wantRequest: &sentRequest{Query: graphql.IntrospectionQuery},
-		},
-		{
-			name: "mutation without --allow-mutations", args: []string{"query", mutation},
-			wantErr: "nhost api query sends mutations only with --allow-mutations",
-		},
-		{
-			name:    "subscription",
-			args:    []string{"query", `subscription { apps { id } }`},
-			wantErr: "Subscriptions are not supported",
-		},
-		{
-			name:    "subscription with --allow-mutations",
-			args:    []string{"query", "--allow-mutations", `subscription { apps { id } }`},
-			wantErr: "Subscriptions are not supported",
-		},
-		{
 			name:        "GraphQL errors",
-			args:        []string{"query", query},
+			args:        []string{"request", query},
 			body:        errorsBody,
 			wantErr:     errorsBody,
 			wantRequest: &sentRequest{Query: query, Variables: map[string]json.RawMessage{}},
 		},
 		{
-			name: "HTTP errors", args: []string{"query", query}, status: http.StatusForbidden,
+			name: "HTTP errors", args: []string{"request", query}, status: http.StatusForbidden,
 			body: `{"error":"forbidden"}`, wantErr: `{"error":"forbidden"}`,
 			wantRequest: &sentRequest{Query: query, Variables: map[string]json.RawMessage{}},
 		},
-		{name: "missing query", args: []string{"query"}, wantErr: "expected one GraphQL document"},
 		{
-			name:    "extra document",
-			args:    []string{"query", query, query},
+			name:    "missing document",
+			args:    []string{"request"},
 			wantErr: "expected one GraphQL document",
 		},
-		{name: "schema argument", args: []string{"schema", query}, wantErr: "schema takes none"},
+		{
+			name:    "extra document",
+			args:    []string{"request", query, query},
+			wantErr: "expected one GraphQL document",
+		},
 		{
 			name:    "malformed variables",
-			args:    []string{"query", query, "--variables", "{"},
+			args:    []string{"request", query, "--variables", "{"},
 			wantErr: "expected one JSON object: unexpected EOF",
 		},
 		{
 			name:    "null variables",
-			args:    []string{"query", query, "--variables", "null"},
+			args:    []string{"request", query, "--variables", "null"},
 			wantErr: "expected one JSON object, got null",
 		},
 		{
 			name:    "trailing variables",
-			args:    []string{"query", query, "--variables", "{} {}"},
+			args:    []string{"request", query, "--variables", "{} {}"},
 			wantErr: "expected one JSON object, got more than one value",
 		},
 		{
 			name:    "trailing garbage after variables",
-			args:    []string{"query", query, "--variables", "{} x"},
+			args:    []string{"request", query, "--variables", "{} x"},
 			wantErr: "expected one JSON object: invalid character 'x'",
 		},
 		{
 			name:      "no session",
-			args:      []string{"query", query},
+			args:      []string{"request", query},
 			noSession: true,
 			wantErr:   "nhost login",
+		},
+		{
+			name:    "duplicate fragment",
+			args:    []string{"request", duplicateFragment},
+			wantErr: "failed to check document: query not allowed: duplicate fragment A",
 		},
 	}
 	for _, tt := range tests {
@@ -333,5 +331,163 @@ func checkResult(t *testing.T, got commandResult, data, message string) {
 
 	if got.err == nil || !strings.Contains(got.err.Error(), message) {
 		t.Fatalf("error = %v, want one containing %q", got.err, message)
+	}
+}
+
+func TestSchema(t *testing.T) {
+	isolateEnv(t)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	tests := []struct {
+		name    string
+		pat     string
+		session bool
+	}{
+		{name: "no credentials"},
+		{name: "unusable PAT", pat: "synthetic-unusable"},
+		{name: "saved session", session: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("XDG_STATE_HOME", t.TempDir())
+			t.Setenv("NHOST_PAT", tt.pat)
+
+			if tt.session {
+				writeCredentials(t)
+			}
+
+			s := newServer(t, http.StatusInternalServerError, "must not be reached", false)
+			t.Setenv("NHOST_CLI_AUTH_URL", s.server.URL)
+			t.Setenv("NHOST_CLI_GRAPHQL_URL", s.server.URL+"/graphql")
+
+			got := runAPICommand(t, []string{"api", "schema"})
+			if got.err != nil {
+				t.Fatal(got.err)
+			}
+
+			checkSchemaSummary(t, got.stdout)
+
+			if n := s.requests.Load(); n != 0 {
+				t.Errorf("schema sent %d requests, want zero", n)
+			}
+		})
+	}
+}
+
+func checkSchemaSummary(t *testing.T, output string) {
+	t.Helper()
+
+	var summary struct {
+		Query    []string `json:"query"`
+		Mutation []string `json:"mutation"`
+	}
+	if err := json.Unmarshal([]byte(output), &summary); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(summary.Query) == 0 || len(summary.Mutation) == 0 {
+		t.Errorf("summary = %s, want query and mutation names", output)
+	}
+}
+
+func TestSubscriptionRefusal(t *testing.T) {
+	isolateEnv(t)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	s := newServer(t, http.StatusInternalServerError, "must not be reached", false)
+	got := runCommand(t, s.server.URL, []string{"request", "subscription { apps { id } }"})
+
+	const want = "Subscriptions are not supported. query not allowed: subscription { apps { id } }"
+	if got.err == nil || got.err.Error() != want {
+		t.Fatalf("error = %v, want %q", got.err, want)
+	}
+
+	if got.stdout != "" || s.requests.Load() != 0 {
+		t.Fatal("refused subscription must produce no stdout and send zero requests")
+	}
+}
+
+func TestSchemaSelections(t *testing.T) {
+	isolateEnv(t)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	tests := []struct {
+		name     string
+		args     []string
+		rootOnly bool
+		wantErr  string
+	}{
+		{name: "field", args: []string{"app"}},
+		{name: "depth after the name", args: []string{"app", "--depth", "0"}, rootOnly: true},
+		{name: "depth before the name", args: []string{"--depth", "0", "app"}, rootOnly: true},
+		{name: "unknown", args: []string{"nope"}, wantErr: `unknown field "nope"`},
+		{
+			name:    "depth alone",
+			args:    []string{"--depth", "2"},
+			wantErr: "--depth requires a field name",
+		},
+		{
+			name:    "explicit default depth alone",
+			args:    []string{"--depth", "1"},
+			wantErr: "--depth requires a field name",
+		},
+		{
+			name:    "zero depth alone",
+			args:    []string{"--depth", "0"},
+			wantErr: "--depth requires a field name",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("XDG_STATE_HOME", t.TempDir())
+			s := newServer(t, http.StatusInternalServerError, "must not be reached", false)
+			t.Setenv("NHOST_CLI_AUTH_URL", s.server.URL)
+			t.Setenv("NHOST_CLI_GRAPHQL_URL", s.server.URL+"/graphql")
+
+			got := runAPICommand(t, append([]string{"api", "schema"}, tt.args...))
+			if n := s.requests.Load(); n != 0 {
+				t.Errorf("schema sent %d requests, want zero", n)
+			}
+
+			if tt.wantErr != "" {
+				checkResult(t, got, "", tt.wantErr)
+				return
+			}
+
+			if got.err != nil {
+				t.Fatal(got.err)
+			}
+
+			checkSelection(t, got.stdout, "app", tt.rootOnly)
+		})
+	}
+}
+
+func checkSelection(t *testing.T, output, field string, rootOnly bool) {
+	t.Helper()
+
+	doc, err := parser.ParseSchema(&ast.Source{Input: output})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(doc.Schema) != 1 || len(doc.Schema[0].OperationTypes) != 1 ||
+		doc.Schema[0].OperationTypes[0].Operation != ast.Query {
+		t.Fatal("expected a schema block with only the query root")
+	}
+
+	root := doc.Definitions.ForName(doc.Schema[0].OperationTypes[0].Type)
+	if root == nil || len(root.Fields) != 1 || root.Fields[0].Name != field {
+		t.Fatalf("query root must contain only %s", field)
+	}
+
+	if !rootOnly {
+		return
+	}
+
+	for _, def := range doc.Definitions {
+		if def != root && !def.IsLeafType() {
+			t.Errorf("--depth 0 defined %s %s", def.Kind, def.Name)
+		}
 	}
 }
