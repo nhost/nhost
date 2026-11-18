@@ -19,7 +19,7 @@ if [[ ${1:-} == "--changed" ]]; then
 	source .vale/changed.sh
 	changed_markdown .
 	if [[ -z $changed_base ]]; then
-		echo "ℹ️  Neither origin/main nor main exists; skipping the changed-files prose lint."
+		echo "Neither origin/main nor main exists; skipping the changed-files prose lint."
 		exit 0
 	fi
 fi
@@ -66,7 +66,7 @@ done < <(list_files | LC_ALL=C sort)
 
 if [[ ${#files[@]} -eq 0 ]]; then
 	if [[ $changed_only == true ]]; then
-		echo "✅ No changed repository Markdown against ${changed_base}."
+		echo "No changed repository Markdown against ${changed_base}."
 	else
 		echo "No Markdown files to lint."
 	fi
@@ -74,7 +74,7 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 
 if [[ $changed_only == true ]]; then
-	echo "⚒️⚒️⚒️ Linting prose in ${#files[@]} file(s) changed against ${changed_base}..."
+	echo "Linting prose in ${#files[@]} file(s) changed against ${changed_base}..."
 fi
 
 vale --config .vale.ini "$@" "${files[@]}"
