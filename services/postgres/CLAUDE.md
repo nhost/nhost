@@ -4,4 +4,6 @@ PostGIS 3.7 split the address standardizer and TIGER geocoder into standalone pr
 
 PostGIS core, raster, and topology must retain `--ANY` tag links for every version shipped with PG17/PG18 in `extensions/postgis.nix`; the bulk upgrade installer is disabled. See [Extension upgrades](README.md#extension-upgrades) for the packaging and regression-test contract.
 
+pg_search upgrades crossing 0.26 must keep extension SQL and vector-index maintenance atomic in `postgres/bin/upgrade-pg-search.sql`; the old extension version is the retry marker. Preserve index identity/metadata and skip maintenance on current-version boots. Partitioned parents cannot use `ALTER INDEX RESET`; keep their narrowly scoped, table-locked option cleanup and physical-child rebuilds covered by `tests/test-pg-search-upgrades.sh`. TIGER needs only the existing startup extension upgrade, not fresh-install or recurring search-path repair.
+
 When adding, updating, or removing extensions, check whether their libraries provide logical-decoding output plugins. Add or remove those plugin library names from `postgres/etc/postgresql.conf.tmpl` (`output_plugin_libraries`) as appropriate, retaining the built-in `pgoutput` and `test_decoding`. This is a security allowlist, not `shared_preload_libraries`; do not list extensions that cannot serve as output plugins.

@@ -261,7 +261,9 @@ If you already use a custom path, preserve its schemas and append `tiger` after 
 
 ### Upgrading from bundled TIGER 3.6
 
-Upgraded volumes retain the database-level `search_path` set by the bundled geocoder, so functions can keep working there while a fresh development or preview database fails. Check `SHOW search_path;` in a new connection; if `tiger` is already present, no database-path change is needed. Migrations that rebuild a fresh database still need both the session reset and the persistent database-path setup above.
+The Nhost PostgreSQL container automatically upgrades an installed TIGER extension at startup when its version differs from the version bundled in the image. Already-current TIGER installations are left unchanged; startup does not perform recurring `search_path` repair.
+
+Existing databases upgraded from TIGER 3.6 retain the database-level `search_path` configured by that version. Check `SHOW search_path;` in a new connection; if `tiger` is already present, no database-path change is needed. Fresh installations—including development or preview databases recreated from migrations—still need both the session reset and the persistent database-path setup above.
 
 ## pgvector
 
@@ -543,9 +545,13 @@ DROP EXTENSION pg_search;
 
 ### Upgrading to pg_search 0.26
 
-Nhost upgrades installed extensions when PostgreSQL starts, but this does not rebuild indexes. When upgrading from pg_search 0.25 to 0.26 (including 0.26.7), plan for these breaking changes:
+When the Nhost PostgreSQL container upgrades pg_search from a version before 0.26 to 0.26 (including 0.26.7), it automatically rebuilds every ParadeDB index containing a vector field, including unquantized indexes. It removes the obsolete `centroid_ratio`, `training_samples_per_centroid`, `cluster_replication` and `bounds_scope` settings, using the new clustering defaults (`training_sample_ratio = 0.32`, `max_leaf_size = 100`). Other index configuration and metadata are preserved; each removed setting is logged. Custom clustering tuning is not translated to an equivalent new configuration.
 
-- **Rebuild vector-field indexes.** Every ParadeDB index containing a vector field must be rebuilt after upgrading, including indexes with quantization disabled. Vector queries fail with a rebuild-required error until the rebuild completes. As the index owner, run the following for each affected index, replacing `public.search_idx` with its name:
+This maintenance blocks writes while rebuilding and can extend startup and consume additional disk space and WAL. Plan the image upgrade as a maintenance window. The extension update and index maintenance commit together: on failure, startup logs a warning and leaves the upgrade pending for retry on the next start. Resolve that warning before treating the upgrade as complete. Ordinary restarts and updates within 0.26 do not rebuild indexes again.
+
+If you upgrade the extension manually instead of through container startup, or it was already upgraded without rebuilding its indexes, follow the manual steps below. The startup updater does not repair indexes merely because pg_search is already at the current version. Permission and score changes apply in either case.
+
+- **Rebuild vector-field indexes for manual upgrades.** Every ParadeDB index containing a vector field must be rebuilt after upgrading, including indexes with quantization disabled. Vector queries fail with a rebuild-required error until the rebuild completes. As the index owner, run the following for each affected index, replacing `public.search_idx` with its name:
 
   ```sql
   REINDEX INDEX public.search_idx;
@@ -553,7 +559,7 @@ Nhost upgrades installed extensions when PostgreSQL starts, but this does not re
 
   Plain `REINDEX` blocks writes while rebuilding. For a rebuild that allows writes, use `REINDEX INDEX CONCURRENTLY public.search_idx;` outside a transaction block. See ParadeDB's [Reindexing guide](https://www.paradedb.com/docs/operate/index-maintenance/reindexing) for concurrent rebuilds and the replacement-index procedure using `CREATE INDEX CONCURRENTLY`. Concurrent rebuilding does not make old vector storage readable during the rebuild.
 
-- **Recreate indexes with removed options.** `centroid_ratio` and `training_samples_per_centroid` are no longer accepted. Indexes that explicitly store these options must be recreated using the supported `training_sample_ratio` and `max_leaf_size` settings; `REINDEX` alone is not sufficient. See the [0.26.0 release notes](https://www.paradedb.com/docs/project/changelog/0.26.0) for the new settings and vector storage changes.
+- **Remove obsolete options for manual upgrades.** `centroid_ratio` and `training_samples_per_centroid` are no longer accepted; `REINDEX` alone does not remove stored options. Upstream recommends recreating indexes that explicitly store them using the supported `training_sample_ratio` and `max_leaf_size` settings. The old `cluster_replication` and `bounds_scope` options are also unsupported. See the [0.26.0 release notes](https://www.paradedb.com/docs/project/changelog/0.26.0) for the new clustering settings and vector storage changes.
 
 - **Check standalone index permissions (0.26.5).** Content-reading APIs such as `paradedb.aggregate()` now require table-level `SELECT` on the backing table and reject calls when row-level security (RLS) applies to the effective caller. See the [0.26.5 release notes](https://www.paradedb.com/docs/project/changelog/0.26.5) for the permission rules, including the separate rules for metadata APIs.
 

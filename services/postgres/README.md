@@ -38,6 +38,25 @@ a library that the new image no longer bundles, while
 `ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
 session.
 
+When upgrading pg_search across the 0.26 vector-storage boundary, the entrypoint
+uses `postgres/bin/upgrade-pg-search.sql`. Its single transaction upgrades the
+extension, removes obsolete clustering options and rebuilds affected physical
+indexes with blocking `REINDEX`. Failures roll back the extension version and
+maintenance together, so the next startup retries without a separate marker.
+Ordinary restarts and upgrades within 0.26 do not repeat the work.
+
+Use `ALTER INDEX RESET` for physical indexes to preserve their OIDs, dependencies,
+owners, comments and other configuration. PostgreSQL rejects that command on
+partitioned parents; the version-scoped migration locks their tables and removes
+only obsolete `pg_class.reloptions`, preserving child attachments and allowing
+future partitions to inherit supported options. Rebuild physical children, not
+the storage-less parent. Never broaden this into recurring catalog/configuration
+repair. `make check-pg-search-upgrades` covers real 0.25.11 vector storage,
+partition inheritance, rollback/retry, both AM aliases and unchanged repeat boots.
+`POSTGRES_UPGRADE_FROM_IMAGE` and `POSTGRES_UPGRADE_TO_IMAGE` can select compatible
+same-major source/target images for the focused fixture; it invokes the actual
+startup upgrade functions, not the full image lifecycle.
+
 Extension SQL versions that have shipped are immutable. If the pg_jsonschema
 checker fails after a source-pin bump, pin a revision with matching generated
 SQL or introduce a new extension SQL version and upgrade step so existing
