@@ -4,7 +4,10 @@ import { methods } from '@/app/signin/methods';
 import { signInQuery } from '@/app/signin/query';
 import NavAccount from '@/components/NavAccount';
 import NhostLogo from '@/components/NhostLogo';
+import SignOutButton from '@/components/SignOutButton';
+import UserAvatar from '@/components/UserAvatar';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/nhost/AuthProvider';
 
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
@@ -12,6 +15,8 @@ const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 const signedOutPaths = methods.flatMap((method) => method.signedOutPaths ?? []);
 
 export default function Nav() {
+  const user = useSession()?.user;
+
   return (
     <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
@@ -25,7 +30,23 @@ export default function Nav() {
 
         <NavAccount
           signedOutPaths={signedOutPaths}
-          signedIn={null}
+          signedIn={
+            user ? (
+              <div className="flex items-center gap-3">
+                <SignOutButton />
+                <Link
+                  to="/account"
+                  className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <UserAvatar
+                    displayName={user.displayName}
+                    className="size-8 text-xs"
+                  />
+                  <span className="sr-only">Your account</span>
+                </Link>
+              </div>
+            ) : null
+          }
           signedOut={
             <div className="flex items-center gap-3">
               <Button asChild variant="outline" size="sm">

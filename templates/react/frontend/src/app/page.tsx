@@ -4,8 +4,10 @@ import { DEFAULT_DESTINATION } from '@/app/signin/destination';
 import { signInQuery } from '@/app/signin/query';
 import CenteredLayout from '@/components/CenteredLayout';
 import Code from '@/components/Code';
+import SignOutLink from '@/components/SignOutLink';
 import StackTitle from '@/components/StackTitle';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/nhost/AuthProvider';
 
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
@@ -36,6 +38,8 @@ function Step({
 
 /** The starter's front page: what this is and what to try first. */
 export default function Home() {
+  const user = useSession()?.user;
+
   return (
     <CenteredLayout>
       <div className="mx-auto flex max-w-2xl flex-col gap-12 pt-[10vh] pb-6">
@@ -52,25 +56,48 @@ export default function Home() {
           </h2>
           <ol className="flex flex-col gap-8">
             <Step n={1} title="Create an account">
-              <p>Sign up with any of the ways the sign-in page offers.</p>
-              <div>
-                <Button asChild size="sm">
-                  <Link to={signUpLink}>Sign up</Link>
-                </Button>
-              </div>
+              {user ? (
+                <p>Done: you are signed in as {user.email ?? user.id}.</p>
+              ) : (
+                <>
+                  <p>Sign up with any of the ways the sign-in page offers.</p>
+                  <div>
+                    <Button asChild size="sm">
+                      <Link to={signUpLink}>Sign up</Link>
+                    </Button>
+                  </div>
+                </>
+              )}
             </Step>
 
             <Step n={2} title="Explore your account">
-              <p>
-                Edit your profile and how you sign in, then sign out and try{' '}
-                <Link
-                  to={signInLink}
-                  className="text-foreground underline underline-offset-4"
-                >
-                  another way in
-                </Link>
-                .
-              </p>
+              {/* The link is whichever half the visitor can do now: signed in,
+                  signing out; signed out, the sign-in page, which a session
+                  would only send on to the account. */}
+              {user ? (
+                <p>
+                  Edit your profile and how you sign in, then{' '}
+                  <SignOutLink>sign out</SignOutLink> and try another way in.
+                </p>
+              ) : (
+                <p>
+                  Edit your profile and how you sign in, then sign out and try{' '}
+                  <Link
+                    to={signInLink}
+                    className="text-foreground underline underline-offset-4"
+                  >
+                    another way in
+                  </Link>
+                  .
+                </p>
+              )}
+              {user ? (
+                <div>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/account">Go to your account</Link>
+                  </Button>
+                </div>
+              ) : null}
             </Step>
 
             <Step n={3} title="Make it yours">
