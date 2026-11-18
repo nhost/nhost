@@ -51,6 +51,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 - `internal/providerconfig/` — shared strict declaration parsing, endpoint/header validation, credential redaction, and no-redirect HTTP clients. Callers supply their configuration-error sentinel and adapter configuration lookup; adapter-specific URL rules remain with the adapters.
 - `autoai/` — auto-embeddings configuration and database functionality.
 - `autoai/embeddings/` — background embedding synchronization.
+- `autoai/embedder/` — provider-agnostic embedding registry, plain-HTTP OpenAI-compatible/Voyage/Gemini adapters, batching, response validation and retry. Errors carry fixed messages only and an error class (configuration, input, transient, canceled).
 - `openai/` — narrow OpenAI embedding client built on `github.com/openai/openai-go`.
 - `hasura/` — generated GraphQL client plus metadata helpers.
 - `migrations/` — PostgreSQL migrations and Hasura table, relationship, and event-trigger setup.
