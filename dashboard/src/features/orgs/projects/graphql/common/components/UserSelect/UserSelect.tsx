@@ -136,7 +136,7 @@ export default function UserSelect({
     {
       value: 'admin',
       label: 'Admin',
-      description: 'Admin secret, every permission',
+      description: 'Bypasses all permissions',
       group: 'Admin',
     },
     ...users.map((user) => ({
