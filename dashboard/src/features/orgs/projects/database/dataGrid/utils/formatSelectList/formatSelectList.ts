@@ -1,7 +1,7 @@
 import { format } from 'node-pg-format';
 import { formatSpatialColumnSelect } from '@/features/orgs/projects/database/dataGrid/utils/spatialTypeHelpers';
 
-export interface SelectListColumn {
+interface SelectListColumn {
   /**
    * Name of the column.
    */
