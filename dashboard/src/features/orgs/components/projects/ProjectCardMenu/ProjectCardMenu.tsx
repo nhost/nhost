@@ -1,5 +1,6 @@
 import { Copy, Ellipsis, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -24,6 +25,10 @@ export default function ProjectCardMenu({
   project,
   orgSlug,
 }: ProjectCardMenuProps) {
+  // Closed with the mouse: don't send focus back to the button, or its focus
+  // ring stays on after a click. Keyboard users still get focus back.
+  const closedWithPointer = useRef(false);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,7 +41,25 @@ export default function ProjectCardMenu({
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        onPointerDown={() => {
+          closedWithPointer.current = true;
+        }}
+        onKeyDown={() => {
+          closedWithPointer.current = false;
+        }}
+        onPointerDownOutside={() => {
+          closedWithPointer.current = true;
+        }}
+        onCloseAutoFocus={(event) => {
+          if (closedWithPointer.current) {
+            event.preventDefault();
+          }
+          closedWithPointer.current = false;
+        }}
+      >
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onSelect={() => copy(project.subdomain, 'Subdomain')}
