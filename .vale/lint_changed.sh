@@ -12,42 +12,19 @@ if [[ $# -ne 1 ]]; then
 fi
 dir=$1
 
-base=""
-for candidate in origin/main main; do
-	if git rev-parse --verify --quiet "${candidate}^{commit}" >/dev/null; then
-		base="$candidate"
-		break
-	fi
-done
+# shellcheck source=changed.sh
+source "$(dirname "${BASH_SOURCE[0]}")/changed.sh"
+changed_markdown "$dir"
 
-if [[ -z "$base" ]]; then
+if [[ -z $changed_base ]]; then
 	echo "ℹ️  Neither origin/main nor main exists; skipping the changed-files prose lint."
 	exit 0
 fi
 
-# Resolved here rather than with `git diff --merge-base`, whose failure inside
-# the process substitution below would pass as "nothing changed".
-merge_base=$(git merge-base "$base" HEAD) || {
-	echo "No merge base between ${base} and HEAD; fetch more history." >&2
-	exit 1
-}
-
-files=()
-while IFS= read -r file; do
-	case "$file" in
-	*.md | *.mdx) files+=("$file") ;;
-	esac
-done < <(
-	{
-		git diff --relative --name-only --diff-filter=d "$merge_base" -- "$dir"
-		git ls-files --others --exclude-standard -- "$dir"
-	} | sort -u
-)
-
-if [[ ${#files[@]} -eq 0 ]]; then
-	echo "✅ No changed Markdown under ${dir} against ${base}."
+if [[ ${#changed[@]} -eq 0 ]]; then
+	echo "✅ No changed Markdown under ${dir} against ${changed_base}."
 	exit 0
 fi
 
-echo "⚒️⚒️⚒️ Linting prose in ${#files[@]} file(s) changed against ${base}..."
-vale "${files[@]}"
+echo "⚒️⚒️⚒️ Linting prose in ${#changed[@]} file(s) changed against ${changed_base}..."
+vale "${changed[@]}"
