@@ -37,6 +37,7 @@ NEW_SETTINGS = {
     "pg_durable.max_user_connections": ("PG_DURABLE_MAX_USER_CONNECTIONS", "10", False),
     "pg_durable.retention_days": ("PG_DURABLE_RETENTION_DAYS", "30", False),
     "pg_durable.log_workflow_sql": ("PG_DURABLE_LOG_WORKFLOW_SQL", "off", False),
+    "pg_durable.http_security": ("PG_DURABLE_HTTP_SECURITY", "unrestricted", True),
     "timescaledb.max_background_workers": (
         "TIMESCALEDB_MAX_BACKGROUND_WORKERS", "16", False
     ),

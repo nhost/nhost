@@ -1,5 +1,37 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS address_standardizer;
+CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+-- TIGER's installer changes the session search path. Keep later extensions
+-- in their normal schema (pg_search expects vector in public).
+RESET search_path;
 CREATE EXTENSION IF NOT EXISTS pg_jsonschema;
+
+-- PostGIS 3.7 split these extensions into standalone distributions.
+DO $$
+DECLARE
+    extension_name text;
+    previous_version text;
+BEGIN
+    FOREACH extension_name IN ARRAY ARRAY[
+        'address_standardizer', 'address_standardizer_data_us', 'postgis_tiger_geocoder'
+    ] LOOP
+        FOREACH previous_version IN ARRAY ARRAY['3.6.2', '3.6.4'] LOOP
+            IF NOT EXISTS (
+                SELECT 1
+                FROM pg_extension_update_paths(extension_name) AS update_path
+                JOIN pg_available_extensions AS available ON available.name = extension_name
+                WHERE update_path.source = previous_version
+                  AND update_path.target = available.default_version
+                  AND update_path.path IS NOT NULL
+            ) THEN
+                RAISE EXCEPTION '% has no update path from %', extension_name, previous_version;
+            END IF;
+        END LOOP;
+    END LOOP;
+END;
+$$;
 
 DO $$
 BEGIN
@@ -21,6 +53,25 @@ BEGIN
             AND update_path.path IS NOT NULL
     ) THEN
         RAISE EXCEPTION 'pg_jsonschema has no update path from 0.3.3 to its default version';
+    END IF;
+END;
+$$;
+
+-- A PL/pgSQL variable is stable to the planner but its schema can change
+-- between calls sharing a compiled-schema validator cache.
+DO $$
+DECLARE
+    schema_text text;
+    schema_value jsonschema;
+    results boolean[] := '{}';
+BEGIN
+    FOREACH schema_text IN ARRAY ARRAY['{"type":"string"}', '{"type":"integer"}'] LOOP
+        schema_value := schema_text::jsonschema;
+        results := results || jsonb_matches_compiled_schema(schema_value, '42'::jsonb);
+    END LOOP;
+
+    IF results IS DISTINCT FROM ARRAY[false, true] THEN
+        RAISE EXCEPTION 'pg_jsonschema reused a stale compiled-schema validator: %', results;
     END IF;
 END;
 $$;

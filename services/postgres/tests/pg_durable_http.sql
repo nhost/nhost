@@ -117,8 +117,8 @@ $$;
 COPY (SELECT '') TO PROGRAM 'test -s "${SSL_CERT_FILE:?}"';
 
 -- Use a loopback responder instead of live third-party services. A bare private
--- IP is rejected by the Azure-only feature, so a successful request still
--- distinguishes http-allow-all while remaining deterministic and offline.
+-- IP is rejected by restricted mode, so a successful request still verifies the
+-- image's unrestricted HTTP policy while remaining deterministic and offline.
 COPY (SELECT '') TO PROGRAM '/bin/sh /tests/pg_durable_http_server.sh start';
 
 CREATE TEMP TABLE pg_durable_http_instances (

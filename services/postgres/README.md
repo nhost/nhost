@@ -43,6 +43,13 @@ checker fails after a source-pin bump, pin a revision with matching generated
 SQL or introduce a new extension SQL version and upgrade step so existing
 volumes receive the change.
 
+PostGIS 3.7 no longer bundles the address standardizer or TIGER geocoder.
+Their standalone packages keep `address_standardizer`,
+`address_standardizer_data_us`, and `postgis_tiger_geocoder` available. The
+address-standardizer package exposes the upstream update script for the
+previous bundled 3.6 versions; the TIGER package ships its own legacy upgrade
+paths. Keep these paths when updating either standalone source.
+
 ## Tests
 
 Keep check scripts and fixtures under `tests/`: `project.nix` includes this
@@ -138,8 +145,17 @@ parameters, especially pg_durable workflow variables, even with
 SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
 treat these logs as sensitive when queries or workflows handle secrets.
 
-The image and Cloud defaults match whether or not `[postgres.settings]` exists.
-Both omit `pg_durable` and `pg_ivm`; include either in
+The image also supports `PG_DURABLE_HTTP_SECURITY` (not mapped to a Cloud
+setting). It defaults to `unrestricted` to preserve the former
+`http-allow-all` build policy after upgrading to pg_durable 0.2.9. This permits
+HTTP(S) requests to arbitrary destinations, including private networks. Set it
+to `restricted` for the upstream HTTPS/domain/IP restrictions (recommended),
+or `disabled` to block pg_durable HTTP requests. Changes require a PostgreSQL
+restart; HTTP function privileges, TLS verification, and redirect blocking
+remain enforced in enabled modes.
+
+The image and Cloud defaults in the table above match whether or not
+`[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in
 `sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
 all other required libraries if you use it. Preloading an extension does not
 run `CREATE EXTENSION`. The fixed `output_plugin_libraries` allowlist permits

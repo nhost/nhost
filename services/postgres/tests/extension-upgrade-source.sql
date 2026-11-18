@@ -1,4 +1,9 @@
 CREATE EXTENSION postgis;
+CREATE EXTENSION fuzzystrmatch;
+CREATE EXTENSION address_standardizer;
+CREATE EXTENSION address_standardizer_data_us;
+CREATE EXTENSION postgis_tiger_geocoder;
+RESET search_path;
 CREATE EXTENSION hypopg;
 CREATE EXTENSION pg_ivm;
 CREATE EXTENSION pg_jsonschema;
