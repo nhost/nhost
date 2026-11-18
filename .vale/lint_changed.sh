@@ -12,7 +12,7 @@ if [[ $# -ne 1 ]]; then
 fi
 dir=$1
 
-# shellcheck source=changed.sh
+# shellcheck source=SCRIPTDIR/changed.sh
 source "$(dirname "${BASH_SOURCE[0]}")/changed.sh"
 changed_markdown "$dir"
 

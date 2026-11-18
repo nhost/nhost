@@ -15,7 +15,7 @@ if [[ ${1:-} == "--changed" ]]; then
 	changed_only=true
 	shift
 
-	# shellcheck source=changed.sh
+	# shellcheck source=SCRIPTDIR/changed.sh
 	source .vale/changed.sh
 	changed_markdown .
 	if [[ -z $changed_base ]]; then
