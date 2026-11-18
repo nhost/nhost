@@ -1,12 +1,20 @@
 package controller_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
+	"slices"
+	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/nhost/nhost/services/constellation/controller"
@@ -73,6 +81,7 @@ INSERT INTO optional_input.kids VALUES
 	}
 
 	t.Run("reads", func(t *testing.T) { testRemoteInputReads(t, ctrl) })
+	t.Run("nullable ordering", func(t *testing.T) { testRemoteInputNullOrderBy(t, ctrl) })
 	t.Run("cached fragments", func(t *testing.T) { testRemoteInputCache(t, ctrl) })
 	t.Run("prevalidation", func(t *testing.T) { testRemoteInputPrevalidation(t, ctrl, pool) })
 }
@@ -201,6 +210,221 @@ func checkRemoteInputEquivalent(
 	if !reflect.DeepEqual(response.Data, baseline.Data) {
 		t.Fatalf("variable data=%#v, literal data=%#v", response.Data, baseline.Data)
 	}
+}
+
+func testRemoteInputNullOrderBy(t *testing.T, ctrl *controller.Controller) {
+	t.Helper()
+
+	router := newTestRouter(t, ctrl)
+
+	tests := []struct {
+		name       string
+		definition string
+		variables  map[string]any
+		direction  string
+		invalid    bool
+	}{
+		{"null overrides default", "=[{id:desc}]", map[string]any{"o": nil}, "", false},
+		{"default on warm document", "=[{id:desc}]", nil, "desc", false},
+		{
+			"provided on warm document",
+			"=[{id:desc}]",
+			map[string]any{"o": map[string]any{"id": "asc"}},
+			"asc",
+			false,
+		},
+		{"null on warm document", "=[{id:desc}]", map[string]any{"o": nil}, "", false},
+		{"null default", "=null", nil, "", false},
+		{"omitted", "", nil, "", false},
+		{"empty object", "", map[string]any{"o": map[string]any{}}, "", false},
+		{"empty list", "", map[string]any{"o": []any{}}, "", false},
+		{"required null", "!", map[string]any{"o": nil}, "", true},
+		{"null element", "", map[string]any{"o": []any{nil}}, "", true},
+	}
+	for _, role := range []string{"admin", "reader"} {
+		for _, parents := range [][]int{{1}, {1, 2}} {
+			for _, field := range []string{
+				"optional_input_kids", "optional_input_kids_aggregate",
+				"remote_kids", "remote_kids_aggregate",
+			} {
+				for _, tt := range tests {
+					t.Run(
+						fmt.Sprintf("%s/%v/%s/%s", role, parents, field, tt.name),
+						func(t *testing.T) {
+							query := nullableOrderByQuery(field, parents, tt.definition)
+
+							variables := map[string]any{
+								"where": map[string]any{"_and": []any{
+									map[string]any{"owner": map[string]any{"_in": parents}},
+									map[string]any{"label": map[string]any{"_neq": "other"}},
+								}},
+								"limit": 10,
+							}
+							maps.Copy(variables, tt.variables)
+
+							response := nullableOrderByResponse(
+								t,
+								router,
+								role,
+								controller.GraphQLRequest{
+									Query: query, Variables: variables,
+								},
+							)
+							want := nullableOrderByData(field, parents, role, tt.direction)
+							checkNullableOrderByResponse(
+								t,
+								response,
+								want,
+								tt.direction,
+								tt.invalid,
+							)
+						},
+					)
+				}
+			}
+		}
+	}
+}
+
+func checkNullableOrderByResponse(
+	t *testing.T,
+	response *controller.GraphQLResponse,
+	want map[string]any,
+	direction string,
+	invalid bool,
+) {
+	t.Helper()
+
+	if invalid {
+		if response.Errors == nil || response.Data != nil {
+			t.Fatalf("expected validation errors without data, got %+v", response)
+		}
+
+		return
+	}
+
+	if response.Errors != nil {
+		t.Fatalf("response=%+v", response)
+	}
+
+	var options []cmp.Option
+	if direction == "" {
+		// Unordered collections have no stable row order; IDs still verify
+		// filtering, role permissions and per-parent grouping exactly.
+		options = append(options, cmpopts.SortSlices(func(a, b any) bool {
+			left, leftOK := a.(map[string]any)
+			right, rightOK := b.(map[string]any)
+			leftID, leftIDOK := left["id"].(float64)
+			rightID, rightIDOK := right["id"].(float64)
+
+			return leftOK && rightOK && leftIDOK && rightIDOK && leftID < rightID
+		}))
+	}
+
+	if diff := cmp.Diff(want, response.Data, options...); diff != "" {
+		t.Errorf("ordering result (-want +got):\n%s", diff)
+	}
+}
+
+func nullableOrderByResponse(
+	t *testing.T, router http.Handler, role string, request controller.GraphQLRequest,
+) *controller.GraphQLResponse {
+	t.Helper()
+
+	payload, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/graphql", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+	req.Header.Set("X-Hasura-Role", role)
+
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("HTTP %d: %s", recorder.Code, recorder.Body.String())
+	}
+
+	var response controller.GraphQLResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+
+	return &response
+}
+
+func nullableOrderByQuery(field string, parents []int, orderDefault string) string {
+	definitions := "($o:[optional_input_kids_order_by!]" + orderDefault +
+		",$where:optional_input_kids_bool_exp!,$limit:Int!)"
+
+	selection := "id"
+	if strings.HasSuffix(field, "_aggregate") {
+		selection = "aggregate { count } nodes { id }"
+	}
+
+	result := fmt.Sprintf(
+		"result:%s(where:$where,limit:$limit,offset:0,order_by:$o) { %s }",
+		field,
+		selection,
+	)
+	if strings.HasPrefix(field, "remote_") {
+		parentList := "[1]"
+		if len(parents) == 2 {
+			parentList = "[1,2]"
+		}
+
+		return fmt.Sprintf(`query Q%s {
+ parents:optional_input_parents(where:{id:{_in:%s}},order_by:{id:asc}) { id ...Kids }
+} fragment Kids on optional_input_parents { %s }`, definitions, parentList, result)
+	}
+
+	return "query Q" + definitions + " { " + result + " }"
+}
+
+func nullableOrderByData(field string, parents []int, role, direction string) map[string]any {
+	result := func(ids []int) any {
+		if direction == "desc" {
+			slices.Reverse(ids)
+		}
+
+		rows := make([]any, 0, len(ids))
+		for _, id := range ids {
+			rows = append(rows, map[string]any{"id": float64(id)})
+		}
+
+		if strings.HasSuffix(field, "_aggregate") {
+			return map[string]any{
+				"aggregate": map[string]any{"count": float64(len(ids))}, "nodes": rows,
+			}
+		}
+
+		return rows
+	}
+
+	var allIDs []int
+
+	parentRows := make([]any, 0, len(parents))
+	for _, parent := range parents {
+		ids := []int{parent*100 + 1}
+		if role == "admin" {
+			ids = append(ids, parent*100+3)
+		}
+
+		allIDs = append(allIDs, ids...)
+		parentRows = append(
+			parentRows,
+			map[string]any{"id": float64(parent), "result": result(ids)},
+		)
+	}
+
+	if strings.HasPrefix(field, "remote_") {
+		return map[string]any{"parents": parentRows}
+	}
+
+	return map[string]any{"result": result(allIDs)}
 }
 
 func testRemoteInputCache(t *testing.T, ctrl *controller.Controller) {

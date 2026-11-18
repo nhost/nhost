@@ -292,6 +292,10 @@ func ParseOrderBy(
 		return nil, fmt.Errorf("resolving order_by: %w", err)
 	}
 
+	if value.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	gen := &orderByAliasGen{n: 0}
 
 	if value.Kind == ast.ObjectValue {

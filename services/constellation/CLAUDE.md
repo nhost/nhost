@@ -117,6 +117,12 @@ go test ./connector/sql/graphql/schema/... -update
 ```
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
+
+Black-box controller tests covering SQL roots should use `HandlerPost` (for example,
+`newTestRouter`) and decode the HTTP response body. A successful `Resolve` may keep
+its data only in the private `rawResponse` fast path; `GraphQLResponse.Data` can be
+nil, and directly marshaling that struct does not expose the raw data.
+
 Query-operation JSON goldens must call the queries test harness's `normalize(ops)`
 before comparison: numeric SQL parameters decode from JSON as `float64`, even
 when the builder originally supplied an integer.
