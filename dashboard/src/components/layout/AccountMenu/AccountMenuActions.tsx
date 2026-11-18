@@ -14,7 +14,7 @@ interface AccountMenuActionsProps {
 }
 
 /**
- * Links into account settings, one per sidebar group: Profile and Security.
+ * Links into account settings: Account settings and Security.
  * The one for the page you are on is highlighted, like in the page menu.
  */
 export default function AccountMenuActions({

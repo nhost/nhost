@@ -18,7 +18,7 @@ export const ACCOUNT_SETTINGS_TABS: Record<
   AccountSettingsTab,
   { title: string; icon: LucideIcon }
 > = {
-  general: { title: 'Profile', icon: UserRound },
+  general: { title: 'Account settings', icon: UserRound },
   authentication: { title: 'Authentication', icon: ShieldCheck },
   sessions: { title: 'Sessions', icon: MonitorSmartphone },
   'personal-access-tokens': {
@@ -51,7 +51,7 @@ export const ACCOUNT_MENU_LINKS: {
   tab: AccountSettingsTab;
   activeTabs: AccountSettingsTab[];
 }[] = [
-  { title: 'Profile', tab: 'general', activeTabs: ['general'] },
+  { title: 'Account settings', tab: 'general', activeTabs: ['general'] },
   {
     title: 'Security',
     tab: 'authentication',
