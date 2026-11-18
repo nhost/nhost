@@ -283,6 +283,29 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 			},
 		},
 		{
+			name: "first of multiple configured audiences matches",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{
+						Type:     jwtconfig.AlgorithmHS256,
+						Key:      "key",
+						Audience: jwtconfig.StringOrList{"svc-a", "svc-b"},
+					},
+				},
+			},
+			headersFn: bearerTokenFn("key", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"aud": "svc-a",
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user", nil,
+				),
+			}),
+			expectedSession: &jwt.SessionResult{
+				Role:      "user",
+				Variables: expectedVars("user", []string{"user"}, "user", nil),
+			},
+		},
+		{
 			name: "audience mismatch",
 			config: jwtconfig.Config{
 				Secrets: []jwtconfig.Secret{
