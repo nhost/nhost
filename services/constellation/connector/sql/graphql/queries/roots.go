@@ -208,7 +208,7 @@ func (r Roots) BuildQuery(
 		return nil, fmt.Errorf("%w: %s", ErrNoRootsForRole, operation.Operation)
 	}
 
-	operation, fragments, err := normalizeInputVariables(operation, fragments, variables)
+	operation, fragments, err := NormalizeInputVariables(operation, fragments, variables)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
@@ -202,6 +203,15 @@ func (c *Controller) execute(
 		operation, normalizeRootSelections(operation.SelectionSet, fragments, variables),
 	)
 	fragments = pruneFragments(fragments, variables)
+
+	// Remote plans retain selection subtrees but generated target operations lose
+	// the selected operation's definitions and validated argument metadata. Apply
+	// input presence while that provenance is still available, before either
+	// prevalidation or execution (including mutation response relationships).
+	operation, fragments, err := queries.NormalizeInputVariables(operation, fragments, variables)
+	if err != nil {
+		return errorsResponse(nil, c.classifyConnectorError(ctx, logger, err))
+	}
 
 	// Partition the normalized root fields into introspection meta-fields
 	// (__schema/__type/__typename), resolved locally, and connector-backed data

@@ -21,7 +21,12 @@ type inputVariables struct {
 	normalized  map[string]*ast.FragmentDefinition
 }
 
-func normalizeInputVariables(
+// NormalizeInputVariables applies omission, input defaults and non-null use-site
+// checks to a validated operation with coerced variables. It returns request-local
+// copies only where inputs change, including reachable fragments. Callers that
+// plan remote selections must use it before dropping variable or field definitions.
+// Unvalidated/generated arguments remain untouched.
+func NormalizeInputVariables(
 	operation *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,

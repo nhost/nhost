@@ -1,4 +1,4 @@
-package queries
+package queries_test
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"github.com/vektah/gqlparser/v2/validator"
 	"github.com/vektah/gqlparser/v2/validator/rules"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 )
 
@@ -188,7 +189,7 @@ func checkNormalizedInput(t *testing.T, schema *ast.Schema, tt normalizeInputCas
 
 	var before bytes.Buffer
 	formatter.NewFormatter(&before).FormatQueryDocument(document)
-	normalized, fragments, err := normalizeInputVariables(
+	normalized, fragments, err := queries.NormalizeInputVariables(
 		operation,
 		document.Fragments,
 		variables,
@@ -210,7 +211,7 @@ func checkNormalizedInput(t *testing.T, schema *ast.Schema, tt normalizeInputCas
 	}
 
 	if err != nil {
-		t.Fatalf("normalizeInputVariables: %v", err)
+		t.Fatalf("NormalizeInputVariables: %v", err)
 	}
 
 	want, err := parser.ParseQuery(&ast.Source{Input: tt.want})
