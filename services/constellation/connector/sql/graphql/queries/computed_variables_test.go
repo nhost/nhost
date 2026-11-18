@@ -61,6 +61,35 @@ func TestComputedVariableInputs(t *testing.T) {
 		wantErr   bool
 	}{
 		{
+			name:      "null computed direction",
+			query:     `query($d:order_by){cf_select_items(order_by:{item_raises:$d}){id}}`,
+			variables: map[string]any{"d": nil},
+			wantQuery: `query{cf_select_items{id}}`,
+		},
+		{
+			name:      "null computed direction default",
+			query:     `query($d:order_by=null){cf_select_items(order_by:{item_raises:$d,item_owner:desc,id:asc}){id}}`,
+			wantQuery: `query{cf_select_items(order_by:{item_owner:desc,id:asc}){id}}`,
+		},
+		{
+			name:      "computed ordering object variable",
+			query:     `query($o:cf_select_items_order_by!){cf_select_items(order_by:[$o]){id}}`,
+			variables: map[string]any{"o": map[string]any{"item_raises": nil}},
+			wantQuery: `query{cf_select_items{id}}`,
+		},
+		{
+			name:      "null column direction through relationship",
+			query:     `query($d:order_by){cf_select_tags(order_by:{item:{label:$d,item_owner:desc},id:asc}){id}}`,
+			variables: map[string]any{"d": nil},
+			wantQuery: `query{cf_select_tags(order_by:{item:{item_owner:desc},id:asc}){id}}`,
+		},
+		{
+			name:      "null computed direction through relationship",
+			query:     `query($d:order_by){cf_select_tags(order_by:{item:{item_raises:$d,item_owner:desc},id:asc}){id}}`,
+			variables: map[string]any{"d": nil},
+			wantQuery: `query{cf_select_tags(order_by:{item:{item_owner:desc},id:asc}){id}}`,
+		},
+		{
 			name:      "computed comparison object",
 			query:     `query($comparison:Int_comparison_exp!){cf_select_items(where:{item_owner:$comparison}){id}}`,
 			variables: map[string]any{"comparison": map[string]any{"_eq": 1}},

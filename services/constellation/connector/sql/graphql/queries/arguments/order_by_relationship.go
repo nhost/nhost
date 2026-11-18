@@ -95,6 +95,10 @@ func buildRelationshipOrderItems(
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullOrderByLeaf(target, child, role) {
+			continue
+		}
+
 		if column := target.ColumnFromGraphqlName(child.Name); column != nil {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {

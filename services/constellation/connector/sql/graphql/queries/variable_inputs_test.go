@@ -735,6 +735,27 @@ func TestVariableInputsRejectInvalidValues(t *testing.T) {
 			wantErr:       arguments.ErrInvalidArgument,
 		},
 		{
+			name:          "unknown null sort field",
+			query:         `query($sort:[users_order_by!]){users(order_by:$sort){id}}`,
+			variables:     `{"sort":[{"unknown":null}]}`,
+			coercionError: true,
+			wantErr:       arguments.ErrInvalidArgument,
+		},
+		{
+			name:          "unknown null relationship sort field",
+			query:         `query($sort:[posts_order_by!]){posts(order_by:$sort){id}}`,
+			variables:     `{"sort":[{"author":{"unknown":null}}]}`,
+			coercionError: true,
+			wantErr:       arguments.ErrInvalidArgument,
+		},
+		{
+			name:          "invalid sort direction with null sibling",
+			query:         `query($sort:[users_order_by!]){users(order_by:$sort){id}}`,
+			variables:     `{"sort":[{"id":null,"name":"invalid"}]}`,
+			coercionError: true,
+			wantErr:       arguments.ErrInvalidArgument,
+		},
+		{
 			name:          "null distinct_on list element",
 			query:         `query($cols:[users_select_column!]){users(distinct_on:$cols){id}}`,
 			variables:     `{"cols":[null]}`,
@@ -882,6 +903,12 @@ func TestVariableInputsCachedDocument(t *testing.T) {
 			wantVariables: `{"where":{"id":{"_eq":"u2"}},"sort":[{"name":"desc"}],"limit":1}`,
 		},
 		{name: "omitted", variables: `{}`, wantQuery: `query{users{id}}`, wantVariables: `{}`},
+		{
+			name:          "null direction",
+			variables:     `{"direction":null}`,
+			wantQuery:     `query{users{id}}`,
+			wantVariables: `{}`,
+		},
 		{
 			name:          "null limit",
 			variables:     `{"id":"u3","direction":"asc","limit":null}`,

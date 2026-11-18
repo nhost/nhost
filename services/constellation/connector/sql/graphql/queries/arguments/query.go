@@ -342,6 +342,10 @@ func appendOrderByObject(
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	for _, field := range value.Children {
+		if isNullOrderByLeaf(t, field, role) {
+			continue
+		}
+
 		if column := t.ColumnFromGraphqlName(field.Name); column != nil {
 			direction, err := orderByDirection(field.Value)
 			if err != nil {
@@ -399,6 +403,14 @@ func appendOrderByObject(
 	}
 
 	return orderBy, nil
+}
+
+// isNullOrderByLeaf skips only recognized nullable directions. Unknown fields
+// and computed fields without a role grant must still reach validation.
+func isNullOrderByLeaf(t Table, field *ast.ChildValue, role string) bool {
+	return field.Value.Kind == ast.NullValue &&
+		(t.ColumnFromGraphqlName(field.Name) != nil ||
+			t.ComputedScalarFromGraphqlName(field.Name, role) != nil)
 }
 
 // orderByDirection resolves an order_by leaf value to a typed direction. The

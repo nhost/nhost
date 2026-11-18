@@ -111,6 +111,34 @@ INSERT INTO users VALUES
 			variables: map[string]any{"direction": "asc"},
 		},
 		{
+			name: "nullable direction", definitions: "$direction:order_by",
+			arguments: "order_by:[{label:$direction},{id:asc}]", literal: "order_by:[{id:asc}]",
+			variables: map[string]any{"direction": nil},
+		},
+		{
+			name: "nullable direction default", definitions: "$direction:order_by=null",
+			arguments: "order_by:{label:$direction,id:desc}", literal: "order_by:{id:desc}",
+		},
+		{
+			name: "null overrides direction default", definitions: "$direction:order_by=asc",
+			arguments: "order_by:{label:$direction,id:desc}", literal: "order_by:{id:desc}",
+			variables: map[string]any{"direction": nil},
+		},
+		{
+			name: "nullable direction in ordering list", definitions: "$order:[users_order_by!]!",
+			arguments: "order_by:$order", literal: "order_by:[{id:desc}]",
+			variables: map[string]any{"order": []any{
+				map[string]any{"label": nil}, map[string]any{"id": "desc"},
+			}},
+		},
+		{
+			name: "nullable direction in nested fragment", definitions: "$direction:order_by",
+			arguments: "order_by:{id:asc}", literal: "order_by:{id:asc}",
+			nested:        `siblings(order_by:{label:$direction,id:desc}) { id }`,
+			nestedLiteral: `siblings(order_by:{id:desc}) { id }`,
+			variables:     map[string]any{"direction": nil},
+		},
+		{
 			name: "ordering object", definitions: "$order:users_order_by!",
 			arguments: "order_by:[$order]", literal: "order_by:[{id:desc}]",
 			variables: map[string]any{"order": map[string]any{"id": "desc"}},
@@ -343,13 +371,24 @@ func testInvalidRemoteEnums(
  users(order_by:{id:$direction},distinct_on:[$column]) { id }
 }`)
 
+	// Requiredness is checked against the original operation, before remote
+	// operations discard its variable definitions. The target direction field
+	// itself is nullable, so its SQL parser cannot enforce order_by! here.
+	t.Run("required null", func(t *testing.T) {
+		_, err := validator.VariableValues(schema, doc.Operations[0], map[string]any{
+			"direction": nil, "column": "id",
+		})
+		if err == nil || !strings.Contains(err.Error(), "cannot be null") {
+			t.Fatalf("expected required-null variable validation error, got %v", err)
+		}
+	})
+
 	for _, tt := range []struct {
 		name      string
 		variables map[string]any
 	}{
 		{"invalid direction", map[string]any{"direction": "sideways", "column": "id"}},
 		{"invalid column", map[string]any{"direction": "asc", "column": "missing"}},
-		{"required null", map[string]any{"direction": nil, "column": "id"}},
 		{"required missing", map[string]any{"column": "id"}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -361,8 +400,8 @@ func testInvalidRemoteEnums(
 				t.Fatal("expected variable coercion to reject invalid enum input")
 			}
 
-			// Direct callers must also be rejected by the real SQL parsers,
-			// even when they bypass GraphQL variable coercion.
+			// SQL parsers also reject unknown enums and unresolved references
+			// when a direct caller bypasses variable coercion.
 			for _, parents := range []int{1, 2} {
 				if _, err := resolveEnumSelection(
 					t,

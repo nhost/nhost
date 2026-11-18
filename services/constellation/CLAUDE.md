@@ -128,6 +128,16 @@ before comparison: numeric SQL parameters decode from JSON as `float64`, even
 when the builder originally supplied an integer.
 Schema-validated SQL tests must declare the generated scalar names: PostgreSQL
 `float4`/`float8` columns use `float4`/`float8`, not GraphQL `Float`.
+For an object-typed ordering variable, use `order_by:[$o]`: GraphQL does not
+allow a variable declared as `table_order_by` at a `[table_order_by!]` position.
+Singleton-list coercion instead applies to an object JSON value supplied for
+a variable declared with the list type.
+Resolver execution tests must coerce variables against the original validated
+operation before calling `ResolvePlanned`. Generated SQL target operations omit
+that operation's variable definitions, so required-variable null rejection belongs
+to `validator.VariableValues` and the controller request boundary; the SQL ordering
+parser sees nullable direction fields and must accept null there. Raw-parser
+negative tests should cover invalid enum values and unresolved references instead.
 
 ### Integration comparisons and regression tests
 

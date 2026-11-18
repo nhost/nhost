@@ -82,6 +82,7 @@ INSERT INTO optional_input.kids VALUES
 
 	t.Run("reads", func(t *testing.T) { testRemoteInputReads(t, ctrl) })
 	t.Run("nullable ordering", func(t *testing.T) { testRemoteInputNullOrderBy(t, ctrl) })
+	t.Run("nullable directions", func(t *testing.T) { testRemoteInputNullDirections(t, ctrl) })
 	t.Run("nullable distinct", func(t *testing.T) { testRemoteInputNullDistinct(t, ctrl) })
 	t.Run("nullable distinct mutation", func(t *testing.T) {
 		testRemoteInputNullDistinctMutation(t, ctrl, pool)
@@ -361,8 +362,13 @@ func nullableOrderByResponse(
 }
 
 func nullableOrderByQuery(field string, parents []int, orderDefault string) string {
-	definitions := "($o:[optional_input_kids_order_by!]" + orderDefault +
-		",$where:optional_input_kids_bool_exp!,$limit:Int!)"
+	return nullableOrderingQuery(
+		field, parents, "$o:[optional_input_kids_order_by!]"+orderDefault, "$o",
+	)
+}
+
+func nullableOrderingQuery(field string, parents []int, variables, orderBy string) string {
+	definitions := "(" + variables + ",$where:optional_input_kids_bool_exp!,$limit:Int!)"
 
 	selection := "id"
 	if strings.HasSuffix(field, "_aggregate") {
@@ -370,8 +376,9 @@ func nullableOrderByQuery(field string, parents []int, orderDefault string) stri
 	}
 
 	result := fmt.Sprintf(
-		"result:%s(where:$where,limit:$limit,offset:0,order_by:$o) { %s }",
+		"result:%s(where:$where,limit:$limit,offset:0,order_by:%s) { %s }",
 		field,
+		orderBy,
 		selection,
 	)
 	if strings.HasPrefix(field, "remote_") {
