@@ -338,6 +338,64 @@ export function useDummyBranches() {
     return oldest;
   };
 
+  /** Removes a branch; the first waiting pull request takes its slot. */
+  const deleteBranch = (branchId: string) =>
+    update((s) =>
+      fillSlots({
+        ...s,
+        currentBranchId:
+          s.currentBranchId === branchId ? 'production' : s.currentBranchId,
+        branches: s.branches.filter((b) => b.id !== branchId),
+      }),
+    );
+
+  /** Rebuilds a branch's database from its starting data. */
+  const resetBranch = (branchId: string) =>
+    update((s) => ({
+      ...s,
+      branches: s.branches.map((b) =>
+        b.id === branchId
+          ? {
+              ...b,
+              status: 'deploying',
+              demoStartedAt: new Date().toISOString(),
+              lastActivityAt: new Date().toISOString(),
+            }
+          : b,
+      ),
+    }));
+
+  /** Gives one waiting pull request a branch now, over the limit. */
+  const createAnyway = (pullRequest: number) =>
+    update((s) => {
+      const pr = (s.waiting ?? []).find((w) => w.pullRequest === pullRequest);
+      if (!pr) {
+        return s;
+      }
+      const now = new Date().toISOString();
+      return {
+        ...s,
+        waiting: (s.waiting ?? []).filter((w) => w.pullRequest !== pullRequest),
+        branches: [
+          ...s.branches,
+          {
+            id: `b-pr-${pr.pullRequest}`,
+            name: toBranchSlug(pr.gitBranch.replace(/^(feature|fix)\//, '')),
+            isProduction: false,
+            gitBranch: pr.gitBranch,
+            pullRequest: pr.pullRequest,
+            pullRequestTitle: pr.title,
+            createdAt: now,
+            createdBy: pr.openedBy,
+            lastPushBy: pr.openedBy,
+            lastActivityAt: now,
+            status: 'creating',
+            demoStartedAt: now,
+          },
+        ],
+      };
+    });
+
   // DUMMY: branches made from the queue go Creating, Deploying, Ready.
   useEffect(() => {
     if (!state.branches.some((b) => b.demoStartedAt && b.status !== 'ready')) {
@@ -352,8 +410,10 @@ export function useDummyBranches() {
               return b;
             }
             const age = Date.now() - Date.parse(b.demoStartedAt);
+            // Starts as it was set (Creating for new, Deploying for a
+            // reset), then Deploying, then Ready.
             const status: BranchStatus =
-              age >= 9000 ? 'ready' : age >= 4000 ? 'deploying' : 'creating';
+              age >= 9000 ? 'ready' : age >= 4000 ? 'deploying' : b.status;
             return { ...b, status };
           }),
         })),
@@ -394,6 +454,9 @@ export function useDummyBranches() {
     setGithubConnected,
     resetDemo,
     demoClosePullRequest,
+    deleteBranch,
+    resetBranch,
+    createAnyway,
   };
 }
 

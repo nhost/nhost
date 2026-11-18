@@ -2,10 +2,13 @@ import { SiGithub } from '@icons-pack/react-simple-icons';
 import {
   Clock,
   FileText,
+  GitBranchPlus,
   GitPullRequest,
   MessageSquare,
   Pencil,
+  RotateCcw,
   Search,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -30,8 +33,10 @@ import {
 } from '@/features/orgs/projects/branches/components/BranchBits';
 import {
   BranchLogsDialog,
+  DeleteBranchDialog,
   PullRequestCommentDialog,
   RenameBranchDialog,
+  ResetBranchDialog,
 } from '@/features/orgs/projects/branches/components/BranchDialogs';
 import {
   type Branch,
@@ -45,7 +50,7 @@ import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { triggerToast } from '@/utils/toast';
 
 type DialogState =
-  | { kind: 'logs' | 'rename'; branch: Branch }
+  | { kind: 'logs' | 'rename' | 'reset' | 'delete'; branch: Branch }
   | { kind: 'comment'; pullRequest: WaitingPullRequest; position: number }
   | null;
 
@@ -54,6 +59,8 @@ interface RowActionProps {
   icon: ReactNode;
   tooltip?: ReactNode;
   disabled?: boolean;
+  /** Delete: neutral at rest, red only on hover. */
+  destructive?: boolean;
   onClick?: () => void;
 }
 
@@ -67,6 +74,7 @@ function RowAction({
   icon,
   tooltip,
   disabled = false,
+  destructive = false,
   onClick,
 }: RowActionProps) {
   return (
@@ -82,6 +90,10 @@ function RowAction({
             aria-label={label}
             disabled={disabled}
             onClick={onClick}
+            className={cn(
+              destructive &&
+                'hover:text-destructive dark:hover:text-destructive',
+            )}
           >
             {icon}
           </Button>
@@ -146,6 +158,11 @@ function QueueMark({ position }: { position: number }) {
   );
 }
 
+/** Busy branches (being created or removed) can't be reset or deleted. */
+function clickableStatus(branch: Branch) {
+  return branch.status !== 'creating' && branch.status !== 'deleting';
+}
+
 export default function AllBranches() {
   const {
     branches,
@@ -159,6 +176,7 @@ export default function AllBranches() {
     automaticBranching,
     githubConnected,
     waiting,
+    createAnyway,
   } = useDummyBranches();
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -212,29 +230,20 @@ export default function AllBranches() {
             {isCurrent && !branch.isProduction && <CurrentBadge />}
           </div>
           {/* What the branch is for: its pull request title, linked to
-              GitHub. The git branch name is nearly the same as the branch
-              name, so it lives in the tooltip instead of repeating it.
-              Production shows the git branch it follows. */}
+              GitHub. Production shows the git branch it follows. */}
           {branch.pullRequest ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href={`https://github.com/${repository}/pull/${branch.pullRequest}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group relative z-10 mt-1 ml-6 flex min-w-0 max-w-fit items-center gap-1.5 text-muted-foreground text-xs"
-                >
-                  <GitPullRequest className="size-3 shrink-0" />
-                  <span className="shrink-0">#{branch.pullRequest}</span>
-                  <span className="truncate text-foreground/80 underline-offset-4 group-hover:text-foreground group-hover:underline">
-                    {branch.pullRequestTitle ?? branch.gitBranch}
-                  </span>
-                </a>
-              </TooltipTrigger>
-              <TooltipContent className="font-mono">
-                {branch.gitBranch}
-              </TooltipContent>
-            </Tooltip>
+            <a
+              href={`https://github.com/${repository}/pull/${branch.pullRequest}`}
+              target="_blank"
+              rel="noreferrer"
+              className="group relative z-10 mt-1 ml-6 flex min-w-0 max-w-fit items-center gap-1.5 text-muted-foreground text-xs"
+            >
+              <GitPullRequest className="size-3 shrink-0" />
+              <span className="shrink-0">#{branch.pullRequest}</span>
+              <span className="truncate text-foreground/80 underline-offset-4 group-hover:text-foreground group-hover:underline">
+                {branch.pullRequestTitle ?? branch.gitBranch}
+              </span>
+            </a>
           ) : (
             <p className="mt-1 ml-6 flex items-center gap-1.5 text-muted-foreground text-xs">
               <SiGithub className="size-3 shrink-0" />
@@ -280,6 +289,21 @@ export default function AllBranches() {
             label="View logs"
             icon={<FileText />}
             onClick={() => setDialog({ kind: 'logs', branch })}
+          />
+          <RowAction
+            label="Reset"
+            icon={<RotateCcw />}
+            disabled={branch.isProduction || !clickableStatus(branch)}
+            tooltip={branch.isProduction ? "Can't reset production" : 'Reset'}
+            onClick={() => setDialog({ kind: 'reset', branch })}
+          />
+          <RowAction
+            label="Delete"
+            icon={<Trash2 />}
+            destructive
+            disabled={branch.isProduction || !clickableStatus(branch)}
+            tooltip={branch.isProduction ? "Can't delete production" : 'Delete'}
+            onClick={() => setDialog({ kind: 'delete', branch })}
           />
         </div>
       </li>
@@ -336,9 +360,18 @@ export default function AllBranches() {
           <span className="ml-4 flex w-[6.5rem] justify-end">
             <QueueMark position={position} />
           </span>
-          {/* Holds the Rename spot so the last icon lines up with View
-              logs on the branch rows. */}
+          {/* Same four icon slots as a branch row, so the columns line up:
+              two empty, then Create anyway and the GitHub comment. */}
           <span aria-hidden className="size-8" />
+          <span aria-hidden className="size-8" />
+          <RowAction
+            label="Create anyway"
+            icon={<GitBranchPlus />}
+            onClick={() => {
+              createAnyway(pr.pullRequest);
+              triggerToast(`Creating a branch for #${pr.pullRequest}`);
+            }}
+          />
           <RowAction
             label="View GitHub comment"
             icon={<MessageSquare />}
@@ -450,6 +483,16 @@ export default function AllBranches() {
       <BranchLogsDialog
         branch={dialog?.kind === 'logs' ? dialog.branch : null}
         open={dialog?.kind === 'logs'}
+        onOpenChange={close}
+      />
+      <ResetBranchDialog
+        branch={dialog?.kind === 'reset' ? dialog.branch : null}
+        open={dialog?.kind === 'reset'}
+        onOpenChange={close}
+      />
+      <DeleteBranchDialog
+        branch={dialog?.kind === 'delete' ? dialog.branch : null}
+        open={dialog?.kind === 'delete'}
         onOpenChange={close}
       />
       <PullRequestCommentDialog

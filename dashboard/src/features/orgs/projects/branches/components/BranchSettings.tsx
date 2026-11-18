@@ -221,8 +221,10 @@ function StartingDataCard() {
           {/* Select cards side by side: each choice reads at a glance, and
               the one that copies real data can't hide in a menu. */}
           {/* Each card is the radio itself (no circle): click anywhere on
-              it, arrow keys move between them. The border says which one is
-              picked. */}
+              it, arrow keys move between them. Card selector style from the
+              design system (same as PlanCard and RoleSelector): soft fill at
+              rest, primary/50 border on hover, 1px primary border when
+              picked, no ring. */}
           <RadioGroupPrimitive.Root
             aria-label="Starting data"
             value={data}
@@ -233,7 +235,7 @@ function StartingDataCard() {
               <RadioGroupPrimitive.Item
                 key={option.value}
                 value={option.value}
-                className="group flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 data-[state=checked]:ring-1 data-[state=checked]:ring-primary"
+                className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=checked]:border-primary data-[state=checked]:bg-primary/[0.03] data-[state=unchecked]:hover:border-primary/50 data-[state=checked]:hover:bg-primary/[0.03]"
               >
                 {/* Icon tile: gray at rest, primary when picked. These
                     three icons aren't used anywhere else in the dashboard. */}

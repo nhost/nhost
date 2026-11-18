@@ -1,4 +1,4 @@
-import { ArrowLeft, GitBranch, ListTree } from 'lucide-react';
+import { GitBranch, ListTree, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v3/button';
@@ -45,7 +45,9 @@ function Banner() {
               aria-label="Back to production"
               onClick={() => switchTo(production.id)}
             >
-              <ArrowLeft />
+              {/* Production's own icon, not an arrow: an arrow read as
+                  "go back a page". */}
+              <Shield />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Back to production</TooltipContent>

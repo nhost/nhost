@@ -207,6 +207,104 @@ export function PullRequestCommentDialog({
   );
 }
 
+const STARTING_DATA_TEXT = {
+  empty: 'empty, structure only',
+  seed: 'your seed data',
+  parentBackup: "production's latest backup",
+} as const;
+
+/**
+ * Rebuilds the branch's database from the project's starting data, so a
+ * test run can start clean. Same layout as the delete organization dialog.
+ */
+export function ResetBranchDialog({
+  branch,
+  open,
+  onOpenChange,
+}: DialogBaseProps & { branch: Branch | null }) {
+  const { resetBranch, initialData } = useDummyBranches();
+  if (!branch) {
+    return null;
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex flex-col gap-6 p-12 text-foreground sm:max-w-lg">
+        <DialogHeader className="gap-1 space-y-0">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Reset {branch.name}?
+          </DialogTitle>
+          <DialogDescription>
+            Its database starts over from {STARTING_DATA_TEXT[initialData]}.
+            Anything added while testing is lost. The code and the pull request
+            don't change.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-6">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              resetBranch(branch.id);
+              onOpenChange(false);
+              triggerToast(`Resetting ${branch.name}`);
+            }}
+          >
+            Reset branch
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Removes a branch before its pull request closes, freeing its slot for the
+ * next waiting pull request.
+ */
+export function DeleteBranchDialog({
+  branch,
+  open,
+  onOpenChange,
+}: DialogBaseProps & { branch: Branch | null }) {
+  const { deleteBranch, waiting } = useDummyBranches();
+  if (!branch) {
+    return null;
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex flex-col gap-6 p-12 text-foreground sm:max-w-lg">
+        <DialogHeader className="gap-1 space-y-0">
+          <DialogTitle className="text-xl leading-7 tracking-normal">
+            Delete {branch.name}?
+          </DialogTitle>
+          <DialogDescription>
+            Its database, files and settings are removed for good. Pull request
+            #{branch.pullRequest} stays open on GitHub.
+            {waiting.length > 0 &&
+              ` Its slot goes to #${waiting[0].pullRequest}, next in line.`}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-6">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              deleteBranch(branch.id);
+              onOpenChange(false);
+              triggerToast(`Deleted ${branch.name}`);
+            }}
+          >
+            Delete branch
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type StepStatus = 'succeeded' | 'running' | 'failed' | 'pending';
 
 interface LogStep {

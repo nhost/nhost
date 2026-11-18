@@ -4,6 +4,7 @@ import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
 import {
   BranchIcon,
+  BranchLivePill,
   BranchStatusMark,
   ProductionBadge,
 } from '@/features/orgs/projects/branches/components/BranchBits';
@@ -67,10 +68,14 @@ export default function BranchesComboBox() {
   // The trigger uses the same font as the organization and project switchers.
   const label = (
     <span className="flex min-w-0 items-center gap-2">
-      {/* Green while the branch you're on is ready, red if it failed, blue
-          pulse while it deploys: you notice with the dropdown closed. */}
-      <BranchIcon branch={currentBranch} current />
+      {/* The icon stays plain; the pill after the name carries the status
+          (it moved here from the project name). */}
+      <BranchIcon
+        branch={currentBranch}
+        className="animate-none text-muted-foreground opacity-100"
+      />
       <span className="truncate">{currentBranch.name}</span>
+      <BranchLivePill status={currentBranch.status} />
     </span>
   );
 

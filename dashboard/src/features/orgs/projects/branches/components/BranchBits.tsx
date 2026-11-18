@@ -70,6 +70,38 @@ export function CurrentBadge() {
   );
 }
 
+/**
+ * The status pill that used to sit next to the project name, now on the
+ * branch you're on: each branch runs on its own, so the status belongs to
+ * it. Same compact shape as the project status pill. Ready reads "Live".
+ */
+export function BranchLivePill({ status }: { status: BranchStatus }) {
+  const busy =
+    status === 'creating' || status === 'deploying' || status === 'deleting';
+  const label = status === 'ready' ? 'Live' : STATUS_LABEL[status];
+
+  return (
+    <span
+      className={cn(
+        'inline-flex h-5 shrink-0 items-center gap-1 rounded-full border px-1.5 font-semibold text-2xs',
+        status === 'ready' || busy
+          ? 'border-primary/40 text-primary'
+          : status === 'failed'
+            ? 'border-destructive/40 text-destructive'
+            : 'border-muted-foreground/40 text-muted-foreground',
+      )}
+    >
+      <span
+        className={cn(
+          'h-1.5 w-1.5 shrink-0 rounded-full bg-current',
+          busy && 'animate-blinking',
+        )}
+      />
+      {label}
+    </span>
+  );
+}
+
 const STATUS_LABEL: Record<BranchStatus, string> = {
   creating: 'Creating',
   deploying: 'Deploying',
