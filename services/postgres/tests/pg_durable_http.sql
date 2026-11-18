@@ -3,6 +3,19 @@
 -- Keep this script standalone instead of depending on plugins.sql ordering.
 CREATE EXTENSION IF NOT EXISTS pg_durable;
 
+-- The image overrides upstream's Azure/GitHub list, without restricting its
+-- default HTTP policy. The workflow below must still reach the test server.
+DO $$
+BEGIN
+    IF current_setting('pg_durable.http_allowed_domains') <> '' THEN
+        RAISE EXCEPTION 'pg_durable HTTP allow-list must be empty by default';
+    END IF;
+    IF current_setting('pg_durable.http_security') <> 'unrestricted' THEN
+        RAISE EXCEPTION 'pg_durable HTTP security must remain unrestricted by default';
+    END IF;
+END
+$$;
+
 -- A PL/pgSQL DO block keeps one statement snapshot and cannot observe the
 -- readiness row if the worker creates it after the block starts. A top-level
 -- procedure may commit between polls so each attempt sees a fresh snapshot.

@@ -7,15 +7,16 @@
   - address_standardizer and address_standardizer_data_us: 3.6.4 → 3.7 (now packaged separately from PostGIS)
   - hypopg: 1.4.3 → 1.4.5
   - pg_durable: 0.2.8 → 0.2.9
+    - Adds `PG_DURABLE_HTTP_ALLOWED_DOMAINS` for a comma-separated host allow-list. It defaults to empty, so `restricted` mode requires explicitly allowed hosts. The default HTTP policy remains `unrestricted`.
   - pg_ivm: 1.15 → 1.17
   - pg_jsonschema: refreshed source revision; SQL version remains 0.3.4
   - pg_search: 0.25.11 → 0.26.7
-    - Automatically rebuilds existing ParadeDB vector-field indexes during the upgrade, including unquantized indexes, and resets obsolete clustering options to the new defaults while preserving index identity and other configuration. This blocks writes and can extend startup; plan a maintenance window. Failed maintenance rolls back the extension upgrade for retry on restart. Standalone index permissions and RLS scores remain breaking changes. See the [pg_search upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026).
+    - Breaking changes: startup upgrades from pre-0.26 rebuild all ParadeDB vector-field indexes and reset obsolete options, blocking writes and potentially extending startup. Schedule a maintenance window; failed maintenance rolls back for retry. See the [upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026) for manual upgrades, permission changes, and RLS scoring.
   - pgmq: 1.13.0 → 1.13.1
   - pgvector: 0.8.6 → 0.8.7
   - postgis, postgis_raster, and postgis_topology: 3.6.4 → 3.7.0
   - postgis_tiger_geocoder: 3.6.4 → 2025.2 (now packaged separately from PostGIS)
-    - Breaking change: fresh installs no longer add `tiger` to the database `search_path`, and the installer leaves `tiger` first in the session path. Configure the database path and run `RESET search_path` before creating later objects; upgraded volumes retain their existing database setting. See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder).
+    - Breaking change: fresh installs no longer add `tiger` to the database `search_path`, and the installer leaves `tiger` first in the session path. Configure the database path and run `RESET search_path` before creating later objects; existing databases upgraded in place from TIGER 3.6 retain their database setting. See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder).
   - timescaledb: 2.30.0 → 2.32.0
 
 ### {17.11,18.6}-20260930-1

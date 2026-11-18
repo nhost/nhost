@@ -38,6 +38,7 @@ NEW_SETTINGS = {
     "pg_durable.retention_days": ("PG_DURABLE_RETENTION_DAYS", "30", False),
     "pg_durable.log_workflow_sql": ("PG_DURABLE_LOG_WORKFLOW_SQL", "off", False),
     "pg_durable.http_security": ("PG_DURABLE_HTTP_SECURITY", "unrestricted", True),
+    "pg_durable.http_allowed_domains": ("PG_DURABLE_HTTP_ALLOWED_DOMAINS", "", True),
     "timescaledb.max_background_workers": (
         "TIMESCALEDB_MAX_BACKGROUND_WORKERS", "16", False
     ),
@@ -65,6 +66,18 @@ class ImageSettingsTests(unittest.TestCase):
                 self.assertEqual(
                     Template(template).substitute(DEFAULTS | {variable: override}),
                     f"'{override}'" if quoted else override,
+                )
+
+    def test_pg_durable_http_allowlist(self):
+        self.assertEqual(DEFAULTS["PG_DURABLE_HTTP_SECURITY"], "unrestricted")
+        template = ASSIGNMENTS["pg_durable.http_allowed_domains"]
+        for domains in ("", "api.example.com", "api.example.com,*.example.org"):
+            with self.subTest(domains=domains):
+                self.assertEqual(
+                    Template(template).substitute(
+                        DEFAULTS | {"PG_DURABLE_HTTP_ALLOWED_DOMAINS": domains}
+                    ),
+                    f"'{domains}'",
                 )
 
     def test_preload_libraries_opt_in(self):

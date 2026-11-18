@@ -70,10 +70,11 @@ previous bundled 3.6 versions; the TIGER package ships its own legacy upgrade
 paths. Keep these paths when updating either standalone source.
 
 TIGER 2025.x no longer adds `tiger` to the database `search_path` on fresh
-installs; upgraded volumes retain their existing database setting. Its installer
-also leaves `tiger` first in the session path, so migrations must run
-`RESET search_path` before creating later objects or explicitly select their schemas. Fresh databases
-need a persistent path with `tiger` after `public` for geocoder functions to work.
+installs; existing databases upgraded in place from TIGER 3.6 retain their database
+setting. Its installer also leaves `tiger` first in the session path, so migrations
+must run `RESET search_path` before creating later objects or explicitly select
+their schemas. Fresh databases need a persistent path with `tiger` after `public`
+for geocoder functions to work.
 See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder)
 for the migration SQL and reconnection requirements.
 
@@ -179,6 +180,8 @@ unless the workload needs a different value.
 | `PG_DURABLE_MAX_USER_CONNECTIONS` | `10` | `pg_durable.max_user_connections`: concurrent workflow SQL execution connections. |
 | `PG_DURABLE_RETENTION_DAYS` | `30` | `pg_durable.retention_days`: days to retain terminal workflow instances. |
 | `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
+| `PG_DURABLE_HTTP_SECURITY` | `unrestricted` | `pg_durable.http_security`: `unrestricted`, `restricted`, or `disabled` HTTP egress policy. |
+| `PG_DURABLE_HTTP_ALLOWED_DOMAINS` | empty | `pg_durable.http_allowed_domains`: comma-separated host patterns; empty denies all hosts in `restricted` mode. |
 | `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
 
 Enabling `LOG_MIN_DURATION_STATEMENT` can log sensitive query text and bind
@@ -187,19 +190,24 @@ parameters, especially pg_durable workflow variables, even with
 SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
 treat these logs as sensitive when queries or workflows handle secrets.
 
-The image also supports `PG_DURABLE_HTTP_SECURITY` (not mapped to a Cloud
-setting). It defaults to `unrestricted` to preserve the former
-`http-allow-all` build policy after upgrading to pg_durable 0.2.9. This permits
-HTTP(S) requests to arbitrary destinations, including private networks. Set it
-to `restricted` to enforce HTTPS and the upstream IP restrictions, with a default
-allow-list limited to specific Azure service subdomains and `api.github.com`,
-or `disabled` to block pg_durable HTTP requests. Check workflow destinations
-before switching to `restricted`: requests to other hosts will fail. The image
-has no environment variable for `pg_durable.http_allowed_domains`; see the
+`PG_DURABLE_HTTP_SECURITY` corresponds to the
+`postgres.settings.extensions.pgDurable.httpSecurity` project setting. It defaults
+to `unrestricted`, allowing HTTP(S) requests to arbitrary destinations, including
+private networks. Set it to `restricted` to require HTTPS and an allowed hostname
+while blocking bare IP URLs and private/internal IP destinations, or `disabled` to
+block pg_durable HTTP requests.
+
+`PG_DURABLE_HTTP_ALLOWED_DOMAINS` corresponds to the
+`postgres.settings.extensions.pgDurable.httpAllowedDomains` project setting.
+The project setting is an array of host patterns, defaulting to `[]`; the image
+variable is comma-separated and defaults to empty. For example,
+`["api.example.com", "*.example.org"]` becomes `api.example.com,*.example.org`.
+Empty denies every host in `restricted` mode; the list is ignored in
+`unrestricted` mode. See the
 [HTTP egress guidance](https://docs.nhost.io/products/database/extensions#http-egress-and-access-control)
-for superuser allow-list overrides and their PITR restore requirements.
-Changes require a PostgreSQL restart; HTTP function privileges, TLS verification,
-and redirect blocking remain enforced in enabled modes.
+for self-hosted configuration, superuser SQL overrides and their PITR restore
+requirements. Changes require a PostgreSQL restart; HTTP function privileges,
+TLS verification and redirect blocking remain enforced in enabled modes.
 
 The image and Cloud defaults in the table above match whether or not
 `[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in
