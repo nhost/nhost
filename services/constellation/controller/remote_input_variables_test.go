@@ -81,6 +81,7 @@ INSERT INTO optional_input.kids VALUES
 	}
 
 	t.Run("reads", func(t *testing.T) { testRemoteInputReads(t, ctrl) })
+	t.Run("nullable filters", func(t *testing.T) { testRemoteInputNullWhere(t, ctrl) })
 	t.Run("nullable ordering", func(t *testing.T) { testRemoteInputNullOrderBy(t, ctrl) })
 	t.Run("nullable directions", func(t *testing.T) { testRemoteInputNullDirections(t, ctrl) })
 	t.Run("nullable distinct", func(t *testing.T) { testRemoteInputNullDistinct(t, ctrl) })

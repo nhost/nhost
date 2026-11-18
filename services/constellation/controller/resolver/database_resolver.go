@@ -77,14 +77,16 @@ func (r *databaseResolver) setTargetTypes(
 
 // BuildOperation constructs the GraphQL operation to execute against the target database.
 // It builds a WHERE clause with _in filter for join columns.
-func (r *databaseResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinition {
+func (r *databaseResolver) BuildOperation(
+	rq *remoteQuery, variables map[string]any,
+) *ast.OperationDefinition {
 	if len(rq.joinArguments) == 0 {
 		return nil
 	}
 
 	whereArg := r.buildWhereArgument(rq)
 	if userWhere := findWhereArgument(rq.sourceField.Arguments); rq.isArray && userWhere != nil {
-		whereArg.Value = andMergeWhereValues(whereArg.Value, userWhere.Value)
+		whereArg.Value = andMergeWhereValues(whereArg.Value, userWhere.Value, variables)
 	}
 
 	// We need the remote join columns in the result to match against parent rows.
@@ -370,9 +372,18 @@ func findWhereArgument(args ast.ArgumentList) *ast.Argument {
 	return nil
 }
 
-func andMergeWhereValues(generated, user *ast.Value) *ast.Value {
+func andMergeWhereValues(generated, user *ast.Value, variables map[string]any) *ast.Value {
 	if user == nil || user.Kind == ast.NullValue {
 		return generated
+	}
+
+	// A nullable top-level filter must not become a non-null _and element.
+	// Coercion has already applied variable defaults. Keep unresolved and
+	// concrete references intact for SQL's typed input resolution.
+	if user.Kind == ast.Variable {
+		if value, provided := variables[user.Raw]; provided && value == nil {
+			return generated
+		}
 	}
 
 	return &ast.Value{ //nolint:exhaustruct

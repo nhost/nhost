@@ -163,7 +163,7 @@ func buildGroupedCollectionRequest(
 	// original where/selection/aliases without writing to the cached AST. Keep
 	// SQL variable references: its input resolvers preserve enum kinds, unlike
 	// the string literal serialization used for remote GraphQL operations.
-	operation := rq.buildOperation()
+	operation := rq.buildOperation(variables)
 
 	field, ok := operation.SelectionSet[0].(*ast.Field)
 	if !ok {

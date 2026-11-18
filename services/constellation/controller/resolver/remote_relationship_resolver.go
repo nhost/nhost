@@ -255,7 +255,7 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	logger *slog.Logger,
 ) error {
 	// Build the remote operation using the resolver
-	remoteOp := rq.buildOperation()
+	remoteOp := rq.buildOperation(variables)
 	if remoteOp == nil {
 		return nil
 	}
