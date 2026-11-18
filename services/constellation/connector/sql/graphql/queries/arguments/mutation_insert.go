@@ -497,8 +497,20 @@ func parseInsertObject(
 
 		relationship := t.Relationship(customFieldName)
 		if relationship != nil {
+			fieldValue, err := values.ResolveVariable(child.Value, variables)
+			if err != nil {
+				return InsertObject{}, fmt.Errorf(
+					"failed to resolve nested insert for %s: %w", customFieldName, err,
+				)
+			}
+
+			// A null relationship wrapper requests no related insert.
+			if fieldValue.Kind == ast.NullValue {
+				continue
+			}
+
 			nested, err := parseNestedInsert(
-				t, child, customFieldName, relationship, variables, role, sessionVariables,
+				fieldValue, customFieldName, relationship, variables, role, sessionVariables,
 			)
 			if err != nil {
 				return InsertObject{}, fmt.Errorf(
@@ -641,31 +653,19 @@ func ApplyInsertPresets(
 }
 
 // parseNestedInsert parses a nested insert via a relationship.
-func parseNestedInsert( //nolint:funlen
-	_ Table,
-	child *ast.ChildValue,
+func parseNestedInsert(
+	fieldValue *ast.Value,
 	fieldName string,
 	relationship Relationship,
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
 ) (NestedInsert, error) {
-	// Resolve the field value (could be a variable)
-	fieldValue, err := values.ResolveVariable(child.Value, variables)
-	if err != nil {
-		return NestedInsert{}, fmt.Errorf(
-			"failed to resolve nested insert for %s: %w",
-			fieldName,
-			err,
-		)
-	}
-
 	// Nested inserts have the format: {data: {...} | [{...}, ...], on_conflict: {...}}
 	if fieldValue.Kind != ast.ObjectValue {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: nested insert for %s must be an object",
-			ErrInvalidArgument,
-			fieldName,
+			ErrInvalidArgument, fieldName,
 		)
 	}
 
@@ -673,8 +673,7 @@ func parseNestedInsert( //nolint:funlen
 	if dataChild == nil {
 		return NestedInsert{}, fmt.Errorf(
 			"%w: missing data field for nested insert on relationship %s",
-			ErrInvalidArgument,
-			fieldName,
+			ErrInvalidArgument, fieldName,
 		)
 	}
 
