@@ -2,10 +2,8 @@ package dockercompose
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -55,7 +53,7 @@ func setupInteractiveTerminal(ptmx *os.File) func() {
 	}
 }
 
-func (d *Docker) HasuraWrapper( //nolint:funlen
+func (d *Docker) HasuraWrapper(
 	ctx context.Context,
 	subdomain,
 	nhostfolder,
@@ -118,15 +116,5 @@ func (d *Docker) HasuraWrapper( //nolint:funlen
 		_, _ = io.Copy(f, os.Stdin)
 	}()
 
-	if n, err := io.Copy(os.Stdout, f); err != nil {
-		var pathError *fs.PathError
-		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
-			return nil
-		default:
-			return fmt.Errorf("failed to copy pty output: %w", err)
-		}
-	}
-
-	return nil
+	return copyPtyAndWait(cmd, f)
 }
