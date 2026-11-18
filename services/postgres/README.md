@@ -50,6 +50,13 @@ address-standardizer package exposes the upstream update script for the
 previous bundled 3.6 versions; the TIGER package ships its own legacy upgrade
 paths. Keep these paths when updating either standalone source.
 
+The core `postgis`, `postgis_raster`, and `postgis_topology` extensions also
+need old-version `--ANY` tag links: bulk upgrade installation is disabled in
+`extensions/postgis.nix`. Retain every previously shipped PG17/PG18 version
+when bumping PostGIS. `tests/plugins.sql` checks catalog update paths, and
+`make check-extension-upgrades` exercises startup upgrades on an existing volume,
+including spatial data and indexes.
+
 ## Tests
 
 Keep check scripts and fixtures under `tests/`: `project.nix` includes this

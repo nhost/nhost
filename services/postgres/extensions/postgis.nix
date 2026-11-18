@@ -92,6 +92,15 @@ buildPGXSExtension rec {
       ln -s $prog $prog-${version}
     done
 
+    # The disabled bulk upgrade install omits old-version tags. Keep paths
+    # from every version shipped with PG17/PG18 via the upstream ANY scripts.
+    for extension in postgis postgis_raster postgis_topology; do
+      for previous in 3.5.0 3.5.2 3.5.3 3.6.1 3.6.2 3.6.4; do
+        ln -s "$extension--TEMPLATED--TO--ANY.sql" \
+          "$out/share/postgresql/extension/$extension--$previous--ANY.sql"
+      done
+    done
+
     mkdir -p $doc/share/doc/postgis
     mv doc/* $doc/share/doc/postgis/
   '';

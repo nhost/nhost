@@ -1,4 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis_raster;
+CREATE EXTENSION IF NOT EXISTS postgis_topology;
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 CREATE EXTENSION IF NOT EXISTS address_standardizer;
 CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us;
@@ -8,16 +10,18 @@ CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
 RESET search_path;
 CREATE EXTENSION IF NOT EXISTS pg_jsonschema;
 
--- PostGIS 3.7 split these extensions into standalone distributions.
+-- Preserve paths for the core PostGIS extensions and the standalone
+-- distributions split out in 3.7, including every shipped 3.6 source.
 DO $$
 DECLARE
     extension_name text;
     previous_version text;
 BEGIN
     FOREACH extension_name IN ARRAY ARRAY[
+        'postgis', 'postgis_raster', 'postgis_topology',
         'address_standardizer', 'address_standardizer_data_us', 'postgis_tiger_geocoder'
     ] LOOP
-        FOREACH previous_version IN ARRAY ARRAY['3.6.2', '3.6.4'] LOOP
+        FOREACH previous_version IN ARRAY ARRAY['3.6.1', '3.6.2', '3.6.4'] LOOP
             IF NOT EXISTS (
                 SELECT 1
                 FROM pg_extension_update_paths(extension_name) AS update_path

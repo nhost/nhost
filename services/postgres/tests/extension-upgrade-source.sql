@@ -1,4 +1,6 @@
 CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_raster;
+CREATE EXTENSION postgis_topology;
 CREATE EXTENSION fuzzystrmatch;
 CREATE EXTENSION address_standardizer;
 CREATE EXTENSION address_standardizer_data_us;
@@ -48,6 +50,17 @@ BEGIN
     END IF;
 END;
 $$;
+
+-- Keep real spatial objects across the image replacement, not only catalog
+-- versions: collation repair reindexes the GiST index before the SQL upgrade.
+CREATE TABLE postgis_upgrade_check (geom geometry(Point, 4326), rast raster);
+INSERT INTO postgis_upgrade_check VALUES (
+    ST_SetSRID(ST_MakePoint(1, 2), 4326),
+    ST_AddBand(ST_MakeEmptyRaster(1, 1, 0, 0, 1, -1, 0, 0, 4326), '8BUI'::text, 7, 0)
+);
+CREATE INDEX postgis_upgrade_check_geom_idx ON postgis_upgrade_check USING gist (geom);
+SELECT topology.CreateTopology('postgis_upgrade_topology', 4326);
+SELECT topology.AddNode('postgis_upgrade_topology', ST_SetSRID(ST_MakePoint(1, 2), 4326));
 
 -- Cover the catalog-connection database as well as the application database.
 \connect postgres
