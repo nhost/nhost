@@ -260,11 +260,13 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 		return nil
 	}
 
-	// Resolve any variable references in the remote operation's arguments to literal values.
-	// The remote operation is a standalone query sent to the target connector,
-	// so variable references (e.g., $stats) must be replaced with their actual values
-	// since the remote operation has no variable definitions.
-	remoteOp.SelectionSet = resolveVariableReferences(remoteOp.SelectionSet, variables)
+	// SQL builders resolve references with the request-local variables, preserving
+	// enum kinds (including nested ordering/distinct inputs). Only GraphQL targets
+	// need standalone literals because the generated query has no variable definitions.
+	_, databaseTarget := rq.resolver.(*databaseResolver)
+	if !databaseTarget {
+		remoteOp.SelectionSet = resolveVariableReferences(remoteOp.SelectionSet, variables)
+	}
 
 	// Get the target connector
 	targetConnector := r.connectors[rq.targetConnector]
@@ -277,10 +279,12 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	// (e.g., "fragment X on localTable { ... }") that would cause validation
 	// errors on the remote schema.
 	filteredFragments := collectReferencedFragments(remoteOp, fragments)
-	for i, fragment := range filteredFragments {
-		copyFragment := *fragment
-		copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
-		filteredFragments[i] = &copyFragment
+	if !databaseTarget {
+		for i, fragment := range filteredFragments {
+			copyFragment := *fragment
+			copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
+			filteredFragments[i] = &copyFragment
+		}
 	}
 
 	// Execute the remote query

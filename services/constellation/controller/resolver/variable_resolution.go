@@ -7,8 +7,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// resolveVariableReferences returns a per-request selection tree. Remote operations
-// have no variable definitions, but their selections may share cached client nodes.
+// resolveVariableReferences literalizes a per-request selection tree for GraphQL
+// targets, whose remote operations have no variable definitions. SQL targets must
+// retain references for SQL's enum-aware resolution. Selections may share cached
+// client nodes, so literalization never modifies them.
 func resolveVariableReferences(
 	selections ast.SelectionSet,
 	variables map[string]any,

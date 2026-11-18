@@ -160,9 +160,10 @@ func buildGroupedCollectionRequest(
 	variables map[string]any,
 ) (groupedaggregate.Request, error) {
 	// BuildOperation injects target join-column phantoms and preserves the
-	// original where/selection/aliases without writing to the cached AST.
+	// original where/selection/aliases without writing to the cached AST. Keep
+	// SQL variable references: its input resolvers preserve enum kinds, unlike
+	// the string literal serialization used for remote GraphQL operations.
 	operation := rq.buildOperation()
-	operation.SelectionSet = resolveVariableReferences(operation.SelectionSet, variables)
 
 	field, ok := operation.SelectionSet[0].(*ast.Field)
 	if !ok {
@@ -175,7 +176,7 @@ func buildGroupedCollectionRequest(
 	// Preserve only the client's where predicate (and its variables) here.
 	args := make(ast.ArgumentList, 0, len(field.Arguments))
 	if userWhere := findWhereArgument(rq.sourceField.Arguments); userWhere != nil {
-		args = append(args, resolveArgumentVariables(ast.ArgumentList{userWhere}, variables)...)
+		args = append(args, userWhere)
 	}
 
 	for _, arg := range field.Arguments {
@@ -187,11 +188,6 @@ func buildGroupedCollectionRequest(
 	field.Arguments = args
 
 	selectedFragments := collectReferencedFragments(operation, fragments)
-	for i, fragment := range selectedFragments {
-		copyFragment := *fragment
-		copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
-		selectedFragments[i] = &copyFragment
-	}
 
 	return groupedaggregate.Request{
 		TableSchema: info.targetTableSchema, AllowEmptySchema: true,
