@@ -135,7 +135,8 @@ class RunnerSizingTests(unittest.TestCase):
 
     def test_frontend_builds_use_explicit_runner_labels(self):
         for project in [
-            "dashboard", "examples_demos", "examples_guides", "examples_tutorials"
+            "dashboard", "examples_demos", "examples_guides", "examples_tutorials",
+            "templates",
         ]:
             with self.subTest(project=project):
                 self.assertEqual(
