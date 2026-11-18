@@ -83,7 +83,8 @@ function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
                 <Button
                   key={availableMethod}
                   variant="outline"
-                  className="h-auto justify-start gap-3 whitespace-normal py-3 text-left"
+                  size="inline"
+                  className="justify-start gap-3 whitespace-normal px-3 py-3 text-left"
                   onClick={() => setMethod(availableMethod)}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
