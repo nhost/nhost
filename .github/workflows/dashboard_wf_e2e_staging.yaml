@@ -228,15 +228,18 @@ jobs:
           set -e
 
           if [ "$status" -ne 0 ]; then
-            build_dir="$(grep -oE "keeping build directory '[^']+'" "$log_file" | tail -n 1 | sed -E "s/.*'([^']+)'.*/\1/" || true)"
-            if [ -n "$build_dir" ] && [ -d "$build_dir/dashboard/playwright-report" ]; then
+            # Nix 2.28 prints the path in single quotes, newer versions in double quotes.
+            build_dir="$(grep -oE "keeping build directory ['\"][^'\"]+['\"]" "$log_file" | tail -n 1 | sed -E "s/.*['\"]([^'\"]+)['\"].*/\1/" || true)"
+            if [ -z "$build_dir" ]; then
+              echo "::warning::Could not find the kept Nix build directory in the log"
+            elif [ ! -d "$build_dir/dashboard/playwright-report" ]; then
+              echo "::warning::No Playwright report in $build_dir (missing or not readable)"
+            else
               rm -rf playwright-report
               if ! cp -r "$build_dir/dashboard/playwright-report" playwright-report; then
                 sudo cp -r "$build_dir/dashboard/playwright-report" playwright-report
                 sudo chown -R "$(id -u):$(id -g)" playwright-report
               fi
-            else
-              echo "No Playwright report found in failed Nix build directory"
             fi
           fi
 
