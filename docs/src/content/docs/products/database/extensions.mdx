@@ -233,11 +233,11 @@ DROP EXTENSION postgis;
 
 ## postgis_tiger_geocoder
 
-The TIGER geocoder provides address normalization, geocoding, and reverse geocoding for US addresses. It is packaged separately from PostGIS starting with PostGIS 3.7.
+The TIGER geocoder provides address normalization, geocoding, and reverse geocoding for US addresses.
 
 ### Managing
 
-For a fresh installation, create a migration with the following contents:
+To install the extension you can create a migration with the following contents:
 
 ```sql
 SET ROLE postgres;
@@ -249,21 +249,31 @@ CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
 RESET search_path;
 ```
 
-TIGER 2025.x leaves `tiger` first in the installing session's `search_path`. Run `RESET search_path` immediately after installing it, before subsequent migration statements, or explicitly select the intended schemas for later objects. Otherwise, unqualified tables and other extensions created in that session can land in `tiger` instead of `public`.
+The installer puts `tiger` first in the session's `search_path`. Keep `RESET search_path` immediately after installation to avoid creating later objects in `tiger`.
 
-Fresh installs no longer add `tiger` to the **database** `search_path`. Geocoder functions need it to resolve their internal types and tables, even when calls are qualified with `tiger.`. As the database owner, configure the path explicitly, replacing `your_database` with the database name:
+Fresh installations also need `tiger` in the database `search_path` for geocoder functions to work. As the database owner, replace `your_database` with your database name:
 
 ```sql
 ALTER DATABASE your_database SET search_path = "$user", public, tiger;
 ```
 
-If you already use a custom path, preserve its schemas and append `tiger` after your application schemas rather than replacing them. Reconnect before calling geocoder functions: the database setting applies to new connections, not the current session. If a role or client overrides `search_path`, include `tiger` in that setting too.
+If you use a custom path, preserve its schemas and append `tiger` after your application schemas. Reconnect for the change to take effect. If a role or client overrides `search_path`, include `tiger` there too.
 
-### Upgrading from bundled TIGER 3.6
+:::note
+Nhost automatically upgrades installed TIGER extensions at database startup. Existing databases upgraded from TIGER 3.6 retain their database-level `search_path`. Check `SHOW search_path;` in a new connection; if `tiger` is already included, no path change is needed.
+:::
 
-The Nhost PostgreSQL container automatically upgrades an installed TIGER extension at startup when its version differs from the version bundled in the image. Already-current TIGER installations are left unchanged; startup does not perform recurring `search_path` repair.
+To uninstall it, you can use the following migration:
 
-Existing databases upgraded from TIGER 3.6 retain the database-level `search_path` configured by that version. Check `SHOW search_path;` in a new connection; if `tiger` is already present, no database-path change is needed. Fresh installations—including development or preview databases recreated from migrations—still need both the session reset and the persistent database-path setup above.
+```sql
+SET ROLE postgres;
+DROP EXTENSION postgis_tiger_geocoder;
+```
+
+### Resources
+
+- [Source code](https://gitea.osgeo.org/postgis/postgis_tiger_geocoder)
+- [Documentation](https://gitea.osgeo.org/postgis/postgis_tiger_geocoder/src/branch/main/doc/postgis_tiger_geocoder.md)
 
 ## pgvector
 
@@ -286,7 +296,7 @@ SET ROLE postgres;
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-pg_search 0.25+ may already have installed `vector` through `CASCADE` or the image's startup upgrade, so this migration works when `vector` is already present.
+pg_search 0.25+ may already have installed `vector` through `CASCADE` or Nhost's automatic upgrade, so this migration works when `vector` is already present.
 
 To uninstall it, you can use the following migration:
 
@@ -402,21 +412,6 @@ httpAllowedDomains = ["api.example.com", "*.example.org"]
 Changing these server-wide settings requires a PostgreSQL restart. Check workflow destinations before switching to `restricted`: requests to other hosts fail when their HTTP activity executes. TLS verification and redirect blocking remain enforced in enabled modes.
 
 Setting this policy does not enable pg_durable. Add `pg_durable` alongside the other required `postgres.settings.sharedPreloadLibraries` entries and install the extension as described above; HTTP execution privileges are managed separately below.
-
-For self-hosted images, use the comma-separated `PG_DURABLE_HTTP_ALLOWED_DOMAINS` environment variable (empty by default), alongside `PG_DURABLE_HTTP_SECURITY`:
-
-```dotenv
-PG_DURABLE_HTTP_SECURITY=restricted
-PG_DURABLE_HTTP_ALLOWED_DOMAINS=api.example.com,*.example.org
-```
-
-Alternatively, set `pg_durable.http_allowed_domains` with `ALTER SYSTEM` as a superuser outside a transaction, then restart PostgreSQL:
-
-```sql
-ALTER SYSTEM SET pg_durable.http_allowed_domains = 'api.example.com,*.example.org';
-```
-
-Project and environment settings are reapplied at startup. An `ALTER SYSTEM` override takes precedence over them and is stored in `postgresql.auto.conf`, which the image discards during a PITR restore. If you use a SQL override, reapply it and restart PostgreSQL after a restore before resuming workflows that need it. To return to project or environment configuration, run `ALTER SYSTEM RESET pg_durable.http_allowed_domains;` as a superuser and restart PostgreSQL.
 
 Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
 
@@ -570,11 +565,11 @@ DROP EXTENSION pg_search;
 
 ### Upgrading to pg_search 0.26
 
-When the Nhost PostgreSQL container upgrades pg_search from a version before 0.26 to 0.26 (including 0.26.7), it automatically rebuilds every ParadeDB index containing a vector field, including unquantized indexes. It removes the obsolete `centroid_ratio`, `training_samples_per_centroid`, `cluster_replication` and `bounds_scope` settings, using the new clustering defaults (`training_sample_ratio = 0.32`, `max_leaf_size = 100`). Other index configuration and metadata are preserved; each removed setting is logged. Custom clustering tuning is not translated to an equivalent new configuration.
+When Nhost upgrades pg_search from a version before 0.26 to 0.26 (including 0.26.7), it automatically rebuilds every ParadeDB index containing a vector field, including unquantized indexes. It removes the obsolete `centroid_ratio`, `training_samples_per_centroid`, `cluster_replication` and `bounds_scope` settings, using the new clustering defaults (`training_sample_ratio = 0.32`, `max_leaf_size = 100`). Other index configuration and metadata are preserved; each removed setting is logged. Custom clustering tuning is not translated to an equivalent new configuration.
 
-This maintenance blocks writes while rebuilding and can extend startup and consume additional disk space and WAL. Plan the image upgrade as a maintenance window. The extension update and index maintenance commit together: on failure, startup logs a warning and leaves the upgrade pending for retry on the next start. Resolve that warning before treating the upgrade as complete. Ordinary restarts and updates within 0.26 do not rebuild indexes again.
+This maintenance blocks writes while rebuilding and can extend startup and consume additional disk space and WAL. Plan the database upgrade as a maintenance window. The extension update and index maintenance commit together: on failure, startup logs a warning and leaves the upgrade pending for retry on the next start. Resolve that warning before treating the upgrade as complete. Ordinary restarts and updates within 0.26 do not rebuild indexes again.
 
-If you upgrade the extension manually instead of through container startup, or it was already upgraded without rebuilding its indexes, follow the manual steps below. The startup updater does not repair indexes merely because pg_search is already at the current version. Permission and score changes apply in either case.
+If you upgrade the extension manually, or it was already upgraded without rebuilding its indexes, follow the manual steps below. Nhost does not rebuild indexes when pg_search is already at the current version. Permission and score changes apply in either case.
 
 - **Rebuild vector-field indexes for manual upgrades.** Every ParadeDB index containing a vector field must be rebuilt after upgrading, including indexes with quantization disabled. Vector queries fail with a rebuild-required error until the rebuild completes. As the index owner, run the following for each affected index, replacing `public.search_idx` with its name:
 

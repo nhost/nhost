@@ -203,11 +203,32 @@ The project setting is an array of host patterns, defaulting to `[]`; the image
 variable is comma-separated and defaults to empty. For example,
 `["api.example.com", "*.example.org"]` becomes `api.example.com,*.example.org`.
 Empty denies every host in `restricted` mode; the list is ignored in
-`unrestricted` mode. See the
-[HTTP egress guidance](https://docs.nhost.io/products/database/extensions#http-egress-and-access-control)
-for self-hosted configuration, superuser SQL overrides and their PITR restore
-requirements. Changes require a PostgreSQL restart; HTTP function privileges,
-TLS verification and redirect blocking remain enforced in enabled modes.
+`unrestricted` mode. For Nhost Cloud configuration, see the
+[HTTP egress guidance](https://docs.nhost.io/products/database/extensions#http-egress-and-access-control).
+Changes require a PostgreSQL restart; HTTP function privileges, TLS verification
+and redirect blocking remain enforced in enabled modes.
+
+For image configuration, set the policy and host patterns through environment
+variables:
+
+```dotenv
+PG_DURABLE_HTTP_SECURITY=restricted
+PG_DURABLE_HTTP_ALLOWED_DOMAINS=api.example.com,*.example.org
+```
+
+Superusers can override the allow-list with `ALTER SYSTEM` outside a transaction,
+then restart PostgreSQL:
+
+```sql
+ALTER SYSTEM SET pg_durable.http_allowed_domains = 'api.example.com,*.example.org';
+```
+
+The override takes precedence over project and environment settings. It is stored
+in `postgresql.auto.conf`, which the image discards during a PITR restore. Reapply
+it and restart PostgreSQL after a restore before resuming workflows that need it.
+To return to project or environment configuration, run
+`ALTER SYSTEM RESET pg_durable.http_allowed_domains;` as a superuser and restart
+PostgreSQL.
 
 The image and Cloud defaults in the table above match whether or not
 `[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in
