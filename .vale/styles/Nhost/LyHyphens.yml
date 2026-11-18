@@ -1,0 +1,15 @@
+# Vendored from errata-ai/Google v0.7.1 (56b01fed25), MIT; see LICENSE.errata-ai-Google.
+extends: existence
+message: "'%s' doesn't need a hyphen."
+link: "https://developers.google.com/style/hyphens"
+level: warning
+ignorecase: false
+nonword: true
+action:
+  name: edit
+  params:
+    - regex
+    - "-"
+    - " "
+tokens:
+  - '\b[^\s-]+ly-\w+\b'
