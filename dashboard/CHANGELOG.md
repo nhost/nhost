@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.10.1] - 2026-11-17
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Elevation method buttons squashed on desktop (#5396)
+
 ## [@nhost/dashboard@3.10.0] - 2026-11-17
 
 ### 🚀 Features
