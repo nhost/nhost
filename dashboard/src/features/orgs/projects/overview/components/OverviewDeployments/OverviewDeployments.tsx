@@ -1,6 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ChevronRightIcon, RocketIcon } from 'lucide-react';
-import { NavLink } from '@/components/common/NavLink';
+import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
@@ -23,16 +23,20 @@ function OverviewDeploymentsTopBar() {
     <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
       <h2 className="font-semibold text-lg">Deployments</h2>
 
-      <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
-        disabled={!isGitHubConnected}
+      <Button
+        asChild
         variant="ghost"
-        className="text-primary"
-        underline="none"
+        className="text-primary aria-disabled:pointer-events-none aria-disabled:opacity-50"
       >
-        View all
-        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
-      </NavLink>
+        <Link
+          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
+          aria-disabled={!isGitHubConnected}
+          tabIndex={isGitHubConnected ? undefined : -1}
+        >
+          View all
+          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
+        </Link>
+      </Button>
     </div>
   );
 }
@@ -94,14 +98,13 @@ function OverviewDeploymentList() {
             </span>
           </div>
 
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            variant="ghost"
-            className="text-primary"
-            underline="none"
-          >
-            Edit
-          </NavLink>
+          <Button asChild variant="ghost" className="text-primary">
+            <Link
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+            >
+              Edit
+            </Link>
+          </Button>
         </div>
       </div>
     );

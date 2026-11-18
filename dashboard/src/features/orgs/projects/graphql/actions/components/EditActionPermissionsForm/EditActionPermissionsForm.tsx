@@ -1,4 +1,4 @@
-import NavLink from 'next/link';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
@@ -156,13 +156,13 @@ export default function EditActionPermissionsForm({
             <AlertDescription>
               <p>
                 Go to the{' '}
-                <NavLink
+                <Link
                   href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
                   className="text-primary underline-offset-4 hover:underline"
                   onClick={onCancel}
                 >
                   Settings page
-                </NavLink>{' '}
+                </Link>{' '}
                 to add and delete roles.
               </p>
             </AlertDescription>

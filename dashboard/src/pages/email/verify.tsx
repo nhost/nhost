@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { NavLink } from '@/components/common/NavLink';
 import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { GuestGuard } from '@/features/auth/GuestGuard';
@@ -49,12 +49,12 @@ export default function VerifyEmailPage() {
         )}
 
         <div className="flex justify-center">
-          <NavLink
+          <Link
             href="/signin"
-            className="px-0 font-medium text-[1.125rem] text-white"
+            className="font-medium text-[1.125rem] text-white underline-offset-4 hover:underline"
           >
             Sign In
-          </NavLink>
+          </Link>
         </div>
       </div>
     </>

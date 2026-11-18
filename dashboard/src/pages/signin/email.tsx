@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
-import { NavLink } from '@/components/common/NavLink';
 import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { GuestGuard } from '@/features/auth/GuestGuard';
 import { SignInWithEmailAndPassword } from '@/features/auth/SignIn/SignInWithEmailAndPassword';
@@ -23,9 +23,12 @@ function SigninPage() {
 
       <div className="rounded-md border bg-transparent p-4 text-center text-base lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NavLink href="/signup" className="px-0 text-lg">
+        <Link
+          href="/signup"
+          className="font-medium text-lg text-primary underline-offset-4 hover:underline"
+        >
           Sign Up
-        </NavLink>
+        </Link>
       </div>
     </div>
   );
