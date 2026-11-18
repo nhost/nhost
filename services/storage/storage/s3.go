@@ -263,7 +263,7 @@ func (s *S3) GetFileWithPresignedURL(
 			respHeaders["Content-Range"] = []string{resp.Header.Get("Content-Range")}
 		}
 
-		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 32)
+		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64)
 		if err != nil {
 			return nil, controller.InternalServerError(
 				fmt.Errorf("problem parsing Content-Length: %w", err),
