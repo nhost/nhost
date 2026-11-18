@@ -15,6 +15,7 @@
   - pgvector: 0.8.6 → 0.8.7
   - postgis, postgis_raster, and postgis_topology: 3.6.4 → 3.7.0
   - postgis_tiger_geocoder: 3.6.4 → 2025.2 (now packaged separately from PostGIS)
+    - Breaking change: fresh installs no longer add `tiger` to the database `search_path`, and the installer leaves `tiger` first in the session path. Configure the database path and run `RESET search_path` before creating later objects; upgraded volumes retain their existing database setting. See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder).
   - timescaledb: 2.30.0 → 2.32.0
 
 ### {17.11,18.6}-20260930-1

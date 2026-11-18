@@ -50,6 +50,14 @@ address-standardizer package exposes the upstream update script for the
 previous bundled 3.6 versions; the TIGER package ships its own legacy upgrade
 paths. Keep these paths when updating either standalone source.
 
+TIGER 2025.x no longer adds `tiger` to the database `search_path` on fresh
+installs; upgraded volumes retain their existing database setting. Its installer
+also leaves `tiger` first in the session path, so migrations must run
+`RESET search_path` before creating later objects or explicitly select their schemas. Fresh databases
+need a persistent path with `tiger` after `public` for geocoder functions to work.
+See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder)
+for the migration SQL and reconnection requirements.
+
 The core `postgis`, `postgis_raster`, and `postgis_topology` extensions also
 need old-version `--ANY` tag links: bulk upgrade installation is disabled in
 `extensions/postgis.nix`. Retain every previously shipped PG17/PG18 version
