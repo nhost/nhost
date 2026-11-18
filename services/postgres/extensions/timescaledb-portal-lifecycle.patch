@@ -1,0 +1,24 @@
+Fix background jobs failing on PostgreSQL 18.7/17.12.
+Upstream: https://github.com/timescale/timescaledb/commit/dc4110b17f8d0a004e1ea96ad54a630f95a70afe
+
+The upstream .unreleased/pr_11015 changelog fragment is omitted.
+
+diff --git a/tsl/src/bgw_policy/job.c b/tsl/src/bgw_policy/job.c
+--- a/tsl/src/bgw_policy/job.c
++++ b/tsl/src/bgw_policy/job.c
+@@ -803,6 +803,7 @@ job_execute(BgwJob *job)
+ 		portal = CreatePortal("", true, true);
+ 		portal->visible = false;
+ 		portal->resowner = CurrentResourceOwner;
++		portal->status = PORTAL_ACTIVE;
+ 		ActivePortal = portal;
+ 		PortalContext = portal->portalContext;
+ 
+@@ -894,6 +895,7 @@ job_execute(BgwJob *job)
+ 			PopActiveSnapshot();
+ 		}
+ 		CommitTransactionCommand();
++		MarkPortalDone(portal);
+ 		PortalDrop(portal, false);
+ 		ActivePortal = NULL;
+ 		PortalContext = NULL;

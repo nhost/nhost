@@ -1,0 +1,2 @@
+# Unified-diff context preserves upstream tabs and blank-line markers.
+*.patch -whitespace
