@@ -33,7 +33,8 @@ buildPGRXExtension rec {
   ];
   nativeBuildInputs = [
     pkgs.pkg-config
-    pkgs.lld
+    # Upstream uses -fuse-ld=lld; keep Nix's RUNPATH handling for shared dependencies.
+    pkgs.llvmPackages.bintools
   ];
 
   cargoPgrxFlags = [

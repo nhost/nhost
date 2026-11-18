@@ -79,6 +79,14 @@ pgrx inserts comments between SQL tokens;
 after stripping them, equivalent definitions can differ in whitespace next to
 parentheses or commas, so normalization must account for punctuation spacing.
 
+For linker-only `pg_search` changes, a small native Rust `cdylib` probe using
+the candidate's linker input and upstream Linux `-fuse-ld=lld` flag can isolate
+RUNPATH handling without rebuilding the extension. Link a shared library
+PostgreSQL does not preload (for example OpenBLAS), inspect RUNPATH/NEEDED and
+the linker identity, then load it with `LD_LIBRARY_PATH` and `LD_PRELOAD` unset.
+Use a compiler-enabled stdenv for the probe: Nix's `runCommand` defaults to
+`stdenvNoCC`. This is not a full extension or image test.
+
 When checking pgrx toolchain changes on a small Linux builder (for example,
 a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
 `packages.x86_64-linux.postgres-pg18` sequentially. Parallel full builds,
