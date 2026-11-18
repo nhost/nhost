@@ -4527,7 +4527,7 @@ locale: string;
 #### metadata
 
 ```ts
-metadata: Record<string, unknown> | null;
+metadata: (Record<string, unknown>) | null;
 ```
 
 (`Record<string, unknown> | null`) - Custom metadata associated with the user
