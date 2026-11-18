@@ -138,6 +138,14 @@ that operation's variable definitions, so required-variable null rejection belon
 to `validator.VariableValues` and the controller request boundary; the SQL ordering
 parser sees nullable direction fields and must accept null there. Raw-parser
 negative tests should cover invalid enum values and unresolved references instead.
+Aggregate ordering has separate relationship and computed-table walkers: nullable
+`count`, aggregate-function objects, and per-column directions each mean no sort
+term. Test those children inside non-null wrappers; whole-argument/scalar-null
+coverage cannot exercise them. Skip null only for recognized fields/columns so
+unknown inputs still fail, and retain non-null ordering-list element checks.
+When comparing ordering-object variables to literal SQL, match
+`values.GoValueToAST`'s sorted map keys in the literal control; use separate list
+entries when ordering precedence must be explicit.
 
 ### Integration comparisons and regression tests
 

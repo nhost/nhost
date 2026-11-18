@@ -139,6 +139,48 @@ INSERT INTO users VALUES
 			variables:     map[string]any{"direction": nil},
 		},
 		{
+			name: "nullable aggregate count", definitions: "$direction:order_by",
+			arguments: "order_by:{siblings_aggregate:{count:$direction,max:{id:asc}},id:desc}",
+			literal:   "order_by:{siblings_aggregate:{max:{id:asc}},id:desc}",
+			variables: map[string]any{"direction": nil},
+		},
+		{
+			name: "nullable aggregate count default", definitions: "$direction:order_by=null",
+			arguments: "order_by:{siblings_aggregate:{count:$direction},id:desc}",
+			literal:   "order_by:{id:desc}",
+		},
+		{
+			name: "nullable aggregate column", definitions: "$direction:order_by",
+			arguments: "order_by:{siblings_aggregate:{max:{id:$direction,owner:asc}},id:desc}",
+			literal:   "order_by:{siblings_aggregate:{max:{owner:asc}},id:desc}",
+			variables: map[string]any{"direction": nil},
+		},
+		{
+			name:        "nullable aggregate objects in ordering list",
+			definitions: "$order:[users_order_by!]!",
+			arguments:   "order_by:$order",
+			literal:     "order_by:{id:desc}",
+			variables: map[string]any{"order": []any{
+				map[string]any{
+					"siblings_aggregate": map[string]any{
+						"count": nil,
+						"max":   nil,
+						"min":   map[string]any{"id": nil},
+					},
+				},
+				map[string]any{"id": "desc"},
+			}},
+		},
+		{
+			name:          "nullable aggregate in nested fragment",
+			definitions:   "$direction:order_by",
+			arguments:     "order_by:{id:asc}",
+			literal:       "order_by:{id:asc}",
+			nested:        `siblings(order_by:{siblings_aggregate:{count:$direction},id:desc}) { id }`,
+			nestedLiteral: `siblings(order_by:{id:desc}) { id }`,
+			variables:     map[string]any{"direction": nil},
+		},
+		{
 			name: "ordering object", definitions: "$order:users_order_by!",
 			arguments: "order_by:[$order]", literal: "order_by:[{id:desc}]",
 			variables: map[string]any{"order": map[string]any{"id": "desc"}},

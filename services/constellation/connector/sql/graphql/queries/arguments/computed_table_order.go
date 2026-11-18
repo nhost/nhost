@@ -84,6 +84,10 @@ func appendComputedTableOrderBy(
 
 	items := make([]OrderByItem, 0, len(value.Children))
 	for _, child := range value.Children {
+		if isNullAggregateOrderByField(child) {
+			continue
+		}
+
 		if child.Name == "count" {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -119,6 +123,10 @@ func appendComputedTableOrderBy(
 			if column == nil {
 				return nil, fmt.Errorf("%w: column %s not found in table %s",
 					ErrInvalidArgument, col.Name, target.TableName())
+			}
+
+			if col.Value.Kind == ast.NullValue {
+				continue
 			}
 
 			direction, err := orderByDirection(col.Value)

@@ -248,6 +248,10 @@ func buildAggregateOrderItems(
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullAggregateOrderByField(child) {
+			continue
+		}
+
 		if child.Name == "count" {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -328,6 +332,10 @@ func buildAggregateColumnOrderItems(
 			)
 		}
 
+		if child.Value.Kind == ast.NullValue {
+			continue
+		}
+
 		direction, err := orderByDirection(child.Value)
 		if err != nil {
 			return nil, err
@@ -349,6 +357,13 @@ func buildAggregateColumnOrderItems(
 	}
 
 	return items, nil
+}
+
+// isNullAggregateOrderByField omits only recognized nullable aggregate entries;
+// unknown fields must still reach validation even when their value is null.
+func isNullAggregateOrderByField(field *ast.ChildValue) bool {
+	return field.Value.Kind == ast.NullValue &&
+		(field.Name == "count" || aggregateOrderByFuncs[field.Name] != "")
 }
 
 // aggregateOrderByFuncs is the closed set of aggregate order_by object keys.
