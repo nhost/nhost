@@ -76,7 +76,7 @@ function ActionsBrowserSidebarContent() {
               placeholder="Search actions..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="h-10 pl-8 text-sm"
+              className="pl-8"
             />
           </div>
         )}

@@ -14,7 +14,7 @@ This document traces a GraphQL request through Constellation, from HTTP arrival 
                                   ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Controller.Resolve (controller/resolve.go)                          │
-│  1. Snapshot controllerState via atomic.Pointer.Load                 │
+│  1. acquireState → snapshot + registration; defer release()          │
 │  2. Look up role schema (state.validatedSchemas[role])               │
 │  3. loadQuery → query LRU cache (controller/querycache.go)           │
 │  4. selectOperation + validateVariables                              │
@@ -76,9 +76,18 @@ type GraphQLRequest struct {
 
 ## 2. State snapshot
 
-`Controller` holds an `atomic.Pointer[controllerState]` (`controller/controller.go:99`). Each request calls `c.state.Load()` once and uses that snapshot for its entire lifetime. Metadata reloads atomically swap the pointer; in-flight requests keep running against the old state until they return. See [architecture.md](./architecture.md) for the swap protocol.
+`Controller` holds an `atomic.Pointer[controllerState]` in `controller/controller.go`. HTTP `Resolve` acquires and registers its snapshot before schema selection:
 
-The snapshot carries: per-role validated schemas, the connector map, `fieldToConnector` routing, the planner, the per-role subscription handler map, and the LRU query cache.
+```go
+state, release := c.acquireState()
+defer release()
+```
+
+`acquireState` loads the pointer, increments the state's atomic `inflight` counter, and rechecks the pointer. If it changed, acquisition decrements the old counter and retries without using that state. The successful registration lasts throughout `Resolve`, including parsing, validation, connector execution, and remote-relationship stitching; `defer release()` covers all return paths. New HTTP paths that execute against connectors must use this protocol, not a bare `c.state.Load()`.
+
+The snapshot carries per-role validated schemas, the connector map, `fieldToConnector` routing, the planner/resolver, metadata, inconsistencies, subscription handler maps, and the LRU query cache. All published `controllerState` configuration fields must be rebuilt through `buildState` — never mutate the published snapshot in place. Only synchronized lifecycle state (`done`/`inflight`) and query-cache internals are exempt from that immutable-snapshot contract; cached ASTs and errors remain read-only. The HTTP `inflight` counter is separate from the cache's singleflight loads.
+
+WebSocket `HandlerGet` still snapshots with `c.state.Load()` and cancels the connection when `state.done` closes; it does not use HTTP registration. See [architecture.md](./architecture.md) for the swap and drain protocol.
 
 ## 3. Schema selection
 
@@ -241,7 +250,11 @@ The controller never returns Go errors for user-visible failures; it always prod
 
 ## Concurrency and reload
 
-`state` is an `atomic.Pointer` (`controller/controller.go:99`). `buildState` constructs a fresh `controllerState` for each metadata reload; `swapState` swaps the pointer and then shuts down the old state's subscription handlers and connectors on a background goroutine with a 30-second timeout (`shutdownTimeout`). In-flight requests holding the old pointer keep their connectors valid because `Close()` runs only after the new state is in place; WebSocket connections listen on `state.done` to close themselves when their state is retired.
+`buildState` constructs a fresh `controllerState` for each metadata reload. `swapState` publishes it atomically, then retires the old state on a background goroutine: close `state.done`, shut down subscription handlers, wait for registered HTTP calls via `waitIdle(drainCtx)`, then close connectors. Subscription shutdown uses `shutdownCtx`, derived from `ctx` with a `shutdownTimeout` deadline, and remains cancellable by the controller. HTTP draining instead uses a separate `drainCtx` from `context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)`, so controller cancellation cannot cut short the HTTP drain for either an already-replaced state or the current state during controller exit. On reload, both contexts have a 30-second budget starting before subscription shutdown.
+
+Connector closure waits for the registered count to reach zero or the drain deadline to expire; a loaded pointer alone keeps Go objects reachable, not connector resources open. Calls that outlive the deadline can encounter closed connectors. WebSockets are not counted in `inflight`: they cancel on `state.done` and their subscription handlers shut down rather than migrate.
+
+When the source's watch channel closes, `Run` synchronously invokes `shutdownState` for the current state before returning. It shuts down subscriptions with the supplied `ctx`, drains registered HTTP work with the detached timeout above, then closes connectors. Only the HTTP wait is bounded by that drain deadline, not the entire teardown. `Run` does not join earlier reload cleanup goroutines, stop HTTP admission, or wait for every HTTP-server handler. The registration covers `Resolve`, not body parsing before it or response writing afterward.
 
 See [architecture.md](./architecture.md) for the full reload contract.
 

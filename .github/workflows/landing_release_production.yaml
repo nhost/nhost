@@ -28,6 +28,7 @@ jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
     with:
+      RUNS_ON: nhost-x86_64-2c4g
       NAME: landing
       GIT_REF: ${{ github.sha }}
       ENVIRONMENT: production

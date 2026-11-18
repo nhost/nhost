@@ -36,10 +36,11 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
       <Button
         variant="outline"
         size="icon"
-        className="h-8 w-8 flex-i"
+        className="flex-none px-0"
+        aria-label="Remove filter"
         onClick={() => removeFilter(index)}
       >
-        <X className="size-3" />
+        <X />
       </Button>
     </div>
   );

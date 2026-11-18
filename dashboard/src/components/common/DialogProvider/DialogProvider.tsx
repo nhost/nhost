@@ -335,12 +335,14 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             alertDialogProps?.PaperProps?.className,
           )}
           onOpenAutoFocus={(event) => {
-            // Radix otherwise focuses AlertDialogCancel, which this provider does not render.
+            // Radix looks for an AlertDialogCancel, which this provider does not render.
+            // Focus the secondary (cancel) action first so Enter never confirms a
+            // destructive primary action by accident.
             event.preventDefault();
             const content = alertContentRef.current;
             (
-              primaryButtonRef.current ??
               secondaryButtonRef.current ??
+              primaryButtonRef.current ??
               content?.querySelector<HTMLElement>(
                 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
               ) ??

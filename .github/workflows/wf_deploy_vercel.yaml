@@ -16,10 +16,10 @@ on:
         required: false
         type: string
         default: ""
-      RUNNER_SIZE:
-        description: "Size for the local frontend build, not just deployment"
+      RUNS_ON:
+        description: "Runner label for the local frontend build and deployment"
         type: string
-        default: "2c4g"
+        required: true
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -50,7 +50,7 @@ on:
 jobs:
   deploy-vercel:
     name: Build and deploy Vercel output
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: ${{ inputs.RUNS_ON }}
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
     permissions:

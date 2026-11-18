@@ -3,6 +3,7 @@ import { Command as CommandPrimitive, useCommandState } from 'cmdk';
 import { PlusIcon, Search } from 'lucide-react';
 import * as React from 'react';
 
+import { controlHeight, controlText } from '@/components/ui/v3/control';
 import { Dialog, DialogContent } from '@/components/ui/v3/dialog';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +62,9 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'flex h-11 w-full rounded-md border-none bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50',
+        controlHeight,
+        controlText,
+        'flex w-full rounded-md border-none bg-transparent py-2 outline-none placeholder:text-muted-foreground focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50',
         prefix ? 'pl-0' : undefined,
         className,
       )}
