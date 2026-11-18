@@ -120,6 +120,8 @@ Golden file tests live in `testdata/` directories. Update them with the `-update
 Query-operation JSON goldens must call the queries test harness's `normalize(ops)`
 before comparison: numeric SQL parameters decode from JSON as `float64`, even
 when the builder originally supplied an integer.
+Schema-validated SQL tests must declare the generated scalar names: PostgreSQL
+`float4`/`float8` columns use `float4`/`float8`, not GraphQL `Float`.
 
 ### Integration comparisons and regression tests
 

@@ -928,6 +928,8 @@ func variableInputRoots(t *testing.T) (queries.Roots, *ast.Schema) {
 					SupportsMinMax: true,
 				},
 				{Name: "data", Type: "jsonb"},
+				{Name: "active", Type: "bool"},
+				{Name: "score", Type: "float8"},
 			},
 		},
 		"posts": {

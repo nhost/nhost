@@ -452,6 +452,25 @@ func GoValueToAST(value any) (*ast.Value, error) { //nolint:cyclop,funlen
 	case []string:
 		return sliceToASTList(v)
 
+	// gqlparser's singleton list coercion preserves the scalar's Go type.
+	case []int:
+		return sliceToASTList(v)
+
+	case []int32:
+		return sliceToASTList(v)
+
+	case []int64:
+		return sliceToASTList(v)
+
+	case []float32:
+		return sliceToASTList(v)
+
+	case []float64:
+		return sliceToASTList(v)
+
+	case []bool:
+		return sliceToASTList(v)
+
 	case string:
 		return &ast.Value{ //nolint:exhaustruct
 			Kind: ast.EnumValue,
@@ -501,8 +520,7 @@ func GoValueToAST(value any) (*ast.Value, error) { //nolint:cyclop,funlen
 
 // sliceToASTList converts a Go slice of any element type into an ast.ListValue
 // by recursing into GoValueToAST for each element. The element type is generic
-// so the three list branches in GoValueToAST ([]map[string]any, []any,
-// []string) share a single implementation and cannot drift.
+// so all supported list types share a single implementation and cannot drift.
 func sliceToASTList[T any](in []T) (*ast.Value, error) {
 	children := make(ast.ChildValueList, 0, len(in))
 
