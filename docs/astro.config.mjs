@@ -93,6 +93,7 @@ export default defineConfig({
         Head: './src/components/Head.astro',
         PageTitle: './src/components/PageTitle.astro',
         TableOfContents: './src/components/TableOfContents.astro',
+        Footer: './src/components/Footer.astro',
       },
       plugins: [
         // Emits /llms.txt, /llms-full.txt and /llms-small.txt.
