@@ -239,7 +239,7 @@ func parseFieldOrRelationship(
 			return nil, fmt.Errorf("failed to parse field %s: %w", fieldName, err)
 		}
 
-		return cond, nil
+		return guardArrayMembershipPermission(cond, column, value, sessionVariables), nil
 	}
 
 	if computed := t.ComputedScalarFromGraphqlName(fieldName, role); computed != nil {
