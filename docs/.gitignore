@@ -20,7 +20,7 @@ pnpm-debug.log*
 .env
 .env.production
 
-# vale - downloaded package styles
+# vale - the docs config used to download the Google package here
 .vale/styles/Google/
 
 # macOS-specific files
