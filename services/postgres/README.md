@@ -190,57 +190,6 @@ parameters, especially pg_durable workflow variables, even with
 SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
 treat these logs as sensitive when queries or workflows handle secrets.
 
-`PG_DURABLE_HTTP_SECURITY` corresponds to the
-`postgres.settings.extensions.pgDurable.httpSecurity` project setting. It defaults
-to `unrestricted`, allowing HTTP(S) requests to arbitrary destinations, including
-private networks. Set it to `restricted` to require HTTPS and an allowed hostname
-while blocking bare IP URLs and private/internal IP destinations, or `disabled` to
-block pg_durable HTTP requests.
-
-`PG_DURABLE_HTTP_ALLOWED_DOMAINS` corresponds to the
-`postgres.settings.extensions.pgDurable.httpAllowedDomains` project setting.
-The project setting is an array of host patterns, defaulting to `[]`; the image
-variable is comma-separated and defaults to empty. For example,
-`["api.example.com", "*.example.org"]` becomes `api.example.com,*.example.org`.
-Empty denies every host in `restricted` mode; the list is ignored in
-`unrestricted` mode. For Nhost Cloud configuration, see the
-[HTTP egress guidance](https://docs.nhost.io/products/database/extensions#http-egress-and-access-control).
-Changes require a PostgreSQL restart; HTTP function privileges, TLS verification
-and redirect blocking remain enforced in enabled modes.
-
-For image configuration, set the policy and host patterns through environment
-variables:
-
-```dotenv
-PG_DURABLE_HTTP_SECURITY=restricted
-PG_DURABLE_HTTP_ALLOWED_DOMAINS=api.example.com,*.example.org
-```
-
-Superusers can override the allow-list with `ALTER SYSTEM` outside a transaction,
-then restart PostgreSQL:
-
-```sql
-ALTER SYSTEM SET pg_durable.http_allowed_domains = 'api.example.com,*.example.org';
-```
-
-The override takes precedence over project and environment settings. It is stored
-in `postgresql.auto.conf`, which the image discards during a PITR restore. Reapply
-it and restart PostgreSQL after a restore before resuming workflows that need it.
-To return to project or environment configuration, run
-`ALTER SYSTEM RESET pg_durable.http_allowed_domains;` as a superuser and restart
-PostgreSQL.
-
-The image and Cloud defaults in the table above match whether or not
-`[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in
-`sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
-all other required libraries if you use it. Preloading an extension does not
-run `CREATE EXTENSION`. The fixed `output_plugin_libraries` allowlist permits
-PostgreSQL's `pgoutput` and `test_decoding` plus the bundled `pg_squeeze`
-logical-decoding output plugin. It does not preload libraries or enable logical
-replication; adding a plugin allows replication users to load it, so only trusted
-output plugins belong there. For pg_squeeze, set `WAL_LEVEL=logical` before using
-its logical-decoding based squeeze operations; the image defaults to `replica`.
-
 ### PITR restore safety
 
 When `PITR_BASEBACKUP` is set, startup first uses `wal-g backup-list` to check
