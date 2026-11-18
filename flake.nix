@@ -131,6 +131,13 @@
             ;
         };
 
+        templatesf = import ./templates/project.nix {
+          inherit
+            pkgs
+            nixops-lib
+            ;
+        };
+
         functionsf = import ./services/functions/project.nix {
           inherit
             self
@@ -281,6 +288,7 @@
           pgmigrate = pgmigratef.check;
           postgres = postgresf.check;
           storage = storagef.check;
+          templates = templatesf.check;
           tutorials = tutorialsf.check;
         };
 
@@ -438,6 +446,7 @@
           pgmigrate = pgmigratef.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
+          templates = templatesf.devShell;
           tutorials = tutorialsf.devShell;
         };
 
@@ -501,6 +510,7 @@
           storage-vips = storagef.vips;
           sync-ci = sharedCI.sync;
           clamav-docker-image = storagef.clamav-docker-image;
+          templates = templatesf.package;
           tutorials = tutorialsf.package;
         };
       }
