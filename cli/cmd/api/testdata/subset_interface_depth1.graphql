@@ -1,0 +1,10 @@
+schema {
+  query: query_root
+}
+type query_root {
+  node(id: uuid!): node
+}
+interface node {
+  id: uuid!
+}
+scalar uuid

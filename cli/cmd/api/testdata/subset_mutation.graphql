@@ -1,0 +1,19 @@
+schema {
+  mutation: mutation_root
+}
+type mutation_root {
+  updateConfig(appID: uuid!, config: config_input!): config
+}
+type config {
+  enabled: Boolean!
+  metadata: config_metadata
+}
+input config_input {
+  enabled: Boolean = true
+  mode: config_mode = DEFAULT
+}
+enum config_mode {
+  DEFAULT
+  CUSTOM
+}
+scalar uuid
