@@ -131,6 +131,13 @@
             ;
         };
 
+        templatesf = import ./templates/project.nix {
+          inherit
+            pkgs
+            nixops-lib
+            ;
+        };
+
         functionsf = import ./services/functions/project.nix {
           inherit
             self
@@ -253,6 +260,14 @@
             ;
         };
 
+        valef = import ./tools/vale/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
       in
       {
         checks = {
@@ -281,7 +296,9 @@
           pgmigrate = pgmigratef.check;
           postgres = postgresf.check;
           storage = storagef.check;
+          templates = templatesf.check;
           tutorials = tutorialsf.check;
+          vale = valef.check;
         };
 
         apps.sync-ci = {
@@ -438,7 +455,9 @@
           pgmigrate = pgmigratef.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
+          templates = templatesf.devShell;
           tutorials = tutorialsf.devShell;
+          vale = valef.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -501,6 +520,7 @@
           storage-vips = storagef.vips;
           sync-ci = sharedCI.sync;
           clamav-docker-image = storagef.clamav-docker-image;
+          templates = templatesf.package;
           tutorials = tutorialsf.package;
         };
       }
