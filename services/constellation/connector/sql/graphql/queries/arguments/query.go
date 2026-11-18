@@ -449,6 +449,10 @@ func ParseDistinctOn(
 		return nil, fmt.Errorf("resolving distinct_on: %w", err)
 	}
 
+	if value.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	// GraphQL allows passing either a single enum value or an array of enum
 	// values; both are accepted as the distinct_on column set.
 	if value.Kind == ast.EnumValue {

@@ -82,6 +82,10 @@ INSERT INTO optional_input.kids VALUES
 
 	t.Run("reads", func(t *testing.T) { testRemoteInputReads(t, ctrl) })
 	t.Run("nullable ordering", func(t *testing.T) { testRemoteInputNullOrderBy(t, ctrl) })
+	t.Run("nullable distinct", func(t *testing.T) { testRemoteInputNullDistinct(t, ctrl) })
+	t.Run("nullable distinct mutation", func(t *testing.T) {
+		testRemoteInputNullDistinctMutation(t, ctrl, pool)
+	})
 	t.Run("cached fragments", func(t *testing.T) { testRemoteInputCache(t, ctrl) })
 	t.Run("prevalidation", func(t *testing.T) { testRemoteInputPrevalidation(t, ctrl, pool) })
 }

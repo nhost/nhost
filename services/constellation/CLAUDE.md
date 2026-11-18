@@ -152,6 +152,9 @@ that stay useful if the comparison harness is retired. Never cite ignored
 - testdb (`:5433`) has a limited connection budget. Reuse pools and close them
   in test cleanup, keep large fixture matrices as one top-level test with
   sequential subtests, and never lower `-p`/`-parallel` to hide SQLSTATE 53300.
+  Mutation cases sharing a fixture with read/cache cases must restore their
+  rows in subtest cleanup; use a detached context because `t.Context()` is
+  canceled before cleanup runs.
   Respect an explicit `DATABASE_URL`. For intentionally sequential database
   subtests, use a function-scoped `//nolint:paralleltest,tparallel` with the
   shared-pool/connection-budget rationale; do not parallelize the matrix just
