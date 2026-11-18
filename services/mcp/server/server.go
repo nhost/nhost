@@ -26,6 +26,7 @@ const (
 	FlagDebug                = "debug"
 	FlagLogFormatTEXT        = "log-format-text"
 	FlagGraphqlEndpoint      = "graphql-endpoint"
+	FlagStorageURL           = "storage-url"
 	FlagMCPInstructions      = "mcp-instructions"
 	FlagQueryInstructions    = "query-instructions"
 	FlagMutationInstructions = "mutation-instructions"
@@ -36,13 +37,16 @@ const (
 	FlagBrowserHTML          = "browser-html"
 
 	shutdownTimeout = 5 * time.Second
+
+	// Allow base64 for a 4 MiB storage transfer plus JSON arguments and metadata.
+	maxStorageRequestBytes = 8 << 20
 )
 
 func Command(version string) *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "mcp",
 		Version: version,
-		Usage:   "Nhost MCP Service - GraphQL tools over HTTP",
+		Usage:   "Nhost MCP Service - GraphQL and storage tools over HTTP",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagListenAddr,
@@ -69,6 +73,12 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Required: true,
 				Sources:  cli.EnvVars("MCP_GRAPHQL_ENDPOINT"),
 				Category: "GraphQL",
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:     FlagStorageURL,
+				Usage:    "Storage service URL including API prefix (enables storage tools)",
+				Sources:  cli.EnvVars("MCP_STORAGE_URL"),
+				Category: "Storage",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagMCPInstructions,
@@ -156,6 +166,12 @@ func BuildServer(
 	t.RegisterMutation(mcpServer)
 	t.RegisterSchema(mcpServer)
 
+	if storageURL := cmd.String(FlagStorageURL); storageURL != "" {
+		if err := tools.RegisterStorage(mcpServer, storageURL); err != nil {
+			return nil, fmt.Errorf("registering storage tools: %w", err)
+		}
+	}
+
 	return mcpServer, nil
 }
 
@@ -226,7 +242,8 @@ func buildRouter(
 		cmd.String(FlagBrowserHTML),
 	)
 
-	router.POST("/", authMiddleware, mcpHandler)
+	router.POST("/", authMiddleware,
+		storageRequestBodyLimit(cmd.String(FlagStorageURL) != ""), mcpHandler)
 	router.GET("/", browserMiddleware, authMiddleware, mcpHandler)
 	router.DELETE("/", authMiddleware, mcpHandler)
 
@@ -272,6 +289,26 @@ func browserMiddleware(html string) gin.HandlerFunc {
 			c.Abort()
 
 			return
+		}
+
+		c.Next()
+	}
+}
+
+// mcp-go buffers request bodies before invoking typed handlers. Bound them before
+// parsing, including chunked bodies and oversized metadata, when storage is enabled.
+func storageRequestBodyLimit(enabled bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if enabled {
+			if c.Request.ContentLength > maxStorageRequestBytes {
+				c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, gin.H{
+					"error": "MCP request exceeds the 8 MiB limit for storage-enabled servers",
+				})
+
+				return
+			}
+
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxStorageRequestBytes)
 		}
 
 		c.Next()
