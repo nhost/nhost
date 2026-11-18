@@ -109,4 +109,31 @@ describe('manage linked accounts', () => {
     expect(unlinkButtons()).toHaveLength(1);
     expect(unlinkButton()?.disabled).toBe(true);
   });
+
+  // No email, three links: once the unlinked one is gone from the list read
+  // again, two remain, so either can still go.
+  it('counts an unlinked provider once after the list is read again', async () => {
+    unlinkProvider.mockResolvedValueOnce({ success: true });
+    const google = {
+      ...providers[1],
+      link: { id: 'link-2', since: 'Oct 2, 2026' },
+    };
+    const apple: LinkedProvider = {
+      id: 'apple',
+      name: 'Apple',
+      connectHref: '/auth/oauth/apple/connect',
+      link: { id: 'link-3', since: 'Oct 3, 2026' },
+    };
+    await render({ email: '', list: [providers[0], google, apple] });
+
+    await act(async () => unlinkButtons()[0]?.click());
+    expect(refresh).toHaveBeenCalledOnce();
+    await render({
+      email: '',
+      list: [{ ...providers[0], link: undefined }, google, apple],
+    });
+
+    expect(unlinkButtons()).toHaveLength(2);
+    expect(unlinkButtons().every((button) => !button.disabled)).toBe(true);
+  });
 });

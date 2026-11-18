@@ -41,7 +41,12 @@ export default function ManageLinkedAccounts({
       ? { ...provider, link: undefined }
       : provider,
   );
-  const canUnlink = leavesAWayIn(email, links - removed.size);
+  // Only the removals the list still shows: once it is read again, `links`
+  // already leaves them out.
+  const pending = listed.filter(
+    ({ link }) => link && removed.has(link.id),
+  ).length;
+  const canUnlink = leavesAWayIn(email, links - pending);
 
   const handleUnlink = async (provider: LinkedProvider) => {
     if (!provider.link) {
