@@ -146,7 +146,10 @@ that stay useful if the comparison harness is retired. Never cite ignored
 - testdb (`:5433`) has a limited connection budget. Reuse pools and close them
   in test cleanup, keep large fixture matrices as one top-level test with
   sequential subtests, and never lower `-p`/`-parallel` to hide SQLSTATE 53300.
-  Respect an explicit `DATABASE_URL`.
+  Respect an explicit `DATABASE_URL`. For intentionally sequential database
+  subtests, use a function-scoped `//nolint:paralleltest,tparallel` with the
+  shared-pool/connection-budget rationale; do not parallelize the matrix just
+  to satisfy those linters.
 **Golden file ordering pitfall.** A subset of goldens are JSON-marshalled via `encoding/json/v2` from Go maps (e.g. `*_data.json` query result fixtures, `TestIntrospect/success.golden.json`, and aggregate result data). JSON v2 emits map keys in Go map iteration order, which is **deliberately randomized** — so re-running `-update` against an unchanged codebase produces a byte-different file even though the content is semantically identical. Treat noisy reorderings as nondeterminism artefacts, not real changes: revert them with `git checkout --` instead of committing. If a test passes against the existing golden, the golden is correct; don't run `-update` on it without a real reason. The same applies to `integration/schema.nhost.*.graphqls` produced by `nhost schema dump` (invoked from `integration/gen.sh`, which now shells out to the Nhost CLI in `cli/`) — those are byproducts of `integration/gen.sh` runs, not goldens proper. Only the GraphQL SDL goldens under `connector/.../testdata/*.graphqls` are deterministically ordered (via sorted scalar/type emission in `connector/sql/graphql/schema/scalars.go`) and safe to commit verbatim.
 
 ## Key Interfaces

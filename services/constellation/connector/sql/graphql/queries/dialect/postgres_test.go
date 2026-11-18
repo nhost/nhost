@@ -204,8 +204,8 @@ func TestPostgresDialect_WriteSpatialArrayEmpty(t *testing.T) {
 	var b strings.Builder
 
 	params, next := d.WriteSpatialArrayIn(&b, `"t"`, "geom", "geometry", nil, nil, 2)
-	if got := b.String(); got != "1 = 0" {
-		t.Fatalf("empty _in SQL = %q, want 1 = 0", got)
+	if got := b.String(); got != `"t"."geom" = ANY(ARRAY[]::geometry[])` {
+		t.Fatalf("empty _in SQL = %q, want typed empty geometry array comparison", got)
 	}
 
 	if next != 2 || len(params) != 0 {
@@ -215,8 +215,8 @@ func TestPostgresDialect_WriteSpatialArrayEmpty(t *testing.T) {
 	b.Reset()
 
 	params, next = d.WriteSpatialArrayNotIn(&b, `"t"`, "geom", "geometry", nil, nil, 2)
-	if got := b.String(); got != "1 = 1" {
-		t.Fatalf("empty _nin SQL = %q, want 1 = 1", got)
+	if got := b.String(); got != `"t"."geom" != ALL(ARRAY[]::geometry[])` {
+		t.Fatalf("empty _nin SQL = %q, want typed empty geometry array comparison", got)
 	}
 
 	if next != 2 || len(params) != 0 {

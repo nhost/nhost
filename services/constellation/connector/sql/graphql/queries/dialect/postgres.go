@@ -214,7 +214,7 @@ func (d *PostgresDialect) WriteSpatialArrayInExpression(
 	values []any, params []any, paramIndex int,
 ) ([]any, int) {
 	return d.writeSpatialArrayComparisonExpression(
-		b, leftExpr, sqlType, values, params, paramIndex, " = ANY", false,
+		b, leftExpr, sqlType, values, params, paramIndex, " = ANY",
 	)
 }
 
@@ -223,7 +223,7 @@ func (d *PostgresDialect) WriteSpatialArrayNotInExpression(
 	values []any, params []any, paramIndex int,
 ) ([]any, int) {
 	return d.writeSpatialArrayComparisonExpression(
-		b, leftExpr, sqlType, values, params, paramIndex, " != ALL", true,
+		b, leftExpr, sqlType, values, params, paramIndex, " != ALL",
 	)
 }
 
@@ -235,18 +235,9 @@ func (d *PostgresDialect) writeSpatialArrayComparisonExpression(
 	params []any,
 	paramIndex int,
 	operator string,
-	emptyMatchesAll bool,
 ) ([]any, int) {
-	if len(values) == 0 {
-		if emptyMatchesAll {
-			b.WriteString("1 = 1")
-		} else {
-			b.WriteString("1 = 0")
-		}
-
-		return params, paramIndex
-	}
-
+	// Keep the left expression even for empty arrays: a computed call may
+	// already have allocated parameters that must remain referenced in SQL.
 	b.WriteString(leftExpr)
 	b.WriteString(operator)
 	b.WriteString("(ARRAY[")
