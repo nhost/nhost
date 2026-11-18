@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### main
+### {17.12,18.7}-20261118-1
 
 - Updated PostgreSQL to 17.12 and 18.7
 - Updated extensions:
