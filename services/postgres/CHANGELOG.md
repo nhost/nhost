@@ -11,7 +11,7 @@
   - pg_ivm: 1.15 → 1.17
   - pg_jsonschema: refreshed source revision; SQL version remains 0.3.4
   - pg_search: 0.25.11 → 0.26.7
-    - Breaking changes: startup upgrades from pre-0.26 rebuild all ParadeDB vector-field indexes and reset obsolete options, blocking writes and potentially extending startup. Schedule a maintenance window; failed maintenance rolls back for retry. See the [upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026) for permission changes and RLS scoring.
+    - Breaking changes: startup upgrades from pre-0.26 rebuild all ParadeDB vector-field indexes and reset obsolete options, blocking writes, and potentially extending startup. Schedule a maintenance window; failed maintenance rolls back for retry. See the [upgrade guidance](https://docs.nhost.io/products/database/extensions#upgrading-to-pg_search-026) for permission changes and RLS scoring.
   - pgmq: 1.13.0 → 1.13.1
   - pgvector: 0.8.6 → 0.8.7
   - postgis, postgis_raster, and postgis_topology: 3.6.4 → 3.7.0
@@ -44,7 +44,7 @@
 
 ### {16.14,17.10,18.4}-20260610-1
 
-- Updated postgres to 16.14, 17.10 and 18.4
+- Updated Postgres to 16.14, 17.10 and 18.4
 - Updated extensions:
   - pg_ivm: 1.13 → 1.14
   - pg_search: 0.22.2 → 0.24.0
@@ -55,7 +55,7 @@
 
 ### {16.13,17.9,18.3}-20260320-1
 
-- Updated postgres to 16.13, 17.9 and 18.3
+- Updated Postgres to 16.13, 17.9 and 18.3
 - Updated extensions:
   - pg_search: 0.21.1 → 0.22.2
   - pgmq: 1.8.0 → 1.11.0
@@ -77,7 +77,7 @@
 
 ### {14.20,15.15,16.11,17.7}-20251217-1
 
-- Updated postgres to 14.20, 15.15, 16.11 and 17.7
+- Updated Postgres to 14.20, 15.15, 16.11 and 17.7
 - Updated extensions:
   - pg_cron: 1.6 → 1.6.7
   - pg_ivm: 1.11 → 1.13
@@ -91,7 +91,7 @@
 
 ### {14.18,15.13,16.9,17.5}-20250728-1
 
-- Updated postgres to 14.18, 15.13, 16.9 and 17.5
+- Updated Postgres to 14.18, 15.13, 16.9 and 17.5
 - Updated extensions:
   - hypog: 1.4.1 → 1.4.2
   - pg_ivm: 1.10 → 1.11
@@ -110,7 +110,7 @@
 
 ### {14.17,15.12,16.8,17.4}-20250506-1
 
-- Updated postgres to 14.17, 15.12, 16.8 and 17.4
+- Updated Postgres to 14.17, 15.12, 16.8 and 17.4
 - Updated extensions:
   - earth_distance: 1.1 → 1.2
   - pg_ivm: 1.9 → 1.10
@@ -140,8 +140,8 @@
 
 ### {14.15,15.10,16.6,17.2}-20250131-1
 
-- Added support for postgres 17.2
-- Updated postgres to 14.15, 15.10, 16.6
+- Added support for Postgres 17.2
+- Updated Postgres to 14.15, 15.10, 16.6
 - Updated extensions:
     - address_standardizer: 3.5.0 → 3.5.2
     - address_standardizer_data_us: 3.5.0 → 3.5.2
@@ -218,7 +218,7 @@
 
 ### 14.11-20240429-1
 
-- Upgraded postgres to 14.11
+- Upgraded Postgres to 14.11
 
 ### 14.6-20240422-1
 

@@ -40,7 +40,7 @@ session.
 
 When upgrading pg_search across the 0.26 vector-storage boundary, the entrypoint
 uses `postgres/bin/upgrade-pg-search.sql`. Its single transaction upgrades the
-extension, removes obsolete clustering options and rebuilds affected physical
+extension, removes obsolete clustering options, and rebuilds affected physical
 indexes with blocking `REINDEX`. Failures roll back the extension version and
 maintenance together, so the next startup retries without a separate marker.
 Ordinary restarts and upgrades within 0.26 do not repeat the work.
