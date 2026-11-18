@@ -164,10 +164,15 @@ The image also supports `PG_DURABLE_HTTP_SECURITY` (not mapped to a Cloud
 setting). It defaults to `unrestricted` to preserve the former
 `http-allow-all` build policy after upgrading to pg_durable 0.2.9. This permits
 HTTP(S) requests to arbitrary destinations, including private networks. Set it
-to `restricted` for the upstream HTTPS/domain/IP restrictions (recommended),
-or `disabled` to block pg_durable HTTP requests. Changes require a PostgreSQL
-restart; HTTP function privileges, TLS verification, and redirect blocking
-remain enforced in enabled modes.
+to `restricted` to enforce HTTPS and the upstream IP restrictions, with a default
+allow-list limited to specific Azure service subdomains and `api.github.com`,
+or `disabled` to block pg_durable HTTP requests. Check workflow destinations
+before switching to `restricted`: requests to other hosts will fail. The image
+has no environment variable for `pg_durable.http_allowed_domains`; see the
+[HTTP egress guidance](https://docs.nhost.io/products/database/extensions#http-egress-and-access-control)
+for superuser allow-list overrides and their PITR restore requirements.
+Changes require a PostgreSQL restart; HTTP function privileges, TLS verification,
+and redirect blocking remain enforced in enabled modes.
 
 The image and Cloud defaults in the table above match whether or not
 `[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in

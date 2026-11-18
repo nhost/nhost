@@ -381,7 +381,15 @@ For security, Nhost sets `postgres.settings.extensions.pgDurable.logWorkflowSql`
 
 ### HTTP egress and access control
 
-Nhost defaults `pg_durable.http_security` to `unrestricted`, preserving the former `http-allow-all` build policy. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL, including private networks. Administrators can select `restricted` for the upstream HTTPS/domain/IP restrictions or `disabled` to block HTTP requests. This server-wide setting requires a PostgreSQL restart; self-hosted images expose it as `PG_DURABLE_HTTP_SECURITY`. TLS verification and redirect blocking remain enforced in enabled modes.
+Nhost defaults `pg_durable.http_security` to `unrestricted`, preserving the former `http-allow-all` build policy. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL, including private networks. Administrators can select `restricted` to enforce HTTPS and the upstream IP restrictions, with a default allow-list limited to [specific Azure service subdomains](https://github.com/microsoft/pg_durable/blob/v0.2.9/docs/http-security.md#52-default-azure-domains) and `api.github.com`, or `disabled` to block HTTP requests. Check workflow destinations before switching to `restricted`: requests to other hosts fail when their HTTP activity executes. This server-wide setting requires a PostgreSQL restart; self-hosted images expose it as `PG_DURABLE_HTTP_SECURITY`. TLS verification and redirect blocking remain enforced in enabled modes.
+
+The self-hosted image has no environment variable for the `pg_durable.http_allowed_domains` allow-list. To customize it, run `ALTER SYSTEM` as a superuser outside a transaction, then restart PostgreSQL. For example:
+
+```sql
+ALTER SYSTEM SET pg_durable.http_allowed_domains = 'api.example.com,api.github.com';
+```
+
+The comma-separated list accepts exact hostnames or `*.domain` subdomain patterns, not URLs. It **replaces** all defaults, so include every required destination; HTTPS and IP restrictions still apply. This override is stored in `postgresql.auto.conf`, which the image discards during a PITR restore. Reapply the override and restart PostgreSQL after a restore before resuming workflows that need it.
 
 Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
 
