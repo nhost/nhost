@@ -177,7 +177,7 @@ func TestArrayColumnMembershipSQL(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest,tparallel // One shared pool; mutations reset the fixture in sequential subtests to respect the connection budget.
+//nolint:tparallel // Sequential mutation subtests share one fixture and pool to respect the connection budget.
 func TestArrayColumnMembershipExecution(t *testing.T) {
 	t.Parallel()
 
@@ -193,6 +193,20 @@ func TestArrayColumnMembershipExecution(t *testing.T) {
 
 	client := postgres.NewClient(pool)
 	t.Cleanup(client.Close)
+
+	testArrayMembershipCases(t, arrayMembershipCases(), pool, client, `TRUNCATE items;
+		INSERT INTO items VALUES (1,ARRAY['a','b'],'first'), (2,ARRAY['b'],'second'),
+		(3,'{}','empty'), (4,ARRAY['z'],'other'), (5,NULL,'null'), (6,ARRAY['a','b','c'],'longer');`)
+}
+
+func testArrayMembershipCases(
+	t *testing.T,
+	cases []arrayMembershipCase,
+	pool postgres.Pool,
+	client *postgres.Client,
+	resetSQL string,
+) {
+	t.Helper()
 
 	roots, schema := arrayMembershipRoots(t)
 
@@ -211,13 +225,11 @@ func TestArrayColumnMembershipExecution(t *testing.T) {
 			`mutation%s{insert_items(objects:[{id:1,name:"upserted"}],on_conflict:{constraint:items_pkey,update_columns:[name],where:%s}){affected_rows returning{id}}}`,
 		},
 	}
-	for _, tt := range arrayMembershipCases() {
+	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, operation := range operations {
 				t.Run(operation.name, func(t *testing.T) {
-					if err := pool.Exec(t.Context(), `TRUNCATE items;
-						INSERT INTO items VALUES (1,ARRAY['a','b'],'first'), (2,ARRAY['b'],'second'),
-						(3,'{}','empty'), (4,ARRAY['z'],'other'), (5,NULL,'null'), (6,ARRAY['a','b','c'],'longer');`); err != nil {
+					if err := pool.Exec(t.Context(), resetSQL); err != nil {
 						t.Fatalf("reset fixture: %v", err)
 					}
 
@@ -303,6 +315,12 @@ func assertArrayMembershipResult(t *testing.T, result map[string]any, wantIDs []
 func arrayMembershipRoots(t *testing.T) (queries.Roots, *ast.Schema) {
 	t.Helper()
 
+	return arrayMembershipRootsForRole(t, "admin")
+}
+
+func arrayMembershipRootsForRole(t *testing.T, role string) (queries.Roots, *ast.Schema) {
+	t.Helper()
+
 	objects := introspection.NewObjects()
 	objects.Schemas["public"] = &introspection.Schema{Tables: map[string]*introspection.Table{
 		"items": {
@@ -315,22 +333,36 @@ func arrayMembershipRoots(t *testing.T) (queries.Roots, *ast.Schema) {
 			},
 		},
 	}}
+	filter := map[string]any{"id": map[string]any{"_gt": 1}}
 	md := &metadata.DatabaseMetadata{
 		Name: "default",
 		Kind: "postgres",
-		Tables: []metadata.TableMetadata{
-			{Table: metadata.TableSource{Schema: "public", Name: "items"}},
-		},
+		Tables: []metadata.TableMetadata{{
+			Table: metadata.TableSource{Schema: "public", Name: "items"},
+			SelectPermissions: []metadata.SelectPermission{{
+				Role: "member", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{"id", "tags", "name"}, Filter: filter,
+				},
+			}},
+			UpdatePermissions: []metadata.UpdatePermission{{
+				Role: "member", Permission: metadata.UpdatePermissionConfig{
+					Columns: []string{"name"}, Filter: filter,
+				},
+			}},
+			DeletePermissions: []metadata.DeletePermission{{
+				Role: "member", Permission: metadata.DeletePermissionConfig{Filter: filter},
+			}},
+		}},
 	}
 	d := dialect.NewPostgresDialect()
 	caps := graphqlschema.NewCapabilities(graphqlschema.KindPostgres, d)
 
-	graph, err := graphqlschema.GenerateForRole(objects, "admin", md, caps)
+	graph, err := graphqlschema.GenerateForRole(objects, role, md, caps)
 	if err != nil {
 		t.Fatalf("GenerateForRole: %v", err)
 	}
 
-	_, schema, err := schemamerge.BuildValidatedSchema(graph, "admin")
+	_, schema, err := schemamerge.BuildValidatedSchema(graph, role)
 	if err != nil {
 		t.Fatalf("BuildValidatedSchema: %v", err)
 	}

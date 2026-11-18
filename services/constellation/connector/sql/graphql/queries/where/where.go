@@ -537,6 +537,16 @@ func resolveTargetArrayValue(
 		return nil, err
 	}
 
+	if column != nil && column.IsArray {
+		// GraphQL coerces scalar candidates to singleton arrays, including
+		// literals mixed with variables. Validation need not retain that shape.
+		for i, candidate := range out {
+			if _, isArray := candidate.([]any); !isArray && candidate != nil {
+				out[i] = []any{candidate}
+			}
+		}
+	}
+
 	t := comparisonTargetFor(column, target)
 
 	coerced, err := values.CoerceSQLValues(t.sqlType, out)
