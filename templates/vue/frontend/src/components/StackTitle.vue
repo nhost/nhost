@@ -43,11 +43,13 @@ const [backend, framework] = logos;
       <component :is="logo" class="size-16" />
       <span class="sr-only">{{ name }}</span>
     </a>
+    <!-- Spaced explicitly: grid lays the names out, but a screen reader and a
+         copy read the text, and Vue drops the line breaks between them. -->
     <h1
       class="col-span-3 row-start-2 grid grid-cols-subgrid font-semibold text-4xl tracking-tight"
     >
-      <span>{{ backend.name }}</span> <span>+</span>
-      <span>{{ framework.name }}</span>
+      <span>{{ backend.name }}</span>{{ ' ' }}<span>+</span>{{ ' '
+      }}<span>{{ framework.name }}</span>
     </h1>
   </div>
 </template>

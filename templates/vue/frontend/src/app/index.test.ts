@@ -25,6 +25,12 @@ describe('home page', () => {
     expect(hrefOf(el, 'another way in')).toBe('/signin?intent=sign-in');
   });
 
+  it('reads its title as words, not just as a grid of names', async () => {
+    const { el } = await mountAt(Home);
+
+    expect(el.querySelector('h1')?.textContent).toBe('Nhost + Vue');
+  });
+
   // The one page behind the session, so it is where a signed-in visitor is sent
   // from here.
   it('sends a signed-in visitor to the account page', async () => {
