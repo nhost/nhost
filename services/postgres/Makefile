@@ -17,7 +17,7 @@ DOCKER_IMAGE_NAME=nhost/postgres
 
 
 .PHONY: _check-pre
-_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades
+_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades check-pg-search-upgrades
 
 
 .PHONY: check-docker
@@ -49,6 +49,11 @@ check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
 .PHONY: check-extension-upgrades
 check-extension-upgrades:  ## Verify extensions upgrade from the previous image
 	./tests/test-extension-upgrades.sh
+
+
+.PHONY: check-pg-search-upgrades
+check-pg-search-upgrades:  ## Verify pg_search vector maintenance from 0.25 on an existing volume
+	./tests/test-pg-search-upgrades.sh
 
 
 .PHONY: _dev-env-build
