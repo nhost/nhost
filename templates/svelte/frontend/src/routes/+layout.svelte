@@ -6,7 +6,7 @@
   import Nav from '#lib/components/Nav.svelte';
   import type { LayoutProps } from './$types';
 
-  let { children }: LayoutProps = $props();
+  let { data, children }: LayoutProps = $props();
 </script>
 
 <svelte:head>
@@ -18,7 +18,7 @@
   <link rel="icon" href={favicon} type="image/svg+xml" />
 </svelte:head>
 
-<Nav />
+<Nav user={data.user} />
 <main class="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
   <AuthErrorFromUrl />
   {@render children()}

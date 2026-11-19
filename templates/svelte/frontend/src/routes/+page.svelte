@@ -2,10 +2,15 @@
 <script lang="ts">
   import CenteredLayout from '#lib/components/CenteredLayout.svelte';
   import Code from '#lib/components/Code.svelte';
+  import SignOutLink from '#lib/components/SignOutLink.svelte';
   import StackTitle from '#lib/components/StackTitle.svelte';
   import { Button } from '#lib/components/ui/button/index.ts';
   import { DEFAULT_DESTINATION } from '#routes/signin/destination.ts';
   import { signInQuery } from '#routes/signin/query.ts';
+  import type { PageProps } from './$types';
+
+  let { data }: PageProps = $props();
+  const user = $derived(data.user);
 
   const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
   const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
@@ -28,19 +33,38 @@
 {/snippet}
 
 {#snippet createAccount()}
-  <p>Sign up with any of the ways the sign-in page offers.</p>
-  <div>
-    <Button href={signUpLink} size="sm">Sign up</Button>
-  </div>
+  {#if user}
+    <p>Done: you are signed in as {user.email ?? user.id}.</p>
+  {:else}
+    <p>Sign up with any of the ways the sign-in page offers.</p>
+    <div>
+      <Button href={signUpLink} size="sm">Sign up</Button>
+    </div>
+  {/if}
 {/snippet}
 
+<!-- The link is whichever half the visitor can do now: signed in, signing out;
+     signed out, the sign-in page, which a session would only send on to the
+     account. -->
 {#snippet exploreAccount()}
-  <p>
-    Edit your profile and how you sign in, then sign out and try
-    <a href={signInLink} class="text-foreground underline underline-offset-4"
-      >another way in</a
-    >.
-  </p>
+  {#if user}
+    <p>
+      Edit your profile and how you sign in, then
+      <SignOutLink>sign out</SignOutLink> and try another way in.
+    </p>
+    <div>
+      <Button href="/account" size="sm" variant="outline">
+        Go to your account
+      </Button>
+    </div>
+  {:else}
+    <p>
+      Edit your profile and how you sign in, then sign out and try
+      <a href={signInLink} class="text-foreground underline underline-offset-4"
+        >another way in</a
+      >.
+    </p>
+  {/if}
 {/snippet}
 
 {#snippet makeItYours()}

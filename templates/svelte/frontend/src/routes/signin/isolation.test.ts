@@ -35,8 +35,12 @@ function specifiers(source: string): string[] {
   );
 }
 
-// The path a local specifier names.
+// The path a local specifier names. `./$types` is SvelteKit's generated types
+// for the route, not a file of the app's.
 function resolveSpecifier(file: string, spec: string): string | null {
+  if (spec.endsWith('/$types')) {
+    return null;
+  }
   const hole = spec.indexOf('${');
   const fixed =
     hole === -1 ? spec : spec.slice(0, spec.lastIndexOf('/', hole) + 1);
