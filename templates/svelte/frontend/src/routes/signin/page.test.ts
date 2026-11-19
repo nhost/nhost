@@ -48,7 +48,9 @@ describe('sign-in page', () => {
       { href: '/auth/a-method', title: 'A method', description: '' },
       { href: '/auth/b-method', title: 'B method', description: '' },
     ];
-    listed.buttons = [(await import('./LastUsedProbe.test.svelte')).default];
+    listed.buttons = [
+      (await import('#lib/testing/ButtonsProbe.svelte')).default,
+    ];
 
     const page = html('', '/auth/b-method');
 

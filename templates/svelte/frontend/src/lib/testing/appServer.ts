@@ -1,4 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
+import type { RemoteForm, RemoteFormInput } from '$app/server';
 import { type FakeRequest, fakeEvent } from './requestEvent.ts';
 
 // The part of a Standard Schema, such as a valibot schema, that is used here.
@@ -24,7 +25,7 @@ export function inRequest(request: FakeRequest = {}) {
 // is checked against its schema, as SvelteKit checks what the client sends.
 // The tag is what SvelteKit looks for on every export of a remote module.
 const remote =
-  (type: 'command' | 'query') =>
+  (type: 'command' | 'form' | 'query') =>
   (
     schemaOrFn: Schema | 'unchecked' | ((arg?: unknown) => unknown),
     fn?: (arg: unknown) => unknown,
@@ -60,6 +61,7 @@ function checked(
  * `vi.mock('$app/server', () => import('#lib/testing/appServer.ts'))`.
  */
 export const command = remote('command');
+export const form = remote('form');
 export const query = remote('query');
 export const getRequestEvent = (): RequestEvent => {
   if (!current) {
@@ -67,3 +69,8 @@ export const getRequestEvent = (): RequestEvent => {
   }
   return current;
 };
+
+/** A remote form's handler, which is what the form is under this stand-in. */
+export const handlerOf = <Input extends RemoteFormInput, Output>(
+  form: RemoteForm<Input, Output>,
+) => form as unknown as (data: Input) => Promise<Output>;
