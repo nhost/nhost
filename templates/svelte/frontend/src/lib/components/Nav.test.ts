@@ -2,6 +2,7 @@ import type { User } from '@nhost/nhost-js/auth';
 import { render } from 'svelte/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Nav from './Nav.svelte';
+import { signedOutHere } from './signedOutHere.svelte.ts';
 
 const pathname = vi.hoisted(() => ({ current: '/' }));
 
@@ -24,6 +25,7 @@ const html = (user: Partial<User> | null): string =>
 describe('Nav', () => {
   beforeEach(() => {
     pathname.current = '/';
+    signedOutHere.current = false;
   });
 
   it('links a signed-in visitor to their account by their picture', () => {
@@ -53,5 +55,20 @@ describe('Nav', () => {
       expect(page).toMatch(/>\s*Sign in\s*</);
       expect(page).toMatch(/>\s*Sign up\s*</);
     }
+  });
+
+  // The account page after a password change that could not sign this device
+  // back in: the session is gone, but no load has told the layout yet.
+  it('looks signed out while a page says this browser is', () => {
+    pathname.current = '/account';
+    signedOutHere.current = true;
+    const page = html({
+      displayName: 'Ada',
+      avatarUrl: '/api/avatar/current',
+    });
+
+    expect(page).not.toContain('href="/account"');
+    expect(page).toMatch(/>\s*Sign in\s*</);
+    expect(page).toMatch(/>\s*Sign up\s*</);
   });
 });
