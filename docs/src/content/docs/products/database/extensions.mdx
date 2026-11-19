@@ -16,8 +16,8 @@ In the table below you can find a list of available extensions with Nhost Postgr
 
 | Name | Version | Description |
 | ---- | ------- | ----------- |
-| address_standardizer|3.6.4|Used to parse an address into constituent elements. Generally used to support geocoding address normalization step.|
-| address_standardizer_data_us|3.6.4|Address Standardizer US dataset example|
+| address_standardizer|3.7|Parse addresses into constituent elements (street name, number, etc)|
+| address_standardizer_data_us|3.7|Address Standardizer US dataset example|
 | amcheck|1.5|functions for verifying relation integrity|
 | autoinc|1.0|functions for autoincrementing fields|
 | bloom|1.0|bloom access method - signature file based index|
@@ -33,7 +33,7 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | fuzzystrmatch|1.2|determine similarities and distance between strings|
 | hstore|1.8|data type for storing sets of (key, value) pairs|
 | http|1.7|HTTP client for PostgreSQL, allows web page retrieval inside the database.|
-| hypopg|1.4.3|Hypothetical indexes for PostgreSQL|
+| hypopg|1.4.5|Hypothetical indexes for PostgreSQL|
 | insert_username|1.0|functions for tracking who changed a table|
 | intagg|1.1|integer aggregator and enumerator (obsolete)|
 | intarray|1.5|functions, operators, and index support for 1-D arrays of integers|
@@ -45,15 +45,15 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | pageinspect|1.13|inspect the contents of database pages at a low level|
 | pg_buffercache|1.6|examine the shared buffer cache|
 | pg_cron|1.6|Job scheduler for PostgreSQL|
-| pg_durable|0.2.8|pg_durable: SQL-native durable orchestrations for PostgreSQL|
+| pg_durable|0.2.9|pg_durable: SQL-native durable orchestrations for PostgreSQL|
 | pg_freespacemap|1.3|examine the free space map (FSM)|
 | pg_hashids|1.3|pg_hashids|
-| pg_ivm|1.15|incremental view maintenance on PostgreSQL|
+| pg_ivm|1.17|incremental view maintenance on PostgreSQL|
 | pg_jsonschema|0.3.4|pg_jsonschema|
 | pg_logicalinspect|1.0|functions to inspect logical decoding components|
 | pg_prewarm|1.2|prewarm relation data|
 | pg_repack|1.5.3|Reorganize tables in PostgreSQL databases with minimal locks|
-| pg_search|0.25.11|pg_search: Full text search for PostgreSQL using BM25|
+| pg_search|0.26.7|pg_search: One Postgres for your application data, full-text search, vector retrieval, and aggregations|
 | pg_squeeze|1.9|A tool to remove unused space from a relation.|
 | pg_stat_statements|1.12|track planning and execution statistics of all SQL statements executed|
 | pg_surgery|1.0|extension to perform surgery on a damaged relation|
@@ -61,27 +61,27 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | pg_visibility|1.2|examine the visibility map (VM) and page-level visibility info|
 | pg_walinspect|1.1|functions to inspect contents of PostgreSQL Write-Ahead Log|
 | pgcrypto|1.4|cryptographic functions|
-| pgmq|1.13.0|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
+| pgmq|1.13.1|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
 | pgrouting|4.0.2|pgRouting Extension|
 | pgrowlocks|1.2|show row-level locking information|
 | pgstattuple|1.5|show tuple-level statistics|
 | plpgsql|1.0|PL/pgSQL procedural language|
-| postgis|3.6.4|PostGIS geometry and geography spatial types and functions|
-| postgis_raster|3.6.4|PostGIS raster types and functions|
-| postgis_tiger_geocoder|3.6.4|PostGIS tiger geocoder and reverse geocoder|
-| postgis_topology|3.6.4|PostGIS topology spatial types and functions|
+| postgis|3.7.0|PostGIS geometry and geography spatial types and functions|
+| postgis_raster|3.7.0|PostGIS raster types and functions|
+| postgis_tiger_geocoder|2025.2|PostGIS tiger geocoder and reverse geocoder|
+| postgis_topology|3.7.0|PostGIS topology spatial types and functions|
 | postgres_fdw|1.2|foreign-data wrapper for remote PostgreSQL servers|
 | refint|1.0|functions for implementing referential integrity (obsolete)|
 | seg|1.4|data type for representing line segments or floating-point intervals|
 | sslinfo|1.2|information about SSL certificates|
 | tablefunc|1.0|functions that manipulate whole tables, including crosstab|
 | tcn|1.0|Triggered change notifications|
-| timescaledb|2.30.0|Enables scalable inserts and complex queries for time-series data|
+| timescaledb|2.32.0|Enables scalable inserts and complex queries for time-series data|
 | tsm_system_rows|1.0|TABLESAMPLE method which accepts number of rows as a limit|
 | tsm_system_time|1.0|TABLESAMPLE method which accepts time in milliseconds as a limit|
 | unaccent|1.1|text search dictionary that removes accents|
 | uuid-ossp|1.1|generate universally unique identifiers (UUIDs)|
-| vector|0.8.6|vector data type and ivfflat and hnsw access methods|
+| vector|0.8.7|vector data type and ivfflat and hnsw access methods|
 | xml2|1.2|XPath querying and XSLT|
 
 {/*END GENERATED POSTGRES EXTENSIONS*/}
@@ -231,6 +231,50 @@ DROP EXTENSION postgis;
 
 - [Official website](https://postgis.net/)
 
+## postgis_tiger_geocoder
+
+The TIGER geocoder provides address normalization, geocoding, and reverse geocoding for US addresses.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql
+SET ROLE postgres;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
+CREATE EXTENSION IF NOT EXISTS address_standardizer;
+CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us;
+CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+RESET search_path;
+```
+
+The installer puts `tiger` first in the session's `search_path`. Keep `RESET search_path` immediately after installation to avoid creating later objects in `tiger`.
+
+Fresh installations also need `tiger` in the database `search_path` for geocoder functions to work. As the database owner, replace `your_database` with your database name:
+
+```sql
+ALTER DATABASE your_database SET search_path = "$user", public, tiger;
+```
+
+If you use a custom path, preserve its schemas and append `tiger` after your application schemas. Reconnect for the change to take effect. If a role or client overrides `search_path`, include `tiger` there too.
+
+:::note
+Nhost automatically upgrades installed TIGER extensions at database startup. Existing databases upgraded from TIGER 3.6 retain their database-level `search_path`. Check `SHOW search_path;` in a new connection; if `tiger` is already included, no path change is needed.
+:::
+
+To uninstall it, you can use the following migration:
+
+```sql
+SET ROLE postgres;
+DROP EXTENSION postgis_tiger_geocoder;
+```
+
+### Resources
+
+- [Source code](https://gitea.osgeo.org/postgis/postgis_tiger_geocoder)
+- [Documentation](https://gitea.osgeo.org/postgis/postgis_tiger_geocoder/src/branch/main/doc/postgis_tiger_geocoder.md)
+
 ## pgvector
 
 Open-source vector similarity search for Postgres. Store your vectors with the rest of your data.
@@ -252,7 +296,7 @@ SET ROLE postgres;
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-pg_search 0.25+ may already have installed `vector` through `CASCADE` or the image's startup upgrade, so this migration works when `vector` is already present.
+pg_search 0.25+ may already have installed `vector` through `CASCADE` or Nhost's automatic upgrade, so this migration works when `vector` is already present.
 
 To uninstall it, you can use the following migration:
 
@@ -349,14 +393,34 @@ For security, Nhost sets `postgres.settings.extensions.pgDurable.logWorkflowSql`
 
 ### HTTP egress and access control
 
-Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
+Configure outbound requests from `df.http()` and `df.http_multipart()` with `postgres.settings.extensions.pgDurable.httpSecurity` in your project configuration. It sets PostgreSQL's `pg_durable.http_security` policy:
+
+- **`unrestricted` (default):** allows HTTP and HTTPS to any destination reachable from PostgreSQL, including private networks.
+- **`restricted`:** allows HTTPS only to allow-listed hostnames; bare IP URLs and private/internal IP destinations are blocked. The allow-list defaults to empty, which blocks all hosts.
+- **`disabled`:** blocks pg_durable HTTP requests.
+
+Set `postgres.settings.extensions.pgDurable.httpAllowedDomains` alongside the restricted policy to allow specific hosts:
+
+```toml title="nhost.toml"
+[postgres.settings.extensions.pgDurable]
+httpSecurity = "restricted"
+httpAllowedDomains = ["api.example.com", "*.example.org"]
+```
+
+`httpAllowedDomains` defaults to `[]`. Use one hostname or `*.domain` subdomain pattern per item, not URLs or comma-separated strings. The array replaces the entire host allow-list, so include every required destination. It is ignored in `unrestricted` mode.
+
+Changing these server-wide settings requires a PostgreSQL restart. Check workflow destinations before switching to `restricted`: requests to other hosts fail when their HTTP activity executes. TLS verification and redirect blocking remain enforced in enabled modes.
+
+Setting this policy does not enable pg_durable. Add `pg_durable` alongside the other required `postgres.settings.sharedPreloadLibraries` entries and install the extension as described above; HTTP execution privileges are managed separately below.
+
+Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
 
 ```sql
 SET ROLE postgres;
 SELECT df.grant_usage('app_role', include_http => true);
 ```
 
-Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access. Workflows submitted through Nhost GraphQL run as `nhost_hasura`, which inherits HTTP execution from `postgres`; they can always make HTTP requests without this grant.
+Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access. Workflows submitted through Nhost GraphQL run as `nhost_hasura`, which inherits HTTP execution from `postgres`; they can make HTTP requests without this grant, subject to the server-wide HTTP policy.
 
 To uninstall the extension, use the following migration:
 
@@ -401,8 +465,7 @@ DROP EXTENSION pg_hashids;
 The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
 
 Preload `pg_ivm` via `postgres.settings.sharedPreloadLibraries` for incremental
-view maintenance across sessions. Alternatively, preload it in
-each session with `session_preload_libraries`.
+view maintenance across sessions.
 
 Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
 
@@ -498,6 +561,18 @@ To uninstall pg_search, you can use the following migration:
 SET ROLE postgres;
 DROP EXTENSION pg_search;
 ```
+
+### Upgrading to pg_search 0.26
+
+When Nhost upgrades pg_search from a version before 0.26 to 0.26 (including 0.26.7), it automatically rebuilds every ParadeDB index containing a vector field, including unquantized indexes. It removes the obsolete `centroid_ratio`, `training_samples_per_centroid`, `cluster_replication` and `bounds_scope` settings, using the [new clustering defaults](https://www.paradedb.com/docs/project/changelog/0.26.0) (`training_sample_ratio = 0.32`, `max_leaf_size = 100`). Other index configuration and metadata are preserved; each removed setting is logged. Custom clustering tuning is not translated to an equivalent new configuration.
+
+This maintenance blocks writes while rebuilding and can extend startup and consume additional disk space and WAL. Plan the database upgrade as a maintenance window. The extension update and index maintenance commit together: a failure rolls back both and is retried on the next database start. Contact Nhost support if the upgrade keeps failing. Ordinary restarts and updates within 0.26 do not rebuild indexes again.
+
+Review these application-facing changes before upgrading:
+
+- **Check standalone index permissions (0.26.5).** Content-reading APIs such as `paradedb.aggregate()` now require table-level `SELECT` on the backing table and reject calls when row-level security (RLS) applies to the effective caller. See the [0.26.5 release notes](https://www.paradedb.com/docs/project/changelog/0.26.5) for the permission rules, including the separate rules for metadata APIs.
+
+- **Review scores under RLS (0.26.7).** An RLS policy no longer adds a constant to `pdb.score`, so applications relying on absolute scores may see different values. Conditions written in the query itself are unchanged. See the [0.26.7 release notes](https://www.paradedb.com/docs/project/changelog/0.26.7).
 
 ### Resources
 
