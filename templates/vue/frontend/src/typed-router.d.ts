@@ -59,6 +59,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/auth/oauth/[provider]/': RouteRecordInfo<
+      '/auth/oauth/[provider]/',
+      '/auth/oauth/:provider',
+      { provider: ParamValue<true> },
+      { provider: ParamValue<false> },
+      | never
+    >,
+    '/auth/oauth/[provider]/connect/': RouteRecordInfo<
+      '/auth/oauth/[provider]/connect/',
+      '/auth/oauth/:provider/connect',
+      { provider: ParamValue<true> },
+      { provider: ParamValue<false> },
+      | never
+    >,
     '/auth/otp/': RouteRecordInfo<
       '/auth/otp/',
       '/auth/otp',
@@ -142,6 +156,8 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/_parent.vue': {
       routes:
         | '/auth/magic-link/'
+        | '/auth/oauth/[provider]/'
+        | '/auth/oauth/[provider]/connect/'
         | '/auth/otp/'
         | '/auth/passkey/'
         | '/auth/password/'
@@ -154,6 +170,22 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/magic-link/index.vue': {
       routes:
         | '/auth/magic-link/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/oauth/[provider]/index.vue': {
+      routes:
+        | '/auth/oauth/[provider]/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/oauth/[provider]/connect/index.vue': {
+      routes:
+        | '/auth/oauth/[provider]/connect/'
       views:
         | never
       pathParamNames:

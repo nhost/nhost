@@ -1,5 +1,8 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { Component } from 'vue';
+import LinkedAccountsSetting from '@/app/auth/oauth/linked/LinkedAccountsSetting.vue';
+import ProviderSignIn from '@/app/auth/oauth/ProviderSignIn.vue';
+import { configuredProviders } from '@/app/auth/oauth/providers';
 import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting.vue';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting.vue';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting.vue';
@@ -24,13 +27,17 @@ export type SignInButtons = Component<{
   lastUsed: string | null;
 }>;
 
-export const buttons: SignInButtons[] = [];
+// Only when the deployment says a provider is set up: with none, every button
+// would lead to the auth service refusing it.
+export const buttons: SignInButtons[] =
+  configuredProviders().length > 0 ? [ProviderSignIn] : [];
 
 /**
  * The account-page rows of the methods in `buttons`, which have no entry in
  * `methods` to carry an `account`.
  */
-export const buttonSettings: AccountSetting[] = [];
+export const buttonSettings: AccountSetting[] =
+  configuredProviders().length > 0 ? [LinkedAccountsSetting] : [];
 
 /** The sign-in methods this app offers, one entry each. */
 export const methods: SignInMethod[] = [
