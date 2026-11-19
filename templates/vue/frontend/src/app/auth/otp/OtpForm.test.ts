@@ -96,12 +96,27 @@ describe('email code form', () => {
     expect(mounted.router.currentRoute.value.path).toBe('/account');
   });
 
-  // The input's numeric pattern would block the submit otherwise.
+  // A code pasted from the email can bring spaces or a line break with it.
   it('drops the spaces from a pasted code', async () => {
     await render('user@example.com');
 
     await type('otp', ' 123 456\n');
 
     expect(field('otp')?.value).toBe('123456');
+  });
+
+  // The field keeps the spaces when the code without them is the one it had.
+  it('signs in with spaces around a code already typed', async () => {
+    actions.verifyCode.mockResolvedValue({ success: true });
+    await render('user@example.com');
+    await type('otp', '123456');
+    await type('otp', '123456 ');
+    await type('otp', ' 123 456');
+
+    await press('Sign in');
+    expect(actions.verifyCode).toHaveBeenCalledWith(
+      'user@example.com',
+      '123456',
+    );
   });
 });

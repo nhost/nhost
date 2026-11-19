@@ -29,8 +29,9 @@ const otp = ref('');
 const error = ref<string>();
 const isPending = ref(false);
 
-// Spaces from a pasted code would fail the pattern before the form ever
-// submits.
+// Drops the spaces a pasted code brings. The field can still show them when
+// the code without them is the one it already had, as Input only redraws on a
+// new value, so the pattern allows them and verifyCode drops them too.
 watch(otp, (value) => {
   const code = value.replace(/\s/g, '');
   if (code !== value) {
@@ -136,7 +137,7 @@ function backToEmail(): void {
         type="text"
         inputmode="numeric"
         autocomplete="one-time-code"
-        pattern="[0-9]*"
+        pattern="[0-9\s]*"
         :disabled="isPending"
         required
       />
