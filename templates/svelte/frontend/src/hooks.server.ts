@@ -46,6 +46,27 @@ function signInRedirect({ pathname, search }: URL): string {
   return `${signInHref(`${pathname}${rest}`)}&${lifted}`;
 }
 
+// The URL without the link token and its type, or null when there is none.
+function withoutLinkToken({
+  pathname,
+  search,
+  searchParams,
+}: URL): string | null {
+  if (!searchParams.has(LINK_TOKEN_PARAM)) {
+    return null;
+  }
+
+  const clean = new URLSearchParams(search);
+  clean.delete(LINK_TOKEN_PARAM);
+  clean.delete(LINK_TYPE_PARAM);
+
+  return clean.size > 0 ? `${pathname}?${clean}` : pathname;
+}
+
+// Where SvelteKit serves remote functions from. A thrown redirect there comes
+// back as JSON for the client to follow, so a browser gets a response instead.
+const REMOTE_PREFIX = '/_app/remote/';
+
 // SvelteKit writes the Content-Security-Policy itself, from vite.config.ts.
 const securityHeaders = {
   'X-Frame-Options': 'DENY',
@@ -72,22 +93,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   const { session, pendingReset } = await handleNhostRequest(event);
 
+  // A refresh token has no business staying in the address bar: query strings
+  // leak through history, bookmarks and the referer header. Stripped whether
+  // or not it was redeemed, on every path that reaches the hook, since a
+  // crafted redirectTo can point an auth email at any path on this origin. The
+  // rest of `/_app/` never reaches it: SvelteKit answers it with a 404 first,
+  // and on Vercel `/_app/immutable/` comes from the CDN.
+  const clean = withoutLinkToken(url);
+
   // A remote function checks the session itself, and its `url` is the page
-  // that called it, not a page to send anywhere.
+  // that called it, not a page to send anywhere. Only a browser sent to the
+  // endpoint's own URL still carries one.
   if (event.isRemoteRequest) {
+    if (clean !== null && path.startsWith(REMOTE_PREFIX)) {
+      return new Response(null, { status: 307, headers: { location: clean } });
+    }
     return withSecurityHeaders(await resolve(event));
   }
 
-  // A refresh token has no business staying in the address bar: query strings
-  // leak through history, bookmarks and the referer header. Stripped whether
-  // or not it was redeemed, and on any path, since a crafted redirectTo can
-  // point an auth email at any path on this origin.
-  if (url.searchParams.has(LINK_TOKEN_PARAM)) {
-    const clean = new URLSearchParams(url.search);
-    clean.delete(LINK_TOKEN_PARAM);
-    clean.delete(LINK_TYPE_PARAM);
-
-    redirect(307, clean.size > 0 ? `${path}?${clean}` : path);
+  if (clean !== null) {
+    redirect(307, clean);
   }
 
   // API routes are their own gatekeepers.

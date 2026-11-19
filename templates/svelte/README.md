@@ -132,7 +132,11 @@ proves nothing about who is calling.
 Sign-in emails and OAuth send the user back with a `refreshToken` in the URL.
 The hook only uses it if they're signed out, so a link from someone else can't
 replace their session. If they're already signed in, the token is revoked
-instead. Either way, it's removed from the URL.
+instead. Either way, it's removed from the URL on every path the hook sees:
+pages, `/api/` routes, and the URLs of remote functions. SvelteKit answers the
+rest of `/_app/` with a 404 before the hook runs, and on Vercel `/_app/immutable/`
+is served from the CDN, so a `redirectTo` pointed there leaves the token in the
+address bar, unredeemed, until it expires.
 
 Linking an OAuth provider also puts a token in the URL, because the auth
 service needs the access token to link the account. It's valid for 15 minutes.

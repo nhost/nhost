@@ -54,6 +54,20 @@ describe('hook, link tokens', () => {
       ).toBe(`${path}?keep=1`);
     }
   });
+
+  // SvelteKit hands a thrown redirect on a remote endpoint's URL to the client
+  // as JSON, which a browser sent there by a redirectTo would only display.
+  it('sends a browser on from a remote endpoint URL', async () => {
+    const { event } = fakeEvent({
+      url: 'http://localhost/_app/remote/x?refreshToken=token&type=signinPasswordless',
+      isRemoteRequest: true,
+    });
+
+    const response = await handle({ event, resolve });
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('/_app/remote/x');
+  });
 });
 
 describe('hook, signed out on a protected route', () => {
