@@ -83,8 +83,14 @@ const navLinks = [
   { label: 'Blog', href: 'https://nhost.io/blog', external: true },
 ];
 
+// Internal hrefs above are written relative to the docs root; prefix them
+// with Astro's `base` when rendering so they work under a base path.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const withBase = (href: string) =>
+  href.startsWith('/') ? (href === '/' ? base || '/' : `${base}${href}`) : href;
+
 // Determine current section from URL
-const pathname = Astro.url.pathname;
+const pathname = Astro.url.pathname.slice(base.length) || '/';
 const currentSection = navLinks.find((link) => {
   if (link.external) return false;
   if (link.href === '/') {
@@ -567,7 +573,7 @@ const currentSection = navLinks.find((link) => {
             {navLinks.map(link => (
                 !link.hasDropdown ? (
                     <a
-                        href={link.href}
+                        href={withBase(link.href)}
                         class:list={['mobile-nav-link', { active: currentSection?.href === link.href }]}
                         target={link.external ? '_blank' : undefined}
                         rel={link.external ? 'noopener noreferrer' : undefined}
@@ -580,7 +586,7 @@ const currentSection = navLinks.find((link) => {
         <div class="mobile-nav-section">
             <div class="mobile-nav-section-title">Products</div>
             {products.map(product => (
-                <a href={product.href} class="mobile-nav-link mobile-nav-link-with-icon">
+                <a href={withBase(product.href)} class="mobile-nav-link mobile-nav-link-with-icon">
                     {product.icon && <span class="mobile-nav-icon" set:html={product.icon} />}
                     <span>{product.label}</span>
                 </a>
@@ -620,7 +626,7 @@ const currentSection = navLinks.find((link) => {
                     <div class="dropdown-menu">
                         {link.dropdownItems?.map(item => (
                             <a
-                                href={item.href}
+                                href={withBase(item.href)}
                                 class="dropdown-item"
                             >
                                 {item.icon && <span class="dropdown-item-icon" set:html={item.icon} />}
@@ -631,7 +637,7 @@ const currentSection = navLinks.find((link) => {
                 </div>
             ) : (
                 <a
-                    href={link.href}
+                    href={withBase(link.href)}
                     class:list={[
                         'subheader-link',
                         { active: currentSection?.href === link.href }
