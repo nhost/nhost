@@ -23,19 +23,24 @@ every other directory falls through to the root `.vale.ini`.
 ## Running Vale
 
 `vale` is not on a stock PATH; it comes from the `docs`, `landing` and `vale`
-dev shells. Outside them every command below fails with
-`vale: command not found`.
+dev shells. The `make` targets enter the right shell themselves, so they run
+from a plain terminal at the repository root. The `pnpm` scripts and the
+script calls need `nix develop .#docs`, `.#landing` or `.#vale` first;
+outside them they fail with `vale: command not found`.
 
 | Content | Errors only (what CI runs) | Warnings too | Changed files only |
 | --- | --- | --- | --- |
-| docs | `pnpm --dir docs test:prose` | `pnpm --dir docs lint:prose` | `pnpm --dir docs lint:prose:changed` |
-| blog | `pnpm --dir landing test:prose` | `pnpm --dir landing lint:prose` | `pnpm --dir landing lint:prose:changed` |
-| repository Markdown | `.vale/lint_markdown.sh --minAlertLevel=error` | `make -C tools/vale lint` | `vale <file>` from the repository root |
+| docs | `pnpm --dir docs test:prose` | `make -C docs lint-prose` | `make -C docs lint-prose-changed` |
+| blog | `pnpm --dir landing test:prose` | `make -C landing/blog lint-prose` | `make -C landing/blog lint-prose-changed` |
+| repository Markdown | `.vale/lint_markdown.sh --minAlertLevel=error` | `make -C tools/vale lint-prose` | `make -C tools/vale lint-prose-changed` |
 
-Run the `pnpm` scripts inside `nix develop .#docs` or `nix develop .#landing`.
-The `changed` scripts run `.vale/lint_changed.sh` on the package's content
-directory, which lints pages changed against `origin/main` (or `main`) plus
-uncommitted and untracked ones. Add `--minAlertLevel=suggestion` to any
+The docs and blog targets wrap the `lint:prose` and `lint:prose:changed`
+`pnpm` scripts. The changed-files targets lint pages changed against
+`origin/main` (or `main`) plus uncommitted and untracked ones:
+`.vale/lint_changed.sh` for the docs and blog, and
+`.vale/lint_markdown.sh --changed` for repository Markdown, which still skips
+`.vale/markdown.ignore`. Both find the changed files through
+`.vale/changed.sh`. Add `--minAlertLevel=suggestion` to any
 `vale` run to see the suggestion tier. `make -C tools/vale test` runs the rule
 fixtures; `make -C tools/vale check` runs the whole `vale` Nix check.
 
@@ -101,7 +106,7 @@ and exclude generated pages.
 | --- | --- | --- | --- |
 | `Vale.Repetition` | warning | 4 in 3 pages | 6 hits before the ignores; 2 were a code fence directly under `<TabItem>`, read as HTML until the JSX ignore. Promote once the pages are fixed |
 | `Vale.Avoid` | error | 0 | Flags words in `config/vocabularies/Nhost/reject.txt`, which is empty |
-| `Vale.Terms` | warning | 67 in 35 pages | Lowercase product names in prose: `nhost`, `postgres`, `graphql`, `hasura` and a few more. Moves to `error` once `accept.txt` and a sweep bring it to zero |
+| `Vale.Terms` | warning | 48 in 23 pages | Lowercase product names in prose: `postgres`, `graphql`, `hasura` and a few more. Taken at `cb83f65a02`, after `Nhost` moved to `Nhost.ProductName`; 65 in 35 before. Moves to `error` once `accept.txt` and a sweep bring it to zero |
 | `Vale.Spelling` | off | 646 in 153 pages | Disabled; the hits are mostly code identifiers and product names in prose. Counted with the `Vale.Spelling = NO` line deleted from `docs/.vale.ini`, not set to a level, which would also spell the generated pages |
 | `Nhost.Exclamation` | warning | 8 in 7 pages | 5 of them the tutorial welcome lines |
 | `Nhost.Ellipses` | warning | 3 in 3 pages | Two are the overflow menu, written **⋯** elsewhere in the docs |
@@ -125,6 +130,7 @@ and exclude generated pages.
 | `Nhost.LLMPhrasesStrict` | error | 0 | The same kind of word or phrase with no hits on the docs, split out so they can fail now. A word is never in both files |
 | `Nhost.RhetoricalQuestion` | error | 0 | The one-word question standing in for a transition (`The catch?`, `Why does this matter?`). Separate from `LLMPhrasesStrict` because a token ending in `?` needs `nonword` |
 | `Nhost.TutorialVoice` | warning | 18 in 12 pages | `In this section/guide, we will`, `Let's <verb>` and `Now that we/you have` |
+| `Nhost.ProductName` | warning | 4 in 4 pages | `nhost` or `NHOST` as a standalone word, at `cb83f65a02`. Hosts, emails, paths and package names (`app.nhost.io`, `@nhost/nhost-js`, `nhost-js`) pass. Half the hits are the CLI command without backticks, hence the message |
 | `Nhost.EmDash` | suggestion | 256 in 74 pages | Em dashes are house style, so this only shows them and is never promoted |
 
 At the suggestion level the tree reports 0 errors, 297 warnings and 553
@@ -155,7 +161,9 @@ posts: `LLMPhrases` 136 in 56, `Exclamation` 129 in 45, `Colons` 79 in 31,
 28 in 7, `Latin` 22 in 15, `FillerHeadings` 18 in 18, `Quotes` 11 in 10,
 `WordList` 7 in 6, `LLMPhrasesStrict` 7 in 5, `Ellipses` 7 in 6, `Ordinal` 6
 in 5, `LyHyphens` 2 in 2, `Spacing` 1 in 1, and `OptionalPlurals` and
-`RhetoricalQuestion` 0. For the built-ins, `Vale.Terms` is 73 in 30 and
+`RhetoricalQuestion` 0. `ProductName`, added later, is 9 in 5 at
+`cb83f65a02`. For the built-ins, `Vale.Terms` is 73 in 30 (33 in 16 at
+`cb83f65a02` without `Nhost`) and
 `Vale.Repetition` 1 in 1, both at warning; `Vale.Avoid` is 0 at error and
 `Vale.Spelling` is off, as in the docs.
 
@@ -184,7 +192,8 @@ hits on main, `First and foremost` in `README.md` and `Rest assured` in
 `SECURITY.md`, were rewritten instead.
 
 Counts: `EmDash` 401 in 44, `Colons` 136 in 37, `Latin` 41 in 22,
-`Vale.Terms` 36 in 21, `LLMPhrases` 20 in 15, `OxfordComma` 17 in 11,
+`Vale.Terms` 36 in 21 (28 in 17 at `cb83f65a02` without `Nhost`, which
+`ProductName` reports 1 in 1), `LLMPhrases` 20 in 15, `OxfordComma` 17 in 11,
 `FillerHeadings` 15 in 9, `WordList` 12 in 9, `Units` 10 in 6, `Exclamation`
 4 in 4, `Quotes` 4 in 2, `LyHyphens` 4 in 3, `Ellipses` 3 in 3, `Ordinal` 1
 in 1, and every error-tier rule 0. At the suggestion level that is 0 errors,
@@ -218,6 +227,18 @@ while silently matching nothing.
 
 A new token is worth proving against a fixture for this reason alone: both
 failures look exactly like a clean corpus.
+
+`ProductName` exists because `Vale.Terms` cannot be told where a term
+stands. It builds one regex from `accept.txt` anchored on `\b`, which a `.`,
+`/`, `@` or `-` satisfies, so a plain `Nhost` entry flagged `app.nhost.io`,
+`support@nhost.io` and `@nhost/nhost-js`. A lookaround in the entry itself
+works, but Vale then prints the raw regex as the suggested spelling. Instead,
+`accept.txt` lists `(?i)Nhost`, which `Vale.Terms` accepts in any case, and
+`ProductName` carries the lookarounds and the message. Dropping the entry
+altogether is not an option: it is also an exception in every rule with
+`vocab` on, and without it `Colons` flagged `Nhost` after a colon 6 times.
+The same case-insensitive entry would hide every `ProductName` match, so the
+rule sets `vocab: false`.
 
 ## NhostBlog rules
 
