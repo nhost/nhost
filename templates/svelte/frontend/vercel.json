@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "sveltekit",
+  "framework": "sveltekit-1",
   "buildCommand": "pnpm run build"
 }
