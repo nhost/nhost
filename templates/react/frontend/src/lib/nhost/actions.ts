@@ -9,6 +9,10 @@ export async function signOut(): Promise<
   ActionResult & { stillSignedIn?: boolean }
 > {
   try {
+    // Before `/signout` the SDK refreshes an access token close to expiry,
+    // which rotates the refresh token after the body below was built. The
+    // old one then deletes nothing and the session lives on in auth.
+    await nhost.refreshSession();
     const session = nhost.getUserSession();
 
     if (!session) {
