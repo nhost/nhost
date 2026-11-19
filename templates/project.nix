@@ -10,6 +10,17 @@ let
 
   templates = [
     { name = "nextjs"; }
+    {
+      name = "react-native";
+      postBuild = ''
+        for platform in ios android; do
+          if [ -z "$(ls -A dist/_expo/static/js/$platform 2>/dev/null)" ]; then
+            echo "no $platform bundle in dist"
+            exit 1
+          fi
+        done
+      '';
+    }
   ];
 
   forEachTemplate = f: pkgs.lib.concatMapStringsSep "\n" f templates;
@@ -77,6 +88,12 @@ let
   setup = ''
     export HOME=$(mktemp -d)
     export NEXT_TELEMETRY_DISABLED=1
+    # Keep Expo off the network and non-interactive. The React Native export
+    # passes `--no-bytecode`, so it never runs the prebuilt `hermesc`, which
+    # does not run on NixOS.
+    export EXPO_OFFLINE=1
+    export EXPO_NO_TELEMETRY=1
+    export CI=1
     # node_modules comes prebuilt from the store; don't let `pnpm run` reinstall.
     export pnpm_config_verify_deps_before_run=false
 

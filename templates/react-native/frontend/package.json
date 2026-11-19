@@ -1,0 +1,43 @@
+{
+  "name": "react-native-starter",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "android:reverse": "adb=$(command -v adb || echo \"$ANDROID_HOME/platform-tools/adb\"); \"$adb\" root && \"$adb\" wait-for-device && \"$adb\" reverse tcp:443 tcp:443",
+    "build": "expo export --platform ios --platform android --no-bytecode --output-dir dist",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "jest --ci --maxWorkers=2"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.29.14",
+    "@nhost/nhost-js": "^4.9.0",
+    "expo": "~58.0.26",
+    "expo-constants": "~58.0.16",
+    "expo-crypto": "~58.0.8",
+    "expo-file-system": "~58.0.14",
+    "expo-linking": "~58.0.17",
+    "expo-router": "~58.0.32",
+    "expo-secure-store": "~58.0.3",
+    "expo-splash-screen": "~58.0.14",
+    "expo-status-bar": "~58.0.5",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-svg": "15.16.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "~19.3.0",
+    "jest": "^30.5.2",
+    "jest-expo": "~58.0.15",
+    "typescript": "~6.0.3"
+  }
+}
