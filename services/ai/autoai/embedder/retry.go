@@ -38,9 +38,11 @@ func (realClock) Sleep(ctx context.Context, delay time.Duration) error {
 	}
 }
 
-// RetryPolicy bounds attempts (including the first) and cumulative sleep.
-// The zero value makes exactly one attempt; a non-positive MaxWait uses a
-// two-minute budget. Clock and Jitter may be supplied
+// RetryPolicy bounds attempts (including the first) and total retry time.
+// MaxWait is measured from the first attempt and includes attempt durations as
+// well as sleeps; a retry whose delay would exceed the remaining budget is not
+// scheduled. The zero value makes exactly one attempt; a non-positive MaxWait
+// uses a two-minute budget. Clock and Jitter may be supplied
 // for deterministic scheduling; Jitter returns an additional nonnegative delay.
 type RetryPolicy struct {
 	MaxAttempts  int
@@ -121,10 +123,6 @@ func WithRetry(ctx context.Context, policy RetryPolicy, fn func() error) error {
 func classify(err error) error {
 	if err == nil {
 		return nil
-	}
-
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return failure(Canceled, "request canceled")
 	}
 
 	if status, ok := errors.AsType[*StatusError](err); ok {

@@ -213,8 +213,7 @@ func (a *adapter) Embed(ctx context.Context, req Request) ([][]float32, error) {
 func (a *adapter) execute(ctx context.Context, request *http.Request) ([]byte, error) {
 	response, err := a.client.Do(request)
 	if err != nil {
-		if ctx.Err() != nil || errors.Is(err, context.Canceled) ||
-			errors.Is(err, context.DeadlineExceeded) {
+		if ctx.Err() != nil {
 			return nil, failure(Canceled, "request canceled")
 		}
 
@@ -341,7 +340,8 @@ func statusClass(status int) ErrorClass {
 }
 
 type providerError struct {
-	Error struct {
+	Message string `json:"message"`
+	Error   struct {
 		Code    json.RawMessage `json:"code"`
 		Message string          `json:"message"`
 		Details []struct {
@@ -381,7 +381,25 @@ func (p providerError) recognize(status int) (ErrorClass, string, bool) {
 		return Input, contextLengthError, true
 	}
 
+	if (status == http.StatusBadRequest || status == http.StatusUnprocessableEntity) &&
+		p.batchTokenLimit() {
+		return Input, "batch exceeds provider token limit", true
+	}
+
 	return "", "", false
+}
+
+// batchTokenLimit accepts both top-level and OpenAI-style error messages.
+func (p providerError) batchTokenLimit() bool {
+	for _, message := range []string{p.Message, p.Error.Message} {
+		text := strings.ToLower(message)
+		if strings.Contains(text, "too many tokens") ||
+			strings.Contains(text, "split into more batches") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func httpFailure(response *http.Response, data []byte) *StatusError {

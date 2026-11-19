@@ -30,13 +30,22 @@ func TestExecuteFailures(t *testing.T) {
 		name      string
 		transport stubTransport
 		class     ErrorClass
+		cancel    bool
 	}{
-		{"transport", stubTransport{err: http.ErrServerClosed}, Transient},
-		{"deadline", stubTransport{err: context.DeadlineExceeded}, Canceled},
+		{"transport", stubTransport{err: http.ErrServerClosed}, Transient, false},
+		{
+			"deadline with live context",
+			stubTransport{err: context.DeadlineExceeded},
+			Transient,
+			false,
+		},
+		{"cancellation with live context", stubTransport{err: context.Canceled}, Transient, false},
+		{"caller canceled", stubTransport{err: context.Canceled}, Canceled, true},
 		{
 			"unreadable body",
 			stubTransport{response: &http.Response{StatusCode: http.StatusOK, Body: brokenBody{}}},
 			Transient,
+			false,
 		},
 	}
 	for _, tt := range tests {
@@ -45,8 +54,15 @@ func TestExecuteFailures(t *testing.T) {
 
 			a := &adapter{client: &http.Client{Transport: tt.transport}}
 
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+
+			if tt.cancel {
+				cancel()
+			}
+
 			request, err := http.NewRequestWithContext(
-				t.Context(),
+				ctx,
 				http.MethodPost,
 				"http://localhost",
 				nil,
@@ -55,7 +71,7 @@ func TestExecuteFailures(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			_, err = a.execute(t.Context(), request)
+			_, err = a.execute(ctx, request)
 
 			var status *StatusError
 			if !errors.As(err, &status) {
