@@ -6,6 +6,7 @@ import { nhost } from '@/lib/nhost/client';
 import {
   type ActionResult,
   errorMessage,
+  RETRY_IN,
   SIGNED_OUT,
 } from '@/lib/nhost/errors';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
@@ -79,7 +80,9 @@ export async function finishAddPasskey(
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not add the passkey: ${errorMessage(err)}` };
+    return {
+      error: `Could not add the passkey: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
   }
 }
 

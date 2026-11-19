@@ -2,7 +2,7 @@ import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { codePageURL } from '@/app/auth/otp/link';
 import { nhost } from '@/lib/nhost/client';
-import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
+import { type ActionResult, errorMessage, RETRY_IN } from '@/lib/nhost/errors';
 
 export async function sendCode(
   email: string,
@@ -19,7 +19,9 @@ export async function sendCode(
     });
     return { success: true };
   } catch (err) {
-    return { error: `Could not send the code: ${errorMessage(err)}` };
+    return {
+      error: `Could not send the code: ${errorMessage(err, RETRY_IN.email)}`,
+    };
   }
 }
 
@@ -61,6 +63,8 @@ export async function verifyCode(
       case 'otp-too-many-attempts':
         return { error: NO_TRIES_LEFT };
     }
-    return { error: `Could not verify the code: ${errorMessage(err)}` };
+    return {
+      error: `Could not verify the code: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
   }
 }

@@ -1,6 +1,6 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { errorMessage } from '@/lib/nhost/errors';
+import { errorMessage, RETRY_IN, type RetryIn } from '@/lib/nhost/errors';
 
 // What the password forms check while you type. Equal to `passwordMinLength`
 // in nhost/nhost.toml, and a test keeps it that way.
@@ -84,13 +84,16 @@ export const couldBeAPassword = (password: string): boolean => {
 };
 
 /** Auth's answer to a new password, in words. */
-export function newPasswordError(err: unknown): string {
+export function newPasswordError(
+  err: unknown,
+  retryIn: RetryIn = RETRY_IN.request,
+): string {
   switch ((err as FetchError<ErrorResponse>).body?.error) {
     case 'password-in-hibp-database':
       return 'This password has appeared in a data breach. Choose another.';
     case 'password-too-short':
       return 'The backend wants a longer password than this app asks for.';
     default:
-      return errorMessage(err);
+      return errorMessage(err, retryIn);
   }
 }

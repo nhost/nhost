@@ -6,7 +6,7 @@ import {
 import { signInDestination } from '@/app/signin/destination';
 import { nhost } from '@/lib/nhost/client';
 import { appOrigin } from '@/lib/nhost/env';
-import { type ActionResult, errorMessage } from '@/lib/nhost/errors';
+import { type ActionResult, errorMessage, RETRY_IN } from '@/lib/nhost/errors';
 import { endPasswordReset } from '@/lib/nhost/passwordReset';
 
 // The client stores the session any sign-in answers with, so a sign-in that
@@ -38,7 +38,9 @@ export async function signIn(
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not sign in: ${errorMessage(err)}` };
+    return {
+      error: `Could not sign in: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
   }
 }
 
@@ -59,7 +61,9 @@ export async function verifyMfa(
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not verify the code: ${errorMessage(err)}` };
+    return {
+      error: `Could not verify the code: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
   }
 }
 
@@ -89,7 +93,9 @@ export async function signUp(
 
     return { success: true, signedIn: Boolean(body.session) };
   } catch (err) {
-    return { error: `Could not sign up: ${newPasswordError(err)}` };
+    return {
+      error: `Could not sign up: ${newPasswordError(err, RETRY_IN.email)}`,
+    };
   }
 }
 
@@ -111,7 +117,9 @@ export async function requestPasswordReset(
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not send the reset link: ${errorMessage(err)}` };
+    return {
+      error: `Could not send the reset link: ${errorMessage(err, RETRY_IN.email)}`,
+    };
   }
 }
 

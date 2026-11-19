@@ -8,6 +8,7 @@ import { bareAuth, nhost } from '@/lib/nhost/client';
 import {
   type ActionResult,
   errorMessage,
+  RETRY_IN,
   SIGNED_OUT,
 } from '@/lib/nhost/errors';
 
@@ -111,7 +112,7 @@ async function changeAndSignBackIn(
       checked = await checkCode(auth.baseURL, session.accessToken, otp);
     } catch (err) {
       return {
-        error: `Could not check the code: ${errorMessage(err)}`,
+        error: `Could not check the code: ${errorMessage(err, RETRY_IN.signIn)}`,
       };
     }
     if (!checked) {

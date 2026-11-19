@@ -11,6 +11,7 @@ import { appOrigin } from '@/lib/nhost/env';
 import {
   type ActionResult,
   errorMessage,
+  RETRY_IN,
   SIGNED_OUT,
 } from '@/lib/nhost/errors';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
@@ -38,7 +39,9 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
 
     return { success: true };
   } catch (err) {
-    return { error: `Could not start the email change: ${errorMessage(err)}` };
+    return {
+      error: `Could not start the email change: ${errorMessage(err, RETRY_IN.email)}`,
+    };
   }
 }
 
@@ -279,7 +282,7 @@ export async function resendVerification(): Promise<ActionResult> {
     return { success: true };
   } catch (err) {
     return {
-      error: `Could not send the verification email: ${errorMessage(err)}`,
+      error: `Could not send the verification email: ${errorMessage(err, RETRY_IN.email)}`,
     };
   }
 }

@@ -3,6 +3,7 @@ import type {
   CredentialAssertionResponse,
   CredentialCreationResponse,
 } from '@nhost/nhost-js/auth';
+import { FetchError } from '@nhost/nhost-js/fetch';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { finishSignIn, finishSignUp } from '@/app/auth/passkey/actions';
 import { DEFAULT_DESTINATION } from '@/app/signin/destination';
@@ -67,5 +68,25 @@ describe('finishSignIn', () => {
     });
 
     expect(await finishSignIn(assertion)).toEqual({ success: true });
+  });
+
+  it('says the passkey is not registered when auth rejects it', async () => {
+    auth.verifySignInWebauthn.mockRejectedValueOnce(
+      new FetchError({ error: 'invalid-request' }, 400, new Headers()),
+    );
+
+    expect((await finishSignIn(assertion)).error).toMatch(
+      /^That passkey is not registered with this app/,
+    );
+  });
+
+  it('says to wait when auth rate-limits', async () => {
+    auth.verifySignInWebauthn.mockRejectedValueOnce(
+      new FetchError('', 429, new Headers()),
+    );
+
+    expect(await finishSignIn(assertion)).toEqual({
+      error: 'Could not sign in: Too many attempts. Try again in 5 minutes.',
+    });
   });
 });

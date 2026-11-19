@@ -112,13 +112,18 @@ describe('changePassword', () => {
   // An auth without `/elevate/totp`, or one that is rate limiting, must not be
   // read as a right code.
   it('leaves the password alone when the code cannot be checked', async () => {
-    for (const status of [404, 429]) {
-      fetchMock.mockResolvedValueOnce(answer(status));
+    fetchMock.mockResolvedValueOnce(answer(404));
+    expect((await changePassword('correct horse', '123456')).error).toMatch(
+      /^Could not check the code: /,
+    );
 
-      expect((await changePassword('correct horse', '123456')).error).toMatch(
-        /^Could not check the code: /,
-      );
-    }
+    // `/elevate/` counts against the brute-force limit.
+    fetchMock.mockResolvedValueOnce(answer(429));
+    expect(await changePassword('correct horse', '123456')).toEqual({
+      error:
+        'Could not check the code: Too many attempts. Try again in 5 minutes.',
+    });
+
     expect(auth.changeUserPassword).not.toHaveBeenCalled();
   });
 
