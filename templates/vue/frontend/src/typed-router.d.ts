@@ -59,6 +59,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/auth/password/': RouteRecordInfo<
+      '/auth/password/',
+      '/auth/password',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/auth/password/reset/': RouteRecordInfo<
+      '/auth/password/reset/',
+      '/auth/password/reset',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/signin/': RouteRecordInfo<
       '/signin/',
       '/signin',
@@ -114,6 +128,8 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/_parent.vue': {
       routes:
         | '/auth/magic-link/'
+        | '/auth/password/'
+        | '/auth/password/reset/'
       views:
         | 'default'
       pathParamNames:
@@ -122,6 +138,30 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/magic-link/index.vue': {
       routes:
         | '/auth/magic-link/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/password/index.vue': {
+      routes:
+        | '/auth/password/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/password/reset/_parent.vue': {
+      routes:
+        | '/auth/password/reset/'
+      views:
+        | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/password/reset/index.vue': {
+      routes:
+        | '/auth/password/reset/'
       views:
         | never
       pathParamNames:

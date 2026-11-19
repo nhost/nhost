@@ -40,7 +40,9 @@ export function createAppRouter(
     history,
     routes: withNotFound(routes),
     // Each new page starts at the top, as Next does, and Back puts it where it
-    // was.
-    scrollBehavior: (_to, _from, savedPosition) => savedPosition ?? { top: 0 },
+    // was. A change to the query alone, such as a form switching its mode,
+    // stays where it is.
+    scrollBehavior: (to, from, savedPosition) =>
+      savedPosition ?? (to.path === from.path ? false : { top: 0 }),
   });
 }
