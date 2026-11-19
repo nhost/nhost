@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, type MouseEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,7 +80,11 @@ export default function OtpForm({
 
   // The link in the code email lands on the email step; sending again from
   // there would replace the code that email holds.
-  const haveCode = (): void => {
+  const haveCode = (event: MouseEvent<HTMLButtonElement>): void => {
+    if (event.currentTarget.form?.reportValidity() === false) {
+      return;
+    }
+
     setError(undefined);
     setSent('earlier');
     setStep('code');

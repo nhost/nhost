@@ -91,6 +91,16 @@ describe('email code form', () => {
     );
   });
 
+  it('checks the address before taking a code already sent', async () => {
+    await render();
+    await type('email', 'user@');
+
+    await click('I already have a code');
+
+    expect(container.querySelector('input[name="otp"]')).toBeNull();
+    expect(container.querySelector('input[name="email"]')).not.toBeNull();
+  });
+
   it('says earlier codes stop working once a new one is sent', async () => {
     actions.sendCode.mockResolvedValue({ success: true });
     await render('user@example.com');
