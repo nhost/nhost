@@ -135,6 +135,13 @@ docker run -d --name "$new_container" \
 wait_for_initialization "$new_container"
 assert_no_missing_timescaledb_error "$new_container"
 
+if docker logs "$new_container" 2>&1 |
+    grep -q 'WARNING: Failed to update extension postgis'; then
+    echo "A PostGIS extension failed to upgrade during startup" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
 if docker logs "$new_container" 2>&1 | grep -q 'Collation repair failed'; then
     echo "Collation repair failed before the TimescaleDB upgrade" >&2
     docker logs "$new_container" >&2
@@ -257,6 +264,25 @@ fi
 docker exec -i "$new_container" \
     psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - \
     <"$script_dir/plugins.sql"
+
+docker exec -i "$new_container" \
+    psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - <<'SQL'
+-- Exercise the existing GiST index as well as the upgraded raster/topology SQL.
+SET LOCAL enable_seqscan = off;
+DO $$
+BEGIN
+    IF (SELECT count(*) FROM postgis_upgrade_check
+        WHERE ST_Intersects(geom, ST_MakeEnvelope(0, 0, 3, 3, 4326))
+          AND ST_Value(rast, 1, 1, 1) = 7) <> 1 THEN
+        RAISE EXCEPTION 'PostGIS geometry/raster data did not survive the upgrade';
+    END IF;
+    IF (SELECT count(*) FROM postgis_upgrade_topology.node
+        WHERE ST_Equals(geom, ST_SetSRID(ST_MakePoint(1, 2), 4326))) <> 1 THEN
+        RAISE EXCEPTION 'PostGIS topology data did not survive the upgrade';
+    END IF;
+END;
+$$;
+SQL
 
 # This source cannot use the main fixture: it deliberately installs
 # TimescaleDB in the postgres maintenance database.
