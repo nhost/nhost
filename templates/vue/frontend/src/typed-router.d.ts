@@ -95,6 +95,14 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | 'path'
     }
+    'src/app/account/_parent.vue': {
+      routes:
+        | '/account/'
+      views:
+        | 'default'
+      pathParamNames:
+        | never
+    }
     'src/app/account/index.vue': {
       routes:
         | '/account/'

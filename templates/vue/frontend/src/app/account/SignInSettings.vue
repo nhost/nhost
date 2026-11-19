@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { User } from '@nhost/nhost-js/auth';
+import ChangeEmailForm from '@/app/account/ChangeEmailForm.vue';
 import { buttonSettings, methods } from '@/app/signin/methods';
+import DialogSetting from '@/components/DialogSetting.vue';
+import SettingsList from '@/components/SettingsList.vue';
 import { Card } from '@/components/ui/card';
 
 /** Every sign-in method, as the account page shows it. */
@@ -28,10 +31,14 @@ const settings = methods.flatMap((method) =>
     <h2 class="px-5 pt-4 pb-1 font-semibold text-muted-foreground text-sm">
       Sign-in
     </h2>
-    <ul class="divide-y">
-      <li class="flex min-h-14 items-center gap-3 px-5 py-2 text-sm">
-        <span class="w-24 shrink-0 font-medium sm:w-30">Email</span>
-        <span class="min-w-0 flex-1 truncate text-muted-foreground">
+    <SettingsList>
+      <DialogSetting
+        label="Email"
+        action="Change"
+        title="Change email"
+        description="We'll send a link to the new address to confirm it."
+      >
+        <template #value>
           <template v-if="user.email">
             {{ user.email
             }}<span v-if="!user.emailVerified" class="text-destructive">
@@ -39,8 +46,9 @@ const settings = methods.flatMap((method) =>
             >
           </template>
           <template v-else>None</template>
-        </span>
-      </li>
+        </template>
+        <ChangeEmailForm :email="user.email" :verified="user.emailVerified" />
+      </DialogSetting>
       <component
         :is="setting"
         v-for="{ key, setting } in settings"
@@ -53,7 +61,7 @@ const settings = methods.flatMap((method) =>
         :key="`buttons#${index}`"
         :user="user"
       />
-    </ul>
+    </SettingsList>
     <p
       v-if="unmanaged.length > 0"
       class="border-t px-5 py-3 text-muted-foreground text-xs"

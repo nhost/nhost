@@ -49,6 +49,12 @@ vi.mock('@/app/signin/methods', async () => {
   };
 });
 
+// It loads the sessions over GraphQL; its own tests cover it.
+vi.mock('@/app/account/SessionsCard.vue', async () => {
+  const { h } = await import('vue');
+  return { default: { render: () => h('section', 'Sessions card') } };
+});
+
 const user: User = {
   id: '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24',
   email: 'user@example.com',
@@ -109,6 +115,17 @@ describe('account page', () => {
     expect(mounted.el.textContent).toContain(
       'Plain method also signs in to this account',
     );
+  });
+
+  it('shows the profile, the sessions and a way to close the account', async () => {
+    getVerifiedUser.mockResolvedValue({ user });
+
+    await open();
+
+    expect(mounted.el.textContent).toContain(user.displayName);
+    expect(mounted.el.textContent).toContain(user.id);
+    expect(mounted.el.textContent).toContain('Sessions card');
+    expect(mounted.el.textContent).toContain('Delete account');
   });
 
   // A stored session anyone could have written gets this far; the auth

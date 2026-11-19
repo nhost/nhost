@@ -88,3 +88,55 @@ export function hrefOf(el: Element, label: string): string | undefined {
       ?.getAttribute('href') ?? undefined
   );
 }
+
+/** The button with this text, or this name for one that is only an icon. */
+export function buttonIn(
+  el: Element | null | undefined,
+  label: string,
+): HTMLButtonElement | undefined {
+  return [...(el?.querySelectorAll('button') ?? [])].find(
+    (candidate) =>
+      candidate.textContent?.trim() === label ||
+      candidate.getAttribute('aria-label') === label,
+  );
+}
+
+export async function click(
+  target: HTMLElement | null | undefined,
+): Promise<void> {
+  target?.click();
+  await settle();
+}
+
+/** Types into an input the way the browser reports it: a value, then `input`. */
+export async function typeIn(
+  input: HTMLInputElement | null | undefined,
+  value: string,
+): Promise<void> {
+  if (input) {
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  await settle();
+}
+
+/** The input the label with this text is for. */
+export function inputFor(el: Element, label: string): HTMLInputElement | null {
+  const found = [...el.querySelectorAll('label')].find(
+    (candidate) => candidate.textContent?.trim() === label,
+  );
+  return found
+    ? (document.getElementById(found.htmlFor) as HTMLInputElement)
+    : null;
+}
+
+export async function submit(
+  form: HTMLFormElement | null | undefined,
+): Promise<void> {
+  form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+}
+
+/** What the element with this role says, or null without one. */
+export const textOf = (el: Element, role: string): string | null =>
+  el.querySelector(`[role="${role}"]`)?.textContent ?? null;

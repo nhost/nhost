@@ -1,21 +1,65 @@
 <script setup lang="ts">
 import type { User } from '@nhost/nhost-js/auth';
+import AvatarForm from '@/app/account/AvatarForm.vue';
+import CopyUserId from '@/app/account/CopyUserId.vue';
+import DisplayNameField from '@/app/account/DisplayNameField.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
 import { Card } from '@/components/ui/card';
 
 defineProps<{ user: User }>();
+
+// A fixed zone rather than the visitor's: the day it says has to be the one the
+// auth service stored.
+const joined = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'medium',
+  timeZone: 'UTC',
+});
 </script>
 
 <template>
   <Card class="flex-row items-center gap-5 p-5">
-    <UserAvatar
-      :avatar-url="user.avatarUrl"
-      :display-name="user.displayName"
-      :width="192"
-      class="size-18 text-2xl"
-    />
-    <p class="min-w-0 flex-1 truncate font-medium">
-      {{ user.email ?? user.id }}
-    </p>
+    <!-- Nothing to take down when the account has no avatar at all. -->
+    <AvatarForm :can-remove="Boolean(user.avatarUrl)">
+      <UserAvatar
+        :avatar-url="user.avatarUrl"
+        :display-name="user.displayName"
+        :width="192"
+        class="size-18 text-2xl"
+      />
+    </AvatarForm>
+
+    <!-- The id, role and locale are what a developer reads and the account's
+         owner mostly does not, so they are small. -->
+    <div
+      class="grid min-w-0 flex-1 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-3"
+    >
+      <div class="min-w-0">
+        <DisplayNameField :display-name="user.displayName" />
+      </div>
+      <div class="flex min-w-0">
+        <CopyUserId :id="user.id" />
+      </div>
+      <div
+        class="flex min-w-0 flex-col items-start gap-0.5 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:items-end sm:justify-center"
+      >
+        <p class="whitespace-nowrap text-muted-foreground text-sm">
+          Joined {{ joined.format(new Date(user.createdAt)) }}
+        </p>
+        <!-- The role is the default one on its own: `user.roles` always
+             carries `me` as well, which says nothing here. -->
+        <p
+          class="max-w-full truncate text-muted-foreground/70 text-xs sm:whitespace-nowrap"
+        >
+          Role
+          <span class="font-medium text-muted-foreground">{{
+            user.defaultRole
+          }}</span>
+          · Locale
+          <span class="font-medium text-muted-foreground">{{
+            user.locale
+          }}</span>
+        </p>
+      </div>
+    </div>
   </Card>
 </template>
