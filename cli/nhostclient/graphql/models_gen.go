@@ -1925,8 +1925,6 @@ type Apps struct {
 	OrganizationID             string         `json:"organizationID"`
 	AutomaticDeploys           bool           `json:"automaticDeploys"`
 	// An object relationship
-	BillingDedicatedCompute *BillingDedicatedCompute `json:"billingDedicatedCompute,omitempty"`
-	// An object relationship
 	Creator *Users `json:"creator,omitempty"`
 	// An object relationship
 	GithubRepository *GithubRepositories `json:"githubRepository,omitempty"`
@@ -1938,6 +1936,8 @@ type Apps struct {
 	AppStates []*AppStateHistory `json:"appStates"`
 	// An array relationship
 	Backups []*Backups `json:"backups"`
+	// An array relationship
+	BillingTimeBasedUsages []*BillingTimeBasedUsage `json:"billingTimeBasedUsages"`
 	// An array relationship
 	Deployments []*Deployments `json:"deployments"`
 	// An array relationship
@@ -1975,37 +1975,37 @@ type AppsAvgOrderBy struct {
 
 // Boolean expression to filter rows from the table "apps". All fields are combined with a logical 'AND'.
 type AppsBoolExp struct {
-	And                        []*AppsBoolExp                  `json:"_and,omitempty"`
-	Not                        *AppsBoolExp                    `json:"_not,omitempty"`
-	Or                         []*AppsBoolExp                  `json:"_or,omitempty"`
-	ID                         *UUIDComparisonExp              `json:"id,omitempty"`
-	CreatedAt                  *TimestamptzComparisonExp       `json:"createdAt,omitempty"`
-	UpdatedAt                  *TimestamptzComparisonExp       `json:"updatedAt,omitempty"`
-	Name                       *StringComparisonExp            `json:"name,omitempty"`
-	Slug                       *StringComparisonExp            `json:"slug,omitempty"`
-	GithubRepositoryID         *UUIDComparisonExp              `json:"githubRepositoryId,omitempty"`
-	Subdomain                  *StringComparisonExp            `json:"subdomain,omitempty"`
-	RepositoryProductionBranch *StringComparisonExp            `json:"repositoryProductionBranch,omitempty"`
-	MetadataFunctions          *JsonbComparisonExp             `json:"metadataFunctions,omitempty"`
-	DesiredState               *IntComparisonExp               `json:"desiredState,omitempty"`
-	CreatorUserID              *UUIDComparisonExp              `json:"creatorUserId,omitempty"`
-	NhostBaseFolder            *StringComparisonExp            `json:"nhostBaseFolder,omitempty"`
-	IsLocked                   *BooleanComparisonExp           `json:"isLocked,omitempty"`
-	IsLockedReason             *StringComparisonExp            `json:"isLockedReason,omitempty"`
-	OrganizationID             *UUIDComparisonExp              `json:"organizationID,omitempty"`
-	AutomaticDeploys           *BooleanComparisonExp           `json:"automaticDeploys,omitempty"`
-	BillingDedicatedCompute    *BillingDedicatedComputeBoolExp `json:"billingDedicatedCompute,omitempty"`
-	Creator                    *UsersBoolExp                   `json:"creator,omitempty"`
-	GithubRepository           *GithubRepositoriesBoolExp      `json:"githubRepository,omitempty"`
-	Organization               *OrganizationsBoolExp           `json:"organization,omitempty"`
-	Region                     *RegionsBoolExp                 `json:"region,omitempty"`
-	AppStates                  *AppStateHistoryBoolExp         `json:"appStates,omitempty"`
-	Backups                    *BackupsBoolExp                 `json:"backups,omitempty"`
-	Deployments                *DeploymentsBoolExp             `json:"deployments,omitempty"`
-	FeatureFlags               *FeatureFlagsBoolExp            `json:"featureFlags,omitempty"`
-	PipelineRuns               *PipelineRunsBoolExp            `json:"pipelineRuns,omitempty"`
-	RunServices                *RunServiceBoolExp              `json:"runServices,omitempty"`
-	RunServicesAggregate       *RunServiceAggregateBoolExp     `json:"runServices_aggregate,omitempty"`
+	And                        []*AppsBoolExp                `json:"_and,omitempty"`
+	Not                        *AppsBoolExp                  `json:"_not,omitempty"`
+	Or                         []*AppsBoolExp                `json:"_or,omitempty"`
+	ID                         *UUIDComparisonExp            `json:"id,omitempty"`
+	CreatedAt                  *TimestamptzComparisonExp     `json:"createdAt,omitempty"`
+	UpdatedAt                  *TimestamptzComparisonExp     `json:"updatedAt,omitempty"`
+	Name                       *StringComparisonExp          `json:"name,omitempty"`
+	Slug                       *StringComparisonExp          `json:"slug,omitempty"`
+	GithubRepositoryID         *UUIDComparisonExp            `json:"githubRepositoryId,omitempty"`
+	Subdomain                  *StringComparisonExp          `json:"subdomain,omitempty"`
+	RepositoryProductionBranch *StringComparisonExp          `json:"repositoryProductionBranch,omitempty"`
+	MetadataFunctions          *JsonbComparisonExp           `json:"metadataFunctions,omitempty"`
+	DesiredState               *IntComparisonExp             `json:"desiredState,omitempty"`
+	CreatorUserID              *UUIDComparisonExp            `json:"creatorUserId,omitempty"`
+	NhostBaseFolder            *StringComparisonExp          `json:"nhostBaseFolder,omitempty"`
+	IsLocked                   *BooleanComparisonExp         `json:"isLocked,omitempty"`
+	IsLockedReason             *StringComparisonExp          `json:"isLockedReason,omitempty"`
+	OrganizationID             *UUIDComparisonExp            `json:"organizationID,omitempty"`
+	AutomaticDeploys           *BooleanComparisonExp         `json:"automaticDeploys,omitempty"`
+	Creator                    *UsersBoolExp                 `json:"creator,omitempty"`
+	GithubRepository           *GithubRepositoriesBoolExp    `json:"githubRepository,omitempty"`
+	Organization               *OrganizationsBoolExp         `json:"organization,omitempty"`
+	Region                     *RegionsBoolExp               `json:"region,omitempty"`
+	AppStates                  *AppStateHistoryBoolExp       `json:"appStates,omitempty"`
+	Backups                    *BackupsBoolExp               `json:"backups,omitempty"`
+	BillingTimeBasedUsages     *BillingTimeBasedUsageBoolExp `json:"billingTimeBasedUsages,omitempty"`
+	Deployments                *DeploymentsBoolExp           `json:"deployments,omitempty"`
+	FeatureFlags               *FeatureFlagsBoolExp          `json:"featureFlags,omitempty"`
+	PipelineRuns               *PipelineRunsBoolExp          `json:"pipelineRuns,omitempty"`
+	RunServices                *RunServiceBoolExp            `json:"runServices,omitempty"`
+	RunServicesAggregate       *RunServiceAggregateBoolExp   `json:"runServices_aggregate,omitempty"`
 }
 
 // input type for incrementing numeric columns in table "apps"
@@ -2087,33 +2087,33 @@ type AppsOnConflict struct {
 
 // Ordering options when selecting data from "apps".
 type AppsOrderBy struct {
-	ID                         *OrderBy                         `json:"id,omitempty"`
-	CreatedAt                  *OrderBy                         `json:"createdAt,omitempty"`
-	UpdatedAt                  *OrderBy                         `json:"updatedAt,omitempty"`
-	Name                       *OrderBy                         `json:"name,omitempty"`
-	Slug                       *OrderBy                         `json:"slug,omitempty"`
-	GithubRepositoryID         *OrderBy                         `json:"githubRepositoryId,omitempty"`
-	Subdomain                  *OrderBy                         `json:"subdomain,omitempty"`
-	RepositoryProductionBranch *OrderBy                         `json:"repositoryProductionBranch,omitempty"`
-	MetadataFunctions          *OrderBy                         `json:"metadataFunctions,omitempty"`
-	DesiredState               *OrderBy                         `json:"desiredState,omitempty"`
-	CreatorUserID              *OrderBy                         `json:"creatorUserId,omitempty"`
-	NhostBaseFolder            *OrderBy                         `json:"nhostBaseFolder,omitempty"`
-	IsLocked                   *OrderBy                         `json:"isLocked,omitempty"`
-	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
-	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
-	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
-	BillingDedicatedCompute    *BillingDedicatedComputeOrderBy  `json:"billingDedicatedCompute,omitempty"`
-	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
-	GithubRepository           *GithubRepositoriesOrderBy       `json:"githubRepository,omitempty"`
-	Organization               *OrganizationsOrderBy            `json:"organization,omitempty"`
-	Region                     *RegionsOrderBy                  `json:"region,omitempty"`
-	AppStatesAggregate         *AppStateHistoryAggregateOrderBy `json:"appStates_aggregate,omitempty"`
-	BackupsAggregate           *BackupsAggregateOrderBy         `json:"backups_aggregate,omitempty"`
-	DeploymentsAggregate       *DeploymentsAggregateOrderBy     `json:"deployments_aggregate,omitempty"`
-	FeatureFlagsAggregate      *FeatureFlagsAggregateOrderBy    `json:"featureFlags_aggregate,omitempty"`
-	PipelineRunsAggregate      *PipelineRunsAggregateOrderBy    `json:"pipelineRuns_aggregate,omitempty"`
-	RunServicesAggregate       *RunServiceAggregateOrderBy      `json:"runServices_aggregate,omitempty"`
+	ID                              *OrderBy                               `json:"id,omitempty"`
+	CreatedAt                       *OrderBy                               `json:"createdAt,omitempty"`
+	UpdatedAt                       *OrderBy                               `json:"updatedAt,omitempty"`
+	Name                            *OrderBy                               `json:"name,omitempty"`
+	Slug                            *OrderBy                               `json:"slug,omitempty"`
+	GithubRepositoryID              *OrderBy                               `json:"githubRepositoryId,omitempty"`
+	Subdomain                       *OrderBy                               `json:"subdomain,omitempty"`
+	RepositoryProductionBranch      *OrderBy                               `json:"repositoryProductionBranch,omitempty"`
+	MetadataFunctions               *OrderBy                               `json:"metadataFunctions,omitempty"`
+	DesiredState                    *OrderBy                               `json:"desiredState,omitempty"`
+	CreatorUserID                   *OrderBy                               `json:"creatorUserId,omitempty"`
+	NhostBaseFolder                 *OrderBy                               `json:"nhostBaseFolder,omitempty"`
+	IsLocked                        *OrderBy                               `json:"isLocked,omitempty"`
+	IsLockedReason                  *OrderBy                               `json:"isLockedReason,omitempty"`
+	OrganizationID                  *OrderBy                               `json:"organizationID,omitempty"`
+	AutomaticDeploys                *OrderBy                               `json:"automaticDeploys,omitempty"`
+	Creator                         *UsersOrderBy                          `json:"creator,omitempty"`
+	GithubRepository                *GithubRepositoriesOrderBy             `json:"githubRepository,omitempty"`
+	Organization                    *OrganizationsOrderBy                  `json:"organization,omitempty"`
+	Region                          *RegionsOrderBy                        `json:"region,omitempty"`
+	AppStatesAggregate              *AppStateHistoryAggregateOrderBy       `json:"appStates_aggregate,omitempty"`
+	BackupsAggregate                *BackupsAggregateOrderBy               `json:"backups_aggregate,omitempty"`
+	BillingTimeBasedUsagesAggregate *BillingTimeBasedUsageAggregateOrderBy `json:"billingTimeBasedUsages_aggregate,omitempty"`
+	DeploymentsAggregate            *DeploymentsAggregateOrderBy           `json:"deployments_aggregate,omitempty"`
+	FeatureFlagsAggregate           *FeatureFlagsAggregateOrderBy          `json:"featureFlags_aggregate,omitempty"`
+	PipelineRunsAggregate           *PipelineRunsAggregateOrderBy          `json:"pipelineRuns_aggregate,omitempty"`
+	RunServicesAggregate            *RunServiceAggregateOrderBy            `json:"runServices_aggregate,omitempty"`
 }
 
 // primary key columns input for table: apps
@@ -2594,53 +2594,6 @@ type BigintComparisonExp struct {
 	Nin    []int64 `json:"_nin,omitempty"`
 }
 
-// columns and relationships of "billing.dedicated_compute"
-type BillingDedicatedCompute struct {
-	AppID           string  `json:"appID"`
-	TotalMillicores int64   `json:"totalMillicores"`
-	OrganizationID  *string `json:"organizationID,omitempty"`
-	// An object relationship
-	App *Apps `json:"app,omitempty"`
-	// An object relationship
-	Organization *Organizations `json:"organization,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "billing.dedicated_compute". All fields are combined with a logical 'AND'.
-type BillingDedicatedComputeBoolExp struct {
-	And             []*BillingDedicatedComputeBoolExp `json:"_and,omitempty"`
-	Not             *BillingDedicatedComputeBoolExp   `json:"_not,omitempty"`
-	Or              []*BillingDedicatedComputeBoolExp `json:"_or,omitempty"`
-	AppID           *UUIDComparisonExp                `json:"appID,omitempty"`
-	TotalMillicores *IntComparisonExp                 `json:"totalMillicores,omitempty"`
-	OrganizationID  *UUIDComparisonExp                `json:"organizationID,omitempty"`
-	App             *AppsBoolExp                      `json:"app,omitempty"`
-	Organization    *OrganizationsBoolExp             `json:"organization,omitempty"`
-}
-
-// Ordering options when selecting data from "billing.dedicated_compute".
-type BillingDedicatedComputeOrderBy struct {
-	AppID           *OrderBy              `json:"appID,omitempty"`
-	TotalMillicores *OrderBy              `json:"totalMillicores,omitempty"`
-	OrganizationID  *OrderBy              `json:"organizationID,omitempty"`
-	App             *AppsOrderBy          `json:"app,omitempty"`
-	Organization    *OrganizationsOrderBy `json:"organization,omitempty"`
-}
-
-// Streaming cursor of the table "billing_dedicated_compute"
-type BillingDedicatedComputeStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *BillingDedicatedComputeStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type BillingDedicatedComputeStreamCursorValueInput struct {
-	AppID           *string `json:"appID,omitempty"`
-	TotalMillicores *int64  `json:"totalMillicores,omitempty"`
-	OrganizationID  *string `json:"organizationID,omitempty"`
-}
-
 // Boolean expression to compare columns of type "billing_report_type_enum". All fields are combined with logical 'AND'.
 type BillingReportTypeEnumComparisonExp struct {
 	Eq     *BillingReportTypeEnum  `json:"_eq,omitempty"`
@@ -2754,6 +2707,149 @@ type BillingResourcesStreamCursorValueInput struct {
 	PersistentVolume *int64  `json:"persistentVolume,omitempty"`
 	OrganizationID   *string `json:"organizationID,omitempty"`
 	Pitr             *int64  `json:"pitr,omitempty"`
+}
+
+// columns and relationships of "billing.time_based_usage"
+type BillingTimeBasedUsage struct {
+	AppID string `json:"appID"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          int64                                `json:"value"`
+	OrganizationID *string                              `json:"organizationID,omitempty"`
+	ProductType    BillingTimeBasedUsageProductTypeEnum `json:"productType"`
+	// An object relationship
+	App *Apps `json:"app,omitempty"`
+	// An object relationship
+	Organization *Organizations `json:"organization,omitempty"`
+}
+
+// order by aggregate values of table "billing.time_based_usage"
+type BillingTimeBasedUsageAggregateOrderBy struct {
+	Count      *OrderBy                                `json:"count,omitempty"`
+	Max        *BillingTimeBasedUsageMaxOrderBy        `json:"max,omitempty"`
+	Min        *BillingTimeBasedUsageMinOrderBy        `json:"min,omitempty"`
+	Avg        *BillingTimeBasedUsageAvgOrderBy        `json:"avg,omitempty"`
+	Stddev     *BillingTimeBasedUsageStddevOrderBy     `json:"stddev,omitempty"`
+	StddevPop  *BillingTimeBasedUsageStddevPopOrderBy  `json:"stddev_pop,omitempty"`
+	StddevSamp *BillingTimeBasedUsageStddevSampOrderBy `json:"stddev_samp,omitempty"`
+	Sum        *BillingTimeBasedUsageSumOrderBy        `json:"sum,omitempty"`
+	VarPop     *BillingTimeBasedUsageVarPopOrderBy     `json:"var_pop,omitempty"`
+	VarSamp    *BillingTimeBasedUsageVarSampOrderBy    `json:"var_samp,omitempty"`
+	Variance   *BillingTimeBasedUsageVarianceOrderBy   `json:"variance,omitempty"`
+}
+
+// order by avg() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageAvgOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "billing.time_based_usage". All fields are combined with a logical 'AND'.
+type BillingTimeBasedUsageBoolExp struct {
+	And   []*BillingTimeBasedUsageBoolExp `json:"_and,omitempty"`
+	Not   *BillingTimeBasedUsageBoolExp   `json:"_not,omitempty"`
+	Or    []*BillingTimeBasedUsageBoolExp `json:"_or,omitempty"`
+	AppID *UUIDComparisonExp              `json:"appID,omitempty"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          *IntComparisonExp                                  `json:"value,omitempty"`
+	OrganizationID *UUIDComparisonExp                                 `json:"organizationID,omitempty"`
+	ProductType    *BillingTimeBasedUsageProductTypeEnumComparisonExp `json:"productType,omitempty"`
+	App            *AppsBoolExp                                       `json:"app,omitempty"`
+	Organization   *OrganizationsBoolExp                              `json:"organization,omitempty"`
+}
+
+// order by max() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageMaxOrderBy struct {
+	AppID *OrderBy `json:"appID,omitempty"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          *OrderBy `json:"value,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+}
+
+// order by min() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageMinOrderBy struct {
+	AppID *OrderBy `json:"appID,omitempty"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          *OrderBy `json:"value,omitempty"`
+	OrganizationID *OrderBy `json:"organizationID,omitempty"`
+}
+
+// Ordering options when selecting data from "billing.time_based_usage".
+type BillingTimeBasedUsageOrderBy struct {
+	AppID *OrderBy `json:"appID,omitempty"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          *OrderBy              `json:"value,omitempty"`
+	OrganizationID *OrderBy              `json:"organizationID,omitempty"`
+	ProductType    *OrderBy              `json:"productType,omitempty"`
+	App            *AppsOrderBy          `json:"app,omitempty"`
+	Organization   *OrganizationsOrderBy `json:"organization,omitempty"`
+}
+
+// Boolean expression to compare columns of type "billing_time_based_usage_product_type_enum". All fields are combined with logical 'AND'.
+type BillingTimeBasedUsageProductTypeEnumComparisonExp struct {
+	Eq     *BillingTimeBasedUsageProductTypeEnum  `json:"_eq,omitempty"`
+	In     []BillingTimeBasedUsageProductTypeEnum `json:"_in,omitempty"`
+	IsNull *bool                                  `json:"_is_null,omitempty"`
+	Neq    *BillingTimeBasedUsageProductTypeEnum  `json:"_neq,omitempty"`
+	Nin    []BillingTimeBasedUsageProductTypeEnum `json:"_nin,omitempty"`
+}
+
+// order by stddev() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageStddevOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// order by stddev_pop() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageStddevPopOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// order by stddev_samp() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageStddevSampOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// Streaming cursor of the table "billing_time_based_usage"
+type BillingTimeBasedUsageStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *BillingTimeBasedUsageStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type BillingTimeBasedUsageStreamCursorValueInput struct {
+	AppID *string `json:"appID,omitempty"`
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value          *int64                                `json:"value,omitempty"`
+	OrganizationID *string                               `json:"organizationID,omitempty"`
+	ProductType    *BillingTimeBasedUsageProductTypeEnum `json:"productType,omitempty"`
+}
+
+// order by sum() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageSumOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// order by var_pop() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageVarPopOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// order by var_samp() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageVarSampOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
+}
+
+// order by variance() on columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageVarianceOrderBy struct {
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	Value *OrderBy `json:"value,omitempty"`
 }
 
 // Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'.
@@ -4841,10 +4937,6 @@ type SubscriptionRoot struct {
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table in a streaming manner: "auth.users"
 	UsersStream []*Users `json:"users_stream"`
-	// fetch data from the table: "billing.dedicated_compute"
-	BillingDedicatedComputes []*BillingDedicatedCompute `json:"billingDedicatedComputes"`
-	// fetch data from the table in a streaming manner: "billing.dedicated_compute"
-	BillingDedicatedComputeStream []*BillingDedicatedCompute `json:"billing_dedicated_compute_stream"`
 	// fetch data from the table: "billing.reports"
 	BillingReports []*BillingReports `json:"billingReports"`
 	// fetch data from the table in a streaming manner: "billing.reports"
@@ -4853,6 +4945,10 @@ type SubscriptionRoot struct {
 	BillingResources []*BillingResources `json:"billingResources"`
 	// fetch data from the table in a streaming manner: "billing.resources"
 	BillingResourcesStream []*BillingResources `json:"billingResourcesStream"`
+	// fetch data from the table: "billing.time_based_usage"
+	BillingTimeBasedUsages []*BillingTimeBasedUsage `json:"billingTimeBasedUsages"`
+	// fetch data from the table in a streaming manner: "billing.time_based_usage"
+	BillingTimeBasedUsageStream []*BillingTimeBasedUsage `json:"billing_time_based_usage_stream"`
 	// fetch data from the table: "announcements"
 	Announcements []*Announcements `json:"announcements"`
 	// fetch data from the table: "announcements" using primary key columns
@@ -6417,67 +6513,6 @@ func (e BackupsSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// select columns of table "billing.dedicated_compute"
-type BillingDedicatedComputeSelectColumn string
-
-const (
-	// column name
-	BillingDedicatedComputeSelectColumnAppID BillingDedicatedComputeSelectColumn = "appID"
-	// column name
-	BillingDedicatedComputeSelectColumnTotalMillicores BillingDedicatedComputeSelectColumn = "totalMillicores"
-	// column name
-	BillingDedicatedComputeSelectColumnOrganizationID BillingDedicatedComputeSelectColumn = "organizationID"
-)
-
-var AllBillingDedicatedComputeSelectColumn = []BillingDedicatedComputeSelectColumn{
-	BillingDedicatedComputeSelectColumnAppID,
-	BillingDedicatedComputeSelectColumnTotalMillicores,
-	BillingDedicatedComputeSelectColumnOrganizationID,
-}
-
-func (e BillingDedicatedComputeSelectColumn) IsValid() bool {
-	switch e {
-	case BillingDedicatedComputeSelectColumnAppID, BillingDedicatedComputeSelectColumnTotalMillicores, BillingDedicatedComputeSelectColumnOrganizationID:
-		return true
-	}
-	return false
-}
-
-func (e BillingDedicatedComputeSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *BillingDedicatedComputeSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = BillingDedicatedComputeSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid billing_dedicated_compute_select_column", str)
-	}
-	return nil
-}
-
-func (e BillingDedicatedComputeSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *BillingDedicatedComputeSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e BillingDedicatedComputeSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
 type BillingReportTypeEnum string
 
 const (
@@ -6670,6 +6705,124 @@ func (e *BillingResourcesSelectColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e BillingResourcesSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type BillingTimeBasedUsageProductTypeEnum string
+
+const (
+	// Dedicated compute in millicores
+	BillingTimeBasedUsageProductTypeEnumDedicatedCompute BillingTimeBasedUsageProductTypeEnum = "dedicated_compute"
+)
+
+var AllBillingTimeBasedUsageProductTypeEnum = []BillingTimeBasedUsageProductTypeEnum{
+	BillingTimeBasedUsageProductTypeEnumDedicatedCompute,
+}
+
+func (e BillingTimeBasedUsageProductTypeEnum) IsValid() bool {
+	switch e {
+	case BillingTimeBasedUsageProductTypeEnumDedicatedCompute:
+		return true
+	}
+	return false
+}
+
+func (e BillingTimeBasedUsageProductTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *BillingTimeBasedUsageProductTypeEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingTimeBasedUsageProductTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_time_based_usage_product_type_enum", str)
+	}
+	return nil
+}
+
+func (e BillingTimeBasedUsageProductTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingTimeBasedUsageProductTypeEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingTimeBasedUsageProductTypeEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "billing.time_based_usage"
+type BillingTimeBasedUsageSelectColumn string
+
+const (
+	// column name
+	BillingTimeBasedUsageSelectColumnAppID BillingTimeBasedUsageSelectColumn = "appID"
+	// Current billable quantity in product-specific units; reports integrate this quantity over minutes. Not physical inventory.
+	BillingTimeBasedUsageSelectColumnValue BillingTimeBasedUsageSelectColumn = "value"
+	// column name
+	BillingTimeBasedUsageSelectColumnOrganizationID BillingTimeBasedUsageSelectColumn = "organizationID"
+	// column name
+	BillingTimeBasedUsageSelectColumnProductType BillingTimeBasedUsageSelectColumn = "productType"
+)
+
+var AllBillingTimeBasedUsageSelectColumn = []BillingTimeBasedUsageSelectColumn{
+	BillingTimeBasedUsageSelectColumnAppID,
+	BillingTimeBasedUsageSelectColumnValue,
+	BillingTimeBasedUsageSelectColumnOrganizationID,
+	BillingTimeBasedUsageSelectColumnProductType,
+}
+
+func (e BillingTimeBasedUsageSelectColumn) IsValid() bool {
+	switch e {
+	case BillingTimeBasedUsageSelectColumnAppID, BillingTimeBasedUsageSelectColumnValue, BillingTimeBasedUsageSelectColumnOrganizationID, BillingTimeBasedUsageSelectColumnProductType:
+		return true
+	}
+	return false
+}
+
+func (e BillingTimeBasedUsageSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *BillingTimeBasedUsageSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = BillingTimeBasedUsageSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid billing_time_based_usage_select_column", str)
+	}
+	return nil
+}
+
+func (e BillingTimeBasedUsageSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *BillingTimeBasedUsageSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e BillingTimeBasedUsageSelectColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
