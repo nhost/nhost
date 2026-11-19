@@ -1,5 +1,5 @@
 import type { CreateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 
 export interface CreateRemoteSchemaRelationshipOptions {
   appUrl: string;
@@ -17,7 +17,7 @@ export default async function createRemoteSchemaRelationship({
 }: CreateRemoteSchemaRelationshipOptions &
   CreateRemoteSchemaRelationshipVariables) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'create_remote_schema_remote_relationship',
         args: {

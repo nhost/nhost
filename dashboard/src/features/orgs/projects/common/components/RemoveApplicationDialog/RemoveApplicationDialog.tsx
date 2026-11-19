@@ -214,12 +214,11 @@ export default function RemoveApplicationDialog({
                 </AlertDialogDescription>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 rounded-lg border p-4">
                 <FormCheckbox
                   control={form.control}
                   name="acknowledgeIrreversible"
                   label="I understand this action cannot be undone"
-                  className="mt-0.5 self-start"
                 />
 
                 {isPaidPlan && (
@@ -227,7 +226,6 @@ export default function RemoveApplicationDialog({
                     control={form.control}
                     name="acknowledgeSubscription"
                     label="I understand I need to delete the organization if I want to cancel the subscription"
-                    className="mt-0.5 self-start"
                   />
                 )}
               </div>

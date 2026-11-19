@@ -26,21 +26,24 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
+	"github.com/vektah/gqlparser/v2/parser"
+	"github.com/vektah/gqlparser/v2/validator"
 )
 
-// Load reads a GraphQL schema file from disk and parses it into an *ast.Schema.
-// Read failures are wrapped with the "reading schema file" prefix and parse
-// failures with the "parsing schema file" prefix; both include the path.
+// Load reads and validates a GraphQL schema file into an *ast.Schema. It accepts
+// genuinely empty input definitions in Hasura/Constellation dumps, which do not
+// carry SQL provenance, but preserves all other gqlparser schema validation.
+// Read failures are wrapped with the "reading schema file" prefix and parse or
+// validation failures with the "parsing schema file" prefix; both include the path.
 func Load(path string) (*ast.Schema, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading schema file %s: %w", path, err)
 	}
 
-	schema, err := gqlparser.LoadSchema(&ast.Source{ //nolint:exhaustruct
+	doc, err := parser.ParseSchemas(validator.Prelude, &ast.Source{ //nolint:exhaustruct
 		Name:  path,
 		Input: string(content),
 	})
@@ -48,7 +51,49 @@ func Load(path string) (*ast.Schema, error) {
 		return nil, fmt.Errorf("parsing schema file %s: %w", path, err)
 	}
 
+	restore := prepareEmptyInputs(doc)
+	defer restore()
+
+	schema, err := validator.ValidateSchemaDocument(doc)
+	if err != nil {
+		return nil, fmt.Errorf("parsing schema file %s: %w", path, err)
+	}
+
 	return schema, nil
+}
+
+// prepareEmptyInputs bypasses only the non-empty input rule for this offline
+// comparison tool. The service's SQL-provenance exception is deliberately
+// separate: serialized SDL cannot distinguish generated inputs or custom names.
+// gqlparser retains definition pointers, so removing the validation-only field
+// also removes it from the returned schema and its formatted SDL.
+func prepareEmptyInputs(doc *ast.SchemaDocument) func() {
+	extended := make(map[string]bool)
+	for _, ext := range doc.Extensions {
+		if len(ext.Fields) != 0 {
+			extended[ext.Name] = true
+		}
+	}
+
+	var emptyInputs []*ast.Definition
+
+	for _, def := range doc.Definitions {
+		if def.Kind != ast.InputObject || len(def.Fields) != 0 || extended[def.Name] {
+			continue
+		}
+
+		def.Fields = ast.FieldList{{
+			Name: "_constellation_validation_only",
+			Type: ast.NamedType("Boolean", nil),
+		}}
+		emptyInputs = append(emptyInputs, def)
+	}
+
+	return func() {
+		for _, def := range emptyInputs {
+			def.Fields = ast.FieldList{}
+		}
+	}
 }
 
 // StripNoopUpdateMutations removes update mutations for tables where the role

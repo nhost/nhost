@@ -167,7 +167,7 @@ export default function DataGridTextCell<
           onChange={handleChange}
           onKeyDown={handleInputKeyDown}
           wrapperClassName="h-full w-full"
-          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0"
+          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-background focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 md:h-full"
         />
         {(isNullable || hasDefault) && (
           <CellResetButtons

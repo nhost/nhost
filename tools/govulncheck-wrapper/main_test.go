@@ -109,11 +109,19 @@ func TestParseMessages(t *testing.T) {
 			wantFindingCounts: nil,
 		},
 		{
-			name: "finding message only",
+			name: "module-only finding is ignored by default",
+			input: `{"finding":{"osv":"GO-2026-6911","trace":` +
+				`[{"module":"github.com/mark3labs/mcp-go","version":"v0.41.1"}]}}` + "\n",
+			wantOSVCount:      0,
+			wantFindingsCount: 0,
+			wantFindingCounts: nil,
+		},
+		{
+			name: "symbol finding message only",
 			input: `{"finding":{"osv":"GO-2023-0001",` +
 				`"fixed_version":"v1.2.3","trace":` +
-				`[{"module":"example.com/mod",` +
-				`"version":"v1.0.0"}]}}` + "\n",
+				`[{"module":"example.com/mod","version":"v1.0.0",` +
+				`"package":"example.com/mod/pkg","function":"Vulnerable"}]}}` + "\n",
 			wantOSVCount:      0,
 			wantFindingsCount: 1,
 			wantFindingCounts: map[string]int{"GO-2023-0001": 1},
@@ -122,9 +130,9 @@ func TestParseMessages(t *testing.T) {
 			name: "multiple findings per osv",
 			input: `{"osv":{"id":"GO-2023-0001","summary":"A"}}
 {"osv":{"id":"GO-2023-0002","summary":"B"}}
-{"finding":{"osv":"GO-2023-0001","trace":[]}}
-{"finding":{"osv":"GO-2023-0002","trace":[]}}
-{"finding":{"osv":"GO-2023-0001","trace":[]}}
+{"finding":{"osv":"GO-2023-0001","trace":[{"function":"Vulnerable"}]}}
+{"finding":{"osv":"GO-2023-0002","trace":[{"function":"Vulnerable"}]}}
+{"finding":{"osv":"GO-2023-0001","trace":[{"function":"OtherVulnerable"}]}}
 `,
 			wantOSVCount:      2,
 			wantFindingsCount: 2,
@@ -165,6 +173,90 @@ func TestParseMessages(t *testing.T) {
 				if len(findingsMap[id]) != wantCount {
 					t.Errorf("findings[%s]: got %d, want %d", id, len(findingsMap[id]), wantCount)
 				}
+			}
+		})
+	}
+}
+
+func TestParseMessagesScanLevel(t *testing.T) {
+	t.Parallel()
+
+	const input = `
+{"finding":{"osv":"GO-2023-0000"}}
+{"finding":{"osv":"GO-2023-0000","trace":[]}}
+{"finding":{"osv":"GO-2023-0001","trace":[{"module":"example.com/mod"}]}}
+{"finding":{"osv":"GO-2023-0002","trace":[{"module":"example.com/mod","package":"example.com/mod/pkg"}]}}
+{"finding":{"osv":"GO-2023-0003","trace":[{"module":"example.com/mod"}]}}
+{"finding":{"osv":"GO-2023-0003","trace":[{"module":"example.com/mod","package":"example.com/mod/pkg"}]}}
+{"finding":{"osv":"GO-2023-0003","trace":[{"module":"example.com/mod","package":"example.com/mod/pkg","function":"Vulnerable"}]}}
+`
+
+	tests := []struct {
+		name         string
+		config       string
+		wantFindings map[string]int
+		wantAllowed  []string
+		wantBlocked  []string
+	}{
+		{
+			name:         "default symbol scan",
+			config:       "",
+			wantFindings: map[string]int{"GO-2023-0003": 1},
+			wantAllowed:  nil,
+			wantBlocked:  []string{"GO-2023-0003"},
+		},
+		{
+			name:         "config without scan level defaults to symbol",
+			config:       `{"config":{"scan_mode":"source"}}`,
+			wantFindings: map[string]int{"GO-2023-0003": 1},
+			wantAllowed:  nil,
+			wantBlocked:  []string{"GO-2023-0003"},
+		},
+		{
+			name:         "explicit symbol scan",
+			config:       `{"config":{"scan_level":"symbol"}}`,
+			wantFindings: map[string]int{"GO-2023-0003": 1},
+			wantAllowed:  nil,
+			wantBlocked:  []string{"GO-2023-0003"},
+		},
+		{
+			name:         "explicit package scan excludes module-only findings",
+			config:       `{"config":{"scan_level":"package"}}`,
+			wantFindings: map[string]int{"GO-2023-0002": 1, "GO-2023-0003": 2},
+			wantAllowed:  []string{"GO-2023-0002"},
+			wantBlocked:  []string{"GO-2023-0003"},
+		},
+		{
+			name:         "explicit module scan includes all levels",
+			config:       `{"config":{"scan_level":"module"}}`,
+			wantFindings: map[string]int{"GO-2023-0001": 1, "GO-2023-0002": 1, "GO-2023-0003": 3},
+			wantAllowed:  []string{"GO-2023-0002"},
+			wantBlocked:  []string{"GO-2023-0001", "GO-2023-0003"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, findings := parseMessages(strings.NewReader(tt.config + input))
+			if len(findings) != len(tt.wantFindings) {
+				t.Errorf("got %d vulnerabilities, want %d", len(findings), len(tt.wantFindings))
+			}
+
+			for id, count := range tt.wantFindings {
+				if len(findings[id]) != count {
+					t.Errorf("findings[%s]: got %d, want %d", id, len(findings[id]), count)
+				}
+			}
+
+			allowed, blocked := classifyFindings(findings, map[string]bool{"GO-2023-0002": true})
+			if !slices.Equal(allowed, tt.wantAllowed) {
+				t.Errorf("allowed: got %v, want %v", allowed, tt.wantAllowed)
+			}
+
+			if !slices.Equal(blocked, tt.wantBlocked) {
+				t.Errorf("blocked: got %v, want %v", blocked, tt.wantBlocked)
 			}
 		})
 	}

@@ -118,7 +118,9 @@ Queries and mutations are validated against allowlists before execution (`cli/mc
 
 - Parses the GraphQL operation with `gqlparser`
 - Rejects subscriptions
-- Checks top-level selection fields against `allowedQueries` / `allowedMutations`
+- Checks every root field (except `__typename`) against `allowedQueries` / `allowedMutations`, including root fields without a sub-selection
+- Nested fields with a sub-selection must also be allowlisted; nested leaf fields need no entry
+- Follows inline fragments and fragment spreads; rejects unknown or duplicate fragment names
 - Supports `"*"` wildcard to allow any operation
 
 ## Testing

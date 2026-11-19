@@ -109,7 +109,7 @@ export default function StorageFormSection() {
                   <Label htmlFor={`${field.id}-capacity`}>Capacity</Label>
                 )}
                 <InputGroup
-                  className={cn('h-10', {
+                  className={cn({
                     'border-destructive': capacityError,
                   })}
                 >

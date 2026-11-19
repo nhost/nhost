@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { loadAnalytics } from '@/lib/segment';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import {
   ThemeColorMeta,
@@ -67,14 +68,18 @@ function MyApp({ Component, pageProps }: MyAppProps) {
               <RetryableErrorBoundary>
                 <TooltipProvider>
                   <DialogProvider>
-                    <ProgressBar
-                      height="2px"
-                      color="#0052cd"
-                      options={{ showSpinner: false }}
-                    />
-                    {getLayout(<Component {...pageProps} />)}
-                    {/* Segment, and the Google Ads tag it loads, only start after consent. */}
-                    {isPlatform() && <CookieConsent onAccept={loadAnalytics} />}
+                    <ElevationProvider>
+                      <ProgressBar
+                        height="2px"
+                        color="#0052cd"
+                        options={{ showSpinner: false }}
+                      />
+                      {getLayout(<Component {...pageProps} />)}
+                      {/* Segment, and the Google Ads tag it loads, only start after consent. */}
+                      {isPlatform() && (
+                        <CookieConsent onAccept={loadAnalytics} />
+                      )}
+                    </ElevationProvider>
                   </DialogProvider>
                 </TooltipProvider>
               </RetryableErrorBoundary>

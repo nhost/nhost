@@ -126,18 +126,20 @@ type Column struct {
 	RestoreSQLType string
 	// IsNullable is true if the column accepts NULL.
 	IsNullable bool
-	// IsGenerated is true if the column is computed by the database and
-	// therefore must be omitted from insert/update mutations.
+	// IsGenerated is true for computed columns and GENERATED ALWAYS AS
+	// IDENTITY columns. Both must be omitted from insert/update inputs
+	// because the database rejects explicit non-DEFAULT values.
 	IsGenerated bool
 	// IsIdentity is true if the column auto-populates from a database-managed
 	// source the insert payload cannot meaningfully precompute: PostgreSQL
 	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
 	// and SQLite INTEGER PRIMARY KEY rowid aliases. The metadata for these
-	// columns lives outside pg_attrdef / PRAGMA dflt_value, so IsGenerated and
-	// the Default field stay zero — IsIdentity is the dedicated bit that lets
-	// the queries layer recognise them and force the insert-check predicate to
-	// run after the INSERT (against the inserted row) rather than against the
-	// payload.
+	// columns lives outside pg_attrdef / PRAGMA dflt_value, so Default stays
+	// nil. IsGenerated is also true for ALWAYS identities, but false for
+	// BY DEFAULT identities and rowid aliases, which accept explicit values.
+	// IsIdentity lets the queries layer recognise all of them and force the
+	// insert-check predicate to run after the INSERT (against the inserted row)
+	// rather than against the payload.
 	IsIdentity bool
 	// IsArray is true if the column is a PostgreSQL array type (e.g. "_text").
 	// SQLite columns always set this to false.

@@ -89,7 +89,7 @@ export default function FieldToColumnMapSelectorItem({
               </PopoverTrigger>
               <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                 <Command>
-                  <CommandInput placeholder="Search field..." className="h-9" />
+                  <CommandInput placeholder="Search field..." />
                   <CommandList>
                     <CommandEmpty>Select a source type first.</CommandEmpty>
                     <CommandGroup>
@@ -162,10 +162,7 @@ export default function FieldToColumnMapSelectorItem({
               </PopoverTrigger>
               <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                 <Command>
-                  <CommandInput
-                    placeholder="Search column..."
-                    className="h-9"
-                  />
+                  <CommandInput placeholder="Search column..." />
                   <CommandList>
                     <CommandEmpty>Select a target table first.</CommandEmpty>
                     <CommandGroup>
