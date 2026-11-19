@@ -260,6 +260,14 @@
             ;
         };
 
+        valef = import ./tools/vale/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
       in
       {
         checks = {
@@ -290,6 +298,7 @@
           storage = storagef.check;
           templates = templatesf.check;
           tutorials = tutorialsf.check;
+          vale = valef.check;
         };
 
         apps.sync-ci = {
@@ -448,6 +457,7 @@
           storage = storagef.devShell;
           templates = templatesf.devShell;
           tutorials = tutorialsf.devShell;
+          vale = valef.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
