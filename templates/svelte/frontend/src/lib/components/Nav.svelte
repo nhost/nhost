@@ -2,6 +2,7 @@
   import type { User } from '@nhost/nhost-js/auth';
   import NavAccount from '#lib/components/NavAccount.svelte';
   import NhostLogo from '#lib/components/NhostLogo.svelte';
+  import RefreshOnFocus from '#lib/components/RefreshOnFocus.svelte';
   import SignOutButton from '#lib/components/SignOutButton.svelte';
   import UserAvatar from '#lib/components/UserAvatar.svelte';
   import { Button } from '#lib/components/ui/button/index.ts';
@@ -50,6 +51,7 @@
 <nav
   class="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70"
 >
+  <RefreshOnFocus signedIn={!!user} />
   <div
     class="mx-auto flex max-w-4xl items-center justify-between px-6 py-3"
   >
