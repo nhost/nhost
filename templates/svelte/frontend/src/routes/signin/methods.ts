@@ -1,5 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { Component } from 'svelte';
+import PasskeysSetting from '#routes/auth/passkey/manage/PasskeysSetting.svelte';
 import ChangePasswordSetting from '#routes/auth/password/change/ChangePasswordSetting.svelte';
 import MfaSetting from '#routes/auth/password/mfa/MfaSetting.svelte';
 
@@ -43,5 +44,16 @@ export const methods: SignInMethod[] = [
     href: '/auth/magic-link',
     title: 'Magic link',
     description: 'Get a sign-in link by email.',
+  },
+  {
+    href: '/auth/otp',
+    title: 'Email code',
+    description: 'Get a one-time code by email.',
+  },
+  {
+    href: '/auth/passkey',
+    title: 'Passkey',
+    description: 'Touch ID, Windows Hello or a security key.',
+    account: { passkeys: PasskeysSetting },
   },
 ];
