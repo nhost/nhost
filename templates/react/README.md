@@ -4,8 +4,9 @@ A React starter with Nhost auth, built with Vite and React Router. Users can
 sign in with a password, magic link, email code, passkey, GitHub or Google, and
 manage their account.
 
-It has the same pages, features and backend as the Nhost + Next.js starter, as
-a single-page app. The end of How it works lists what works differently.
+It has the same pages and features as the Nhost + Next.js starter, as a
+single-page app, and the same backend apart from the auth version and one rate
+limit. The end of How it works lists what works differently.
 
 ## What's included
 
@@ -161,10 +162,10 @@ Auth's limits in `nhost/nhost.toml` count requests per visitor address. The
 browser calls auth directly, so each visitor is counted by their own address,
 with no forwarded headers to trust.
 
-The brute-force limit allows 30 requests per address every 5 minutes. It
-counts every sign-in request, including the two-factor step, plus link and code
-checks and the two-factor check before a password change, so a passkey or
-two-factor sign-in uses two of them.
+The brute-force limit allows 30 requests per address every 5 minutes, where the
+Next.js starter allows 10. It counts every sign-in request, including the
+two-factor step, plus link and code checks and the two-factor check before a
+password change, so a passkey or two-factor sign-in uses two of them.
 
 The local stack sends at most 10 emails an hour. To reset these counts while
 you develop, restart `nhost up`.
@@ -174,9 +175,9 @@ you develop, restart `nhost up`.
 Avatars are private files. Storage needs the session in a header an `<img>`
 can't send, so `frontend/src/app/account/useAvatarSrc.ts` downloads the file
 and shows it through an object URL. `avatar_url` holds `/api/avatar/<id>`, the
-format the Next.js starter writes, so both starters can share a backend.
-Nothing serves that path here; it's only a format. Gravatar URLs are shown as
-they are.
+format the Next.js starter writes, so both starters can share a backend if it
+runs auth 0.53.0 or later. Nothing serves that path here; it's only a format.
+Gravatar URLs are shown as they are.
 
 Only PNG, JPEG, WebP and AVIF are allowed, up to 4 MB, and a downloaded file of
 any other type isn't shown. SVG and HTML are blocked because an object URL
@@ -231,6 +232,13 @@ With no server in front of auth, some guarantees change:
 - A session revoked elsewhere can show one page after a navigation before it
   lands on sign-in.
 - A password change pauses SDK requests in every tab while it signs back in.
+- The backend runs auth 0.53.0 rather than 0.52.0, because the code check
+  before a two-factor password change uses `/elevate/totp`, which older
+  versions don't have. On 0.52.0 that password change always fails.
+- The brute-force limit is 30 requests every 5 minutes rather than 10. A
+  passkey or two-factor sign-in spends two of them and the code check before a
+  password change spends another, so 10 ran out while trying the sign-in
+  methods.
 - With two-factor on, a password change checks the code before changing
   anything. The Next.js starter changes the password first, so there a wrong
   code still changes it and signs the user out.
