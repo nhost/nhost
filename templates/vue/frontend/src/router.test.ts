@@ -4,13 +4,19 @@ import { describe, expect, it } from 'vitest';
 import { createMemoryHistory, type RouteRecordRaw } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
 import App from '@/App.vue';
+import { createAuth } from '@/lib/nhost/auth';
 import { createAppRouter } from '@/router';
 import { mountAt } from '@/test/mount';
 
 async function render(path: string): Promise<string> {
   const router = createAppRouter(createMemoryHistory());
   await router.push(path);
-  return (await mountAt(App, path, { router })).el.innerHTML;
+  return (
+    await mountAt(App, path, {
+      router,
+      plugins: [createAuth({ router, recheck: () => undefined })],
+    })
+  ).el.innerHTML;
 }
 
 // The source file of every component a route renders.
@@ -29,10 +35,12 @@ describe('router', () => {
   });
 
   it('shows not found inside the root layout for a path without a page', async () => {
-    const html = await render('/nope');
+    for (const path of ['/nope', '/auth', '/auth/nope']) {
+      const html = await render(path);
 
-    expect(html).toContain('This page could not be found.');
-    expect(html).toContain('<nav');
+      expect(html).toContain('This page could not be found.');
+      expect(html).toContain('<nav');
+    }
   });
 
   it('makes routes of pages and layouts, not the components beside them', () => {

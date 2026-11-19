@@ -52,6 +52,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/auth/magic-link/': RouteRecordInfo<
+      '/auth/magic-link/',
+      '/auth/magic-link',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/signin/': RouteRecordInfo<
+      '/signin/',
+      '/signin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -84,6 +98,38 @@ declare module 'vue-router/auto-routes' {
     'src/app/account/index.vue': {
       routes:
         | '/account/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/_parent.vue': {
+      routes:
+        | '/auth/magic-link/'
+      views:
+        | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/magic-link/index.vue': {
+      routes:
+        | '/auth/magic-link/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/signin/_parent.vue': {
+      routes:
+        | '/signin/'
+      views:
+        | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/app/signin/index.vue': {
+      routes:
+        | '/signin/'
       views:
         | never
       pathParamNames:

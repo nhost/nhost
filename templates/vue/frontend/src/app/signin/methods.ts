@@ -30,4 +30,10 @@ export const buttons: SignInButtons[] = [];
 export const buttonSettings: AccountSetting[] = [];
 
 /** The sign-in methods this app offers, one entry each. */
-export const methods: SignInMethod[] = [];
+export const methods: SignInMethod[] = [
+  {
+    href: '/auth/magic-link',
+    title: 'Magic link',
+    description: 'Get a sign-in link by email.',
+  },
+];
