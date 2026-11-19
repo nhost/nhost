@@ -123,9 +123,10 @@ account page asks auth who the user is before it shows anything.
 from this site, which makes it harder to inject one. Keep it, and treat any
 third-party script you add as able to read the session.
 
-Most tests mock the client. Two use the real SDK client with a stubbed
-`fetch`, because a mock can't show what the SDK stores:
-`frontend/src/lib/nhost/session.integration.test.ts`, and
+Most tests mock the client. These use the real SDK client with a stubbed
+`fetch`, because a mock can't show what the SDK stores or sends:
+`client.test.ts`, `actions.test.ts` and `session.integration.test.ts` in
+`frontend/src/lib/nhost/`, and
 `frontend/src/app/auth/password/change/actions.integration.test.ts`, which sits
 in the password folder so it goes when the method does.
 
