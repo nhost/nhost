@@ -22,9 +22,14 @@ test: ## Run the Vale rule fixtures.
 	nix develop .\#$(NAME) -c bash $(ROOT_DIR)/.vale/test.sh
 
 
-.PHONY: lint
-lint: ## Lint repository Markdown with Vale, warnings included.
+.PHONY: lint-prose
+lint-prose: ## Lint repository Markdown with Vale, warnings included.
 	nix develop .\#$(NAME) -c bash $(ROOT_DIR)/.vale/lint_markdown.sh
+
+
+.PHONY: lint-prose-changed
+lint-prose-changed: ## Lint repository Markdown changed against main with Vale.
+	nix develop .\#$(NAME) -c bash $(ROOT_DIR)/.vale/lint_markdown.sh --changed
 
 
 .PHONY: spellcheck
