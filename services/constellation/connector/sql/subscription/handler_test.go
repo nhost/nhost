@@ -1,8 +1,10 @@
 package subscription_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strconv"
 	"sync"
@@ -247,6 +249,112 @@ func TestHandler_LifecycleNoPanic(t *testing.T) {
 
 			tt.do(h)
 		})
+	}
+}
+
+// streamStartupBarrier forces the poll's snapshot to run while Start is still
+// registering its first subscriber. A skipped empty poll is observable without
+// waiting for a timer tick, and the next tick is intentionally far away.
+type streamStartupBarrier struct {
+	slog.Handler
+
+	pollStarted chan struct{}
+	added       chan struct{}
+	skipped     chan struct{}
+	timedOut    chan struct{}
+}
+
+func (b *streamStartupBarrier) Handle(ctx context.Context, record slog.Record) error {
+	switch record.Message {
+	case "created new stream cohort":
+		select {
+		case <-b.pollStarted:
+		case <-time.After(2 * time.Second):
+			close(b.timedOut)
+		}
+	case "executing stream poll":
+		close(b.pollStarted)
+		<-b.added
+	case "added stream subscription to cohort":
+		close(b.added)
+	case "no subscriptions in stream cohort, skipping poll":
+		close(b.skipped)
+	}
+
+	if err := b.Handler.Handle(ctx, record); err != nil {
+		return fmt.Errorf("writing stream startup log: %w", err)
+	}
+
+	return nil
+}
+
+func TestHandler_Start_StreamFirstSubscriberBeforePoll(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	executor := submock.NewMockQueryExecutor(ctrl)
+	builder := submock.NewMockQueryBuilder(ctrl)
+	expectIsStreamSubscription(builder, true)
+	builder.EXPECT().BuildQuery(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+	).Return([]core.SQLOperation{streamOp()}, nil).AnyTimes()
+
+	const firstBatch = `{"events_stream":[{"id":1,"title":"hello"}]}`
+	executor.EXPECT().ExecuteMultiplexedQueryWithCursor(
+		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
+	).DoAndReturn(func(
+		_ context.Context,
+		_ core.SQLOperation,
+		ids []string,
+		_ map[string][]any,
+		_ map[string]any,
+		_ *slog.Logger,
+	) ([]subscription.MultiplexedResult, error) {
+		if len(ids) != 1 || ids[0] != "stream-1" {
+			t.Errorf("first poll subscriber IDs = %v, want [stream-1]", ids)
+		}
+
+		return []subscription.MultiplexedResult{
+			{SubscriptionID: "stream-1", Data: []byte(firstBatch)},
+		}, nil
+	}).AnyTimes()
+
+	barrier := &streamStartupBarrier{
+		Handler: slog.NewTextHandler(
+			&bytes.Buffer{},
+			&slog.HandlerOptions{Level: slog.LevelDebug},
+		),
+		pollStarted: make(chan struct{}),
+		added:       make(chan struct{}),
+		skipped:     make(chan struct{}),
+		timedOut:    make(chan struct{}),
+	}
+	logger := slog.New(barrier)
+
+	h := subscription.NewHandler(executor, builder, time.Hour, logger)
+	defer h.Shutdown(context.Background())
+
+	ch, err := h.Start(context.Background(), streamRequest("stream-1"), logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case <-barrier.timedOut:
+		t.Fatal("initial poll did not start while registering the first subscriber")
+	default:
+	}
+
+	select {
+	case <-barrier.skipped:
+		t.Fatal("initial poll skipped the first subscriber")
+	case update := <-ch:
+		if update.Error != nil || update.SubscriptionID != "stream-1" ||
+			string(update.Data) != firstBatch {
+			t.Fatalf("first stream update = %+v, want %s", update, firstBatch)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("first stream update never arrived")
 	}
 }
 

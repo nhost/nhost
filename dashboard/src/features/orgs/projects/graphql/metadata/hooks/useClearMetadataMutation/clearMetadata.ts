@@ -2,7 +2,7 @@ import type {
   ClearMetadataOperation,
   MetadataOperation200,
 } from '@/utils/hasura-api/generated/schemas';
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
+import { writeMetadata } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export default async function clearMetadata({
@@ -10,7 +10,7 @@ export default async function clearMetadata({
   adminSecret,
 }: MetadataOperationOptions) {
   try {
-    const response = await metadataOperation(
+    const response = await writeMetadata(
       {
         type: 'clear_metadata',
         args: {},

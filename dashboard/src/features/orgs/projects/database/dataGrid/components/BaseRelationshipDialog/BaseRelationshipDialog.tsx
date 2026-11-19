@@ -123,6 +123,7 @@ export default function BaseRelationshipDialog({
               placeholder="Name..."
               autoComplete="off"
               disabled={isEditing}
+              autoFocus
             />
 
             <SourceAndReferenceSelector />

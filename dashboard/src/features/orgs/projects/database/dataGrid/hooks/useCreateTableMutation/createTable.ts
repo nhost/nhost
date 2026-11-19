@@ -46,7 +46,7 @@ export default async function createTable({
     return;
   }
 
-  const normalizedError = normalizeQueryError(responseData);
+  const normalizedError = normalizeQueryError(responseData, { table });
 
   throw new Error(normalizedError);
 }

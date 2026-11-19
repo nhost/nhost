@@ -875,6 +875,10 @@ func TestApplyInsertPresets(t *testing.T) {
 			t.Errorf("not sorted: %v %v",
 				insertObj.Columns[0].Column.SQLName, insertObj.Columns[1].Column.SQLName)
 		}
+
+		if !insertObj.Columns[0].Preset || !insertObj.Columns[1].Preset {
+			t.Fatal("server presets lost their provenance")
+		}
 	})
 
 	t.Run("no-op when role has no presets", func(t *testing.T) {
@@ -912,6 +916,31 @@ func TestApplyInsertPresets(t *testing.T) {
 	})
 }
 
+func TestApplyInsertPresetsClientOverlapProvenance(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+	col := newColumn("owner", "owner_id", "integer")
+
+	tbl.EXPECT().InsertPresets("user").Return(map[string]any{"owner_id": "x-hasura-user-id"})
+	tbl.EXPECT().ColumnFromSQLName("owner_id").Return(col)
+
+	obj := arguments.InsertObject{
+		Columns: []arguments.InsertColumn{{Column: col, Value: 1}}, NestedInserts: nil,
+	}
+	if err := arguments.ApplyInsertPresets(
+		tbl, &obj, "user", map[string]any{"x-hasura-user-id": "9"},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(obj.Columns) != 2 || obj.Columns[0].Preset || !obj.Columns[1].Preset ||
+		obj.Columns[0].Value != 1 || obj.Columns[1].Value != "9" {
+		t.Fatalf("client and preset provenance = %+v", obj.Columns)
+	}
+}
+
 func TestInsertObject_ColumnNames(t *testing.T) {
 	t.Parallel()
 
@@ -927,121 +956,6 @@ func TestInsertObject_ColumnNames(t *testing.T) {
 	if len(got) != 2 || got[0] != "a_sql" || got[1] != "b_sql" {
 		t.Errorf("got=%v want=[a_sql b_sql]", got)
 	}
-}
-
-func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
-	t.Parallel()
-
-	t.Run("object relationship: no-op", func(t *testing.T) {
-		t.Parallel()
-
-		n := arguments.NestedInsert{
-			RelationshipName:    "author",
-			TargetTable:         nil,
-			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:          nil,
-			ForeignKeyColumns:   []string{"fk"},
-			IsArrayRelationship: false,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if len(fk) != 0 {
-			t.Errorf("object rel must produce empty map, got %v", fk)
-		}
-	})
-
-	t.Run("array relationship: appends FK column to every row", func(t *testing.T) {
-		t.Parallel()
-
-		ctrl := gomock.NewController(t)
-		target := mock.NewMockTable(ctrl)
-
-		fkCol := newColumn("fk", "fk", "uuid")
-		target.EXPECT().ColumnFromSQLName("fk").Return(fkCol)
-
-		n := arguments.NestedInsert{
-			RelationshipName: "posts",
-			TargetTable:      target,
-			NestedObjects: []arguments.InsertObject{
-				{Columns: nil, NestedInserts: nil},
-				{Columns: nil, NestedInserts: nil},
-			},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: map[string]string{"fk": "id"},
-			IsArrayRelationship:     true,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if got, ok := fk["fk"]; !ok || got.CTEName != "parent_cte" || got.ColumnName != "id" {
-			t.Errorf("fk map = %v, want fk=parent_cte.id", fk)
-		}
-
-		for i, row := range n.NestedObjects {
-			if len(row.Columns) != 1 || row.Columns[0].Column != fkCol {
-				t.Errorf("row %d: expected fk column appended; got %+v", i, row.Columns)
-			}
-		}
-	})
-
-	t.Run("array relationship: missing FK column is silently skipped", func(t *testing.T) {
-		t.Parallel()
-
-		ctrl := gomock.NewController(t)
-		target := mock.NewMockTable(ctrl)
-		target.EXPECT().ColumnFromSQLName("fk").Return(nil)
-
-		n := arguments.NestedInsert{
-			RelationshipName:        "posts",
-			TargetTable:             target,
-			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: map[string]string{"fk": "id"},
-			IsArrayRelationship:     true,
-		}
-
-		fk, err := n.ApplyArrayFKColumn("parent_cte")
-		if err != nil {
-			t.Fatalf("ApplyArrayFKColumn: %v", err)
-		}
-
-		if len(n.NestedObjects[0].Columns) != 0 {
-			t.Errorf("expected no column appended; got %+v", n.NestedObjects[0].Columns)
-		}
-
-		// FK index entry is still added, regardless of column resolution.
-		if fk["fk"].CTEName != "parent_cte" || fk["fk"].ColumnName != "id" {
-			t.Errorf("fk map = %v, expected fk=parent_cte.id entry", fk)
-		}
-	})
-
-	t.Run("array relationship: missing source column errors", func(t *testing.T) {
-		t.Parallel()
-
-		n := arguments.NestedInsert{
-			RelationshipName:        "posts",
-			TargetTable:             nil,
-			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:              nil,
-			ForeignKeyColumns:       []string{"fk"},
-			ForeignKeySourceColumns: nil,
-			IsArrayRelationship:     true,
-		}
-
-		_, err := n.ApplyArrayFKColumn("parent_cte")
-		if err == nil {
-			t.Fatal("expected missing source column error")
-		}
-	})
 }
 
 func TestParseInsert_NestedRelationship(t *testing.T) {
@@ -1061,6 +975,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
 	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+	rel.EXPECT().InsertAfterParent().Return(false)
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -1109,6 +1024,7 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
 	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+	rel.EXPECT().InsertAfterParent().Return(false)
 	rel.EXPECT().IsArray().Return(true)
 
 	// Each element of the list is parsed independently.

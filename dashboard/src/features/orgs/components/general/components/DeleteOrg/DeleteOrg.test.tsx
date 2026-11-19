@@ -107,7 +107,7 @@ async function acknowledgeDeletionAction(
 ) {
   await user.click(
     within(dialog).getByRole('checkbox', {
-      name: "I'm sure I want to delete this Organization",
+      name: "I'm sure I want to delete this organization",
     }),
   );
 }
@@ -254,7 +254,7 @@ describe('DeleteOrg', () => {
     expect(getConfirmationInput(reopenedDialog)).toHaveValue('');
     expect(
       within(reopenedDialog).getByRole('checkbox', {
-        name: "I'm sure I want to delete this Organization",
+        name: "I'm sure I want to delete this organization",
       }),
     ).not.toBeChecked();
     expect(

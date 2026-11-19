@@ -131,6 +131,13 @@
             ;
         };
 
+        templatesf = import ./templates/project.nix {
+          inherit
+            pkgs
+            nixops-lib
+            ;
+        };
+
         functionsf = import ./services/functions/project.nix {
           inherit
             self
@@ -189,6 +196,11 @@
             ;
         };
 
+        sharedCI = import ./ci/shared-ci.nix {
+          inherit pkgs;
+          revision = self.rev or null;
+        };
+
         nixopsf = import ./nixops/project.nix {
           inherit
             self
@@ -208,6 +220,14 @@
         };
 
         nhostclientf = import ./internal/lib/nhostclient/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        pgmigratef = import ./internal/lib/pgmigrate/project.nix {
           inherit
             self
             pkgs
@@ -240,12 +260,21 @@
             ;
         };
 
+        valef = import ./tools/vale/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
       in
       {
         checks = {
           ai = aif.check;
           auth = authf.check;
           betterleaks = betterleaksf.check;
+          ci = import ./ci/ci.nix { inherit pkgs; };
           cli = clif.check;
           codegen = codegenf.check;
           configdocs = configdocsf.check;
@@ -264,9 +293,17 @@
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
+          pgmigrate = pgmigratef.check;
           postgres = postgresf.check;
           storage = storagef.check;
+          templates = templatesf.check;
           tutorials = tutorialsf.check;
+          vale = valef.check;
+        };
+
+        apps.sync-ci = {
+          type = "app";
+          program = "${sharedCI.sync}/bin/sync-ci";
         };
 
         devShells = flake-utils.lib.flattenTree {
@@ -415,9 +452,12 @@
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
+          pgmigrate = pgmigratef.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
+          templates = templatesf.devShell;
           tutorials = tutorialsf.devShell;
+          vale = valef.devShell;
         };
 
         packages = flake-utils.lib.flattenTree {
@@ -426,6 +466,7 @@
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
           betterleaks = betterleaksf.package;
+          ci-files = sharedCI.files;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
@@ -477,7 +518,9 @@
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
           storage-vips = storagef.vips;
+          sync-ci = sharedCI.sync;
           clamav-docker-image = storagef.clamav-docker-image;
+          templates = templatesf.package;
           tutorials = tutorialsf.package;
         };
       }

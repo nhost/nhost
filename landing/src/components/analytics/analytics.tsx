@@ -9,7 +9,13 @@ export default function Analytics() {
 
     analytics.page();
 
-    const handleRouteChange = () => analytics.page();
+    // Shallow route changes include the blog search syncing each keystroke
+    // into `?q=`; tracking those would stream the search term to Segment.
+    const handleRouteChange = (_url: string, { shallow }: { shallow: boolean }) => {
+      if (!shallow) {
+        analytics.page();
+      }
+    };
 
     router.events.on('routeChangeComplete', handleRouteChange);
 

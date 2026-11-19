@@ -1,3 +1,83 @@
+## [@nhost/dashboard@3.10.1] - 2026-11-17
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Elevation method buttons squashed on desktop (#5396)
+
+## [@nhost/dashboard@3.10.0] - 2026-11-17
+
+### 🚀 Features
+
+- *(dashboard)* Extend the table view menu (#5337)
+- *(dashboard)* New projects page with status pills (#5328)
+- *(dashboard)* Add session elevation with TOTP and SMS/email OTP (#5059)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Dark mode contrast and darker background (#5340)
+- *(dashboard)* Cleaner environment variables page (#5313)
+- *(dashboard)* Frosted sticky header in the config editor (#5334)
+- *(dashboard)* Give each organization plan tag its own color (#5351)
+- *(dashboard)* Cleaner secrets page and a clearer replace popup (#5314)
+- *(dashboard)* Members page redesign (#5335)
+- *(dashboard)* Organization settings redesign (#5348)
+- *(dashboard)* Show admin-only delete notice as an Alert (#5353)
+- *(dashboard)* Auto focus (#5366)
+- *(dashboard)* Responsive form control sizes (#5218)
+- *(dashboard)* Add region on project cards (#5376)
+- *(dashboard)* Preserve HTTP assets in the development CSP (#5383)
+- *(dashboard)* Gate auth CAPTCHA on development environment and site key (#5384)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5278)
+
+## [@nhost/dashboard@3.9.0] - 2026-11-10
+
+### 🚀 Features
+
+- *(dashboard)* Add a stacked bar metrics chart (#5221)
+- *(dashboard)* Add a multi-column unique constraint editor (#5095)
+- *(dashboard)* Deploy a branch, tag or commit from the Deployments page (#5232)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Buttons round 4, remove one off button styles (#5235)
+- *(dashboard)* One edit icon and one look for three dots menus (#5248)
+- *(dashboard)* Make the name in the delete confirmation popups easy to copy and see (#5233)
+- *(dashboard)* Untick the delete account checkbox on cancel (#5291)
+- *(dashboard)* Icon buttons use the subtle style (#5231)
+- *(dashboard)* Give most popups the same look (#5217)
+- *(dashboard)* One copy button look everywhere (#5249)
+- *(dashboard)* Compact GitHub sync notice on settings pages (#5288)
+- *(dashboard)* Consistent settings cards (#5289)
+- *(dashboard)* Keep the metrics chart legend from interfering with tooltips (#5209)
+- *(dashboard)* More inner padding on settings cards (#5299)
+- *(dashboard)* Docs links as a help icon next to settings card titles (#5300)
+- *(dashboard)* Settings page titles (#5298)
+- *(dashboard)* Clear cached project config when switching projects (#5255)
+- *(dashboard)* Secondary button refresh (#5311)
+- *(dashboard)* Easier to see checkbox outlines (#5302)
+- *(dashboard)* Tooltips no longer block the buttons under them (#5312)
+- *(dashboard)* No top line on flat outline buttons (#5327)
+- *(dashboard)* Configuration editor in the settings column (#5315)
+- *(dashboard)* Redesign the General page in project settings (#5303)
+- *(dashboard)* Save local metadata changes to the project files (#5326)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use the primary token instead of primary-main (#5250)
+- *(ci)* Update dependencies due to CVEs (#5307)
+
+
+### Chore
+
+- *(deps)* Fix workspace minimatch, glob and graphql-scalars audits (#5330)
+
 ## [@nhost/dashboard@3.8.1] - 2026-10-26
 
 ### 🐛 Bug Fixes

@@ -71,6 +71,7 @@ export default function CreateOneOffForm() {
                     name="comment"
                     label="Comment"
                     placeholder="A statement to help describe the scheduled event in brief"
+                    autoFocus
                     className="max-w-lg"
                     autoComplete="off"
                   />

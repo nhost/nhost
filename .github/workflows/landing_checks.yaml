@@ -3,6 +3,7 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/actions/setup-nix/**"
       - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/landing_checks.yaml"
       - ".github/actions/cache-nix/**"
@@ -24,6 +25,9 @@ on:
 
       # landing
       - landing/**
+
+      # prose: the Vale styles, shared with the docs and repository Markdown
+      - .vale/styles/**
   merge_group:
 
 concurrency:
@@ -36,6 +40,7 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/actions/setup-nix/**
         .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/landing_checks.yaml
         .github/actions/cache-nix/**
@@ -51,11 +56,12 @@ jobs:
         pnpm-lock.yaml
         turbo.json
         landing/**
+        .vale/styles/**
 
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: nhost-aarch64-1c1g
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
@@ -67,8 +73,9 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: '["nhost-aarch64-4c8g"]'
       NAME: landing
-      PATH: landing
+      PROJECT: landing
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -84,6 +91,7 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
+      RUNS_ON: nhost-x86_64-2c4g
       NAME: landing
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview

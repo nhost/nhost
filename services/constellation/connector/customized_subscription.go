@@ -61,7 +61,11 @@ func (h *customizedSubscriptionHandler) Start(
 	// Keep the customized operation for reshaping updates; run the native one.
 	customizedOp, customizedFragments := req.Operation, req.Fragments
 
-	nativeOp, nativeFragments := h.customizer.ReverseOperation(req.Operation, req.Fragments)
+	nativeOp, nativeFragments := h.customizer.ReverseOperation(
+		req.Operation,
+		req.Fragments,
+		req.Variables,
+	)
 
 	nativeReq := req
 	nativeReq.Operation = nativeOp

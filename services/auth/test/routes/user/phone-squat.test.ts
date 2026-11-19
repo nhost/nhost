@@ -41,7 +41,7 @@ describe('phone-number squat vs claim', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
     });
   });

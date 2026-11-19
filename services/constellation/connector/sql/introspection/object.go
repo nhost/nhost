@@ -32,6 +32,17 @@ type Objects struct {
 	EnumValues map[string][]EnumValue
 	// Functions maps "schema.function_name" to the function metadata.
 	Functions map[string]*Function
+	// ComputedFunctions maps a table identity then metadata field name to a
+	// resolved PostgreSQL signature or field-local invalidity. It is not
+	// part of the existing introspection JSON/golden contract or root functions.
+	ComputedFunctions map[ComputedTable]map[string]ComputedFunctionLookup `json:"-"`
+}
+
+// ComputedTable identifies a computed field's owning table without ambiguity
+// for quoted PostgreSQL identifiers containing periods.
+type ComputedTable struct {
+	Schema string
+	Name   string
 }
 
 // NewObjects returns an Objects with all three required maps initialised to empty.
@@ -39,9 +50,10 @@ type Objects struct {
 // lookup helpers (GetTable, GetEnumValues, GetFunction) can rely on non-nil maps.
 func NewObjects() *Objects {
 	return &Objects{
-		Schemas:    map[string]*Schema{},
-		EnumValues: map[string][]EnumValue{},
-		Functions:  map[string]*Function{},
+		Schemas:           map[string]*Schema{},
+		EnumValues:        map[string][]EnumValue{},
+		Functions:         map[string]*Function{},
+		ComputedFunctions: nil,
 	}
 }
 
@@ -76,6 +88,20 @@ func (o *Objects) GetFunction(schemaName, funcName string) (*Function, bool) {
 	return fn, ok
 }
 
+// GetComputedFunction returns the lookup result for a table-owned field.
+func (o *Objects) GetComputedFunction(
+	schemaName, tableName, fieldName string,
+) (ComputedFunctionLookup, bool) {
+	fields, ok := o.ComputedFunctions[ComputedTable{Schema: schemaName, Name: tableName}]
+	if !ok {
+		return ComputedFunctionLookup{Function: nil, Reason: ""}, false
+	}
+
+	result, ok := fields[fieldName]
+
+	return result, ok
+}
+
 // Schema represents a database schema with its tables.
 // The schema name is the key in Objects.Schemas.
 type Schema struct {
@@ -88,20 +114,32 @@ type Column struct {
 	Name string
 	// Type is the database-native type name (e.g. "text", "int4", "_text").
 	Type string
+	// PhysicalSQLType is the PostgreSQL catalog's original, schema-qualified
+	// and SQL-quoted pg_type identity, without the column typmod. Unlike Type
+	// it does not unwrap domains or array element types. Empty on SQLite and
+	// hand-built test objects.
+	PhysicalSQLType string
+	// RestoreSQLType is the typmod-bearing SQL type for a plain bpchar(n)
+	// column. Restoring captured text to this same column re-pads its value;
+	// cross-column FK replay must use PhysicalSQLType instead. Empty for all
+	// other types and on SQLite.
+	RestoreSQLType string
 	// IsNullable is true if the column accepts NULL.
 	IsNullable bool
-	// IsGenerated is true if the column is computed by the database and
-	// therefore must be omitted from insert/update mutations.
+	// IsGenerated is true for computed columns and GENERATED ALWAYS AS
+	// IDENTITY columns. Both must be omitted from insert/update inputs
+	// because the database rejects explicit non-DEFAULT values.
 	IsGenerated bool
 	// IsIdentity is true if the column auto-populates from a database-managed
 	// source the insert payload cannot meaningfully precompute: PostgreSQL
 	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
 	// and SQLite INTEGER PRIMARY KEY rowid aliases. The metadata for these
-	// columns lives outside pg_attrdef / PRAGMA dflt_value, so IsGenerated and
-	// the Default field stay zero — IsIdentity is the dedicated bit that lets
-	// the queries layer recognise them and force the insert-check predicate to
-	// run after the INSERT (against the inserted row) rather than against the
-	// payload.
+	// columns lives outside pg_attrdef / PRAGMA dflt_value, so Default stays
+	// nil. IsGenerated is also true for ALWAYS identities, but false for
+	// BY DEFAULT identities and rowid aliases, which accept explicit values.
+	// IsIdentity lets the queries layer recognise all of them and force the
+	// insert-check predicate to run after the INSERT (against the inserted row)
+	// rather than against the payload.
 	IsIdentity bool
 	// IsArray is true if the column is a PostgreSQL array type (e.g. "_text").
 	// SQLite columns always set this to false.

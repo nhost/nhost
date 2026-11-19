@@ -1,7 +1,10 @@
 package integration_test
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestRemoteSchemaQueries(t *testing.T) { //nolint:paralleltest,maintidx
@@ -481,6 +484,110 @@ func TestRemoteSchemaQueries(t *testing.T) { //nolint:paralleltest,maintidx
 		IsMutation:           false,
 		ReinitBetweenQueries: false,
 	})
+}
+
+// TestRemoteSchemaNamespaceReference compares read-only wrapper fragments against
+// the pinned live Hasura instance without changing shared metadata or remote data.
+//
+//nolint:paralleltest // Keep live comparisons serial on the shared integration stack.
+func TestRemoteSchemaNamespaceReference(
+	t *testing.T,
+) {
+	version, err := referenceVersion(t.Context(), hasuraURL)
+	if err != nil {
+		t.Fatalf("Hasura connectivity/version: %v", err)
+	}
+
+	if version != "v2.50.3-ce" {
+		t.Fatalf("unexpected Hasura version %q (expected v2.50.3-ce)", version)
+	}
+
+	if _, err := referenceVersion(t.Context(), constellationURL); err != nil {
+		t.Fatalf("Constellation connectivity/version: %v", err)
+	}
+
+	headers := http.Header{}
+	headers.Set("x-hasura-admin-secret", adminSecret)
+
+	cases := []struct {
+		name, document string
+	}{
+		{
+			name: "inline directive",
+			document: `query Op($show: Boolean!) {
+				eng: league {
+					team(id: "team-eng") { id }
+					... @include(if: $show) { hr: team(id: "team-hr") { id } }
+				}
+			}`,
+		},
+		{
+			name: "typed inline directive",
+			document: `query Op($show: Boolean!) {
+				eng: league {
+					team(id: "team-eng") { id }
+					... on leagueQuery @include(if: $show) {
+						hr: team(id: "team-hr") { id }
+					}
+				}
+			}`,
+		},
+		{
+			name: "named wrapper spread",
+			document: `query Op($show: Boolean!) {
+				eng: league {
+					team(id: "team-eng") { id }
+					...Extra @include(if: $show)
+				}
+			}
+			fragment Extra on leagueQuery { hr: team(id: "team-hr") { id } }`,
+		},
+	}
+
+	for _, tc := range cases {
+		for _, show := range []bool{true, false} {
+			name := tc.name + "/false"
+			if show {
+				name = tc.name + "/true"
+			}
+
+			//nolint:paralleltest // Keep both engines' reads paired in each subtest.
+			t.Run(name, func(t *testing.T) {
+				request := query{
+					Query: tc.document, OperationName: "Op",
+					Variables: map[string]any{"show": show}, Role: "admin",
+				}
+
+				wantLeague := map[string]any{"team": map[string]any{"id": "team-eng"}}
+				if show {
+					wantLeague["hr"] = map[string]any{"id": "team-hr"}
+				}
+
+				want := map[string]any{"data": map[string]any{"eng": wantLeague}}
+
+				hasura, err := makeHTTPQuery(t.Context(), hasuraURL, request, headers)
+				if err != nil {
+					t.Fatalf("Hasura query: %v", err)
+				}
+
+				if diff := cmp.Diff(want, hasura); diff != "" {
+					t.Fatalf("Hasura namespace fragment result changed (-want +got):\n%s", diff)
+				}
+
+				constellation, err := makeHTTPQuery(t.Context(), constellationURL, request, headers)
+				if err != nil {
+					t.Fatalf("Constellation query: %v", err)
+				}
+
+				if diff := cmp.Diff(hasura, constellation); diff != "" {
+					t.Errorf(
+						"namespace fragment responses differ (-hasura +constellation):\n%s",
+						diff,
+					)
+				}
+			})
+		}
+	}
 }
 
 func TestRemoteSchemaMutations(t *testing.T) { //nolint:paralleltest

@@ -1,6 +1,6 @@
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -41,6 +41,26 @@ export default function DatabaseObjectListItem({
   } = useRouter();
 
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [isNameTruncated, setIsNameTruncated] = useState(false);
+  const nameRef = useRef<HTMLSpanElement>(null);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new name can change the scroll width without resizing the element.
+  useEffect(() => {
+    const nameElement = nameRef.current;
+
+    if (!nameElement) {
+      return undefined;
+    }
+
+    const checkTruncation = () =>
+      setIsNameTruncated(nameElement.scrollWidth > nameElement.clientWidth);
+
+    const resizeObserver = new ResizeObserver(checkTruncation);
+    resizeObserver.observe(nameElement);
+    checkTruncation();
+
+    return () => resizeObserver.disconnect();
+  }, [databaseObject.name]);
 
   const {
     removableObject,
@@ -104,7 +124,7 @@ export default function DatabaseObjectListItem({
   return (
     <li className="group pb-1">
       <Tooltip
-        open={isUntracked && isTooltipOpen}
+        open={(isUntracked || isNameTruncated) && isTooltipOpen}
         onOpenChange={setIsTooltipOpen}
       >
         <TooltipTrigger asChild>
@@ -114,7 +134,7 @@ export default function DatabaseObjectListItem({
             size="sm"
             disabled={objectKey === removableObject}
             className={cn(
-              'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
+              'relative flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
               {
                 'bg-table-selected': isSelected,
               },
@@ -123,9 +143,10 @@ export default function DatabaseObjectListItem({
             <div>
               <NextLink
                 className={cn(
-                  'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
+                  'flex h-full w-full min-w-0 items-center gap-1.5 p-2.5 pr-2 text-left group-focus-within:pr-8 group-hover:pr-8',
                   {
                     'text-primary': isSelected,
+                    'pr-8': isSelected || isSidebarMenuOpen,
                   },
                 )}
                 onClick={() => {
@@ -135,7 +156,8 @@ export default function DatabaseObjectListItem({
               >
                 <DatabaseObjectIcon className="h-4 w-4 shrink-0 text-primary" />
                 <span
-                  className={cn('!truncate text-ellipsis', {
+                  ref={nameRef}
+                  className={cn('min-w-0 truncate', {
                     italic: isUntracked,
                     'opacity-50': isUntracked && !isSelected,
                   })}
@@ -152,7 +174,7 @@ export default function DatabaseObjectListItem({
                 onOpen={() => setSidebarMenuObject(objectKey)}
                 onClose={() => setSidebarMenuObject(undefined)}
                 className={cn(
-                  'relative z-10 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                  'absolute right-1 z-10 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                   {
                     'opacity-100': isSelected || isSidebarMenuOpen,
                   },
@@ -214,8 +236,17 @@ export default function DatabaseObjectListItem({
             </div>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8}>
-          Not tracked in GraphQL
+        <TooltipContent
+          side="right"
+          sideOffset={8}
+          className="flex max-w-sm flex-col gap-0.5 break-all"
+        >
+          {isNameTruncated && <span>{databaseObject.name}</span>}
+          {isUntracked && (
+            <span className={cn({ 'text-muted-foreground': isNameTruncated })}>
+              Not tracked in GraphQL
+            </span>
+          )}
         </TooltipContent>
       </Tooltip>
     </li>

@@ -335,12 +335,14 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             alertDialogProps?.PaperProps?.className,
           )}
           onOpenAutoFocus={(event) => {
-            // Radix otherwise focuses AlertDialogCancel, which this provider does not render.
+            // Radix looks for an AlertDialogCancel, which this provider does not render.
+            // Focus the secondary (cancel) action first so Enter never confirms a
+            // destructive primary action by accident.
             event.preventDefault();
             const content = alertContentRef.current;
             (
-              primaryButtonRef.current ??
               secondaryButtonRef.current ??
+              primaryButtonRef.current ??
               content?.querySelector<HTMLElement>(
                 'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
               ) ??
@@ -368,6 +370,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           >
             <div
               className={cn(
+                'min-w-0',
                 (!alertDialogProps?.hidePrimaryAction ||
                   !alertDialogProps?.hideSecondaryAction) &&
                   'pb-12',
@@ -395,7 +398,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {!alertDialogProps?.hidePrimaryAction && (
                 <Button
                   ref={primaryButtonRef}
-                  className="w-full sm:w-auto"
+                  className="w-full gap-2 sm:w-auto"
                   variant={
                     alertDialogProps?.primaryButtonColor === 'error'
                       ? 'destructive'
@@ -461,7 +464,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
                 dialogProps?.titleProps?.className,
               )}
             >
-              <DialogTitle className="font-semibold text-xl leading-7 tracking-normal">
+              <DialogTitle className="min-w-0 font-semibold text-xl leading-7 tracking-normal">
                 {dialogTitle}
               </DialogTitle>
               {dialogProps?.titleProps?.onClose && (

@@ -150,6 +150,8 @@ sequenceDiagram
 
 Any signed-in user with a verified email can add a security key to their user account. It's possible to add multiple security keys.
 
+Both registration endpoints are protected by [`auth.elevatedPrivileges`](/products/auth/elevated-permissions#protecting-auth-data). In `required` mode, a user with no available elevation method can add their first key without elevating. If they already have an available method, including TOTP or a verified email or phone number with OTP enabled, they must elevate first, even when registering their first security key.
+
 ```tsx
 import { startRegistration } from '@simplewebauthn/browser';
 
@@ -183,9 +185,13 @@ sequenceDiagram
 	A->>-U: OK
 ```
 
+## Elevate a Session
+
+A signed-in user with a registered security key can also use it to [elevate their session](/products/auth/elevated-permissions#elevating-a-session) before a sensitive action. Use `elevateWebauthn` and `verifyElevateWebauthn` rather than the sign-in endpoints; the SDK stores the returned elevated session automatically.
+
 ## List or Remove Security Keys
 
-To list and remove security keys, use GraphQL and set permissions on the `auth.security_keys` table:
+To list and remove security keys, use GraphQL and set permissions on the `auth.user_security_keys` table. The `auth.elevatedPrivileges` setting only protects Auth API endpoints; require `x-hasura-auth-elevated` in your GraphQL delete permissions if removing a key should require elevation:
 
 ```graphql
 query securityKeys($userId: uuid!) {

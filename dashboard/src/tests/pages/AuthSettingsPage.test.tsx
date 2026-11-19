@@ -205,12 +205,18 @@ describe('AuthSettingsPage', () => {
     expect(settingsQuery).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, 'unknown', ['smtp', 'jwt']])(
-    'redirects the %s tab to the default tab',
-    (tab) => {
+  it.each([undefined, 'unknown'])(
+    'shows the default tab for the %s tab and corrects the URL',
+    async (tab) => {
       loadProject();
       renderTab(tab);
 
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Sign-In Methods' }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Email and Password' }),
+      ).toBeInTheDocument();
       expect(mockRouter.replace).toHaveBeenCalledWith(
         {
           pathname: SETTINGS_ROUTE,
@@ -231,31 +237,37 @@ describe('AuthSettingsPage', () => {
   });
 
   it.each([
-    ['sign-in-methods', 'Email and Password'],
-    ['oauth2-provider', 'OAuth2 Provider'],
-    ['smtp', 'SMTP Settings'],
-    ['authentication', 'Client URL'],
-    ['roles-and-permissions', 'Default Allowed Roles'],
-    ['jwt', 'JSON Web Token Settings'],
-    ['custom-domain', 'Auth Custom Domain'],
-    ['rate-limiting', 'Auth'],
-  ])('renders the selected %s settings content', async (tab, heading) => {
-    loadProject();
-    renderTab(tab);
+    ['sign-in-methods', 'Sign-In Methods', 'Email and Password'],
+    ['oauth2-provider', 'OAuth2 Provider', 'OAuth2 Provider'],
+    ['smtp', 'SMTP', 'SMTP Settings'],
+    ['authentication', 'Authentication', 'Client URL'],
+    ['roles-and-permissions', 'Roles and Permissions', 'Default Allowed Roles'],
+    ['jwt', 'JWT', 'JSON Web Token Settings'],
+    ['custom-domain', 'Custom Domain', 'Auth Custom Domain'],
+    ['rate-limiting', 'Rate Limiting', 'Auth'],
+  ])(
+    'renders the selected %s settings content',
+    async (tab, title, heading) => {
+      loadProject();
+      renderTab(tab);
 
-    expect(
-      await screen.findByRole('heading', { name: heading }),
-    ).toBeInTheDocument();
-    expect(mockRouter.replace).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole('heading', {
-        name:
-          tab === 'sign-in-methods'
-            ? 'Auth Custom Domain'
-            : 'Email and Password',
-      }),
-    ).not.toBeInTheDocument();
-  });
+      expect(
+        screen.getByRole('heading', { level: 1, name: title }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { level: 3, name: heading }),
+      ).toBeInTheDocument();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(
+        screen.queryByRole('heading', {
+          name:
+            tab === 'sign-in-methods'
+              ? 'Auth Custom Domain'
+              : 'Email and Password',
+        }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it('selects the desktop link and keeps settings reachable while paused', async () => {
     loadProject();

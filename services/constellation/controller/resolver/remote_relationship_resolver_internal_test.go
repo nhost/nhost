@@ -469,11 +469,12 @@ func TestRemovePhantomFieldsFromPlan(t *testing.T) {
 			},
 		}
 
-		// Two queries with the same parent path
+		// Two null-key relationships with the same parent path still get their
+		// response field while their shared phantom is removed only once.
 		remoteQueries := []*remoteQuery{
 			{
 				targetConnector:     "",
-				alias:               "",
+				alias:               "department",
 				isArray:             false,
 				joinArguments:       nil,
 				sourceField:         nil,
@@ -486,7 +487,7 @@ func TestRemovePhantomFieldsFromPlan(t *testing.T) {
 			},
 			{
 				targetConnector:     "",
-				alias:               "",
+				alias:               "department",
 				isArray:             false,
 				joinArguments:       nil,
 				sourceField:         nil,
@@ -517,8 +518,8 @@ func TestRemovePhantomFieldsFromPlan(t *testing.T) {
 			t.Fatal("teams[0] is not map[string]any")
 		}
 
-		// Should only have name and extra (departmentId removed once)
-		expected := map[string]any{"name": "Team A", "extra": "value"}
+		// The explicit null relationship is present; the phantom is gone.
+		expected := map[string]any{"name": "Team A", "extra": "value", "department": nil}
 		if diff := cmp.Diff(expected, team); diff != "" {
 			t.Errorf("unexpected result (-want +got):\n%s", diff)
 		}

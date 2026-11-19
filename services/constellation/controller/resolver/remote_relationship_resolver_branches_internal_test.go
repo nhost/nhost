@@ -534,3 +534,31 @@ func TestRemoteRelationshipResolver_MultipleQueriesAllResolved(t *testing.T) {
 		t.Errorf("owner mismatch (-want +got):\n%s", diff)
 	}
 }
+
+// Null-key paths must preserve the response field without executing a target
+// query. Remote-schema null LHS is covered here without claiming Hasura parity.
+func TestRemoteRelationshipResolver_AllNullKeyStitchesAliasesAndNested(t *testing.T) {
+	t.Parallel()
+
+	results := map[string]any{"parents": []any{
+		map[string]any{"child": map[string]any{"key": nil}},
+		map[string]any{"child": map[string]any{"key": nil}},
+	}}
+
+	rq := &remoteQuery{
+		alias: "aliased", parentPath: jsonpath.Parse("parents.child"),
+		joinArguments: nil, sourceColumns: []string{"key"},
+		resolver: newSchemaResolver([]string{"key"}, nil),
+	}
+	if err := New(nil).Resolve(context.Background(), results, []*remoteQuery{rq}, nil, nil,
+		"admin", nil, slog.Default()); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, parent := range results["parents"].([]any) { //nolint:forcetypeassert // fixture shape
+		child := parent.(map[string]any)["child"].(map[string]any) //nolint:forcetypeassert // fixture shape
+		if value, exists := child["aliased"]; !exists || value != nil {
+			t.Errorf("expected explicit null under alias: %#v", child)
+		}
+	}
+}

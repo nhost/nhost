@@ -3,6 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import React from 'react';
 
 import { Button } from '@/components/ui/v3/button';
+import { controlHeight } from '@/components/ui/v3/control';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { cn } from '@/lib/utils';
@@ -14,7 +15,8 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
       role="group"
       className={cn(
         'group/input-group relative flex w-full items-center rounded-md border border-input shadow-xs outline-none transition-colors dark:bg-input/30',
-        'h-9 min-w-0 has-[>textarea]:h-auto',
+        controlHeight,
+        'min-w-0 has-[>textarea]:h-auto',
 
         // Variants based on alignment.
         'has-[>[data-align=inline-start]]:[&>input]:pl-2',
@@ -103,6 +105,15 @@ const inputGroupButtonVariants = cva(
   },
 );
 
+// Fixed (non-responsive) Button sizes under each input group button size, so
+// the responsive default Button height can't leak into the input group.
+const buttonSizeByInputGroupButtonSize = {
+  xs: 'xs',
+  sm: 'xs',
+  'icon-xs': 'icon-xs',
+  'icon-sm': 'icon-sm',
+} as const;
+
 function InputGroupButton({
   className,
   type = 'button',
@@ -116,6 +127,7 @@ function InputGroupButton({
       type={type}
       data-size={size}
       variant={variant}
+      size={buttonSizeByInputGroupButtonSize[size ?? 'xs']}
       className={cn(inputGroupButtonVariants({ size }), className)}
       {...props}
     />
@@ -143,7 +155,7 @@ const InputGroupInput = React.forwardRef<
       data-slot="input-group-control"
       wrapperClassName={cn('min-w-0 flex-1', wrapperClassName)}
       className={cn(
-        'flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent',
+        'h-full flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 md:h-full dark:bg-transparent',
         className,
       )}
       ref={ref}

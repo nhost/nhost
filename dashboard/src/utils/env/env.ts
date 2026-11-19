@@ -99,23 +99,33 @@ export function getConfigServerUrl() {
 }
 
 /**
- * Custom URL of the Logs GraphQL service for the local dashboard.
+ * Custom URL of the Logs GraphQL service for the local dashboard. Falls back
+ * to the default local URL when the value is missing or has not been
+ * substituted by docker-entrypoint.sh.
  */
 export function getGraphqlLogsServiceUrl() {
-  return (
-    process.env.NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL ||
-    'https://local.dashboard.local.nhost.run/v1/logs/graphql'
-  );
+  const url = process.env.NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL;
+
+  if (!url || url.startsWith('__')) {
+    return 'https://local.dashboard.local.nhost.run/v1/logs/graphql';
+  }
+
+  return url;
 }
 
 /**
- * Custom WebSocket URL of the Logs service for the local dashboard.
+ * Custom WebSocket URL of the Logs service for the local dashboard. Falls back
+ * to the default local URL when the value is missing or has not been
+ * substituted by docker-entrypoint.sh.
  */
 export function getLogsWebsocketUrl() {
-  return (
-    process.env.NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET ||
-    'wss://local.dashboard.local.nhost.run/v1/logs/graphql'
-  );
+  const url = process.env.NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET;
+
+  if (!url || url.startsWith('__')) {
+    return 'wss://local.dashboard.local.nhost.run/v1/logs/graphql';
+  }
+
+  return url;
 }
 
 /**

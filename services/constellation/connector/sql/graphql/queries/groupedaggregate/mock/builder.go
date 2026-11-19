@@ -55,3 +55,18 @@ func (mr *MockBuilderMockRecorder) BuildGroupedAggregateSQL(in any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildGroupedAggregateSQL", reflect.TypeOf((*MockBuilder)(nil).BuildGroupedAggregateSQL), in)
 }
+
+// BuildGroupedCollectionSQL mocks base method.
+func (m *MockBuilder) BuildGroupedCollectionSQL(in groupedaggregate.BuildInput, roots map[string]core.Operation) (core.SQLOperation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BuildGroupedCollectionSQL", in, roots)
+	ret0, _ := ret[0].(core.SQLOperation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BuildGroupedCollectionSQL indicates an expected call of BuildGroupedCollectionSQL.
+func (mr *MockBuilderMockRecorder) BuildGroupedCollectionSQL(in, roots any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildGroupedCollectionSQL", reflect.TypeOf((*MockBuilder)(nil).BuildGroupedCollectionSQL), in, roots)
+}

@@ -132,56 +132,41 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
     <Form {...form}>
       <form
         onSubmit={handleSubmit}
-        className="flex h-full flex-col overflow-hidden"
+        className="flex flex-col lg:h-full lg:overflow-hidden"
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-4 p-6">
-          <div className="flex shrink-0 flex-col gap-2 lg:flex-row lg:items-center">
-            <div className="flex items-center justify-between gap-2">
-              <Select
-                value={method}
-                onValueChange={(newMethod) =>
-                  setValue('method', newMethod as HttpMethod)
-                }
-              >
-                <SelectTrigger
-                  className={cn(
-                    'h-10 w-24 font-mono font-semibold text-sm',
-                    HTTP_METHOD_TEXT_CLASSES[method],
-                  )}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HTTP_METHODS.map((httpMethod) => (
-                    <SelectItem
-                      key={httpMethod}
-                      value={httpMethod}
-                      className={cn(
-                        'font-mono font-semibold',
-                        HTTP_METHOD_TEXT_CLASSES[httpMethod],
-                      )}
-                    >
-                      {httpMethod}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                type="submit"
-                disabled={response.status === 'loading'}
-                className="h-10 gap-2 lg:hidden"
-              >
-                {response.status === 'loading' ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
+        <div className="flex flex-col gap-4 p-6 lg:min-h-0 lg:flex-1">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Select
+              value={method}
+              onValueChange={(newMethod) =>
+                setValue('method', newMethod as HttpMethod)
+              }
+            >
+              <SelectTrigger
+                className={cn(
+                  'w-24 font-mono font-semibold',
+                  HTTP_METHOD_TEXT_CLASSES[method],
                 )}
-                Send
-              </Button>
-            </div>
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {HTTP_METHODS.map((httpMethod) => (
+                  <SelectItem
+                    key={httpMethod}
+                    value={httpMethod}
+                    className={cn(
+                      'font-mono font-semibold',
+                      HTTP_METHOD_TEXT_CLASSES[httpMethod],
+                    )}
+                  >
+                    {httpMethod}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-muted px-3 py-2 font-mono text-sm">
+            <div className="order-last flex h-11 min-w-0 basis-full items-center gap-2 rounded-md bg-muted px-3 font-mono text-sm md:h-9 lg:order-none lg:flex-1 lg:basis-0">
               <TruncatedText text={endpointUrl} tailLength={12} />
               <CopyToClipboardButton
                 textToCopy={endpointUrl}
@@ -193,7 +178,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             <Button
               type="submit"
               disabled={response.status === 'loading'}
-              className="hidden h-10 gap-2 lg:inline-flex"
+              className="ml-auto gap-2 lg:ml-0"
             >
               {response.status === 'loading' ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -227,15 +212,11 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
             >
               {hasBody && (
                 <div className="mb-2 flex items-center gap-2">
-                  <Input
-                    value="Content-Type"
-                    disabled
-                    className="h-8 font-mono text-sm"
-                  />
+                  <Input value="Content-Type" disabled className="font-mono" />
                   <Input
                     {...register('contentType')}
                     placeholder="Content-Type"
-                    className="h-8 max-w-md flex-1 font-mono text-sm"
+                    className="max-w-md flex-1 font-mono"
                   />
                   <div className="flex h-9 shrink-0 cursor-not-allowed items-center justify-center px-4 text-muted-foreground">
                     <Lock className="size-4" />
