@@ -5,7 +5,7 @@
 }:
 buildPGXSExtension rec {
   pname = "timescaledb-apache";
-  version = "2.30.0";
+  version = "2.32.0";
 
   nativeBuildInputs = [ pkgs.cmake ];
   buildInputs = [
@@ -17,8 +17,12 @@ buildPGXSExtension rec {
     owner = "timescale";
     repo = "timescaledb";
     rev = version;
-    hash = "sha256-Yg/ESY85OT9yYW2EnFBTfsPZtJc6gNPwrx04splVZgU=";
+    hash = "sha256-tOXMk+bRBKEf78TrRPpuMHQZLM2ahq8oyypNuSV/MaE=";
   };
+
+  # Backport the upstream PostgreSQL 18.7/17.12 portal lifecycle fix until
+  # TimescaleDB 2.32.1 is released. No extension SQL changes are needed.
+  patches = [ ./timescaledb-portal-lifecycle.patch ];
 
   cmakeFlags = [
     "-DSEND_TELEMETRY_DEFAULT=OFF"
