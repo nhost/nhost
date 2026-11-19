@@ -8,14 +8,18 @@ import {
 } from 'vue';
 import { createMemoryHistory, createRouter, type Router } from 'vue-router';
 
-export type Mounted = { el: HTMLElement; app: App; router: Router };
+export type Mounted = {
+  el: HTMLElement;
+  app: App;
+  router: Router;
+  unmount: VoidFunction;
+};
 
-const mounted: Mounted[] = [];
+const mounted = new Set<Mounted>();
 
 afterEach(() => {
-  for (const { app, el } of mounted.splice(0)) {
-    app.unmount();
-    el.remove();
+  for (const entry of mounted) {
+    entry.unmount();
   }
 });
 
@@ -60,8 +64,18 @@ export async function mountAt(
   }
   const el = document.body.appendChild(document.createElement('div'));
   app.mount(el);
-  const entry = { el, app, router: on };
-  mounted.push(entry);
+  const entry: Mounted = {
+    el,
+    app,
+    router: on,
+    unmount: () => {
+      if (mounted.delete(entry)) {
+        app.unmount();
+        el.remove();
+      }
+    },
+  };
+  mounted.add(entry);
   await settle();
   return entry;
 }
