@@ -34,12 +34,7 @@ export default function BillingEstimate() {
               <SpendingNotifications />
             </>
           )}
-          {isOrgAdmin && (
-            <>
-              <Separator />
-              <BillingDetails />
-            </>
-          )}
+          {isOrgAdmin && <BillingDetails />}
         </div>
       </div>
     </div>

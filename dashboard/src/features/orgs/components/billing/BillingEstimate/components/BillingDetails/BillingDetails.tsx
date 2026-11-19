@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/v3/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Table,
@@ -47,6 +48,7 @@ export default function BillingDetails() {
   if (loading && !isRefetching) {
     return (
       <div className="flex flex-col">
+        <Separator />
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
             <Spinner
@@ -71,33 +73,36 @@ export default function BillingDetails() {
 
   if (error) {
     return (
-      <div className="p-4">
-        <Alert variant="destructive" className="text-left">
-          <AlertTitle>Couldn't load billing details</AlertTitle>
-          <AlertDescription className="flex flex-col items-start gap-3">
-            <span>
-              Try again, or{' '}
-              <TextLink href={SUPPORT_TICKET_URL} external>
-                open a support ticket
-                <span className="sr-only">(opens in a new tab)</span>
-              </TextLink>{' '}
-              if this keeps happening.
-            </span>
-            <ButtonWithLoading
-              variant="outline"
-              size="sm"
-              loading={isRefetching}
-              onClick={() => {
-                refetch().catch(() => {
-                  // The error state above stays visible.
-                });
-              }}
-            >
-              Try again
-            </ButtonWithLoading>
-          </AlertDescription>
-        </Alert>
-      </div>
+      <>
+        <Separator />
+        <div className="p-4">
+          <Alert variant="destructive" className="text-left">
+            <AlertTitle>Couldn't load billing details</AlertTitle>
+            <AlertDescription className="flex flex-col items-start gap-3">
+              <span>
+                Try again, or{' '}
+                <TextLink href={SUPPORT_TICKET_URL} external>
+                  open a support ticket
+                  <span className="sr-only">(opens in a new tab)</span>
+                </TextLink>{' '}
+                if this keeps happening.
+              </span>
+              <ButtonWithLoading
+                variant="outline"
+                size="sm"
+                loading={isRefetching}
+                onClick={() => {
+                  refetch().catch(() => {
+                    // The error state above stays visible.
+                  });
+                }}
+              >
+                Try again
+              </ButtonWithLoading>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </>
     );
   }
 
@@ -107,53 +112,61 @@ export default function BillingDetails() {
 
   if (!invoice) {
     return (
-      <p className="p-4 text-muted-foreground text-sm">
-        No upcoming invoice details are available.
-      </p>
+      <>
+        <Separator />
+        <p className="p-4 text-muted-foreground text-sm">
+          No upcoming invoice details are available.
+        </p>
+      </>
     );
   }
 
   return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="details" className="border-none">
-        <AccordionTrigger className="p-4">Details</AccordionTrigger>
-        <AccordionContent className="border-t-1 pb-0">
-          <div className="rounded-md">
-            <Table>
-              <TableHeader className="w-full bg-background">
-                <TableRow>
-                  <TableHead colSpan={3} className="w-full rounded-tl-md">
-                    Item
-                  </TableHead>
-                  <TableHead className="rounded-tr-md text-right">
-                    Amount
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {billingItems.map((billingItem) => (
-                  <TableRow key={billingItem.Description}>
-                    <TableCell colSpan={3}>{billingItem.Description}</TableCell>
-                    <TableCell colSpan={3} className="text-right">
-                      ${billingItem.Amount}
+    <>
+      <Separator />
+      <Accordion type="single" collapsible>
+        <AccordionItem value="details" className="border-none">
+          <AccordionTrigger className="p-4">Details</AccordionTrigger>
+          <AccordionContent className="border-t-1 pb-0">
+            <div className="rounded-md">
+              <Table>
+                <TableHeader className="w-full bg-background">
+                  <TableRow>
+                    <TableHead colSpan={3} className="w-full rounded-tl-md">
+                      Item
+                    </TableHead>
+                    <TableHead className="rounded-tr-md text-right">
+                      Amount
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {billingItems.map((billingItem) => (
+                    <TableRow key={billingItem.Description}>
+                      <TableCell colSpan={3}>
+                        {billingItem.Description}
+                      </TableCell>
+                      <TableCell colSpan={3} className="text-right">
+                        ${billingItem.Amount}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter className="bg-background">
+                  <TableRow>
+                    <TableCell colSpan={3} className="rounded-bl-md">
+                      Total
+                    </TableCell>
+                    <TableCell className="rounded-br-md text-right">
+                      ${amountDue}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter className="bg-background">
-                <TableRow>
-                  <TableCell colSpan={3} className="rounded-bl-md">
-                    Total
-                  </TableCell>
-                  <TableCell className="rounded-br-md text-right">
-                    ${amountDue}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+                </TableFooter>
+              </Table>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </>
   );
 }

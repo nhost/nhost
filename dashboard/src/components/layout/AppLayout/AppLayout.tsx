@@ -24,9 +24,10 @@ const DashboardSidebar = dynamic(
 type AppLayoutProps = Omit<BaseLayoutProps, 'className'>;
 
 /**
- * The dashboard shell: header across the top, app sidebar down the left, the
- * page in what remains. It owns the geometry of those three regions and knows
- * nothing about what a page renders into `<main>`. `<main>` does not scroll:
+ * The dashboard shell: an organization status strip above everything, then the
+ * header across the top, app sidebar down the left, the page in what remains.
+ * It owns the geometry of those regions and knows nothing about what a page
+ * renders into `<main>`. `<main>` does not scroll:
  * the scope or layout inside it decides which region does.
  *
  * It must be the root element every org- and project-scoped page returns from
