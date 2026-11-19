@@ -1,0 +1,6 @@
+# This file makes the frontend its own pnpm root, so an install here never walks
+# up into an enclosing workspace.
+allowBuilds: {}
+minimumReleaseAgeExclude:
+  - "@sveltejs/adapter-vercel@7.0.5"
+  - "@sveltejs/kit@3.4.0"

@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- The app is dark only, so the class is fixed rather than toggled. app.css
+     explains what still reads it. -->
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %sveltekit.head%
+  </head>
+  <!-- Code is fetched ahead on hover, data never: loading a page's data is what
+       refreshes the session. See "How it works" in the README. -->
+  <body
+    class="flex min-h-screen flex-col antialiased"
+    data-sveltekit-preload-code="hover"
+    data-sveltekit-preload-data="false"
+  >
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>
