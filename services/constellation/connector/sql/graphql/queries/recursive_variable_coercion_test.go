@@ -79,8 +79,10 @@ func TestGeneratedSchemaRecursiveVariableCoercion(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(want, got); diff != "" {
-				t.Fatalf("request-local variables (-want +got):\n%s", diff)
+			// The library may retain typed Go slices; compare their GraphQL
+			// representation, then exercise SQL generation with the actual result.
+			if diff := cmp.Diff(want, normalizedCoercionVariables(t, got)); diff != "" {
+				t.Fatalf("coerced variables (-want +got):\n%s", diff)
 			}
 
 			actual, err := roots.BuildQuery(doc.Operations[0], doc.Fragments, got, "admin", nil)
@@ -98,4 +100,20 @@ func TestGeneratedSchemaRecursiveVariableCoercion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func normalizedCoercionVariables(t *testing.T, variables map[string]any) map[string]any {
+	t.Helper()
+
+	encoded, err := json.Marshal(variables)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var decoded map[string]any
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatal(err)
+	}
+
+	return decoded
 }

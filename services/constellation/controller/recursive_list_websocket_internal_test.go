@@ -40,6 +40,7 @@ type Subscription { lists(xs: [[String!]!]!): Int }
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			before := normalizedCoercionVariables(t, tt.variables)
 			mockHandler := subscriptionmock.NewMockHandler(gomock.NewController(t))
 			updates := make(chan subscription.Update)
 			close(updates)
@@ -47,7 +48,10 @@ type Subscription { lists(xs: [[String!]!]!): Int }
 				_ context.Context, req subscription.Request, _ *slog.Logger,
 			) (<-chan subscription.Update, error) {
 				want := map[string]any{"xs": []any{[]any{"{a,b}"}}}
-				if diff := cmp.Diff(want, req.Variables); diff != "" {
+				if diff := cmp.Diff(
+					want,
+					normalizedCoercionVariables(t, req.Variables),
+				); diff != "" {
 					t.Errorf("subscription variables (-want +got):\n%s", diff)
 				}
 
@@ -74,6 +78,10 @@ type Subscription { lists(xs: [[String!]!]!): Int }
 				Query:     `subscription($xs:[[String!]!]` + tt.definition + `){lists(xs:$xs)}`,
 				Variables: tt.variables,
 			})
+
+			if diff := cmp.Diff(before, normalizedCoercionVariables(t, tt.variables)); diff != "" {
+				t.Errorf("subscription mutated caller input (-before +after):\n%s", diff)
+			}
 
 			select {
 			case msg := <-sendCh:

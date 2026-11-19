@@ -168,3 +168,14 @@ type Query { echo(xs: [[String!]!], input: Filter): JSON }
 		}
 	}))
 }
+
+func decodeCoercionVariables(t *testing.T, raw string) map[string]any {
+	t.Helper()
+
+	var variables map[string]any
+	if err := json.Unmarshal([]byte(raw), &variables); err != nil {
+		t.Fatal(err)
+	}
+
+	return variables
+}

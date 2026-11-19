@@ -141,6 +141,10 @@ func ruleFuncValuesOfCorrectType(observers *Events, addError AddErrFunc, disable
 			}
 
 		case ast.ObjectValue:
+			if value.Definition.Kind != ast.InputObject {
+				unexpectedTypeMessage(addError, value)
+				return
+			}
 
 			for _, field := range value.Definition.Fields {
 				if field.Type.NonNull {

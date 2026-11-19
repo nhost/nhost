@@ -18,7 +18,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/vektah/gqlparser/v2/validator"
 )
 
 // GraphQLRequest is the JSON payload accepted by HandlerPost (and used as
@@ -158,23 +157,6 @@ func gqlValidationErrors(err error) (gqlerror.List, bool) {
 	}
 
 	return nil, false
-}
-
-func coerceVariables(
-	schema *ast.Schema,
-	operation *ast.OperationDefinition,
-	variables map[string]any,
-) (map[string]any, error) {
-	if operation == nil || (len(variables) == 0 && len(operation.VariableDefinitions) == 0) {
-		return variables, nil
-	}
-
-	validated, err := validator.VariableValues(schema, operation, variables)
-	if err != nil {
-		return nil, fmt.Errorf("coercing variables: %w", err)
-	}
-
-	return validated, nil
 }
 
 func (c *Controller) execute(

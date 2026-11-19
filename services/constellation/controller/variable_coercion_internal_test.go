@@ -1,4 +1,4 @@
-package controller_test
+package controller
 
 import (
 	"encoding/json"
@@ -8,11 +8,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/vektah/gqlparser/v2/validator"
 	"github.com/vektah/gqlparser/v2/validator/rules"
 )
 
-// Exercise the dependency boundary shared by HTTP, WebSocket and direct SQL callers.
+// Exercise the request-isolation boundary shared by HTTP and WebSocket callers.
 func TestRecursiveVariableCoercion(t *testing.T) {
 	t.Parallel()
 
@@ -115,12 +114,12 @@ type Query { echo(xs: [[String!]!], nullable: [[String]], input: Filter, payload
 			before := decodeCoercionVariables(t, tt.variables)
 			want := decodeCoercionVariables(t, tt.want)
 
-			coerced, err := validator.VariableValues(schema, document.Operations[0], variables)
+			coerced, err := coerceVariables(schema, document.Operations[0], variables)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(want, coerced); diff != "" {
+			if diff := cmp.Diff(want, normalizedCoercionVariables(t, coerced)); diff != "" {
 				t.Fatalf("coercion (-want +got):\n%s", diff)
 			}
 
@@ -183,7 +182,7 @@ type Query { echo(xs: [[String!]!]!, input: Filter): Int }
 				t.Fatal(errs)
 			}
 
-			if _, err := validator.VariableValues(
+			if _, err := coerceVariables(
 				schema,
 				document.Operations[0],
 				decodeCoercionVariables(t, tt.variables),
@@ -224,7 +223,7 @@ type Query { echo(input: Filter): Int }
 	for range 16 {
 		requests.Go(func() {
 			for _, input := range []map[string]any{variables, nil} {
-				got, err := validator.VariableValues(schema, document.Operations[0], input)
+				got, err := coerceVariables(schema, document.Operations[0], input)
 				if err != nil {
 					t.Error(err)
 					return
@@ -235,7 +234,7 @@ type Query { echo(input: Filter): Int }
 					expected = wantDefault
 				}
 
-				if diff := cmp.Diff(expected, got); diff != "" {
+				if diff := cmp.Diff(expected, normalizedCoercionVariables(t, got)); diff != "" {
 					t.Errorf("coercion (-want +got):\n%s", diff)
 				}
 			}
@@ -247,4 +246,16 @@ type Query { echo(input: Filter): Int }
 	if diff := cmp.Diff(before, variables); diff != "" {
 		t.Fatalf("shared inputs changed (-before +after):\n%s", diff)
 	}
+}
+
+func normalizedCoercionVariables(t *testing.T, variables map[string]any) map[string]any {
+	t.Helper()
+
+	encoded, err := json.Marshal(variables)
+	if err != nil {
+		t.Error(err)
+		return nil
+	}
+
+	return decodeCoercionVariables(t, string(encoded))
 }
