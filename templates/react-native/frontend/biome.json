@@ -18,6 +18,14 @@
       "complexity": {
         "useLiteralKeys": "off"
       },
+      "correctness": {
+        "noReactNativeRawText": {
+          "level": "error",
+          "options": {
+            "skip": ["Label", "CardTitle", "CardDescription"]
+          }
+        }
+      },
       "suspicious": {
         "noConsole": {
           "level": "error",
