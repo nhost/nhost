@@ -113,6 +113,22 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 				Source: dbName,
 				Table: metadata.Table{
 					Schema: "storage",
+					Name:   "files_to_delete",
+				},
+				Configuration: metadata.Configuration{
+					CustomName: "filesToDelete",
+					CustomColumnNames: map[string]string{
+						"deleted_at": "deletedAt",
+					},
+				},
+			},
+		},
+		{
+			Type: "pg_track_table",
+			Args: metadata.PgTrackTableArgs{
+				Source: dbName,
+				Table: metadata.Table{
+					Schema: "storage",
 					Name:   "virus",
 				},
 				Configuration: metadata.Configuration{

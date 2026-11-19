@@ -319,6 +319,105 @@ type Files struct {
 	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
+// columns and relationships of "storage.files_to_delete"
+type FilesToDelete struct {
+	DeletedAt time.Time `json:"deletedAt"`
+	ID        string    `json:"id"`
+}
+
+// aggregated selection of "storage.files_to_delete"
+type FilesToDeleteAggregate struct {
+	Aggregate *FilesToDeleteAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*FilesToDelete              `json:"nodes"`
+}
+
+// aggregate fields of "storage.files_to_delete"
+type FilesToDeleteAggregateFields struct {
+	Count int64                   `json:"count"`
+	Max   *FilesToDeleteMaxFields `json:"max,omitempty"`
+	Min   *FilesToDeleteMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "storage.files_to_delete". All fields are combined with a logical 'AND'.
+type FilesToDeleteBoolExp struct {
+	And       []*FilesToDeleteBoolExp   `json:"_and,omitempty"`
+	Not       *FilesToDeleteBoolExp     `json:"_not,omitempty"`
+	Or        []*FilesToDeleteBoolExp   `json:"_or,omitempty"`
+	DeletedAt *TimestamptzComparisonExp `json:"deletedAt,omitempty"`
+	ID        *UUIDComparisonExp        `json:"id,omitempty"`
+}
+
+// input type for inserting data into table "storage.files_to_delete"
+type FilesToDeleteInsertInput struct {
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+}
+
+// aggregate max on columns
+type FilesToDeleteMaxFields struct {
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+}
+
+// aggregate min on columns
+type FilesToDeleteMinFields struct {
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+}
+
+// response of any mutation on the table "storage.files_to_delete"
+type FilesToDeleteMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*FilesToDelete `json:"returning"`
+}
+
+// on_conflict condition type for table "storage.files_to_delete"
+type FilesToDeleteOnConflict struct {
+	Constraint    FilesToDeleteConstraint     `json:"constraint"`
+	UpdateColumns []FilesToDeleteUpdateColumn `json:"update_columns"`
+	Where         *FilesToDeleteBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "storage.files_to_delete".
+type FilesToDeleteOrderBy struct {
+	DeletedAt *OrderBy `json:"deletedAt,omitempty"`
+	ID        *OrderBy `json:"id,omitempty"`
+}
+
+// primary key columns input for table: storage.files_to_delete
+type FilesToDeletePkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "storage.files_to_delete"
+type FilesToDeleteSetInput struct {
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+}
+
+// Streaming cursor of the table "filesToDelete"
+type FilesToDeleteStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *FilesToDeleteStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type FilesToDeleteStreamCursorValueInput struct {
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+}
+
+type FilesToDeleteUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *FilesToDeleteSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *FilesToDeleteBoolExp `json:"where"`
+}
+
 // aggregated selection of "storage.files"
 type FilesAggregate struct {
 	Aggregate *FilesAggregateFields `json:"aggregate,omitempty"`
@@ -736,6 +835,14 @@ type SubscriptionRoot struct {
 	Files []*Files `json:"files"`
 	// fetch aggregated fields from the table: "storage.files"
 	FilesAggregate *FilesAggregate `json:"filesAggregate"`
+	// fetch data from the table: "storage.files_to_delete"
+	FilesToDelete []*FilesToDelete `json:"filesToDelete"`
+	// fetch aggregated fields from the table: "storage.files_to_delete"
+	FilesToDeleteAggregate *FilesToDeleteAggregate `json:"filesToDelete_aggregate"`
+	// fetch data from the table: "storage.files_to_delete" using primary key columns
+	FilesToDeleteByPk *FilesToDelete `json:"filesToDelete_by_pk,omitempty"`
+	// fetch data from the table in a streaming manner: "storage.files_to_delete"
+	FilesToDeleteStream []*FilesToDelete `json:"filesToDelete_stream"`
 	// fetch data from the table in a streaming manner: "storage.files"
 	FilesStream []*Files `json:"files_stream"`
 	// fetch data from the table: "storage.virus" using primary key columns
@@ -1211,6 +1318,177 @@ func (e *CursorOrdering) UnmarshalJSON(b []byte) error {
 }
 
 func (e CursorOrdering) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "storage.files_to_delete"
+type FilesToDeleteConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	FilesToDeleteConstraintFilesToDeletePkey FilesToDeleteConstraint = "files_to_delete_pkey"
+)
+
+var AllFilesToDeleteConstraint = []FilesToDeleteConstraint{
+	FilesToDeleteConstraintFilesToDeletePkey,
+}
+
+func (e FilesToDeleteConstraint) IsValid() bool {
+	switch e {
+	case FilesToDeleteConstraintFilesToDeletePkey:
+		return true
+	}
+	return false
+}
+
+func (e FilesToDeleteConstraint) String() string {
+	return string(e)
+}
+
+func (e *FilesToDeleteConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilesToDeleteConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid filesToDelete_constraint", str)
+	}
+	return nil
+}
+
+func (e FilesToDeleteConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesToDeleteConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesToDeleteConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "storage.files_to_delete"
+type FilesToDeleteSelectColumn string
+
+const (
+	// column name
+	FilesToDeleteSelectColumnDeletedAt FilesToDeleteSelectColumn = "deletedAt"
+	// column name
+	FilesToDeleteSelectColumnID FilesToDeleteSelectColumn = "id"
+)
+
+var AllFilesToDeleteSelectColumn = []FilesToDeleteSelectColumn{
+	FilesToDeleteSelectColumnDeletedAt,
+	FilesToDeleteSelectColumnID,
+}
+
+func (e FilesToDeleteSelectColumn) IsValid() bool {
+	switch e {
+	case FilesToDeleteSelectColumnDeletedAt, FilesToDeleteSelectColumnID:
+		return true
+	}
+	return false
+}
+
+func (e FilesToDeleteSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *FilesToDeleteSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilesToDeleteSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid filesToDelete_select_column", str)
+	}
+	return nil
+}
+
+func (e FilesToDeleteSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesToDeleteSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesToDeleteSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "storage.files_to_delete"
+type FilesToDeleteUpdateColumn string
+
+const (
+	// column name
+	FilesToDeleteUpdateColumnDeletedAt FilesToDeleteUpdateColumn = "deletedAt"
+	// column name
+	FilesToDeleteUpdateColumnID FilesToDeleteUpdateColumn = "id"
+)
+
+var AllFilesToDeleteUpdateColumn = []FilesToDeleteUpdateColumn{
+	FilesToDeleteUpdateColumnDeletedAt,
+	FilesToDeleteUpdateColumnID,
+}
+
+func (e FilesToDeleteUpdateColumn) IsValid() bool {
+	switch e {
+	case FilesToDeleteUpdateColumnDeletedAt, FilesToDeleteUpdateColumnID:
+		return true
+	}
+	return false
+}
+
+func (e FilesToDeleteUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *FilesToDeleteUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilesToDeleteUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid filesToDelete_update_column", str)
+	}
+	return nil
+}
+
+func (e FilesToDeleteUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *FilesToDeleteUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e FilesToDeleteUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
