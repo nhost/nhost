@@ -20,6 +20,7 @@ import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
+import { useAllRunServices } from '@/features/orgs/projects/common/hooks/useAllRunServices';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
@@ -28,7 +29,6 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useIsUnpauseDisabled } from '@/features/orgs/projects/common/hooks/useIsUnpauseDisabled';
 import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
 import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
-import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -64,7 +64,7 @@ export default function GeneralSettings() {
   const { state } = useAppState();
   const track = useTrackEvent();
 
-  const { services } = useRunServices();
+  const { services } = useAllRunServices();
 
   const showWarning = useMemo(() => {
     const isPlanFree = org?.plan?.isFree;

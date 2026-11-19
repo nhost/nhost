@@ -98,11 +98,13 @@ test('should create a table with role permissions and a custom check to select r
 
   await page.getByText('Add check', { exact: true }).click();
 
-  const columnSelector = page.locator('input[role="combobox"]');
+  const columnSelector = page.getByPlaceholder('Search...', { exact: true });
 
   await columnSelector.fill('id');
 
   await columnSelector.press('Enter');
+
+  await expect(columnSelector).toBeHidden();
 
   await expect(page.getByText(/_eq/i)).toBeVisible();
 
@@ -110,11 +112,15 @@ test('should create a table with role permissions and a custom check to select r
 
   await page.getByText('Select variable...', { exact: true }).click();
 
-  const variableSelector = page.locator('input[role="combobox"]');
+  const variableSelector = page.getByPlaceholder('Choose variable...', {
+    exact: true,
+  });
 
   await variableSelector.fill('X-Hasura-User-Id');
 
   await variableSelector.press('Enter');
+
+  await expect(variableSelector).toBeHidden();
 
   await page.getByRole('button', { name: /select all/i }).click();
 
@@ -169,15 +175,19 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await page.getByText('Add check', { exact: true }).click();
 
-  const columnSelector = page.locator('input[role="combobox"]');
+  const columnSelector = page.getByPlaceholder('Search...', { exact: true });
 
   await columnSelector.fill('jsonField');
 
   await columnSelector.press('Enter');
 
+  await expect(columnSelector).toBeHidden();
+
   await page.getByText('_eq', { exact: true }).click();
 
-  const operatorSelector = page.locator('input[role="combobox"]');
+  const operatorSelector = page.getByPlaceholder('Search operator...', {
+    exact: true,
+  });
 
   await operatorSelector.fill('_contains');
 
@@ -185,13 +195,19 @@ test('should be able to select jsonb specific operators for filter operations', 
 
   await operatorSelector.press('Enter');
 
+  await expect(operatorSelector).toBeHidden();
+
   await page.getByText('Select variable...', { exact: true }).click();
 
-  const variableSelector = page.locator('input[role="combobox"]');
+  const variableSelector = page.getByPlaceholder('Choose variable...', {
+    exact: true,
+  });
 
   await variableSelector.fill('X-Hasura-User-Id');
 
   await variableSelector.press('Enter');
+
+  await expect(variableSelector).toBeHidden();
 
   await page.getByRole('button', { name: /select all/i }).click();
 
