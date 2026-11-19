@@ -54,7 +54,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Templates (`templates/`)
 
 - `templates/nextjs/` - Next.js starter with server-side Nhost auth. A standalone app with its own lockfile, outside the root pnpm workspace, so it builds exactly as a scaffolded copy does
-- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean
+- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean. A new template is added to the `templates` list in `templates/project.nix`, and its `.secrets.example` needs a line in `tools/betterleaks/.betterleaksignore`
 
 ### Build System (`build/`)
 
