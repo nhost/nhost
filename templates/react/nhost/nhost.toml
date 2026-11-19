@@ -183,7 +183,7 @@ limit = 10
 interval = '1h'
 
 [auth.rateLimit.bruteForce]
-limit = 10
+limit = 30
 interval = '5m'
 
 [auth.rateLimit.signups]

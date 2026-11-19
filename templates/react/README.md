@@ -161,8 +161,13 @@ Auth's limits in `nhost/nhost.toml` count requests per visitor address. The
 browser calls auth directly, so each visitor is counted by their own address,
 with no forwarded headers to trust.
 
-The local stack sends at most 10 emails an hour. To reset the count while you
-develop, restart `nhost up`.
+The brute-force limit allows 30 requests per address every 5 minutes. It
+counts every sign-in request, including the two-factor step, plus link and code
+checks and the two-factor check before a password change, so a passkey or
+two-factor sign-in uses two of them.
+
+The local stack sends at most 10 emails an hour. To reset these counts while
+you develop, restart `nhost up`.
 
 ### Avatars
 
