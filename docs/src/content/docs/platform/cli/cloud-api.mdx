@@ -7,17 +7,17 @@ head:
     content: "Send Raw GraphQL Requests to Nhost Cloud from the CLI | Nhost Docs"
 ---
 
-`nhost api` sends GraphQL requests from the CLI to the Nhost Cloud API with your account's permissions. The Nhost Cloud API manages your organizations and projects, and is separate from your project's own [GraphQL API](/products/graphql). The command has two subcommands: `nhost api schema` prints the schema, and `nhost api query` sends a query or mutation. For the full syntax, see the [command reference](/reference/cli/commands#api).
+`nhost api` lets you inspect the Nhost Cloud schema and send GraphQL requests from the CLI. The Nhost Cloud API manages your organizations and projects, and is separate from your project's own [GraphQL API](/products/graphql). The command has two subcommands: `nhost api schema` reads a snapshot bundled with the CLI, and `nhost api request` sends a query or mutation with your account's permissions. `nhost api schema` needs no login, `NHOST_PAT` or network access. For the full syntax, see the [command reference](/reference/cli/commands#api).
 
 If your agent has the [CLI MCP tools](/platform/cli/mcp) and they cover your task, use them instead. Use `nhost api` for tasks they don't cover, or when the MCP server isn't set up, such as in a script.
 
-The MCP server allows mutations to Nhost Cloud only if `enable_mutations` is on in its [configuration](/platform/cli/mcp/configuration). With `nhost api`, your agent can add `--allow-mutations` to any call, so set it to ask before it runs `nhost api query` (see [Set up your agent](#set-up-your-agent)).
+The MCP server allows mutations to Nhost Cloud only if `enable_mutations` is on in its [configuration](/platform/cli/mcp/configuration). `nhost api request` sends mutations without that setting, so set your agent to ask before it runs `nhost api request` (see [Set up your agent](#set-up-your-agent)).
 
 The Nhost Cloud API calls projects `apps`, so that's the name you see in the schema and in the examples on this page.
 
 ## Sign in
 
-`nhost api` uses your CLI login session. If you haven't signed in yet, run:
+Only `nhost api request` uses your CLI login session. You can inspect the schema without signing in. To send a request, sign in first:
 
 ```bash
 nhost login
@@ -25,40 +25,62 @@ nhost login
 
 This opens your browser to sign in to your Nhost account and saves the session in `~/.nhost/state/auth.json`, or in `$XDG_STATE_HOME/nhost/auth.json` if `XDG_STATE_HOME` is set. Other CLI commands and the CLI MCP server use the same session.
 
-`nhost api` never opens a browser or asks for input. Each call gets a short-lived access token from the saved session and saves the session back to the file when it's renewed. If there's no session, or it has expired or been revoked, the command fails, and you need to run `nhost login` again.
+`nhost api request` never opens a browser or asks for input. Each call gets a short-lived access token from the saved session and saves the session back to the file when it's renewed. If there's no session, or it has expired or been revoked, the command fails, and you need to run `nhost login` again.
 
-To use a personal access token instead, for example in CI, set the `NHOST_PAT` environment variable. When it's set, `nhost api` uses the token and ignores the saved session. You can create a token in the dashboard under **Account Settings**.
+To use a personal access token instead, for example in CI, set the `NHOST_PAT` environment variable. When it's set, `nhost api request` uses the token and ignores the saved session. You can create a token in the dashboard under **Account Settings**.
 
 ## Set up your agent
 
 In your agent's command permissions:
 
-- Let `nhost api schema` run without approval. It takes no arguments, so allow only that exact command rather than a prefix.
-- Require your approval for every `nhost api query` call. Reads can return sensitive values, such as a project's secrets and its Hasura admin secret, and your agent sees everything the command prints. Calls with `--allow-mutations` can change your organizations and projects.
+- Let `nhost api schema` run with any arguments without approval. It's read-only and works offline.
+- Require your approval for every `nhost api request` call. Reads can return sensitive values, such as a project's secrets and its Hasura admin secret, and your agent sees everything the command prints. Mutations can change your organizations and projects.
 
-If your agent runs in a sandbox and uses your login session, give it read and write access to the session file. Without write access, a renewed session isn't saved, and a later call can fail until you run `nhost login` again. With `NHOST_PAT` set, the session file isn't used.
+If your agent runs `nhost api request` in a sandbox and uses your login session, give it read and write access to the session file. Without write access, a renewed session isn't saved, and a later request can fail until you run `nhost login` again. With `NHOST_PAT` set, the session file isn't used. `nhost api schema` doesn't use the session file.
 
 :::caution
-When a call includes `--allow-mutations`, the CLI sends the mutation as written, with no further checks or confirmation. Review the operation and variables before you approve the call.
+`nhost api request` sends mutations as written, with no further checks or confirmation. Review the operation and variables before you approve the call.
 :::
 
 ## Inspect the schema
 
-`nhost api schema` prints the introspection result (`{"__schema": ...}`) as JSON. Save it to a file rather than printing it into an agent's context, and inspect it with `jq`. For example, to see the arguments the `updateApp` mutation accepts:
+Start with the summary to find the query and mutation names:
 
 ```bash
-nhost api schema > cloud-schema.json
-jq '.__schema.mutationType.fields[] | select(.name == "updateApp")' cloud-schema.json
+nhost api schema
 ```
+
+With no arguments, the command prints indented JSON with sorted root field names in the `query` and `mutation` arrays.
+
+Name a query or mutation field to see its arguments, return type and related type definitions as GraphQL schema definition language (SDL):
+
+```bash
+nhost api schema apps
+nhost api schema updateApp
+```
+
+You can name several fields at once, and mix queries and mutations, for example `nhost api schema apps updateApp`.
+
+Use `--depth N` (default `1`) to limit how many levels of object, input, interface and union types are defined. Selected root fields are level `0`; their return and argument types are level `1`. Each further type reference adds a level. Deeper types stay referenced but aren't defined. Used enums and custom scalars are always included; built-in scalars aren't defined.
+
+`--depth 0` prints only the selected root field signatures with their enums and custom scalars. Use a large depth to include every needed type, for example:
+
+```bash
+nhost api schema updateConfig --depth 10
+```
+
+Output grows quickly with depth, so raise `--depth` only as far as needed.
+
+`--depth` requires at least one field name.
 
 ## Send a query
 
-`nhost api query` takes one quoted GraphQL document and an optional `--variables` JSON object. It refuses mutations unless you pass `--allow-mutations`, and always refuses subscriptions.
+`nhost api request` takes one quoted GraphQL document and an optional `--variables` JSON object. It sends queries and mutations, and refuses subscriptions.
 
 For example, to list up to five projects, ordered by name:
 
 ```bash
-nhost api query 'query {
+nhost api request 'query {
   apps(limit: 5, order_by: {name: asc}) {
     id
     name
@@ -77,7 +99,7 @@ The output looks like this:
 This example renames a project. Replace `<project-id>` with an `id` from the previous query, and `New project name` with the new name:
 
 ```bash
-nhost api query --allow-mutations 'mutation RenameProject($id: uuid!, $name: String!) {
+nhost api request 'mutation RenameProject($id: uuid!, $name: String!) {
   updateApp(pk_columns: {id: $id}, _set: {name: $name}) {
     id
     name
@@ -89,4 +111,4 @@ nhost api query --allow-mutations 'mutation RenameProject($id: uuid!, $name: Str
 
 ## Output and errors
 
-On success, `nhost api schema` and `nhost api query` print only the response's `data` field as JSON to stdout. On any failure, the command exits with code `1` and writes the error to stderr. For GraphQL and HTTP errors, the error includes the server's response.
+On success, `nhost api schema` prints summary JSON or selected SDL to stdout. `nhost api request` prints only the response's `data` field as JSON to stdout. On any failure, the command exits with code `1` and writes the error to stderr. For GraphQL and HTTP errors, `nhost api request` includes the server's response in the error.
