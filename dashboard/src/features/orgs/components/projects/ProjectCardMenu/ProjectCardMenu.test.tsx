@@ -33,13 +33,17 @@ describe('ProjectCardMenu', () => {
     const user = new TestUserEvent();
     render(<ProjectCardMenu project={project} orgSlug="org" />);
 
-    await user.click(screen.getByRole('button', { name: 'Actions for shop' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for shop (eu-central-1)' }),
+    );
     await user.click(
       await screen.findByRole('menuitem', { name: 'Copy subdomain' }),
     );
     expect(copyMock).toHaveBeenCalledWith('abcdefgh', 'Subdomain');
 
-    await user.click(screen.getByRole('button', { name: 'Actions for shop' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for shop (eu-central-1)' }),
+    );
     await user.click(
       await screen.findByRole('menuitem', { name: 'Copy region' }),
     );
@@ -50,7 +54,9 @@ describe('ProjectCardMenu', () => {
     const user = new TestUserEvent();
     render(<ProjectCardMenu project={project} orgSlug="org" />);
 
-    await user.click(screen.getByRole('button', { name: 'Actions for shop' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for shop (eu-central-1)' }),
+    );
     expect(
       await screen.findByRole('menuitem', { name: 'Settings' }),
     ).toHaveAttribute('href', '/orgs/org/projects/abcdefgh/settings');
