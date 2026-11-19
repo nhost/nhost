@@ -123,7 +123,7 @@
     <div class="flex flex-col gap-2">
       <Label for={codeId}>Code</Label>
       <!-- Spaces from a pasted code would fail the pattern before the form
-           ever submits. -->
+           ever submits. The binding writes the code back without them. -->
       <Input
         bind:ref={codeInput}
         id={codeId}
@@ -132,11 +132,7 @@
         inputmode="numeric"
         autocomplete="one-time-code"
         pattern="[0-9]*"
-        value={otp}
-        oninput={(event) => {
-          otp = event.currentTarget.value.replace(/\s/g, '');
-          event.currentTarget.value = otp;
-        }}
+        bind:value={() => otp, (value) => (otp = value.replace(/\s/g, ''))}
         disabled={isPending}
         required
       />
