@@ -80,12 +80,7 @@ export default function InboxPopover({ inbox }: InboxPopoverProps) {
           <div className="flex h-14 items-center justify-between border-b px-5">
             <h2 className="font-semibold text-lg">Inbox</h2>
             <PopoverClose asChild>
-              <Button
-                variant="subtle"
-                size="icon"
-                className="h-8 w-8"
-                aria-label="Close inbox"
-              >
+              <Button variant="subtle" size="icon-sm" aria-label="Close inbox">
                 <X className="h-4 w-4" />
               </Button>
             </PopoverClose>

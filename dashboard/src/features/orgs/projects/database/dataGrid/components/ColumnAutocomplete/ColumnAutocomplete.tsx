@@ -281,11 +281,10 @@ export default forwardRef(
               <div className="flex flex-row items-center gap-2 px-2 py-1.5">
                 <Button
                   variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
+                  size="icon-sm"
                   onClick={handleBackRelationship}
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft />
                 </Button>
                 <span className="py-1.5 text-muted-foreground text-sm">
                   {defaultTable}.{pages.join('.')}

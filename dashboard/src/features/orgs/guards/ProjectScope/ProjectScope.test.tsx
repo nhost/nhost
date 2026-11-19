@@ -172,7 +172,10 @@ async function expectProjectSwitcher(selectedProjectName: string) {
   const banner = await screen.findByRole('banner');
 
   expect(
-    await within(banner).findByRole('link', { name: selectedProjectName }),
+    // The link also holds the project's status pill (e.g. "Live").
+    await within(banner).findByRole('link', {
+      name: new RegExp(`^${selectedProjectName}`),
+    }),
   ).toBeVisible();
 
   const user = new TestUserEvent();

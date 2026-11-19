@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "insert_defaults",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT  UNION ALL SELECT ) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"defaults\" SELECT  FROM check_mutation_result RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"label\" AS \"label\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

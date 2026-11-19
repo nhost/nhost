@@ -50,9 +50,8 @@ export default function OneOffEventsLogActionsCell({
     <div className="inline-flex w-fit items-center gap-0.5">
       <Button
         variant="subtle"
-        size="sm"
+        size="icon-sm"
         onClick={row.getToggleExpandedHandler()}
-        className="h-7 w-7 p-0"
       >
         {row.getIsExpanded() ? (
           <Minimize className="size-4" />
@@ -65,9 +64,8 @@ export default function OneOffEventsLogActionsCell({
           <TooltipTrigger asChild>
             <ButtonWithLoading
               variant="subtle"
-              size="sm"
+              size="icon-sm"
               onClick={handleDeleteScheduledEvent}
-              className="h-7 w-7 p-0"
               disabled={isDeleteScheduledEventLoading}
               loading={isThisDeleteScheduledEventActionLoading}
               loaderClassName="mr-0 size-5"

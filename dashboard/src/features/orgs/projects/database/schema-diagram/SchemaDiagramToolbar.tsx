@@ -111,7 +111,7 @@ export default function SchemaDiagramToolbar({
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-xs">Role</span>
         <Select value={selectedRole} onValueChange={onRoleChange}>
-          <SelectTrigger className="h-8 w-[160px]">
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
@@ -130,7 +130,7 @@ export default function SchemaDiagramToolbar({
           values={selectedSchemas}
           onValuesChange={onSelectedSchemasChange}
         >
-          <MultiSelectTrigger className="h-8 max-w-[320px]">
+          <MultiSelectTrigger className="max-w-xs">
             <MultiSelectValue placeholder="All schemas" />
           </MultiSelectTrigger>
           <MultiSelectContent>
@@ -157,14 +157,15 @@ export default function SchemaDiagramToolbar({
       <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>
           <PopoverTrigger asChild>
-            <button
+            <Button
               type="button"
+              variant="outline"
               aria-label="Search database objects"
-              className="flex h-8 w-56 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-muted-foreground text-xs hover:bg-accent"
+              className="w-56 justify-start gap-1.5 px-2 text-muted-foreground text-xs"
             >
-              <Search className="h-4 w-4" />
+              <Search />
               <span className="flex-1 text-left">Search database objects…</span>
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-80 p-0">
             <Command>
@@ -211,7 +212,7 @@ export default function SchemaDiagramToolbar({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 px-2 text-xs"
+          className="gap-1.5 px-2 text-xs"
           onClick={onNewTable}
           disabled={!canCreateTable}
           title={
@@ -230,13 +231,13 @@ export default function SchemaDiagramToolbar({
               variant="outline"
               size="sm"
               aria-label="Diagram help"
-              className="h-8 gap-1.5 px-2 text-xs"
+              className="gap-1.5 px-2 text-xs"
             >
               <Info className="h-4 w-4" />
               <span>Help</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[320px] text-xs">
+          <PopoverContent align="end" className="w-80 text-xs">
             <div className="space-y-3">
               <div>
                 <div className="mb-1 font-semibold">Dot colors</div>

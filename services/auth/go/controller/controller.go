@@ -55,6 +55,7 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
+	GetUserByActiveTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
 	GetUserByPhoneNumberOtherThanSelf(
 		ctx context.Context, arg sql.GetUserByPhoneNumberOtherThanSelfParams,
 	) (sql.AuthUser, error)
