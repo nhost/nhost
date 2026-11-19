@@ -6,10 +6,16 @@ import {
   MAX_AVATAR_BYTES,
 } from '@/app/account/avatar';
 import { signOut } from '@/lib/nhost/actions';
-import { getVerifiedUser, nhost, updateSessionUser } from '@/lib/nhost/client';
+import {
+  getVerifiedUser,
+  nhost,
+  updateSessionUser,
+  type VerifiedUser,
+} from '@/lib/nhost/client';
 import { appOrigin } from '@/lib/nhost/env';
 import {
   type ActionResult,
+  AUTH_UNAVAILABLE,
   errorMessage,
   RETRY_IN,
   SIGNED_OUT,
@@ -19,6 +25,12 @@ import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 // Where the links in the emails below land. Fixed rather than taken from the
 // caller, so nothing here can aim a link at another host.
 const ACCOUNT_URL = () => `${appOrigin()}/account`;
+
+// An auth service that could not answer says nothing about the session.
+const unverified = ({
+  reason,
+}: Extract<VerifiedUser, { user: null }>): string =>
+  reason === 'unavailable' ? AUTH_UNAVAILABLE : SIGNED_OUT;
 
 // Sends a confirmation link to the new address. The change happens when that
 // link is opened, not here: until then the old address is the account's.
@@ -139,11 +151,13 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 
   try {
-    const { user } = await getVerifiedUser();
+    const verified = await getVerifiedUser();
 
-    if (!user) {
-      return { error: SIGNED_OUT };
+    if (!verified.user) {
+      return { error: unverified(verified) };
     }
+
+    const { user } = verified;
 
     const { body: uploaded } = await nhost.storage.uploadFiles({
       'bucket-id': 'default',
@@ -186,11 +200,13 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
 // The account stops pointing at an avatar first, then the file goes.
 export async function removeAvatar(): Promise<ActionResult> {
   try {
-    const { user } = await getVerifiedUser();
+    const verified = await getVerifiedUser();
 
-    if (!user) {
-      return { error: SIGNED_OUT };
+    if (!verified.user) {
+      return { error: unverified(verified) };
     }
+
+    const { user } = verified;
 
     if (!user.avatarUrl) {
       return { error: 'There is no avatar to remove.' };
@@ -223,11 +239,13 @@ export async function removeAvatar(): Promise<ActionResult> {
 // leaves a storage file behind, and no session to delete it with.
 export async function deleteAccount(): Promise<ActionResult> {
   try {
-    const { user } = await getVerifiedUser();
+    const verified = await getVerifiedUser();
 
-    if (!user) {
-      return { error: SIGNED_OUT };
+    if (!verified.user) {
+      return { error: unverified(verified) };
     }
+
+    const { user } = verified;
 
     const fileId = avatarFileIdFrom(user.avatarUrl);
 
@@ -268,14 +286,20 @@ export async function deleteAccount(): Promise<ActionResult> {
 // another.
 export async function resendVerification(): Promise<ActionResult> {
   try {
-    const { user } = await getVerifiedUser();
+    const verified = await getVerifiedUser();
 
-    if (!user?.email) {
+    if (!verified.user) {
+      return { error: unverified(verified) };
+    }
+
+    const { email } = verified.user;
+
+    if (!email) {
       return { error: SIGNED_OUT };
     }
 
     await nhost.auth.sendVerificationEmail({
-      email: user.email,
+      email,
       options: { redirectTo: ACCOUNT_URL() },
     });
 

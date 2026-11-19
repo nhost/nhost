@@ -31,4 +31,7 @@ export function errorMessage(
 
 export const SIGNED_OUT = 'You are signed out. Sign in and try again.';
 
+export const AUTH_UNAVAILABLE =
+  'Could not check your session with the auth service. Try again.';
+
 export const NETWORK_ERROR = 'The request did not reach the server. Try again.';

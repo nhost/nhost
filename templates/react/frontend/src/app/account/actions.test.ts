@@ -11,6 +11,7 @@ import {
   uploadAvatar,
 } from '@/app/account/actions';
 import { appOrigin } from '@/lib/nhost/env';
+import { AUTH_UNAVAILABLE, SIGNED_OUT } from '@/lib/nhost/errors';
 
 const client = vi.hoisted(() => ({
   session: null as {
@@ -22,6 +23,7 @@ const client = vi.hoisted(() => ({
     email?: string;
     avatarUrl?: string;
   } | null,
+  unverifiedReason: 'signed-out' as 'signed-out' | 'rejected' | 'unavailable',
   auth: {
     changeUserEmail: vi.fn(),
     sendVerificationEmail: vi.fn(),
@@ -42,7 +44,7 @@ vi.mock('@/lib/nhost/client', () => ({
   getVerifiedUser: async () =>
     client.verifiedUser
       ? { user: client.verifiedUser }
-      : { user: null, reason: 'signed-out' },
+      : { user: null, reason: client.unverifiedReason },
   updateSessionUser,
 }));
 
@@ -53,6 +55,7 @@ vi.mock('@/lib/nhost/actions', () => ({ signOut }));
 beforeEach(() => {
   client.session = { user: { id: 'user-1' } };
   client.verifiedUser = { id: 'user-1', email: 'user@example.com' };
+  client.unverifiedReason = 'signed-out';
   for (const fn of [
     ...Object.values(client.auth),
     ...Object.values(client.storage),
@@ -222,6 +225,53 @@ describe('deleteAccount', () => {
     );
     expect(signOut).toHaveBeenCalledOnce();
   });
+});
+
+describe('the actions that verify the user', () => {
+  const image = new FormData();
+  image.set(
+    'avatar',
+    new File([new Uint8Array(10)], 'me.png', { type: 'image/png' }),
+  );
+
+  const actions = {
+    uploadAvatar: () => uploadAvatar(image),
+    removeAvatar,
+    deleteAccount,
+    resendVerification,
+  };
+
+  beforeEach(() => {
+    client.verifiedUser = null;
+  });
+
+  // An outage or a rate limit leaves the stored session as it was, so sending
+  // the visitor to sign in again would be the wrong advice.
+  it.each(Object.entries(actions))(
+    '%s does not call an unreachable auth service a sign-out',
+    async (_, action) => {
+      client.unverifiedReason = 'unavailable';
+
+      expect(await action()).toEqual({ error: AUTH_UNAVAILABLE });
+      expect(client.storage.uploadFiles).not.toHaveBeenCalled();
+      expect(client.storage.deleteFile).not.toHaveBeenCalled();
+      expect(client.graphql.request).not.toHaveBeenCalled();
+      expect(client.auth.sendVerificationEmail).not.toHaveBeenCalled();
+      expect(signOut).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['signed-out', 'rejected'] as const)(
+    'asks the visitor to sign in again when %s',
+    async (reason) => {
+      client.unverifiedReason = reason;
+
+      for (const action of Object.values(actions)) {
+        expect(await action()).toEqual({ error: SIGNED_OUT });
+      }
+      expect(client.graphql.request).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe('listSessions', () => {
