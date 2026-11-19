@@ -1,0 +1,7 @@
+.vale/tests/Nhost/Ignores/fail.mdx:8:35:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:15:36:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:21:45:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:26:31:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:42:30:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:50:33:Nhost.Exclamation:Don't use exclamation points in text.
+.vale/tests/Nhost/Ignores/fail.mdx:56:43:Nhost.Exclamation:Don't use exclamation points in text.

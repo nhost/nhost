@@ -38,10 +38,52 @@ a library that the new image no longer bundles, while
 `ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
 session.
 
+When upgrading pg_search across the 0.26 vector-storage boundary, the entrypoint
+uses `postgres/bin/upgrade-pg-search.sql`. Its single transaction upgrades the
+extension, removes obsolete clustering options, and rebuilds affected physical
+indexes with blocking `REINDEX`. Failures roll back the extension version and
+maintenance together, so the next startup retries without a separate marker.
+Ordinary restarts and upgrades within 0.26 do not repeat the work.
+
+Use `ALTER INDEX RESET` for physical indexes to preserve their OIDs, dependencies,
+owners, comments and other configuration. PostgreSQL rejects that command on
+partitioned parents; the version-scoped migration locks their tables and removes
+only obsolete `pg_class.reloptions`, preserving child attachments and allowing
+future partitions to inherit supported options. Rebuild physical children, not
+the storage-less parent. Never broaden this into recurring catalog/configuration
+repair. `make check-pg-search-upgrades` covers real 0.25.11 vector storage,
+partition inheritance, rollback/retry, both AM aliases and unchanged repeat boots.
+`POSTGRES_UPGRADE_FROM_IMAGE` and `POSTGRES_UPGRADE_TO_IMAGE` can select compatible
+same-major source/target images for the focused fixture; it invokes the actual
+startup upgrade functions, not the full image lifecycle.
+
 Extension SQL versions that have shipped are immutable. If the pg_jsonschema
 checker fails after a source-pin bump, pin a revision with matching generated
 SQL or introduce a new extension SQL version and upgrade step so existing
 volumes receive the change.
+
+PostGIS 3.7 no longer bundles the address standardizer or TIGER geocoder.
+Their standalone packages keep `address_standardizer`,
+`address_standardizer_data_us`, and `postgis_tiger_geocoder` available. The
+address-standardizer package exposes the upstream update script for the
+previous bundled 3.6 versions; the TIGER package ships its own legacy upgrade
+paths. Keep these paths when updating either standalone source.
+
+TIGER 2025.x no longer adds `tiger` to the database `search_path` on fresh
+installs; existing databases upgraded in place from TIGER 3.6 retain their database
+setting. Its installer also leaves `tiger` first in the session path, so migrations
+must run `RESET search_path` before creating later objects or explicitly select
+their schemas. Fresh databases need a persistent path with `tiger` after `public`
+for geocoder functions to work.
+See the [TIGER setup and upgrade guidance](https://docs.nhost.io/products/database/extensions#postgis_tiger_geocoder)
+for the migration SQL and reconnection requirements.
+
+The core `postgis`, `postgis_raster`, and `postgis_topology` extensions also
+need old-version `--ANY` tag links: bulk upgrade installation is disabled in
+`extensions/postgis.nix`. Retain every previously shipped PG17/PG18 version
+when bumping PostGIS. `tests/plugins.sql` checks catalog update paths, and
+`make check-extension-upgrades` exercises startup upgrades on an existing volume,
+including spatial data and indexes.
 
 ## Tests
 
@@ -56,6 +98,14 @@ The PostgreSQL Nix check runs the `tests/test_*.py` suite with Python's
 pgrx inserts comments between SQL tokens;
 after stripping them, equivalent definitions can differ in whitespace next to
 parentheses or commas, so normalization must account for punctuation spacing.
+
+For linker-only `pg_search` changes, a small native Rust `cdylib` probe using
+the candidate's linker input and upstream Linux `-fuse-ld=lld` flag can isolate
+RUNPATH handling without rebuilding the extension. Link a shared library
+PostgreSQL does not preload (for example OpenBLAS), inspect RUNPATH/NEEDED and
+the linker identity, then load it with `LD_LIBRARY_PATH` and `LD_PRELOAD` unset.
+Use a compiler-enabled stdenv for the probe: Nix's `runCommand` defaults to
+`stdenvNoCC`. This is not a full extension or image test.
 
 When checking pgrx toolchain changes on a small Linux builder (for example,
 a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
@@ -130,6 +180,8 @@ unless the workload needs a different value.
 | `PG_DURABLE_MAX_USER_CONNECTIONS` | `10` | `pg_durable.max_user_connections`: concurrent workflow SQL execution connections. |
 | `PG_DURABLE_RETENTION_DAYS` | `30` | `pg_durable.retention_days`: days to retain terminal workflow instances. |
 | `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
+| `PG_DURABLE_HTTP_SECURITY` | `unrestricted` | `pg_durable.http_security`: `unrestricted`, `restricted`, or `disabled` HTTP egress policy. |
+| `PG_DURABLE_HTTP_ALLOWED_DOMAINS` | empty | `pg_durable.http_allowed_domains`: comma-separated host patterns; empty denies all hosts in `restricted` mode. |
 | `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
 
 Enabling `LOG_MIN_DURATION_STATEMENT` can log sensitive query text and bind
@@ -138,8 +190,8 @@ parameters, especially pg_durable workflow variables, even with
 SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
 treat these logs as sensitive when queries or workflows handle secrets.
 
-The image and Cloud defaults match whether or not `[postgres.settings]` exists.
-Both omit `pg_durable` and `pg_ivm`; include either in
+The image and Cloud defaults in the table above match whether or not
+`[postgres.settings]` exists. Both omit `pg_durable` and `pg_ivm`; include either in
 `sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
 all other required libraries if you use it. Preloading an extension does not
 run `CREATE EXTENSION`. The fixed `output_plugin_libraries` allowlist permits
