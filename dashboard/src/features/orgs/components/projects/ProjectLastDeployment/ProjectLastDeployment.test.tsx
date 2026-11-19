@@ -43,6 +43,15 @@ describe('ProjectLastDeployment', () => {
     expect(dot()).toHaveClass('bg-destructive');
   });
 
+  it('says it was aborted, never deployed', () => {
+    render(
+      <ProjectLastDeployment latest={run(PipelineRunStatus_Enum.Aborted)} />,
+    );
+
+    expect(screen.getByText('Deploy aborted 1 day ago')).toBeInTheDocument();
+    expect(dot()).toHaveAttribute('data-outcome', 'aborted');
+  });
+
   it('shows a running deployment', () => {
     render(
       <ProjectLastDeployment

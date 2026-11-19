@@ -3,11 +3,12 @@ import type { LatestDeployment } from '@/features/orgs/components/projects/utils
 import { PipelineRunStatus_Enum } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
 
-type Outcome = 'succeeded' | 'failed' | 'running' | 'other';
+type Outcome = 'succeeded' | 'failed' | 'aborted' | 'running' | 'other';
 
 const PIPELINE_OUTCOME: Record<string, Outcome> = {
   [PipelineRunStatus_Enum.Succeeded]: 'succeeded',
   [PipelineRunStatus_Enum.Failed]: 'failed',
+  [PipelineRunStatus_Enum.Aborted]: 'aborted',
   [PipelineRunStatus_Enum.Pending]: 'running',
   [PipelineRunStatus_Enum.Running]: 'running',
 };
@@ -24,6 +25,7 @@ const LEGACY_OUTCOME: Record<string, Outcome> = {
 const DOT: Record<Outcome, string> = {
   succeeded: 'bg-success',
   failed: 'bg-destructive',
+  aborted: 'bg-muted-foreground',
   running: 'animate-pulse bg-muted-foreground',
   other: 'bg-muted-foreground',
 };
@@ -68,6 +70,8 @@ export default function ProjectLastDeployment({
   let label = ago ? `Deployed ${ago}` : 'Deployed';
   if (info.outcome === 'failed') {
     label = ago ? `Deploy failed ${ago}` : 'Deploy failed';
+  } else if (info.outcome === 'aborted') {
+    label = ago ? `Deploy aborted ${ago}` : 'Deploy aborted';
   } else if (info.outcome === 'running') {
     label = 'Deploying now';
   }

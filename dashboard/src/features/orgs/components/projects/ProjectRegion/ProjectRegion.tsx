@@ -34,10 +34,8 @@ export default function ProjectRegion({
   const { countryCode } = region;
   const showFlag = !!countryCode && countryCode !== failedCode;
 
-  // The region code reads as plain text (it's what the SDK takes), so many
-  // cards stay calm; the flag and city only show in the tooltip. A button, not a span: it sits above the card link
-  // (like the warning icon), so hovering or focusing it shows the region
-  // without opening the project.
+  // A button, not a span: it sits above the card link, so hovering or
+  // focusing it shows the region without opening the project.
   return (
     <Tooltip>
       <TooltipTrigger asChild>

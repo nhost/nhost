@@ -35,7 +35,11 @@ export default function ProjectCardMenu({
         <Button
           variant="subtle"
           size="icon-xs"
-          aria-label={`Actions for ${project.name}`}
+          aria-label={
+            project.region.name
+              ? `Actions for ${project.name} (${project.region.name})`
+              : `Actions for ${project.name}`
+          }
           className="relative z-20 ml-auto shrink-0 text-muted-foreground hover:text-foreground data-[state=open]:text-foreground"
         >
           <Ellipsis />

@@ -63,6 +63,33 @@ describe('ProjectsGrid', () => {
     // The region sits above the link, never inside it, so clicking it
     // does not open the project.
     expect(usLink).not.toContainElement(usRegion);
+
+    // The menu trigger sits above the link too, and names its project by
+    // region as well.
+    const usMenu = screen.getByRole('button', {
+      name: 'Actions for shop (us-east-1)',
+    });
+    expect(
+      screen.getByRole('button', { name: 'Actions for shop (eu-central-1)' }),
+    ).toBeInTheDocument();
+    expect(usLink).not.toContainElement(usMenu);
+  });
+
+  it('shows no deployment line for a project without a repository', () => {
+    render(
+      <ProjectsGrid
+        projects={[
+          makeProject('x', {
+            id: 'x',
+            name: 'us-east-1',
+            countryCode: 'US',
+            city: 'Virginia',
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText('No deployments yet')).not.toBeInTheDocument();
   });
 
   it('keeps the plain link name when the region has no name', () => {

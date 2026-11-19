@@ -5,7 +5,7 @@ interface ProjectRepositoryProps {
 }
 
 // No GitHub icon: it's the only provider, and "owner/repo · branch" already
-// reads as a repository. The avatar below stays the card's only icon.
+// reads as a repository.
 export default function ProjectRepository({ project }: ProjectRepositoryProps) {
   if (!project.githubRepository) {
     return null;

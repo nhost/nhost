@@ -62,10 +62,29 @@ describe('ProjectRegion', () => {
 
     await user.hover(screen.getByRole('button'));
     await screen.findByRole('tooltip', { name: 'Frankfurt (eu-central-1)' });
+    expect(flags().length).toBeGreaterThan(0);
     for (const flag of flags()) {
       fireEvent.error(flag);
     }
     expect(flags()).toHaveLength(0);
+  });
+
+  it('shows the flag again when the region changes after a failed load', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ProjectRegion region={{ ...frankfurt, countryCode: 'XX' }} />,
+    );
+
+    await user.hover(screen.getByRole('button'));
+    await screen.findByRole('tooltip', { name: 'Frankfurt (eu-central-1)' });
+    expect(flags().length).toBeGreaterThan(0);
+    for (const flag of flags()) {
+      fireEvent.error(flag);
+    }
+    expect(flags()).toHaveLength(0);
+
+    rerender(<ProjectRegion region={frankfurt} />);
+    expect(flags()[0]?.getAttribute('src')).toContain('DE.svg');
   });
 
   it('falls back to the city when the region code is missing', () => {
