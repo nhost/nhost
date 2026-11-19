@@ -32,8 +32,10 @@ export default defineConfig({
     }),
   ],
   // Auth only redirects to the app origin in .secrets, and passkeys are bound
-  // to its hostname, so the dev server never moves to another port or host.
+  // to its hostname, so neither the dev nor the preview server moves to
+  // another port or host. Preview inherits host and strictPort, not port.
   server: { host: 'localhost', port: 3000, strictPort: true },
+  preview: { port: 3000 },
   test: {
     projects: [
       {
