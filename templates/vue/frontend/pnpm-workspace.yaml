@@ -1,0 +1,4 @@
+# This file makes the frontend its own pnpm root, so an install here never walks
+# up into an enclosing workspace. No dependency runs a build script on install,
+# so none is allowed.
+allowBuilds: {}
