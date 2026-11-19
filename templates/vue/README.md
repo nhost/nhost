@@ -127,11 +127,12 @@ session that is about to change, and a link token is only ever used once.
 It keeps signed-out visitors off `/account`, sends signed-in visitors on from
 the sign-in pages, and keeps a session from a password-reset link on the reset
 page until the new password is saved, in every tab and across reloads.
-`frontend/src/sessionGuard.ts` runs it in Vue Router's `beforeEach`, before
-each page renders, so a protected page never shows to a signed-out visitor. It runs again when another tab signs in, signs
-out or opens a reset link, when the session turns out to be revoked, and when a
-page loads its data again. A sign-out in the same tab doesn't run it: whatever
-signed out navigates on its own.
+`frontend/src/sessionGuard.ts` runs it in Vue Router's `beforeEach`, before each
+page renders, so a protected page never shows to a signed-out visitor. It runs
+again when another tab signs in, signs out or opens a reset link, when the
+session turns out to be revoked, and when a page loads its data again. A
+sign-out in the same tab doesn't run it: whatever signed out navigates on its
+own.
 
 Any script on the page can read the tokens in `localStorage`, and write a
 session there too. So the guard only decides where to send a visitor, and the
