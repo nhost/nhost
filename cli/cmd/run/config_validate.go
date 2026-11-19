@@ -2,8 +2,10 @@ package run
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -20,6 +22,7 @@ import (
 const (
 	flagConfig      = "config"
 	flagOverlayName = "overlay-name"
+	flagJSON        = "json"
 )
 
 func CommandConfigValidate() *cli.Command {
@@ -45,6 +48,10 @@ func CommandConfigValidate() *cli.Command {
 				Name:    flagServiceID,
 				Usage:   "If specified, apply this overlay and remote secrets for this service",
 				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
 			},
 		},
 	}
@@ -164,7 +171,7 @@ func commandConfigValidate(ctx context.Context, cmd *cli.Command) error {
 
 	switch {
 	case cmd.String(flagServiceID) != "" && cmd.String(flagOverlayName) != "":
-		return errors.New("cannot specify both service id and overlay name") //nolint:err113
+		return errors.New("cannot specify both --service-id and --overlay-name") //nolint:err113
 	case cmd.String(flagServiceID) != "":
 		serviceID = cmd.String(flagServiceID)
 		overlayName = serviceID
@@ -173,7 +180,37 @@ func commandConfigValidate(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	ce := clienv.FromCLI(cmd)
+	jsonOutput := cmd.Bool(flagJSON)
 
+	if jsonOutput {
+		ce = ce.WithStdout(io.Discard)
+	}
+
+	validationErr := validateServiceConfig(
+		ctx, ce, cmd.String(flagConfig), overlayName, serviceID,
+	)
+
+	if jsonOutput {
+		if err := printValidationJSON(
+			os.Stdout, cmd.String(flagConfig), validationErr,
+		); err != nil {
+			return err
+		}
+	}
+
+	return validationErr
+}
+
+// validateServiceConfig validates the service configuration against the
+// secrets of the service when serviceID is set, or the local .secrets file
+// otherwise.
+func validateServiceConfig(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	configPath string,
+	overlayName string,
+	serviceID string,
+) error {
 	var secrets model.Secrets
 
 	ce.Infoln("Getting secrets...")
@@ -199,17 +236,37 @@ func commandConfigValidate(ctx context.Context, cmd *cli.Command) error {
 
 	ce.Infoln("Verifying configuration...")
 
-	if _, err := Validate(
-		ce,
-		cmd.String(flagConfig),
-		overlayName,
-		secrets,
-		false,
-	); err != nil {
+	if _, err := Validate(ce, configPath, overlayName, secrets, false); err != nil {
 		return err
 	}
 
 	ce.Infoln("Configuration is valid!")
+
+	return nil
+}
+
+type validationJSON struct {
+	Config string `json:"config"`
+	Valid  bool   `json:"valid"`
+	Error  string `json:"error,omitempty"`
+}
+
+func printValidationJSON(w io.Writer, configPath string, validationErr error) error {
+	result := validationJSON{
+		Config: configPath,
+		Valid:  validationErr == nil,
+		Error:  "",
+	}
+	if validationErr != nil {
+		result.Error = validationErr.Error()
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(result); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
 
 	return nil
 }

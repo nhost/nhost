@@ -111,6 +111,7 @@ Shows configuration after resolving secrets.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Show this subdomain's rendered configuration. Defaults to base configuration. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -127,6 +128,7 @@ Validate configuration.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Validate this subdomain's configuration. Defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -168,6 +170,7 @@ List deployments in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -205,6 +208,7 @@ Create a new deployment.
 | | |
 | --- | --- |
 | `--follow` | Specify if the logs should be streamed. If set, the command will wait for the deployment to finish and stream the logs. If the deployment fails the command will return an error. |
+| `--json` | Output as JSON. Progress and logs go to stderr. |
 | `--message=""` | Commit message. |
 | `--ref=""` | Git reference. Env: `$GITHUB_SHA`. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
@@ -354,6 +358,54 @@ Stop local development environment.
 
 Show logs from local development environment.
 
+| | |
+| --- | --- |
+| `--follow, -f` | Follow log output. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## attach
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost attach`
+
+<div class="cli-body">
+
+Attach to a running development environment.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## status
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost status`
+
+<div class="cli-body">
+
+Show status of the local development environment.
+
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
+
 </div>
 
 </div>
@@ -377,7 +429,7 @@ Install credentials helper and configure docker so it can authenticate with Nhos
 | | |
 | --- | --- |
 | `--docker-config=""` | Path to docker config file. Default: `$HOME/.docker/config.json`. Env: `$DOCKER_CONFIG`. |
-| `--no-interactive` | Do not prompt for confirmation. Env: `$NO_INTERACTIVE`. |
+| `--yes, --no-interactive` | Skip confirmation. Env: `$NHOST_YES`, `$NO_INTERACTIVE`. |
 
 </div>
 
@@ -401,7 +453,14 @@ Generate and save configuration file.
 
 | | |
 | --- | --- |
-| `--confirm` | Skip confirmation prompt. Env: `$CONFIRM`. |
+| `--admin-secret=""` | Admin secret for local project (default: nhost-admin-secret). |
+| `--cloud` | Enable Nhost Cloud access. |
+| `--local` | Enable local development access. |
+| `--project-admin-secret=""` | Cloud project admin secret. |
+| `--project-pat=""` | Cloud project personal access token. |
+| `--project-region=""` | Cloud project region. |
+| `--project-subdomain=""` | Cloud project subdomain to configure. |
+| `--yes, --confirm` | Skip confirmation prompt. Env: `$NHOST_YES`, `$CONFIRM`. |
 
 </div>
 
@@ -465,7 +524,7 @@ Initialize a new Nhost project.
 
 | | |
 | --- | --- |
-| `--remote` | Initialize pulling configuration, migrations and metadata from the linked project. Env: `$NHOST_REMOTE`. |
+| `--remote` | Initialize pulling configuration, migrations and metadata from the remote project. Env: `$NHOST_REMOTE`. |
 
 </div>
 
@@ -487,6 +546,10 @@ Initialize a new Nhost project.
 
 List remote apps.
 
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
+
 </div>
 
 </div>
@@ -506,6 +569,10 @@ List remote apps.
 <div class="cli-body">
 
 Link local app to a remote one.
+
+| | |
+| --- | --- |
+| `--subdomain=""` | Subdomain of the project to link to. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
 
@@ -673,6 +740,7 @@ Validates service configuration after resolving secrets.
 | | |
 | --- | --- |
 | `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--json` | Output as JSON. |
 | `--overlay-name=""` | If specified, apply this overlay. Env: `$NHOST_SERVICE_OVERLAY_NAME`. |
 | `--service-id=""` | If specified, apply this overlay and remote secrets for this service. Env: `$NHOST_RUN_SERVICE_ID`. |
 
@@ -777,6 +845,7 @@ Create secret in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -793,7 +862,9 @@ Delete secret in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--yes` | Skip confirmation. Env: `$NHOST_YES`. |
 
 </div>
 
@@ -809,6 +880,7 @@ List secrets in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -825,6 +897,7 @@ Update secret in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -849,7 +922,7 @@ Remove the installed CLI from system permanently.
 
 | | |
 | --- | --- |
-| `--force` | Force uninstall without confirmation. Env: `$NHOST_FORCE_UNINSTALL`. |
+| `--yes, --force` | Uninstall without confirmation. Env: `$NHOST_YES`, `$NHOST_FORCE_UNINSTALL`. |
 
 </div>
 
@@ -874,6 +947,10 @@ Upgrade the CLI to the latest version.
 <div class="cli-body">
 
 Show the current version of Nhost CLI you have installed.
+
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
 
 </div>
 

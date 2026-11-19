@@ -11,9 +11,12 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 	jsonpatch "gopkg.in/evanphx/json-patch.v5"
 )
 
@@ -29,30 +32,109 @@ func CommandValidate() *cli.Command {
 				Usage:   "Validate this subdomain's configuration. Defaults to linked project",
 				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
+			},
 		},
 	}
 }
 
 func commandValidate(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
 	subdomain := cmd.String(flagSubdomain)
+
+	if cmd.Bool(flagJSON) {
+		return commandValidateJSON(ctx, ce, subdomain)
+	}
+
 	if subdomain != "" && subdomain != "local" {
-		proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+		return commandValidateRemote(ctx, ce, subdomain, isTTY)
+	}
+
+	return commandValidateLocal(ce, isTTY)
+}
+
+// commandValidateJSON validates the same configuration as the other modes but
+// prints only the result, as JSON. An invalid configuration still fails the
+// command, after the result is printed.
+func commandValidateJSON(ctx context.Context, ce *clienv.CliEnv, subdomain string) error {
+	quiet := ce.WithStdout(io.Discard)
+
+	var validationErr error
+
+	if subdomain != "" && subdomain != "local" {
+		proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, subdomain, false)
 		if err != nil {
 			return fmt.Errorf("failed to get app info: %w", err)
 		}
 
-		_, _, err = ValidateRemote(
-			ctx,
-			ce,
-			proj.GetSubdomain(),
-			proj.GetID(),
-		)
+		subdomain = proj.GetSubdomain()
+		_, _, validationErr = ValidateRemote(ctx, quiet, subdomain, proj.GetID())
+	} else {
+		subdomain = "local"
+		validationErr = validateLocalConfig(quiet)
+	}
 
+	if err := printValidationJSON(os.Stdout, subdomain, validationErr); err != nil {
 		return err
 	}
 
+	return validationErr
+}
+
+type validationJSON struct {
+	Subdomain string `json:"subdomain"`
+	Valid     bool   `json:"valid"`
+	Error     string `json:"error,omitempty"`
+}
+
+func printValidationJSON(w io.Writer, subdomain string, validationErr error) error {
+	result := validationJSON{
+		Subdomain: subdomain,
+		Valid:     validationErr == nil,
+		Error:     "",
+	}
+	if validationErr != nil {
+		result.Error = validationErr.Error()
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(result); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
+
+	return nil
+}
+
+func commandValidateLocal(ce *clienv.CliEnv, isTTY bool) error {
+	if isTTY {
+		return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
+			{
+				Name: "Validating configuration",
+				Fn: func() error {
+					return validateLocalConfig(ce)
+				},
+			},
+		})
+	}
+
+	ce.Infoln("Validating configuration...")
+
+	if err := validateLocalConfig(ce); err != nil {
+		return err
+	}
+
+	ce.Infoln("Configuration is valid!")
+
+	return nil
+}
+
+func validateLocalConfig(ce *clienv.CliEnv) error {
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
 		return fmt.Errorf(
@@ -61,15 +143,43 @@ func commandValidate(ctx context.Context, cmd *cli.Command) error {
 		)
 	}
 
-	ce.Infoln("Verifying configuration...")
+	_, err := Validate(ce, "local", secrets)
 
-	if _, err := Validate(ce, "local", secrets); err != nil {
-		return err
+	return err
+}
+
+func commandValidateRemote(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain string,
+	isTTY bool,
+) error {
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, subdomain, true)
+	if err != nil {
+		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	ce.Infoln("Configuration is valid!")
+	if isTTY {
+		ce.SetStdout(io.Discard)
+		defer ce.SetStdout(os.Stdout)
 
-	return nil
+		return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
+			{
+				Name: "Validating remote configuration",
+				Fn: func() error {
+					_, _, err := ValidateRemote(
+						ctx, ce, proj.GetSubdomain(), proj.GetID(),
+					)
+
+					return err
+				},
+			},
+		})
+	}
+
+	_, _, err = ValidateRemote(ctx, ce, proj.GetSubdomain(), proj.GetID())
+
+	return err
 }
 
 func ApplyJSONPatches[T any](

@@ -5,10 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 func CommandApply() *cli.Command {
@@ -36,24 +41,71 @@ func CommandApply() *cli.Command {
 func commandApply(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := ce.GetAppInfo(ctx, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), true)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to get app info: %v", err), 1)
 	}
 
+	skipConfirm := cmd.Bool(flagYes)
+
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return commandApplyTUI(ctx, ce, proj.GetSubdomain(), proj.GetID(), proj.ID, skipConfirm)
+	}
+
+	return commandApplyPlain(ctx, ce, proj.GetSubdomain(), proj.GetID(), proj.ID, skipConfirm)
+}
+
+func commandApplyTUI(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain, projID, appID string,
+	skipConfirm bool,
+) error {
+	if !skipConfirm {
+		if err := confirmApply(); err != nil {
+			return err
+		}
+	}
+
+	var cfg *model.ConfigConfig
+
+	ce.SetStdout(io.Discard)
+	defer ce.SetStdout(os.Stdout)
+
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
+		{
+			Name: "Validating configuration",
+			Fn: func() error {
+				var err error
+
+				cfg, _, err = ValidateRemote(ctx, ce, subdomain, projID)
+
+				return err
+			},
+		},
+		{
+			Name: "Applying configuration",
+			Fn: func() error {
+				return Apply(ctx, ce, appID, cfg, true)
+			},
+		},
+	})
+}
+
+func commandApplyPlain(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain, projID, appID string,
+	skipConfirm bool,
+) error {
 	ce.Infoln("Validating configuration...")
 
-	cfg, _, err := ValidateRemote(
-		ctx,
-		ce,
-		proj.GetSubdomain(),
-		proj.GetID(),
-	)
+	cfg, _, err := ValidateRemote(ctx, ce, subdomain, projID)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
 
-	if err := Apply(ctx, ce, proj.ID, cfg, cmd.Bool(flagYes)); err != nil {
+	if err := Apply(ctx, ce, appID, cfg, skipConfirm); err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
 
@@ -68,17 +120,8 @@ func Apply(
 	skipConfirmation bool,
 ) error {
 	if !skipConfirmation {
-		ce.PromptMessage(
-			"We are going to overwrite the project's configuration. Do you want to proceed? [y/N] ",
-		)
-
-		resp, err := ce.PromptInput(false)
-		if err != nil {
-			return fmt.Errorf("failed to read input: %w", err)
-		}
-
-		if resp != "y" && resp != "Y" {
-			return errors.New("aborting") //nolint:err113
+		if err := confirmApply(); err != nil {
+			return err
 		}
 	}
 
@@ -101,6 +144,23 @@ func Apply(
 	}
 
 	ce.Infoln("Configuration applied successfully!")
+
+	return nil
+}
+
+func confirmApply() error {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return errors.New("use --yes to skip confirmation") //nolint:err113
+	}
+
+	confirmed, err := tui.RunConfirm("Overwrite project configuration?")
+	if err != nil {
+		return fmt.Errorf("failed to read input: %w", err)
+	}
+
+	if !confirmed {
+		return errors.New("operation cancelled") //nolint:err113
+	}
 
 	return nil
 }
