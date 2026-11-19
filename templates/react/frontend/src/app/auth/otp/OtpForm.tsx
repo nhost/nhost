@@ -8,6 +8,10 @@ import { sendCode, verifyCode } from './actions';
 
 type Step = 'email' | 'code';
 
+// Where the code the code step waits for came from. Only the most recent one
+// sent works, which matters once there has been more than one.
+type Sent = 'now' | 'again' | 'earlier';
+
 export default function OtpForm({
   next,
   sentTo,
@@ -22,6 +26,7 @@ export default function OtpForm({
   // Given the address a code went to, the form starts where the visitor left
   // it: waiting for them to type the code in.
   const [step, setStep] = useState<Step>(sentTo ? 'code' : 'email');
+  const [sent, setSent] = useState<Sent>('now');
   const [email, setEmail] = useState(sentTo ?? '');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -38,6 +43,7 @@ export default function OtpForm({
       }
 
       setOtp('');
+      setSent(step === 'code' ? 'again' : 'now');
       setStep('code');
     } catch (err) {
       console.error('Error sending the code:', err);
@@ -72,6 +78,14 @@ export default function OtpForm({
     }
   };
 
+  // The link in the code email lands on the email step; sending again from
+  // there would replace the code that email holds.
+  const haveCode = (): void => {
+    setError(undefined);
+    setSent('earlier');
+    setStep('code');
+  };
+
   const backToEmail = (): void => {
     setStep('email');
     setOtp('');
@@ -88,7 +102,11 @@ export default function OtpForm({
     return (
       <form onSubmit={handleVerify} className="flex flex-col gap-4">
         <p className="text-muted-foreground text-sm">
-          We sent a code to {email}.
+          {sent === 'now' && `We sent a code to ${email}.`}
+          {sent === 'again' &&
+            `We sent a new code to ${email}. Codes from earlier emails no longer work.`}
+          {sent === 'earlier' &&
+            `Enter the code from the most recent email we sent to ${email}.`}
         </p>
 
         <div className="flex flex-col gap-2">
@@ -101,7 +119,9 @@ export default function OtpForm({
             autoComplete="one-time-code"
             pattern="[0-9]*"
             value={otp}
-            onChange={(event) => setOtp(event.target.value)}
+            // Spaces from a pasted code would fail the pattern before the
+            // form ever submits.
+            onChange={(event) => setOtp(event.target.value.replace(/\s/g, ''))}
             disabled={isPending}
             required
             autoFocus
@@ -159,6 +179,16 @@ export default function OtpForm({
 
       <Button type="submit" disabled={isPending || !email}>
         {isPending ? 'Sending…' : 'Send me a code'}
+      </Button>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={isPending || !email}
+        onClick={haveCode}
+      >
+        I already have a code
       </Button>
     </form>
   );

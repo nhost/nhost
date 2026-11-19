@@ -1,6 +1,11 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { sendCode, verifyCode } from '@/app/auth/otp/actions';
+import {
+  NO_TRIES_LEFT,
+  sendCode,
+  verifyCode,
+  WRONG_CODE,
+} from '@/app/auth/otp/actions';
 import { appOrigin } from '@/lib/nhost/env';
 
 const signInOTPEmail = vi.hoisted(() => vi.fn());
@@ -41,6 +46,46 @@ describe('verifyCode', () => {
 
     expect(await verifyCode('user@example.com', '123456')).toEqual({
       success: true,
+    });
+  });
+
+  it('sends a pasted code without its spaces', async () => {
+    verifySignInOTPEmail.mockResolvedValueOnce({
+      body: { session: { accessToken: 'token' } },
+    });
+
+    await verifyCode('user@example.com', ' 123 456\n');
+
+    expect(verifySignInOTPEmail).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      otp: '123456',
+    });
+  });
+
+  // A code from an earlier email is wrong too, which auth can't tell apart.
+  it('points a wrong code at the most recent email', async () => {
+    verifySignInOTPEmail.mockRejectedValueOnce(
+      Object.assign(new Error('Invalid or expired OTP'), {
+        status: 400,
+        body: { error: 'invalid-otp' },
+      }),
+    );
+
+    expect(await verifyCode('user@example.com', '123456')).toEqual({
+      error: WRONG_CODE,
+    });
+  });
+
+  it('asks for a new code once auth has burned this one', async () => {
+    verifySignInOTPEmail.mockRejectedValueOnce(
+      Object.assign(new Error('Too many attempts'), {
+        status: 400,
+        body: { error: 'otp-too-many-attempts' },
+      }),
+    );
+
+    expect(await verifyCode('user@example.com', '123456')).toEqual({
+      error: NO_TRIES_LEFT,
     });
   });
 });
