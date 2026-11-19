@@ -1,7 +1,6 @@
 <!--
   @component
-  What a path without a page shows, as Next's default not-found page, and any
-  other error the same way.
+  What a path without a page shows, and any other error the same way.
 -->
 <script lang="ts">
   import CenteredLayout from '#lib/components/CenteredLayout.svelte';
