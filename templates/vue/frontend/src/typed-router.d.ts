@@ -59,6 +59,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/auth/otp/': RouteRecordInfo<
+      '/auth/otp/',
+      '/auth/otp',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/auth/passkey/': RouteRecordInfo<
+      '/auth/passkey/',
+      '/auth/passkey',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/auth/password/': RouteRecordInfo<
       '/auth/password/',
       '/auth/password',
@@ -128,6 +142,8 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/_parent.vue': {
       routes:
         | '/auth/magic-link/'
+        | '/auth/otp/'
+        | '/auth/passkey/'
         | '/auth/password/'
         | '/auth/password/reset/'
       views:
@@ -138,6 +154,22 @@ declare module 'vue-router/auto-routes' {
     'src/app/auth/magic-link/index.vue': {
       routes:
         | '/auth/magic-link/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/otp/index.vue': {
+      routes:
+        | '/auth/otp/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/app/auth/passkey/index.vue': {
+      routes:
+        | '/auth/passkey/'
       views:
         | never
       pathParamNames:

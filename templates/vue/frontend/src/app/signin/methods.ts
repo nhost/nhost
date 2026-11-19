@@ -1,5 +1,6 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { Component } from 'vue';
+import PasskeysSetting from '@/app/auth/passkey/manage/PasskeysSetting.vue';
 import ChangePasswordSetting from '@/app/auth/password/change/ChangePasswordSetting.vue';
 import MfaSetting from '@/app/auth/password/mfa/MfaSetting.vue';
 
@@ -44,5 +45,16 @@ export const methods: SignInMethod[] = [
     href: '/auth/magic-link',
     title: 'Magic link',
     description: 'Get a sign-in link by email.',
+  },
+  {
+    href: '/auth/otp',
+    title: 'Email code',
+    description: 'Get a one-time code by email.',
+  },
+  {
+    href: '/auth/passkey',
+    title: 'Passkey',
+    description: 'Touch ID, Windows Hello or a security key.',
+    account: { passkeys: PasskeysSetting },
   },
 ];
