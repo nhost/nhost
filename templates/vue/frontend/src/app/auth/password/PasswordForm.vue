@@ -30,7 +30,7 @@ const emailId = useId();
 const passwordId = useId();
 const codeId = useId();
 const rulesId = useId();
-const codeInput = useTemplateRef<{ $el: HTMLInputElement }>('code');
+const codeInput = useTemplateRef<{ $el: HTMLInputElement }>('codeInput');
 
 // Opens on whatever the link that sent them here asked for, which is sign-up
 // unless it said otherwise: a fresh local backend has no accounts in it, so a
@@ -199,7 +199,7 @@ async function handleForgotPassword(): Promise<void> {
       <Label :for="codeId">Authenticator code</Label>
       <Input
         :id="codeId"
-        ref="code"
+        ref="codeInput"
         v-model="code"
         inputmode="numeric"
         autocomplete="one-time-code"
