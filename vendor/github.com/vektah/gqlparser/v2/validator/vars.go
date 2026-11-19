@@ -117,16 +117,6 @@ func (v *varValidator) validateVarType(
 		v.path = currentPath
 	}
 	defer resetPath()
-
-	// Null is not a singleton list. Check it before descending through list
-	// dimensions so nullable list elements retain null rather than panic.
-	if !val.IsValid() {
-		if typ.NonNull {
-			return val, gqlerror.ErrorPathf(v.path, "cannot be null")
-		}
-		return val, nil
-	}
-
 	if typ.Elem != nil {
 		if val.Kind() != reflect.Slice {
 			// GraphQL spec says that non-null values should be coerced to an array when possible.
@@ -135,9 +125,6 @@ func (v *varValidator) validateVarType(
 			slc = reflect.Append(slc, val)
 			val = slc
 		}
-		// A child's coerced type can differ from the original element type
-		// (for example String -> [String]). Keep a request-local generic list.
-		coerced := make([]any, val.Len())
 		for i := 0; i < val.Len(); i++ {
 			resetPath()
 			v.path = append(v.path, ast.PathIndex(i))
@@ -148,19 +135,21 @@ func (v *varValidator) validateVarType(
 				}
 				field = field.Elem()
 			}
-			cval, err := v.validateVarType(typ.Elem, field)
+			_, err := v.validateVarType(typ.Elem, field)
 			if err != nil {
 				return val, err
 			}
-			if cval.IsValid() {
-				coerced[i] = cval.Interface()
-			}
 		}
-		return reflect.ValueOf(coerced), nil
+		return val, nil
 	}
 	def := v.schema.Types[typ.NamedType]
 	if def == nil {
 		panic(fmt.Errorf("missing def for %s", typ.NamedType))
+	}
+
+	if !typ.NonNull && !val.IsValid() {
+		// If the type is not null and we got a invalid value namely null/nil, then it's valid
+		return val, nil
 	}
 
 	switch def.Kind {
@@ -237,13 +226,6 @@ func (v *varValidator) validateVarType(
 			}
 		}
 
-		// Validation must not rewrite a caller-owned input object. Only input
-		// objects are copied here; custom scalar maps/lists remain opaque.
-		coerced := make(map[string]any, val.Len())
-		for _, name := range val.MapKeys() {
-			coerced[name.String()] = val.MapIndex(name).Interface()
-		}
-
 		for _, fieldDef := range def.Fields {
 			resetPath()
 			v.path = append(v.path, ast.PathName(fieldDef.Name))
@@ -277,13 +259,8 @@ func (v *varValidator) validateVarType(
 			if err != nil {
 				return val, err
 			}
-			if cval.IsValid() {
-				coerced[fieldDef.Name] = cval.Interface()
-			} else {
-				coerced[fieldDef.Name] = nil
-			}
+			val.SetMapIndex(reflect.ValueOf(fieldDef.Name), cval)
 		}
-		return reflect.ValueOf(coerced), nil
 	default:
 		panic(fmt.Errorf("unsupported type %s", def.Kind))
 	}
