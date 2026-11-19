@@ -189,6 +189,14 @@ lock, which pauses SDK requests in every tab, so no tab refreshes with a token
 the change just revoked. If signing back in fails, the account page says the
 password changed and signs this device out.
 
+With two-factor on, the form also asks for a code, which it needs to sign this
+device back in. It checks the code first, through auth's `/elevate/totp` (auth
+0.53.0 or later), so a wrong code changes nothing. Auth itself doesn't ask for
+a code to change the password while `[auth.elevatedPrivileges]` is `disabled`,
+so a stolen session could still change it. Turning that setting on makes auth
+ask for a fresh check before changing the password or email, adding a passkey
+or setting up two-factor, and this app has no step for that yet.
+
 ### Email templates
 
 `nhost/emails/` only has English templates. The `signin-otp` email links to the
@@ -218,6 +226,9 @@ With no server in front of auth, some guarantees change:
 - A session revoked elsewhere can show one page after a navigation before it
   lands on sign-in.
 - A password change pauses SDK requests in every tab while it signs back in.
+- With two-factor on, a password change checks the code before changing
+  anything. The Next.js starter changes the password first, so there a wrong
+  code still changes it and signs the user out.
 - When auth can't say who the user is for a reason other than rejecting the
   token, the account page shows an error instead of going to sign-in, so an
   outage can't bounce between the two pages.

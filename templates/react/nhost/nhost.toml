@@ -33,7 +33,7 @@ httpPoolSize = 100
 version = 24
 
 [auth]
-version = '0.52.0'
+version = '0.53.0'
 
 [auth.elevatedPrivileges]
 mode = 'disabled'

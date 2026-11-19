@@ -130,4 +130,65 @@ describe('changePassword on the real client', () => {
     }
     expect(nhost.getUserSession()?.refreshToken).toBe('after');
   }, 2_000);
+
+  // The code is checked before the change, and the change goes out with the
+  // session the check answered with.
+  it('checks a two-factor code under the lock before changing', async () => {
+    nhost.sessionStorage.set(sessionBody('before') as unknown as Session);
+    const before = nhost.getUserSession()?.accessToken;
+    const checked = sessionBody('checked');
+    const calls: { path: string; authorization: string | null }[] = [];
+    fetchMock.mockImplementation(async (input, init) => {
+      const path = new URL(String(input)).pathname;
+      expect(locks.holding).toBe(true);
+      calls.push({
+        path,
+        authorization: new Headers(init?.headers).get('Authorization'),
+      });
+      if (path.endsWith('/elevate/totp')) {
+        return json({ session: checked }, 200);
+      }
+      if (path.endsWith('/user/password')) {
+        return json('OK', 200);
+      }
+      if (path.endsWith('/signin/email-password')) {
+        return json({ mfa: { ticket: 'mfaTotp:abc' } }, 200);
+      }
+      if (path.endsWith('/signin/mfa/totp')) {
+        return json({ session: sessionBody('after') }, 200);
+      }
+      return json({ error: 'unexpected' }, 500);
+    });
+
+    expect(await changePassword('correct horse', '123456')).toEqual({
+      success: true,
+      signedIn: true,
+    });
+
+    expect(calls.map(({ path }) => path)).toEqual([
+      '/v1/elevate/totp',
+      '/v1/user/password',
+      '/v1/signin/email-password',
+      '/v1/signin/mfa/totp',
+    ]);
+    expect(calls[0]?.authorization).toBe(`Bearer ${before}`);
+    expect(calls[1]?.authorization).toBe(`Bearer ${checked.accessToken}`);
+    expect(nhost.getUserSession()?.refreshToken).toBe('after');
+  }, 2_000);
+
+  it('changes nothing for a wrong two-factor code', async () => {
+    nhost.sessionStorage.set(sessionBody('before') as unknown as Session);
+    const paths: string[] = [];
+    fetchMock.mockImplementation(async (input) => {
+      paths.push(new URL(String(input)).pathname);
+      return json({ error: 'invalid-totp', status: 401 }, 401);
+    });
+
+    expect((await changePassword('correct horse', '000000')).error).toMatch(
+      /password was not changed/,
+    );
+
+    expect(paths).toEqual(['/v1/elevate/totp']);
+    expect(nhost.getUserSession()?.refreshToken).toBe('before');
+  }, 2_000);
 });

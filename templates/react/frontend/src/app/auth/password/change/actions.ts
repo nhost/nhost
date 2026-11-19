@@ -1,12 +1,20 @@
 import type { Session } from '@nhost/nhost-js/auth';
+import { FetchError } from '@nhost/nhost-js/fetch';
 import {
   newPasswordError,
   newPasswordProblem,
 } from '@/app/auth/password/requirements';
 import { bareAuth, nhost } from '@/lib/nhost/client';
-import { type ActionResult, SIGNED_OUT } from '@/lib/nhost/errors';
+import {
+  type ActionResult,
+  errorMessage,
+  SIGNED_OUT,
+} from '@/lib/nhost/errors';
 
 type ChangeResult = ActionResult & { signedIn?: boolean };
+
+export const WRONG_CODE =
+  'That code did not work, so the password was not changed. Try again.';
 
 // The SDK's own lock, from nhost-js `src/session/refreshSession.ts`. Holding it
 // from the change to the sign-back-in keeps every tab from refreshing with the
@@ -54,6 +62,33 @@ export async function changePassword(
   }
 }
 
+// Auth's `POST /elevate/totp` (auth 0.53.0), which the published SDK does not
+// have yet. A right code gets a session of its own back; a wrong one changes
+// nothing.
+async function checkCode(
+  baseURL: string,
+  accessToken: string,
+  otp: string,
+): Promise<Session | null> {
+  const response = await fetch(`${baseURL}/elevate/totp`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ otp }),
+  });
+  const body = await response.json().catch(() => null);
+
+  if (response.ok && body?.session) {
+    return body.session as Session;
+  }
+  if (body?.error === 'invalid-totp') {
+    return null;
+  }
+  throw new FetchError(body, response.status, response.headers);
+}
+
 // On the bare client: the main client would clear the stored session as soon
 // as the change succeeds, before there is a new one to put in its place.
 async function changeAndSignBackIn(
@@ -67,10 +102,41 @@ async function changeAndSignBackIn(
   }
 
   const auth = bareAuth();
-  await auth.changeUserPassword(
-    { newPassword },
-    { headers: { Authorization: `Bearer ${session.accessToken}` } },
-  );
+
+  // The change itself takes no code, so with two-factor on the code is checked
+  // first: a wrong one must not change the password and sign this browser out.
+  let checked: Session | null = null;
+  if (otp) {
+    try {
+      checked = await checkCode(auth.baseURL, session.accessToken, otp);
+    } catch (err) {
+      return {
+        error: `Could not check the code: ${errorMessage(err)}`,
+      };
+    }
+    if (!checked) {
+      return { error: WRONG_CODE };
+    }
+  }
+
+  try {
+    await auth.changeUserPassword(
+      { newPassword },
+      {
+        headers: {
+          Authorization: `Bearer ${(checked ?? session).accessToken}`,
+        },
+      },
+    );
+  } catch (err) {
+    // A successful change revokes every session, the checked one included.
+    if (checked) {
+      await auth
+        .signOut({ refreshToken: checked.refreshToken })
+        .catch(() => undefined);
+    }
+    throw err;
+  }
 
   const email = session.user?.email;
   if (!email) {
