@@ -276,7 +276,7 @@ func (v *inputVariables) arguments(field *ast.Field, mutationRoot bool) (ast.Arg
 			return nil, fmt.Errorf("normalizing argument %s: %w", argument.Name, err)
 		}
 
-		if value == nil && argumentScope == mutationSelector {
+		if value == nil && argumentScope == mutationSelector && definition.DefaultValue == nil {
 			return nil, arguments.NewOmittedMutationSelectorError()
 		}
 
@@ -333,7 +333,7 @@ func (v *inputVariables) value(
 
 		if resolved == nil {
 			if value.Kind == ast.ObjectValue {
-				if childScope == mutationSelector {
+				if childScope == mutationSelector && childDefault == nil {
 					return nil, fmt.Errorf(
 						"input field %s: %w",
 						child.Name,

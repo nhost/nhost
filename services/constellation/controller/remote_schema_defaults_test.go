@@ -41,6 +41,17 @@ type Query {
   plain: String
  ): JSON!
 }
+input Predicate {
+ _and: [Predicate!]
+ _or: [Predicate!]
+ _not: Predicate
+ status: String = "draft"
+ required: Order! = DESC
+ plain: String
+}
+type Mutation {
+ change(where: Predicate = {status: "selected"}): JSON!
+}
 `
 
 func TestRemoteSchemaOmittedVariableDefaults(t *testing.T) {
@@ -75,6 +86,83 @@ func TestRemoteSchemaOmittedVariableDefaults(t *testing.T) {
 		variables map[string]any
 		wantError string
 	}{
+		{
+			"mutation selector argument default",
+			`mutation($v:Predicate){change(where:$v)}`,
+			`mutation{change}`,
+			nil,
+			"",
+		},
+		{
+			"mutation selector field default",
+			`mutation($v:String){change(where:{status:$v})}`,
+			`mutation{change(where:{})}`,
+			nil,
+			"",
+		},
+		{
+			"mutation non-null selector field default",
+			`mutation($v:Order){change(where:{required:$v})}`,
+			`mutation{change(where:{})}`,
+			nil,
+			"",
+		},
+		{
+			"mutation nested selector field default",
+			`mutation($v:String){change(where:{_and:[{status:$v}]})}`,
+			`mutation{change(where:{_and:[{}]})}`,
+			nil,
+			"",
+		},
+		{
+			"mutation default preserves sibling restriction",
+			`mutation($v:String){change(where:{status:$v,plain:"keep"})}`,
+			`mutation{change(where:{plain:"keep"})}`,
+			nil,
+			"",
+		},
+		{
+			"mutation omitted non-defaulted restriction",
+			`mutation($v:String){change(where:{plain:$v})}`,
+			"",
+			nil,
+			"a variable used in a mutation where input must be provided",
+		},
+		{
+			"mutation default does not allow omitted sibling restriction",
+			`mutation($v:String){change(where:{status:$v,plain:$v})}`,
+			"",
+			nil,
+			"a variable used in a mutation where input must be provided",
+		},
+		{
+			"mutation selector operation default",
+			`mutation($v:Predicate={status:"published"}){change(where:$v)}`,
+			`mutation{change(where:{status:"published"})}`,
+			nil,
+			"",
+		},
+		{
+			"mutation selector explicit null",
+			`mutation($v:Predicate){change(where:$v)}`,
+			`mutation{change(where:null)}`,
+			map[string]any{"v": nil},
+			"",
+		},
+		{
+			"mutation selector field explicit null",
+			`mutation($v:String){change(where:{status:$v})}`,
+			`mutation{change(where:{status:null})}`,
+			map[string]any{"v": nil},
+			"",
+		},
+		{
+			"mutation null at non-null selector field",
+			`mutation($v:Order){change(where:{required:$v})}`,
+			"",
+			map[string]any{"v": nil},
+			"non-null input",
+		},
 		{"enum argument", `query($v:Order){echo(order:$v)}`, `{echo}`, nil, ""},
 		{"string argument", `query($v:String){echo(status:$v)}`, `{echo}`, nil, ""},
 		{"object argument", `query($v:Filter){echo(filter:$v)}`, `{echo}`, nil, ""},
@@ -285,7 +373,7 @@ func remoteDefaultsServer(t *testing.T) *httptest.Server {
 		data := gqlintrospection.Execute(schema, operation, doc)
 		for _, selection := range operation.SelectionSet {
 			field, ok := selection.(*ast.Field)
-			if !ok || field.Name != "echo" {
+			if !ok || (field.Name != "echo" && field.Name != "change") {
 				continue
 			}
 
