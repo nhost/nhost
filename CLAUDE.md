@@ -54,7 +54,8 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Templates (`templates/`)
 
 - `templates/nextjs/` - Next.js starter with server-side Nhost auth. A standalone app with its own lockfile, outside the root pnpm workspace, so it builds exactly as a scaffolded copy does
-- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean
+- `templates/react-native/` - Expo Router starter for iOS and Android with the same features, session in SecureStore and PKCE links, standalone like `templates/nextjs/`. Every file under `frontend/src/app/` is a route, so that folder holds only one-line re-exports of screens in `frontend/src/screens/`; helpers and tests live elsewhere. SecureStore keys must come from the fixed set in `frontend/src/lib/deviceStore.ts`, since SecureStore cannot list keys and the reinstall wipe clears only those. A test that passes locally but fails in the Nix check with `Cannot find module` relies on a package pnpm hoisted into `node_modules/.pnpm/node_modules`: declare it (`NODE_PATH=/nonexistent node node_modules/jest/bin/jest.js` reproduces the failure)
+- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean. A new template is added to the `templates` list in `templates/project.nix`, and its `.secrets.example` needs a line in `tools/betterleaks/.betterleaksignore`
 
 ### Build System (`build/`)
 

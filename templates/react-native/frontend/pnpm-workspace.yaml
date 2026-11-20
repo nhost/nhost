@@ -1,0 +1,16 @@
+# This file makes the frontend its own pnpm root, so an install here never walks
+# up into an enclosing workspace. jest's file watcher ships prebuilt binaries
+# for every platform it supports, so its build-from-source script never needs
+# to run.
+allowBuilds:
+  "@parcel/watcher": false
+
+# Patched releases of glob and minimatch for jest and Expo's tooling. Only
+# callers that use the named exports both majors keep are overridden;
+# test-exclude@6 calls minimatch as a function and keeps 3.x.
+overrides:
+  # GHSA-3g3m-2fjr-6pw4
+  "glob@>=9.0.0 <14.0.2": ^14.0.2
+  # GHSA-g3hv-75wg-m249
+  "@expo/fingerprint>minimatch": ^11.0.4
+  "test-exclude@7>minimatch": ^11.0.4

@@ -1,0 +1,170 @@
+import { nhost } from '@/lib/nhost/client';
+import { type ActionResult, errorMessage, RETRY_IN } from '@/lib/nhost/errors';
+import { startFlow } from '@/lib/nhost/links';
+import { endPasswordReset } from '@/lib/nhost/passwordReset';
+import {
+  couldBeAPassword,
+  newPasswordError,
+  newPasswordProblem,
+} from '@/screens/auth/password/requirements';
+import { signInDestination } from '@/screens/signin/destination';
+
+// Where a reset link lands. Fixed, so no caller can aim it elsewhere.
+const RESET_PATH = '/auth/password/reset';
+
+// The client stores the session any sign-in answers with, so a sign-in that
+// succeeds here is the sign-in.
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<ActionResult & { mfaTicket?: string }> {
+  const address = email.trim();
+  if (!address || !password) {
+    return { error: 'Email and password are required.' };
+  }
+
+  // Auth would refuse it as a malformed request rather than a wrong password.
+  if (!couldBeAPassword(password)) {
+    return { error: 'Could not sign in: Incorrect email or password' };
+  }
+
+  try {
+    const { body } = await nhost.auth.signInEmailPassword({
+      email: address,
+      password,
+    });
+
+    if (body.mfa?.ticket) {
+      return { mfaTicket: body.mfa.ticket };
+    }
+
+    if (!body.session) {
+      // Guards a 2xx that carries neither a session nor an MFA ticket.
+      return { error: 'The server did not return a session. Try again.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      error: `Could not sign in: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
+  }
+}
+
+export async function verifyMfa(
+  ticket: string,
+  otp: string,
+): Promise<ActionResult> {
+  if (!ticket || !otp) {
+    return { error: 'Enter the code from your authenticator app.' };
+  }
+
+  try {
+    const { body } = await nhost.auth.verifySignInMfaTotp({ ticket, otp });
+
+    if (!body.session) {
+      return { error: 'That code did not work. Try again.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      error: `Could not verify the code: ${errorMessage(err, RETRY_IN.signIn)}`,
+    };
+  }
+}
+
+// Returns `signedIn: true` only when the backend has email verification off.
+// Otherwise the verification link signs this device in.
+export async function signUp(
+  email: string,
+  password: string,
+  next: string,
+): Promise<ActionResult & { signedIn?: boolean }> {
+  const address = email.trim();
+  if (!address || !password) {
+    return { error: 'Email and password are required.' };
+  }
+
+  const problem = newPasswordProblem(password);
+  if (problem) {
+    return { error: problem };
+  }
+
+  try {
+    const { codeChallenge, redirectTo } = await startFlow(
+      'emailVerify',
+      signInDestination(next),
+    );
+    const { body } = await nhost.auth.signUpEmailPassword({
+      email: address,
+      password,
+      options: { redirectTo },
+      codeChallenge,
+    });
+
+    return { success: true, signedIn: Boolean(body.session) };
+  } catch (err) {
+    return {
+      error: `Could not sign up: ${newPasswordError(err, RETRY_IN.email)}`,
+    };
+  }
+}
+
+// The reset link signs the user in (`consumeLink` trades its code) and lands
+// them on the reset screen, which is why that screen can set a password
+// without asking for the current one.
+export async function requestPasswordReset(
+  email: string,
+): Promise<ActionResult> {
+  const address = email.trim();
+  if (!address) {
+    return { error: 'Email is required.' };
+  }
+
+  try {
+    const { codeChallenge, redirectTo } = await startFlow(
+      'passwordReset',
+      RESET_PATH,
+    );
+    await nhost.auth.sendPasswordResetEmail({
+      email: address,
+      options: { redirectTo },
+      codeChallenge,
+    });
+
+    return { success: true };
+  } catch (err) {
+    return {
+      error: `Could not send the reset link: ${errorMessage(err, RETRY_IN.email)}`,
+    };
+  }
+}
+
+// The client clears the stored session once the change succeeds: auth has
+// just revoked it, with every other session of the account.
+export async function setNewPassword(
+  newPassword: string,
+): Promise<ActionResult> {
+  if (!newPassword) {
+    return { error: 'A new password is required.' };
+  }
+
+  const problem = newPasswordProblem(newPassword);
+  if (problem) {
+    return { error: problem };
+  }
+
+  try {
+    if (!nhost.getUserSession()) {
+      return { error: 'The reset link has expired. Request another.' };
+    }
+
+    await nhost.auth.changeUserPassword({ newPassword });
+    endPasswordReset();
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not change the password: ${newPasswordError(err)}` };
+  }
+}
