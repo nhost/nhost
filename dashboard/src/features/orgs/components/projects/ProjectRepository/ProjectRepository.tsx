@@ -12,12 +12,8 @@ export default function ProjectRepository({ project }: ProjectRepositoryProps) {
 
   return (
     <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
-      <GitHubIcon className="h-3 w-3 flex-shrink-0" />
-      <span className="truncate">
-        {project.githubRepository.fullName}
-        {project.repositoryProductionBranch &&
-          ` · ${project.repositoryProductionBranch}`}
-      </span>
+      <GitHubIcon aria-hidden className="size-3 shrink-0" />
+      <span className="truncate">{project.githubRepository.fullName}</span>
     </span>
   );
 }
