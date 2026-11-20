@@ -1,0 +1,7 @@
+schema {
+  query: query_root
+}
+type query_root {
+  search: [search_result!]!
+}
+union search_result = apps | team

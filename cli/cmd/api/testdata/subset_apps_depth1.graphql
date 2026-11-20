@@ -1,0 +1,33 @@
+schema {
+  query: query_root
+}
+type query_root {
+  """
+  List projects.
+  """
+  apps(where: apps_bool_exp, limit: Int = 10, status: app_status = ACTIVE, after: uuid): [apps!]!
+}
+enum app_status {
+  ACTIVE
+  PAUSED
+}
+"""
+A project managed through the Cloud API.
+"""
+type apps implements node {
+  id: uuid!
+  name: String!
+  status: app_status!
+  createdAt: timestamp!
+  details: app_details
+  config: config
+}
+input apps_bool_exp {
+  _and: [apps_bool_exp!]
+  _or: [apps_bool_exp!]
+  _not: apps_bool_exp
+  name: String
+  status: app_status = ACTIVE
+}
+scalar timestamp
+scalar uuid
