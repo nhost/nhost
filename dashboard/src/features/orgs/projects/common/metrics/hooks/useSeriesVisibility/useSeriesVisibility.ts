@@ -23,7 +23,14 @@ export default function useSeriesVisibility({
   onHiddenKeysChange,
 }: UseSeriesVisibilityOptions) {
   const [internalHiddenKeys, setInternalHiddenKeys] = useState<string[]>([]);
-  const hidden = hiddenKeys ?? internalHiddenKeys;
+  const storedHiddenKeys = hiddenKeys ?? internalHiddenKeys;
+  // Series can leave the chart, for example when the time range changes. If
+  // every series left would be hidden, all of them are shown instead.
+  const hidden = useMemo(() => {
+    const currentKeys = new Set(keys);
+    const current = storedHiddenKeys.filter((key) => currentKeys.has(key));
+    return current.length === keys.length ? [] : current;
+  }, [storedHiddenKeys, keys]);
   const hiddenSet = useMemo(() => new Set(hidden), [hidden]);
 
   const handleLegendClick = useCallback(
