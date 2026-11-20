@@ -27,7 +27,7 @@ export default function OrganizationsCombobox() {
     render: (
       <div className="flex w-full items-center justify-between">
         <span className="truncate">{org.name}</span>
-        <OrganizationPlanBadge plan={org.plan?.name} />
+        <OrganizationPlanBadge plan={org.plan?.name} status={org.status} />
       </div>
     ),
   }));

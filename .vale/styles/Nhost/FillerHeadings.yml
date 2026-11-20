@@ -1,0 +1,8 @@
+extends: existence
+message: "Name the task or the thing the section covers, not
+  '%s'."
+level: warning
+scope: heading
+nonword: true
+tokens:
+  - '^(?:Overview|Introduction|Benefits|Summary|Conclusion)$'

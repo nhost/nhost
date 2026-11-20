@@ -104,7 +104,10 @@ export default function HeaderNavigationSheet() {
               onClick={() => switchOrganization(org.slug)}
             >
               <span className="truncate">{org.name}</span>
-              <OrganizationPlanBadge plan={org.plan?.name} />
+              <OrganizationPlanBadge
+                plan={org.plan?.name}
+                status={org.status}
+              />
             </SheetListItem>
           ))}
           <SheetListItem onClick={openCreateOrgDialog}>

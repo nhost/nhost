@@ -7,8 +7,8 @@ POSTGRES_VERSION := $(or $(POSTGRES_VERSION),18)
 # Resolve full PostgreSQL version (e.g., 18 -> 18.3) from the nix overlay.
 POSTGRES_FULL_VERSION := $(shell grep -A4 'postgresql_$(POSTGRES_VERSION) =' $(ROOT_DIR)/nixops/overlays/postgres.nix | grep -oP 'version = "\K[^"]+')
 
-# Prepend full PG version to VERSION if not already present
-VERSION := $(shell printf '%s' '$(VERSION)' | grep -Fq '$(POSTGRES_VERSION)' && printf '%s' '$(VERSION)' || printf '%s-%s' '$(POSTGRES_FULL_VERSION)' '$(VERSION)')
+# Match only a leading PG version, not the major number inside a release date.
+VERSION := $(if $(filter $(POSTGRES_VERSION).%,$(VERSION)),$(VERSION),$(POSTGRES_FULL_VERSION)-$(VERSION))
 
 
 NIX_PACKAGE_ATTR=postgres-pg$(POSTGRES_VERSION)
@@ -17,7 +17,7 @@ DOCKER_IMAGE_NAME=nhost/postgres
 
 
 .PHONY: _check-pre
-_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades
+_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades check-pg-search-upgrades
 
 
 .PHONY: check-docker
@@ -49,6 +49,11 @@ check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
 .PHONY: check-extension-upgrades
 check-extension-upgrades:  ## Verify extensions upgrade from the previous image
 	./tests/test-extension-upgrades.sh
+
+
+.PHONY: check-pg-search-upgrades
+check-pg-search-upgrades:  ## Verify pg_search vector maintenance from 0.25 on an existing volume
+	./tests/test-pg-search-upgrades.sh
 
 
 .PHONY: _dev-env-build

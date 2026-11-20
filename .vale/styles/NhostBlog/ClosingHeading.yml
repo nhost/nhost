@@ -1,0 +1,11 @@
+# Closing-section headings not in Nhost.FillerHeadings. "What's next" and
+# "TL;DR" are left out: Vale can't tell the last section from the others.
+extends: existence
+message: "End on a closing paragraph with the call to action, not a
+  '%s' section."
+level: warning
+scope: heading
+ignorecase: true
+nonword: true
+tokens:
+  - '^(?:Wrap(?:ping)?[ -]?up|Closing(?: thoughts| remarks)?|Final thoughts|Recap)[.!?]?$'

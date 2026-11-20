@@ -70,6 +70,8 @@ logRun = 'on'
 maxUserConnections = 10
 retentionDays = 30
 logWorkflowSql = 'off'
+httpSecurity = 'unrestricted'
+httpAllowedDomains = []
 
 [postgres.settings.extensions.timescaledb]
 maxBackgroundWorkers = 16
@@ -87,6 +89,11 @@ maxBackgroundWorkers = 16
 - **Logging:** Slow-statement logs may contain sensitive SQL.
   `extensions.pgDurable.logWorkflowSql` defaults to `off` because substituted
   workflow SQL may contain secrets.
+- **Workflow HTTP egress:** `extensions.pgDurable.httpSecurity` defaults to
+  `unrestricted`. To restrict destinations, set it to `restricted` and provide
+  host patterns in `extensions.pgDurable.httpAllowedDomains`. The default `[]`
+  blocks all hosts in restricted mode. Preloading, installation and SQL privileges
+  are separate; see [pg_durable HTTP access](/products/database/extensions#http-egress-and-access-control).
 - **Background workers:** Budget `extensions.timescaledb.maxBackgroundWorkers`
   alongside `maxWorkerProcesses` and other extensions.
 
