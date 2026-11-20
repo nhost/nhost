@@ -1,0 +1,42 @@
+; https://editorconfig.org/
+
+root = true
+
+[*]
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[{Makefile,go.mod,go.work,go.work.sum,go.sum,*.go,.gitmodules}]
+indent_style = tab
+indent_size = 4
+
+[*.md]
+indent_size = 4
+trim_trailing_whitespace = false
+
+eclint_indent_style = unset
+
+[Dockerfile]
+indent_size = 4
+
+# Ignore yaml https://learn.microsoft.com/en-us/visualstudio/code-quality/use-roslyn-analyzers?view=vs-2022
+[*.{yaml,yml,yml.j2,yaml.j2}]
+generated_code = true
+# charset = unset
+# end_of_line = unset
+# insert_final_newline = unset
+# trim_trailing_whitespace = unset
+# indent_style = unset
+# indent_size = unset
+
+[*.{sql,graphql}]
+generated_code = true
+# charset = unset
+# end_of_line = unset
+# insert_final_newline = unset
+# trim_trailing_whitespace = unset
+# indent_style = unset
+# indent_size = unset
