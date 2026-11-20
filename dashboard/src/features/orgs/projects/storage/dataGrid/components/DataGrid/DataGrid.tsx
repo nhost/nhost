@@ -2,8 +2,8 @@ import type { OnChangeFn, Row, SortingState } from '@tanstack/react-table';
 import type { ForwardedRef, ReactNode } from 'react';
 import { forwardRef, useRef } from 'react';
 import { mergeRefs } from 'react-merge-refs';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import type { DataBrowserGridColumnDef } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UseDataGridOptions } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid';
 import { DataGridBody } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBody';
@@ -111,7 +111,7 @@ function DataGrid<TColumnData extends UnknownDataGridRow>(
       <DataTableDesignProvider>
         {controls}
         {columns.length === 0 && !loading && (
-          <DataBrowserEmptyState
+          <EmptyState
             title="Columns not found"
             description="Please create a column before adding data to the table."
           />
