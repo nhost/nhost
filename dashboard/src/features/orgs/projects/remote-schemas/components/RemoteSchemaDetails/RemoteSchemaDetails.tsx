@@ -182,7 +182,7 @@ export default function RemoteSchemaDetails() {
           </Tooltip>
         </div>
       </div>
-      <RemoteSchemaPreview name={remoteSchema.name} />
+      <RemoteSchemaPreview key={remoteSchema.name} name={remoteSchema.name} />
     </div>
   );
 }
