@@ -3,9 +3,11 @@
 const errorName = (err: unknown): string | undefined =>
   (err as { error?: string } | null)?.error;
 
-// A dismissed or timed-out prompt, on either OS.
+// A dismissed prompt, or one left until it timed out, which react-native-passkey
+// reports as TimedOut.
 export function wasCancelled(err: unknown): boolean {
-  return errorName(err) === 'UserCancelled';
+  const name = errorName(err);
+  return name === 'UserCancelled' || name === 'TimedOut';
 }
 
 // Signing in, the device holds no passkey for this app.

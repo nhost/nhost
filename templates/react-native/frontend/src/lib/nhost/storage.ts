@@ -13,7 +13,10 @@ import {
   sessionChunkKey,
 } from '@/lib/deviceStore';
 
-/** The largest value SecureStore takes without warning that it may fail. */
+/**
+ * The largest value kept in one SecureStore item. Expo enforces no limit, but
+ * documents that some iOS releases refused values above about 2048 bytes.
+ */
 export const MAX_CHUNK_BYTES = 2048;
 
 interface Header {

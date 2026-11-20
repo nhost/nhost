@@ -38,7 +38,8 @@ const unverified = ({
 // Sends a confirmation link to the new address. The change happens when that
 // link is opened, not here: until then the old address is the account's.
 export async function changeEmail(newEmail: string): Promise<ActionResult> {
-  if (!newEmail) {
+  const address = newEmail.trim();
+  if (!address) {
     return { error: 'A new email address is required.' };
   }
 
@@ -52,7 +53,7 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
       ACCOUNT_PATH,
     );
     await nhost.auth.changeUserEmail({
-      newEmail,
+      newEmail: address,
       options: { redirectTo },
       codeChallenge,
     });

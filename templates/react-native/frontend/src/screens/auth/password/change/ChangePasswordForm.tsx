@@ -1,5 +1,5 @@
-import { useId, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useId, useRef, useState } from 'react';
+import { StyleSheet, Text, type TextInputInstance, View } from 'react-native';
 import { DialogClose, DialogFooter, useCloseDialog } from '@/components/Dialog';
 import { useReplacePage } from '@/components/ReplacePageLayout';
 import { useToast } from '@/components/Toast';
@@ -31,6 +31,8 @@ export default function ChangePasswordForm({
   const passwordId = useId();
   const confirmId = useId();
   const codeId = useId();
+  const confirmRef = useRef<TextInputInstance>(null);
+  const codeRef = useRef<TextInputInstance>(null);
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -90,6 +92,8 @@ export default function ChangePasswordForm({
             autoComplete="new-password"
             textContentType="newPassword"
             returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => confirmRef.current?.focus()}
             value={password}
             onChangeText={setPassword}
             editable={!isPending}
@@ -99,6 +103,7 @@ export default function ChangePasswordForm({
         <View style={styles.field}>
           <Label nativeID={confirmId}>Confirm new password</Label>
           <Input
+            ref={confirmRef}
             aria-labelledby={confirmId}
             secureTextEntry
             autoCapitalize="none"
@@ -106,9 +111,12 @@ export default function ChangePasswordForm({
             autoComplete="new-password"
             textContentType="newPassword"
             returnKeyType={needsCode ? 'next' : 'done'}
+            submitBehavior={needsCode ? 'submit' : 'blurAndSubmit'}
             value={confirm}
             onChangeText={setConfirm}
-            onSubmitEditing={() => void handleSubmit()}
+            onSubmitEditing={() =>
+              needsCode ? codeRef.current?.focus() : void handleSubmit()
+            }
             editable={!isPending}
           />
         </View>
@@ -123,6 +131,7 @@ export default function ChangePasswordForm({
           <View style={styles.field}>
             <Label nativeID={codeId}>Authenticator code</Label>
             <Input
+              ref={codeRef}
               aria-labelledby={codeId}
               inputMode="numeric"
               autoComplete="one-time-code"

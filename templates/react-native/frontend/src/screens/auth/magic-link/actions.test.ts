@@ -55,6 +55,16 @@ describe('sendMagicLink', () => {
     }
   });
 
+  // A keyboard's suggestion can leave a space after the address.
+  it('sends the address without surrounding spaces', async () => {
+    await sendMagicLink(' user@example.com ', '/');
+
+    expect(sent().email).toBe('user@example.com');
+    expect(await sendMagicLink('  ', '/')).toEqual({
+      error: 'Email is required.',
+    });
+  });
+
   it('names the email limit when auth refuses for the rate', async () => {
     mockSignIn.mockRejectedValue({ status: 429, message: '' });
 

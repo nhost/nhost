@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useId, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useId, useRef, useState } from 'react';
+import { StyleSheet, Text, type TextInputInstance, View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,7 @@ export default function PasswordForm({
   const emailId = useId();
   const passwordId = useId();
   const codeId = useId();
+  const passwordRef = useRef<TextInputInstance>(null);
 
   // Opens on whatever the link that sent them here asked for, which is sign-up
   // unless it said otherwise: a fresh local backend has no accounts in it, so a
@@ -264,6 +265,8 @@ export default function PasswordForm({
           inputMode="email"
           textContentType="username"
           returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => passwordRef.current?.focus()}
           placeholder="you@example.com"
           value={email}
           onChangeText={setEmail}
@@ -274,6 +277,7 @@ export default function PasswordForm({
       <View style={styles.field}>
         <Label nativeID={passwordId}>Password</Label>
         <Input
+          ref={passwordRef}
           aria-labelledby={passwordId}
           secureTextEntry
           autoCapitalize="none"

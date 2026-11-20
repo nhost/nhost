@@ -7,12 +7,13 @@ import { type ActionResult, errorMessage, RETRY_IN } from '@/lib/nhost/errors';
 // session comes from `verifyCode`, not from a redirect, so there is nothing
 // for PKCE to protect. Auth falls back to `clientUrl`.
 export async function sendCode(email: string): Promise<ActionResult> {
-  if (!email) {
+  const address = email.trim();
+  if (!address) {
     return { error: 'Enter your email address.' };
   }
 
   try {
-    await nhost.auth.signInOTPEmail({ email });
+    await nhost.auth.signInOTPEmail({ email: address });
     return { success: true };
   } catch (err) {
     return {
@@ -36,14 +37,15 @@ export async function verifyCode(
 ): Promise<ActionResult> {
   // Pasted from the email, a code can bring spaces or a line break with it.
   const code = otp.replace(/\s/g, '');
+  const address = email.trim();
 
-  if (!email || !code) {
+  if (!address || !code) {
     return { error: 'Enter your email address and the code.' };
   }
 
   try {
     const { body } = await nhost.auth.verifySignInOTPEmail({
-      email,
+      email: address,
       otp: code,
     });
 

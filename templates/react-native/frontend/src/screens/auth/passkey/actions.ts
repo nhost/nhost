@@ -19,12 +19,13 @@ import { signInDestination } from '@/screens/signin/destination';
 export async function beginSignUp(
   email: string,
 ): Promise<ActionResult & { options?: PublicKeyCredentialCreationOptions }> {
-  if (!email) {
+  const address = email.trim();
+  if (!address) {
     return { error: 'Email is required.' };
   }
 
   try {
-    const { body } = await nhost.auth.signUpWebauthn({ email });
+    const { body } = await nhost.auth.signUpWebauthn({ email: address });
 
     return { options: body };
   } catch (err) {

@@ -32,6 +32,14 @@ describe('sendCode', () => {
     expect(mockSend).toHaveBeenCalledWith({ email: 'a+b@example.com' });
   });
 
+  it('sends the address without surrounding spaces', async () => {
+    mockSend.mockResolvedValueOnce({});
+
+    await sendCode(' user@example.com ');
+
+    expect(mockSend).toHaveBeenCalledWith({ email: 'user@example.com' });
+  });
+
   it('names the email limit when auth refuses for the rate', async () => {
     mockSend.mockRejectedValueOnce({ status: 429, message: '' });
 

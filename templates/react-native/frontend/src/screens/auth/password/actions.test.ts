@@ -144,6 +144,19 @@ describe('signIn', () => {
     expect(mockAuth.signInEmailPassword).not.toHaveBeenCalled();
   });
 
+  it('sends the address without surrounding spaces', async () => {
+    mockAuth.signInEmailPassword.mockResolvedValue({
+      body: { session: { accessToken: 'token' } },
+    });
+
+    await signIn(' user@example.com ', 'correct horse');
+
+    expect(mockAuth.signInEmailPassword).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      password: 'correct horse',
+    });
+  });
+
   // An account with two-factor on gets a ticket back instead of a session.
   // The sign-in is not over until `verifyMfa` trades it for one.
   it('hands back the ticket when two-factor is on', async () => {

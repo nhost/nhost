@@ -1,4 +1,10 @@
-import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
+import type { Ref } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  type TextInputInstance,
+  type TextInputProps,
+} from 'react-native';
 import { colors, fontSize, radius } from '@/theme';
 
 function Input({
@@ -6,7 +12,7 @@ function Input({
   invalid,
   editable = true,
   ...props
-}: TextInputProps & { invalid?: boolean }) {
+}: TextInputProps & { invalid?: boolean; ref?: Ref<TextInputInstance> }) {
   return (
     <TextInput
       placeholderTextColor={colors.mutedForeground}

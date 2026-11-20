@@ -1,5 +1,5 @@
-import { useId, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useId, useRef, useState } from 'react';
+import { StyleSheet, Text, type TextInputInstance, View } from 'react-native';
 import { useReplacePage } from '@/components/ReplacePageLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ export default function ResetPasswordForm() {
   const replacePage = useReplacePage();
   const passwordId = useId();
   const confirmId = useId();
+  const confirmRef = useRef<TextInputInstance>(null);
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -80,6 +81,8 @@ export default function ResetPasswordForm() {
           autoComplete="new-password"
           textContentType="newPassword"
           returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => confirmRef.current?.focus()}
           value={password}
           onChangeText={setPassword}
           editable={!isSaving}
@@ -89,6 +92,7 @@ export default function ResetPasswordForm() {
       <View style={styles.field}>
         <Label nativeID={confirmId}>Confirm new password</Label>
         <Input
+          ref={confirmRef}
           aria-labelledby={confirmId}
           secureTextEntry
           autoCapitalize="none"

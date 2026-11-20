@@ -18,7 +18,8 @@ export async function signIn(
   email: string,
   password: string,
 ): Promise<ActionResult & { mfaTicket?: string }> {
-  if (!email || !password) {
+  const address = email.trim();
+  if (!address || !password) {
     return { error: 'Email and password are required.' };
   }
 
@@ -28,7 +29,10 @@ export async function signIn(
   }
 
   try {
-    const { body } = await nhost.auth.signInEmailPassword({ email, password });
+    const { body } = await nhost.auth.signInEmailPassword({
+      email: address,
+      password,
+    });
 
     if (body.mfa?.ticket) {
       return { mfaTicket: body.mfa.ticket };
@@ -77,7 +81,8 @@ export async function signUp(
   password: string,
   next: string,
 ): Promise<ActionResult & { signedIn?: boolean }> {
-  if (!email || !password) {
+  const address = email.trim();
+  if (!address || !password) {
     return { error: 'Email and password are required.' };
   }
 
@@ -92,7 +97,7 @@ export async function signUp(
       signInDestination(next),
     );
     const { body } = await nhost.auth.signUpEmailPassword({
-      email,
+      email: address,
       password,
       options: { redirectTo },
       codeChallenge,
@@ -112,7 +117,8 @@ export async function signUp(
 export async function requestPasswordReset(
   email: string,
 ): Promise<ActionResult> {
-  if (!email) {
+  const address = email.trim();
+  if (!address) {
     return { error: 'Email is required.' };
   }
 
@@ -122,7 +128,7 @@ export async function requestPasswordReset(
       RESET_PATH,
     );
     await nhost.auth.sendPasswordResetEmail({
-      email,
+      email: address,
       options: { redirectTo },
       codeChallenge,
     });

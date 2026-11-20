@@ -30,8 +30,18 @@ const sessionBody = (refreshToken: string) => ({
 const pathOf = (input: Parameters<typeof fetch>[0]): string =>
   String(input).replace(/^https:\/\/[^/]+/, '');
 
+// Main-client methods the change must not use while it holds the lock.
+const MAIN_CLIENT = [
+  'changeUserPassword',
+  'signInEmailPassword',
+  'verifySignInMfaTotp',
+  'refreshToken',
+] as const;
+let mainClient: jest.SpyInstance[] = [];
+
 beforeEach(() => {
   fetchMock.mockReset();
+  mainClient = MAIN_CLIENT.map((name) => jest.spyOn(nhost.auth, name));
   jest
     .spyOn(navigator.locks, 'request')
     .mockImplementation((name, options, callback) =>
@@ -51,24 +61,20 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const spy of mainClient) {
+    expect(spy).not.toHaveBeenCalled();
+  }
   jest.restoreAllMocks();
 });
 
-// The SDK takes the same lock, shared, before every request the main client
-// makes, and the lock does not re-enter: a main-client call under the
-// exclusive hold waits for the hold to end, which waits for the call. These
-// tests then time out rather than fail.
+// The SDK takes the same lock, shared, before a main-client request that uses
+// the stored session, and the lock does not re-enter: such a call under the
+// exclusive hold waits for the hold to end, which waits for the call, and the
+// test times out. A call that brings its own Authorization header skips the
+// lock, so the spies above catch any main-client call instead.
 describe('changePassword on the real client and lock', () => {
   it('changes and signs back in under the lock without the main client', async () => {
     const before = nhost.getUserSession()?.accessToken;
-    const spies = (
-      [
-        'changeUserPassword',
-        'signInEmailPassword',
-        'verifySignInMfaTotp',
-        'refreshToken',
-      ] as const
-    ).map((name) => jest.spyOn(nhost.auth, name));
     const calls: {
       path: string;
       authorization: string | null;
@@ -106,9 +112,6 @@ describe('changePassword on the real client and lock', () => {
       { mode: 'exclusive' },
       expect.any(Function),
     );
-    for (const spy of spies) {
-      expect(spy).not.toHaveBeenCalled();
-    }
     expect(nhost.getUserSession()?.refreshToken).toBe('after');
   }, 2_000);
 

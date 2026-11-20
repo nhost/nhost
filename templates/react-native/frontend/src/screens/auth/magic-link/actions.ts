@@ -8,7 +8,8 @@ export async function sendMagicLink(
   email: string,
   next: string,
 ): Promise<ActionResult> {
-  if (!email) {
+  const address = email.trim();
+  if (!address) {
     return { error: 'Email is required.' };
   }
 
@@ -18,7 +19,7 @@ export async function sendMagicLink(
       signInDestination(next),
     );
     await nhost.auth.signInPasswordlessEmail({
-      email,
+      email: address,
       options: { redirectTo },
       codeChallenge,
     });
