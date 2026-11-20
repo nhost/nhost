@@ -54,7 +54,7 @@ func selectorScope(scope inputVariableScope, name string, value *ast.Value) inpu
 	return scope
 }
 
-// NormalizeInputVariables applies omission, input defaults and non-null use-site
+// NormalizeInputVariables applies omission, variable defaults and non-null use-site
 // checks to a validated operation with coerced variables. It returns request-local
 // copies only where inputs change, including reachable fragments. Callers that
 // plan remote selections must use it before dropping variable or field definitions.
@@ -301,7 +301,8 @@ func (v *inputVariables) arguments(field *ast.Field, mutationRoot bool) (ast.Arg
 	return result, nil
 }
 
-// value returns nil only for an omitted optional variable with no input default.
+// value returns nil for an omitted optional variable. The owning connector
+// applies argument and input-field defaults after omission.
 func (v *inputVariables) value(
 	value, fallback *ast.Value,
 	scope inputVariableScope,
@@ -391,5 +392,9 @@ func (v *inputVariables) variable(value, fallback *ast.Value) (*ast.Value, error
 		return value, nil
 	}
 
-	return fallback, nil
+	// Leave schema defaults to the field owner. Remote defaults may be opaque
+	// GraphQL literals rather than fully parsed ASTs, so inlining them here can
+	// lose enum kinds, quoting or container children. Non-null positions with a
+	// default also permit omission; the guard above retains required inputs.
+	return nil, nil //nolint:nilnil // A nil value signals omission to the caller.
 }

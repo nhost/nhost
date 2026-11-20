@@ -84,12 +84,12 @@ func TestNormalizeInputVariables(t *testing.T) {
 		{
 			name:  "argument default",
 			query: `query($x:Int){items(defaulted:$x){id}}`,
-			want:  `query($x:Int){items(defaulted:11){id}}`,
+			want:  `query($x:Int){items{id}}`,
 		},
 		{
 			name:  "required argument default",
 			query: `query($x:Int){items(required:$x){id}}`,
-			want:  `query($x:Int){items(required:12){id}}`,
+			want:  `query($x:Int){items{id}}`,
 		},
 		{
 			name:  "nested fields and list position",
@@ -99,7 +99,7 @@ func TestNormalizeInputVariables(t *testing.T) {
 		{
 			name:  "input field defaults",
 			query: `query($x:Int){items(input:{defaulted:$x,requiredDefault:$x}){id}}`,
-			want:  `query($x:Int){items(input:{defaulted:7,requiredDefault:9}){id}}`,
+			want:  `query($x:Int){items(input:{}){id}}`,
 		},
 		{
 			name:  "json scalar object and list",

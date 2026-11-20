@@ -601,6 +601,13 @@ func TestOptionalVariableInputs(t *testing.T) {
 			wantVariables: `{}`,
 		},
 		{
+			name:          "omitted geography input uses field default",
+			query:         `query($s:Boolean){users(where:{location:{_st_d_within:{from:{type:"Point",coordinates:[1,2]},distance:10,use_spheroid:$s}}}){id}}`,
+			variables:     `{}`,
+			wantQuery:     `query{users(where:{location:{_st_d_within:{from:{type:"Point",coordinates:[1,2]},distance:10,use_spheroid:true}}}){id}}`,
+			wantVariables: `{}`,
+		},
+		{
 			name:          "omitted JSONB property",
 			query:         `query($name:String){users(where:{data:{_contains:{name:$name,age:1}}}){id}}`,
 			variables:     `{}`,
@@ -1062,6 +1069,7 @@ func variableInputRoots(t *testing.T) (queries.Roots, *ast.Schema) {
 				{Name: "data", Type: "jsonb"},
 				{Name: "active", Type: "bool"},
 				{Name: "score", Type: "float8"},
+				{Name: "location", Type: "geography"},
 			},
 		},
 		"posts": {
