@@ -13,6 +13,7 @@ import { AccountSettingsCard } from '@/features/account/settings/components/Acco
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateUserDisplayNameMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { useNhostClient } from '@/providers/nhost';
 
 const validationSchema = Yup.object({
   displayName: Yup.string()
@@ -25,6 +26,7 @@ export type DisplayNameSettingFormValues = Yup.InferType<
 >;
 
 export default function DisplayNameSetting() {
+  const nhost = useNhostClient();
   const user = useUserData();
 
   const { id: userID, displayName } = user || {};
@@ -42,14 +44,36 @@ export default function DisplayNameSetting() {
   async function handleSubmit(formValues: DisplayNameSettingFormValues) {
     await execPromiseWithErrorToast(
       async () => {
-        await updateUserDisplayName({
+        if (!userID) {
+          throw new Error('Please sign in again to update your display name.');
+        }
+
+        const { data } = await updateUserDisplayName({
           variables: {
             id: userID,
             displayName: formValues.displayName,
           },
         });
+        const updatedUser = data?.updateUser;
 
-        form.reset({ displayName: formValues.displayName });
+        if (!updatedUser || updatedUser.id !== userID) {
+          throw new Error(
+            'Your display name could not be updated. Please try again.',
+          );
+        }
+
+        const currentSession = nhost.getUserSession();
+        if (currentSession?.user && currentSession.user.id === updatedUser.id) {
+          nhost.sessionStorage.set({
+            ...currentSession,
+            user: {
+              ...currentSession.user,
+              displayName: updatedUser.displayName,
+            },
+          });
+        }
+
+        form.reset({ displayName: updatedUser.displayName });
       },
       {
         loadingMessage: 'Updating your display name...',

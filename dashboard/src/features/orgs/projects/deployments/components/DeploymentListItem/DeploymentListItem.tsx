@@ -5,9 +5,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { MouseEvent } from 'react';
+import DashboardAvatar from '@/components/common/DashboardAvatar';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -60,7 +60,7 @@ export default function DeploymentListItem({
         className="grid w-full grid-flow-col items-center justify-between gap-2 p-2 font-display font-medium text-accent-foreground text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
-          <Avatar
+          <DashboardAvatar
             alt={deployment.commitUserName ?? undefined}
             name={deployment.commitUserName ?? undefined}
             src={deployment.commitUserAvatarUrl}

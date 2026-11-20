@@ -1,5 +1,5 @@
 import { formatDistance } from 'date-fns';
-import { Avatar } from '@/components/ui/v3/avatar';
+import DashboardAvatar from '@/components/common/DashboardAvatar';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
 import type {
   DeploymentRowFragment,
@@ -44,7 +44,7 @@ export default function DeploymentStatusMessage({
   if (isInProgress || (hasData && !endedAt)) {
     return (
       <span className="flex flex-row justify-start">
-        <Avatar
+        <DashboardAvatar
           alt={`Avatar of ${userName}`}
           name={userName ?? undefined}
           src={avatarUrl}
@@ -60,7 +60,7 @@ export default function DeploymentStatusMessage({
 
     return (
       <div className="relative flex flex-row">
-        <Avatar
+        <DashboardAvatar
           alt={`Avatar of ${userName}`}
           name={userName ?? undefined}
           src={avatarUrl}
