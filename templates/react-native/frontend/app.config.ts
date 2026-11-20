@@ -1,5 +1,13 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
+// The one read of the environment outside `src/lib/nhost/env.ts`: iOS only
+// offers passkeys for a domain the app's entitlements name, which are fixed at
+// build time.
+function passkeyEntitlements(): NonNullable<ExpoConfig['ios']> {
+  const domain = process.env.EXPO_PUBLIC_NHOST_PASSKEY_DOMAIN;
+  return domain ? { associatedDomains: [`webcredentials:${domain}`] } : {};
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Nhost Starter',
@@ -12,6 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     bundleIdentifier: 'io.nhost.starter',
     supportsTablet: true,
+    ...passkeyEntitlements(),
   },
   android: {
     package: 'io.nhost.starter',

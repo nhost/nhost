@@ -6,6 +6,7 @@ export const DEVICE_KEYS = [
   'nhostSignInAttempt',
   'nhostLastSignIn',
   'nhostLinkFlows',
+  'nhostPasskeys',
 ] as const;
 
 export type DeviceKey = (typeof DEVICE_KEYS)[number];

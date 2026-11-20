@@ -1,5 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactElement } from 'react';
+import { passkeyDomain } from '@/lib/nhost/env';
+import PasskeysSetting from '@/screens/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/screens/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/screens/auth/password/mfa/MfaSetting';
 
@@ -51,4 +53,16 @@ export const methods: SignInMethod[] = [
     title: 'Email code',
     description: 'Get a one-time code by email.',
   },
+  // Only once the deployment names the domain passkeys belong to: without one,
+  // the device refuses to create or use any.
+  ...(passkeyDomain()
+    ? [
+        {
+          href: '/auth/passkey',
+          title: 'Passkey',
+          description: 'Face ID, your fingerprint or a security key.',
+          account: { passkeys: PasskeysSetting },
+        },
+      ]
+    : []),
 ];
