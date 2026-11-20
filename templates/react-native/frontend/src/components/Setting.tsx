@@ -2,7 +2,7 @@ import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View, type ViewProps } from 'react-native';
 import Dialog from '@/components/Dialog';
 import { Button } from '@/components/ui/button';
-import { colors, fontSize } from '@/theme';
+import { colors, fontSize, inset } from '@/theme';
 
 /**
  * The rows of the account screen's settings, a line between each. Every row
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     minHeight: 56,
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingVertical: 8,
   },
   label: {

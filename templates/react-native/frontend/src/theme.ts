@@ -27,6 +27,13 @@ export const radius = {
   xl: 14,
 } as const;
 
+// Horizontal space on a phone's width: from the screen's edge to its content,
+// and from a card's edge to its rows.
+export const inset = {
+  screen: 16,
+  card: 16,
+} as const;
+
 export const fontSize = {
   xs: 12,
   sm: 14,

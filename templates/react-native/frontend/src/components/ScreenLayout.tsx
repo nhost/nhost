@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthErrorFromUrl from '@/components/AuthErrorFromUrl';
 import Footer from '@/components/Footer';
 import SessionGuard from '@/components/SessionGuard';
-import { colors } from '@/theme';
+import { colors, inset } from '@/theme';
 
 /**
  * What the web layout's <main> and footer are, around one screen: one scroll
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 896,
     alignSelf: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingHorizontal: inset.screen,
+    paddingVertical: 24,
   },
 });

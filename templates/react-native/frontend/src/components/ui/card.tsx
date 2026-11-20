@@ -5,7 +5,7 @@ import {
   View,
   type ViewProps,
 } from 'react-native';
-import { colors, fontSize, radius } from '@/theme';
+import { colors, fontSize, inset, radius } from '@/theme';
 
 function Card({ style, ...props }: ViewProps) {
   return <View style={[styles.card, style]} {...props} />;
@@ -29,8 +29,8 @@ function CardContent({ style, ...props }: ViewProps) {
 
 const styles = StyleSheet.create({
   card: {
-    gap: 24,
-    paddingVertical: 24,
+    gap: 20,
+    paddingVertical: 20,
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 6,
-    paddingHorizontal: 24,
+    paddingHorizontal: inset.card,
   },
   title: {
     color: colors.foreground,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
   },
   content: {
-    paddingHorizontal: 24,
+    paddingHorizontal: inset.card,
   },
 });
 

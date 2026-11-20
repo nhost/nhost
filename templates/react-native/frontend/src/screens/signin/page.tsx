@@ -131,13 +131,12 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 12,
-    paddingHorizontal: 40,
   },
   method: {
     alignItems: 'center',
     gap: 2,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,

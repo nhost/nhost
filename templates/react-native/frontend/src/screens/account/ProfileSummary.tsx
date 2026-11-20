@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import AvatarForm from '@/screens/account/AvatarForm';
 import CopyUserId from '@/screens/account/CopyUserId';
 import DisplayNameField from '@/screens/account/DisplayNameField';
-import { colors, fontSize } from '@/theme';
+import { colors, fontSize, inset } from '@/theme';
 
 // A fixed zone rather than the device's: the day it says has to be the one the
 // auth service stored.
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
-    padding: 20,
+    gap: 16,
+    padding: inset.card,
   },
   details: {
     flex: 1,

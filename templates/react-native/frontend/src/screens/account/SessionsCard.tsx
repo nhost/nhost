@@ -5,7 +5,7 @@ import { useLoad } from '@/lib/useLoad';
 import { listSessions } from '@/screens/account/actions';
 import SessionList from '@/screens/account/SessionList';
 import { sortSessions } from '@/screens/account/sessions';
-import { colors, fontSize } from '@/theme';
+import { colors, fontSize, inset } from '@/theme';
 
 /** The account's sessions, each with a way to end it. */
 export default function SessionsCard() {
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   heading: {
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingTop: 16,
     paddingBottom: 4,
     color: colors.mutedForeground,
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   item: {
     justifyContent: 'center',
     minHeight: 48,
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingVertical: 8,
   },
   loading: {

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { ToastStatus } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
-import { colors, fontSize, radius } from '@/theme';
+import { colors, fontSize, inset, radius } from '@/theme';
 
 type Close = (then?: VoidFunction) => void;
 
@@ -126,14 +126,15 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     justifyContent: 'center',
-    padding: 16,
+    padding: inset.screen,
   },
   dialog: {
     width: '100%',
     maxWidth: 448,
     alignSelf: 'center',
     gap: 20,
-    padding: 24,
+    paddingHorizontal: inset.card,
+    paddingVertical: 20,
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,

@@ -4,7 +4,7 @@ import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
 import ChangeEmailForm from '@/screens/account/ChangeEmailForm';
 import { buttonSettings, methods } from '@/screens/signin/methods';
-import { colors, fontSize } from '@/theme';
+import { colors, fontSize, inset } from '@/theme';
 
 /** Every sign-in method, as the account screen shows it. */
 
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   heading: {
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingTop: 16,
     paddingBottom: 4,
     color: colors.mutedForeground,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     color: colors.destructive,
   },
   unmanaged: {
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,

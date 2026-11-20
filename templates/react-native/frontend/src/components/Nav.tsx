@@ -10,7 +10,7 @@ import { useSession } from '@/lib/nhost/AuthProvider';
 import { DEFAULT_DESTINATION } from '@/screens/signin/destination';
 import { methods } from '@/screens/signin/methods';
 import { signInQuery } from '@/screens/signin/query';
-import { colors, fontSize } from '@/theme';
+import { colors, fontSize, inset } from '@/theme';
 
 const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
+    paddingHorizontal: inset.screen,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,

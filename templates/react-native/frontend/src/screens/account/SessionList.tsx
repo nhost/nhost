@@ -11,7 +11,7 @@ import { NETWORK_ERROR } from '@/lib/nhost/errors';
 import { type AccountSession, signOutSession } from '@/screens/account/actions';
 import ConfirmAction from '@/screens/account/ConfirmAction';
 import { formatSessionTime } from '@/screens/account/sessions';
-import { colors, fontSize, monospace } from '@/theme';
+import { colors, fontSize, inset, monospace } from '@/theme';
 
 /** One line per session on the account, each with a way to sign it out. */
 export default function SessionList({
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     minHeight: 48,
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingVertical: 8,
   },
   details: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
   },
   alert: {
-    paddingHorizontal: 20,
+    paddingHorizontal: inset.card,
     paddingVertical: 12,
   },
   error: {
