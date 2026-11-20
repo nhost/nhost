@@ -40,6 +40,10 @@ func constellation( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	// event triggers registered by the ai service read the secret from
+	// AI_WEBHOOK_SECRET; appconfig only emits the legacy graphite name.
+	env["AI_WEBHOOK_SECRET"] = cfg.GetAi().GetWebhookSecret()
+
 	return &Service{
 		Image: image,
 		DependsOn: map[string]DependsOn{

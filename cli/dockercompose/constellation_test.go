@@ -48,6 +48,7 @@ func expectedConstellation(useTLS bool) *Service {
 			"ENV1":                        "VALUE1",
 			"ENV2":                        "VALUE2",
 			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
+			"AI_WEBHOOK_SECRET":           "webhookSecret",
 			"HASURA_GRAPHQL_DATABASE_URL": "postgres://postgres:postgres@postgres:5432/local",
 			"NHOST_ADMIN_SECRET":          "adminSecret",
 			"NHOST_AUTH_URL":              scheme + "://dev.auth.local.nhost.run:1337/v1",
