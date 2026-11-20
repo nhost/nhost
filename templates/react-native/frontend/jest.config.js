@@ -14,7 +14,7 @@ const TRANSFORM = [
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
-  setupFiles: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   transformIgnorePatterns: [
     `/node_modules/(?!(\\.pnpm/[^/]+/node_modules/)?(${TRANSFORM.join('|')}))`,
     '/node_modules/@react-native/babel-preset/',
