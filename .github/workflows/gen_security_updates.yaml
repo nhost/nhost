@@ -82,7 +82,10 @@ jobs:
         # workspace because sharedWorkspaceLockfile is false — each package
         # has its own lockfile and pnpm audit only sees the cwd's. Non-zero
         # exits are tolerated so partial fixes still land; remaining advisories
-        # surface on the normal audit-ci-recursive CI check.
+        # surface on the normal audit-ci-recursive CI check. Templates sit
+        # outside the workspace; each frontend/pnpm-workspace.yaml makes it
+        # its own pnpm root, and the node_modules pnpm dedupe installs is
+        # gitignored.
         run: |
           system=$(nix eval --impure --raw --expr builtins.currentSystem)
           nix path-info --derivation ".#devShells.$system.security-updates" \
@@ -93,6 +96,12 @@ jobs:
               exec pnpm audit --fix=update || true
             pnpm -r --include-workspace-root \
               exec pnpm dedupe || true
+            for dir in templates/*/frontend; do
+              (cd "$dir" && {
+                pnpm audit --fix=update || true
+                pnpm dedupe || true
+              })
+            done
           '
 
       - name: Create Pull Request
@@ -109,7 +118,9 @@ jobs:
           body: |
             Daily security updates.
 
-            * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
+            * **pnpm**: `pnpm audit --fix=update` and `pnpm dedupe` per
+              workspace lockfile and per `templates/*/frontend` lockfile
+              (no overrides added).
             * **Go**: `go mod edit -require` for non-allowlisted modules with
               imported vulnerable packages, then `go mod tidy && go mod vendor`.
 

@@ -54,7 +54,8 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Templates (`templates/`)
 
 - `templates/nextjs/` - Next.js starter with server-side Nhost auth. A standalone app with its own lockfile, outside the root pnpm workspace, so it builds exactly as a scaffolded copy does
-- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean
+- `templates/vue/` - Vite + Vue Router port of the React starter, with the session held by the SDK browser client and routes from Vue Router's file-based routing. Same layout, features, tests and backend; its README lists what differs from the Next.js and React starters. Standalone like `templates/nextjs/`
+- `templates/project.nix` and `templates/Makefile` - lint, typecheck, test and build every template in CI (`templates_checks.yaml`); they live outside each template so scaffolded copies stay clean. A new template is added to the `templates` list in `templates/project.nix` (with its own `typecheck` command if it is not `tsc --noEmit`), and its `.secrets.example` needs a line in `tools/betterleaks/.betterleaksignore`
 
 ### Build System (`build/`)
 

@@ -8,21 +8,42 @@ let
 
   fs = pkgs.lib.fileset;
 
+  templates = [
+    { name = "nextjs"; }
+    {
+      name = "vue";
+      typecheck = "pnpm exec vue-tsc --noEmit";
+      # vercel.json's CSP only runs scripts loaded from the site itself.
+      postBuild = ''
+        if grep -o '<script[^>]*>' dist/index.html | grep -v ' src='; then
+          echo "dist/index.html has an inline script, which the CSP blocks"
+          exit 1
+        fi
+      '';
+    }
+  ];
+
+  forEachTemplate = f: pkgs.lib.concatMapStringsSep "\n" f templates;
+
+  frontendOf = template: ./. + "/${template.name}/frontend";
+
   # Each template is a standalone app with its own lockfile, outside the root
   # pnpm workspace, so it installs and runs exactly as a scaffolded copy does.
-  nextjsNodeModules = nixops-lib.js.mkNodeModules {
-    name = "node-modules-${name}-nextjs";
-    inherit version;
+  nodeModulesOf =
+    template:
+    nixops-lib.js.mkNodeModules {
+      name = "node-modules-${name}-${template.name}";
+      inherit version;
 
-    src = fs.toSource {
-      root = ./nextjs/frontend;
-      fileset = fs.unions [
-        ./nextjs/frontend/package.json
-        ./nextjs/frontend/pnpm-lock.yaml
-        ./nextjs/frontend/pnpm-workspace.yaml
-      ];
+      src = fs.toSource {
+        root = frontendOf template;
+        fileset = fs.unions [
+          (frontendOf template + "/package.json")
+          (frontendOf template + "/pnpm-lock.yaml")
+          (frontendOf template + "/pnpm-workspace.yaml")
+        ];
+      };
     };
-  };
 
   # The root workspace's audit-ci and its config, which the examples run too.
   rootNodeModules = nixops-lib.js.mkNodeModules {
@@ -55,7 +76,7 @@ let
 
   src = fs.toSource {
     root = ../.;
-    fileset = ./nextjs;
+    fileset = fs.unions (map (template: ./. + "/${template.name}") templates);
   };
 
   nativeBuildInputs = with pkgs; [
@@ -72,7 +93,9 @@ let
 
     cp -r ${src} src
     chmod +w -R src
-    cp -r ${nextjsNodeModules}/node_modules src/templates/nextjs/frontend/node_modules
+    ${forEachTemplate (template: ''
+      cp -r ${nodeModulesOf template}/node_modules src/templates/${template.name}/frontend/node_modules
+    '')}
   '';
 in
 {
@@ -93,19 +116,23 @@ in
         chmod +w -R src
         cp -r ${rootNodeModules}/node_modules src/node_modules
 
-        echo "➜ nextjs: audit"
-        (cd src && pnpm audit-ci --directory templates/nextjs/frontend)
+        ${forEachTemplate (template: ''
+          echo "➜ ${template.name}: audit"
+          (cd src && pnpm audit-ci --directory templates/${template.name}/frontend)
 
-        cd src/templates/nextjs/frontend
+          pushd src/templates/${template.name}/frontend
 
-        echo "➜ nextjs: lint"
-        pnpm lint
+          echo "➜ ${template.name}: lint"
+          pnpm lint
 
-        echo "➜ nextjs: typecheck"
-        pnpm exec tsc --noEmit
+          echo "➜ ${template.name}: typecheck"
+          ${template.typecheck or "pnpm exec tsc --noEmit"}
 
-        echo "➜ nextjs: test"
-        pnpm test
+          echo "➜ ${template.name}: test"
+          pnpm test
+
+          popd
+        '')}
 
         mkdir $out
       '';
@@ -119,10 +146,15 @@ in
       ''
         ${setup}
 
-        cd src/templates/nextjs/frontend
+        ${forEachTemplate (template: ''
+          pushd src/templates/${template.name}/frontend
 
-        echo "➜ nextjs: build"
-        pnpm build
+          echo "➜ ${template.name}: build"
+          pnpm build
+          ${template.postBuild or ""}
+
+          popd
+        '')}
 
         mkdir $out
       '';
