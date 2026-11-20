@@ -1,5 +1,11 @@
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import type { ReactElement, ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthErrorFromUrl from '@/components/AuthErrorFromUrl';
 import Footer from '@/components/Footer';
@@ -13,20 +19,29 @@ import { colors, inset } from '@/theme';
  */
 export default function ScreenLayout({ children }: { children: ReactNode }) {
   const { bottom } = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
 
+  // Android too: drawn edge to edge, the window does not shrink for the
+  // keyboard. The offset is for the header, which sits above this view.
   return (
     <SessionGuard>
-      <ScrollView
+      <KeyboardAvoidingView
         style={styles.screen}
-        contentContainerStyle={[styles.content, { paddingBottom: bottom }]}
-        keyboardShouldPersistTaps="handled"
+        behavior="padding"
+        keyboardVerticalOffset={headerHeight}
       >
-        <View style={styles.main}>
-          <AuthErrorFromUrl />
-          {children}
-        </View>
-        <Footer />
-      </ScrollView>
+        <ScrollView
+          style={styles.screen}
+          contentContainerStyle={[styles.content, { paddingBottom: bottom }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.main}>
+            <AuthErrorFromUrl />
+            {children}
+          </View>
+          <Footer />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SessionGuard>
   );
 }
