@@ -28854,6 +28854,7 @@ export type RemoteAppGetUsersAndAuthRolesQueryVariables = Exact<{
   where: Users_Bool_Exp;
   limit: Scalars['Int'];
   offset: Scalars['Int'];
+  orderBy?: InputMaybe<Array<Users_Order_By> | Users_Order_By>;
 }>;
 
 
@@ -35276,13 +35277,8 @@ export function refetchGetOAuth2ClientsQuery(variables: GetOAuth2ClientsQueryVar
       return { query: GetOAuth2ClientsDocument, variables: variables }
     }
 export const RemoteAppGetUsersAndAuthRolesDocument = gql`
-    query remoteAppGetUsersAndAuthRoles($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(
-    where: $where
-    limit: $limit
-    offset: $offset
-    order_by: {createdAt: desc}
-  ) {
+    query remoteAppGetUsersAndAuthRoles($where: users_bool_exp!, $limit: Int!, $offset: Int!, $orderBy: [users_order_by!] = [{createdAt: desc}]) {
+  users(where: $where, limit: $limit, offset: $offset, order_by: $orderBy) {
     ...RemoteAppGetUsers
   }
   filteredUsersAggreggate: usersAggregate(where: $where) {
@@ -35316,6 +35312,7 @@ export const RemoteAppGetUsersAndAuthRolesDocument = gql`
  *      where: // value for 'where'
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
+ *      orderBy: // value for 'orderBy'
  *   },
  * });
  */
