@@ -20,6 +20,15 @@ export type Provider = (typeof providers)[number];
 export const ACCOUNT_PICKER = { prompt: 'select_account' };
 
 /**
+ * `url` with the brackets of `upstreamParams[...]` encoded, for the in-app
+ * browser. Given a raw bracket, iOS encodes the whole URL again, `redirectTo`
+ * included, and auth refuses the redirect.
+ */
+export function inAppBrowserURL(url: string): string {
+  return url.replace(/\[/g, '%5B').replace(/\]/g, '%5D');
+}
+
+/**
  * How the sign-in list names a provider when it marks the way the visitor last
  * signed in. The other methods are named by their screen; a provider has none.
  */

@@ -4,6 +4,8 @@ import {
   renderRouter,
   screen,
 } from 'expo-router/testing-library';
+import { type ReactNode, useState } from 'react';
+import Dialog from '@/components/Dialog';
 import ToastProvider from '@/components/Toast';
 import type { ActionResult } from '@/lib/nhost/errors';
 import ManageLinkedAccounts, {
@@ -33,21 +35,34 @@ const providers: LinkedProvider[] = [
   { id: 'google', name: 'Google' },
 ];
 
+function InDialog({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <Dialog open={open} onOpenChange={setOpen} title="Linked accounts">
+      {children}
+    </Dialog>
+  );
+}
+
 const open = ({ email = 'user@example.com', list = providers } = {}) =>
   renderRouter(
     {
       account: () => (
         <ToastProvider>
-          <ManageLinkedAccounts
-            providers={list}
-            email={email}
-            links={list.filter(({ link }) => link).length}
-          />
+          <InDialog>
+            <ManageLinkedAccounts
+              providers={list}
+              email={email}
+              links={list.filter(({ link }) => link).length}
+            />
+          </InDialog>
         </ToastProvider>
       ),
     },
     { initialUrl: '/account' },
   );
+
+const dialogShown = () => screen.queryByText('Linked accounts') !== null;
 
 const unlinkButtons = () => screen.queryAllByRole('button', { name: 'Unlink' });
 
@@ -131,14 +146,34 @@ describe('manage linked accounts', () => {
     expect(screen.getByText('Google linked')).toBeOnTheScreen();
   });
 
+  // The browser can't open over the dialog: on iOS the dialog would then stay
+  // up, unseen, once the browser closes.
+  it('leaves the dialog before the browser opens, and opens it once', async () => {
+    const shownAtOpen: boolean[] = [];
+    mockActions.linkProvider.mockImplementation(async () => {
+      shownAtOpen.push(dialogShown());
+      return {};
+    });
+    await open();
+    const link = screen.getByRole('button', { name: 'Link account' });
+
+    await act(async () => {
+      fireEvent.press(link);
+      fireEvent.press(link);
+    });
+
+    expect(shownAtOpen).toEqual([false]);
+  });
+
   it('does nothing when the browser is closed', async () => {
     mockActions.linkProvider.mockResolvedValueOnce({});
     await open();
 
     await press('Link account');
 
+    expect(mockActions.linkProvider).toHaveBeenCalledTimes(1);
     expect(mockRefresh).not.toHaveBeenCalled();
-    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByText('Google linked')).toBeNull();
   });
 
   it('says why a provider could not be linked', async () => {
@@ -147,18 +182,7 @@ describe('manage linked accounts', () => {
 
     await press('Link account');
 
-    expect(screen.getByRole('alert')).toHaveTextContent('No browser.');
+    expect(screen.getByText('No browser.')).toBeOnTheScreen();
     expect(mockRefresh).not.toHaveBeenCalled();
-  });
-
-  // One trip to a provider at a time: the browser opens only once.
-  it('holds every button while the browser is open', async () => {
-    mockActions.linkProvider.mockReturnValueOnce(pendingUntilReleased());
-    await open();
-
-    await press('Link account');
-
-    expect(screen.getByRole('button', { name: 'Link account' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Unlink' })).toBeDisabled();
   });
 });

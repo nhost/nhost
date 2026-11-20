@@ -1,7 +1,7 @@
 import type { SignInProvider } from '@nhost/nhost-js/auth';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { DialogClose, DialogFooter } from '@/components/Dialog';
+import { DialogClose, DialogFooter, useCloseDialog } from '@/components/Dialog';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { useRefresh } from '@/components/useRefresh';
@@ -22,9 +22,9 @@ export type LinkedProvider = {
 };
 
 /**
- * A line per provider: Link account opens the provider in the in-app browser
- * and reads the list again once it is linked, Unlink stays here with the list
- * read again under it.
+ * A line per provider: Link account leaves the dialog for the provider in the
+ * in-app browser, and the screen reads the list again once it is linked;
+ * Unlink stays here with the list read again under it.
  */
 export default function ManageLinkedAccounts({
   providers: listed,
@@ -37,8 +37,9 @@ export default function ManageLinkedAccounts({
 }) {
   const refresh = useRefresh();
   const toast = useToast();
+  const close = useCloseDialog();
   const [error, setError] = useState<string | undefined>();
-  const [linking, setLinking] = useState(false);
+  const leaving = useRef(false);
 
   // Shown as not linked as soon as Unlink is pressed, rather than once the
   // refreshed screen arrives (see `useRemoved`).
@@ -55,25 +56,24 @@ export default function ManageLinkedAccounts({
   ).length;
   const canUnlink = leavesAWayIn(email, links - pending);
 
-  const handleLink = async (provider: LinkedProvider) => {
-    if (linking) {
+  // Out of the dialog first, as a web page leaves for the provider. On iOS, a
+  // dialog the in-app browser opened over can't close while the browser does,
+  // and stays up, unseen, over a screen that no longer answers.
+  const handleLink = (provider: LinkedProvider) => {
+    if (leaving.current) {
       return;
     }
-    setError(undefined);
-    setLinking(true);
-    try {
-      const result = await linkProvider(provider.id);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      if (result.success) {
-        toast(`${provider.name} linked`);
-        refresh();
-      }
-    } finally {
-      setLinking(false);
-    }
+    leaving.current = true;
+    close(() => {
+      void linkProvider(provider.id).then((result) => {
+        if (result.error) {
+          toast(result.error);
+        } else if (result.success) {
+          toast(`${provider.name} linked`);
+          refresh();
+        }
+      });
+    });
   };
 
   const handleUnlink = async (provider: LinkedProvider) => {
@@ -122,7 +122,7 @@ export default function ManageLinkedAccounts({
                 variant="ghost"
                 size="sm"
                 labelStyle={styles.destructive}
-                disabled={!canUnlink || linking}
+                disabled={!canUnlink}
                 onPress={() => void handleUnlink(provider)}
               />
             ) : (
@@ -130,8 +130,7 @@ export default function ManageLinkedAccounts({
                 title="Link account"
                 variant="outline"
                 size="sm"
-                disabled={linking}
-                onPress={() => void handleLink(provider)}
+                onPress={() => handleLink(provider)}
               />
             )}
           </View>
@@ -159,7 +158,7 @@ export default function ManageLinkedAccounts({
       ) : null}
 
       <DialogFooter>
-        <DialogClose title="Done" disabled={linking} />
+        <DialogClose title="Done" />
       </DialogFooter>
     </View>
   );

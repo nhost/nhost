@@ -37,4 +37,27 @@ describe('formatSessionTime', () => {
       'Oct 26th 2026 8:24 AM',
     );
   });
+
+  it('reads the time where a date and time format types it as literal, as Hermes on iOS does', () => {
+    const real = Intl.DateTimeFormat.prototype.formatToParts;
+    const spy = jest
+      .spyOn(Intl.DateTimeFormat.prototype, 'formatToParts')
+      .mockImplementation(function (this: Intl.DateTimeFormat, date) {
+        const { year, hour } = this.resolvedOptions();
+        return real
+          .call(this, date)
+          .map((part) =>
+            year && hour && ['hour', 'minute', 'dayPeriod'].includes(part.type)
+              ? { ...part, type: 'literal' as const }
+              : part,
+          );
+      });
+    try {
+      expect(formatSessionTime('2026-10-26T12:24:00Z', 'UTC')).toBe(
+        'Oct 26th 2026 12:24 PM',
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
 });

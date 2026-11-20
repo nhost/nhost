@@ -139,6 +139,13 @@ describe('signInWithProvider', () => {
     );
   });
 
+  // iOS encodes a URL with a raw bracket again, `redirectTo` included.
+  it('opens a URL with no raw brackets', async () => {
+    await signInWithProvider('google', '/account');
+
+    expect(mockOpen.mock.calls[0]?.[0]).not.toMatch(/[[\]]/);
+  });
+
   it('notes the provider as the way the visitor is signing in', async () => {
     await signInWithProvider('google', '/account');
     promoteSignInAttempt();

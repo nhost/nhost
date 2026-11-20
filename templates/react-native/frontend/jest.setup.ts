@@ -92,6 +92,32 @@ jest.mock('expo-file-system', () => {
   };
 });
 
+// The preset's modal never says it has gone. iOS, the platform tests run as,
+// does once it is hidden.
+jest.mock('react-native/Libraries/Modal/Modal', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  function Modal({
+    visible = true,
+    onDismiss,
+    children,
+    ...props
+  }: import('react-native').ModalProps) {
+    const wasVisible = React.useRef(visible);
+    React.useEffect(() => {
+      if (wasVisible.current && !visible) {
+        onDismiss?.();
+      }
+      wasVisible.current = visible;
+    });
+    return visible ? React.createElement(View, props, children) : null;
+  }
+
+  return { __esModule: true, default: Modal };
+});
+
 // Tests start on an installed app with nothing stored.
 beforeEach(() => {
   mockDevice.secureStore.clear();

@@ -1,7 +1,8 @@
-import { createContext, type ReactNode, use } from 'react';
+import { createContext, type ReactNode, use, useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -11,10 +12,15 @@ import { ToastStatus } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { colors, fontSize, radius } from '@/theme';
 
-const CloseDialog = createContext<VoidFunction>(() => undefined);
+type Close = (then?: VoidFunction) => void;
 
-/** Closes the dialog this renders inside, for a form that is done with it. */
-export function useCloseDialog(): VoidFunction {
+const CloseDialog = createContext<Close>(() => undefined);
+
+/**
+ * Closes the dialog this renders inside, for a form that is done with it.
+ * `then` runs once the dialog has gone.
+ */
+export function useCloseDialog(): Close {
   return use(CloseDialog);
 }
 
@@ -32,7 +38,23 @@ export default function Dialog({
   description?: ReactNode;
   children: ReactNode;
 }) {
-  const close = (): void => onOpenChange(false);
+  const afterClose = useRef<VoidFunction | undefined>(undefined);
+
+  // Only iOS says when a modal has gone; Android's goes at once.
+  const close: Close = (then) => {
+    onOpenChange(false);
+    if (Platform.OS === 'ios') {
+      afterClose.current = then;
+    } else {
+      then?.();
+    }
+  };
+
+  const dismissed = (): void => {
+    const then = afterClose.current;
+    afterClose.current = undefined;
+    then?.();
+  };
 
   return (
     <Modal
@@ -42,7 +64,8 @@ export default function Dialog({
       statusBarTranslucent
       navigationBarTranslucent
       // Android's back button and gesture.
-      onRequestClose={close}
+      onRequestClose={() => close()}
+      onDismiss={dismissed}
     >
       {/* Android too: drawn edge to edge, the modal's window does not shrink
           for the keyboard. */}
@@ -50,7 +73,7 @@ export default function Dialog({
         <Pressable
           accessibilityLabel="Close"
           style={styles.backdrop}
-          onPress={close}
+          onPress={() => close()}
         />
         <View role="dialog" aria-modal aria-label={title} style={styles.dialog}>
           <View style={styles.header}>
@@ -90,7 +113,7 @@ export function DialogClose({
       variant="outline"
       size="sm"
       disabled={disabled}
-      onPress={close}
+      onPress={() => close()}
     />
   );
 }

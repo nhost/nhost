@@ -6,7 +6,7 @@ import type { ActionResult } from '@/lib/nhost/errors';
 import { openLink, startFlow } from '@/lib/nhost/links';
 import { signInDestination } from '@/screens/signin/destination';
 import { recordSignInAttempt } from '@/screens/signin/lastUsed';
-import { ACCOUNT_PICKER, providerHref } from './providers';
+import { ACCOUNT_PICKER, inAppBrowserURL, providerHref } from './providers';
 
 /**
  * The in-app browser closes on the first redirect that starts with this, and
@@ -33,11 +33,13 @@ export async function signInWithProvider(
     recordSignInAttempt(providerHref(id));
 
     const result = await openAuthSessionAsync(
-      nhost.auth.signInProviderURL(id, {
-        redirectTo,
-        codeChallenge,
-        upstreamParams: ACCOUNT_PICKER,
-      }),
+      inAppBrowserURL(
+        nhost.auth.signInProviderURL(id, {
+          redirectTo,
+          codeChallenge,
+          upstreamParams: ACCOUNT_PICKER,
+        }),
+      ),
       RETURN_URL,
     );
     if (result.type !== 'success') {

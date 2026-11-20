@@ -84,7 +84,9 @@ expo-device` for passkeys, `pnpm remove expo-web-browser` for OAuth.
    `frontend/.env.local` and restart `pnpm ios` or `pnpm android`.
 
 Sign-in opens the provider in an in-app browser, which closes when auth sends
-the user back to the app.
+the user back to the app. Linking one from the account screen closes the
+Linked accounts dialog before the browser opens, and the result shows on the
+account screen.
 
 ### Turning on passkeys
 
@@ -365,7 +367,11 @@ A few things that differ from writing for the web:
   Read them only in `frontend/src/lib/nhost/env.ts`, and in tests change the
   keys of `process.env` in place rather than replacing the object.
 - `jest.setup.ts` fails any test that writes a SecureStore key outside the
-  fixed set.
+  fixed set. Its `Modal` calls `onDismiss` once hidden, as iOS does.
+- Pass a provider URL to the in-app browser through `inAppBrowserURL`. Given a
+  raw `[`, iOS encodes the whole URL again, `redirectTo` included.
+- Hermes on iOS returns the time in a date-and-time `formatToParts` as
+  literal parts. Format the date and the time separately.
 - Give a `Pressable` under an Expo Router `Link asChild` a plain `style`, not a
   function: the function was dropped on device.
 

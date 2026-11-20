@@ -1,4 +1,7 @@
-import { configuredProviders } from '@/screens/auth/oauth/providers';
+import {
+  configuredProviders,
+  inAppBrowserURL,
+} from '@/screens/auth/oauth/providers';
 
 const ids = (value?: string) =>
   configuredProviders(value).map((provider) => provider.id);
@@ -28,5 +31,17 @@ describe('configuredProviders', () => {
     process.env.EXPO_PUBLIC_NHOST_OAUTH_PROVIDERS = 'google,unknown';
 
     expect(ids()).toEqual(['google']);
+  });
+});
+
+describe('inAppBrowserURL', () => {
+  it('encodes the brackets and leaves the rest as it was', () => {
+    expect(
+      inAppBrowserURL(
+        'https://auth.example/v1/signin/provider/github?redirectTo=nhost-starter%3A%2F%2Faccount&upstreamParams[prompt]=select_account',
+      ),
+    ).toBe(
+      'https://auth.example/v1/signin/provider/github?redirectTo=nhost-starter%3A%2F%2Faccount&upstreamParams%5Bprompt%5D=select_account',
+    );
   });
 });

@@ -12,7 +12,10 @@ import { FLOW_PARAM, openLink, parseLink } from '@/lib/nhost/links';
 import { randomToken } from '@/lib/nhost/pkce';
 import { BROWSER_ERROR, RETURN_URL } from '@/screens/auth/oauth/actions';
 import { leavesAWayIn } from '@/screens/auth/oauth/linked/wayIn';
-import { ACCOUNT_PICKER } from '@/screens/auth/oauth/providers';
+import {
+  ACCOUNT_PICKER,
+  inAppBrowserURL,
+} from '@/screens/auth/oauth/providers';
 
 export type LinkedAccount = {
   id: string;
@@ -37,14 +40,16 @@ export async function linkProvider(id: SignInProvider): Promise<ActionResult> {
     }
 
     const result = await openAuthSessionAsync(
-      nhost.auth.signInProviderURL(id, {
-        connect: session.accessToken,
-        // An id of its own all the same, which the app strips like any flow's:
-        // links are handled once per id, so a second trip that fails the same
-        // way would otherwise show nothing.
-        redirectTo: appUrl(ACCOUNT_PATH, { [FLOW_PARAM]: randomToken(16) }),
-        upstreamParams: ACCOUNT_PICKER,
-      }),
+      inAppBrowserURL(
+        nhost.auth.signInProviderURL(id, {
+          connect: session.accessToken,
+          // An id of its own all the same, which the app strips like any
+          // flow's: links are handled once per id, so a second trip that fails
+          // the same way would otherwise show nothing.
+          redirectTo: appUrl(ACCOUNT_PATH, { [FLOW_PARAM]: randomToken(16) }),
+          upstreamParams: ACCOUNT_PICKER,
+        }),
+      ),
       RETURN_URL,
     );
     if (result.type !== 'success') {

@@ -118,6 +118,13 @@ describe('linkProvider', () => {
     expect(mockOpen.mock.calls[0]?.[1]).toBe(RETURN_URL);
   });
 
+  // iOS encodes a URL with a raw bracket again, `redirectTo` included.
+  it('opens a URL with no raw brackets', async () => {
+    await linkProvider('github');
+
+    expect(mockOpen.mock.calls[0]?.[0]).not.toMatch(/[[\]]/);
+  });
+
   // Auth returns to `redirectTo` as it was, with no code to protect.
   it('starts no flow and sends no challenge', async () => {
     await linkProvider('github');

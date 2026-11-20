@@ -24,6 +24,20 @@ function Saves() {
   );
 }
 
+const mockLeft = jest.fn<void, [boolean]>();
+
+function Leaves() {
+  const close = useCloseDialog();
+  return (
+    <Button
+      title="Leave"
+      onPress={() =>
+        close(() => mockLeft(screen.queryByText('Edit it?') === null))
+      }
+    />
+  );
+}
+
 function Page() {
   const [open, setOpen] = useState(false);
   return (
@@ -36,6 +50,7 @@ function Page() {
         description="Nothing changes until you save."
       >
         <Saves />
+        <Leaves />
         <DialogClose />
       </Dialog>
     </>
@@ -99,6 +114,15 @@ describe('dialog', () => {
     await act(async () => jest.advanceTimersByTime(2400));
 
     expect(screen.queryByText('Saved')).toBeNull();
+  });
+
+  // For what can't start while the dialog is up, such as the in-app browser.
+  it('runs what follows a close once the dialog has gone', async () => {
+    mockLeft.mockReset();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Leave' }));
+
+    expect(mockLeft.mock.calls).toEqual([[true]]);
   });
 });
 
