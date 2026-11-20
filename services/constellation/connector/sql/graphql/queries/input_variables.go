@@ -13,18 +13,52 @@ import (
 // nullable variable omits an argument/object field, but contributes null in a
 // list. Explicit null stays present. Definitions come from the selected
 // operation, not VariableDefinition pointers shared by multi-operation fragments.
+// Mutation selectors reject omission instead of silently widening their filter.
 // All edits are copy-on-write because validated documents are cached.
 type inputVariables struct {
 	definitions ast.VariableDefinitionList
 	variables   map[string]any
 	fragments   ast.FragmentDefinitionList
 	normalized  map[string]*ast.FragmentDefinition
+	mutation    bool
+}
+
+type inputVariableScope uint8
+
+const (
+	optionalInput inputVariableScope = iota
+	mutationInput
+	mutationSelector
+)
+
+// selectorScope recognizes Hasura-shaped boolean inputs by their recursive
+// fields, not type/root names, which schema customization can replace. Only
+// mutation-root arguments can enter this scope; returning selections are reads.
+func selectorScope(scope inputVariableScope, name string, value *ast.Value) inputVariableScope {
+	if scope != mutationInput || name != "where" || value.Definition == nil {
+		return scope
+	}
+
+	definition := value.Definition
+	and := definition.Fields.ForName("_and")
+	not := definition.Fields.ForName("_not")
+
+	or := definition.Fields.ForName("_or")
+	if and != nil && and.Type != nil && and.Type.Elem != nil &&
+		and.Type.Elem.Name() == definition.Name &&
+		not != nil && not.Type != nil && not.Type.Name() == definition.Name &&
+		or != nil && or.Type != nil && or.Type.Elem != nil && or.Type.Elem.Name() == definition.Name {
+		return mutationSelector
+	}
+
+	return scope
 }
 
 // NormalizeInputVariables applies omission, input defaults and non-null use-site
 // checks to a validated operation with coerced variables. It returns request-local
 // copies only where inputs change, including reachable fragments. Callers that
 // plan remote selections must use it before dropping variable or field definitions.
+// Omitted fields within mutation where inputs are rejected rather than removed.
 // Unvalidated/generated arguments remain untouched.
 func NormalizeInputVariables(
 	operation *ast.OperationDefinition,
@@ -49,6 +83,7 @@ func NormalizeInputVariables(
 		variables:   variables,
 		fragments:   fragments,
 		normalized:  make(map[string]*ast.FragmentDefinition),
+		mutation:    operation.Operation == ast.Mutation,
 	}
 
 	selections, err := inputs.selectionSet(operation.SelectionSet, "")
@@ -117,7 +152,11 @@ func (v *inputVariables) selection(
 ) (ast.Selection, error) {
 	switch selected := selection.(type) {
 	case *ast.Field:
-		return v.field(selected, childArgumentPath(parentPath, selected))
+		return v.field(
+			selected,
+			childArgumentPath(parentPath, selected),
+			v.mutation && parentPath == "",
+		)
 	case *ast.InlineFragment:
 		selections, err := v.selectionSet(selected.SelectionSet, parentPath)
 		if err != nil {
@@ -180,8 +219,12 @@ func (v *inputVariables) fragment(name, parentPath string) (*ast.FragmentDefinit
 	return &cloned, nil
 }
 
-func (v *inputVariables) field(field *ast.Field, path string) (*ast.Field, error) {
-	args, err := v.arguments(field)
+func (v *inputVariables) field(
+	field *ast.Field,
+	path string,
+	mutationRoot bool,
+) (*ast.Field, error) {
+	args, err := v.arguments(field, mutationRoot)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"normalizing field %s: %w",
@@ -206,31 +249,46 @@ func (v *inputVariables) field(field *ast.Field, path string) (*ast.Field, error
 	return &cloned, nil
 }
 
-func (v *inputVariables) arguments(field *ast.Field) (ast.ArgumentList, error) {
+func (v *inputVariables) arguments(field *ast.Field, mutationRoot bool) (ast.ArgumentList, error) {
 	// Without a validated field definition, a missing selector must continue to
 	// fail in its parser rather than being mistaken for an optional argument.
 	if field.Definition == nil {
 		return field.Arguments, nil
 	}
 
+	scope := optionalInput
+	if mutationRoot {
+		scope = mutationInput
+	}
+
 	result := make(ast.ArgumentList, 0, len(field.Arguments))
 	for _, argument := range field.Arguments {
+		definition := field.Definition.Arguments.ForName(argument.Name)
+		if definition == nil {
+			result = append(result, argument)
+			continue
+		}
+
+		argumentScope := selectorScope(scope, argument.Name, argument.Value)
+
+		value, err := v.value(argument.Value, definition.DefaultValue, argumentScope)
+		if err != nil {
+			return nil, fmt.Errorf("normalizing argument %s: %w", argument.Name, err)
+		}
+
+		if value == nil && argumentScope == mutationSelector {
+			return nil, arguments.NewOmittedMutationSelectorError()
+		}
+
+		if value == nil {
+			continue
+		}
+
 		resolved := argument
-		if definition := field.Definition.Arguments.ForName(argument.Name); definition != nil {
-			value, err := v.value(argument.Value, definition.DefaultValue)
-			if err != nil {
-				return nil, fmt.Errorf("normalizing argument %s: %w", argument.Name, err)
-			}
-
-			if value == nil {
-				continue
-			}
-
-			if value != argument.Value {
-				cloned := *argument
-				cloned.Value = value
-				resolved = &cloned
-			}
+		if value != argument.Value {
+			cloned := *argument
+			cloned.Value = value
+			resolved = &cloned
 		}
 
 		result = append(result, resolved)
@@ -244,7 +302,10 @@ func (v *inputVariables) arguments(field *ast.Field) (ast.ArgumentList, error) {
 }
 
 // value returns nil only for an omitted optional variable with no input default.
-func (v *inputVariables) value(value, fallback *ast.Value) (*ast.Value, error) {
+func (v *inputVariables) value(
+	value, fallback *ast.Value,
+	scope inputVariableScope,
+) (*ast.Value, error) {
 	if value.Kind == ast.Variable {
 		return v.variable(value, fallback)
 	}
@@ -262,13 +323,23 @@ func (v *inputVariables) value(value, fallback *ast.Value) (*ast.Value, error) {
 			}
 		}
 
-		resolved, err := v.value(child.Value, childDefault)
+		childScope := selectorScope(scope, child.Name, child.Value)
+
+		resolved, err := v.value(child.Value, childDefault, childScope)
 		if err != nil {
 			return nil, fmt.Errorf("normalizing input field %s: %w", child.Name, err)
 		}
 
 		if resolved == nil {
 			if value.Kind == ast.ObjectValue {
+				if childScope == mutationSelector {
+					return nil, fmt.Errorf(
+						"input field %s: %w",
+						child.Name,
+						arguments.NewOmittedMutationSelectorError(),
+					)
+				}
+
 				continue
 			}
 

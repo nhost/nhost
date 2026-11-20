@@ -78,6 +78,17 @@ func NewNullInputError() *QueryValidationError {
 	)
 }
 
+// NewOmittedMutationSelectorError rejects an absent variable that would remove
+// a restriction from a mutation's where input. Keep literal empty filters and
+// explicit null distinct from accidental omission.
+func NewOmittedMutationSelectorError() *QueryValidationError {
+	return newQueryValidationError(
+		"a variable used in a mutation where input must be provided",
+		ErrInvalidArgument,
+		"",
+	)
+}
+
 // NewComputedScalarInputError rejects non-string values for PostgreSQL's
 // string-only custom computed argument scalars before executing any SQL.
 func NewComputedScalarInputError(

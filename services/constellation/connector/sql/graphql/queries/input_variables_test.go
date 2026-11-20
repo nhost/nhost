@@ -35,12 +35,47 @@ func TestNormalizeInputVariables(t *testing.T) {
  input Input {first:Int defaulted:Int=7 requiredDefault:Int!=9 nested:Input list:[Int] strict:[Int!] json:jsonb}
  type Item {id:Int items(input:Input,limit:Int,required:Int!=8):[Item!]!}
  type Query {items(input:Input,limit:Int,defaulted:Int=11,required:Int!=12):[Item!]!}
+ input Predicate {_and:[Predicate!] _or:[Predicate!] _not:Predicate id:Comparison}
+ input Comparison {_eq:Int}
+ input Changes {where:Predicate value:Int}
+ input OtherInput {where:Input}
+ type Mutation {change(where:Predicate,changes:[Changes!],input:OtherInput):Item}
  `})
 	if err != nil {
 		t.Fatalf("LoadSchema: %v", err)
 	}
 
 	tests := []normalizeInputCase{
+		{
+			name:    "renamed mutation selector rejects omission",
+			query:   `mutation($x:Int){change(where:{id:{_eq:$x}}){id}}`,
+			wantErr: true,
+		},
+		{
+			name:    "mutation root fragment rejects omission",
+			query:   `mutation($x:Int){...M} fragment M on Mutation{change(where:{id:{_eq:$x}}){id}}`,
+			wantErr: true,
+		},
+		{
+			name:    "nested whole mutation selector rejects omission",
+			query:   `mutation($x:Predicate){change(changes:[{where:$x}]){id}}`,
+			wantErr: true,
+		},
+		{
+			name:    "whole optional mutation selector rejects omission",
+			query:   `mutation($x:Predicate){change(where:$x){id}}`,
+			wantErr: true,
+		},
+		{
+			name:  "mutation non-selector where stays optional",
+			query: `mutation($x:Int){change(input:{where:{first:$x}}){id}}`,
+			want:  `mutation($x:Int){change(input:{where:{}}){id}}`,
+		},
+		{
+			name:  "mutation returning read inputs stay optional",
+			query: `mutation($x:Int){change(where:{}){items(input:{first:$x},limit:$x){id}}}`,
+			want:  `mutation($x:Int){change(where:{}){items(input:{}){id}}}`,
+		},
 		{
 			name:  "omitted argument",
 			query: `query($x:Int){items(limit:$x){id}}`,
@@ -204,7 +239,7 @@ func checkNormalizedInput(t *testing.T, schema *ast.Schema, tt normalizeInputCas
 
 	if tt.wantErr {
 		if !errors.Is(err, arguments.ErrInvalidArgument) {
-			t.Fatalf("expected non-null input error, got %v", err)
+			t.Fatalf("expected input validation error, got %v", err)
 		}
 
 		return

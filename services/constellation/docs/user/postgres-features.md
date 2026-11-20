@@ -311,25 +311,30 @@ comparison objects, `_in`/`_nin` elements, JSONB objects and paths, ordering
 objects/directions, and `distinct_on` columns. Values remain SQL parameters;
 ordering directions and column names still pass their enum/column validation.
 
-An omitted nullable variable omits the argument or input-object field that
-references it. GraphQL input defaults and SQL column/function defaults can then
-apply. In a nullable list position it contributes `null` without shifting later
-elements. Explicit `null` stays present instead of activating a default; for
+Outside mutation selectors, an omitted nullable variable omits the argument or
+input-object field that references it. GraphQL input defaults and SQL
+column/function defaults can then apply. In a nullable list position it
+contributes `null` without shifting later elements. Explicit `null` stays present instead of activating a default; for
 nullable `limit` and `offset` it means no modifier. Missing required variables
 and null at non-null positions are rejected before SQL execution.
 
-**Mutation filter warning:** With `where: {id: {_eq: $id}}` and `$id: String`
-(no default), omitting `$id` removes `_eq`. The remaining `where: {id: {}}`
-imposes no restriction: `update_<table>` and `delete_<table>` affect every row
-the role's permissions allow, and each `update_<table>_many` entry with this
-filter does the same. Omitting a variable in `on_conflict.where` likewise removes
-that restriction on updates to conflicting rows. Permission filters still apply.
+**Mutation selector safety:** An omitted variable must not remove a restriction
+from a mutation's `where` input. With `where: {id: {_eq: $id}}` and `$id: String`
+(no default), omitting `$id` rejects the whole request with a `validation-failed`
+error before any mutation executes. This includes nested `_or`/`_and` filters,
+whole comparison objects, relationship filters, `update_<table>_many[].where`
+and `on_conflict.where`, including nested inserts. Input and variable defaults
+still apply. Optional inputs outside these selectors, such as `_set` columns,
+insert columns, ordering, pagination and computed `args`, retain omission
+semantics. Read filters, including mutation `returning` selections, do too.
 
-Explicit `null` is different: `_eq: null` binds SQL `NULL` and matches no rows.
-Earlier Constellation builds rejected the omitted variable with
-`variable not found`. Declare variables used to scope updates and deletes as
-non-null without a default (`$id: String!`) so a missing value is rejected before
-SQL execution.
+Explicit `null` is different: `_eq: null` still binds SQL `NULL` and matches no
+rows. Intentional empty filters (`where: {}` or `where: {id: {}}`) remain valid
+and can affect every row the role's permissions allow. Permission filters always
+apply. Declare required selectors as non-null without a default (`$id: String!`)
+to make the requirement explicit to clients. See
+[filter input differences](../../KNOWN_DIFFERENCES.md#filter-input-variables)
+for the remaining differences from Hasura's default null handling.
 
 ### Filter operators
 
