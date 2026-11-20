@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 	"os"
+	"slices"
 	"testing"
 	"time"
 
@@ -86,21 +87,26 @@ func TestCleanupQueueIntegration(t *testing.T) {
 		insertCleanupEntry(t, database, id, before.Add(time.Duration(i-1)*time.Hour))
 	}
 
+	// A persistent integration database can contain eligible work from other tests.
+	insertCleanupEntry(t, database, uuid.NewString(), before.Add(-24*time.Hour))
+
 	hasura := metadata.NewHasura(cleanupHasuraURL)
 	headers := http.Header{"x-hasura-admin-secret": []string{"nhost-admin-secret"}}
 
 	// Complete the read-only subtests before acknowledgments mutate the queue.
 	t.Run("listing", func(t *testing.T) {
 		tests := []struct {
-			name  string
-			after string
-			limit int
-			want  []string
+			name            string
+			after           string
+			limit           int
+			filterToTestIDs bool
+			want            []string
 		}{
 			{
-				name:  "age includes boundary but excludes recent deletions",
-				limit: 100,
-				want:  ids[:2],
+				name:            "age includes boundary but excludes recent deletions",
+				limit:           100,
+				filterToTestIDs: true,
+				want:            ids[:2],
 			},
 			{
 				name:  "bounded first page includes zero UUID",
@@ -123,9 +129,13 @@ func TestCleanupQueueIntegration(t *testing.T) {
 					t.Fatalf("ListFilesToDelete() error = %v", apiErr)
 				}
 
-				got := make([]string, len(files))
-				for i, file := range files {
-					got[i] = file.ID
+				got := make([]string, 0, len(files))
+				for _, file := range files {
+					if tt.filterToTestIDs && !slices.Contains(ids, file.ID) {
+						continue
+					}
+
+					got = append(got, file.ID)
 				}
 
 				if diff := cmp.Diff(tt.want, got); diff != "" {
