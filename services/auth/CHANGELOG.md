@@ -1,3 +1,15 @@
+## [auth@0.53.1] - 2026-11-20
+
+### 🐛 Bug Fixes
+
+- *(auth)* Make ticket redemption single-use under concurrent requests (#5389)
+- *(auth)* Keep the MFA ticket when the TOTP code is wrong (#5394)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(auth)* Remove pg version from schema dump (#5409)
+
 ## [auth@0.53.0] - 2026-11-16
 
 ### 🚀 Features
