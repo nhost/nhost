@@ -44,7 +44,7 @@ func (*migrationDatabaseStub) Conn(context.Context) (*sql.Conn, error) {
 func TestPostgresMigrationBundle(t *testing.T) {
 	t.Parallel()
 
-	const wantTarget = 5
+	const wantTarget = 6
 
 	tests := []struct {
 		name string
@@ -301,13 +301,13 @@ INSERT INTO public.viruses (marker) VALUES ('unrelated');
 	}
 
 	migrate(postgresMigrations)
-	assertPostgresMigrationState(t, database, 5, true)
+	assertPostgresMigrationState(t, database, 6, true)
 
 	migrate(postgresMigrationsAtVersionOne)
 	assertPostgresMigrationState(t, database, 1, false)
 
 	migrate(postgresMigrations)
-	assertPostgresMigrationState(t, database, 5, true)
+	assertPostgresMigrationState(t, database, 6, true)
 }
 
 func openPostgresMigrationTestDatabase(t *testing.T) *sql.DB {
@@ -507,9 +507,10 @@ func assertPostgresMigrationState(
 	t.Helper()
 
 	var (
-		version    int
-		dirty      bool
-		virusTable bool
+		version      int
+		dirty        bool
+		virusTable   bool
+		cleanupTable bool
 	)
 
 	if err := database.QueryRowContext(
@@ -537,6 +538,17 @@ func assertPostgresMigrationState(
 
 	if virusTable != wantVirusTable {
 		t.Errorf("storage.virus exists = %t, want %t", virusTable, wantVirusTable)
+	}
+
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT to_regclass('storage.files_to_delete') IS NOT NULL",
+	).Scan(&cleanupTable); err != nil {
+		t.Fatalf("check storage.files_to_delete: %v", err)
+	}
+
+	if cleanupTable != (wantVersion >= 6) {
+		t.Errorf("storage.files_to_delete exists = %t at migration %d", cleanupTable, wantVersion)
 	}
 
 	var publicMarker string
