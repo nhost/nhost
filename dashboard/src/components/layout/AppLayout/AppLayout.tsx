@@ -8,6 +8,7 @@ import {
 import { DashboardNavigation } from '@/components/layout/DashboardNavigation';
 import { Header } from '@/components/layout/Header';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { OrgStatusStrip } from '@/features/orgs/components/OrgStatus';
 
 // Client-only: the sidebar restores its collapsed state from localStorage on
 // first render, which the prerendered HTML cannot know, so hydrating it would
@@ -35,9 +36,10 @@ type AppLayoutProps = Omit<BaseLayoutProps, 'className'> & {
 };
 
 /**
- * The dashboard shell: header across the top, app sidebar down the left, the
- * page in what remains. It owns the geometry of those three regions and knows
- * nothing about what a page renders into `<main>`. `<main>` does not scroll:
+ * The dashboard shell: an organization status strip above everything, then the
+ * header across the top, app sidebar down the left, the page in what remains.
+ * It owns the geometry of those regions and knows nothing about what a page
+ * renders into `<main>`. `<main>` does not scroll:
  * the scope or layout inside it decides which region does.
  *
  * It must be the root element every org- and project-scoped page returns from
@@ -56,6 +58,7 @@ export default function AppLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
+      <OrgStatusStrip />
       <Header className="shrink-0 py-1" />
       <BranchModeBanner />
 

@@ -28656,7 +28656,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -28960,6 +28960,14 @@ export type GetRunServicesQueryVariables = Exact<{
 
 
 export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+
+export type GetAllRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetAllRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }> } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -34087,6 +34095,7 @@ export const GetOrganizationsDocument = gql`
     id
     name
     slug
+    status
     plan {
       id
       name
@@ -35879,6 +35888,53 @@ export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServi
 export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
 export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
       return { query: GetRunServicesDocument, variables: variables }
+    }
+export const GetAllRunServicesDocument = gql`
+    query getAllRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceConfig
+      }
+    }
+  }
+}
+    ${RunServiceConfigFragmentDoc}`;
+
+/**
+ * __useGetAllRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetAllRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetAllRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+      }
+export function useGetAllRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+        }
+export type GetAllRunServicesQueryHookResult = ReturnType<typeof useGetAllRunServicesQuery>;
+export type GetAllRunServicesLazyQueryHookResult = ReturnType<typeof useGetAllRunServicesLazyQuery>;
+export type GetAllRunServicesQueryResult = Apollo.QueryResult<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>;
+export function refetchGetAllRunServicesQuery(variables: GetAllRunServicesQueryVariables) {
+      return { query: GetAllRunServicesDocument, variables: variables }
     }
 export const GetLocalRunServiceConfigsDocument = gql`
     query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {

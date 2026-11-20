@@ -1,5 +1,5 @@
+import { useAllRunServices } from '@/features/orgs/projects/common/hooks/useAllRunServices';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -32,7 +32,7 @@ export default function useHasCustomDomain() {
   const auth = useGetAuthenticationSettingsQuery(options);
   const hasura = useGetHasuraSettingsQuery(options);
   const functions = useGetServerlessFunctionsSettingsQuery(options);
-  const { services, loading: loadingServices } = useRunServices();
+  const { services, loading: loadingServices } = useAllRunServices();
 
   const hasCustomDomain =
     hasFqdn(auth.data?.config?.auth?.resources?.networking?.ingresses) ||
