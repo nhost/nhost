@@ -92,6 +92,39 @@ describe('ProjectsGrid', () => {
     expect(screen.queryByText('No deployments yet')).not.toBeInTheDocument();
   });
 
+  it('shows region, repository and deployment in order without the branch', () => {
+    const project = makeProject('connected', {
+      id: 'us',
+      name: 'us-east-1',
+      countryCode: 'US',
+      city: 'Virginia',
+    });
+    project.githubRepository = { fullName: 'nhost/nhost' };
+
+    render(<ProjectsGrid projects={[project]} />);
+
+    const title = screen.getByText('shop');
+    const region = screen.getByRole('button', {
+      name: 'Region: Virginia (us-east-1)',
+    });
+    const repository = screen.getByText('nhost/nhost');
+    const deployment = screen.getByText('No deployments yet');
+
+    for (const [before, after] of [
+      [title, region],
+      [region, repository],
+      [repository, deployment],
+    ]) {
+      expect(before.compareDocumentPosition(after)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    }
+    expect(repository.previousElementSibling?.tagName.toLowerCase()).toBe(
+      'svg',
+    );
+    expect(screen.queryByText(/main/)).not.toBeInTheDocument();
+  });
+
   it('keeps the plain link name when the region has no name', () => {
     render(
       <ProjectsGrid

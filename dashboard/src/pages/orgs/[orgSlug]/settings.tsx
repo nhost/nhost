@@ -8,7 +8,7 @@ import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 export default function OrgSettings() {
   return (
     <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-5 py-8">
-      <h1 className="font-semibold text-3xl">Settings</h1>
+      <h1 className="font-normal text-3xl">Settings</h1>
       <GeneralSettings />
       <Soc2Download />
       <DeleteOrg />

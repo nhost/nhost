@@ -39,20 +39,20 @@ export function ProjectCard({ project }: { project: Project }) {
             </p>
             <ProjectCardMenu project={project} orgSlug={org?.slug} />
           </div>
-          <ProjectRepository project={project} />
+          <ProjectRegion region={project.region} className="self-start" />
         </div>
 
-        {/* Without a repo the dashboard hides deployments everywhere else,
-            so the card shows none either and the spot stays empty. */}
-        <div className="flex flex-1 flex-row items-center gap-2">
-          {project.githubRepository && (
-            <ProjectLastDeployment latest={latestDeployment} />
-          )}
-        </div>
-
-        <div className="flex w-full flex-row items-center justify-between gap-2">
-          <ProjectStatusPill status={status} />
-          <ProjectRegion region={project.region} />
+        <div className="mt-auto flex w-full items-end justify-between gap-3">
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <ProjectRepository project={project} />
+            {/* Deployments stay hidden for projects without a repository. */}
+            {project.githubRepository && (
+              <ProjectLastDeployment latest={latestDeployment} />
+            )}
+          </div>
+          <div className="shrink-0">
+            <ProjectStatusPill status={status} />
+          </div>
         </div>
       </div>
     </div>
@@ -69,7 +69,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
   return (
     <div className="mx-auto h-full overflow-auto bg-background pb-16">
       <div className="mx-auto flex w-full max-w-page flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pt-8 pb-4">
-        <h1 className="font-semibold text-3xl">Projects</h1>
+        <h1 className="font-normal text-3xl">Projects</h1>
         <Button asChild size="xs" className="gap-2">
           <Link href={`/orgs/${org?.slug}/projects/new`}>
             <Plus />
@@ -78,7 +78,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
         </Button>
       </div>
       {/* auto-rows-fr: every row as tall as the tallest card, deployment or not. */}
-      <div className="mx-auto grid w-full max-w-page auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-page auto-rows-fr grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 xl:grid-cols-3">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

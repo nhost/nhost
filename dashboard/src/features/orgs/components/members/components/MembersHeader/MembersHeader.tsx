@@ -135,7 +135,7 @@ export default function MembersHeader() {
     <div className="flex flex-col gap-4">
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
-          <h1 className="font-semibold text-3xl">Members</h1>
+          <h1 className="font-normal text-3xl">Members</h1>
           <p className="text-muted-foreground text-sm">
             People in {org?.name} can manage all projects within the
             organization.
