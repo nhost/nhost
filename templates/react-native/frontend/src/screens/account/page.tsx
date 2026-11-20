@@ -2,12 +2,16 @@ import type { User } from '@nhost/nhost-js/auth';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Code from '@/components/Code';
+import { SettingsList } from '@/components/Setting';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { useRefresh } from '@/components/useRefresh';
 import { goTo } from '@/lib/goTo';
 import { getVerifiedUser, nhost } from '@/lib/nhost/client';
 import { useLoad } from '@/lib/useLoad';
+import DeleteAccountSetting from '@/screens/account/DeleteAccountSetting';
 import ProfileSummary from '@/screens/account/ProfileSummary';
+import SessionsCard from '@/screens/account/SessionsCard';
 import SignInSettings from '@/screens/account/SignInSettings';
 import { signInHref } from '@/screens/signin/destination';
 import { colors, fontSize } from '@/theme';
@@ -76,6 +80,14 @@ export default function Account() {
     <View style={styles.page}>
       <ProfileSummary user={user} />
       <SignInSettings user={user} />
+      <SessionsCard />
+      {/* Untitled: the label says what the row is, and the dialog it opens
+          spells out what the button does. */}
+      <Card style={styles.card}>
+        <SettingsList>
+          <DeleteAccountSetting />
+        </SettingsList>
+      </Card>
 
       <Text style={styles.hint}>
         Edit this screen in <Code>src/screens/account/</Code>.
@@ -90,6 +102,10 @@ const styles = StyleSheet.create({
     maxWidth: 672,
     alignSelf: 'center',
     gap: 16,
+  },
+  card: {
+    gap: 0,
+    paddingVertical: 0,
   },
   unavailable: {
     alignItems: 'center',

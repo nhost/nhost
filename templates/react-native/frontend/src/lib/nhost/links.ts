@@ -18,6 +18,18 @@ import { START_TIMEOUT_MS, startSession } from './startSession';
 export const CODE_PARAM = 'code';
 export const FLOW_PARAM = 'flow';
 
+// What auth sends instead of a code for a request with no challenge, such as
+// a link edited by hand. The app only takes codes, so it is dropped unread.
+const REFRESH_TOKEN_PARAM = 'refreshToken';
+
+// Read here, and never passed on to a screen.
+const LINK_PARAMS = [
+  CODE_PARAM,
+  LINK_TYPE_PARAM,
+  FLOW_PARAM,
+  REFRESH_TOKEN_PARAM,
+];
+
 // What auth appends to `redirectTo` when a flow fails.
 const ERROR_PARAMS = ['error', 'errorDescription'];
 
@@ -249,8 +261,9 @@ const handled = new Map<string, Promise<string>>();
 
 /**
  * Handles a link into the app once, however often it is delivered, and
- * resolves to the route to show, without `code`, `type` or `flow`. A link with
- * no code and no auth error resolves at once. Never rejects.
+ * resolves to the route to show, without `code`, `type`, `flow` or
+ * `refreshToken`. A link with no code and no auth error resolves at once.
+ * Never rejects.
  */
 export function consumeLink(url: string): Promise<string> {
   const link = parseLink(url);
@@ -258,9 +271,7 @@ export function consumeLink(url: string): Promise<string> {
     return Promise.resolve('/');
   }
   if (!isAuthLink(link)) {
-    return Promise.resolve(
-      linkHref(without(link, [CODE_PARAM, LINK_TYPE_PARAM, FLOW_PARAM])),
-    );
+    return Promise.resolve(linkHref(without(link, LINK_PARAMS)));
   }
 
   const key = linkKey(link, url);
@@ -292,7 +303,7 @@ async function handle(link: IncomingLink): Promise<string> {
   const code = param(link, CODE_PARAM);
   const flowId = param(link, FLOW_PARAM);
   const type = param(link, LINK_TYPE_PARAM);
-  const route = without(link, [CODE_PARAM, LINK_TYPE_PARAM, FLOW_PARAM]);
+  const route = without(link, LINK_PARAMS);
 
   try {
     await startSession();
@@ -304,17 +315,18 @@ async function handle(link: IncomingLink): Promise<string> {
     if (code === undefined) {
       return linkHref(route);
     }
-    if (!flow?.verifier) {
-      return failed(route, type, flow);
-    }
 
     // A link may sign in a visitor who is signed out; it may not replace
-    // somebody who is already here. The code expires unused.
+    // somebody who is already here, whichever device asked for it. The code
+    // expires unused.
     if (nhost.getUserSession()) {
       for (const listener of discardListeners) {
         listener();
       }
       return linkHref(route);
+    }
+    if (!flow?.verifier) {
+      return failed(route, type, flow);
     }
 
     const session = await exchange(code, flow.verifier);

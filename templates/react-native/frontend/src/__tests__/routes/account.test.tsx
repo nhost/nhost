@@ -2,6 +2,7 @@ import type { User } from '@nhost/nhost-js/auth';
 import { renderRouter, screen } from 'expo-router/testing-library';
 import RootLayout from '@/app/_layout';
 import NotFoundRoute from '@/app/+not-found';
+import AccountLayout from '@/app/account/_layout';
 import Account from '@/app/account/index';
 import Home from '@/app/index';
 import SignIn from '@/app/signin/index';
@@ -26,6 +27,7 @@ jest.mock('@/lib/nhost/client', () => ({
 const routes = {
   _layout: RootLayout,
   index: Home,
+  'account/_layout': AccountLayout,
   'account/index': Account,
   'signin/index': SignIn,
   '+not-found': NotFoundRoute,
@@ -71,6 +73,10 @@ describe('/account', () => {
     expect(screen.getByText(/ada@example\.com/)).toBeOnTheScreen();
     expect(
       screen.getByRole('link', { name: 'Your account' }),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole('heading', { name: 'Sessions' })).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: 'Delete account' }),
     ).toBeOnTheScreen();
   });
 });

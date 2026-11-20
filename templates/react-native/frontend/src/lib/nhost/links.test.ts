@@ -241,6 +241,54 @@ describe('consumeLink', () => {
     expect(links.readFlows()[0]?.consumedAt).toEqual(expect.any(Number));
   });
 
+  // The code was issued for another device, or the flow has aged out; either
+  // way it signs nobody in here, and whatever it confirmed has happened.
+  it.each([
+    ['a flow this app never issued', '&flow=unknown'],
+    ['no flow', ''],
+  ])(
+    'discards a code with %s for a signed-in user, with no error',
+    async (_, flow) => {
+      mockFake.session = { refreshToken: 'here' } as StoredSession;
+      const discarded = jest.fn();
+      links.onLinkDiscarded(discarded);
+
+      await expect(
+        links.consumeLink(
+          `nhost-starter://account/?code=c${flow}&type=emailConfirmChange`,
+        ),
+      ).resolves.toBe('/account');
+
+      expect(mockFake.calls).toEqual([]);
+      expect(mockFake.session).toEqual({ refreshToken: 'here' });
+      expect(discarded).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  // Auth's answer to a request without a challenge. Redeeming it would take
+  // a session no verifier on this device asked for.
+  it.each([
+    ['nhost-starter://account/?refreshToken=r&type=emailConfirmChange&a=1'],
+    ['nhost-starter://account/?refreshToken=r&flow=x&a=1'],
+  ])('drops a refresh token in %s unread', async (url) => {
+    await expect(links.consumeLink(url)).resolves.toBe('/account?a=1');
+
+    expect(mockFake.calls).toEqual([]);
+    expect(mockFake.session).toBeNull();
+  });
+
+  it('drops a refresh token beside a code too', async () => {
+    const { flow } = await issue();
+
+    await expect(
+      links.consumeLink(
+        `nhost-starter://account/?flow=${flow}&code=c&refreshToken=r`,
+      ),
+    ).resolves.toBe('/account');
+
+    expect(mockFake.calls).toEqual(['exchange', 'set, marker none']);
+  });
+
   // The reset screen then behaves as it does for any signed-in visitor.
   it('lets a reset link for a signed-in user land unconfined', async () => {
     mockFake.session = { refreshToken: 'here' } as StoredSession;

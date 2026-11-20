@@ -2,7 +2,9 @@ import type { User } from '@nhost/nhost-js/auth';
 import { StyleSheet, Text, View } from 'react-native';
 import UserAvatar from '@/components/UserAvatar';
 import { Card } from '@/components/ui/card';
-import { colors, fontSize, monospace } from '@/theme';
+import CopyUserId from '@/screens/account/CopyUserId';
+import DisplayNameField from '@/screens/account/DisplayNameField';
+import { colors, fontSize } from '@/theme';
 
 // A fixed zone rather than the device's: the day it says has to be the one the
 // auth service stored.
@@ -19,12 +21,8 @@ export default function ProfileSummary({ user }: { user: User }) {
       {/* The id, role and locale are what a developer reads and the account's
           owner mostly does not, so they are small. */}
       <View style={styles.details}>
-        <Text style={styles.name} numberOfLines={1}>
-          {user.displayName || 'No display name'}
-        </Text>
-        <Text style={styles.id} numberOfLines={1} ellipsizeMode="middle">
-          {user.id}
-        </Text>
+        <DisplayNameField displayName={user.displayName} />
+        <CopyUserId id={user.id} />
         <Text style={styles.joined}>
           Joined {joined.format(new Date(user.createdAt))}
         </Text>
@@ -49,17 +47,7 @@ const styles = StyleSheet.create({
   details: {
     flex: 1,
     minWidth: 0,
-    gap: 4,
-  },
-  name: {
-    color: colors.foreground,
-    fontSize: fontSize.lg,
-    fontWeight: '600',
-  },
-  id: {
-    color: colors.mutedForeground,
-    fontFamily: monospace,
-    fontSize: fontSize.xs,
+    gap: 6,
   },
   joined: {
     color: colors.mutedForeground,

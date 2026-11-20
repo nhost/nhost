@@ -5,6 +5,7 @@ import {
   type StyleProp,
   StyleSheet,
   Text,
+  type TextStyle,
   type ViewStyle,
 } from 'react-native';
 import { colors, fontSize, radius } from '@/theme';
@@ -35,6 +36,7 @@ function Button({
   size = 'default',
   disabled,
   style,
+  labelStyle,
   children,
   ...props
 }: Omit<PressableProps, 'children' | 'style'> & {
@@ -42,6 +44,7 @@ function Button({
   variant?: Variant;
   size?: Size;
   style?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
   children?: ReactNode;
 }) {
   return (
@@ -65,6 +68,7 @@ function Button({
             styles.label,
             { color: labelColor[variant] },
             variant === 'link' && styles.linkLabel,
+            labelStyle,
           ]}
         >
           {title}

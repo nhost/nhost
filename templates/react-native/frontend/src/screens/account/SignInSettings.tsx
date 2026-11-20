@@ -1,6 +1,8 @@
 import type { User } from '@nhost/nhost-js/auth';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { DialogSetting, SettingsList } from '@/components/Setting';
 import { Card } from '@/components/ui/card';
+import ChangeEmailForm from '@/screens/account/ChangeEmailForm';
 import { buttonSettings, methods } from '@/screens/signin/methods';
 import { colors, fontSize } from '@/theme';
 
@@ -22,24 +24,37 @@ export default function SignInSettings({ user }: { user: User }) {
       <Text role="heading" style={styles.heading}>
         Sign-in
       </Text>
-      <View style={styles.row}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.value}>
-          {user.email ?? 'None'}
-          {user.email && !user.emailVerified ? (
-            <Text style={styles.unverified}> · not verified</Text>
-          ) : null}
-        </Text>
-      </View>
-      {methods.flatMap((method) =>
-        Object.entries(method.account ?? {}).map(([name, Setting]) => (
-          <Setting key={`${method.href}#${name}`} user={user} />
-        )),
-      )}
-      {buttonSettings.map((Setting, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: the list is fixed at startup
-        <Setting key={`buttons#${index}`} user={user} />
-      ))}
+      <SettingsList>
+        <DialogSetting
+          label="Email"
+          value={
+            user.email ? (
+              <>
+                {user.email}
+                {user.emailVerified ? null : (
+                  <Text style={styles.unverified}> · not verified</Text>
+                )}
+              </>
+            ) : (
+              'None'
+            )
+          }
+          action="Change"
+          title="Change email"
+          description="We'll send a link to the new address to confirm it."
+        >
+          <ChangeEmailForm email={user.email} verified={user.emailVerified} />
+        </DialogSetting>
+        {methods.flatMap((method) =>
+          Object.entries(method.account ?? {}).map(([name, Setting]) => (
+            <Setting key={`${method.href}#${name}`} user={user} />
+          )),
+        )}
+        {buttonSettings.map((Setting, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the list is fixed at startup
+          <Setting key={`buttons#${index}`} user={user} />
+        ))}
+      </SettingsList>
       {unmanaged.length > 0 ? (
         <Text style={styles.unmanaged}>
           {`${sentenceList(unmanaged.map((method) => method.title))} also ${unmanaged.length === 1 ? 'signs' : 'sign'} in to this account, no additional set up needed.`}
@@ -61,20 +76,6 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     fontSize: fontSize.sm,
     fontWeight: '600',
-  },
-  row: {
-    gap: 2,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  label: {
-    color: colors.foreground,
-    fontSize: fontSize.sm,
-    fontWeight: '500',
-  },
-  value: {
-    color: colors.mutedForeground,
-    fontSize: fontSize.sm,
   },
   unverified: {
     color: colors.destructive,

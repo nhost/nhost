@@ -26,7 +26,7 @@ jest.mock('@/lib/goTo', () => ({
   goTo: (href: string) => mockOpened.push(href),
 }));
 
-const LINK_PARAMS = /[?&](code|type|flow)=/;
+const LINK_PARAMS = /[?&](code|type|flow|refreshToken)=/;
 
 beforeEach(() => {
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -37,7 +37,7 @@ afterEach(() => {
 });
 
 describe('+native-intent', () => {
-  it('never hands a code, type or flow on to a route', async () => {
+  it('never hands a code, type, flow or refresh token on to a route', async () => {
     const { redirectTo } = await startFlow(
       'passwordReset',
       '/auth/password/reset',
@@ -50,6 +50,8 @@ describe('+native-intent', () => {
       'nhost-starter://account/?code=x&flow=y&type=verifyEmail&tab=1',
       'nhost-starter://account/?error=invalid-ticket&flow=z&type=t',
       'nhost-starter://account?flow=f&type=t',
+      'nhost-starter://account/?refreshToken=r&type=emailConfirmChange',
+      'nhost-starter://account/?code=x&refreshToken=r',
       '/account?code=bare&flow=q',
       'nhost-starter:?error=x&code=k',
       'nhost-starter://',

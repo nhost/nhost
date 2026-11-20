@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StrictMode, useEffect, useState } from 'react';
 import Nav from '@/components/Nav';
 import { screenLayout } from '@/components/ScreenLayout';
+import ToastProvider from '@/components/Toast';
 import AuthProvider from '@/lib/nhost/AuthProvider';
 import { settleInitialLink } from '@/lib/nhost/links';
 import { startSession } from '@/lib/nhost/startSession';
@@ -44,13 +45,17 @@ export default function RootLayout() {
   return (
     <StrictMode>
       <AuthProvider>
-        <Stack
-          screenOptions={{
-            header: () => <Nav />,
-            contentStyle: { backgroundColor: colors.background },
-          }}
-          screenLayout={(props) => screenLayout(props, ['auth'])}
-        />
+        {/* Over every screen rather than inside one, whose content scrolls,
+            so a toast stays at the foot of the window. */}
+        <ToastProvider>
+          <Stack
+            screenOptions={{
+              header: () => <Nav />,
+              contentStyle: { backgroundColor: colors.background },
+            }}
+            screenLayout={(props) => screenLayout(props, ['auth'])}
+          />
+        </ToastProvider>
         <StatusBar style="light" />
       </AuthProvider>
     </StrictMode>
