@@ -1,5 +1,7 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactElement } from 'react';
+import ChangePasswordSetting from '@/screens/auth/password/change/ChangePasswordSetting';
+import MfaSetting from '@/screens/auth/password/mfa/MfaSetting';
 
 // Native renders no async components, so these return an element, never the
 // promise React's `ReactNode` also allows.
@@ -32,6 +34,13 @@ export const buttonSettings: AccountSetting[] = [];
 
 /** The sign-in methods this app offers, one entry each. */
 export const methods: SignInMethod[] = [
+  {
+    href: '/auth/password',
+    title: 'Email and password',
+    description: 'Sign up or sign in with a password.',
+    account: { password: ChangePasswordSetting, mfa: MfaSetting },
+    signedOutPaths: ['/auth/password/reset'],
+  },
   {
     href: '/auth/magic-link',
     title: 'Magic link',
