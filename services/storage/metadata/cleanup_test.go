@@ -20,6 +20,18 @@ func checkCleanupAdminHeader(t *testing.T, r *http.Request) {
 	}
 }
 
+func checkCleanupError(t *testing.T, apiErr *controller.APIError, wantError bool) {
+	t.Helper()
+
+	if (apiErr != nil) != wantError {
+		t.Fatalf("API error = %v, want error %t", apiErr, wantError)
+	}
+
+	if apiErr != nil && apiErr.StatusCode() != http.StatusInternalServerError {
+		t.Errorf("API error status = %d, want 500", apiErr.StatusCode())
+	}
+}
+
 func TestListFilesToDelete(t *testing.T) {
 	t.Parallel()
 
@@ -30,10 +42,29 @@ func TestListFilesToDelete(t *testing.T) {
 	tests := []struct {
 		name      string
 		after     string
+		status    int
 		response  string
 		want      []controller.FileToDelete
 		wantError bool
 	}{
+		{
+			name:      "proxy failure with HTML body",
+			status:    http.StatusBadGateway,
+			response:  "<html>Bad Gateway</html>",
+			wantError: true,
+		},
+		{
+			name:      "empty GraphQL errors",
+			status:    http.StatusInternalServerError,
+			response:  `{"errors":[]}`,
+			wantError: true,
+		},
+		{
+			name:      "non-GraphQL JSON error",
+			status:    http.StatusNotFound,
+			response:  `{"code":"not-found","error":"resource does not exist","path":"$"}`,
+			wantError: true,
+		},
 		{
 			name:     "first page includes zero UUID and uses age filter",
 			response: `{"data":{"filesToDelete":[{"id":"` + fileID + `","deletedAt":"2026-01-01T00:00:00Z"}]}}`,
@@ -92,6 +123,10 @@ func TestListFilesToDelete(t *testing.T) {
 
 					w.Header().Set("Content-Type", "application/json")
 
+					if tt.status != 0 {
+						w.WriteHeader(tt.status)
+					}
+
 					if _, err := w.Write([]byte(tt.response)); err != nil {
 						t.Errorf("write response: %v", err)
 					}
@@ -103,9 +138,7 @@ func TestListFilesToDelete(t *testing.T) {
 				t.Context(), before, tt.after, 100,
 				http.Header{"x-hasura-admin-secret": []string{"admin-secret"}},
 			)
-			if (apiErr != nil) != tt.wantError {
-				t.Fatalf("ListFilesToDelete() error = %v, want error %t", apiErr, tt.wantError)
-			}
+			checkCleanupError(t, apiErr, tt.wantError)
 
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("ListFilesToDelete() mismatch (-want +got):\n%s", diff)
@@ -123,9 +156,28 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 
 	tests := []struct {
 		name      string
+		status    int
 		response  string
 		wantError bool
 	}{
+		{
+			name:      "proxy failure with HTML body",
+			status:    http.StatusBadGateway,
+			response:  "<html>Bad Gateway</html>",
+			wantError: true,
+		},
+		{
+			name:      "empty GraphQL errors",
+			status:    http.StatusInternalServerError,
+			response:  `{"errors":[]}`,
+			wantError: true,
+		},
+		{
+			name:      "non-GraphQL JSON error",
+			status:    http.StatusNotFound,
+			response:  `{"code":"not-found","error":"resource does not exist","path":"$"}`,
+			wantError: true,
+		},
 		{
 			name:     "removes eligible entry",
 			response: `{"data":{"delete_filesToDelete":{"affected_rows":1}}}`,
@@ -169,6 +221,10 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 
 					w.Header().Set("Content-Type", "application/json")
 
+					if tt.status != 0 {
+						w.WriteHeader(tt.status)
+					}
+
 					if _, err := w.Write([]byte(tt.response)); err != nil {
 						t.Errorf("write response: %v", err)
 					}
@@ -180,9 +236,7 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 				t.Context(), fileID, before,
 				http.Header{"x-hasura-admin-secret": []string{"admin-secret"}},
 			)
-			if (apiErr != nil) != tt.wantError {
-				t.Fatalf("RemoveFileFromCleanup() error = %v, want error %t", apiErr, tt.wantError)
-			}
+			checkCleanupError(t, apiErr, tt.wantError)
 		})
 	}
 }
