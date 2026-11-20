@@ -1,6 +1,7 @@
 import { ArrowRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { DeploymentFailedWarning } from '@/features/orgs/components/projects/DeploymentFailedWarning';
 import { ProjectLastDeployment } from '@/features/orgs/components/projects/ProjectLastDeployment';
@@ -88,6 +89,24 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
+      </div>
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-4">
+        <h2 className="font-medium text-lg">Temporary component preview</h2>
+        <div className="grid gap-2">
+          <label htmlFor="preview-file" className="font-medium text-sm">
+            Upload file
+          </label>
+          <Input id="preview-file" type="file" />
+          <p className="text-muted-foreground text-sm">
+            Preview only. No file will be uploaded.
+          </p>
+        </div>
+        <div className="grid gap-2">
+          <label htmlFor="preview-number" className="font-medium text-sm">
+            Number
+          </label>
+          <Input id="preview-number" type="number" defaultValue={1} step={1} />
+        </div>
       </div>
     </div>
   );
