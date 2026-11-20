@@ -175,7 +175,11 @@ No Upload, Replace, or Delete permissions are configured for this role.
 - Test permissions by signing in as different users and verifying access is correctly scoped.
 
 :::caution
-Deleting file metadata directly through GraphQL does **not** delete the actual file from S3. Always use the Storage API to delete files so both the metadata and the file content are removed.
+Deletion is permanent. Use the Storage API (`DELETE /v1/files/{id}` or `nhost.storage.deleteFile`) to remove file content immediately and purge the CDN.
+
+Deleting `storage.files` rows through GraphQL, SQL, or a bucket cascade also queues the S3 content for automatic deletion. Storage checks the queue every 24 hours and deletes content after at least 24 hours, typically within 48 hours. If metadata with the same file ID exists when cleanup checks, the content is not deleted. Background cleanup does not purge the CDN.
+
+Automatic cleanup does not cover `TRUNCATE`, deletions with the trigger disabled, or objects orphaned before the upgrade. Use the admin operations `/ops/list-orphans` and `/ops/delete-orphans` for those cases.
 :::
 
 ## Advanced
