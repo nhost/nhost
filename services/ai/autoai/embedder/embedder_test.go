@@ -353,6 +353,14 @@ func TestHTTPErrors(t *testing.T) {
 			"provider quota exhausted",
 		},
 		{
+			"credit balance exhausted",
+			"openai_embeddings",
+			`{"error":{"code":"credit_balance_exhausted","type":"insufficient_quota","message":"You have no credits remaining."}}`,
+			429,
+			embedder.Configuration,
+			"provider quota exhausted",
+		},
+		{
 			"context length",
 			"openai_embeddings",
 			`{"error":{"message":"This model's maximum context length is 8192 tokens","code":null}}`,

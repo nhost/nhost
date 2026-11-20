@@ -343,6 +343,7 @@ type providerError struct {
 	Message string `json:"message"`
 	Error   struct {
 		Code    json.RawMessage `json:"code"`
+		Type    string          `json:"type"`
 		Message string          `json:"message"`
 		Details []struct {
 			Type   string `json:"@type"`
@@ -361,18 +362,26 @@ func (p providerError) recognize(status int) (ErrorClass, string, bool) {
 		}
 	}
 
+	// A non-string code (Gemini sends numbers) leaves code empty.
 	var code string
-	if json.Unmarshal(p.Error.Code, &code) == nil {
-		switch code {
-		case "model_not_found":
-			return Configuration, "model is not available", true
-		case "insufficient_quota":
-			return Configuration, "provider quota exhausted", true
-		case "invalid_api_key":
-			return Configuration, "API key is invalid", true
-		case "context_length_exceeded":
-			return Input, contextLengthError, true
-		}
+
+	_ = json.Unmarshal(p.Error.Code, &code)
+
+	// OpenAI marks every out-of-credits variant (codes insufficient_quota,
+	// credit_balance_exhausted, ...) with this type; retrying cannot succeed.
+	if p.Error.Type == "insufficient_quota" {
+		code = p.Error.Type
+	}
+
+	switch code {
+	case "model_not_found":
+		return Configuration, "model is not available", true
+	case "insufficient_quota":
+		return Configuration, "provider quota exhausted", true
+	case "invalid_api_key":
+		return Configuration, "API key is invalid", true
+	case "context_length_exceeded":
+		return Input, contextLengthError, true
 	}
 
 	// OpenAI, vLLM and LiteLLM report over-length inputs without a dedicated code.
