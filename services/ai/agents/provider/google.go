@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/nhost/nhost/services/ai/internal/providerconfig"
+
 	"github.com/google/uuid"
 	"google.golang.org/genai"
 )
@@ -80,7 +82,7 @@ func newGoogleGemini(
 	configuration endpointConfiguration,
 ) (*googleGemini, error) {
 	headers, apiKey, scrubAPIKey := googleGeminiHeaders(configuration.headers)
-	logRedactions := providerLogRedactions(configuration.headers)
+	logRedactions := providerconfig.LogRedactions(configuration.headers)
 
 	httpClient, err := newGoogleGeminiHTTPClient(scrubAPIKey, logRedactions)
 	if err != nil {
@@ -151,7 +153,7 @@ func newGoogleGeminiHTTPClient(
 		logRedactions: logRedactions,
 	}
 
-	return newNoRedirectHTTPClientWithTransport(transport), nil
+	return providerconfig.NewNoRedirectHTTPClientWithTransport(transport), nil
 }
 
 type googleGeminiTransport struct {
@@ -219,7 +221,7 @@ func (b *googleGeminiResponseBody) Read(buffer []byte) (int, error) {
 	if !channelClosed(b.done) {
 		slog.Error(
 			"google Gemini response body read failed",
-			slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+			slog.String("error", providerconfig.ErrorLogValue(err, b.logRedactions)),
 		)
 	}
 
@@ -240,7 +242,7 @@ func (b *googleGeminiResponseBody) Close() error {
 		if !channelClosed(b.done) {
 			slog.Warn(
 				"failed to close google Gemini response body",
-				slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+				slog.String("error", providerconfig.ErrorLogValue(err, b.logRedactions)),
 			)
 		}
 
