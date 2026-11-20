@@ -310,6 +310,14 @@ func writeArrayTargetComparison(
 		return nil, 0, fmt.Errorf("coercing %s values: %w", arrayOperatorName(negated), err)
 	}
 
+	if column != nil && column.IsArray {
+		params, paramIndex = writeCandidateMembership(
+			b, source, target, vals, d, params, paramIndex, negated,
+		)
+
+		return params, paramIndex, nil
+	}
+
 	if pgtypes.IsSpatial(target.sqlType) && d.SupportsSpatialTypes() {
 		params, paramIndex = writeSpatialArrayTargetComparison(
 			b, source, column, targetOverride, target, vals, d, params, paramIndex, negated,

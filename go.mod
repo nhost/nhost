@@ -47,7 +47,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/pquerna/otp v1.5.0
 	github.com/sirupsen/logrus v1.9.4
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/urfave/cli-docs/v3 v3.0.0-alpha6
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/urfave/cli/v3 v3.10.1
@@ -57,7 +57,7 @@ require (
 	github.com/zeebo/xxh3 v1.1.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/mock v0.6.0
-	go.yaml.in/yaml/v3 v3.0.4
+	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/crypto v0.58.0
 	golang.org/x/mod v0.41.0
 	golang.org/x/oauth2 v0.36.0
@@ -80,7 +80,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
 	github.com/RoaringBitmap/roaring/v2 v2.4.5 // indirect
-	github.com/agnivade/levenshtein v1.2.1 // indirect
+	github.com/agnivade/levenshtein v1.2.2 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.14 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.30 // indirect
@@ -136,7 +136,6 @@ require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -242,3 +241,6 @@ require (
 )
 
 replace github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
+
+// Temporary recursive list coercion fix until https://github.com/vektah/gqlparser/pull/535 is released.
+replace github.com/vektah/gqlparser/v2 => github.com/dbarrosop/gqlparser/v2 v2.0.0-20261119095130-166fafd464c0

@@ -42,7 +42,7 @@ func appendRelationshipOrderBy(
 		)
 	}
 
-	if field.Value.Kind != ast.ObjectValue {
+	if field.Value.Kind != ast.ObjectValue && field.Value.Kind != ast.NullValue {
 		return nil, fmt.Errorf(
 			"%w: order_by on relationship %s must be an object", ErrInvalidArgument, field.Name,
 		)
@@ -57,6 +57,10 @@ func appendRelationshipOrderBy(
 
 	// Object relationship: order by columns of the single related row.
 	if field.Name == rel.Name() && !rel.IsArray() {
+		if field.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			rel, target, field.Value, parentSource, role, sessionVariables, gen,
 		)
@@ -95,6 +99,10 @@ func buildRelationshipOrderItems(
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullOrderByLeaf(target, child, role) {
+			continue
+		}
+
 		if column := target.ColumnFromGraphqlName(child.Name); column != nil {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -195,7 +203,8 @@ func buildNestedRelationshipOrderItems(
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	childRel := target.Relationship(child.Name)
-	if childRel == nil || child.Value.Kind != ast.ObjectValue {
+	if childRel == nil ||
+		(child.Value.Kind != ast.ObjectValue && child.Value.Kind != ast.NullValue) {
 		return nil, fmt.Errorf(
 			"%w: %s is not an orderable field of table %s",
 			ErrInvalidArgument, child.Name, target.TableName(),
@@ -210,6 +219,10 @@ func buildNestedRelationshipOrderItems(
 	}
 
 	if child.Name == childRel.Name() && !childRel.IsArray() {
+		if child.Value.Kind == ast.NullValue {
+			return nil, nil
+		}
+
 		return buildRelationshipOrderItems(
 			childRel, childTarget, child.Value, parentAlias, role, sessionVariables, gen,
 		)
@@ -239,11 +252,19 @@ func buildAggregateOrderItems(
 	sessionVariables map[string]any,
 	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
+	if value.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	alias := gen.next()
 
 	var items []OrderByItem
 
 	for _, child := range value.Children {
+		if isNullAggregateOrderByField(child) {
+			continue
+		}
+
 		if child.Name == "count" {
 			direction, err := orderByDirection(child.Value)
 			if err != nil {
@@ -324,6 +345,10 @@ func buildAggregateColumnOrderItems(
 			)
 		}
 
+		if child.Value.Kind == ast.NullValue {
+			continue
+		}
+
 		direction, err := orderByDirection(child.Value)
 		if err != nil {
 			return nil, err
@@ -345,6 +370,13 @@ func buildAggregateColumnOrderItems(
 	}
 
 	return items, nil
+}
+
+// isNullAggregateOrderByField omits only recognized nullable aggregate entries;
+// unknown fields must still reach validation even when their value is null.
+func isNullAggregateOrderByField(field *ast.ChildValue) bool {
+	return field.Value.Kind == ast.NullValue &&
+		(field.Name == "count" || aggregateOrderByFuncs[field.Name] != "")
 }
 
 // aggregateOrderByFuncs is the closed set of aggregate order_by object keys.

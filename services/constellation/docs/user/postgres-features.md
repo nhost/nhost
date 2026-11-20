@@ -292,6 +292,7 @@ PostgreSQL sources serve table-owned `computed_fields` backed by `STABLE` or `IM
 - **Permission rules** can reference computed fields without user arguments in select/update/delete filters and insert/update checks, even when the role cannot select the field.
 - **`SETOF` scalar returns** are limited to `text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and `public.citext`. A row with no values returns `null`, and a row with several values fails the request (a mutation is rolled back). Filtering on such a field always fails, sorting by it can drop or repeat rows, and selecting it in an aggregate makes `count`, the other aggregates and `nodes` use one row per returned value.
 - **Custom argument types** (domain, enum, composite, range, multirange and array) are passed as strings in PostgreSQL literal syntax, for example `"{happy}"` for an enum array.
+- **Optional variables in `args`** follow input-presence rules: omitting a variable omits the parameter, allowing its SQL default to apply. A missing required SQL parameter is rejected. Explicit `null` is still passed as SQL NULL rather than activating a default.
 
 Invalid definitions, grants and permission references are dropped rather than served; see [inconsistencies](./inconsistencies.md). Remote-relationship join keys are covered in the [metadata support matrix](./hasura-metadata-support.md), and Hasura differences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md#computed-fields).
 
@@ -302,6 +303,38 @@ Each tracked table produces three root query fields (names overridable via `cust
 - `<table>` — collection query with `where`, `order_by`, `limit`, `offset`, `distinct_on`.
 - `<table>_by_pk` — single-row lookup by primary key.
 - `<table>_aggregate` — aggregates over the same filter set.
+
+### Variables and optional inputs
+
+Variables can supply complete input objects/lists or appear inside them, including
+comparison objects, `_in`/`_nin` elements, JSONB objects and paths, ordering
+objects/directions, and `distinct_on` columns. Values remain SQL parameters;
+ordering directions and column names still pass their enum/column validation.
+
+Outside mutation selectors, an omitted nullable variable omits the argument or
+input-object field that references it. GraphQL input defaults and SQL
+column/function defaults can then apply. In a nullable list position it
+contributes `null` without shifting later elements. Explicit `null` stays present instead of activating a default; for
+nullable `limit` and `offset` it means no modifier. Missing required variables
+and null at non-null positions are rejected before SQL execution.
+
+**Mutation selector safety:** An omitted variable must not remove a restriction
+from a mutation's `where` input. With `where: {id: {_eq: $id}}` and `$id: String`
+(no default), omitting `$id` rejects the whole request with a `validation-failed`
+error before any mutation executes. This includes nested `_or`/`_and` filters,
+whole comparison objects, relationship filters, `update_<table>_many[].where`
+and `on_conflict.where`, including nested inserts. Input and variable defaults
+still apply. Optional inputs outside these selectors, such as `_set` columns,
+insert columns, ordering, pagination and computed `args`, retain omission
+semantics. Read filters, including mutation `returning` selections, do too.
+
+Explicit `null` is different: `_eq: null` still binds SQL `NULL` and matches no
+rows. Intentional empty filters (`where: {}` or `where: {id: {}}`) remain valid
+and can affect every row the role's permissions allow. Permission filters always
+apply. Declare required selectors as non-null without a default (`$id: String!`)
+to make the requirement explicit to clients. See
+[filter input differences](../../KNOWN_DIFFERENCES.md#filter-input-variables)
+for the remaining differences from Hasura's default null handling.
 
 ### Filter operators
 
@@ -317,7 +350,7 @@ Boolean expression operators per column type (`connector/sql/graphql/schema/inpu
 
 The `_cast` operator wraps a nested boolean expression on the casted scalar type (e.g., `{ data: { _cast: { String: { _ilike: "%foo%" } } } }`).
 
-For PostGIS `geometry` and `geography` columns, `_eq` and `_neq` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<column> = <value>)` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved.
+For PostGIS `geometry` and `geography` columns, `_eq`, `_neq`, `_in` and `_nin` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<target> = <value>)` and `_nin` as `NOT (<target> = ANY(<values>))` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved and to avoid implicit geography-to-`bytea` inequality. This applies to columns, spatial `_cast` targets and computed fields. Empty `_in` lists match no rows and empty `_nin` lists match all rows, including rows whose target is SQL `NULL`; a SQL `NULL` target matches neither operator with a non-empty list.
 
 ### `distinct_on`
 
