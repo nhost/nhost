@@ -8,6 +8,19 @@
   // empty string, and an account made by magic link often starts that way.
   const initialOf = (displayName: string): string =>
     displayName.trim().slice(0, 1).toUpperCase() || '·';
+
+  // Calls `onBroken` if the image fails to load, including when it failed
+  // before hydration. An `onerror` attribute would do that through an inline
+  // handler, which the content security policy blocks.
+  const whenBroken =
+    (onBroken: () => void) =>
+    (img: HTMLImageElement): (() => void) => {
+      if (img.complete && img.naturalWidth === 0) {
+        onBroken();
+      }
+      img.addEventListener('error', onBroken);
+      return () => img.removeEventListener('error', onBroken);
+    };
 </script>
 
 <script lang="ts">
@@ -25,6 +38,12 @@
     width: AvatarWidth;
     class?: string;
   } = $props();
+
+  const src = $derived(avatarUrl ? avatarSrc(avatarUrl, width) : undefined);
+
+  // The src that failed to load, such as a provider's picture that is gone or
+  // rate-limited, so the initial shows instead of a broken image.
+  let broken = $state<string>();
 </script>
 
 <div
@@ -35,11 +54,14 @@
   )}
 >
   {initialOf(displayName)}
-  {#if avatarUrl}
+  {#if src && src !== broken}
     <img
-      src={avatarSrc(avatarUrl, width)}
+      {src}
       alt=""
       class="absolute inset-0 size-full object-cover"
+      {@attach whenBroken(() => {
+        broken = src;
+      })}
     />
   {/if}
 </div>
