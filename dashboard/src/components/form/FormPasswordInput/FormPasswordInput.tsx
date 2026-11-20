@@ -51,6 +51,7 @@ interface FormPasswordInputProps<
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: PasswordInputProps['autoComplete'];
+  autoFocus?: PasswordInputProps['autoFocus'];
   'data-testid'?: string;
   /**
    * Called after the field's onChange runs. Use for side effects like syncing
@@ -78,6 +79,7 @@ function InnerFormPasswordInput<
     helperText,
     disabled,
     autoComplete,
+    autoFocus,
     transform,
     'data-testid': dataTestId,
     'aria-label': ariaLabel,
@@ -138,6 +140,7 @@ function InnerFormPasswordInput<
                   placeholder={placeholder}
                   disabled={disabled}
                   autoComplete={autoComplete}
+                  autoFocus={autoFocus}
                   data-testid={dataTestId}
                   aria-label={ariaLabel}
                   aria-invalid={fieldState.invalid}

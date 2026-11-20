@@ -18,10 +18,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 
     return (
       <InputGroup
-        className={cn(
-          'h-10 bg-transparent dark:bg-transparent',
-          wrapperClassName,
-        )}
+        className={cn('bg-transparent dark:bg-transparent', wrapperClassName)}
       >
         <InputGroupInput
           type={showPassword ? 'text' : 'password'}

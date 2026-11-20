@@ -1,0 +1,12 @@
+# Owns the casing of 'Nhost'. accept.txt lists it as (?i)Nhost so Vale.Terms,
+# whose \b a '.', '/', '@' or '-' satisfies, stops flagging hosts, emails and
+# package names; only a standalone word is checked here.
+extends: substitution
+message: "Use '%s' instead of '%s', or code formatting for the CLI command."
+level: warning
+ignorecase: true
+nonword: true
+# The case-insensitive accept.txt entry would otherwise hide every match.
+vocab: false
+swap:
+  '(?<![\w./@-])nhost(?![\w/@-]|\.\w)': Nhost

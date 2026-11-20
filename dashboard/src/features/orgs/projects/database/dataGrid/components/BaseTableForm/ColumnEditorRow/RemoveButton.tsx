@@ -27,7 +27,6 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
       variant="outline"
       size="icon"
       data-testid={`remove-column-${index}`}
-      className="h-9 w-9"
       disabled={columns?.length === 1}
       aria-label="Remove column"
       onClick={(event) => {

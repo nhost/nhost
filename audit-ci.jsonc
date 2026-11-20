@@ -35,11 +35,23 @@
     // tooling; remove when the quickstart's Expo/Metro supports patched v2.
     "GHSA-w3rx-r6r6-pgpr|*>metro>image-size", // CVE-2025-71330
     "GHSA-5p2g-fcmc-qvqq|*>metro>image-size", // CVE-2025-71329
+    // SvelteKit fixes these remote functions bugs only in 3.x. The Svelte
+    // tutorial, the only consumer, uses no remote functions (`form`,
+    // `query.batch`), so the major upgrade is deferred. Remove when the
+    // tutorial is upgraded to SvelteKit 3.
+    "GHSA-3r8g-jcqq-3p5j", // remote functions `form` DoS
+    "GHSA-6cf5-gc4q-fm3x", // remote functions `query.batch` collision
     // braces stack-exhaustion DoS via deeply nested patterns. No fixed release
     // exists yet: every published version (<=3.0.3) is affected. Only pulled in
     // transitively via micromatch/chokidar by dev/build tooling (tailwindcss,
     // jest, graphql-codegen, orval, metro, starlight), not shipped to prod.
     // Remove once braces ships a patched version.
-    "GHSA-vfj7-8cjw-p6xm" // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
+    "GHSA-vfj7-8cjw-p6xm", // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
+    // picomatch ReDoS via single-branch repeated extglobs. No fixed release
+    // exists yet: every published version (<=4.0.7) is affected. Only pulled in
+    // by dev/build tooling (vite, vitest, tinyglobby, tailwindcss, astro, jest)
+    // with patterns from our own config, never user input. Remove once
+    // picomatch ships a patched version.
+    "GHSA-fc5q-39xc-vjpf" // https://github.com/advisories/GHSA-fc5q-39xc-vjpf (CVE-2026-112366)
   ]
 }

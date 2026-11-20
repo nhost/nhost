@@ -515,6 +515,49 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (AuthUser, error) {
 	return i, err
 }
 
+const getUserByActiveTicket = `-- name: GetUserByActiveTicket :one
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
+WHERE ticket = $1 AND ticket_expires_at > now()
+LIMIT 1
+`
+
+// Like GetUserByTicket but does not consume the ticket.
+func (q *Queries) GetUserByActiveTicket(ctx context.Context, ticket pgtype.Text) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByActiveTicket, ticket)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+		&i.OtpAttempts,
+		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
+	)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE email = $1 LIMIT 1
@@ -763,6 +806,7 @@ WITH selected_user AS (
     SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
     WHERE ticket = $1  AND ticket_expires_at > now()
     LIMIT 1
+    FOR UPDATE
 )
 UPDATE auth.users
 SET ticket = NULL, ticket_expires_at = now()

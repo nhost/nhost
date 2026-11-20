@@ -23,14 +23,14 @@ export default function AnnouncementMenu({
       <DropdownMenuTrigger asChild>
         <Button
           variant="subtle"
-          size="icon"
-          className="h-8 w-8 flex-shrink-0"
+          size="icon-sm"
+          className="flex-shrink-0"
           aria-label="Open announcement actions"
         >
           <EllipsisVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="end" sideOffset={-5}>
+      <DropdownMenuContent side="bottom" align="end">
         {isUnread ? (
           <DropdownMenuItem onClick={onSetRead}>Mark as read</DropdownMenuItem>
         ) : (

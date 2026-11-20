@@ -33,9 +33,8 @@ export default function InvocationLogActionsCell({
         <DialogTrigger asChild>
           <Button
             variant="subtle"
-            size="sm"
+            size="icon-sm"
             onClick={() => meta.setSelectedLog(row)}
-            className="h-8 w-8 p-0"
           >
             <Eye className="h-4 w-4" />
           </Button>

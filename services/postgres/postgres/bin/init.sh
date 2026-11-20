@@ -138,7 +138,9 @@ update_extension() {
 	# pg_search 0.25 requires vector, but the previous image allowed pg_search
 	# without it. Install the missing dependency before updating that extension.
 	can_update=true
+	extension_update_script=$extension_update
 	if [ "$extension" = pg_search ]; then
+		extension_update_script=/bin/upgrade-pg-search.sql
 		if ! run_interruptibly env "PGDATABASE=$database" psql -X -q -b -U postgres \
 			-v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;' \
 			>"$update_log" 2>&1; then
@@ -146,13 +148,13 @@ update_extension() {
 		fi
 	fi
 
-	# The one-statement file makes ALTER EXTENSION the first server command in
-	# its own session (required by TimescaleDB) while still letting psql quote
-	# the extension identifier.
+	# pg_search keeps its update and vector-index maintenance atomic. Other
+	# extensions retain the one-statement file: TimescaleDB requires ALTER
+	# EXTENSION to be the first server command in its own session.
 	if [ "$can_update" = true ] &&
 		run_interruptibly env "PGDATABASE=$database" psql -X -q -b -U postgres \
 			-v ON_ERROR_STOP=1 -v extension="$extension" \
-			-f "$extension_update" >>"$update_log" 2>&1; then
+			-f "$extension_update_script" >>"$update_log" 2>&1; then
 		echo "Updating extension $extension in database $database"
 		cat "$update_log"
 		rm -f "$update_log"

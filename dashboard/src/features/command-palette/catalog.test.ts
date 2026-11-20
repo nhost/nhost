@@ -22,6 +22,7 @@ describe('command palette catalog', () => {
       'settings',
       'members',
       'billing',
+      'billing-usage',
     ]);
   });
 
@@ -77,6 +78,7 @@ describe('command palette catalog', () => {
       'schema',
       'native-queries',
       'sql-console',
+      'extensions',
       'backups',
       'settings',
     ]);
