@@ -39,7 +39,12 @@ export default function Nav() {
               <SignOutButton />
               <Link href="/account" asChild>
                 <Pressable role="link" aria-label="Your account">
-                  <UserAvatar displayName={user.displayName} size={32} />
+                  <UserAvatar
+                    avatarUrl={user.avatarUrl}
+                    displayName={user.displayName}
+                    width={64}
+                    size={32}
+                  />
                 </Pressable>
               </Link>
             </View>

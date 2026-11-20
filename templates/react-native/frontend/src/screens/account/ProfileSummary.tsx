@@ -2,6 +2,7 @@ import type { User } from '@nhost/nhost-js/auth';
 import { StyleSheet, Text, View } from 'react-native';
 import UserAvatar from '@/components/UserAvatar';
 import { Card } from '@/components/ui/card';
+import AvatarForm from '@/screens/account/AvatarForm';
 import CopyUserId from '@/screens/account/CopyUserId';
 import DisplayNameField from '@/screens/account/DisplayNameField';
 import { colors, fontSize } from '@/theme';
@@ -16,7 +17,15 @@ const joined = new Intl.DateTimeFormat('en-US', {
 export default function ProfileSummary({ user }: { user: User }) {
   return (
     <Card style={styles.card}>
-      <UserAvatar displayName={user.displayName} size={72} />
+      {/* Nothing to take down when the account has no avatar at all. */}
+      <AvatarForm canRemove={Boolean(user.avatarUrl)}>
+        <UserAvatar
+          avatarUrl={user.avatarUrl}
+          displayName={user.displayName}
+          width={192}
+          size={72}
+        />
+      </AvatarForm>
 
       {/* The id, role and locale are what a developer reads and the account's
           owner mostly does not, so they are small. */}

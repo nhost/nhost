@@ -24,5 +24,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ['expo-splash-screen', { backgroundColor: '#1d1d1d' }],
     // The session is kept without biometrics, so the app never asks for Face ID.
     ['expo-secure-store', { faceIDPermission: false }],
+    // Avatars come from the photo library only, so the camera and microphone
+    // permissions are blocked rather than left to the plugin's defaults.
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Allow $(PRODUCT_NAME) to use a photo from your library as your avatar.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
   ],
 });

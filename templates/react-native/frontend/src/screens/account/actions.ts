@@ -1,3 +1,4 @@
+import { File } from 'expo-file-system';
 import { signOut } from '@/lib/nhost/actions';
 import {
   getVerifiedUser,
@@ -14,6 +15,15 @@ import {
 } from '@/lib/nhost/errors';
 import { graphqlErrorMessage } from '@/lib/nhost/graphql';
 import { startFlow } from '@/lib/nhost/links';
+import {
+  AVATAR_NOT_AN_IMAGE,
+  AVATAR_TOO_LARGE,
+  type AvatarFile,
+  avatarFileIdFrom,
+  avatarUrlFor,
+  isAvatarType,
+  MAX_AVATAR_BYTES,
+} from '@/screens/account/avatar';
 
 // Where the links in the emails below land. Fixed rather than taken from the
 // caller, so nothing here can aim a link at another screen.
@@ -99,13 +109,159 @@ export async function updateDisplayName(
   }
 }
 
-// Closing the account for good.
+// Returns why the account's avatar could not be set to `avatarUrl`, or
+// undefined once it is.
+async function setAvatarUrl(
+  userId: string,
+  avatarUrl: string,
+): Promise<string | undefined> {
+  try {
+    const { body } = await nhost.graphql.request<{
+      updateUser: { id: string } | null;
+    }>({
+      query: `mutation UpdateAvatar($id: uuid!, $avatarUrl: String!) {
+        updateUser(pk_columns: { id: $id }, _set: { avatarUrl: $avatarUrl }) {
+          id
+        }
+      }`,
+      variables: { id: userId, avatarUrl },
+    });
+
+    if (body.errors?.length) {
+      return graphqlErrorMessage(body.errors);
+    }
+
+    if (!body.data?.updateUser) {
+      return 'The backend did not update this account.';
+    }
+
+    return undefined;
+  } catch (err) {
+    return `Could not update the avatar: ${errorMessage(err)}`;
+  }
+}
+
+// The file goes to storage, the account's avatar_url is pointed at it, and the
+// file the previous avatar named is deleted.
+export async function uploadAvatar(file: AvatarFile): Promise<ActionResult> {
+  if (!file.uri || file.size === 0) {
+    return { error: 'Choose an image first.' };
+  }
+
+  if (!isAvatarType(file.type)) {
+    return { error: AVATAR_NOT_AN_IMAGE };
+  }
+
+  if (file.size > MAX_AVATAR_BYTES) {
+    return { error: AVATAR_TOO_LARGE };
+  }
+
+  try {
+    const verified = await getVerifiedUser();
+
+    if (!verified.user) {
+      return { error: unverified(verified) };
+    }
+
+    const { user } = verified;
+
+    const { body: uploaded } = await nhost.storage.uploadFiles({
+      'bucket-id': 'default',
+      // Expo's fetch sends a file part only for a Blob or something with
+      // `bytes()`, such as this, and not React Native's `{ uri }` objects.
+      // Storage reads the type from the bytes, not from the part.
+      'file[]': [new File(file.uri)],
+    });
+    const fileId = uploaded.processedFiles[0]?.id;
+
+    if (!fileId) {
+      return { error: 'The storage service did not keep the file.' };
+    }
+
+    const failure = await setAvatarUrl(user.id, avatarUrlFor(fileId));
+
+    if (failure) {
+      // Nothing should refer to the new file, and only this request knows
+      // its id.
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the unused avatar:', err);
+      });
+      return { error: failure };
+    }
+
+    updateSessionUser({ avatarUrl: avatarUrlFor(fileId) });
+
+    const previous = avatarFileIdFrom(user.avatarUrl);
+    if (previous && previous !== fileId) {
+      // The new avatar is already in place; a leftover file is worth a log
+      // line, not a failure the user has to act on.
+      await nhost.storage.deleteFile(previous).catch((err: unknown) => {
+        console.error('Could not delete the previous avatar:', err);
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not upload the avatar: ${errorMessage(err)}` };
+  }
+}
+
+// The account stops pointing at an avatar first, then the file goes.
+export async function removeAvatar(): Promise<ActionResult> {
+  try {
+    const verified = await getVerifiedUser();
+
+    if (!verified.user) {
+      return { error: unverified(verified) };
+    }
+
+    const { user } = verified;
+
+    if (!user.avatarUrl) {
+      return { error: 'There is no avatar to remove.' };
+    }
+
+    const failure = await setAvatarUrl(user.id, '');
+
+    if (failure) {
+      return { error: failure };
+    }
+
+    updateSessionUser({ avatarUrl: '' });
+
+    const fileId = avatarFileIdFrom(user.avatarUrl);
+    if (fileId) {
+      // The account already shows no avatar; a leftover file is worth a log
+      // line, not a failure the user has to act on.
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the removed avatar:', err);
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { error: `Could not remove the avatar: ${errorMessage(err)}` };
+  }
+}
+
+// Closing the account for good. The avatar goes first: deleting the row
+// leaves a storage file behind, and no session to delete it with.
 export async function deleteAccount(): Promise<ActionResult> {
   try {
     const verified = await getVerifiedUser();
 
     if (!verified.user) {
       return { error: unverified(verified) };
+    }
+
+    const { user } = verified;
+
+    const fileId = avatarFileIdFrom(user.avatarUrl);
+
+    if (fileId) {
+      await nhost.storage.deleteFile(fileId).catch((err: unknown) => {
+        console.error('Could not delete the avatar of a closing account:', err);
+      });
     }
 
     const { body } = await nhost.graphql.request<{
@@ -116,7 +272,7 @@ export async function deleteAccount(): Promise<ActionResult> {
           id
         }
       }`,
-      variables: { id: verified.user.id },
+      variables: { id: user.id },
     });
 
     if (body.errors?.length) {

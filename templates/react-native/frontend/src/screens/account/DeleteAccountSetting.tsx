@@ -30,7 +30,7 @@ export default function DeleteAccountSetting() {
       action="Delete account"
       destructive
       title="Delete account?"
-      description="This removes your account and its sign-in methods. It can't be undone."
+      description="This removes your account, its sign-in methods and its avatar. It can't be undone."
     >
       <ConfirmAction
         typeToConfirm="delete"

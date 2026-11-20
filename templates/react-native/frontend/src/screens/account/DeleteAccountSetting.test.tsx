@@ -31,6 +31,17 @@ beforeEach(async () => {
 });
 
 describe('delete account setting', () => {
+  // The avatar is a storage file, not a column, so the dialog names it.
+  it('says what goes with the account', async () => {
+    await open();
+
+    expect(
+      screen.getByText(
+        "This removes your account, its sign-in methods and its avatar. It can't be undone.",
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('waits for the word to be typed', async () => {
     await open();
     expect(confirmButton()).toBeDisabled();
