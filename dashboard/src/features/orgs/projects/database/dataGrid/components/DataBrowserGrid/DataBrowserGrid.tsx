@@ -492,6 +492,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       component: (
         <CreateRecordForm
           columns={memoizedMetadata}
+          foreignKeyRelations={data?.foreignKeyRelations}
           onSubmit={refetch}
           currentOffset={currentOffset}
         />

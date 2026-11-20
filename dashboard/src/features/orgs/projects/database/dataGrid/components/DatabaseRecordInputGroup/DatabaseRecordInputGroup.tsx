@@ -7,6 +7,8 @@ import { FormTextarea } from '@/components/form/FormTextarea';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
+import ForeignKeyRecordField from '@/features/orgs/projects/database/dataGrid/components/ForeignKeyRecordField/ForeignKeyRecordField';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
@@ -24,6 +26,7 @@ export interface DatabaseRecordInputGroupProps {
    * List of columns for which input fields should be generated.
    */
   columns: DataBrowserColumnMetadata[];
+  pickerRelations?: ForeignKeyRelation[];
   /**
    * Title of the input group.
    */
@@ -82,6 +85,7 @@ export default function DatabaseRecordInputGroup({
   title,
   description,
   columns,
+  pickerRelations = [],
   autoFocusFirstInput,
   className,
 }: DatabaseRecordInputGroupProps) {
@@ -110,6 +114,27 @@ export default function DatabaseRecordInputGroup({
       )}
       <div className="space-y-4 sm:space-y-0">
         {columns.map((column, index) => {
+          const relation = pickerRelations.find((item) =>
+            item.columns.includes(column.id),
+          );
+          if (relation) {
+            const firstColumn = columns.find((item) =>
+              relation.columns.includes(item.id),
+            );
+            if (firstColumn?.id !== column.id) {
+              return null;
+            }
+            return (
+              <ForeignKeyRecordField
+                key={column.id}
+                relation={relation}
+                columns={relation.columns.map(
+                  (id) => columns.find((item) => item.id === id)!,
+                )}
+                autoFocus={autoFocusFirstInput && index === 0}
+              />
+            );
+          }
           const {
             id: columnId,
             specificType,
