@@ -7,8 +7,10 @@ import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
+import { useDefaultOrganization } from '@/features/orgs/hooks/useDefaultOrganization';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { resolveLandingOrg } from '@/features/orgs/utils/resolveLandingOrg';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuth } from '@/providers/Auth';
 
@@ -21,7 +23,12 @@ export default function IndexPage() {
   const isUserLoggedIn = isAuthenticated && !isLoading && !isSigningOut;
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const [lastSlug] = useSSRLocalStorage('slug', null);
+  const [lastSlug] = useSSRLocalStorage<string | null>('slug', null);
+  const {
+    defaultOrgId,
+    isReady: isDefaultOrgReady,
+    setDefaultOrgId,
+  } = useDefaultOrganization();
 
   useEffect(() => {
     const navigateToSlug = async () => {
@@ -42,15 +49,27 @@ export default function IndexPage() {
           return;
         }
 
-        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
-        if (orgFromLastSlug) {
-          await push(`/orgs/${orgFromLastSlug.slug}/projects`);
+        if (!isDefaultOrgReady) {
           return;
         }
-        const org = orgs.find((o) => o.plan.isFree) || orgs[0];
+
+        // Saving the only organization keeps it as the default once the user
+        // creates or joins another one.
+        if (orgs.length === 1 && !defaultOrgId) {
+          try {
+            setDefaultOrgId(orgs[0].id);
+          } catch (saveError) {
+            console.error(
+              'Failed to save the default organization:',
+              saveError,
+            );
+          }
+        }
+
+        const org = resolveLandingOrg({ orgs, defaultOrgId, lastSlug });
 
         if (org) {
-          push(`/orgs/${org.slug}/projects`);
+          await push(`/orgs/${org.slug}/projects`);
         }
       }
     };
@@ -58,7 +77,18 @@ export default function IndexPage() {
     if (isPlatform) {
       navigateToSlug();
     }
-  }, [orgs, lastSlug, push, loadingOrgs, isPlatform, isUserLoggedIn, error]);
+  }, [
+    orgs,
+    lastSlug,
+    push,
+    loadingOrgs,
+    isPlatform,
+    isUserLoggedIn,
+    error,
+    defaultOrgId,
+    isDefaultOrgReady,
+    setDefaultOrgId,
+  ]);
 
   if (error) {
     return (
