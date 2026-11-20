@@ -103,6 +103,24 @@ describe('password reset screen', () => {
     ).toBeOnTheScreen();
   });
 
+  // VoiceOver reads `accessibilityLabel` and ignores `aria-labelledby`, so
+  // without it the two fields would be identical unnamed secure fields.
+  it('names both password fields for VoiceOver', async () => {
+    signIn();
+    startPasswordReset(RESET);
+
+    await open();
+
+    expect(screen.getByLabelText('New password')).toHaveProp(
+      'accessibilityLabel',
+      'New password',
+    );
+    expect(screen.getByLabelText('Confirm new password')).toHaveProp(
+      'accessibilityLabel',
+      'Confirm new password',
+    );
+  });
+
   // A reset link opened while signed in is discarded on arrival and lands
   // here with no reset under way: as on the web, the visitor may still set a
   // password, but nothing holds them here.

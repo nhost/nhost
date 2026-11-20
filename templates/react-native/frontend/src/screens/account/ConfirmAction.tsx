@@ -53,6 +53,7 @@ export default function ConfirmAction({
           </Label>
           <Input
             aria-labelledby={typedId}
+            label={`Type ${typeToConfirm} to confirm`}
             autoCapitalize="none"
             autoComplete="off"
             autoCorrect={false}

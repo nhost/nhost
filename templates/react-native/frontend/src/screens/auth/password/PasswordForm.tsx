@@ -220,6 +220,7 @@ export default function PasswordForm({
           <Label nativeID={codeId}>Authenticator code</Label>
           <Input
             aria-labelledby={codeId}
+            label="Authenticator code"
             inputMode="numeric"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"
@@ -259,6 +260,7 @@ export default function PasswordForm({
         <Label nativeID={emailId}>Email</Label>
         <Input
           aria-labelledby={emailId}
+          label="Email"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}
@@ -279,6 +281,7 @@ export default function PasswordForm({
         <Input
           ref={passwordRef}
           aria-labelledby={passwordId}
+          label="Password"
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}

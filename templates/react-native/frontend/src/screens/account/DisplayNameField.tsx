@@ -99,6 +99,7 @@ export default function DisplayNameField({
       </Label>
       <Input
         aria-labelledby={nameId}
+        label="Display name"
         autoComplete="name"
         textContentType="name"
         autoFocus

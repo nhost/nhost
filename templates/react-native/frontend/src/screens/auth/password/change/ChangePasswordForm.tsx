@@ -86,6 +86,7 @@ export default function ChangePasswordForm({
           <Label nativeID={passwordId}>New password</Label>
           <Input
             aria-labelledby={passwordId}
+            label="New password"
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
@@ -105,6 +106,7 @@ export default function ChangePasswordForm({
           <Input
             ref={confirmRef}
             aria-labelledby={confirmId}
+            label="Confirm new password"
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
@@ -133,6 +135,7 @@ export default function ChangePasswordForm({
             <Input
               ref={codeRef}
               aria-labelledby={codeId}
+              label="Authenticator code"
               inputMode="numeric"
               autoComplete="one-time-code"
               textContentType="oneTimeCode"

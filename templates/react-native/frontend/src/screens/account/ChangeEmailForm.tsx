@@ -107,6 +107,7 @@ export default function ChangeEmailForm({
         <Label nativeID={emailId}>New email</Label>
         <Input
           aria-labelledby={emailId}
+          label="New email"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}

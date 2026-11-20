@@ -75,6 +75,7 @@ export default function ResetPasswordForm() {
         <Label nativeID={passwordId}>New password</Label>
         <Input
           aria-labelledby={passwordId}
+          label="New password"
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
@@ -94,6 +95,7 @@ export default function ResetPasswordForm() {
         <Input
           ref={confirmRef}
           aria-labelledby={confirmId}
+          label="Confirm new password"
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}

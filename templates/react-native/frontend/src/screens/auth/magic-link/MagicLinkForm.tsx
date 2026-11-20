@@ -67,6 +67,7 @@ export default function MagicLinkForm({ next }: { next: string }) {
         <Label nativeID={emailId}>Email</Label>
         <Input
           aria-labelledby={emailId}
+          label="Email"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}

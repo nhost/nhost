@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { createRef } from 'react';
-import type { TextInputInstance } from 'react-native';
+import { Platform, type TextInputInstance } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,7 @@ describe('Label', () => {
     await render(
       <>
         <Label nativeID="email-label">Email</Label>
-        <Input aria-labelledby="email-label" />
+        <Input aria-labelledby="email-label" label="Email" />
       </>,
     );
 
@@ -40,8 +40,33 @@ describe('Input', () => {
   it('hands its ref to the text field', async () => {
     const ref = createRef<TextInputInstance>();
 
-    await render(<Input ref={ref} />);
+    await render(
+      <Input ref={ref} aria-labelledby="email-label" label="Email" />,
+    );
 
     expect(ref.current?.focus).toEqual(expect.any(Function));
+  });
+
+  // `getByLabelText` also resolves `aria-labelledby`, which iOS ignores, so
+  // these check the prop each platform reads.
+  it('names itself with its label on iOS', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+
+    await render(<Input aria-labelledby="email-label" label="Email" />);
+
+    expect(screen.getByDisplayValue('')).toHaveProp(
+      'accessibilityLabel',
+      'Email',
+    );
+  });
+
+  it('leaves the name to aria-labelledby on Android', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+
+    await render(<Input aria-labelledby="email-label" label="Email" />);
+
+    const input = screen.getByDisplayValue('');
+    expect(input).toHaveProp('aria-labelledby', 'email-label');
+    expect(input).not.toHaveProp('accessibilityLabel', 'Email');
   });
 });

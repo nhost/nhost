@@ -46,6 +46,7 @@ export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
   // refreshed screen arrives (see `useRemoved`).
   const { removed, remove, restore } = useRemoved();
   const keys = listed.filter((key) => !removed.has(key.id));
+  const nicknameLabel = keys.length === 0 ? 'Name' : 'Name for a new passkey';
 
   const [onThisDevice, setOnThisDevice] = useState(passkeysOnThisDevice);
 
@@ -180,11 +181,10 @@ export default function ManagePasskeys({ keys: listed }: { keys: Passkey[] }) {
       ) : null}
 
       <View style={styles.field}>
-        <Label nativeID={nicknameId}>
-          {keys.length === 0 ? 'Name' : 'Name for a new passkey'}
-        </Label>
+        <Label nativeID={nicknameId}>{nicknameLabel}</Label>
         <Input
           aria-labelledby={nicknameId}
+          label={nicknameLabel}
           autoComplete="off"
           autoCorrect={false}
           placeholder={here ? 'My laptop' : 'This phone'}

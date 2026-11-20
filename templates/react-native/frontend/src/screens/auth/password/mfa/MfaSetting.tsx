@@ -80,6 +80,7 @@ export default function MfaSetting({ user }: { user: User }) {
   };
 
   const ready = turningOff || setup !== undefined;
+  const codeLabel = turningOff ? 'Code' : '2. Enter the 6-digit code.';
   const canSubmit = !isPending && ready && /^\d{6}$/.test(code.trim());
 
   const handleSubmit = async (): Promise<void> => {
@@ -240,11 +241,10 @@ export default function MfaSetting({ user }: { user: User }) {
         )}
 
         <View style={styles.field}>
-          <Label nativeID={codeId}>
-            {turningOff ? 'Code' : '2. Enter the 6-digit code.'}
-          </Label>
+          <Label nativeID={codeId}>{codeLabel}</Label>
           <Input
             aria-labelledby={codeId}
+            label={codeLabel}
             inputMode="numeric"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"

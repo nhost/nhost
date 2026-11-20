@@ -116,6 +116,7 @@ export default function OtpForm({ next }: { next: string }) {
           <Label nativeID={codeId}>Code</Label>
           <Input
             aria-labelledby={codeId}
+            label="Code"
             inputMode="numeric"
             autoComplete="one-time-code"
             textContentType="oneTimeCode"
@@ -163,6 +164,7 @@ export default function OtpForm({ next }: { next: string }) {
         <Label nativeID={emailId}>Email</Label>
         <Input
           aria-labelledby={emailId}
+          label="Email"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}
