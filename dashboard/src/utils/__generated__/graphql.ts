@@ -28961,6 +28961,14 @@ export type GetRunServicesQueryVariables = Exact<{
 
 export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
+export type GetAllRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetAllRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }> } | null };
+
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
@@ -35879,6 +35887,53 @@ export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServi
 export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
 export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
       return { query: GetRunServicesDocument, variables: variables }
+    }
+export const GetAllRunServicesDocument = gql`
+    query getAllRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceConfig
+      }
+    }
+  }
+}
+    ${RunServiceConfigFragmentDoc}`;
+
+/**
+ * __useGetAllRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetAllRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetAllRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+      }
+export function useGetAllRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+        }
+export type GetAllRunServicesQueryHookResult = ReturnType<typeof useGetAllRunServicesQuery>;
+export type GetAllRunServicesLazyQueryHookResult = ReturnType<typeof useGetAllRunServicesLazyQuery>;
+export type GetAllRunServicesQueryResult = Apollo.QueryResult<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>;
+export function refetchGetAllRunServicesQuery(variables: GetAllRunServicesQueryVariables) {
+      return { query: GetAllRunServicesDocument, variables: variables }
     }
 export const GetLocalRunServiceConfigsDocument = gql`
     query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
