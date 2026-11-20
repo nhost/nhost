@@ -1,17 +1,33 @@
 import {
-  DOC_EXPLORER_PLUGIN,
   GraphiQLProvider,
+  PlusIcon,
+  Tab,
+  Tabs,
+  UnStyledButton,
   useCopyQuery,
+  useEditorContext,
   useExecutionContext,
-  usePluginContext,
   usePrettifyEditors,
   useTheme,
 } from '@graphiql/react';
-import { PlayIcon } from 'lucide-react';
+import {
+  Braces,
+  ChevronDown,
+  Copy,
+  PlayIcon,
+  WandSparkles,
+} from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -19,26 +35,64 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import {
+  DOCS_PANEL_PLUGIN,
+  HISTORY_PANEL_PLUGIN,
+  MobileQueryViewProvider,
+  PanelTabButton,
+  PlaygroundPanels,
+  type PlaygroundPanelTab,
+  useMobileQueryView,
+  usePlaygroundPanelTab,
+} from '@/features/orgs/projects/graphql/common/components/PlaygroundPanels';
+import {
+  ClearRecentButton,
+  useHistoryCount,
+} from '@/features/orgs/projects/graphql/common/components/QueryHistory';
+import {
+  ResponseStatus,
+  ResponseStatusContext,
+} from '@/features/orgs/projects/graphql/common/components/ResponseStatus';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
+import { PLAYGROUND_ICON_BUTTON_CLASSES as ICON_BUTTON_CLASSES } from '@/features/orgs/projects/graphql/common/constants/playground';
+import {
+  buildCurlSnippet,
+  buildFetchSnippet,
+  getHeaderEnvName,
+} from '@/features/orgs/projects/graphql/common/utils/buildRequestSnippet';
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
+import {
+  getQueryLabel,
+  UNNAMED_QUERY_TITLE,
+} from '@/features/orgs/projects/graphql/common/utils/getQueryLabel';
+import {
+  createResponseMeter,
+  createResponseStatusStore,
+} from '@/features/orgs/projects/graphql/common/utils/measureResponse';
+import {
+  createPlaygroundStorage,
+  removeSharedPlaygroundStorage,
+} from '@/features/orgs/projects/graphql/common/utils/playgroundStorage';
 import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { isNotEmptyValue } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
 import '@graphiql/react/dist/style.css';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import { GraphiQLInterface } from 'graphiql';
+import { GraphiQL, GraphiQLInterface } from 'graphiql';
 import 'graphiql/graphiql.min.css';
 import { createClient } from 'graphql-ws';
 import debounce from 'lodash.debounce';
 import dynamic from 'next/dynamic';
 import type { ReactElement } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 function trackGraphQLResponse(
   track: (event: string, properties?: Record<string, unknown>) => void,
@@ -71,30 +125,16 @@ interface GraphiQLHeaderProps {
   onSelectionChange: (selection: GraphQLPlaygroundSelection) => void;
 }
 
+// What each run sends: used by the copy menu.
+interface PlaygroundRequest {
+  endpoint: string;
+  adminSecret: string;
+  selection: GraphQLPlaygroundSelection;
+  headersTabOverrides: Record<string, unknown>;
+}
+
 function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
-  const copyQuery = useCopyQuery();
-  const prettifyEditors = usePrettifyEditors();
-
-  const executionContext = useExecutionContext();
-
-  const isQueryFetching = isNotEmptyValue(executionContext)
-    ? !!executionContext?.isFetching
-    : false;
-  const runQuery = isNotEmptyValue(executionContext)
-    ? executionContext.run
-    : () => {};
-  const stopQuery = isNotEmptyValue(executionContext)
-    ? executionContext.stop
-    : () => {};
   const { theme, setTheme } = useTheme();
-  const pluginContext = usePluginContext();
-
-  const visiblePlugin = isNotEmptyValue(pluginContext)
-    ? pluginContext.visiblePlugin
-    : null;
-  const setVisiblePlugin = isNotEmptyValue(pluginContext)
-    ? pluginContext.setVisiblePlugin
-    : () => {};
 
   useEffect(() => {
     if (theme !== 'light') {
@@ -102,127 +142,526 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
     }
   }, [setTheme, theme]);
 
-  function executeQuery() {
-    if (isQueryFetching) {
-      stopQuery();
-    }
-
-    runQuery();
-  }
-
-  // This is a very hacky way to toggle the plugin visibility. Although
-  // GraphiQL exposes a way to manage plugins via the `PluginContext`, it
-  // does not expose a way to manage the layout of the plugins. This means
-  // that we have to manually manipulate the DOM to make the documentation
-  // explorer plugin pretty.
-  function toggleDocumentationExplorer() {
-    const PLUGIN_VISIBLE_CLASS = 'graphiql-plugin-visible';
-    const [mainGraphiQLContainer] =
-      document.getElementsByClassName('graphiql-main');
-    const pluginContainer = mainGraphiQLContainer.firstChild as HTMLElement;
-
-    const editor = mainGraphiQLContainer.lastChild as HTMLElement;
-
-    if (visiblePlugin?.title === DOC_EXPLORER_PLUGIN.title) {
-      setVisiblePlugin(null);
-
-      if (pluginContainer) {
-        pluginContainer.style.left = '-1000px';
-        pluginContainer.style.position = 'absolute';
-        pluginContainer.style.opacity = '0';
-        pluginContainer.style.height = '500px';
-        pluginContainer.style.width = '500px';
-      }
-
-      if (editor) {
-        editor.classList.remove(PLUGIN_VISIBLE_CLASS);
-      }
-
-      return;
-    }
-
-    if (pluginContainer) {
-      pluginContainer.style.width = '';
-      pluginContainer.style.height = '';
-      pluginContainer.style.opacity = '';
-      pluginContainer.style.position = '';
-      pluginContainer.style.left = '';
-    }
-
-    if (editor) {
-      editor.classList.add(PLUGIN_VISIBLE_CLASS);
-    }
-
-    setVisiblePlugin(DOC_EXPLORER_PLUGIN.title);
-  }
-
   return (
-    <header className="grid grid-flow-row items-end gap-2 border-b p-2 md:grid-flow-col md:justify-between">
-      <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
-        <UserAndRoleSelect onSelectionChange={onSelectionChange} />
+    <header className="px-4 pt-4 pb-2">
+      <UserAndRoleSelect onSelectionChange={onSelectionChange} />
+    </header>
+  );
+}
 
-        <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="col-span-1 py-2 md:col-auto"
-                onClick={prettifyEditors}
-              >
-                Prettify
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={8}>
-              Prettify query (Shift+Ctrl+P)
-            </TooltipContent>
-          </Tooltip>
+// Label shown on a tab: GraphiQL's title for a named operation, otherwise a
+// name taken from the query. Display only, GraphiQL's tab state is not changed.
+function getTabLabel(tab: { title: string; query: string | null }) {
+  return tab.title !== UNNAMED_QUERY_TITLE
+    ? tab.title
+    : getQueryLabel(tab.query);
+}
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  copyQuery();
-                  triggerToast('Query copied to clipboard');
-                }}
-                className="col-span-1 md:col-auto"
-              >
-                Copy GraphQL
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={8}>
-              Copy query (Shift+Ctrl+C)
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+// GraphiQL hides its tab bar while there is only one tab and shows a
+// separate plus button on the right instead. We render our own tab bar inside
+// GraphiQL's session header so the first tab is always visible with the plus
+// right next to it. Tab behaviour mirrors GraphiQL's built in tab bar.
+function GraphiQLSessionTabs() {
+  const editorContext = useEditorContext({ nonNull: true });
+  const executionContext = useExecutionContext({ nonNull: true });
+  const [container, setContainer] = useState<HTMLElement | null>(null);
 
-      <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-        <Button
-          variant="outline"
-          onClick={toggleDocumentationExplorer}
-          className="col-span-1 md:col-auto"
+  useEffect(() => {
+    setContainer(
+      document.querySelector<HTMLElement>(
+        '.graphiql-container .graphiql-session-header',
+      ),
+    );
+  }, []);
+
+  if (!container) {
+    return null;
+  }
+
+  const hasMultipleTabs = editorContext.tabs.length > 1;
+
+  return createPortal(
+    <Tabs values={editorContext.tabs} onReorder={editorContext.moveTab}>
+      {editorContext.tabs.map((tab, index) => (
+        <Tab
+          key={tab.id}
+          value={tab}
+          isActive={index === editorContext.activeTabIndex}
         >
-          Docs
-        </Button>
+          <Tab.Button
+            aria-controls="graphiql-session"
+            id={`graphiql-session-tab-${index}`}
+            // GraphiQL gives the tab label left padding only. Same right
+            // padding with or without a close button, so the hover
+            // background doesn't stop right at the last letter.
+            className="!pr-2"
+            onClick={() => {
+              executionContext.stop();
+              editorContext.changeTab(index);
+            }}
+          >
+            {getTabLabel(tab)}
+          </Tab.Button>
+
+          {hasMultipleTabs && (
+            <Tab.Close
+              onClick={() => {
+                if (editorContext.activeTabIndex === index) {
+                  executionContext.stop();
+                }
+
+                editorContext.closeTab(index);
+              }}
+            />
+          )}
+        </Tab>
+      ))}
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <UnStyledButton
+            type="button"
+            className="graphiql-tab-add"
+            onClick={editorContext.addTab}
+            aria-label="Add tab"
+          >
+            <PlusIcon aria-hidden="true" />
+          </UnStyledButton>
+        </TooltipTrigger>
+        <TooltipContent side="top">Add tab</TooltipContent>
+      </Tooltip>
+    </Tabs>,
+    container,
+  );
+}
+
+// The request exactly as the playground would send it, for the copy menu.
+function getRequestHeaders({
+  adminSecret,
+  selection,
+  headersTabOverrides,
+}: PlaygroundRequest) {
+  try {
+    return composeRequestHeaders({
+      adminSecret,
+      selection,
+      headersTabOverrides,
+    });
+  } catch {
+    // A header name in the Headers tab is not valid yet (e.g. while typing).
+    return composeRequestHeaders({ adminSecret, selection });
+  }
+}
+
+// Title bar on top of the query editor. GraphiQL has no slot there, so we
+// add an element as the first child of its editors container.
+function QueryPaneHeader({ request }: { request: PlaygroundRequest }) {
+  const editorContext = useEditorContext({ nonNull: true });
+  const executionContext = useExecutionContext({ nonNull: true });
+
+  const { queryEditor } = editorContext;
+  const [hasQuery, setHasQuery] = useState(true);
+
+  // Run is off while the editor holds nothing to run: empty, or only
+  // comments (like GraphiQL's welcome text).
+  useEffect(() => {
+    if (!queryEditor) {
+      return undefined;
+    }
+
+    const update = () =>
+      setHasQuery(queryEditor.getValue().replace(/#.*$/gm, '').trim() !== '');
+
+    update();
+    queryEditor.on('change', update);
+
+    return () => {
+      queryEditor.off('change', update);
+    };
+  }, [queryEditor]);
+
+  // Same as before the move: a run in progress is stopped, then run again.
+  function executeQuery() {
+    if (executionContext.isFetching) {
+      executionContext.stop();
+    }
+
+    executionContext.run();
+  }
+  const copyQuery = useCopyQuery();
+  const prettifyEditors = usePrettifyEditors();
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const editors = document.querySelector<HTMLElement>(
+      '.graphiql-container .graphiql-editors',
+    );
+
+    if (!editors) {
+      return undefined;
+    }
+
+    const slot = document.createElement('div');
+    slot.className = 'graphiql-pane-header-slot';
+    editors.prepend(slot);
+    setContainer(slot);
+
+    // GraphiQL makes the whole Variables/Headers bar its drag handle, tabs
+    // included. A press on a tab or the collapse arrow stays a click: it never
+    // reaches the drag handler. The empty part of the bar still drags.
+    function keepButtonsClickable(event: MouseEvent) {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('.graphiql-editor-tools button')
+      ) {
+        event.stopPropagation();
+      }
+    }
+
+    editors.addEventListener('mousedown', keepButtonsClickable, true);
+
+    return () => {
+      editors.removeEventListener('mousedown', keepButtonsClickable, true);
+      slot.remove();
+    };
+  }, []);
+
+  function copyRequest(
+    build: typeof buildCurlSnippet,
+    format: 'cURL' | 'fetch',
+  ) {
+    let variables: Record<string, unknown> = {};
+    const variablesText = editorContext.variableEditor?.getValue().trim();
+
+    if (variablesText) {
+      try {
+        variables = JSON.parse(variablesText);
+      } catch {
+        triggerToast('Variables are not valid JSON');
+        return;
+      }
+    }
+
+    const headers = getRequestHeaders(request);
+
+    copy(
+      build({
+        endpoint: request.endpoint,
+        headers,
+        query: editorContext.queryEditor?.getValue() ?? '',
+        variables,
+      }),
+    );
+    const envNames = Object.keys(headers)
+      .map(getHeaderEnvName)
+      .filter((envName) => envName !== null);
+
+    triggerToast(
+      envNames.length > 0
+        ? `Copied as ${format}. Set ${envNames.join(', ')} to run it.`
+        : `Copied as ${format}`,
+    );
+  }
+
+  if (!container) {
+    return null;
+  }
+
+  return createPortal(
+    // Phones use the bar above instead (MobilePlaygroundBar): its Query tab
+    // and Run. Prettify and the copy menu are desktop extras.
+    <div className="hidden h-12 shrink-0 items-center justify-between border-b pr-2 pl-4 md:flex">
+      <span className="font-medium text-foreground text-sm">Query</span>
+      <div className="flex items-center">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="subtle"
+              size="icon"
+              className={ICON_BUTTON_CLASSES}
+              onClick={prettifyEditors}
+              aria-label="Prettify query"
+            >
+              <WandSparkles className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Prettify</TooltipContent>
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              onClick={executeQuery}
-              aria-label="Execute GraphQL query"
-              className="col-span-1 py-2 md:col-auto"
+              variant="subtle"
+              size="icon"
+              className={ICON_BUTTON_CLASSES}
+              onClick={() => {
+                copyQuery();
+                triggerToast('Query copied to clipboard');
+              }}
+              aria-label="Copy query"
             >
-              <PlayIcon className="mr-2 h-5 w-5" />
-              Run
+              <Copy className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" align="end" sideOffset={8}>
-            Execute query (Ctrl+Enter)
+          <TooltipContent side="top">Copy query</TooltipContent>
+        </Tooltip>
+
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="subtle"
+                  size="icon"
+                  className={cn(ICON_BUTTON_CLASSES, '-ml-2 w-6')}
+                  aria-label="More copy options"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="top">More copy options</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={() => {
+                copyQuery();
+                triggerToast('Query copied to clipboard');
+              }}
+            >
+              Copy query
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={() => copyRequest(buildCurlSnippet, 'cURL')}
+            >
+              Copy as cURL
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={() => copyRequest(buildFetchSnippet, 'fetch')}
+            >
+              Copy as fetch
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {/* A disabled button gets no hover, so the span carries the tooltip. */}
+            <span className="ml-3 inline-flex">
+              <Button
+                size="xs"
+                onClick={executeQuery}
+                disabled={!hasQuery}
+                aria-label="Execute GraphQL query"
+                className="gap-1.5 px-2.5"
+              >
+                <PlayIcon className="h-3.5 w-3.5" />
+                Run
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {hasQuery ? 'Run (Ctrl+Enter)' : 'Write a query to run it'}
           </TooltipContent>
         </Tooltip>
       </div>
-    </header>
+    </div>,
+    container,
+  );
+}
+
+// Tabs and empty state for the response pane, rendered through GraphiQL's
+// footer slot (moved to the top of the pane with CSS). Response, History and
+// Docs share the pane: History and Docs cover the response while open.
+function ResponsePaneExtras() {
+  const editorContext = useEditorContext({ nonNull: true });
+  const executionContext = useExecutionContext({ nonNull: true });
+  const [tab, setTab] = usePlaygroundPanelTab();
+  const { setShowQuery } = useMobileQueryView();
+  const historyCount = useHistoryCount();
+  const { isFetching } = executionContext;
+  const { responseEditor } = editorContext;
+  const [response, setResponse] = useState('');
+  const responseStatusStore = useContext(ResponseStatusContext);
+  const activeTabId = editorContext.tabs[editorContext.activeTabIndex]?.id;
+
+  // The status belongs to the last run, so it is cleared when
+  // another tab becomes active.
+  useEffect(() => {
+    if (activeTabId) {
+      responseStatusStore?.reset();
+    }
+  }, [activeTabId, responseStatusStore]);
+
+  // A run shows its response, whichever tab was open.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only on a new run
+  useEffect(() => {
+    if (isFetching) {
+      setTab('response');
+      setShowQuery(false);
+    }
+  }, [isFetching]);
+
+  useEffect(() => {
+    if (!responseEditor) {
+      return undefined;
+    }
+
+    const update = () => setResponse(responseEditor.getValue());
+
+    update();
+    responseEditor.on('change', update);
+
+    return () => {
+      responseEditor.off('change', update);
+    };
+  }, [responseEditor]);
+
+  return (
+    <>
+      <div className="flex h-12 shrink-0 items-stretch justify-between border-b pr-2 pl-4">
+        {/* On phones these tabs are in the bar above the panes. */}
+        <div
+          role="tablist"
+          className="hidden min-w-0 items-stretch gap-6 md:flex"
+        >
+          <PanelTabButton
+            active={tab === 'response'}
+            onClick={() => setTab('response')}
+          >
+            Response
+          </PanelTabButton>
+          <PanelTabButton
+            active={tab === 'history'}
+            onClick={() => setTab('history')}
+          >
+            History
+            {historyCount > 0 && (
+              <span className="rounded-full bg-primary/10 px-1.5 font-medium text-primary text-xs leading-5">
+                {historyCount}
+              </span>
+            )}
+          </PanelTabButton>
+          <PanelTabButton
+            active={tab === 'docs'}
+            onClick={() => setTab('docs')}
+          >
+            Docs
+          </PanelTabButton>
+        </div>
+
+        {tab === 'history' && (
+          <div className="flex items-center">
+            <ClearRecentButton />
+          </div>
+        )}
+
+        {tab === 'response' && (
+          <div className="flex items-center gap-2">
+            <ResponseStatus />
+            {response && (
+              <span className="hidden md:inline-flex">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <CopyToClipboardButton
+                      textToCopy={response}
+                      title="Response"
+                      aria-label="Copy response"
+                      className={cn(
+                        ICON_BUTTON_CLASSES,
+                        'h-8 w-8 p-0 hover:bg-transparent dark:hover:bg-transparent',
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Copy response</TooltipContent>
+                </Tooltip>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <PlaygroundPanels tab={tab} />
+
+      {tab === 'response' && !response && !isFetching && (
+        <div className="pointer-events-none absolute inset-x-0 top-12 bottom-0">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
+            <span aria-hidden="true" className="flex shrink-0 text-disabled">
+              <Braces strokeWidth={1} className="h-12 w-12" />
+            </span>
+            <div className="flex w-full flex-col gap-1 sm:max-w-md">
+              <h3 className="font-semibold text-foreground text-lg">
+                No response yet
+              </h3>
+              <div className="text-muted-foreground text-sm">
+                Run a query to see the response.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Phones only: one pane at a time, so Query joins Response, History and Docs
+// as a tab, with Run always in reach at the end.
+function MobilePlaygroundBar() {
+  const executionContext = useExecutionContext({ nonNull: true });
+  const [tab, setTab] = usePlaygroundPanelTab();
+  const { showQuery, setShowQuery } = useMobileQueryView();
+
+  // No History count here: a phone has no room for it.
+  function showPanel(next: PlaygroundPanelTab) {
+    setTab(next);
+    setShowQuery(false);
+  }
+
+  return (
+    <div className="flex h-12 shrink-0 items-stretch justify-between gap-3 border-b px-4 md:hidden">
+      <div role="tablist" className="flex min-w-0 items-stretch gap-5">
+        <PanelTabButton active={showQuery} onClick={() => setShowQuery(true)}>
+          Query
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'response'}
+          onClick={() => showPanel('response')}
+        >
+          Response
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'history'}
+          onClick={() => showPanel('history')}
+        >
+          History
+        </PanelTabButton>
+        <PanelTabButton
+          active={!showQuery && tab === 'docs'}
+          onClick={() => showPanel('docs')}
+        >
+          Docs
+        </PanelTabButton>
+      </div>
+
+      <Button
+        size="xs"
+        onClick={() => {
+          if (executionContext.isFetching) {
+            executionContext.stop();
+          }
+
+          executionContext.run();
+        }}
+        aria-label="Execute GraphQL query"
+        className="gap-1.5 self-center px-2.5"
+      >
+        <PlayIcon className="h-3.5 w-3.5" />
+        Run
+      </Button>
+    </div>
   );
 }
 
@@ -231,9 +670,13 @@ interface GraphiQLEditorProps {
    * Function to be called when the user changes the headers.
    */
   onHeaderChange: (headers: Record<string, unknown>) => void;
+  /**
+   * The request as the playground sends it, for the copy menu.
+   */
+  request: PlaygroundRequest;
 }
 
-function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
+function GraphiQLEditor({ onHeaderChange, request }: GraphiQLEditorProps) {
   const handleUserHeaderChange = useMemo(
     () =>
       debounce((headers: string) => {
@@ -259,10 +702,21 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
   }, [handleUserHeaderChange]);
 
   return (
-    <GraphiQLInterface
-      defaultEditorToolsVisibility="variables"
-      onEditHeaders={handleUserHeaderChange}
-    />
+    <>
+      <GraphiQLInterface
+        defaultEditorToolsVisibility="variables"
+        onEditHeaders={handleUserHeaderChange}
+        disableTabs
+      >
+        <GraphiQL.Footer>
+          <ResponsePaneExtras />
+        </GraphiQL.Footer>
+      </GraphiQLInterface>
+
+      <GraphiQLSessionTabs />
+
+      <QueryPaneHeader request={request} />
+    </>
   );
 }
 
@@ -278,6 +732,21 @@ const GraphQLPageContent = dynamic(
       const [headersTabOverrides, setHeadersTabOverrides] = useState<
         Record<string, unknown>
       >({});
+      // Kept outside React state: a new fetcher makes GraphiQL fetch the
+      // schema again, so a run must not re-render this component.
+      const [responseStatusStore] = useState(createResponseStatusStore);
+      // Tabs, history and starred queries are kept per project, without
+      // request headers.
+      const projectId = project?.id;
+      const storage = useMemo(
+        () => (projectId ? createPlaygroundStorage(projectId) : undefined),
+        [projectId],
+      );
+
+      useEffect(() => {
+        removeSharedPlaygroundStorage();
+      }, []);
+
       const handleSelectionChange = useCallback(
         (nextSelection: GraphQLPlaygroundSelection) => {
           setSelection(nextSelection);
@@ -314,8 +783,12 @@ const GraphQLPageContent = dynamic(
         // query re-composes them and surfaces the rejection in the response pane.
         socketHeaders = composeRequestHeaders({ adminSecret, selection });
       }
+      const responseMeter = createResponseMeter();
       const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
+        // Same request and Response as the default fetch; it only records the
+        // status and size of measured runs for the Response status pill.
+        fetch: responseMeter.fetch,
         // Response analytics cover non-incremental HTTP queries and mutations.
         // WebSocket subscriptions are returned unchanged and intentionally untracked.
         enableIncrementalDelivery: false,
@@ -335,12 +808,16 @@ const GraphQLPageContent = dynamic(
         selection,
       });
       const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
-        const result = requestFetcher(graphQLParams, fetcherOpts);
+        if (graphQLParams.operationName === 'IntrospectionQuery') {
+          return requestFetcher(graphQLParams, fetcherOpts);
+        }
 
-        if (
-          graphQLParams.operationName !== 'IntrospectionQuery' &&
-          result instanceof Promise
-        ) {
+        const result = responseMeter.measure(
+          () => requestFetcher(graphQLParams, fetcherOpts),
+          responseStatusStore.startRun(),
+        );
+
+        if (result instanceof Promise) {
           result
             .then((payload) => trackGraphQLResponse(track, payload))
             .catch(() =>
@@ -352,11 +829,30 @@ const GraphQLPageContent = dynamic(
       };
 
       return (
-        <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
-          <GraphiQLHeader onSelectionChange={handleSelectionChange} />
+        <ResponseStatusContext.Provider value={responseStatusStore}>
+          <GraphiQLProvider
+            key={projectId}
+            fetcher={fetcher}
+            storage={storage}
+            plugins={[HISTORY_PANEL_PLUGIN, DOCS_PANEL_PLUGIN]}
+          >
+            <MobileQueryViewProvider>
+              <GraphiQLHeader onSelectionChange={handleSelectionChange} />
 
-          <GraphiQLEditor onHeaderChange={setHeadersTabOverrides} />
-        </GraphiQLProvider>
+              <MobilePlaygroundBar />
+
+              <GraphiQLEditor
+                onHeaderChange={setHeadersTabOverrides}
+                request={{
+                  endpoint: appUrl,
+                  adminSecret,
+                  selection,
+                  headersTabOverrides,
+                }}
+              />
+            </MobileQueryViewProvider>
+          </GraphiQLProvider>
+        </ResponseStatusContext.Provider>
       );
     }),
   { ssr: false },
