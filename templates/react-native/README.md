@@ -286,19 +286,23 @@ lands on sign-in.
 
 ### Rate limits
 
-Auth's limits in `nhost/nhost.toml` count requests per address. The app calls
-auth directly, so each device is counted by its own address.
+Most of auth's limits in `nhost/nhost.toml` count requests per address. The
+app calls auth directly, so on a cloud project each device is counted by its
+own address. On the local stack the simulator and the emulator both reach auth
+through your Mac, so they share one budget.
 
 The brute-force limit allows 30 requests per address every 5 minutes, where the
 Next.js starter allows 10. It counts every sign-in request, including the
 two-factor step, plus link and code checks and the two-factor check before a
 password change, so a passkey or two-factor sign-in uses two of them.
 
-The local stack sends at most 10 emails an hour. The Android emulator reaches
-it through your Mac, so the emulator and anything else on the Mac share that
-budget. The counts live in the auth container's memory: restart `nhost up`, or
-just the auth container (`docker ps` lists it as `<folder>-auth-1`, after the
-project folder), to reset them.
+The email limit counts every email the project sends, whatever address asked
+for it: 10 an hour, shared by every device and, once the app ships, every user.
+Only a cloud project with its own SMTP server in `[provider.smtp]` counts
+emails per address; the local stack always counts them together. Locally the
+counts live in the auth container's memory: restart `nhost up`, or just the
+auth container (`docker ps` lists it as `<folder>-auth-1`, after the project
+folder), to reset them.
 
 ### Avatars
 
@@ -444,6 +448,8 @@ build:
   passkeys off, and the values in `.secrets.example` are fine. With passkeys
   on, set `WEBAUTHN_RP_ID` to the real domain and `WEBAUTHN_ANDROID_ORIGIN` to
   the `apk-key-hash` origin of the key EAS signs with.
+- Configure your own SMTP server in `[provider.smtp]` before users sign in by
+  email. Without one, the 10 emails an hour cover every user's links and codes.
 - For OAuth, use the callback URL
   `https://<subdomain>.auth.<region>.nhost.run/v1/signin/provider/github/callback`
   and set the client ID and secret with `nhost secrets`.
