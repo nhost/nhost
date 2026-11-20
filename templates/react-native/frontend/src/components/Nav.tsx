@@ -3,7 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NavAccount from '@/components/NavAccount';
 import NhostLogo from '@/components/NhostLogo';
+import SignOutButton from '@/components/SignOutButton';
+import UserAvatar from '@/components/UserAvatar';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/nhost/AuthProvider';
 import { DEFAULT_DESTINATION } from '@/screens/signin/destination';
 import { methods } from '@/screens/signin/methods';
 import { signInQuery } from '@/screens/signin/query';
@@ -17,6 +20,7 @@ const signedOutPaths = methods.flatMap((method) => method.signedOutPaths ?? []);
 /** The header of every screen. */
 export default function Nav() {
   const { top } = useSafeAreaInsets();
+  const user = useSession()?.user;
 
   return (
     <View style={[styles.nav, { paddingTop: top + 12 }]}>
@@ -29,7 +33,18 @@ export default function Nav() {
 
       <NavAccount
         signedOutPaths={signedOutPaths}
-        signedIn={null}
+        signedIn={
+          user ? (
+            <View style={styles.actions}>
+              <SignOutButton />
+              <Link href="/account" asChild>
+                <Pressable role="link" aria-label="Your account">
+                  <UserAvatar displayName={user.displayName} size={32} />
+                </Pressable>
+              </Link>
+            </View>
+          ) : null
+        }
         signedOut={
           <View style={styles.actions}>
             <Link href={signInLink} asChild>
@@ -68,7 +83,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
   },
 });

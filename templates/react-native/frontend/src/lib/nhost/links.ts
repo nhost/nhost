@@ -1,6 +1,7 @@
 import type { Session } from '@nhost/nhost-js/auth';
 import * as Linking from 'expo-linking';
 import { getDeviceItem, setDeviceItem } from '@/lib/deviceStore';
+import { goTo } from '@/lib/goTo';
 import { bounded, TIMED_OUT } from '@/lib/utils';
 import { bareAuth, LINK_TYPE_PARAM, nhost } from './client';
 import { APP_SCHEME, appUrl } from './env';
@@ -393,7 +394,10 @@ export function settleInitialLink(): Promise<void> {
 /**
  * `+native-intent`'s hook: every link the OS hands the app goes through
  * `consumeLink`. A link already handled stays where the app is (null) unless
- * it is the one opening the app, which needs a route to start on.
+ * it is the one opening the app, which needs a route to start on. One that
+ * arrives while the app runs opens its route with nothing under it, as a link
+ * opens a new tab on the web: Expo Router would push it over the sign-in
+ * screens it was asked for from.
  */
 export async function redirectSystemPath({
   path,
@@ -415,6 +419,8 @@ export async function redirectSystemPath({
       ) {
         return null;
       }
+      goTo(await consumeLink(path));
+      return null;
     }
     return await consumeLink(path);
   } catch (err) {

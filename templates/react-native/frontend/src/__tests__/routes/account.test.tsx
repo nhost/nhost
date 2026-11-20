@@ -1,20 +1,33 @@
+import type { User } from '@nhost/nhost-js/auth';
 import { renderRouter, screen } from 'expo-router/testing-library';
 import RootLayout from '@/app/_layout';
 import NotFoundRoute from '@/app/+not-found';
 import Account from '@/app/account/index';
 import Home from '@/app/index';
+import SignIn from '@/app/signin/index';
 import { nhost } from '@/lib/nhost/client';
 import { liveSession } from '@/test/session';
 
 jest.mock('@/lib/nhost/client', () => ({
   ...jest.requireActual('@/lib/nhost/client'),
   checkSession: async () => 'live',
+  getVerifiedUser: async () => ({
+    user: {
+      id: 'user-id',
+      email: 'ada@example.com',
+      displayName: 'Ada',
+      defaultRole: 'user',
+      locale: 'en',
+      createdAt: '2026-10-13T16:00:00Z',
+    } as User,
+  }),
 }));
 
 const routes = {
   _layout: RootLayout,
   index: Home,
   'account/index': Account,
+  'signin/index': SignIn,
   '+not-found': NotFoundRoute,
 };
 
@@ -23,14 +36,15 @@ beforeEach(() => {
 });
 
 describe('/account', () => {
-  // Sign-in has no screen yet, so the redirect lands on not-found.
   it('sends a signed-out user to sign in and back', async () => {
     const router = await renderRouter(routes, { initialUrl: '/account' });
 
     expect(router.getPathname()).toBe('/signin');
     expect(router.getSearchParams()).toMatchObject({ next: '/account' });
-    expect(screen.getByText('This page could not be found.')).toBeOnTheScreen();
-    expect(screen.queryByRole('heading', { name: 'Account' })).toBeNull();
+    expect(
+      screen.getByRole('heading', { name: 'Create an account' }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText(/ada@example\.com/)).toBeNull();
   });
 
   // What `+native-intent` makes of a link it could not sign in with.
@@ -54,6 +68,9 @@ describe('/account', () => {
 
     await renderRouter(routes, { initialUrl: '/account' });
 
-    expect(screen.getByRole('heading', { name: 'Account' })).toBeOnTheScreen();
+    expect(screen.getByText(/ada@example\.com/)).toBeOnTheScreen();
+    expect(
+      screen.getByRole('link', { name: 'Your account' }),
+    ).toBeOnTheScreen();
   });
 });

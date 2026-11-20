@@ -54,6 +54,12 @@ jest.mock('expo-linking', () => ({
   getInitialURL: async () => mockFake.initialURL,
 }));
 
+const mockGoTo = jest.fn<void, [string]>();
+
+jest.mock('@/lib/goTo', () => ({
+  goTo: (href: string) => mockGoTo(href),
+}));
+
 const MARKER = 'nhostPasswordReset';
 const FLOWS = 'nhostLinkFlows';
 
@@ -93,6 +99,7 @@ beforeEach(() => {
   mockFake.tokenExchange.mockResolvedValue(exchanged());
   mockFake.signOut.mockReset();
   mockFake.signOut.mockResolvedValue({});
+  mockGoTo.mockReset();
   jest.spyOn(console, 'error').mockImplementation(() => undefined);
   links = load();
 });
@@ -400,6 +407,46 @@ describe('redirectSystemPath', () => {
     await expect(
       links.redirectSystemPath({ path: url, initial: false }),
     ).resolves.toBeNull();
+  });
+
+  // Pushed over the screen the link was asked for from, the sign-in screens
+  // would stay under the account.
+  it('opens a link that arrives while the app runs with nothing under it', async () => {
+    const { flow } = await issue();
+
+    await expect(
+      links.redirectSystemPath({
+        path: `nhost-starter://account/?flow=${flow}&code=c`,
+        initial: false,
+      }),
+    ).resolves.toBeNull();
+
+    expect(mockGoTo).toHaveBeenCalledWith('/account');
+    expect(mockFake.session).not.toBeNull();
+  });
+
+  it('starts the app on the route of the link that opened it', async () => {
+    const { flow } = await issue();
+
+    await expect(
+      links.redirectSystemPath({
+        path: `nhost-starter://account/?flow=${flow}&code=c`,
+        initial: true,
+      }),
+    ).resolves.toBe('/account');
+
+    expect(mockGoTo).not.toHaveBeenCalled();
+  });
+
+  it('leaves a link without a code to Expo Router', async () => {
+    await expect(
+      links.redirectSystemPath({
+        path: 'nhost-starter://account?tab=1',
+        initial: false,
+      }),
+    ).resolves.toBe('/account?tab=1');
+
+    expect(mockGoTo).not.toHaveBeenCalled();
   });
 
   it('opens the root for anything it cannot read', async () => {

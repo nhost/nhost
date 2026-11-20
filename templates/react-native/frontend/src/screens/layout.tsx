@@ -49,7 +49,7 @@ export default function RootLayout() {
             header: () => <Nav />,
             contentStyle: { backgroundColor: colors.background },
           }}
-          screenLayout={(props) => screenLayout(props)}
+          screenLayout={(props) => screenLayout(props, ['auth'])}
         />
         <StatusBar style="light" />
       </AuthProvider>

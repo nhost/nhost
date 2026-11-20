@@ -1,5 +1,5 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
-import { router, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 import {
   createContext,
   type ReactNode,
@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { goTo, useGoTo } from '@/lib/goTo';
 import { useSearch } from '@/lib/useSearch';
 import { nhost } from './client';
 import { type SessionWatcher, watchSession } from './watchSession';
@@ -53,15 +54,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     here.current = href;
   }, [href]);
 
+  useGoTo();
+
   // Screens under the current one may show the account, and the guard only
   // runs on the focused one, so the stack goes first. The screen opened again
   // in its place runs the guard.
-  const onRevoked = useCallback(() => {
-    if (router.canDismiss()) {
-      router.dismissAll();
-    }
-    router.replace(here.current);
-  }, []);
+  const onRevoked = useCallback(() => goTo(here.current), []);
 
   const watcher = useRef<SessionWatcher | null>(null);
   useEffect(() => {

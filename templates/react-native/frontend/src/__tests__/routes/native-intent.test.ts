@@ -20,6 +20,12 @@ jest.mock('@/lib/nhost/client', () => ({
   },
 }));
 
+const mockOpened: string[] = [];
+
+jest.mock('@/lib/goTo', () => ({
+  goTo: (href: string) => mockOpened.push(href),
+}));
+
 const LINK_PARAMS = /[?&](code|type|flow)=/;
 
 beforeEach(() => {
@@ -52,8 +58,11 @@ describe('+native-intent', () => {
 
     for (const initial of [true, false]) {
       for (const path of paths) {
+        mockOpened.length = 0;
         const route = await redirectSystemPath({ path, initial });
-        expect(route ?? '').not.toMatch(LINK_PARAMS);
+        for (const opened of [route ?? '', ...mockOpened]) {
+          expect(opened).not.toMatch(LINK_PARAMS);
+        }
       }
     }
   });
