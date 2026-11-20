@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Container } from '@/components/layout/Container';
@@ -12,14 +12,13 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { RadioGroup } from '@/components/ui/v3/radio-group';
 import {
   Select,
   SelectContent,
@@ -28,6 +27,8 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { PlanCard } from '@/features/orgs/components/billing/PlanCard';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
@@ -87,6 +88,16 @@ export default function OnboardingPage() {
     },
   });
 
+  // Enterprise is contact only and has its own row, so any Enterprise plan
+  // coming back from the API (e.g. staging test plans) is left out here.
+  const orderablePlans = useMemo(
+    () =>
+      (plansData?.plans ?? []).filter(
+        (plan) => !plan.name.toLowerCase().startsWith('enterprise'),
+      ),
+    [plansData],
+  );
+
   const selectedPlan = form.watch('plan');
   const selectedPlanData = plansData?.plans?.find(
     (plan) => plan.id === selectedPlan,
@@ -108,12 +119,6 @@ export default function OnboardingPage() {
       router.push('/');
     }
   }, [orgs, loadingOrgs, orgsError, router]);
-
-  useEffect(() => {
-    if (isNotEmptyValue(plansData?.plans?.length) && !form.getValues('plan')) {
-      form.setValue('plan', plansData.plans[0].id);
-    }
-  }, [plansData, form]);
 
   const onSubmit = async (data: OnboardingFormData) => {
     sessionStorage.setItem('onboarding', 'true');
@@ -371,33 +376,38 @@ export default function OnboardingPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Choose your plan</FormLabel>
-                    <FormDescription>You can change this later</FormDescription>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         value={field.value}
-                        className="space-y-3"
+                        className="flex flex-col gap-3 rounded-xl border bg-muted/40 p-3"
                       >
-                        {plansData?.plans?.map((plan) => (
+                        {orderablePlans.map((plan) => (
                           <FormItem key={plan.id}>
-                            <FormLabel className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent">
-                              <div className="flex items-center space-x-3">
-                                <FormControl>
-                                  <RadioGroupItem value={plan.id} />
-                                </FormControl>
-                                <div>
-                                  <div className="font-medium">{plan.name}</div>
-                                  <div className="text-muted-foreground text-sm">
-                                    {planDescriptions[plan.name]}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="font-semibold text-lg">
-                                {plan.isFree ? 'Free' : `$${plan.price}/mo`}
-                              </div>
-                            </FormLabel>
+                            <PlanCard
+                              compact
+                              value={plan.id}
+                              name={plan.name}
+                              price={plan.isFree ? 'Free' : `$${plan.price}`}
+                              isMonthly={!plan.isFree}
+                              description={planDescriptions[plan.name]}
+                              isSelected={field.value === plan.id}
+                            />
                           </FormItem>
                         ))}
+                        <PlanCard
+                          compact
+                          name="Enterprise"
+                          description={planDescriptions.Enterprise}
+                        >
+                          <TextLink
+                            href="mailto:hello@nhost.io"
+                            external
+                            className="shrink-0 font-medium"
+                          >
+                            Contact us
+                          </TextLink>
+                        </PlanCard>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
@@ -419,6 +429,7 @@ export default function OnboardingPage() {
 
                 <ButtonWithLoading
                   type="submit"
+                  disabled={!selectedPlan}
                   loading={form.formState.isSubmitting}
                   className="w-full sm:w-auto"
                 >

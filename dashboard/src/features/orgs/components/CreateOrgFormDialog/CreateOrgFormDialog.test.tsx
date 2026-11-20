@@ -20,7 +20,7 @@ vi.mock('next/router', () => ({
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
-  // An existing Starter organization makes Pro, a paid plan, the default.
+  // An existing Starter organization, so only paid plans can be picked.
   useOrgs: () => ({
     orgs: [{ slug: 'org-a', plan: { name: 'Starter', isFree: true } }],
     refetch: vi.fn(),
@@ -82,6 +82,7 @@ async function reachCheckout(user: TestUserEvent) {
   );
   await user.click(screen.getByRole('combobox'));
   await user.click((await screen.findAllByRole('option'))[0]);
+  await user.click(screen.getByText('Pro', { exact: true }));
   await user.click(screen.getByRole('button', { name: 'Create organization' }));
 
   expect(await screen.findByText('Stripe checkout')).toBeInTheDocument();
@@ -122,6 +123,29 @@ describe('CreateOrgFormDialog', () => {
       await screen.findByLabelText('Organization Name'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Stripe checkout')).not.toBeInTheDocument();
+  });
+
+  it('opens with no plan selected and create disabled until one is picked', async () => {
+    const user = new TestUserEvent();
+    render(<DialogHost />);
+
+    await user.click(screen.getByRole('button', { name: 'Open dialog' }));
+    await screen.findByLabelText('Organization Name');
+
+    expect(
+      screen
+        .getAllByRole('radio')
+        .filter((radio) => radio.ariaChecked === 'true'),
+    ).toHaveLength(0);
+    expect(
+      screen.getByRole('button', { name: 'Create organization' }),
+    ).toBeDisabled();
+
+    await user.click(screen.getByText('Pro', { exact: true }));
+
+    expect(
+      screen.getByRole('button', { name: 'Create organization' }),
+    ).toBeEnabled();
   });
 
   it('refreshes the unfinished checkouts the inbox offers to continue', async () => {

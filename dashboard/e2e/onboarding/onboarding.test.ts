@@ -83,6 +83,8 @@ test('should be able to upgrade an organization', async () => {
   await page.getByLabel(/describe your organization/i).click();
   await page.getByRole('option', { name: 'Personal Project' }).click();
 
+  await page.getByText('Starter', { exact: true }).click();
+
   await page.getByRole('button', { name: 'Create Organization' }).click();
 
   await expect(
@@ -105,7 +107,7 @@ test('should be able to upgrade an organization', async () => {
   await upgradeButton.click();
 
   await expect(
-    page.getByRole('heading', { name: /upgrade organization/i }),
+    page.getByRole('heading', { name: /upgrade your plan/i }),
   ).toBeVisible();
 
   await page.getByText('Pro', { exact: true }).click();
