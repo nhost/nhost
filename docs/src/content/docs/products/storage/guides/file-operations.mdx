@@ -151,7 +151,7 @@ Deletion is permanent. Use the Storage API (`DELETE /v1/files/{id}` or `nhost.st
 
 Deleting `storage.files` rows through GraphQL, SQL, or a bucket cascade also queues the S3 content for automatic deletion. Storage checks the queue every 24 hours and deletes content after at least 24 hours, typically within 48 hours. If metadata with the same file ID exists when cleanup checks, the content is not deleted. Background cleanup does not purge the CDN.
 
-Automatic cleanup does not cover `TRUNCATE`, deletions with the trigger disabled, or objects orphaned before the upgrade. Use the admin operations `/ops/list-orphans` and `/ops/delete-orphans` for those cases.
+Automatic cleanup does not cover `TRUNCATE`, or deletions with the trigger disabled. Use the admin operations `/ops/list-orphans` and `/ops/delete-orphans` for those cases.
 :::
 
 ## Listing Files via GraphQL
