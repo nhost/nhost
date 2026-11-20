@@ -124,6 +124,19 @@ class ContractsTests(unittest.TestCase):
             "govulncheck-wrapper -fix -- -scan=package ./...", fixes["run"]
         )
 
+    def test_security_updates_cover_templates(self):
+        workflow = load(WORKFLOWS / "gen_security_updates.yaml")
+        fixes = next(
+            step for step in workflow["jobs"]["run"]["steps"]
+            if step.get("name") == "Apply pnpm security fixes"
+        )
+        _, found, templates = fixes["run"].partition(
+            "for dir in templates/*/frontend"
+        )
+        self.assertTrue(found)
+        self.assertIn("pnpm audit --fix=update", templates)
+        self.assertIn("pnpm dedupe", templates)
+
     def test_cli_image_loader_does_not_record_an_unused_nix_shell(self):
         workflow = load(WORKFLOWS / "cli_wf_test_new_project.yaml")
         steps = workflow["jobs"]["tests"]["steps"]
