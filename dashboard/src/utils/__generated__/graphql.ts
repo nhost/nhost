@@ -27909,6 +27909,14 @@ export type UpdateUserDisplayNameMutationVariables = Exact<{
 
 export type UpdateUserDisplayNameMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, displayName: string } | null };
 
+export type GetBillingMetricsQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  from: Scalars['timestamptz'];
+}>;
+
+
+export type GetBillingMetricsQuery = { __typename?: 'query_root', billingReports: Array<{ __typename?: 'billing_reports', appID: any, type: Billing_Report_Type_Enum, value: number, reportEnds: any }>, billingResources: Array<{ __typename?: 'billing_resources', appID: any, functionsAmount: number, customDomains: number, persistentVolume: number, pitr: number }>, billingTimeBasedUsages: Array<{ __typename?: 'billing_time_based_usage', appID: any, value: number }> };
+
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -28953,6 +28961,14 @@ export type GetRunServicesQueryVariables = Exact<{
 
 export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
+export type GetAllRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetAllRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }> } | null };
+
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
@@ -29744,6 +29760,64 @@ export function useUpdateUserDisplayNameMutation(baseOptions?: Apollo.MutationHo
 export type UpdateUserDisplayNameMutationHookResult = ReturnType<typeof useUpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationResult = Apollo.MutationResult<UpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
+export const GetBillingMetricsDocument = gql`
+    query getBillingMetrics($organizationID: uuid!, $from: timestamptz!) {
+  billingReports(
+    where: {organizationID: {_eq: $organizationID}, reportEnds: {_gte: $from}}
+    order_by: {reportEnds: desc}
+  ) {
+    appID
+    type
+    value
+    reportEnds
+  }
+  billingResources(where: {organizationID: {_eq: $organizationID}}) {
+    appID
+    functionsAmount
+    customDomains
+    persistentVolume
+    pitr
+  }
+  billingTimeBasedUsages(
+    where: {organizationID: {_eq: $organizationID}, productType: {_eq: dedicated_compute}}
+  ) {
+    appID
+    value
+  }
+}
+    `;
+
+/**
+ * __useGetBillingMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetBillingMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBillingMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBillingMetricsQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetBillingMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+      }
+export function useGetBillingMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+        }
+export type GetBillingMetricsQueryHookResult = ReturnType<typeof useGetBillingMetricsQuery>;
+export type GetBillingMetricsLazyQueryHookResult = ReturnType<typeof useGetBillingMetricsLazyQuery>;
+export type GetBillingMetricsQueryResult = Apollo.QueryResult<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>;
+export function refetchGetBillingMetricsQuery(variables: GetBillingMetricsQueryVariables) {
+      return { query: GetBillingMetricsDocument, variables: variables }
+    }
 export const GetAiSettingsDocument = gql`
     query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -35813,6 +35887,53 @@ export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServi
 export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
 export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
       return { query: GetRunServicesDocument, variables: variables }
+    }
+export const GetAllRunServicesDocument = gql`
+    query getAllRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceConfig
+      }
+    }
+  }
+}
+    ${RunServiceConfigFragmentDoc}`;
+
+/**
+ * __useGetAllRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetAllRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetAllRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+      }
+export function useGetAllRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+        }
+export type GetAllRunServicesQueryHookResult = ReturnType<typeof useGetAllRunServicesQuery>;
+export type GetAllRunServicesLazyQueryHookResult = ReturnType<typeof useGetAllRunServicesLazyQuery>;
+export type GetAllRunServicesQueryResult = Apollo.QueryResult<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>;
+export function refetchGetAllRunServicesQuery(variables: GetAllRunServicesQueryVariables) {
+      return { query: GetAllRunServicesDocument, variables: variables }
     }
 export const GetLocalRunServiceConfigsDocument = gql`
     query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {

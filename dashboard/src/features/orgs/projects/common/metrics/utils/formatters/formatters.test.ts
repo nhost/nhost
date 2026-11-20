@@ -8,6 +8,7 @@ import {
   formatTimestampFull,
   formatTimestampTick,
   formatterForKind,
+  formatWholePercent,
 } from '@/features/orgs/projects/common/metrics/utils/formatters';
 
 describe('formatterForKind', () => {
@@ -102,6 +103,18 @@ describe('formatPercentUnit', () => {
 
   it('renders an em dash for non-finite input', () => {
     expect(formatPercentUnit(Number.NaN)).toBe('—');
+  });
+});
+
+describe('formatWholePercent', () => {
+  it.each([
+    { percentage: 0, expected: '0%' },
+    { percentage: 0.2, expected: '<1%' },
+    { percentage: 0.6, expected: '<1%' },
+    { percentage: 38.6, expected: '39%' },
+    { percentage: 104, expected: '104%' },
+  ])('renders $percentage as $expected', ({ percentage, expected }) => {
+    expect(formatWholePercent(percentage)).toBe(expected);
   });
 });
 
