@@ -103,9 +103,7 @@ const PlanCard = forwardRef(
       isSelectable &&
         'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background',
       isCurrent && 'cursor-not-allowed bg-muted/30',
-      !isCurrent &&
-        isSelected &&
-        'border-primary bg-primary/[0.03]',
+      !isCurrent && isSelected && 'border-primary bg-primary/[0.03]',
       !isCurrent && !isSelected && disabled && 'cursor-not-allowed',
       !isCurrent &&
         !isSelected &&
