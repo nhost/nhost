@@ -1,62 +1,56 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AuthErrorFromUrl from '@/components/AuthErrorFromUrl';
-import Footer from '@/components/Footer';
+import { StrictMode, useEffect, useState } from 'react';
 import Nav from '@/components/Nav';
+import { screenLayout } from '@/components/ScreenLayout';
+import AuthProvider from '@/lib/nhost/AuthProvider';
+import { startSession } from '@/lib/nhost/startSession';
 import { colors } from '@/theme';
 
-// What the web layout's <main> and footer are, around each screen of the
-// stack: one scroll view, so short screens centre and long ones scroll.
-function Screen({ children }: { children: ReactNode }) {
-  const { bottom } = useSafeAreaInsets();
-
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingBottom: bottom }]}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.main}>
-        <AuthErrorFromUrl />
-        {children}
-      </View>
-      <Footer />
-    </ScrollView>
-  );
-}
+// No screen shows a session that is about to change, so the splash stays up
+// until startup has settled it.
+SplashScreen.preventAutoHideAsync().catch((err: unknown) => {
+  console.error('Could not keep the splash screen up:', err);
+});
 
 export default function RootLayout() {
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void startSession().then(() => {
+      if (mounted) {
+        setStarted(true);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (started) {
+      SplashScreen.hide();
+    }
+  }, [started]);
+
+  if (!started) {
+    return null;
+  }
+
   return (
-    <>
-      <Stack
-        screenOptions={{
-          header: () => <Nav />,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-        screenLayout={({ children }) => <Screen>{children}</Screen>}
-      />
-      <StatusBar style="light" />
-    </>
+    <StrictMode>
+      <AuthProvider>
+        <Stack
+          screenOptions={{
+            header: () => <Nav />,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+          screenLayout={(props) => screenLayout(props)}
+        />
+        <StatusBar style="light" />
+      </AuthProvider>
+    </StrictMode>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flexGrow: 1,
-  },
-  main: {
-    flexGrow: 1,
-    width: '100%',
-    maxWidth: 896,
-    alignSelf: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-});
