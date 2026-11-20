@@ -266,6 +266,7 @@ html.dark .graphiql-themed .graphiql-container {
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: var(--background);
@@ -365,6 +366,7 @@ html.dark .graphiql-themed .graphiql-container {
   }
 
   .dark {
+    color-scheme: dark;
     --background: 210 5.71% 11%;
     --foreground: 220 7% 91.6%;
     --card: var(--background);
