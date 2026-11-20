@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -23,6 +23,7 @@ import {
 import { TOOLTIP_WRAPPER_STYLE } from '@/features/orgs/projects/common/metrics/constants';
 import { useChartInteractions } from '@/features/orgs/projects/common/metrics/hooks/useChartInteractions';
 import type {
+  ChartMouseEvent,
   MetricSeries,
   SeriesAccessors,
 } from '@/features/orgs/projects/common/metrics/types';
@@ -31,6 +32,7 @@ import {
   type ChartModel,
 } from '@/features/orgs/projects/common/metrics/utils/buildChart';
 import { buildStackedValueTicks } from '@/features/orgs/projects/common/metrics/utils/buildStackedValueTicks';
+import { padRowsToTimeDomain } from '@/features/orgs/projects/common/metrics/utils/padRowsToTimeDomain';
 import type { Row } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 import { cn } from '@/lib/utils';
 import TooltipFooter from './TooltipFooter';
@@ -61,6 +63,11 @@ export interface StackedBarMetricChartProps {
 }
 
 const PLOT_MARGIN_TOP = 8;
+
+const APPEARING_TOOLTIP_WRAPPER_STYLE = {
+  ...TOOLTIP_WRAPPER_STYLE,
+  transition: 'none',
+};
 
 // More project rows than this push the tooltip's total and reference lines
 // past the bottom of the default 260px chart, where they are cut off.
@@ -151,7 +158,7 @@ interface StackedBarChartProps
 }
 
 function StackedBarChart({
-  chart: { keys, rows, config },
+  chart: { keys, rows: dataRows, config },
   valueFormatter,
   xTickFormatter,
   labelFormatter,
@@ -169,6 +176,10 @@ function StackedBarChart({
   onZoomOut,
   ariaLabel,
 }: StackedBarChartProps) {
+  const rows = useMemo(
+    () => padRowsToTimeDomain(dataRows, keys, timeDomain),
+    [dataRows, keys, timeDomain],
+  );
   const {
     hiddenSet,
     pin,
@@ -177,6 +188,20 @@ function StackedBarChart({
     handleClick,
     handleDoubleClick,
   } = useChartInteractions({ rows, keys, config, onZoomRange, onZoomOut });
+
+  // Recharts glides the tooltip from wherever it was last drawn, so it slid in
+  // from the side each time the pointer entered the chart. The glide is turned
+  // on a frame after the tooltip appears, so it appears in place and only
+  // glides from bar to bar.
+  const [tooltipGlides, setTooltipGlides] = useState(false);
+  const handleMouseMove = (event: ChartMouseEvent) => {
+    if (!tooltipGlides) {
+      requestAnimationFrame(() => setTooltipGlides(true));
+    }
+    if (onZoomRange) {
+      zoom.handleMouseMove(event);
+    }
+  };
 
   const yTicks = useMemo(
     () =>
@@ -252,7 +277,8 @@ function StackedBarChart({
             onClick={handleClick}
             // Drag and double-click only respond when their callback is set.
             onMouseDown={onZoomRange ? zoom.handleMouseDown : undefined}
-            onMouseMove={onZoomRange ? zoom.handleMouseMove : undefined}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setTooltipGlides(false)}
             onMouseUp={onZoomRange ? zoom.handleMouseUp : undefined}
             onDoubleClick={onZoomOut ? handleDoubleClick : undefined}
           >
@@ -304,7 +330,11 @@ function StackedBarChart({
             <ChartTooltip
               cursor={!pin.pinned}
               active={pin.pinned ? false : undefined}
-              wrapperStyle={TOOLTIP_WRAPPER_STYLE}
+              wrapperStyle={
+                tooltipGlides
+                  ? TOOLTIP_WRAPPER_STYLE
+                  : APPEARING_TOOLTIP_WRAPPER_STYLE
+              }
               content={
                 <HoverTooltipContent config={config} {...tooltipOptions} />
               }

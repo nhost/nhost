@@ -67,6 +67,20 @@ query getRunServices(
   }
 }
 
+query getAllRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceConfig
+      }
+    }
+  }
+}
+
 query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
   runServiceConfigs(appID: $appID, resolve: $resolve) {
     serviceID
