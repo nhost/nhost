@@ -43,6 +43,25 @@ jest.mock('expo-secure-store', () => ({
   }),
 }));
 
+// expo-crypto's own mock returns nothing; Node's crypto stands in for the
+// native module.
+jest.mock('expo-crypto', () => {
+  const { createHash, randomBytes } =
+    jest.requireActual<typeof import('node:crypto')>('node:crypto');
+  return {
+    ...jest.requireActual('expo-crypto'),
+    getRandomBytes: (count: number) => new Uint8Array(randomBytes(count)),
+    digestStringAsync: async (
+      algorithm: string,
+      data: string,
+      options?: { encoding?: string },
+    ) =>
+      createHash(algorithm.replace('-', '').toLowerCase())
+        .update(data, 'utf8')
+        .digest(options?.encoding === 'base64' ? 'base64' : 'hex'),
+  };
+});
+
 jest.mock('expo-file-system', () => {
   const uriOf = (part: string | { uri: string }): string =>
     typeof part === 'string' ? part : part.uri;

@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { LINK_ERROR_MESSAGES } from '@/lib/nhost/errors';
 import { first, type SearchParam } from '@/lib/utils';
 import { colors, fontSize, monospace, radius } from '@/theme';
 
@@ -48,6 +49,7 @@ const messages = new Map([
   ['signup-disabled', 'New sign-ups are turned off.'],
   ['unverified-user', 'Verify your email address first, then try again.'],
   ['user-already-exists', 'An account with this email address already exists.'],
+  ...LINK_ERROR_MESSAGES,
 ]);
 
 /** Says why an auth redirect failed. */

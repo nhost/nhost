@@ -1,6 +1,7 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
 import { AppState, type AppStateStatus } from 'react-native';
 import { checkSession, nhost } from './client';
+import { onLinkDiscarded } from './links';
 import { endPasswordReset } from './passwordReset';
 
 /** How long the app has to be away before coming back to it checks again. */
@@ -72,11 +73,14 @@ export function watchSession(callbacks: SessionCallbacks): SessionWatcher {
   };
   const subscription = AppState.addEventListener('change', onAppState);
 
+  const stopDiscards = onLinkDiscarded(callbacks.onRefresh);
+
   return {
     checkRevoked,
     stop: () => {
       unsubscribe();
       subscription.remove();
+      stopDiscards();
     },
   };
 }

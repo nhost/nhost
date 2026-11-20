@@ -33,6 +33,22 @@ describe('/account', () => {
     expect(screen.queryByRole('heading', { name: 'Account' })).toBeNull();
   });
 
+  // What `+native-intent` makes of a link it could not sign in with.
+  it('carries the error from a link on to sign-in', async () => {
+    const router = await renderRouter(routes, {
+      initialUrl: '/account?error=link-unusable',
+    });
+
+    expect(router.getPathname()).toBe('/signin');
+    expect(router.getSearchParams()).toMatchObject({
+      next: '/account',
+      error: 'link-unusable',
+    });
+    expect(
+      screen.getByText(/Open it on the device that asked for it/),
+    ).toBeOnTheScreen();
+  });
+
   it('shows the account to a signed-in user', async () => {
     nhost.sessionStorage.set(liveSession());
 

@@ -3,17 +3,26 @@ import * as SplashScreen from 'expo-splash-screen';
 import RootLayout from '@/app/_layout';
 import Home from '@/app/index';
 
-const mockStartup: { resolve: VoidFunction; started?: Promise<void> } = {
-  resolve: () => undefined,
+type Gate = { resolve: VoidFunction; promise?: Promise<void> };
+
+const gate = (): Gate => ({ resolve: () => undefined });
+
+const mockGates = { startup: gate(), link: gate() };
+
+const mockWait = (current: Gate): Promise<void> => {
+  current.promise ??= new Promise((resolve) => {
+    current.resolve = resolve;
+  });
+  return current.promise;
 };
 
 jest.mock('@/lib/nhost/startSession', () => ({
-  startSession: () => {
-    mockStartup.started ??= new Promise((resolve) => {
-      mockStartup.resolve = resolve;
-    });
-    return mockStartup.started;
-  },
+  startSession: () => mockWait(mockGates.startup),
+}));
+
+jest.mock('@/lib/nhost/links', () => ({
+  ...jest.requireActual('@/lib/nhost/links'),
+  settleInitialLink: () => mockWait(mockGates.link),
 }));
 
 jest.mock('expo-splash-screen', () => ({
@@ -21,17 +30,42 @@ jest.mock('expo-splash-screen', () => ({
   hide: jest.fn(),
 }));
 
+const heading = () => screen.queryByRole('heading');
+
+beforeEach(() => {
+  mockGates.startup = gate();
+  mockGates.link = gate();
+  jest.mocked(SplashScreen.hide).mockClear();
+});
+
 describe('the root layout', () => {
   // No screen may show a session that startup is about to change.
   it('keeps the splash up and renders nothing until startup settles', async () => {
     expect(SplashScreen.preventAutoHideAsync).toHaveBeenCalled();
 
     await renderRouter({ _layout: RootLayout, index: Home });
+    await act(async () => mockGates.link.resolve());
 
-    expect(screen.queryByRole('heading')).toBeNull();
+    expect(heading()).toBeNull();
     expect(SplashScreen.hide).not.toHaveBeenCalled();
 
-    await act(async () => mockStartup.resolve());
+    await act(async () => mockGates.startup.resolve());
+
+    expect(
+      screen.getByRole('heading', { name: 'Nhost + React Native' }),
+    ).toBeOnTheScreen();
+    expect(SplashScreen.hide).toHaveBeenCalledTimes(1);
+  });
+
+  // Nor one that the link that opened the app is about to sign in.
+  it('renders nothing until the link that opened the app is handled', async () => {
+    await renderRouter({ _layout: RootLayout, index: Home });
+    await act(async () => mockGates.startup.resolve());
+
+    expect(heading()).toBeNull();
+    expect(SplashScreen.hide).not.toHaveBeenCalled();
+
+    await act(async () => mockGates.link.resolve());
 
     expect(
       screen.getByRole('heading', { name: 'Nhost + React Native' }),

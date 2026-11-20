@@ -12,6 +12,7 @@ const mockFake = {
   session: null as StoredSession | null,
   subscribers: new Set<(session: StoredSession | null) => void>(),
   checkSession: jest.fn<Promise<CheckedSession>, [StoredSession]>(),
+  discarded: undefined as VoidFunction | undefined,
 };
 
 jest.mock('@/lib/nhost/client', () => ({
@@ -31,6 +32,15 @@ jest.mock('@/lib/nhost/client', () => ({
     },
   },
   checkSession: (session: StoredSession) => mockFake.checkSession(session),
+}));
+
+jest.mock('@/lib/nhost/links', () => ({
+  onLinkDiscarded: (listener: VoidFunction) => {
+    mockFake.discarded = listener;
+    return () => {
+      mockFake.discarded = undefined;
+    };
+  },
 }));
 
 const MARKER = 'nhostPasswordReset';
@@ -235,5 +245,19 @@ describe('watchSession, returning to the app', () => {
     await appBecomes('active');
 
     expect(callbacks.onRefresh).not.toHaveBeenCalled();
+  });
+});
+
+describe('watchSession, links', () => {
+  // The code is not traded, but an email change it confirmed has happened.
+  it('loads the screen again when a link arrives for a signed-in user', () => {
+    watcher = watchSession(callbacks);
+
+    mockFake.discarded?.();
+
+    expect(callbacks.onRefresh).toHaveBeenCalledTimes(1);
+
+    watcher.stop();
+    expect(mockFake.discarded).toBeUndefined();
   });
 });

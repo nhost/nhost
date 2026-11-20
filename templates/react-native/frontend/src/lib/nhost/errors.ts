@@ -35,3 +35,19 @@ export const AUTH_UNAVAILABLE =
   'Could not check your session with the auth service. Try again.';
 
 export const NETWORK_ERROR = 'The request did not reach the server. Try again.';
+
+// The `error` the app puts on a link it could not sign in with, shown as the
+// auth service's own codes are.
+export const LINK_ERROR = {
+  // Auth verified the address before redirecting, so only the sign-in failed.
+  emailVerified: 'link-email-verified',
+  unusable: 'link-unusable',
+} as const;
+
+export const LINK_ERROR_MESSAGES: ReadonlyMap<string, string> = new Map([
+  [LINK_ERROR.emailVerified, 'Your email address is verified. Sign in.'],
+  [
+    LINK_ERROR.unusable,
+    'This link could not sign you in here. Open it on the device that asked for it, or request a new one.',
+  ],
+]);
