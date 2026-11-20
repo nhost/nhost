@@ -11,13 +11,13 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/vektah/gqlparser/v2/validator"
 )
 
 // GraphQLRequest is the JSON payload accepted by HandlerPost (and used as
@@ -159,23 +159,6 @@ func gqlValidationErrors(err error) (gqlerror.List, bool) {
 	return nil, false
 }
 
-func coerceVariables(
-	schema *ast.Schema,
-	operation *ast.OperationDefinition,
-	variables map[string]any,
-) (map[string]any, error) {
-	if operation == nil || (len(variables) == 0 && len(operation.VariableDefinitions) == 0) {
-		return variables, nil
-	}
-
-	validated, err := validator.VariableValues(schema, operation, variables)
-	if err != nil {
-		return nil, fmt.Errorf("coercing variables: %w", err)
-	}
-
-	return validated, nil
-}
-
 func (c *Controller) execute(
 	ctx context.Context,
 	state *controllerState,
@@ -202,6 +185,15 @@ func (c *Controller) execute(
 		operation, normalizeRootSelections(operation.SelectionSet, fragments, variables),
 	)
 	fragments = pruneFragments(fragments, variables)
+
+	// Remote plans retain selection subtrees but generated target operations lose
+	// the selected operation's definitions and validated argument metadata. Apply
+	// input presence while that provenance is still available, before either
+	// prevalidation or execution (including mutation response relationships).
+	operation, fragments, err := queries.NormalizeInputVariables(operation, fragments, variables)
+	if err != nil {
+		return errorsResponse(nil, c.classifyConnectorError(ctx, logger, err))
+	}
 
 	// Partition the normalized root fields into introspection meta-fields
 	// (__schema/__type/__typename), resolved locally, and connector-backed data

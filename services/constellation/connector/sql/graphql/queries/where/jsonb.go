@@ -1,10 +1,12 @@
 package where
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 )
 
 func writeJSONBTarget(b *strings.Builder, source, column string, target *comparisonTarget) {
@@ -31,11 +33,16 @@ func (f *jsonbContainsFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	value, err := values.CoerceSQLValue("jsonb", f.value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing JSONB containment value: %w", err)
+	}
+
 	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" @> ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "jsonb"))
 
-	params = append(params, f.value)
+	params = append(params, value)
 
 	return params, paramIndex + 1, nil
 }
@@ -56,11 +63,16 @@ func (f *jsonbContainedInFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	value, err := values.CoerceSQLValue("jsonb", f.value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing JSONB containment value: %w", err)
+	}
+
 	writeJSONBTarget(b, source, f.column, f.target)
 	b.WriteString(" <@ ")
 	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "jsonb"))
 
-	params = append(params, f.value)
+	params = append(params, value)
 
 	return params, paramIndex + 1, nil
 }

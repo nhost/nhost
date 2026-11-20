@@ -63,6 +63,22 @@ GraphQL `Int` inputs are validated strictly: a quoted value such as `"3"` is
 rejected where Hasura accepts it, and out-of-range values fail at execution
 rather than during parsing.
 
+# Filter input variables
+
+An omitted nullable variable that would remove a field from a mutation's `where`
+input is rejected before execution. This prevents accidental unrestricted
+updates/deletes, including `update_<table>_many` and conflict-update selectors.
+Literal or supplied empty filters remain valid; role permission filters still
+apply. The guard does not change optional read filters: an omitted operand in
+`where: {id: {_eq: $id}}` on a query removes `_eq`, imposing no restriction on
+`id`. It also leaves read filters in mutation `returning` selections unchanged.
+
+Explicit `_eq: null` retains Constellation's SQL `= NULL` behavior and matches no
+rows. Default Hasura v2.50.3-ce rejects both omitted and explicit-null comparison
+operands, for reads as well as writes. Constellation's mutation omission guard
+matches that rejection without changing existing explicit-null or read-input
+contracts. It does not implement Hasura's opt-in boolean-null-collapse mode.
+
 # Mutations with no update permissions
 
 Update mutations are not generated for tables where the role has no update column permissions (i.e. the `_update_column` enum only contains `_PLACEHOLDER`). Hasura generates these mutations but they cannot actually update any columns, making them no-ops.

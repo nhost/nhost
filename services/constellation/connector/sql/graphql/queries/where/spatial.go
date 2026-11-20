@@ -268,6 +268,7 @@ func parseSpatialCast( //nolint:ireturn,nolintlint
 	value *ast.Value,
 	variables map[string]any,
 	d dialect.Dialect,
+	permission bool,
 	tables ...Table,
 ) (Statement, error) {
 	if !d.SupportsSpatialTypes() {
@@ -303,6 +304,7 @@ func parseSpatialCast( //nolint:ireturn,nolintlint
 			child.Value,
 			variables,
 			d,
+			permission,
 			tables...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse spatial _cast.%s: %w", child.Name, err)

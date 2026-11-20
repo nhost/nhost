@@ -134,14 +134,18 @@ other relationship on the same table, and the table itself, keep serving.
 ### `enum_values` (PostgreSQL / SQLite source)
 
 Recorded when a table is flagged `is_enum: true`, **exists in the source**,
-but cannot be exposed as a GraphQL enum because no usable values came back
-from the driver. Triggers:
+but cannot be exposed as a GraphQL enum. Triggers:
 
 * The table has more than two columns, or no primary key (invalid enum
   shape).
 * The query against the enum table failed (e.g. permissions on the role
   Constellation connects as cannot read it).
 * The table is valid but contains zero rows.
+* Any value is not a GraphQL name (`^[_A-Za-z][_0-9A-Za-z]*$`), is one of
+  the reserved literals `true`, `false` or `null`, or starts with `__`
+  (reserved for GraphQL introspection). The reason identifies the bad value.
+  These checks run before role-schema validation for both PostgreSQL and SQLite,
+  so one invalid value does not drop the `admin` or user-role schemas.
 
 **Effect:** the table is **dropped from the source entirely** — matching
 Hasura. Demoting it to a regular table would silently widen the input
@@ -161,6 +165,11 @@ on *other* tables that point at the dropped enum table remain in the schema
 as plain scalars — they keep their underlying type but lose any `_enum`
 input type and the implicit value constraint that would have come with the
 enum.
+
+**Hasura compatibility:** Hasura v2.50.3 accepts enum values starting with
+`__`. Constellation instead records `enum_values` and drops that enum table
+because its GraphQL validator enforces the reserved prefix. Rename those
+values and any referencing FK values to expose the table as an enum again.
 
 > **Not in this bucket:** a missing-from-source enum table produces a
 > [`table`](#table-postgresql--sqlite-source) inconsistency instead — the

@@ -1,0 +1,22 @@
+# Mutation testing configuration.
+#
+# Mutation testing answers a question coverage cannot: not "was this line executed?" but
+# "would any test have noticed if it behaved differently?". A surviving mutant marks a line the
+# suite runs without checking.
+#
+# A score is still a metric, and summary_rules §9 warns against writing tests to satisfy one.
+# Read survivors as a prompt — is this behaviour worth pinning, or is the mutant indifferent? —
+# rather than as a list of tests to add. Thresholds live in the .mise.toml task that names the
+# scope, not here, because the right floor depends on what is being mutated: the parser and the
+# validator rules carry the invariants and sustain a high bar, while error formatting and the
+# AST's accessors are mostly data movement.
+exclude_dirs:
+# Regenerated from graphql-js by validator/imported/export.sh. A mutant here says nothing
+# about this repo's tests, and the directory also holds a node_modules tree and a clone.
+- validator/imported
+# The release helper, which the suite does not exercise at all.
+- bin
+# Benchmark documents. Strings with no behaviour to mutate.
+- internal/corpus
+ignore_source_lines:
+- "// Code generated"
