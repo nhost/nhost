@@ -250,6 +250,8 @@ query {
 
 `buildRemoteFieldFromPathRecursive` walks the `RemoteFieldPath` from metadata to produce the nested call shape. `$field` argument values are substituted with parent values from the current `RemoteJoinArgument`.
 
+User arguments on the relationship and its nested selections are literalized from the request's coerced variables. Typed slices from singleton-list coercion stay GraphQL lists, including inside lists or input objects: a `[[String!]!]` variable supplied as `["x","y"]` becomes `[["x"],["y"]]`, not strings such as `"[x]"`. Object fields are sorted for deterministic query text. Nil containers become `null`, while non-nil empty containers stay `[]` or `{}`. Genuine strings remain quoted; this conversion does not recover enum kinds from string values.
+
 `ExtractResults` picks each aliased result back out by index, and `BuildResultLookup` keys by the sorted `LHSFields` so `stitchResults` can match parents.
 
 ### AggregateInfo (no resolver) — cross-DB grouped aggregates

@@ -2,7 +2,10 @@ package resolver
 
 import (
 	"fmt"
+	"maps"
 	"math"
+	"reflect"
+	"slices"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -108,6 +111,10 @@ func toLiteralValue(v any) *ast.Value {
 			Raw:  fmt.Sprintf("%v", val),
 		}
 	case []any:
+		if val == nil {
+			return toLiteralValue(nil)
+		}
+
 		children := make(ast.ChildValueList, 0, len(val))
 		for _, elem := range val {
 			children = append(children, &ast.ChildValue{ //nolint:exhaustruct
@@ -120,11 +127,15 @@ func toLiteralValue(v any) *ast.Value {
 			Children: children,
 		}
 	case map[string]any:
+		if val == nil {
+			return toLiteralValue(nil)
+		}
+
 		children := make(ast.ChildValueList, 0, len(val))
-		for k, v := range val {
+		for _, k := range slices.Sorted(maps.Keys(val)) {
 			children = append(children, &ast.ChildValue{ //nolint:exhaustruct
 				Name:  k,
-				Value: toLiteralValue(v),
+				Value: toLiteralValue(val[k]),
 			})
 		}
 
@@ -133,9 +144,55 @@ func toLiteralValue(v any) *ast.Value {
 			Children: children,
 		}
 	default:
+		if literal := toLiteralContainer(reflect.ValueOf(v)); literal != nil {
+			return literal
+		}
+
 		return &ast.Value{ //nolint:exhaustruct
 			Kind: ast.StringValue,
 			Raw:  fmt.Sprintf("%v", val),
 		}
+	}
+}
+
+// gqlparser singleton-list coercion retains concrete containers such as []string
+// and []float64, even inside []any or input objects. Normalize only containers;
+// scalar strings must stay quoted rather than becoming SQL-style enum literals.
+func toLiteralContainer(value reflect.Value) *ast.Value {
+	switch value.Kind() { //nolint:exhaustive // Other kinds keep the opaque string fallback.
+	case reflect.Slice, reflect.Array:
+		if _, bytes := reflect.TypeAssert[[]byte](value); bytes {
+			return nil
+		}
+
+		if value.Kind() == reflect.Slice && value.IsNil() {
+			return toLiteralValue(nil)
+		}
+
+		elements := make([]any, value.Len())
+		for i := range value.Len() {
+			elements[i] = value.Index(i).Interface()
+		}
+
+		return toLiteralValue(elements)
+	case reflect.Map:
+		if value.Type().Key().Kind() != reflect.String {
+			return nil
+		}
+
+		if value.IsNil() {
+			return toLiteralValue(nil)
+		}
+
+		fields := make(map[string]any, value.Len())
+
+		iter := value.MapRange()
+		for iter.Next() {
+			fields[iter.Key().String()] = iter.Value().Interface()
+		}
+
+		return toLiteralValue(fields)
+	default:
+		return nil
 	}
 }
