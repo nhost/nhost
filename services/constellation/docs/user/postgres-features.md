@@ -318,9 +318,18 @@ elements. Explicit `null` stays present instead of activating a default; for
 nullable `limit` and `offset` it means no modifier. Missing required variables
 and null at non-null positions are rejected before SQL execution.
 
-Declare variables used to scope updates and deletes as non-null when the filter
-must be supplied. An omitted optional filter field is absent, just as if it had
-not been written in the request.
+**Mutation filter warning:** With `where: {id: {_eq: $id}}` and `$id: String`
+(no default), omitting `$id` removes `_eq`. The remaining `where: {id: {}}`
+imposes no restriction: `update_<table>` and `delete_<table>` affect every row
+the role's permissions allow, and each `update_<table>_many` entry with this
+filter does the same. Omitting a variable in `on_conflict.where` likewise removes
+that restriction on updates to conflicting rows. Permission filters still apply.
+
+Explicit `null` is different: `_eq: null` binds SQL `NULL` and matches no rows.
+Earlier Constellation builds rejected the omitted variable with
+`variable not found`. Declare variables used to scope updates and deletes as
+non-null without a default (`$id: String!`) so a missing value is rejected before
+SQL execution.
 
 ### Filter operators
 
