@@ -49,8 +49,11 @@ images refuse it. Run it again after every emulator boot.
 
 A physical device can't reach `nhost up` on your Mac. Run it against a cloud
 project with this `nhost/` config instead: set `EXPO_PUBLIC_NHOST_SUBDOMAIN`
-and `EXPO_PUBLIC_NHOST_REGION` in `frontend/.env.local` and run `pnpm ios` or
-`pnpm android` again.
+and `EXPO_PUBLIC_NHOST_REGION` in `frontend/.env.local`. For an iPhone, run
+`pnpm ios --device` and pick it from the list: plain `pnpm ios` always boots a
+simulator. Signing for a device needs an Apple development certificate on your
+Mac; Expo asks which team to use if you have more than one. For an Android
+phone, enable USB debugging, plug it in and run `pnpm android`.
 
 Emails the local stack sends, such as sign-in links and codes, land in Mailhog
 at https://local.mailhog.local.nhost.run. Open a link on the device that asked
