@@ -215,12 +215,77 @@ func TestPostgresDialect_WriteSpatialArrayEmpty(t *testing.T) {
 	b.Reset()
 
 	params, next = d.WriteSpatialArrayNotIn(&b, `"t"`, "geom", "geometry", nil, nil, 2)
-	if got := b.String(); got != `"t"."geom" != ALL(ARRAY[]::geometry[])` {
+	if got := b.String(); got != `NOT ("t"."geom" = ANY(ARRAY[]::geometry[]))` {
 		t.Fatalf("empty _nin SQL = %q, want typed empty geometry array comparison", got)
 	}
 
 	if next != 2 || len(params) != 0 {
 		t.Fatalf("empty _nin next/params = %d/%d, want 2/0", next, len(params))
+	}
+}
+
+func TestPostgresDialect_WriteSpatialArrayNotIn(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name, sqlType string
+		values        []any
+		want          string
+	}{
+		{
+			name:    "geometry",
+			sqlType: "geometry",
+			values:  []any{"a", "b"},
+			want:    `NOT ("t"."point" = ANY(ARRAY[ST_GeomFromGeoJSON($2), ST_GeomFromGeoJSON($3)]::geometry[]))`,
+		},
+		{
+			name:    "geography",
+			sqlType: "geography",
+			values:  []any{"a", "b"},
+			want:    `NOT ("t"."point" = ANY(ARRAY[ST_GeomFromGeoJSON($2)::geography, ST_GeomFromGeoJSON($3)::geography]::geography[]))`,
+		},
+		{
+			name:    "empty geography",
+			sqlType: "geography",
+			want:    `NOT ("t"."point" = ANY(ARRAY[]::geography[]))`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := dialect.NewPostgresDialect()
+
+			var b strings.Builder
+
+			params, next := d.WriteSpatialArrayNotIn(
+				&b, `"t"`, "point", tt.sqlType, tt.values, []any{"existing"}, 2,
+			)
+			if got := b.String(); got != tt.want {
+				t.Fatalf("SQL = %q, want %q", got, tt.want)
+			}
+
+			if next != 2+len(tt.values) || len(params) != 1+len(tt.values) {
+				t.Fatalf(
+					"next/params = %d/%d, want %d/%d",
+					next,
+					len(params),
+					2+len(tt.values),
+					1+len(tt.values),
+				)
+			}
+
+			if params[0] != "existing" {
+				t.Fatalf("existing parameter changed: %v", params)
+			}
+
+			for i, value := range tt.values {
+				if params[i+1] != value {
+					t.Fatalf("params[%d] = %v, want %v", i+1, params[i+1], value)
+				}
+			}
+		})
 	}
 }
 

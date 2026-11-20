@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
@@ -55,7 +56,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"$cmp",
 			`{"cmp":{"_nin":[]}}`,
 			"",
-			" != ALL(ARRAY[]::",
+			" = ANY(ARRAY[]::",
 			1,
 			[]int{1, 2, 3},
 		},
@@ -75,7 +76,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"{_nin:$points}",
 			`{"points":[]}`,
 			"",
-			" != ALL(ARRAY[]::",
+			" = ANY(ARRAY[]::",
 			1,
 			[]int{1, 2, 3},
 		},
@@ -85,7 +86,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"$cmp",
 			`{"cmp":{"_nin":[]}}`,
 			",id:{_gte:2}",
-			" != ALL(ARRAY[]::",
+			" = ANY(ARRAY[]::",
 			2,
 			[]int{2, 3},
 		},
@@ -95,7 +96,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"{_nin:$points}",
 			`{"points":[]}`,
 			",id:{_gte:2}",
-			" != ALL(ARRAY[]::",
+			" = ANY(ARRAY[]::",
 			2,
 			[]int{2, 3},
 		},
@@ -115,7 +116,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"$cmp",
 			`{"cmp":{"_nin":[],"_is_null":false}}`,
 			",id:{_gte:2}",
-			" != ALL(ARRAY[]::",
+			" = ANY(ARRAY[]::",
 			2,
 			[]int{2},
 		},
@@ -135,7 +136,7 @@ func computedSpatialMembershipCases(sqlType string) []computedSpatialMembershipC
 			"{_nin:$points}",
 			`{"points":[{"type":"Point","coordinates":[1,2]}]}`,
 			"",
-			" != ALL(ARRAY[ST_GeomFromGeoJSON($2)",
+			" = ANY(ARRAY[ST_GeomFromGeoJSON($2)",
 			2,
 			[]int{2},
 		},
@@ -282,8 +283,11 @@ func TestComputedSpatialMembershipVariableExecution(t *testing.T) {
 	t.Parallel()
 
 	pool := testdb.NewPostgres(t, `CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE TABLE public.items(id integer PRIMARY KEY);
-INSERT INTO public.items VALUES (1), (2), (3);
+CREATE TABLE public.items(id integer PRIMARY KEY, geom geometry, geog geography);
+INSERT INTO public.items VALUES
+  (1, ST_SetSRID(ST_MakePoint(1, 2), 4326), ST_SetSRID(ST_MakePoint(1, 2), 4326)::geography),
+  (2, ST_SetSRID(ST_MakePoint(2, 2), 4326), ST_SetSRID(ST_MakePoint(2, 2), 4326)::geography),
+  (3, NULL, NULL);
 CREATE FUNCTION public.computed_geometry(item public.items, session jsonb) RETURNS geometry
 LANGUAGE sql STABLE AS $$
   SELECT CASE WHEN item.id <> 3 AND session->>'x-hasura-user-id' = 'spatial-member'
@@ -314,27 +318,72 @@ LANGUAGE sql STABLE AS $$ SELECT public.computed_geometry(item, session)::geogra
 			t.Run(sqlType+"/"+tt.name, func(t *testing.T) {
 				operation := buildComputedSpatialMembership(t, roots, generated, sqlType, tt)
 
-				var raw []byte
-				if err := pool.QueryRow(t.Context(), operation.SQL, operation.Parameters...).
-					Scan(&raw); err != nil {
-					t.Fatalf("execute spatial membership: %v\nSQL: %s", err, operation.SQL)
-				}
-
-				var rows []struct{ ID int }
-				if err := json.Unmarshal(raw, &rows); err != nil {
-					t.Fatal(err)
-				}
-
-				ids := make([]int, len(rows))
-				for i, row := range rows {
-					ids[i] = row.ID
-				}
-
-				if diff := cmp.Diff(tt.wantIDs, ids); diff != "" {
-					t.Errorf("spatial membership IDs (-want +got):\n%s", diff)
-				}
+				assertSpatialMembershipIDs(t, pool, operation, tt.wantIDs)
 			})
 		}
+	}
+
+	for _, target := range []struct{ name, sqlType, filter string }{
+		{"geometry column", "geometry", "geom:%s"},
+		{"geography column", "geography", "geog:%s"},
+		{"cast to geometry", "geometry", "geog:{_cast:{geometry:%s}}"},
+		{"cast to geography", "geography", "geom:{_cast:{geography:%s}}"},
+		{"computed geometry", "geometry", "computed_geometry:%s"},
+		{"computed geography", "geography", "computed_geography:%s"},
+	} {
+		for _, tt := range []struct {
+			name, comparison, variables string
+			negate                      bool
+			wantIDs                     []int
+		}{
+			{"empty in", "_in", `{"points":[]}`, false, []int{}},
+			{"empty nin", "_nin", `{"points":[]}`, false, []int{1, 2, 3}},
+			{"not empty nin", "_nin", `{"points":[]}`, true, []int{}},
+			{"nonempty in", "_in", `{"points":[{"type":"Point","coordinates":[1,2]}]}`, false, []int{1}},
+			{"nonempty nin", "_nin", `{"points":[{"type":"Point","coordinates":[1,2]}]}`, false, []int{2}},
+			{"not nonempty nin", "_nin", `{"points":[{"type":"Point","coordinates":[1,2]}]}`, true, []int{1}},
+		} {
+			t.Run(target.name+"/"+tt.name, func(t *testing.T) {
+				filter := fmt.Sprintf(target.filter, "{"+tt.comparison+":$points}")
+				if tt.negate {
+					filter = "_not:{" + filter + "}"
+				}
+
+				query := fmt.Sprintf(
+					`query($points:[%s!]!){items(where:{%s},order_by:{id:asc}){id}}`,
+					target.sqlType,
+					filter,
+				)
+				operation := buildSpatialMembership(t, roots, generated, query, tt.variables)
+				assertSpatialMembershipIDs(t, pool, operation, tt.wantIDs)
+			})
+		}
+	}
+}
+
+func assertSpatialMembershipIDs(
+	t *testing.T, pool *pgxpool.Pool, operation core.SQLOperation, wantIDs []int,
+) {
+	t.Helper()
+
+	var raw []byte
+	if err := pool.QueryRow(t.Context(), operation.SQL, operation.Parameters...).
+		Scan(&raw); err != nil {
+		t.Fatalf("execute spatial membership: %v\nSQL: %s", err, operation.SQL)
+	}
+
+	var rows []struct{ ID int }
+	if err := json.Unmarshal(raw, &rows); err != nil {
+		t.Fatal(err)
+	}
+
+	ids := make([]int, len(rows))
+	for i, row := range rows {
+		ids[i] = row.ID
+	}
+
+	if diff := cmp.Diff(wantIDs, ids); diff != "" {
+		t.Errorf("spatial membership IDs (-want +got):\n%s", diff)
 	}
 }
 
@@ -406,13 +455,24 @@ func buildComputedSpatialMembership(
 		tc.laterPredicate,
 	)
 
+	return buildSpatialMembership(t, roots, generated, query, tc.variables)
+}
+
+func buildSpatialMembership(
+	t *testing.T,
+	roots queries.Roots,
+	generated *ast.Schema,
+	query, variablesJSON string,
+) core.SQLOperation {
+	t.Helper()
+
 	document, errs := gqlparser.LoadQueryWithRules(generated, query, rules.NewDefaultRules())
 	if len(errs) != 0 {
 		t.Fatal(errs)
 	}
 
 	var provided map[string]any
-	if err := json.Unmarshal([]byte(tc.variables), &provided); err != nil {
+	if err := json.Unmarshal([]byte(variablesJSON), &provided); err != nil {
 		t.Fatal(err)
 	}
 

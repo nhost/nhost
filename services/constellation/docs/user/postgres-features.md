@@ -350,7 +350,7 @@ Boolean expression operators per column type (`connector/sql/graphql/schema/inpu
 
 The `_cast` operator wraps a nested boolean expression on the casted scalar type (e.g., `{ data: { _cast: { String: { _ilike: "%foo%" } } } }`).
 
-For PostGIS `geometry` and `geography` columns, `_eq` and `_neq` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<column> = <value>)` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved.
+For PostGIS `geometry` and `geography` columns, `_eq`, `_neq`, `_in` and `_nin` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<target> = <value>)` and `_nin` as `NOT (<target> = ANY(<values>))` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved and to avoid implicit geography-to-`bytea` inequality. This applies to columns, spatial `_cast` targets and computed fields. Empty `_in` lists match no rows and empty `_nin` lists match all rows, including rows whose target is SQL `NULL`; a SQL `NULL` target matches neither operator with a non-empty list.
 
 ### `distinct_on`
 
