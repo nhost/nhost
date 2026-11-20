@@ -362,6 +362,7 @@ const subPageChildren: Record<
     'project-graphql',
     {
       playground: ['graphql', 'api', 'console'],
+      schema: ['graphql', 'schema', 'sdl', 'types', 'roles'],
       'remote-schemas': ['graphql', 'remote', 'schemas'],
       actions: ['graphql', 'mutations', 'webhooks', 'custom types'],
       metadata: ['graphql', 'metadata'],
