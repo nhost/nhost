@@ -50,7 +50,9 @@ describe('passkey form', () => {
       screen.getByRole('button', { name: 'Sign in with a passkey' }),
     );
 
-    await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/protected'));
+    await vi.waitFor(() =>
+      expect(goto).toHaveBeenCalledWith('/protected', { refreshAll: true }),
+    );
     expect(webauthn.startAuthentication).toHaveBeenCalledWith({
       optionsJSON: options,
     });

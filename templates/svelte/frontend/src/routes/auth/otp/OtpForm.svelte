@@ -3,7 +3,7 @@
   import { Input } from '#lib/components/ui/input/index.ts';
   import { Label } from '#lib/components/ui/label/index.ts';
   import { NETWORK_ERROR } from '#lib/nhost/errors.ts';
-  import { goto } from '$app/navigation';
+  import { afterSignIn } from '#routes/signin/afterSignIn.ts';
   import { sendCode, verifyCode } from './actions.remote.ts';
 
   type Step = 'email' | 'code';
@@ -72,7 +72,7 @@
         return;
       }
 
-      await goto(next);
+      await afterSignIn(next);
     } catch (err) {
       console.error('Error verifying the code:', err);
       error = NETWORK_ERROR;

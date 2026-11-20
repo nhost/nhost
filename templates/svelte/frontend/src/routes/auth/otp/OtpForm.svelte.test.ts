@@ -101,7 +101,9 @@ describe('email code form', () => {
       email: 'user@example.com',
       otp: '222222',
     });
-    await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/account'));
+    await vi.waitFor(() =>
+      expect(goto).toHaveBeenCalledWith('/account', { refreshAll: true }),
+    );
   });
 
   // The input's numeric pattern would block the submit otherwise.

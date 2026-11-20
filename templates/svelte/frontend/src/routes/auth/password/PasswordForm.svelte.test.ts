@@ -78,7 +78,9 @@ describe('password sign-in with two-factor on', () => {
       ticket: 'mfaTotp:abc',
       otp: '123456',
     });
-    await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/account'));
+    await vi.waitFor(() =>
+      expect(goto).toHaveBeenCalledWith('/account', { refreshAll: true }),
+    );
   });
 
   // Auth spends the ticket on the first attempt, even a wrong one, so a retry
@@ -115,6 +117,8 @@ describe('password sign-in with two-factor on', () => {
       ticket: 'mfaTotp:second',
       otp: '123456',
     });
-    await vi.waitFor(() => expect(goto).toHaveBeenCalledWith('/account'));
+    await vi.waitFor(() =>
+      expect(goto).toHaveBeenCalledWith('/account', { refreshAll: true }),
+    );
   });
 });

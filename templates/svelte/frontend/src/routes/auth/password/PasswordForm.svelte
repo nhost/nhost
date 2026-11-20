@@ -3,6 +3,7 @@
   import { Input } from '#lib/components/ui/input/index.ts';
   import { Label } from '#lib/components/ui/label/index.ts';
   import { NETWORK_ERROR } from '#lib/nhost/errors.ts';
+  import { afterSignIn } from '#routes/signin/afterSignIn.ts';
   import type { Intent } from '#routes/signin/intent.ts';
   import { signInQuery } from '#routes/signin/query.ts';
   import { goto } from '$app/navigation';
@@ -55,8 +56,7 @@
     codeInput?.focus();
   });
 
-  // Every navigation loads the session again, so the nav follows.
-  const finishSignIn = (): Promise<void> => goto(next);
+  const finishSignIn = (): Promise<void> => afterSignIn(next);
 
   const switchMode = (): void => {
     const other = mode === 'sign-in' ? 'sign-up' : 'sign-in';

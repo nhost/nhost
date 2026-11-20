@@ -7,6 +7,7 @@
   import { Button } from '#lib/components/ui/button/index.ts';
   import { Input } from '#lib/components/ui/input/index.ts';
   import { Label } from '#lib/components/ui/label/index.ts';
+  import { afterSignIn } from '#routes/signin/afterSignIn.ts';
   import type { Intent } from '#routes/signin/intent.ts';
   import { signInQuery } from '#routes/signin/query.ts';
   import { goto } from '$app/navigation';
@@ -38,8 +39,7 @@
   let error = $state<string>();
   let isPending = $state(false);
 
-  // Every navigation loads the session again, so the nav follows.
-  const finishNavigation = (): Promise<void> => goto(next);
+  const finishNavigation = (): Promise<void> => afterSignIn(next);
 
   const switchMode = (): void => {
     const other = mode === 'sign-in' ? 'sign-up' : 'sign-in';
