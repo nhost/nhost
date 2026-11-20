@@ -1,7 +1,6 @@
 import { KeyRound, Search, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Button } from '@/components/ui/v3/button';
 import {
   Command,
   CommandInput,
@@ -128,6 +127,12 @@ export default function ForeignKeyRecordField({
     setSelection(null);
   }
 
+  function rowLabel(row: ForeignKeyRow) {
+    return (
+      row.label || formatPickerKeys(relation.referencedColumns, row.values)
+    );
+  }
+
   const filledValues = columns.flatMap((column, index) => {
     const value = values[index];
     if (
@@ -207,73 +212,75 @@ export default function ForeignKeyRecordField({
                               {requiresManualValue(column) ? ' *' : ''}
                             </FormLabel>
                           )}
-                          <InputGroupInput
-                            {...field}
-                            id={`${id}-${column.id}`}
-                            ref={(element) => {
-                              field.ref(element);
-                              if (index === 0) {
-                                inputRef.current = element;
+                          <div className="flex min-w-0 items-center">
+                            <InputGroupInput
+                              {...field}
+                              id={`${id}-${column.id}`}
+                              ref={(element) => {
+                                field.ref(element);
+                                if (index === 0) {
+                                  inputRef.current = element;
+                                }
+                              }}
+                              aria-describedby={helperId}
+                              aria-invalid={Boolean(fieldState.error)}
+                              aria-required={requiresManualValue(column)}
+                              value={
+                                isNull || isDefault ? '' : (field.value ?? '')
                               }
-                            }}
-                            aria-describedby={helperId}
-                            aria-invalid={Boolean(fieldState.error)}
-                            aria-required={requiresManualValue(column)}
-                            value={
-                              isNull || isDefault ? '' : (field.value ?? '')
-                            }
-                            placeholder={
-                              isDefault
-                                ? 'DEFAULT'
-                                : isNull && column.isNullable
-                                  ? 'NULL'
-                                  : undefined
-                            }
-                            onChange={(event) => {
-                              setSelection(null);
-                              const text = event.target.value;
-                              field.onChange(
-                                text === '' &&
-                                  !(column.isNullable && hasDefault)
-                                  ? getCreateRecordFormDefaultValues([column])[
-                                      column.id
-                                    ]
-                                  : text,
-                              );
-                            }}
-                          />
-                          {(column.isNullable || hasDefault) && (
-                            <div className="flex flex-wrap gap-1 px-2 pb-1">
-                              {column.isNullable && (
-                                <InputGroupButton
-                                  aria-label={`Set ${column.id} to NULL`}
-                                  aria-pressed={isNull}
-                                  onClick={() => {
-                                    setSelection(null);
-                                    field.onChange(
-                                      getRecordFormValue(column, null),
-                                    );
-                                  }}
-                                >
-                                  NULL
-                                </InputGroupButton>
-                              )}
-                              {hasDefault && (
-                                <InputGroupButton
-                                  aria-label={`Use default for ${column.id}`}
-                                  aria-pressed={isDefault}
-                                  onClick={() => {
-                                    setSelection(null);
-                                    field.onChange(
-                                      POSTGRES_DEFAULT_PLACEHOLDER,
-                                    );
-                                  }}
-                                >
-                                  DEFAULT
-                                </InputGroupButton>
-                              )}
-                            </div>
-                          )}
+                              placeholder={
+                                isDefault
+                                  ? 'DEFAULT'
+                                  : isNull && column.isNullable
+                                    ? 'NULL'
+                                    : undefined
+                              }
+                              onChange={(event) => {
+                                setSelection(null);
+                                const text = event.target.value;
+                                field.onChange(
+                                  text === '' &&
+                                    !(column.isNullable && hasDefault)
+                                    ? getCreateRecordFormDefaultValues([
+                                        column,
+                                      ])[column.id]
+                                    : text,
+                                );
+                              }}
+                            />
+                            {column.isNullable && hasDefault && (
+                              <div className="flex shrink-0 gap-1 pr-1">
+                                {column.isNullable && (
+                                  <InputGroupButton
+                                    aria-label={`Set ${column.id} to NULL`}
+                                    aria-pressed={isNull}
+                                    onClick={() => {
+                                      setSelection(null);
+                                      field.onChange(
+                                        getRecordFormValue(column, null),
+                                      );
+                                    }}
+                                  >
+                                    NULL
+                                  </InputGroupButton>
+                                )}
+                                {hasDefault && (
+                                  <InputGroupButton
+                                    aria-label={`Use default for ${column.id}`}
+                                    aria-pressed={isDefault}
+                                    onClick={() => {
+                                      setSelection(null);
+                                      field.onChange(
+                                        POSTGRES_DEFAULT_PLACEHOLDER,
+                                      );
+                                    }}
+                                  >
+                                    DEFAULT
+                                  </InputGroupButton>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -281,29 +288,27 @@ export default function ForeignKeyRecordField({
                 })}
               </div>
               {selected && selection && (
-                <div className="flex min-w-0 flex-1 items-center gap-1 p-1">
-                  <PopoverTrigger asChild>
-                    <Button
+                <div className="flex min-w-0 flex-1 items-center p-1.5">
+                  <span className="inline-flex h-7 min-w-0 items-center rounded-md bg-muted text-foreground text-sm">
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        ref={triggerRef}
+                        className="h-full min-w-0 truncate rounded-l-md pr-1 pl-2.5 text-left hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label={`Replace linked row ${rowLabel(selection)}`}
+                      >
+                        {rowLabel(selection)}
+                      </button>
+                    </PopoverTrigger>
+                    <button
                       type="button"
-                      variant="subtle"
-                      ref={triggerRef}
-                      size="sm"
-                      className="min-w-0 justify-start"
-                      aria-label={`Replace linked row ${selection.label || selection.values.join(' · ')}`}
+                      aria-label="Clear linked row"
+                      onClick={clearSelection}
+                      className="flex h-full shrink-0 items-center rounded-r-md pr-2 pl-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      <span className="truncate">
-                        {selection.label || selection.values.join(' · ')}
-                      </span>
-                    </Button>
-                  </PopoverTrigger>
-                  <InputGroupButton
-                    size="icon-sm"
-                    aria-label="Clear linked row"
-                    onClick={clearSelection}
-                    className="shrink-0 hover:text-destructive"
-                  >
-                    <X className="size-4" />
-                  </InputGroupButton>
+                      <X className="size-3.5" />
+                    </button>
+                  </span>
                 </div>
               )}
               {!selected && (
@@ -368,15 +373,15 @@ export default function ForeignKeyRecordField({
                       className="flex-col items-start gap-1"
                       onSelect={() => pickRow(row)}
                     >
-                      <span className="w-full truncate">
-                        {row.label || row.values.join(' · ')}
-                      </span>
-                      <span className="w-full truncate font-mono text-muted-foreground text-xs">
-                        {formatPickerKeys(
-                          relation.referencedColumns,
-                          row.values,
-                        )}
-                      </span>
+                      <span className="w-full truncate">{rowLabel(row)}</span>
+                      {row.label && (
+                        <span className="w-full truncate font-mono text-muted-foreground text-xs">
+                          {formatPickerKeys(
+                            relation.referencedColumns,
+                            row.values,
+                          )}
+                        </span>
+                      )}
                     </CommandItem>
                   ))
                 )}
