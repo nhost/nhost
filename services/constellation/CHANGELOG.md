@@ -1,3 +1,9 @@
+## [constellation@0.8.1] - 2026-11-20
+
+### 💼 Other
+
+- - fix(constellation): preserve typed inputs across execution paths (#5411)
+
 ## [constellation@0.8.0] - 2026-11-13
 
 ### 🚀 Features
