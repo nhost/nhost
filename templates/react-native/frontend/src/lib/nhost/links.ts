@@ -248,13 +248,13 @@ export function onLinkDiscarded(listener: VoidFunction): VoidFunction {
 const isAuthLink = (link: IncomingLink): boolean =>
   [CODE_PARAM, ...ERROR_PARAMS].some((name) => param(link, name) !== undefined);
 
-const linkKey = (link: IncomingLink, url: string): string => {
+const linkKey = (link: IncomingLink): string => {
   const code = param(link, CODE_PARAM);
   if (code !== undefined) {
     return `code:${code}`;
   }
   const flow = param(link, FLOW_PARAM);
-  return flow === undefined ? `url:${url}` : `flow:${flow}`;
+  return flow === undefined ? `url:${linkHref(link)}` : `flow:${flow}`;
 };
 
 const handled = new Map<string, Promise<string>>();
@@ -274,7 +274,7 @@ export function consumeLink(url: string): Promise<string> {
     return Promise.resolve(linkHref(without(link, LINK_PARAMS)));
   }
 
-  const key = linkKey(link, url);
+  const key = linkKey(link);
   let route = handled.get(key);
   if (!route) {
     route = handle(link);
@@ -383,6 +383,27 @@ async function revoke(refreshToken: string | undefined): Promise<void> {
   }
 }
 
+// Whether a delivery of `link` has already been handled, by this process or,
+// for a used flow, by one before it.
+function delivered(link: IncomingLink): boolean {
+  const flow = param(link, FLOW_PARAM);
+  return handled.has(linkKey(link)) || (flow !== undefined && isConsumed(flow));
+}
+
+/**
+ * Opens the route `url` names with nothing under it, unless another delivery
+ * of the same link got there first. A link that returns through the in-app
+ * browser comes back as its result, and on Android through the OS as well, in
+ * either order; whichever arrives first navigates.
+ */
+export async function openLink(url: string): Promise<void> {
+  const link = parseLink(url);
+  if (link && isAuthLink(link) && delivered(link)) {
+    return;
+  }
+  goTo(await consumeLink(url));
+}
+
 let initial: Promise<void> | undefined;
 
 /**
@@ -424,14 +445,7 @@ export async function redirectSystemPath({
       return '/';
     }
     if (!isInitial && isAuthLink(link)) {
-      const flow = param(link, FLOW_PARAM);
-      if (
-        handled.has(linkKey(link, path)) ||
-        (flow !== undefined && isConsumed(flow))
-      ) {
-        return null;
-      }
-      goTo(await consumeLink(path));
+      await openLink(path);
       return null;
     }
     return await consumeLink(path);

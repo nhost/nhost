@@ -390,6 +390,7 @@ describe('consumeLink', () => {
     const route = links.consumeLink(url);
 
     expect(links.consumeLink(url)).toBe(route);
+    expect(links.consumeLink('/?error=redirectTo-not-allowed')).toBe(route);
     await expect(route).resolves.toBe('/?error=redirectTo-not-allowed');
   });
 
@@ -501,6 +502,37 @@ describe('redirectSystemPath', () => {
     await expect(
       links.redirectSystemPath({ path: 'https://example.com', initial: true }),
     ).resolves.toBe('/');
+  });
+});
+
+// The in-app browser hands back the link it closed on, which on Android the
+// OS delivers too.
+describe('openLink', () => {
+  it.each([
+    ['the OS', 'the browser'],
+    ['the browser', 'the OS'],
+  ])('opens a link once when %s delivers it before %s', async (first) => {
+    const { flow } = await issue();
+    const url = `nhost-starter://account/?flow=${flow}&code=c`;
+    const os = () => links.redirectSystemPath({ path: url, initial: false });
+    const browser = () => links.openLink(url);
+
+    await Promise.all(
+      first === 'the OS' ? [os(), browser()] : [browser(), os()],
+    );
+
+    expect(mockFake.tokenExchange).toHaveBeenCalledTimes(1);
+    expect(mockGoTo.mock.calls).toEqual([['/account']]);
+  });
+
+  it('stays put for a flow a previous process used', async () => {
+    const { flow } = await issue();
+    const url = `nhost-starter://account/?flow=${flow}&code=c`;
+    await links.consumeLink(url);
+
+    await load().openLink(url);
+
+    expect(mockGoTo).not.toHaveBeenCalled();
   });
 });
 

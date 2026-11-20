@@ -1,6 +1,9 @@
 import type { User } from '@nhost/nhost-js/auth';
 import type { ReactElement } from 'react';
 import { passkeyDomain } from '@/lib/nhost/env';
+import LinkedAccountsSetting from '@/screens/auth/oauth/linked/LinkedAccountsSetting';
+import ProviderSignIn from '@/screens/auth/oauth/ProviderSignIn';
+import { configuredProviders } from '@/screens/auth/oauth/providers';
 import PasskeysSetting from '@/screens/auth/passkey/manage/PasskeysSetting';
 import ChangePasswordSetting from '@/screens/auth/password/change/ChangePasswordSetting';
 import MfaSetting from '@/screens/auth/password/mfa/MfaSetting';
@@ -26,13 +29,17 @@ export type SignInButtons = (props: {
   lastUsed: string | null;
 }) => ReactElement | null;
 
-export const buttons: SignInButtons[] = [];
+// Only when the deployment says a provider is set up: with none, every button
+// would lead to the auth service refusing it.
+export const buttons: SignInButtons[] =
+  configuredProviders().length > 0 ? [ProviderSignIn] : [];
 
 /**
  * The account-screen rows of the methods in `buttons`, which have no entry in
  * `methods` to carry an `account`.
  */
-export const buttonSettings: AccountSetting[] = [];
+export const buttonSettings: AccountSetting[] =
+  configuredProviders().length > 0 ? [LinkedAccountsSetting] : [];
 
 /** The sign-in methods this app offers, one entry each. */
 export const methods: SignInMethod[] = [
