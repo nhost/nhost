@@ -831,6 +831,8 @@ type SubscriptionRoot struct {
 	BucketsStream []*Buckets `json:"buckets_stream"`
 	// fetch data from the table: "storage.files" using primary key columns
 	File *Files `json:"file,omitempty"`
+	// fetch data from the table: "storage.files_to_delete" using primary key columns
+	FileToDelete *FilesToDelete `json:"fileToDelete,omitempty"`
 	// An array relationship
 	Files []*Files `json:"files"`
 	// fetch aggregated fields from the table: "storage.files"
@@ -838,9 +840,7 @@ type SubscriptionRoot struct {
 	// fetch data from the table: "storage.files_to_delete"
 	FilesToDelete []*FilesToDelete `json:"filesToDelete"`
 	// fetch aggregated fields from the table: "storage.files_to_delete"
-	FilesToDeleteAggregate *FilesToDeleteAggregate `json:"filesToDelete_aggregate"`
-	// fetch data from the table: "storage.files_to_delete" using primary key columns
-	FilesToDeleteByPk *FilesToDelete `json:"filesToDelete_by_pk,omitempty"`
+	FilesToDeleteAggregate *FilesToDeleteAggregate `json:"filesToDeleteAggregate"`
 	// fetch data from the table in a streaming manner: "storage.files_to_delete"
 	FilesToDeleteStream []*FilesToDelete `json:"filesToDelete_stream"`
 	// fetch data from the table in a streaming manner: "storage.files"

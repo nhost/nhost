@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -180,11 +181,11 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 		},
 		{
 			name:     "removes eligible entry",
-			response: `{"data":{"delete_filesToDelete":{"affected_rows":1}}}`,
+			response: `{"data":{"deleteFilesToDelete":{"affected_rows":1}}}`,
 		},
 		{
 			name:     "already removed entry is successful",
-			response: `{"data":{"delete_filesToDelete":{"affected_rows":0}}}`,
+			response: `{"data":{"deleteFilesToDelete":{"affected_rows":0}}}`,
 		},
 		{
 			name:      "GraphQL failure",
@@ -203,6 +204,7 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 
 					var request struct {
 						OperationName string `json:"operationName"`
+						Query         string `json:"query"`
 						Variables     struct {
 							ID     string    `json:"id"`
 							Before time.Time `json:"before"`
@@ -214,6 +216,7 @@ func TestRemoveFileFromCleanup(t *testing.T) {
 					}
 
 					if request.OperationName != "RemoveFileFromCleanup" ||
+						!strings.Contains(request.Query, "deleteFilesToDelete(") ||
 						request.Variables.ID != fileID ||
 						!request.Variables.Before.Equal(before) {
 						t.Errorf("unexpected cleanup request: %+v", request)

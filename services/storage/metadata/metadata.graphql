@@ -78,7 +78,7 @@ query ListFilesToDelete($before: timestamptz!, $after: uuid_comparison_exp!, $li
 }
 
 mutation RemoveFileFromCleanup($id: uuid!, $before: timestamptz!) {
-  delete_filesToDelete(
+  deleteFilesToDelete(
     where: {id: {_eq: $id}, deletedAt: {_lte: $before}}
   ) {
     affected_rows

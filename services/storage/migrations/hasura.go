@@ -117,7 +117,19 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 				},
 				Configuration: metadata.Configuration{
 					CustomName: "filesToDelete",
+					CustomRootFields: metadata.CustomRootFields{
+						Select:          "filesToDelete",
+						SelectByPk:      "fileToDelete",
+						SelectAggregate: "filesToDeleteAggregate",
+						Insert:          "insertFilesToDelete",
+						InsertOne:       "insertFileToDelete",
+						Update:          "updateFilesToDelete",
+						UpdateByPk:      "updateFileToDelete",
+						Delete:          "deleteFilesToDelete",
+						DeleteByPk:      "deleteFileToDelete",
+					},
 					CustomColumnNames: map[string]string{
+						"id":         "id",
 						"deleted_at": "deletedAt",
 					},
 				},

@@ -330,7 +330,7 @@ func (t *ListFilesToDelete) GetFilesToDelete() []*ListFilesToDelete_FilesToDelet
 }
 
 type RemoveFileFromCleanup struct {
-	DeleteFilesToDelete *RemoveFileFromCleanup_DeleteFilesToDelete "json:\"delete_filesToDelete,omitempty\" graphql:\"delete_filesToDelete\""
+	DeleteFilesToDelete *RemoveFileFromCleanup_DeleteFilesToDelete "json:\"deleteFilesToDelete,omitempty\" graphql:\"deleteFilesToDelete\""
 }
 
 func (t *RemoveFileFromCleanup) GetDeleteFilesToDelete() *RemoveFileFromCleanup_DeleteFilesToDelete {
@@ -564,7 +564,7 @@ func (c *Client) ListFilesToDelete(ctx context.Context, before time.Time, after 
 }
 
 const RemoveFileFromCleanupDocument = `mutation RemoveFileFromCleanup ($id: uuid!, $before: timestamptz!) {
-	delete_filesToDelete(where: {id:{_eq:$id},deletedAt:{_lte:$before}}) {
+	deleteFilesToDelete(where: {id:{_eq:$id},deletedAt:{_lte:$before}}) {
 		affected_rows
 	}
 }
