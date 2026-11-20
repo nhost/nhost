@@ -234,9 +234,7 @@ func buildParserOptions(secret jwtconfig.Secret) []jwt.ParserOption {
 	}
 
 	if len(secret.Audience) > 0 {
-		for _, aud := range secret.Audience {
-			opts = append(opts, jwt.WithAudience(aud))
-		}
+		opts = append(opts, jwt.WithAudience(secret.Audience...))
 	}
 
 	if secret.AllowedSkew != nil {
