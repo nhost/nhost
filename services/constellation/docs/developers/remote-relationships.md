@@ -206,7 +206,7 @@ r.removeAllLocalPhantomFields(results, pendingQueries)
 
 1. **Aggregate fast path** — if `rq.AggregateInfo != nil`, dispatch directly to the target connector's `groupedaggregate.Executor`. See ["Cross-DB grouped aggregates"](#aggregateinfo-no-resolver--cross-db-grouped-aggregates) below.
 2. **Build the remote operation** via `rq.Resolver.BuildOperation(rq)`.
-3. **Resolve variable references** in per-request copies of the remote operation's arguments and referenced fragment selections (`resolveVariableReferences`). The remote operation is a standalone query with no variable definitions, so `$stats`-style references must be substituted with literal values. Never write substitutions into the cached client AST: subsequent requests with the same query text and role may use different variables or sessions.
+3. **Handle variable references by target** — only `SchemaResolver` (remote GraphQL) targets use `resolveVariableReferences` to substitute literal values in per-request copies of the remote operation's arguments and referenced fragment selections, because their generated queries have no variable definitions. `DatabaseResolver` targets, including grouped collections, keep `$var` references in the operation and referenced fragments; SQL builders resolve them with request-local variables to preserve enum kinds and singleton-list coercions. Never write substitutions into the cached client AST: subsequent requests with the same query text and role may use different variables or sessions.
 4. **Filter fragments** down to only those the remote operation references (`collectReferencedFragments`). Other fragments may carry types that exist only on the source schema.
 5. **Execute** against the target connector, then `ExtractResults` → `BuildResultLookup` → `stitchResults`. Remove target join-column phantoms only from this query's own result maps, not by response path: another selection at the same path may explicitly select that column.
 
@@ -232,6 +232,8 @@ query {
 ```
 
 It also includes the target join column in the selection set as a phantom if the user didn't request it. `BuildResultLookup` then keys by the sorted join-column values, and `stitchResults` walks the source rows and writes the matching results in place. Arrays with `limit`, `offset` or `distinct_on` and more than one distinct key instead run one grouped collection query (`collection_resolver.go`, `root_query_grouped_collection.go`). That query applies the modifiers per parent key under the caller's role; SQLite batches keys in bounded chunks.
+
+For array relationships, `andMergeWhereValues` combines the user's `where` with the generated join restriction under `_and`. A literal null or a provided top-level `where` variable whose effective value is null (after defaults) contributes no user restriction and must not become a null `_and` element. Null elements inside the user's `_and` remain invalid, and unresolved references must still reach input validation.
 
 When the user aliased the join column (`userId: id`), `buildColumnAliasMap` records the alias so the lookup uses it instead of the original column name. For a computed-key join, the composer exposes the relationship only when every target mapping names a column in the role's `<type>_select_column` enum; relationships and computed fields do not qualify.
 
@@ -342,7 +344,7 @@ To add a fifth resolver (say, "REST endpoint as remote"):
 | `controller/resolver/schema_resolver.go` | db→rs (aliased fields) |
 | `controller/resolver/aggregate_resolver.go` | Cross-DB grouped aggregates |
 | `controller/resolver/fragments.go` | `collectReferencedFragments` |
-| `controller/resolver/variable_resolution.go` | Resolve `$var` in remote operations |
+| `controller/resolver/variable_resolution.go` | Literalize `$var` for remote-schema targets (SQL targets keep references) |
 | `connector/groupedaggregate/` | `Executor` interface implemented by SQL connector |
 | `internal/jsonpath/path.go` | Nested-path navigation |
 | `integration/query_remote_relationships_test.go` | End-to-end coverage |
