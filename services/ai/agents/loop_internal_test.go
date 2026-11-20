@@ -645,6 +645,59 @@ func TestRunAgentLoopKeepsToolResultWhenToolResultSSEFails(t *testing.T) {
 	}
 }
 
+func TestRunAgentLoopAnswersRemainingToolCallsWhenToolResultSSEFails(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	p := providermock.NewMockProvider(ctrl)
+	first := &provider.ToolCall{ID: "tc1", Name: testSearchToolName, Arguments: `{"q":"a"}`}
+	second := &provider.ToolCall{ID: "tc2", Name: testSearchToolName, Arguments: `{"q":"b"}`}
+	expectStreamResponses(p, eventChan(
+		provider.NewToolEvent(provider.EventToolUseStart, first),
+		provider.NewToolEvent(provider.EventToolUseDone, first),
+		provider.NewToolEvent(provider.EventToolUseStart, second),
+		provider.NewToolEvent(provider.EventToolUseDone, second),
+		provider.NewCompleteEvent(provider.StopReasonToolUse),
+	))
+
+	r := tool.NewRegistry()
+	mustRegister(t, r, &fakeTool{name: testSearchToolName, result: "found", err: nil})
+
+	w := &failOnEventWriter{events: nil, failEvent: "tool_result"}
+
+	result, err := RunAgentLoop(
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
+	)
+	if !errors.Is(err, errEventWriteFailed) {
+		t.Fatalf("expected %v, got %v", errEventWriteFailed, err)
+	}
+
+	if len(result.Messages) != 3 || result.Messages[0].Role != provider.RoleAssistant {
+		t.Fatalf("expected assistant call and two tool results, got %+v", result.Messages)
+	}
+
+	want := []provider.Message{
+		{
+			Role:       provider.RoleTool,
+			Content:    "found",
+			ToolCalls:  nil,
+			ToolCallID: first.ID,
+			ToolName:   first.Name,
+		},
+		{
+			Role:       provider.RoleTool,
+			Content:    streamClosedSkippedMsg,
+			ToolCalls:  nil,
+			ToolCallID: second.ID,
+			ToolName:   second.Name,
+		},
+	}
+
+	if diff := cmp.Diff(want, result.Messages[1:]); diff != "" {
+		t.Errorf("tool results mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestRunAgentLoopStreamErrorPropagates(t *testing.T) {
 	t.Parallel()
 
