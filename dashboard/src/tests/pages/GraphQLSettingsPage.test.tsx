@@ -38,8 +38,8 @@ vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
     loading: false,
   }),
 }));
-vi.mock('@/features/orgs/projects/common/hooks/useRunServices', () => ({
-  useRunServices: () => ({ services: [] }),
+vi.mock('@/features/orgs/projects/common/hooks/useAllRunServices', () => ({
+  useAllRunServices: () => ({ services: [] }),
 }));
 vi.mock('@/hooks/useTrackEvent', () => ({ useTrackEvent: () => vi.fn() }));
 

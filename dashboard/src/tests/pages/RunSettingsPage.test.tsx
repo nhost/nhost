@@ -44,8 +44,8 @@ const mocks = vi.hoisted(() => ({
   rateLimitServicesError: undefined as Error | undefined,
 }));
 
-vi.mock('@/features/orgs/projects/common/hooks/useRunServices', () => ({
-  useRunServices: () => ({
+vi.mock('@/features/orgs/projects/common/hooks/useAllRunServices', () => ({
+  useAllRunServices: () => ({
     services: mocks.runServices,
     loading: false,
     error: mocks.runServicesError,
@@ -258,6 +258,25 @@ describe('RunSettingsPage custom domain', () => {
     );
     expect(screen.queryByText('worker')).not.toBeInTheDocument();
     expect(screen.queryByText(UPGRADE_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('shows a domain form for a service with ports beyond the first 25 services', async () => {
+    mocks.runServices = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        id: `worker-${index}-id`,
+        config: { name: `worker-${index}`, ports: [] },
+      })),
+      {
+        id: 'late-api-id',
+        config: { name: 'late-api', ports: [{ port: 8080, type: 'http' }] },
+      },
+    ] as unknown as RunService[];
+    renderSettingsPage();
+
+    expect(await screen.findByText('late-api')).toBeInTheDocument();
+    expect(
+      screen.queryByText('No Run services with ports'),
+    ).not.toBeInTheDocument();
   });
 
   it('explains that custom domains need a port when no Run service has one', async () => {

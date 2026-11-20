@@ -56,8 +56,8 @@ vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: mocks.isPlatform,
 }));
 
-vi.mock('@/features/orgs/projects/common/hooks/useRunServices', () => ({
-  useRunServices: () => ({ services: [] }),
+vi.mock('@/features/orgs/projects/common/hooks/useAllRunServices', () => ({
+  useAllRunServices: () => ({ services: [] }),
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', async (importOriginal) => {
