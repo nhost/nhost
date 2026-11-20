@@ -1,0 +1,43 @@
+{
+  "name": "svelte-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#lib/*": "./src/lib/*",
+    "#routes/*": "./src/routes/*"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "^4.9.0",
+    "@simplewebauthn/browser": "^14.0.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^4.0.2",
+    "valibot": "^1.5.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@sveltejs/adapter-vercel": "^7.0.5",
+    "@sveltejs/kit": "^3.4.0",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@testing-library/svelte": "^5.4.2",
+    "@types/node": "^22.10.5",
+    "happy-dom": "^21.0.4",
+    "svelte": "^5.58.0",
+    "svelte-check": "^4.7.8",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^6.0.0",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

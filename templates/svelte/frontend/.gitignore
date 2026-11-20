@@ -1,0 +1,15 @@
+node_modules
+
+# Output
+/.svelte-kit
+/build
+.vercel
+
+# OS
+.DS_Store
+
+# Env
+.env*
+
+# Vite
+vite.config.ts.timestamp-*
