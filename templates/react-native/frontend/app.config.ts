@@ -17,6 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   platforms: ['ios', 'android'],
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
+  backgroundColor: '#1d1d1d',
   ios: {
     bundleIdentifier: 'io.nhost.starter',
     supportsTablet: true,
