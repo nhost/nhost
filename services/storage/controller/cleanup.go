@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	cleanupInterval  = 24 * time.Hour
-	cleanupMinAge    = 24 * time.Hour
-	cleanupBatchSize = 100
+	cleanupInterval         = 24 * time.Hour
+	cleanupMinAge           = 24 * time.Hour
+	cleanupBatchSize        = 100
+	cleanupOperationTimeout = time.Minute
 )
 
 // RunCleanup processes queued file deletions at startup and every 24 hours until
@@ -37,9 +38,13 @@ func (ctrl *Controller) cleanupFiles(ctx context.Context) {
 	after := ""
 
 	for ctx.Err() == nil {
+		listCtx, cancel := context.WithTimeout(ctx, cleanupOperationTimeout)
 		files, apiErr := ctrl.metadataStorage.ListFilesToDelete(
-			ctx, before, after, cleanupBatchSize, headers,
+			listCtx, before, after, cleanupBatchSize, headers,
 		)
+
+		cancel()
+
 		if apiErr != nil {
 			ctrl.logger.ErrorContext(ctx, "problem listing file cleanup queue",
 				slog.String("error", apiErr.Error()))
@@ -71,6 +76,9 @@ func (ctrl *Controller) cleanupFiles(ctx context.Context) {
 func (ctrl *Controller) cleanupFile(
 	ctx context.Context, file FileToDelete, headers http.Header,
 ) *APIError {
+	ctx, cancel := context.WithTimeout(ctx, cleanupOperationTimeout)
+	defer cancel()
+
 	_, apiErr := ctrl.metadataStorage.GetFileByID(ctx, file.ID, headers)
 	if apiErr == nil {
 		return nil
