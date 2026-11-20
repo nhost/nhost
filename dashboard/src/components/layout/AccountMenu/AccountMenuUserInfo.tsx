@@ -19,10 +19,12 @@ export default function AccountMenuUserInfo() {
     >
       <UserAvatar className="h-10 w-10" />
 
-      <div className="grid grid-flow-row gap-0.5">
-        <span className="font-semibold">{displayName}</span>
+      <div className="grid grid-flow-row">
+        <span className="font-semibold leading-tight">{displayName}</span>
         {email && (
-          <span className="text-muted-foreground text-sm">{email}</span>
+          <span className="text-muted-foreground text-sm leading-tight">
+            {email}
+          </span>
         )}
       </div>
     </div>

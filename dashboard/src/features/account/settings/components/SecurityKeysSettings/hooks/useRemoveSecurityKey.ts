@@ -21,10 +21,10 @@ function useRemoveSecurityKey() {
         await refetchSecurityKeys();
       },
       {
-        loadingMessage: 'Removing security key...',
-        successMessage: 'Security key has been removed successfully.',
+        loadingMessage: 'Removing passkey...',
+        successMessage: 'Passkey removed.',
         errorMessage:
-          'An error occurred while trying to remove security key. Please try again.',
+          'An error occurred while trying to remove the passkey. Please try again.',
       },
     );
   }

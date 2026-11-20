@@ -18,8 +18,8 @@ function SignUpTabs() {
           <span className="sm:hidden">Password</span>
         </TabsTrigger>
         <TabsTrigger value="security-key" className="w-full gap-2">
-          <span className="hidden sm:inline">Sign Up with a Security Key</span>
-          <span className="sm:hidden">Security Key</span>
+          <span className="hidden sm:inline">Sign Up with a Passkey</span>
+          <span className="sm:hidden">Passkey</span>
         </TabsTrigger>
       </TabsList>
       <div className="pt-7">

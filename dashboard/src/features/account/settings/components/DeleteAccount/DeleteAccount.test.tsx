@@ -7,18 +7,26 @@ import {
 } from '@/tests/testUtils';
 import DeleteAccount from './DeleteAccount';
 
+const EMAIL = 'jane@example.com';
+
+vi.mock('@/hooks/useUserData', () => ({
+  useUserData: () => ({ id: 'user-id', email: 'jane@example.com' }),
+}));
+
 async function openDeleteDialog(user: TestUserEvent) {
-  await user.click(
-    screen.getByRole('button', { name: 'Delete Personal Account' }),
-  );
+  await user.click(screen.getByRole('button', { name: 'Delete account' }));
 
   return screen.findByRole('alertdialog');
 }
 
 function getConfirmationCheckbox(dialog: HTMLElement) {
   return within(dialog).getByRole('checkbox', {
-    name: 'Confirm Delete Account',
+    name: 'I understand this action cannot be undone',
   });
+}
+
+function getConfirmationInput(dialog: HTMLElement) {
+  return within(dialog).getByRole('textbox', { name: /to confirm/i });
 }
 
 function getDeleteAction(dialog: HTMLElement) {
@@ -26,11 +34,29 @@ function getDeleteAction(dialog: HTMLElement) {
 }
 
 describe('DeleteAccount', () => {
+  it('only enables Delete after ticking the box and typing the exact email', async () => {
+    const user = new TestUserEvent();
+    render(<DeleteAccount />);
+
+    const dialog = await openDeleteDialog(user);
+    await user.click(getConfirmationCheckbox(dialog));
+    expect(getDeleteAction(dialog)).toBeDisabled();
+
+    await user.type(getConfirmationInput(dialog), 'jane@example');
+    expect(getDeleteAction(dialog)).toBeDisabled();
+
+    await user.type(getConfirmationInput(dialog), '.com');
+    expect(getDeleteAction(dialog)).toBeEnabled();
+  });
+
   it('clears the confirmation after the dialog is cancelled', async () => {
     const user = new TestUserEvent();
     render(<DeleteAccount />);
 
     const dialog = await openDeleteDialog(user);
+    await user.type(getConfirmationInput(dialog), EMAIL);
+    expect(getDeleteAction(dialog)).toBeDisabled();
+
     await user.click(getConfirmationCheckbox(dialog));
     expect(getDeleteAction(dialog)).toBeEnabled();
 
@@ -42,6 +68,7 @@ describe('DeleteAccount', () => {
     const reopenedDialog = await openDeleteDialog(user);
 
     expect(getConfirmationCheckbox(reopenedDialog)).not.toBeChecked();
+    expect(getConfirmationInput(reopenedDialog)).toHaveValue('');
     expect(getDeleteAction(reopenedDialog)).toBeDisabled();
   });
 });

@@ -2,11 +2,14 @@ import {
   StandaloneLayout,
   type StandaloneLayoutProps,
 } from '@/components/layout/StandaloneLayout';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 
 export type AccountSettingsLayoutProps = StandaloneLayoutProps;
 
+/**
+ * The header across the top and the account settings below. The page fills
+ * the height so only its settings column scrolls, like project settings.
+ */
 export default function AccountSettingsLayout({
   children,
   ...props
@@ -14,11 +17,7 @@ export default function AccountSettingsLayout({
   return (
     <StandaloneLayout {...props}>
       <AuthGuard>
-        <div className="relative flex h-full flex-auto overflow-y-auto">
-          <div className="flex w-full flex-auto flex-col overflow-x-hidden">
-            <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
-          </div>
-        </div>
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </AuthGuard>
     </StandaloneLayout>
   );

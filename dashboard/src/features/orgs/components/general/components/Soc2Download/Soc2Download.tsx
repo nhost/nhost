@@ -64,7 +64,6 @@ export default function Soc2Download() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        size="lg"
         title="SOC2 compliance report"
         description="Download Nhost's SOC2 Type II compliance report. This report demonstrates our commitment to security controls."
         control={

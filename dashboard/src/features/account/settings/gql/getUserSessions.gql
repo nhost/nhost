@@ -1,0 +1,10 @@
+query GetUserSessions {
+  sessions: authRefreshTokens(
+    where: { type: { _eq: regular } }
+    order_by: { createdAt: desc }
+  ) {
+    id
+    createdAt
+    expiresAt
+  }
+}

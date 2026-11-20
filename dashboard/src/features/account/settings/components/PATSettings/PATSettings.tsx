@@ -1,8 +1,4 @@
-import {
-  EllipsisVertical as DotsVerticalIcon,
-  PlusIcon,
-  TriangleAlert as WarningIcon,
-} from 'lucide-react';
+import { PlusIcon, Trash2, TriangleAlert as WarningIcon } from 'lucide-react';
 import { useState } from 'react';
 import {
   SettingsCardContent,
@@ -24,22 +20,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/v3/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import {
   Tooltip,
   TooltipContent,
@@ -47,6 +29,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
+import { VariableGroup } from '@/features/orgs/projects/environmentVariables/settings/components/VariableGroup';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
@@ -64,6 +47,7 @@ type PersonalAccessToken = {
 
 export default function PATSettings() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [tokenCreated, setTokenCreated] = useState(false);
   const [tokenPendingDeletion, setTokenPendingDeletion] =
     useState<PersonalAccessToken | null>(null);
   const [isDeletingToken, setIsDeletingToken] = useState(false);
@@ -110,38 +94,43 @@ export default function PATSettings() {
   }
 
   return (
-    <AccountSettingsCard className="gap-0 pb-0">
+    <AccountSettingsCard>
       <SettingsCardHeader
-        title="Personal Access Tokens"
+        className="sm:items-start"
+        title={null}
         description="Personal access tokens are unique authorization keys that grant individuals access to specific resources and services within a system or platform."
+        control={
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              // Reset on open, not on close, so the title doesn't flip while
+              // the dialog fades out.
+              setTokenCreated(false);
+              setCreateDialogOpen(true);
+            }}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create personal access token
+          </Button>
+        }
       />
 
-      <SettingsCardContent
-        className={cn(
-          'my-2 px-0',
-          availablePersonalAccessTokens.length === 0 && 'gap-2',
-        )}
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Expires at</TableHead>
-              <TableHead>Created at</TableHead>
-              <TableHead className="w-12" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      {/* Same box as the environment variables and secrets lists. */}
+      {availablePersonalAccessTokens.length > 0 && (
+        <SettingsCardContent className="mt-2">
+          <VariableGroup>
             {availablePersonalAccessTokens.map((pat) => {
               const tokenHasExpired = new Date(pat.expiresAt) < new Date();
-              const textClassName = cn(
-                'truncate',
-                tokenHasExpired && 'text-amber-600',
-              );
 
               return (
-                <TableRow key={pat.id}>
-                  <TableCell className={textClassName}>
+                <TableRow key={pat.id} className="group">
+                  <TableCell
+                    className={cn(
+                      'truncate font-medium',
+                      tokenHasExpired && 'text-warning',
+                    )}
+                  >
                     <span className="mr-2">{pat.name}</span>
                     {tokenHasExpired && (
                       <Tooltip>
@@ -154,65 +143,63 @@ export default function PATSettings() {
                       </Tooltip>
                     )}
                   </TableCell>
-                  <TableCell className={textClassName}>
+                  {/* On phones the expiry matters more, so the created
+                      date is hidden. */}
+                  <TableCell className="hidden truncate text-muted-foreground sm:table-cell">
+                    Created {new Date(pat.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell
+                    className={cn(
+                      'truncate text-muted-foreground',
+                      tokenHasExpired && 'text-warning',
+                    )}
+                  >
+                    {tokenHasExpired ? 'Expired' : 'Expires'}{' '}
                     {new Date(pat.expiresAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className={textClassName}>
-                    {new Date(pat.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="icon"
-                          aria-label={`More options for ${pat.name}`}
-                        >
-                          <DotsVerticalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem
-                          onClick={() => setTokenPendingDeletion(pat)}
-                          className="cursor-pointer gap-2 text-destructive focus:bg-destructive-hover focus:text-destructive"
-                        >
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="w-24">
+                    <div className="flex justify-end">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="subtle"
+                            aria-label={`Delete ${pat.name}`}
+                            onClick={() => setTokenPendingDeletion(pat)}
+                            className="hover:text-destructive dark:hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
             })}
-          </TableBody>
-        </Table>
+          </VariableGroup>
+        </SettingsCardContent>
+      )}
 
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="mx-4 justify-self-start"
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Create Personal Access Token
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
-            <DialogHeader>
-              <DialogTitle className="text-xl leading-7 tracking-normal">
-                Create Personal Access Token
-              </DialogTitle>
-              <DialogDescription>
-                Create a token to authenticate with Nhost services.
-              </DialogDescription>
-            </DialogHeader>
-            <CreatePATForm onCancel={() => setCreateDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </SettingsCardContent>
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl leading-7 tracking-normal">
+              {tokenCreated ? 'Token created' : 'Create personal access token'}
+            </DialogTitle>
+            <DialogDescription>
+              {tokenCreated
+                ? 'Use it to sign in to the Nhost CLI or from your CI.'
+                : 'Create a token to authenticate with Nhost services.'}
+            </DialogDescription>
+          </DialogHeader>
+          <CreatePATForm
+            onCancel={() => setCreateDialogOpen(false)}
+            onCreated={() => setTokenCreated(true)}
+          />
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog
         open={!!tokenPendingDeletion}
@@ -225,7 +212,7 @@ export default function PATSettings() {
         <AlertDialogContent className="p-12">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
-              Delete Personal Access Token
+              Delete personal access token
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this personal access token? Any
