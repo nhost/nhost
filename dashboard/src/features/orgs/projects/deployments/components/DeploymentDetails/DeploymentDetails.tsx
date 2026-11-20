@@ -1,5 +1,6 @@
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import DashboardAvatar from '@/components/common/DashboardAvatar';
 import { Container } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
@@ -9,7 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
-import { Avatar } from '@/components/ui/v3/avatar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import {
@@ -233,7 +233,7 @@ function PipelineRunDetails({
         <div>
           <p className="text-muted-foreground text-xs">Author</p>
           <div className="mt-1 flex items-center gap-1.5">
-            <Avatar
+            <DashboardAvatar
               alt={input?.commit_user_name ?? undefined}
               name={input?.commit_user_name ?? undefined}
               src={input?.commit_user_avatar_url}
@@ -376,7 +376,7 @@ function LegacyDeploymentDetailsView({
       </div>
       <div className="my-8 flex justify-between">
         <div className="grid grid-flow-col items-center gap-4">
-          <Avatar
+          <DashboardAvatar
             alt={deployment.commitUserName ?? undefined}
             name={deployment.commitUserName ?? undefined}
             src={deployment.commitUserAvatarUrl}
