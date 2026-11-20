@@ -58,6 +58,12 @@ var (
 		errors.New("file not uploaded"), //nolint
 		nil,
 	}
+	ErrFileBeingReplaced = &APIError{
+		http.StatusConflict,
+		"file is being replaced or a previous replace did not complete",
+		errors.New("file is being replaced or a previous replace did not complete"), //nolint
+		nil,
+	}
 )
 
 // ErrorResponse is used to standardized the output of the handers' response.

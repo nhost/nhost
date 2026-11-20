@@ -161,6 +161,21 @@ func (mr *MockMetadataStorageMockRecorder) SetIsUploaded(ctx, fileID, isUploaded
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIsUploaded", reflect.TypeOf((*MockMetadataStorage)(nil).SetIsUploaded), ctx, fileID, isUploaded, headers)
 }
 
+// StartFileReplace mocks base method.
+func (m *MockMetadataStorage) StartFileReplace(ctx context.Context, fileID string, headers http.Header) (bool, *controller.APIError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartFileReplace", ctx, fileID, headers)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*controller.APIError)
+	return ret0, ret1
+}
+
+// StartFileReplace indicates an expected call of StartFileReplace.
+func (mr *MockMetadataStorageMockRecorder) StartFileReplace(ctx, fileID, headers any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartFileReplace", reflect.TypeOf((*MockMetadataStorage)(nil).StartFileReplace), ctx, fileID, headers)
+}
+
 // MockContentStorage is a mock of ContentStorage interface.
 type MockContentStorage struct {
 	ctrl     *gomock.Controller

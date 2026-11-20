@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"mime/multipart"
+	"net/http"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
@@ -73,6 +74,33 @@ func replaceFileParseRequest(
 	return res, form, nil
 }
 
+// startFileReplace marks the file as not uploaded only if it currently is, so
+// a second replace of the same file is rejected instead of interleaving with
+// this one and leaving metadata that does not match the stored content.
+func (ctrl *Controller) startFileReplace(
+	ctx context.Context, fileID string, sessionHeaders http.Header,
+) *APIError {
+	started, apiErr := ctrl.metadataStorage.StartFileReplace(ctx, fileID, sessionHeaders)
+	if apiErr != nil {
+		return apiErr
+	}
+
+	if started {
+		return nil
+	}
+
+	current, apiErr := ctrl.metadataStorage.GetFileByID(ctx, fileID, sessionHeaders)
+	if apiErr != nil {
+		return apiErr
+	}
+
+	if !current.IsUploaded {
+		return ErrFileBeingReplaced
+	}
+
+	return ErrFileNotFound
+}
+
 func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	ctx context.Context,
 	request api.ReplaceFileRequestObject,
@@ -134,9 +162,7 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 		return apiErr, nil
 	}
 
-	if apiErr := ctrl.metadataStorage.SetIsUploaded(
-		ctx, file.ID, false, sessionHeaders,
-	); apiErr != nil {
+	if apiErr := ctrl.startFileReplace(ctx, file.ID, sessionHeaders); apiErr != nil {
 		logger.ErrorContext(
 			ctx, "problem flagging file as pending upload",
 			slog.String("error", apiErr.Error()),
