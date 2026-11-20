@@ -21,8 +21,9 @@ import {
 } from '@/screens/account/avatar';
 import { colors, fontSize } from '@/theme';
 
-// The picker leaves out the type or the size when the platform does not
-// report them, so they come from the name and the file itself instead.
+// The picker leaves out the type when the platform does not report it, so it
+// comes from the name instead. The size is read from the file the picker wrote:
+// Android reports the original's size, not the re-encoded copy's.
 function avatarFileFrom(asset: ImagePickerAsset): AvatarFile {
   const name =
     asset.fileName || asset.uri.split('/').pop()?.split('?')[0] || 'avatar';
@@ -31,7 +32,7 @@ function avatarFileFrom(asset: ImagePickerAsset): AvatarFile {
     uri: asset.uri,
     name,
     type: asset.mimeType || avatarTypeFromName(name),
-    size: asset.fileSize ?? new File(asset.uri).size,
+    size: new File(asset.uri).size,
   };
 }
 
@@ -93,6 +94,10 @@ export default function AvatarForm({
         // as, which storage cannot resize.
         preferredAssetRepresentationMode:
           UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        // Below 1 the picker re-encodes a JPEG instead of handing over the
+        // camera's original, which is often over 4 MB. The app never shows
+        // an avatar wider than 192 px, so the loss is not visible.
+        quality: 0.7,
       });
       const asset = picked.canceled ? undefined : picked.assets[0];
 

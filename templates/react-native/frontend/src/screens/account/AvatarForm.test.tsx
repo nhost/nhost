@@ -13,6 +13,7 @@ const mockRefresh = jest.fn();
 const mockUploadAvatar = jest.fn();
 const mockRemoveAvatar = jest.fn();
 const mockLaunch = jest.fn();
+let mockFileSize = 8;
 
 jest.mock('@/components/useRefresh', () => ({
   useRefresh: () => mockRefresh,
@@ -50,13 +51,22 @@ beforeEach(() => {
   mockUploadAvatar.mockReset();
   mockRemoveAvatar.mockReset();
   mockLaunch.mockReset();
+  mockFileSize = 8;
+  Object.defineProperty(File.prototype, 'size', {
+    get: () => mockFileSize,
+    configurable: true,
+  });
+});
+
+afterEach(() => {
+  delete (File.prototype as { size?: number }).size;
 });
 
 describe('avatar control', () => {
   // Picking the image is the whole gesture: there is no second press.
   it('uploads as soon as an image is picked and loads the screen again', async () => {
     mockLaunch.mockResolvedValueOnce(
-      picked({ fileName: 'me.jpg', mimeType: 'image/jpeg', fileSize: 8 }),
+      picked({ fileName: 'me.jpg', mimeType: 'image/jpeg' }),
     );
     mockUploadAvatar.mockResolvedValueOnce({ success: true });
     await renderForm();
@@ -66,6 +76,7 @@ describe('avatar control', () => {
     expect(mockLaunch).toHaveBeenCalledWith({
       mediaTypes: ['images'],
       preferredAssetRepresentationMode: 'compatible',
+      quality: 0.7,
     });
     expect(mockUploadAvatar).toHaveBeenCalledWith({
       uri: URI,
@@ -86,35 +97,42 @@ describe('avatar control', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  // Android can leave out the type and the size the picker reports.
-  it('reads a missing type from the name and a missing size from the file', async () => {
-    const size = jest.fn(() => 2048);
-    Object.defineProperty(File.prototype, 'size', {
-      get: size,
-      configurable: true,
-    });
+  // Android can leave out the type the picker reports.
+  it('reads a missing type from the name', async () => {
     mockLaunch.mockResolvedValueOnce(picked({ fileName: null }));
     mockUploadAvatar.mockResolvedValueOnce({ success: true });
     await renderForm();
 
-    try {
-      await upload();
-    } finally {
-      delete (File.prototype as { size?: number }).size;
-    }
+    await upload();
 
     expect(mockUploadAvatar).toHaveBeenCalledWith({
       uri: URI,
       name: 'me.jpg',
       type: 'image/jpeg',
-      size: 2048,
+      size: 8,
     });
   });
 
-  it('refuses an oversized image without calling the action', async () => {
+  // Android reports the size of the original photo, not of the smaller copy
+  // the picker re-encoded and hands over.
+  it('takes the size of the picked file, not the one the picker reports', async () => {
+    mockFileSize = 2048;
     mockLaunch.mockResolvedValueOnce(
-      picked({ mimeType: 'image/png', fileSize: MAX_AVATAR_BYTES + 1 }),
+      picked({ mimeType: 'image/jpeg', fileSize: MAX_AVATAR_BYTES + 1 }),
     );
+    mockUploadAvatar.mockResolvedValueOnce({ success: true });
+    await renderForm();
+
+    await upload();
+
+    expect(mockUploadAvatar).toHaveBeenCalledWith(
+      expect.objectContaining({ size: 2048 }),
+    );
+  });
+
+  it('refuses an oversized image without calling the action', async () => {
+    mockFileSize = MAX_AVATAR_BYTES + 1;
+    mockLaunch.mockResolvedValueOnce(picked({ mimeType: 'image/png' }));
     await renderForm();
 
     await upload();
@@ -128,7 +146,7 @@ describe('avatar control', () => {
   it.each(['image/gif', 'image/heic', 'video/mp4'])(
     'refuses %s without calling the action',
     async (mimeType) => {
-      mockLaunch.mockResolvedValueOnce(picked({ mimeType, fileSize: 8 }));
+      mockLaunch.mockResolvedValueOnce(picked({ mimeType }));
       await renderForm();
 
       await upload();
@@ -139,9 +157,7 @@ describe('avatar control', () => {
   );
 
   it('says why the upload failed', async () => {
-    mockLaunch.mockResolvedValueOnce(
-      picked({ mimeType: 'image/jpeg', fileSize: 8 }),
-    );
+    mockLaunch.mockResolvedValueOnce(picked({ mimeType: 'image/jpeg' }));
     mockUploadAvatar.mockResolvedValueOnce({
       error: 'The storage service did not keep the file.',
     });

@@ -307,7 +307,9 @@ format the Next.js starter writes, so the starters can share a backend if it
 runs auth 0.53.0 or later. Gravatar URLs are shown as they are.
 
 Only PNG, JPEG, WebP and AVIF are allowed, up to 4 MB. On iOS the picker
-returns JPEG rather than HEIC. The web starters also refuse to show a
+returns JPEG rather than HEIC. The picker also re-encodes photos at quality
+0.7, so a full-resolution camera photo usually fits the limit; the app shows
+avatars at 192 px at most. The web starters also refuse to show a
 downloaded file of another type, because a browser could run scripts in it; a
 native image view runs none, so the app doesn't check.
 
