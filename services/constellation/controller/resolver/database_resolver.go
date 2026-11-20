@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -76,14 +77,16 @@ func (r *databaseResolver) setTargetTypes(
 
 // BuildOperation constructs the GraphQL operation to execute against the target database.
 // It builds a WHERE clause with _in filter for join columns.
-func (r *databaseResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinition {
+func (r *databaseResolver) BuildOperation(
+	rq *remoteQuery, variables map[string]any,
+) *ast.OperationDefinition {
 	if len(rq.joinArguments) == 0 {
 		return nil
 	}
 
 	whereArg := r.buildWhereArgument(rq)
 	if userWhere := findWhereArgument(rq.sourceField.Arguments); rq.isArray && userWhere != nil {
-		whereArg.Value = andMergeWhereValues(whereArg.Value, userWhere.Value)
+		whereArg.Value = andMergeWhereValues(whereArg.Value, userWhere.Value, variables)
 	}
 
 	// We need the remote join columns in the result to match against parent rows.
@@ -175,7 +178,11 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 
 				for _, v := range values {
 					inChildren = append(inChildren, &ast.ChildValue{ //nolint:exhaustruct
-						Value: joinTargetLiteral(v, r.jsonColumns[remoteCol]),
+						Value: joinTargetLiteral(
+							v,
+							r.jsonColumns[remoteCol],
+							r.jsonTextColumns[remoteCol],
+						),
 					})
 				}
 
@@ -365,9 +372,18 @@ func findWhereArgument(args ast.ArgumentList) *ast.Argument {
 	return nil
 }
 
-func andMergeWhereValues(generated, user *ast.Value) *ast.Value {
+func andMergeWhereValues(generated, user *ast.Value, variables map[string]any) *ast.Value {
 	if user == nil || user.Kind == ast.NullValue {
 		return generated
+	}
+
+	// A nullable top-level filter must not become a non-null _and element.
+	// Coercion has already applied variable defaults. Keep unresolved and
+	// concrete references intact for SQL's typed input resolution.
+	if user.Kind == ast.Variable {
+		if value, provided := variables[user.Raw]; provided && value == nil {
+			return generated
+		}
 	}
 
 	return &ast.Value{ //nolint:exhaustruct
@@ -522,7 +538,17 @@ func joinPartsKey(parts []string) string {
 	return string(encoded)
 }
 
-func joinTargetLiteral(v any, jsonTarget bool) *ast.Value {
+func joinTargetLiteral(v any, jsonTarget, jsonTextTarget bool) *ast.Value {
+	if jsonTarget && !jsonTextTarget {
+		// Native JSONB operands retain their value types through the SQL binder.
+		// Serializing them into a GraphQL string would turn objects/numbers into
+		// JSON strings. SQLite JSON targets instead compare their stored text.
+		literal, err := values.GoValueToAST(v)
+		if err == nil {
+			return literal
+		}
+	}
+
 	if jsonTarget {
 		encoded, err := json.Marshal(v)
 		if err == nil {
