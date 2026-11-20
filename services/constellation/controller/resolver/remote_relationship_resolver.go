@@ -255,16 +255,18 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	logger *slog.Logger,
 ) error {
 	// Build the remote operation using the resolver
-	remoteOp := rq.buildOperation()
+	remoteOp := rq.buildOperation(variables)
 	if remoteOp == nil {
 		return nil
 	}
 
-	// Resolve any variable references in the remote operation's arguments to literal values.
-	// The remote operation is a standalone query sent to the target connector,
-	// so variable references (e.g., $stats) must be replaced with their actual values
-	// since the remote operation has no variable definitions.
-	remoteOp.SelectionSet = resolveVariableReferences(remoteOp.SelectionSet, variables)
+	// SQL builders resolve references with the request-local variables, preserving
+	// enum kinds (including nested ordering/distinct inputs). Only GraphQL targets
+	// need standalone literals because the generated query has no variable definitions.
+	_, databaseTarget := rq.resolver.(*databaseResolver)
+	if !databaseTarget {
+		remoteOp.SelectionSet = resolveVariableReferences(remoteOp.SelectionSet, variables)
+	}
 
 	// Get the target connector
 	targetConnector := r.connectors[rq.targetConnector]
@@ -277,10 +279,12 @@ func (r *RemoteRelationshipResolver) executeAndStitchOperation(
 	// (e.g., "fragment X on localTable { ... }") that would cause validation
 	// errors on the remote schema.
 	filteredFragments := collectReferencedFragments(remoteOp, fragments)
-	for i, fragment := range filteredFragments {
-		copyFragment := *fragment
-		copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
-		filteredFragments[i] = &copyFragment
+	if !databaseTarget {
+		for i, fragment := range filteredFragments {
+			copyFragment := *fragment
+			copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
+			filteredFragments[i] = &copyFragment
+		}
 	}
 
 	// Execute the remote query
@@ -367,8 +371,8 @@ func removeRemoteResultPhantoms(results []any, fields []string) {
 	}
 }
 
-// The JSON/JSONB _in predicate accepts JSON text, not a raw GraphQL
-// string/array. The admin schema supplies type information for physical
+// JSONB join operands retain their JSON value types; SQLite JSON keys instead
+// use stored text. The admin schema supplies type information for physical
 // relationships whose target join column is hidden from the caller.
 func (r *RemoteRelationshipResolver) setDatabaseTargetTypes(rq *remoteQuery, role string) error {
 	db, ok := rq.resolver.(*databaseResolver)

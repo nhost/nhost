@@ -34,7 +34,10 @@ func newSchemaResolver(
 //	  _0: teamByDepartment(departmentId: "id1") { name }
 //	  _1: teamByDepartment(departmentId: "id2") { name }
 //	}
-func (r *schemaResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinition {
+func (r *schemaResolver) BuildOperation(
+	rq *remoteQuery,
+	_ map[string]any,
+) *ast.OperationDefinition {
 	if len(r.remoteFieldPath) == 0 || len(rq.joinArguments) == 0 {
 		return nil
 	}

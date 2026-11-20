@@ -359,6 +359,39 @@ func TestParseOrderBy(t *testing.T) {
 	})
 }
 
+func TestParseDistinctOnNullable(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		value     *ast.Value
+		variables map[string]any
+		wantErr   bool
+	}{
+		{"literal null", &ast.Value{Kind: ast.NullValue}, nil, false},
+		{"variable null", variableValue("cols"), map[string]any{"cols": nil}, false},
+		{"empty list", listValue(), nil, false},
+		{"null element", listValue(child("", &ast.Value{Kind: ast.NullValue})), nil, true},
+		{"variable null element", variableValue("cols"), map[string]any{"cols": []any{nil}}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tbl := mock.NewMockTable(gomock.NewController(t))
+
+			got, err := arguments.ParseDistinctOn(tbl, tt.value, tt.variables)
+			if tt.wantErr {
+				if !errors.Is(err, arguments.ErrInvalidArgument) {
+					t.Fatalf("expected ErrInvalidArgument, got %v", err)
+				}
+			} else if err != nil || len(got) != 0 {
+				t.Fatalf("expected no distinct columns, got %v / %v", got, err)
+			}
+		})
+	}
+}
+
 func TestParseDistinctOn(t *testing.T) {
 	t.Parallel()
 

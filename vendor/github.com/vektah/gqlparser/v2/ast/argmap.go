@@ -4,7 +4,7 @@ func arg2map(
 	defs ArgumentDefinitionList,
 	args ArgumentList,
 	vars map[string]any,
-) map[string]any {
+) (map[string]any, error) {
 	result := map[string]any{}
 	var err error
 
@@ -18,7 +18,7 @@ func arg2map(
 			} else {
 				val, err = argValue.Value.Value(vars)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				hasValue = true
 			}
@@ -27,7 +27,7 @@ func arg2map(
 		if !hasValue && argDef.DefaultValue != nil {
 			val, err = argDef.DefaultValue.Value(vars)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			hasValue = true
 		}
@@ -37,5 +37,5 @@ func arg2map(
 		}
 	}
 
-	return result
+	return result, nil
 }

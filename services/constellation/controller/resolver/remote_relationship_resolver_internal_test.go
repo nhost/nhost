@@ -25,7 +25,7 @@ type stubRemoteQueryResolver struct {
 }
 
 func (s *stubRemoteQueryResolver) BuildOperation(
-	rq *remoteQuery,
+	rq *remoteQuery, _ map[string]any,
 ) *ast.OperationDefinition {
 	if s.buildOperation == nil {
 		return nil

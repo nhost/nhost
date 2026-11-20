@@ -208,6 +208,11 @@ func (r Roots) BuildQuery(
 		return nil, fmt.Errorf("%w: %s", ErrNoRootsForRole, operation.Operation)
 	}
 
+	operation, fragments, err := NormalizeInputVariables(operation, fragments, variables)
+	if err != nil {
+		return nil, err
+	}
+
 	// Build SQL operations for each field in the selection set
 	operations := make([]core.SQLOperation, 0, len(operation.SelectionSet))
 
