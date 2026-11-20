@@ -1,0 +1,37 @@
+---
+interface Props {
+  /** Text set into the rule. Omit for a plain line. */
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+
+<div class="divider" role="separator" aria-label={label}>
+  {label && <span class="divider-label">{label}</span>}
+</div>
+
+<style>
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--sl-color-hairline-light);
+  }
+
+  .divider-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+</style>

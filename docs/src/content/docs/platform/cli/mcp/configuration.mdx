@@ -50,7 +50,7 @@ description = "Production project for my app"
 admin_secret = "your-project-admin-secret"
 # OR
 # Project-specific PAT (Personal Access Token)
-pat = "your-project-pat"
+pat = "<your-project-pat>"
 
 # Enable metadata management (migrations, permissions, etc.)
 # Requires admin_secret to be set
@@ -99,7 +99,7 @@ enable_mutations = true
 subdomain = "my-app"
 region = "eu-central-1"
 description = "Production project"
-pat = "nhp_production_pat"
+pat = "<your-project-pat>"
 allow_queries = ["*"]
 allow_mutations = ["insertPost", "updatePost", "deletePost"]
 ```
@@ -140,7 +140,7 @@ allow_mutations = ["*"]
 subdomain = "my-app-prod"
 region = "eu-central-1"
 description = "Production project"
-pat = "nhp_prod_pat"
+pat = "<your-project-pat>"
 allow_queries = ["*"]
 allow_mutations = ["insertPost", "updatePost"]
 
@@ -149,7 +149,7 @@ allow_mutations = ["insertPost", "updatePost"]
 subdomain = "my-app-staging"
 region = "eu-central-1"
 description = "Staging project"
-pat = "nhp_staging_pat"
+pat = "<your-staging-project-pat>"
 allow_queries = ["*"]
 allow_mutations = []
 ```
@@ -166,11 +166,13 @@ enable_mutations = true
 subdomain = "my-app"
 region = "eu-central-1"
 description = "Production project"
-# Use ${VAR_NAME} syntax to interpolate environment variables
-admin_secret = "${NHOST_ADMIN_SECRET}"
+# Use $VAR_NAME syntax to interpolate environment variables
+admin_secret = "$NHOST_ADMIN_SECRET"
 allow_queries = ["*"]
 allow_mutations = ["*"]
 ```
+
+The syntax is `$VAR_NAME`, without braces. `${VAR_NAME}` is not expanded. It is passed through unchanged and would be used as the literal credential. Escape a literal dollar sign as `$$` or `\$`.
 
 ## Configuration Options Reference
 
