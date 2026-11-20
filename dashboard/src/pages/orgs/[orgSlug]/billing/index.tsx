@@ -1,31 +1,28 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
+import { BillingArea } from '@/features/orgs/components/billing/layout';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
 import { OrganizationScope } from '@/features/orgs/guards/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
-export default function OrgBilling() {
-  const { org, loading } = useCurrentOrg();
-  const showBillingEstimate = !org?.plan?.isFree;
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
+export default function OrgBillingPlan() {
+  const { org } = useCurrentOrg();
 
   return (
-    <div className="flex min-h-full flex-col gap-4 bg-background p-4">
+    <div className="flex flex-col gap-4 p-4">
       <SubscriptionPlan />
-      {showBillingEstimate && <BillingEstimate />}
+      {!org.plan.isFree && <BillingEstimate />}
     </div>
   );
 }
 
-OrgBilling.getLayout = function getLayout(page: ReactElement) {
+OrgBillingPlan.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
-      <OrganizationScope>{page}</OrganizationScope>
+      <OrganizationScope>
+        <BillingArea>{page}</BillingArea>
+      </OrganizationScope>
     </AppLayout>
   );
 };
