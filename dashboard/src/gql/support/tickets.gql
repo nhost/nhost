@@ -35,6 +35,11 @@ query dashboardSupportTicket($id: uuid!) {
     description
     resolvedAt
     closedAt
+    organization {
+      plan {
+        supportAllowedSeverities
+      }
+    }
   }
   supportTicketTransitions {
     fromStatus
@@ -80,6 +85,9 @@ query dashboardSupportOrganizations($userId: uuid!) {
   ) {
     id
     name
+    plan {
+      supportAllowedSeverities
+    }
     apps(order_by: { name: asc }) {
       id
       name
@@ -95,6 +103,39 @@ mutation dashboardCreateSupportTicket($input: supportTickets_insert_input!) {
 
 mutation dashboardReplyToSupportTicket($ticketId: uuid!, $body: String!) {
   insertSupportComment(object: { ticketID: $ticketId, body: $body }) {
+    id
+  }
+}
+
+query dashboardSupportAttachments($ticketId: uuid!, $offset: Int!) {
+  supportTicket(id: $ticketId) {
+    attachments(
+      where: {
+        discardedAt: { _is_null: true }
+        file: {
+          bucketId: { _eq: "support_tickets_attachments" }
+          isUploaded: { _eq: true }
+        }
+      }
+      limit: 100
+      offset: $offset
+      order_by: [{ createdAt: asc }, { id: asc }]
+    ) {
+      id
+      uploaderName
+      createdAt
+      file {
+        id
+        name
+        size
+        mimeType
+      }
+    }
+  }
+}
+
+mutation dashboardReserveSupportAttachment($ticketId: uuid!) {
+  insertSupportAttachmentUpload(object: { ticketID: $ticketId }) {
     id
   }
 }

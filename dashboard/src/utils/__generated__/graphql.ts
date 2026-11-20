@@ -32,7 +32,9 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
+  /** A map of string keys to string values. */
   labels: any;
+  /** Map of string keys to arbitrary values. */
   map: any;
   smallint: any;
   timestamptz: any;
@@ -4478,7 +4480,7 @@ export type Announcements_Read_Bool_Exp = {
 
 /** unique or primary key constraints on table "announcements_read" */
 export enum Announcements_Read_Constraint {
-  /** unique or primary key constraint on columns "announcement_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "announcement_id" */
   AnnouncementsReadAnnouncementIdUserIdKey = 'announcements_read_announcement_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
   AnnouncementsReadPkey = 'announcements_read_pkey'
@@ -5708,16 +5710,13 @@ export type Apps_Insert_Input = {
 /** aggregate max on columns */
 export type Apps_Max_Fields = {
   __typename?: 'apps_max_fields';
-  automaticDeploys?: Maybe<Scalars['Boolean']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
   currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
-  isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
-  metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -5727,23 +5726,19 @@ export type Apps_Max_Fields = {
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
-  stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "apps" */
 export type Apps_Max_Order_By = {
-  automaticDeploys?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
   currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
-  metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -5753,7 +5748,6 @@ export type Apps_Max_Order_By = {
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
-  stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -5761,16 +5755,13 @@ export type Apps_Max_Order_By = {
 /** aggregate min on columns */
 export type Apps_Min_Fields = {
   __typename?: 'apps_min_fields';
-  automaticDeploys?: Maybe<Scalars['Boolean']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
   currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
-  isLocked?: Maybe<Scalars['Boolean']>;
   isLockedReason?: Maybe<Scalars['String']>;
-  metadataFunctions?: Maybe<Scalars['jsonb']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -5780,23 +5771,19 @@ export type Apps_Min_Fields = {
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
-  stateMatch?: Maybe<Scalars['Boolean']>;
   subdomain?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "apps" */
 export type Apps_Min_Order_By = {
-  automaticDeploys?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
   currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isLocked?: InputMaybe<Order_By>;
   isLockedReason?: InputMaybe<Order_By>;
-  metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -5806,7 +5793,6 @@ export type Apps_Min_Order_By = {
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
-  stateMatch?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -6365,13 +6351,13 @@ export type AuthOauth2AuthRequests_Max_Fields = {
   codeChallenge?: Maybe<Scalars['String']>;
   codeChallengeMethod?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  done?: Maybe<Scalars['Boolean']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   nonce?: Maybe<Scalars['String']>;
   redirectUri?: Maybe<Scalars['String']>;
   resource?: Maybe<Scalars['String']>;
   responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   state?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -6383,13 +6369,13 @@ export type AuthOauth2AuthRequests_Max_Order_By = {
   codeChallenge?: InputMaybe<Order_By>;
   codeChallengeMethod?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  done?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   redirectUri?: InputMaybe<Order_By>;
   resource?: InputMaybe<Order_By>;
   responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
   state?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -6402,13 +6388,13 @@ export type AuthOauth2AuthRequests_Min_Fields = {
   codeChallenge?: Maybe<Scalars['String']>;
   codeChallengeMethod?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  done?: Maybe<Scalars['Boolean']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   nonce?: Maybe<Scalars['String']>;
   redirectUri?: Maybe<Scalars['String']>;
   resource?: Maybe<Scalars['String']>;
   responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   state?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -6420,13 +6406,13 @@ export type AuthOauth2AuthRequests_Min_Order_By = {
   codeChallenge?: InputMaybe<Order_By>;
   codeChallengeMethod?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  done?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nonce?: InputMaybe<Order_By>;
   redirectUri?: InputMaybe<Order_By>;
   resource?: InputMaybe<Order_By>;
   responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
   state?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -7000,8 +6986,9 @@ export type AuthOauth2Clients_Max_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   type?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7013,8 +7000,9 @@ export type AuthOauth2Clients_Min_Fields = {
   clientSecretHash?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   createdBy?: Maybe<Scalars['uuid']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   type?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -7285,6 +7273,7 @@ export type AuthOauth2RefreshTokens_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   tokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -7296,6 +7285,7 @@ export type AuthOauth2RefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
   tokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -7308,6 +7298,7 @@ export type AuthOauth2RefreshTokens_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
   tokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -7319,6 +7310,7 @@ export type AuthOauth2RefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
   tokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -7518,14 +7510,12 @@ export type AuthProviderRequests_Insert_Input = {
 export type AuthProviderRequests_Max_Fields = {
   __typename?: 'authProviderRequests_max_fields';
   id?: Maybe<Scalars['uuid']>;
-  options?: Maybe<Scalars['jsonb']>;
 };
 
 /** aggregate min on columns */
 export type AuthProviderRequests_Min_Fields = {
   __typename?: 'authProviderRequests_min_fields';
   id?: Maybe<Scalars['uuid']>;
-  options?: Maybe<Scalars['jsonb']>;
 };
 
 /** response of any mutation on the table "auth.provider_requests" */
@@ -8074,7 +8064,6 @@ export type AuthRefreshTokens_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -8084,7 +8073,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -8095,7 +8083,6 @@ export type AuthRefreshTokens_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -8105,7 +8092,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -8501,7 +8487,7 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
+  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
 }
 
@@ -9027,7 +9013,6 @@ export type AuthUserSecurityKeys_Max_Fields = {
   __typename?: 'authUserSecurityKeys_max_fields';
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
-  credentialPublicKey?: Maybe<Scalars['bytea']>;
   id?: Maybe<Scalars['uuid']>;
   nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
@@ -9038,7 +9023,6 @@ export type AuthUserSecurityKeys_Max_Fields = {
 export type AuthUserSecurityKeys_Max_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
-  credentialPublicKey?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
@@ -9050,7 +9034,6 @@ export type AuthUserSecurityKeys_Min_Fields = {
   __typename?: 'authUserSecurityKeys_min_fields';
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
-  credentialPublicKey?: Maybe<Scalars['bytea']>;
   id?: Maybe<Scalars['uuid']>;
   nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
@@ -9061,7 +9044,6 @@ export type AuthUserSecurityKeys_Min_Fields = {
 export type AuthUserSecurityKeys_Min_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
-  credentialPublicKey?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
@@ -10064,7 +10046,6 @@ export type Billing_Reports_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
-  pending?: Maybe<Scalars['Boolean']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10079,7 +10060,6 @@ export type Billing_Reports_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organizationID?: Maybe<Scalars['uuid']>;
-  pending?: Maybe<Scalars['Boolean']>;
   reportEnds?: Maybe<Scalars['timestamptz']>;
   reportStarts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10223,10 +10203,10 @@ export type Billing_Reports_Resources_Insert_Input = {
 /** aggregate max on columns */
 export type Billing_Reports_Resources_Max_Fields = {
   __typename?: 'billing_reports_resources_max_fields';
+  app_ids?: Maybe<Array<Scalars['uuid']>>;
   created_at?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organization_id?: Maybe<Scalars['uuid']>;
-  pending?: Maybe<Scalars['Boolean']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -10237,10 +10217,10 @@ export type Billing_Reports_Resources_Max_Fields = {
 /** aggregate min on columns */
 export type Billing_Reports_Resources_Min_Fields = {
   __typename?: 'billing_reports_resources_min_fields';
+  app_ids?: Maybe<Array<Scalars['uuid']>>;
   created_at?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   organization_id?: Maybe<Scalars['uuid']>;
-  pending?: Maybe<Scalars['Boolean']>;
   report_ends?: Maybe<Scalars['timestamptz']>;
   report_starts?: Maybe<Scalars['timestamptz']>;
   stripeSubscriptionID?: Maybe<Scalars['String']>;
@@ -11814,7 +11794,6 @@ export type Buckets_Max_Fields = {
   id?: Maybe<Scalars['String']>;
   maxUploadFileSize?: Maybe<Scalars['Int']>;
   minUploadFileSize?: Maybe<Scalars['Int']>;
-  presignedUrlsEnabled?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -11827,7 +11806,6 @@ export type Buckets_Min_Fields = {
   id?: Maybe<Scalars['String']>;
   maxUploadFileSize?: Maybe<Scalars['Int']>;
   minUploadFileSize?: Maybe<Scalars['Int']>;
-  presignedUrlsEnabled?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -12333,11 +12311,9 @@ export type Continents_Bool_Exp = {
   _and?: InputMaybe<Array<Continents_Bool_Exp>>;
   _not?: InputMaybe<Continents_Bool_Exp>;
   _or?: InputMaybe<Array<Continents_Bool_Exp>>;
-  /** Continent code */
   code?: InputMaybe<Bpchar_Comparison_Exp>;
   countries?: InputMaybe<Countries_Bool_Exp>;
   countries_aggregate?: InputMaybe<Countries_Aggregate_Bool_Exp>;
-  /** Continent name */
   name?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -12399,10 +12375,8 @@ export type Continents_On_Conflict = {
 
 /** Ordering options when selecting data from "continents". */
 export type Continents_Order_By = {
-  /** Continent code */
   code?: InputMaybe<Order_By>;
   countries_aggregate?: InputMaybe<Countries_Aggregate_Order_By>;
-  /** Continent name */
   name?: InputMaybe<Order_By>;
 };
 
@@ -12414,9 +12388,9 @@ export type Continents_Pk_Columns_Input = {
 
 /** select columns of table "continents" */
 export enum Continents_Select_Column {
-  /** Continent code */
+  /** column name */
   Code = 'code',
-  /** Continent name */
+  /** column name */
   Name = 'name'
 }
 
@@ -12446,9 +12420,9 @@ export type Continents_Stream_Cursor_Value_Input = {
 
 /** update columns of table "continents" */
 export enum Continents_Update_Column {
-  /** Continent code */
+  /** column name */
   Code = 'code',
-  /** Continent name */
+  /** column name */
   Name = 'name'
 }
 
@@ -12583,20 +12557,15 @@ export type Countries_Bool_Exp = {
   _and?: InputMaybe<Array<Countries_Bool_Exp>>;
   _not?: InputMaybe<Countries_Bool_Exp>;
   _or?: InputMaybe<Array<Countries_Bool_Exp>>;
-  /** Two-letter country code (ISO 3166-1 alpha-2) */
   code?: InputMaybe<Bpchar_Comparison_Exp>;
   continent?: InputMaybe<Continents_Bool_Exp>;
   continentCode?: InputMaybe<Bpchar_Comparison_Exp>;
   emojiFlag?: InputMaybe<String_Comparison_Exp>;
-  /** Full English country name */
   fullName?: InputMaybe<String_Comparison_Exp>;
-  /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
-  /** Three-letter country code (ISO 3166-1 numeric) */
   isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
-  /** English country name */
   name?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -12721,19 +12690,14 @@ export type Countries_On_Conflict = {
 
 /** Ordering options when selecting data from "countries". */
 export type Countries_Order_By = {
-  /** Two-letter country code (ISO 3166-1 alpha-2) */
   code?: InputMaybe<Order_By>;
   continent?: InputMaybe<Continents_Order_By>;
   continentCode?: InputMaybe<Order_By>;
   emojiFlag?: InputMaybe<Order_By>;
-  /** Full English country name */
   fullName?: InputMaybe<Order_By>;
-  /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Order_By>;
-  /** Three-letter country code (ISO 3166-1 numeric) */
   isoNumber?: InputMaybe<Order_By>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Order_By>;
-  /** English country name */
   name?: InputMaybe<Order_By>;
 };
 
@@ -12745,19 +12709,19 @@ export type Countries_Pk_Columns_Input = {
 
 /** select columns of table "countries" */
 export enum Countries_Select_Column {
-  /** Two-letter country code (ISO 3166-1 alpha-2) */
+  /** column name */
   Code = 'code',
   /** column name */
   ContinentCode = 'continentCode',
   /** column name */
   EmojiFlag = 'emojiFlag',
-  /** Full English country name */
+  /** column name */
   FullName = 'fullName',
-  /** Three-letter country code (ISO 3166-1 alpha-3) */
+  /** column name */
   Iso3 = 'iso3',
-  /** Three-letter country code (ISO 3166-1 numeric) */
+  /** column name */
   IsoNumber = 'isoNumber',
-  /** English country name */
+  /** column name */
   Name = 'name'
 }
 
@@ -12855,19 +12819,19 @@ export type Countries_Sum_Order_By = {
 
 /** update columns of table "countries" */
 export enum Countries_Update_Column {
-  /** Two-letter country code (ISO 3166-1 alpha-2) */
+  /** column name */
   Code = 'code',
   /** column name */
   ContinentCode = 'continentCode',
   /** column name */
   EmojiFlag = 'emojiFlag',
-  /** Full English country name */
+  /** column name */
   FullName = 'fullName',
-  /** Three-letter country code (ISO 3166-1 alpha-3) */
+  /** column name */
   Iso3 = 'iso3',
-  /** Three-letter country code (ISO 3166-1 numeric) */
+  /** column name */
   IsoNumber = 'isoNumber',
-  /** English country name */
+  /** column name */
   Name = 'name'
 }
 
@@ -13989,8 +13953,6 @@ export type Files_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  isUploaded?: Maybe<Scalars['Boolean']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   mimeType?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
@@ -14004,8 +13966,6 @@ export type Files_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isUploaded?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   mimeType?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
@@ -14020,8 +13980,6 @@ export type Files_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  isUploaded?: Maybe<Scalars['Boolean']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   mimeType?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
@@ -14035,8 +13993,6 @@ export type Files_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isUploaded?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   mimeType?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
@@ -14491,7 +14447,6 @@ export type GithubAppInstallations_Max_Fields = {
   accountType?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   externalGithubAppInstallationId?: Maybe<Scalars['Int']>;
-  githubData?: Maybe<Scalars['jsonb']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
@@ -14505,7 +14460,6 @@ export type GithubAppInstallations_Max_Order_By = {
   accountType?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   externalGithubAppInstallationId?: InputMaybe<Order_By>;
-  githubData?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -14520,7 +14474,6 @@ export type GithubAppInstallations_Min_Fields = {
   accountType?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   externalGithubAppInstallationId?: Maybe<Scalars['Int']>;
-  githubData?: Maybe<Scalars['jsonb']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
@@ -14534,7 +14487,6 @@ export type GithubAppInstallations_Min_Order_By = {
   accountType?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   externalGithubAppInstallationId?: InputMaybe<Order_By>;
-  githubData?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -14918,7 +14870,6 @@ export type GithubRepositories_Max_Fields = {
   githubAppInstallationId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
-  private?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -14930,7 +14881,6 @@ export type GithubRepositories_Max_Order_By = {
   githubAppInstallationId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  private?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -14943,7 +14893,6 @@ export type GithubRepositories_Min_Fields = {
   githubAppInstallationId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
-  private?: Maybe<Scalars['Boolean']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -14955,7 +14904,6 @@ export type GithubRepositories_Min_Order_By = {
   githubAppInstallationId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  private?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -15663,7 +15611,7 @@ export type Mutation_Root = {
   insert_sla_level?: Maybe<Sla_Level_Mutation_Response>;
   /** insert a single row into the table: "sla_level" */
   insert_sla_level_one?: Maybe<Sla_Level>;
-  /** execute function "organization_member_invite_accept" which returns "organization_members" */
+  /** execute VOLATILE function "organization_member_invite_accept" which returns "organization_members" */
   organizationMemberInviteAccept: Array<Organization_Members>;
   pauseInactiveApps: Array<Scalars['String']>;
   pauseOrganizationsExceedUsage: Array<Scalars['String']>;
@@ -19435,7 +19383,7 @@ export enum Order_By {
 }
 
 export type OrganizationMemberInviteAccept_Args = {
-  id: Scalars['uuid'];
+  id?: InputMaybe<Scalars['uuid']>;
 };
 
 /** columns and relationships of "organization_costs_thresholds" */
@@ -19671,7 +19619,7 @@ export type Organization_Member_Invites_Bool_Exp = {
 
 /** unique or primary key constraints on table "organization_member_invites" */
 export enum Organization_Member_Invites_Constraint {
-  /** unique or primary key constraint on columns "organization_id", "email" */
+  /** unique or primary key constraint on columns "email", "organization_id" */
   OrganizationMemberInvitesOrganizationIdEmailKey = 'organization_member_invites_organization_id_email_key',
   /** unique or primary key constraint on columns "id" */
   OrganizationMemberInvitesPkey = 'organization_member_invites_pkey'
@@ -19906,7 +19854,7 @@ export type Organization_Members_Bool_Exp = {
 
 /** unique or primary key constraints on table "organization_members" */
 export enum Organization_Members_Constraint {
-  /** unique or primary key constraint on columns "organization_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "organization_id" */
   OrganizationMembersOrganizationIdUserIdKey = 'organization_members_organization_id_user_id_key',
   /** unique or primary key constraint on columns "id" */
   OrganizationMembersPkey = 'organization_members_pkey'
@@ -21427,11 +21375,8 @@ export type PipelineRuns_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  input?: Maybe<Scalars['jsonb']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
-  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21441,11 +21386,8 @@ export type PipelineRuns_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  input?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
-  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -21456,11 +21398,8 @@ export type PipelineRuns_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   endedAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  input?: Maybe<Scalars['jsonb']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   name?: Maybe<Scalars['String']>;
   startedAt?: Maybe<Scalars['timestamptz']>;
-  substatus?: Maybe<Scalars['jsonb']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -21470,11 +21409,8 @@ export type PipelineRuns_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   endedAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  input?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   startedAt?: InputMaybe<Order_By>;
-  substatus?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -21743,13 +21679,10 @@ export type Plans_Bool_Exp = {
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomResources?: InputMaybe<Boolean_Comparison_Exp>;
-  /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Boolean_Comparison_Exp>;
-  /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: InputMaybe<Int_Comparison_Exp>;
   featureMaxDbSize?: InputMaybe<Int_Comparison_Exp>;
   featureMaxFilesSize?: InputMaybe<Int_Comparison_Exp>;
-  /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isDefault?: InputMaybe<Boolean_Comparison_Exp>;
@@ -21835,15 +21768,7 @@ export type Plans_Insert_Input = {
 export type Plans_Max_Fields = {
   __typename?: 'plans_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
-  deprecated?: Maybe<Scalars['Boolean']>;
-  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
-  featureBackupEnabled?: Maybe<Scalars['Boolean']>;
   featureBackupRetentionDays?: Maybe<Scalars['Int']>;
-  featureCustomDomainsEnabled?: Maybe<Scalars['Boolean']>;
-  featureCustomEmailTemplatesEnabled?: Maybe<Scalars['Boolean']>;
-  featureCustomResources?: Maybe<Scalars['Boolean']>;
-  /** Weather or not to deploy email templates for git deployments */
-  featureDeployEmailTemplates?: Maybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -21851,9 +21776,6 @@ export type Plans_Max_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
-  isDefault?: Maybe<Scalars['Boolean']>;
-  isFree?: Maybe<Scalars['Boolean']>;
-  isPublic?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
@@ -21873,15 +21795,7 @@ export type Plans_Max_Fields = {
 export type Plans_Min_Fields = {
   __typename?: 'plans_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
-  deprecated?: Maybe<Scalars['Boolean']>;
-  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
-  featureBackupEnabled?: Maybe<Scalars['Boolean']>;
   featureBackupRetentionDays?: Maybe<Scalars['Int']>;
-  featureCustomDomainsEnabled?: Maybe<Scalars['Boolean']>;
-  featureCustomEmailTemplatesEnabled?: Maybe<Scalars['Boolean']>;
-  featureCustomResources?: Maybe<Scalars['Boolean']>;
-  /** Weather or not to deploy email templates for git deployments */
-  featureDeployEmailTemplates?: Maybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -21889,9 +21803,6 @@ export type Plans_Min_Fields = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: Maybe<Scalars['Int']>;
   id?: Maybe<Scalars['uuid']>;
-  isDefault?: Maybe<Scalars['Boolean']>;
-  isFree?: Maybe<Scalars['Boolean']>;
-  isPublic?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
@@ -21940,13 +21851,10 @@ export type Plans_Order_By = {
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
   featureCustomResources?: InputMaybe<Order_By>;
-  /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Order_By>;
-  /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: InputMaybe<Order_By>;
   featureMaxDbSize?: InputMaybe<Order_By>;
   featureMaxFilesSize?: InputMaybe<Order_By>;
-  /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isDefault?: InputMaybe<Order_By>;
@@ -21992,15 +21900,15 @@ export enum Plans_Select_Column {
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
   /** column name */
   FeatureCustomResources = 'featureCustomResources',
-  /** Weather or not to deploy email templates for git deployments */
+  /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
-  /** Function execution timeout in seconds */
+  /** column name */
   FeatureFunctionExecutionTimeout = 'featureFunctionExecutionTimeout',
   /** column name */
   FeatureMaxDbSize = 'featureMaxDbSize',
   /** column name */
   FeatureMaxFilesSize = 'featureMaxFilesSize',
-  /** Max number of functions to deploy per git deployment */
+  /** column name */
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
@@ -22198,15 +22106,15 @@ export enum Plans_Update_Column {
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
   /** column name */
   FeatureCustomResources = 'featureCustomResources',
-  /** Weather or not to deploy email templates for git deployments */
+  /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
-  /** Function execution timeout in seconds */
+  /** column name */
   FeatureFunctionExecutionTimeout = 'featureFunctionExecutionTimeout',
   /** column name */
   FeatureMaxDbSize = 'featureMaxDbSize',
   /** column name */
   FeatureMaxFilesSize = 'featureMaxFilesSize',
-  /** Max number of functions to deploy per git deployment */
+  /** column name */
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
@@ -22326,7 +22234,7 @@ export type Query_Root = {
   appStates: Array<AppStates>;
   /** fetch aggregated fields from the table: "app_states" */
   appStatesAggregate: AppStates_Aggregate;
-  /** fetch data from the table: "apps" */
+  /** An array relationship */
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
@@ -22405,7 +22313,7 @@ export type Query_Root = {
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
-  /** fetch data from the table: "backups" */
+  /** An array relationship */
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
@@ -22468,7 +22376,7 @@ export type Query_Root = {
   bucketsAggregate: Buckets_Aggregate;
   /** fetch data from the table: "cli_tokens" using primary key columns */
   cliToken?: Maybe<CliTokens>;
-  /** fetch data from the table: "cli_tokens" */
+  /** An array relationship */
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
@@ -22481,9 +22389,9 @@ export type Query_Root = {
   continents_aggregate: Continents_Aggregate;
   /** fetch data from the table: "continents" using primary key columns */
   continents_by_pk?: Maybe<Continents>;
-  /** fetch data from the table: "countries" */
+  /** An array relationship */
   countries: Array<Countries>;
-  /** fetch aggregated fields from the table: "countries" */
+  /** An aggregate relationship */
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
@@ -22491,11 +22399,11 @@ export type Query_Root = {
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
   deploymentLog?: Maybe<DeploymentLogs>;
-  /** fetch data from the table: "deployment_logs" */
+  /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
   /** fetch aggregated fields from the table: "deployment_logs" */
   deploymentLogsAggregate: DeploymentLogs_Aggregate;
-  /** fetch data from the table: "deployments" */
+  /** An array relationship */
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
@@ -22506,13 +22414,13 @@ export type Query_Root = {
   dnsLookupCNAME: Scalars['String'];
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
-  /** fetch data from the table: "feature_flags" */
+  /** An array relationship */
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
-  /** fetch data from the table: "storage.files" */
+  /** An array relationship */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
@@ -22594,7 +22502,7 @@ export type Query_Root = {
   githubAppInstallations: Array<GithubAppInstallations>;
   /** fetch aggregated fields from the table: "github_app_installations" */
   githubAppInstallationsAggregate: GithubAppInstallations_Aggregate;
-  /** fetch data from the table: "github_repositories" */
+  /** An array relationship */
   githubRepositories: Array<GithubRepositories>;
   /** fetch aggregated fields from the table: "github_repositories" */
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
@@ -22643,7 +22551,7 @@ export type Query_Root = {
   organization_status_aggregate: Organization_Status_Aggregate;
   /** fetch data from the table: "organization_status" using primary key columns */
   organization_status_by_pk?: Maybe<Organization_Status>;
-  /** fetch data from the table: "organizations" */
+  /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
   organizationsAggregate: Organizations_Aggregate;
@@ -22655,7 +22563,7 @@ export type Query_Root = {
   pipelineRunStatus_aggregate: PipelineRunStatus_Aggregate;
   /** fetch data from the table: "pipeline_run_status" using primary key columns */
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
-  /** fetch data from the table: "pipeline_runs" */
+  /** An array relationship */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
@@ -22671,7 +22579,7 @@ export type Query_Root = {
   region_type_aggregate: Region_Type_Aggregate;
   /** fetch data from the table: "region_type" using primary key columns */
   region_type_by_pk?: Maybe<Region_Type>;
-  /** fetch data from the table: "regions" */
+  /** An array relationship */
   regions: Array<Regions>;
   /** fetch data from the table: "regions_allowed_organization" using primary key columns */
   regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
@@ -22679,7 +22587,7 @@ export type Query_Root = {
   regionsAllowedOrganizations: Array<Regions_Allowed_Organization>;
   /** fetch aggregated fields from the table: "regions_allowed_organization" */
   regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
-  /** fetch aggregated fields from the table: "regions" */
+  /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
@@ -22689,7 +22597,7 @@ export type Query_Root = {
   runServiceConfigRawJSON: Scalars['String'];
   runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
   runServiceConfigsAll: Array<ConfigRunServiceConfigWithId>;
-  /** fetch data from the table: "run_service" */
+  /** An array relationship */
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
   runServicesAggregate: Run_Service_Aggregate;
@@ -24920,7 +24828,7 @@ export type Regions_Allowed_Organization_Bool_Exp = {
 export enum Regions_Allowed_Organization_Constraint {
   /** unique or primary key constraint on columns "id" */
   RegionsAllowedOrganizationPkey = 'regions_allowed_organization_pkey',
-  /** unique or primary key constraint on columns "region_id", "organization_id" */
+  /** unique or primary key constraint on columns "organization_id", "region_id" */
   RegionsAllowedOrganizationRegionIdOrganizationIdKey = 'regions_allowed_organization_region_id_organization_id_key'
 }
 
@@ -25139,7 +25047,6 @@ export type Regions_Insert_Input = {
 /** aggregate max on columns */
 export type Regions_Max_Fields = {
   __typename?: 'regions_max_fields';
-  active?: Maybe<Scalars['Boolean']>;
   awsName?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
@@ -25147,14 +25054,12 @@ export type Regions_Max_Fields = {
   description?: Maybe<Scalars['String']>;
   domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  isGdprCompliant?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by max() on columns of table "regions" */
 export type Regions_Max_Order_By = {
-  active?: InputMaybe<Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
@@ -25162,7 +25067,6 @@ export type Regions_Max_Order_By = {
   description?: InputMaybe<Order_By>;
   domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isGdprCompliant?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -25170,7 +25074,6 @@ export type Regions_Max_Order_By = {
 /** aggregate min on columns */
 export type Regions_Min_Fields = {
   __typename?: 'regions_min_fields';
-  active?: Maybe<Scalars['Boolean']>;
   awsName?: Maybe<Scalars['String']>;
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
@@ -25178,14 +25081,12 @@ export type Regions_Min_Fields = {
   description?: Maybe<Scalars['String']>;
   domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  isGdprCompliant?: Maybe<Scalars['Boolean']>;
   name?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** order by min() on columns of table "regions" */
 export type Regions_Min_Order_By = {
-  active?: InputMaybe<Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
@@ -25193,7 +25094,6 @@ export type Regions_Min_Order_By = {
   description?: InputMaybe<Order_By>;
   domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isGdprCompliant?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -26184,7 +26084,7 @@ export type Subscription_Root = {
   appStatesAggregate: AppStates_Aggregate;
   /** fetch data from the table in a streaming manner: "app_states" */
   appStates_stream: Array<AppStates>;
-  /** fetch data from the table: "apps" */
+  /** An array relationship */
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
@@ -26288,7 +26188,7 @@ export type Subscription_Root = {
   authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
-  /** fetch data from the table: "backups" */
+  /** An array relationship */
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
@@ -26368,7 +26268,7 @@ export type Subscription_Root = {
   buckets_stream: Array<Buckets>;
   /** fetch data from the table: "cli_tokens" using primary key columns */
   cliToken?: Maybe<CliTokens>;
-  /** fetch data from the table: "cli_tokens" */
+  /** An array relationship */
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
@@ -26382,9 +26282,9 @@ export type Subscription_Root = {
   continents_by_pk?: Maybe<Continents>;
   /** fetch data from the table in a streaming manner: "continents" */
   continents_stream: Array<Continents>;
-  /** fetch data from the table: "countries" */
+  /** An array relationship */
   countries: Array<Countries>;
-  /** fetch aggregated fields from the table: "countries" */
+  /** An aggregate relationship */
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
@@ -26394,13 +26294,13 @@ export type Subscription_Root = {
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
   deploymentLog?: Maybe<DeploymentLogs>;
-  /** fetch data from the table: "deployment_logs" */
+  /** An array relationship */
   deploymentLogs: Array<DeploymentLogs>;
   /** fetch aggregated fields from the table: "deployment_logs" */
   deploymentLogsAggregate: DeploymentLogs_Aggregate;
   /** fetch data from the table in a streaming manner: "deployment_logs" */
   deploymentLogs_stream: Array<DeploymentLogs>;
-  /** fetch data from the table: "deployments" */
+  /** An array relationship */
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
@@ -26408,7 +26308,7 @@ export type Subscription_Root = {
   deployments_stream: Array<Deployments>;
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
-  /** fetch data from the table: "feature_flags" */
+  /** An array relationship */
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
@@ -26416,7 +26316,7 @@ export type Subscription_Root = {
   featureFlags_stream: Array<FeatureFlags>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
-  /** fetch data from the table: "storage.files" */
+  /** An array relationship */
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
@@ -26440,7 +26340,7 @@ export type Subscription_Root = {
   githubAppInstallationsAggregate: GithubAppInstallations_Aggregate;
   /** fetch data from the table in a streaming manner: "github_app_installations" */
   githubAppInstallations_stream: Array<GithubAppInstallations>;
-  /** fetch data from the table: "github_repositories" */
+  /** An array relationship */
   githubRepositories: Array<GithubRepositories>;
   /** fetch aggregated fields from the table: "github_repositories" */
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
@@ -26503,7 +26403,7 @@ export type Subscription_Root = {
   organization_status_by_pk?: Maybe<Organization_Status>;
   /** fetch data from the table in a streaming manner: "organization_status" */
   organization_status_stream: Array<Organization_Status>;
-  /** fetch data from the table: "organizations" */
+  /** An array relationship */
   organizations: Array<Organizations>;
   /** fetch aggregated fields from the table: "organizations" */
   organizationsAggregate: Organizations_Aggregate;
@@ -26519,7 +26419,7 @@ export type Subscription_Root = {
   pipelineRunStatus_by_pk?: Maybe<PipelineRunStatus>;
   /** fetch data from the table in a streaming manner: "pipeline_run_status" */
   pipelineRunStatus_stream: Array<PipelineRunStatus>;
-  /** fetch data from the table: "pipeline_runs" */
+  /** An array relationship */
   pipelineRuns: Array<PipelineRuns>;
   /** fetch aggregated fields from the table: "pipeline_runs" */
   pipelineRunsAggregate: PipelineRuns_Aggregate;
@@ -26541,7 +26441,7 @@ export type Subscription_Root = {
   region_type_by_pk?: Maybe<Region_Type>;
   /** fetch data from the table in a streaming manner: "region_type" */
   region_type_stream: Array<Region_Type>;
-  /** fetch data from the table: "regions" */
+  /** An array relationship */
   regions: Array<Regions>;
   /** fetch data from the table: "regions_allowed_organization" using primary key columns */
   regionsAllowedOrganization?: Maybe<Regions_Allowed_Organization>;
@@ -26551,7 +26451,7 @@ export type Subscription_Root = {
   regionsAllowedOrganizationsAggregate: Regions_Allowed_Organization_Aggregate;
   /** fetch data from the table in a streaming manner: "regions_allowed_organization" */
   regionsAllowedOrganizationsStream: Array<Regions_Allowed_Organization>;
-  /** fetch aggregated fields from the table: "regions" */
+  /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
@@ -26559,7 +26459,7 @@ export type Subscription_Root = {
   regions_stream: Array<Regions>;
   /** fetch data from the table: "run_service" using primary key columns */
   runService?: Maybe<Run_Service>;
-  /** fetch data from the table: "run_service" */
+  /** An array relationship */
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
   runServicesAggregate: Run_Service_Aggregate;
@@ -30170,8 +30070,6 @@ export type SupportTicketTransitions_Aggregate = {
 export type SupportTicketTransitions_Aggregate_Fields = {
   __typename?: 'supportTicketTransitions_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<SupportTicketTransitions_Max_Fields>;
-  min?: Maybe<SupportTicketTransitions_Min_Fields>;
 };
 
 
@@ -30193,7 +30091,7 @@ export type SupportTicketTransitions_Bool_Exp = {
 
 /** unique or primary key constraints on table "support.ticket_transitions" */
 export enum SupportTicketTransitions_Constraint {
-  /** unique or primary key constraint on columns "from_status", "to_status" */
+  /** unique or primary key constraint on columns "to_status", "from_status" */
   TicketTransitionsPkey = 'ticket_transitions_pkey'
 }
 
@@ -30202,18 +30100,6 @@ export type SupportTicketTransitions_Insert_Input = {
   customerAllowed?: InputMaybe<Scalars['Boolean']>;
   fromStatus?: InputMaybe<SupportTicketStatuses_Enum>;
   toStatus?: InputMaybe<SupportTicketStatuses_Enum>;
-};
-
-/** aggregate max on columns */
-export type SupportTicketTransitions_Max_Fields = {
-  __typename?: 'supportTicketTransitions_max_fields';
-  customerAllowed?: Maybe<Scalars['Boolean']>;
-};
-
-/** aggregate min on columns */
-export type SupportTicketTransitions_Min_Fields = {
-  __typename?: 'supportTicketTransitions_min_fields';
-  customerAllowed?: Maybe<Scalars['Boolean']>;
 };
 
 /** response of any mutation on the table "support.ticket_transitions" */
@@ -30537,6 +30423,7 @@ export type SupportTickets_Max_Fields = {
   requesterID?: Maybe<Scalars['uuid']>;
   requesterName?: Maybe<Scalars['String']>;
   resolvedAt?: Maybe<Scalars['timestamptz']>;
+  services?: Maybe<Array<Scalars['String']>>;
   title?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   updatedByID?: Maybe<Scalars['uuid']>;
@@ -30562,6 +30449,7 @@ export type SupportTickets_Min_Fields = {
   requesterID?: Maybe<Scalars['uuid']>;
   requesterName?: Maybe<Scalars['String']>;
   resolvedAt?: Maybe<Scalars['timestamptz']>;
+  services?: Maybe<Array<Scalars['String']>>;
   title?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   updatedByID?: Maybe<Scalars['uuid']>;
@@ -31542,15 +31430,11 @@ export type Users_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
-  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
-  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
-  isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   new_phone_number?: Maybe<Scalars['String']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -31558,9 +31442,7 @@ export type Users_Max_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
-  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
-  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
   totpSecret?: Maybe<Scalars['String']>;
@@ -31574,15 +31456,11 @@ export type Users_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
-  disabled?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
-  emailVerified?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isAnonymous?: InputMaybe<Order_By>;
   lastSeen?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
   new_phone_number?: InputMaybe<Order_By>;
   otpHash?: InputMaybe<Order_By>;
@@ -31590,9 +31468,7 @@ export type Users_Max_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
-  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
-  phoneNumberVerified?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
   totpSecret?: InputMaybe<Order_By>;
@@ -31607,15 +31483,11 @@ export type Users_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
-  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
-  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
-  isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
-  metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   new_phone_number?: Maybe<Scalars['String']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -31623,9 +31495,7 @@ export type Users_Min_Fields = {
   otpMethodLastUsed?: Maybe<Scalars['String']>;
   otp_attempts?: Maybe<Scalars['smallint']>;
   passwordHash?: Maybe<Scalars['String']>;
-  pending_sms_deanonymize_options?: Maybe<Scalars['jsonb']>;
   phoneNumber?: Maybe<Scalars['String']>;
-  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
   ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
   totpSecret?: Maybe<Scalars['String']>;
@@ -31639,15 +31509,11 @@ export type Users_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
-  disabled?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
-  emailVerified?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isAnonymous?: InputMaybe<Order_By>;
   lastSeen?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
-  metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
   new_phone_number?: InputMaybe<Order_By>;
   otpHash?: InputMaybe<Order_By>;
@@ -31655,9 +31521,7 @@ export type Users_Min_Order_By = {
   otpMethodLastUsed?: InputMaybe<Order_By>;
   otp_attempts?: InputMaybe<Order_By>;
   passwordHash?: InputMaybe<Order_By>;
-  pending_sms_deanonymize_options?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
-  phoneNumberVerified?: InputMaybe<Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
   totpSecret?: InputMaybe<Order_By>;
@@ -32187,7 +32051,6 @@ export type Virus_Max_Fields = {
   filename?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  userSession?: Maybe<Scalars['jsonb']>;
   virus?: Maybe<Scalars['String']>;
 };
 
@@ -32199,7 +32062,6 @@ export type Virus_Min_Fields = {
   filename?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  userSession?: Maybe<Scalars['jsonb']>;
   virus?: Maybe<Scalars['String']>;
 };
 
@@ -33496,6 +33358,43 @@ export type UpdateRunServiceConfigMutationVariables = Exact<{
 
 export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
 
+export type DashboardCreateSupportAttachmentDraftMutationVariables = Exact<{
+  organizationId: Scalars['uuid'];
+}>;
+
+
+export type DashboardCreateSupportAttachmentDraftMutation = { __typename?: 'mutation_root', insertSupportAttachmentDraft?: { __typename?: 'supportAttachmentDrafts', id: any, createdAt: any } | null };
+
+export type DashboardSupportAttachmentDraftQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type DashboardSupportAttachmentDraftQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any }>, supportAttachmentDraft?: { __typename?: 'supportAttachmentDrafts', id: any, organizationID: any, createdAt: any, uploads: Array<{ __typename?: 'supportAttachmentUploads', id: any }>, attachments: Array<{ __typename?: 'supportAttachmentUploads', id: any, file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null } | null }> } | null };
+
+export type DashboardReserveSupportDraftAttachmentMutationVariables = Exact<{
+  draftId: Scalars['uuid'];
+}>;
+
+
+export type DashboardReserveSupportDraftAttachmentMutation = { __typename?: 'mutation_root', insertSupportAttachmentUpload?: { __typename?: 'supportAttachmentUploads', id: any } | null };
+
+export type DashboardDiscardSupportDraftAttachmentMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  at: Scalars['timestamptz'];
+}>;
+
+
+export type DashboardDiscardSupportDraftAttachmentMutation = { __typename?: 'mutation_root', updateSupportAttachmentUploads?: { __typename?: 'supportAttachmentUploads_mutation_response', affected_rows: number } | null };
+
+export type DashboardSupportDraftAttachmentReservationQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DashboardSupportDraftAttachmentReservationQuery = { __typename?: 'query_root', supportAttachmentUpload?: { __typename?: 'supportAttachmentUploads', discardedAt?: any | null } | null };
+
 export type DashboardSupportTicketFragment = { __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any };
 
 export type DashboardSupportTicketsQueryVariables = Exact<{
@@ -33511,7 +33410,7 @@ export type DashboardSupportTicketQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportTicketQuery = { __typename?: 'query_root', supportTicket?: { __typename?: 'supportTickets', description: string, resolvedAt?: any | null, closedAt?: any | null, id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any } | null, supportTicketTransitions: Array<{ __typename?: 'supportTicketTransitions', fromStatus: SupportTicketStatuses_Enum, toStatus: SupportTicketStatuses_Enum }> };
+export type DashboardSupportTicketQuery = { __typename?: 'query_root', supportTicket?: { __typename?: 'supportTickets', description: string, resolvedAt?: any | null, closedAt?: any | null, id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, organization: { __typename?: 'organizations', plan: { __typename?: 'plans', supportAllowedSeverities: Array<string> } } } | null, supportTicketTransitions: Array<{ __typename?: 'supportTicketTransitions', fromStatus: SupportTicketStatuses_Enum, toStatus: SupportTicketStatuses_Enum }> };
 
 export type DashboardSupportCommentsQueryVariables = Exact<{
   id: Scalars['uuid'];
@@ -33533,7 +33432,7 @@ export type DashboardSupportOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, apps: Array<{ __typename?: 'apps', id: any, name: string }> }> };
+export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, plan: { __typename?: 'plans', supportAllowedSeverities: Array<string> }, apps: Array<{ __typename?: 'apps', id: any, name: string }> }> };
 
 export type DashboardCreateSupportTicketMutationVariables = Exact<{
   input: SupportTickets_Insert_Input;
@@ -33549,6 +33448,21 @@ export type DashboardReplyToSupportTicketMutationVariables = Exact<{
 
 
 export type DashboardReplyToSupportTicketMutation = { __typename?: 'mutation_root', insertSupportComment?: { __typename?: 'supportComments', id: any } | null };
+
+export type DashboardSupportAttachmentsQueryVariables = Exact<{
+  ticketId: Scalars['uuid'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type DashboardSupportAttachmentsQuery = { __typename?: 'query_root', supportTicket?: { __typename?: 'supportTickets', attachments: Array<{ __typename?: 'supportAttachmentUploads', id: any, uploaderName: string, createdAt: any, file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null, mimeType?: string | null } | null }> } | null };
+
+export type DashboardReserveSupportAttachmentMutationVariables = Exact<{
+  ticketId: Scalars['uuid'];
+}>;
+
+
+export type DashboardReserveSupportAttachmentMutation = { __typename?: 'mutation_root', insertSupportAttachmentUpload?: { __typename?: 'supportAttachmentUploads', id: any } | null };
 
 export type DashboardUpdateSupportTicketMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -40733,6 +40647,213 @@ export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationH
 export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
+export const DashboardCreateSupportAttachmentDraftDocument = gql`
+    mutation dashboardCreateSupportAttachmentDraft($organizationId: uuid!) {
+  insertSupportAttachmentDraft(object: {organizationID: $organizationId}) {
+    id
+    createdAt
+  }
+}
+    `;
+export type DashboardCreateSupportAttachmentDraftMutationFn = Apollo.MutationFunction<DashboardCreateSupportAttachmentDraftMutation, DashboardCreateSupportAttachmentDraftMutationVariables>;
+
+/**
+ * __useDashboardCreateSupportAttachmentDraftMutation__
+ *
+ * To run a mutation, you first call `useDashboardCreateSupportAttachmentDraftMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDashboardCreateSupportAttachmentDraftMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [dashboardCreateSupportAttachmentDraftMutation, { data, loading, error }] = useDashboardCreateSupportAttachmentDraftMutation({
+ *   variables: {
+ *      organizationId: // value for 'organizationId'
+ *   },
+ * });
+ */
+export function useDashboardCreateSupportAttachmentDraftMutation(baseOptions?: Apollo.MutationHookOptions<DashboardCreateSupportAttachmentDraftMutation, DashboardCreateSupportAttachmentDraftMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DashboardCreateSupportAttachmentDraftMutation, DashboardCreateSupportAttachmentDraftMutationVariables>(DashboardCreateSupportAttachmentDraftDocument, options);
+      }
+export type DashboardCreateSupportAttachmentDraftMutationHookResult = ReturnType<typeof useDashboardCreateSupportAttachmentDraftMutation>;
+export type DashboardCreateSupportAttachmentDraftMutationResult = Apollo.MutationResult<DashboardCreateSupportAttachmentDraftMutation>;
+export type DashboardCreateSupportAttachmentDraftMutationOptions = Apollo.BaseMutationOptions<DashboardCreateSupportAttachmentDraftMutation, DashboardCreateSupportAttachmentDraftMutationVariables>;
+export const DashboardSupportAttachmentDraftDocument = gql`
+    query dashboardSupportAttachmentDraft($id: uuid!, $offset: Int!) {
+  supportTickets(where: {attachmentDraftID: {_eq: $id}}, limit: 1) {
+    id
+  }
+  supportAttachmentDraft(id: $id) {
+    id
+    organizationID
+    createdAt
+    uploads(
+      where: {discardedAt: {_is_null: true}}
+      order_by: [{createdAt: asc}, {id: asc}]
+      limit: 100
+      offset: $offset
+    ) {
+      id
+    }
+    attachments(
+      where: {discardedAt: {_is_null: true}, file: {bucketId: {_eq: "support_tickets_attachments"}, isUploaded: {_eq: true}}}
+      order_by: [{createdAt: asc}, {id: asc}]
+      limit: 100
+      offset: $offset
+    ) {
+      id
+      file {
+        id
+        name
+        size
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportAttachmentDraftQuery__
+ *
+ * To run a query within a React component, call `useDashboardSupportAttachmentDraftQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportAttachmentDraftQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportAttachmentDraftQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useDashboardSupportAttachmentDraftQuery(baseOptions: Apollo.QueryHookOptions<DashboardSupportAttachmentDraftQuery, DashboardSupportAttachmentDraftQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DashboardSupportAttachmentDraftQuery, DashboardSupportAttachmentDraftQueryVariables>(DashboardSupportAttachmentDraftDocument, options);
+      }
+export function useDashboardSupportAttachmentDraftLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DashboardSupportAttachmentDraftQuery, DashboardSupportAttachmentDraftQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DashboardSupportAttachmentDraftQuery, DashboardSupportAttachmentDraftQueryVariables>(DashboardSupportAttachmentDraftDocument, options);
+        }
+export type DashboardSupportAttachmentDraftQueryHookResult = ReturnType<typeof useDashboardSupportAttachmentDraftQuery>;
+export type DashboardSupportAttachmentDraftLazyQueryHookResult = ReturnType<typeof useDashboardSupportAttachmentDraftLazyQuery>;
+export type DashboardSupportAttachmentDraftQueryResult = Apollo.QueryResult<DashboardSupportAttachmentDraftQuery, DashboardSupportAttachmentDraftQueryVariables>;
+export function refetchDashboardSupportAttachmentDraftQuery(variables: DashboardSupportAttachmentDraftQueryVariables) {
+      return { query: DashboardSupportAttachmentDraftDocument, variables: variables }
+    }
+export const DashboardReserveSupportDraftAttachmentDocument = gql`
+    mutation dashboardReserveSupportDraftAttachment($draftId: uuid!) {
+  insertSupportAttachmentUpload(object: {draftID: $draftId}) {
+    id
+  }
+}
+    `;
+export type DashboardReserveSupportDraftAttachmentMutationFn = Apollo.MutationFunction<DashboardReserveSupportDraftAttachmentMutation, DashboardReserveSupportDraftAttachmentMutationVariables>;
+
+/**
+ * __useDashboardReserveSupportDraftAttachmentMutation__
+ *
+ * To run a mutation, you first call `useDashboardReserveSupportDraftAttachmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDashboardReserveSupportDraftAttachmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [dashboardReserveSupportDraftAttachmentMutation, { data, loading, error }] = useDashboardReserveSupportDraftAttachmentMutation({
+ *   variables: {
+ *      draftId: // value for 'draftId'
+ *   },
+ * });
+ */
+export function useDashboardReserveSupportDraftAttachmentMutation(baseOptions?: Apollo.MutationHookOptions<DashboardReserveSupportDraftAttachmentMutation, DashboardReserveSupportDraftAttachmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DashboardReserveSupportDraftAttachmentMutation, DashboardReserveSupportDraftAttachmentMutationVariables>(DashboardReserveSupportDraftAttachmentDocument, options);
+      }
+export type DashboardReserveSupportDraftAttachmentMutationHookResult = ReturnType<typeof useDashboardReserveSupportDraftAttachmentMutation>;
+export type DashboardReserveSupportDraftAttachmentMutationResult = Apollo.MutationResult<DashboardReserveSupportDraftAttachmentMutation>;
+export type DashboardReserveSupportDraftAttachmentMutationOptions = Apollo.BaseMutationOptions<DashboardReserveSupportDraftAttachmentMutation, DashboardReserveSupportDraftAttachmentMutationVariables>;
+export const DashboardDiscardSupportDraftAttachmentDocument = gql`
+    mutation dashboardDiscardSupportDraftAttachment($id: uuid!, $at: timestamptz!) {
+  updateSupportAttachmentUploads(
+    where: {id: {_eq: $id}}
+    _set: {discardedAt: $at}
+  ) {
+    affected_rows
+  }
+}
+    `;
+export type DashboardDiscardSupportDraftAttachmentMutationFn = Apollo.MutationFunction<DashboardDiscardSupportDraftAttachmentMutation, DashboardDiscardSupportDraftAttachmentMutationVariables>;
+
+/**
+ * __useDashboardDiscardSupportDraftAttachmentMutation__
+ *
+ * To run a mutation, you first call `useDashboardDiscardSupportDraftAttachmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDashboardDiscardSupportDraftAttachmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [dashboardDiscardSupportDraftAttachmentMutation, { data, loading, error }] = useDashboardDiscardSupportDraftAttachmentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      at: // value for 'at'
+ *   },
+ * });
+ */
+export function useDashboardDiscardSupportDraftAttachmentMutation(baseOptions?: Apollo.MutationHookOptions<DashboardDiscardSupportDraftAttachmentMutation, DashboardDiscardSupportDraftAttachmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DashboardDiscardSupportDraftAttachmentMutation, DashboardDiscardSupportDraftAttachmentMutationVariables>(DashboardDiscardSupportDraftAttachmentDocument, options);
+      }
+export type DashboardDiscardSupportDraftAttachmentMutationHookResult = ReturnType<typeof useDashboardDiscardSupportDraftAttachmentMutation>;
+export type DashboardDiscardSupportDraftAttachmentMutationResult = Apollo.MutationResult<DashboardDiscardSupportDraftAttachmentMutation>;
+export type DashboardDiscardSupportDraftAttachmentMutationOptions = Apollo.BaseMutationOptions<DashboardDiscardSupportDraftAttachmentMutation, DashboardDiscardSupportDraftAttachmentMutationVariables>;
+export const DashboardSupportDraftAttachmentReservationDocument = gql`
+    query dashboardSupportDraftAttachmentReservation($id: uuid!) {
+  supportAttachmentUpload(id: $id) {
+    discardedAt
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportDraftAttachmentReservationQuery__
+ *
+ * To run a query within a React component, call `useDashboardSupportDraftAttachmentReservationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportDraftAttachmentReservationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportDraftAttachmentReservationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDashboardSupportDraftAttachmentReservationQuery(baseOptions: Apollo.QueryHookOptions<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>(DashboardSupportDraftAttachmentReservationDocument, options);
+      }
+export function useDashboardSupportDraftAttachmentReservationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>(DashboardSupportDraftAttachmentReservationDocument, options);
+        }
+export type DashboardSupportDraftAttachmentReservationQueryHookResult = ReturnType<typeof useDashboardSupportDraftAttachmentReservationQuery>;
+export type DashboardSupportDraftAttachmentReservationLazyQueryHookResult = ReturnType<typeof useDashboardSupportDraftAttachmentReservationLazyQuery>;
+export type DashboardSupportDraftAttachmentReservationQueryResult = Apollo.QueryResult<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>;
+export function refetchDashboardSupportDraftAttachmentReservationQuery(variables: DashboardSupportDraftAttachmentReservationQueryVariables) {
+      return { query: DashboardSupportDraftAttachmentReservationDocument, variables: variables }
+    }
 export const DashboardSupportTicketsDocument = gql`
     query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!) {
   supportTickets(
@@ -40784,6 +40905,11 @@ export const DashboardSupportTicketDocument = gql`
     description
     resolvedAt
     closedAt
+    organization {
+      plan {
+        supportAllowedSeverities
+      }
+    }
   }
   supportTicketTransitions {
     fromStatus
@@ -40923,6 +41049,9 @@ export const DashboardSupportOrganizationsDocument = gql`
   organizations(where: {members: {userID: {_eq: $userId}}}, order_by: {name: asc}) {
     id
     name
+    plan {
+      supportAllowedSeverities
+    }
     apps(order_by: {name: asc}) {
       id
       name
@@ -41028,6 +41157,93 @@ export function useDashboardReplyToSupportTicketMutation(baseOptions?: Apollo.Mu
 export type DashboardReplyToSupportTicketMutationHookResult = ReturnType<typeof useDashboardReplyToSupportTicketMutation>;
 export type DashboardReplyToSupportTicketMutationResult = Apollo.MutationResult<DashboardReplyToSupportTicketMutation>;
 export type DashboardReplyToSupportTicketMutationOptions = Apollo.BaseMutationOptions<DashboardReplyToSupportTicketMutation, DashboardReplyToSupportTicketMutationVariables>;
+export const DashboardSupportAttachmentsDocument = gql`
+    query dashboardSupportAttachments($ticketId: uuid!, $offset: Int!) {
+  supportTicket(id: $ticketId) {
+    attachments(
+      where: {discardedAt: {_is_null: true}, file: {bucketId: {_eq: "support_tickets_attachments"}, isUploaded: {_eq: true}}}
+      limit: 100
+      offset: $offset
+      order_by: [{createdAt: asc}, {id: asc}]
+    ) {
+      id
+      uploaderName
+      createdAt
+      file {
+        id
+        name
+        size
+        mimeType
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportAttachmentsQuery__
+ *
+ * To run a query within a React component, call `useDashboardSupportAttachmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportAttachmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportAttachmentsQuery({
+ *   variables: {
+ *      ticketId: // value for 'ticketId'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useDashboardSupportAttachmentsQuery(baseOptions: Apollo.QueryHookOptions<DashboardSupportAttachmentsQuery, DashboardSupportAttachmentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DashboardSupportAttachmentsQuery, DashboardSupportAttachmentsQueryVariables>(DashboardSupportAttachmentsDocument, options);
+      }
+export function useDashboardSupportAttachmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DashboardSupportAttachmentsQuery, DashboardSupportAttachmentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DashboardSupportAttachmentsQuery, DashboardSupportAttachmentsQueryVariables>(DashboardSupportAttachmentsDocument, options);
+        }
+export type DashboardSupportAttachmentsQueryHookResult = ReturnType<typeof useDashboardSupportAttachmentsQuery>;
+export type DashboardSupportAttachmentsLazyQueryHookResult = ReturnType<typeof useDashboardSupportAttachmentsLazyQuery>;
+export type DashboardSupportAttachmentsQueryResult = Apollo.QueryResult<DashboardSupportAttachmentsQuery, DashboardSupportAttachmentsQueryVariables>;
+export function refetchDashboardSupportAttachmentsQuery(variables: DashboardSupportAttachmentsQueryVariables) {
+      return { query: DashboardSupportAttachmentsDocument, variables: variables }
+    }
+export const DashboardReserveSupportAttachmentDocument = gql`
+    mutation dashboardReserveSupportAttachment($ticketId: uuid!) {
+  insertSupportAttachmentUpload(object: {ticketID: $ticketId}) {
+    id
+  }
+}
+    `;
+export type DashboardReserveSupportAttachmentMutationFn = Apollo.MutationFunction<DashboardReserveSupportAttachmentMutation, DashboardReserveSupportAttachmentMutationVariables>;
+
+/**
+ * __useDashboardReserveSupportAttachmentMutation__
+ *
+ * To run a mutation, you first call `useDashboardReserveSupportAttachmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDashboardReserveSupportAttachmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [dashboardReserveSupportAttachmentMutation, { data, loading, error }] = useDashboardReserveSupportAttachmentMutation({
+ *   variables: {
+ *      ticketId: // value for 'ticketId'
+ *   },
+ * });
+ */
+export function useDashboardReserveSupportAttachmentMutation(baseOptions?: Apollo.MutationHookOptions<DashboardReserveSupportAttachmentMutation, DashboardReserveSupportAttachmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DashboardReserveSupportAttachmentMutation, DashboardReserveSupportAttachmentMutationVariables>(DashboardReserveSupportAttachmentDocument, options);
+      }
+export type DashboardReserveSupportAttachmentMutationHookResult = ReturnType<typeof useDashboardReserveSupportAttachmentMutation>;
+export type DashboardReserveSupportAttachmentMutationResult = Apollo.MutationResult<DashboardReserveSupportAttachmentMutation>;
+export type DashboardReserveSupportAttachmentMutationOptions = Apollo.BaseMutationOptions<DashboardReserveSupportAttachmentMutation, DashboardReserveSupportAttachmentMutationVariables>;
 export const DashboardUpdateSupportTicketDocument = gql`
     mutation dashboardUpdateSupportTicket($id: uuid!, $version: Int!, $changes: supportTickets_set_input!) {
   updateSupportTickets(

@@ -1,5 +1,10 @@
 import { SupportSeverities_Enum } from '@/generated/graphql';
-import { ticketFilter, ticketFormSchema, ticketSearchSchema } from './tickets';
+import {
+  getAllowedSupportSeverities,
+  ticketFilter,
+  ticketFormSchema,
+  ticketSearchSchema,
+} from './tickets';
 
 const organizationID = '0d9c1e17-4983-4d38-b793-1be03368bec1';
 const input = {
@@ -88,5 +93,24 @@ describe('support ticket validation and filters', () => {
         { assigneeID: { _is_null: true } },
       ],
     });
+  });
+});
+
+describe('plan support severities', () => {
+  it.each([undefined, null, []])(
+    'fails closed for missing or empty entitlements (%s)',
+    (allowed) => {
+      expect(getAllowedSupportSeverities(allowed)).toEqual([]);
+    },
+  );
+  it('uses the configured subset in severity order, ignoring duplicates and unknown values', () => {
+    expect(
+      getAllowedSupportSeverities(['urgent', 'unknown', 'low', 'urgent']),
+    ).toEqual([SupportSeverities_Enum.Low, SupportSeverities_Enum.Urgent]);
+  });
+  it('does not assume that low is always allowed', () => {
+    expect(getAllowedSupportSeverities(['high'])).toEqual([
+      SupportSeverities_Enum.High,
+    ]);
   });
 });

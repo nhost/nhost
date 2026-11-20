@@ -94,6 +94,12 @@ export function ticketFilter(
   return { _and: filters };
 }
 
+export function getAllowedSupportSeverities(
+  allowed: readonly string[] | null | undefined,
+): SupportSeverities_Enum[] {
+  return SEVERITIES.filter((severity) => allowed?.includes(severity));
+}
+
 export function supportLabel(value: string): string {
   const labels: Record<string, string> = {
     auth: 'Authentication',

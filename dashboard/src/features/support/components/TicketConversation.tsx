@@ -3,11 +3,12 @@ import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form } from '@/components/form/Form';
-import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
+import SupportMarkdown from '@/features/support/components/SupportMarkdown';
+import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import { PAGE_SIZE, supportDate } from '@/features/support/utils/tickets';
 import {
@@ -116,9 +117,7 @@ export default function TicketConversation({
                   {supportDate(comment.createdAt)}
                 </time>
               </div>
-              <p className="whitespace-pre-wrap break-words text-sm">
-                {comment.body}
-              </p>
+              <SupportMarkdown>{comment.body}</SupportMarkdown>
             </article>
           ))}
         </>
@@ -140,12 +139,14 @@ export default function TicketConversation({
               });
             }}
           >
-            <FormTextarea
+            <SupportMarkdownEditor
               control={form.control}
               name="body"
               label="Your reply"
               placeholder="Write a reply…"
-              className="min-h-32"
+              disabled={
+                disabled || comments.isError || form.formState.isSubmitting
+              }
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground text-xs">

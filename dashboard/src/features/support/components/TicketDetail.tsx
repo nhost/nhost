@@ -15,7 +15,9 @@ import {
   SupportBackLink,
   SupportError,
 } from '@/features/support/components/SupportArea';
+import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import TicketActivity from '@/features/support/components/TicketActivity';
+import TicketAttachments from '@/features/support/components/TicketAttachments';
 import {
   TicketSeverity,
   TicketStatus,
@@ -23,6 +25,7 @@ import {
 import TicketConversation from '@/features/support/components/TicketConversation';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
+  getAllowedSupportSeverities,
   SEVERITIES,
   supportDate,
   supportLabel,
@@ -56,6 +59,9 @@ export default function TicketDetail() {
     refetchInterval: 30000,
   });
   const ticket = detail.data?.supportTicket;
+  const allowedSeverities = getAllowedSupportSeverities(
+    ticket?.organization?.plan?.supportAllowedSeverities,
+  );
   async function invalidate() {
     await client.invalidateQueries({ queryKey: ['support', user?.id] });
   }
@@ -66,6 +72,11 @@ export default function TicketDetail() {
       }
       if (!ticket) {
         throw new Error('This ticket is no longer available.');
+      }
+      if (changes.severity && !allowedSeverities.includes(changes.severity)) {
+        throw new Error(
+          'This severity is not available on the organization’s current plan.',
+        );
       }
       const result = await request<DashboardUpdateSupportTicketMutation>(
         DashboardUpdateSupportTicketDocument,
@@ -164,10 +175,13 @@ export default function TicketDetail() {
                 {supportDate(ticket.createdAt)}
               </time>
             </div>
-            <p className="whitespace-pre-wrap break-words text-sm">
-              {ticket.description}
-            </p>
+            <SupportMarkdown>{ticket.description}</SupportMarkdown>
           </article>
+          <TicketAttachments
+            ticketId={ticketId}
+            closed={closed}
+            disabled={isPending}
+          />
           <TicketConversation
             ticketId={ticketId}
             closed={closed}
@@ -255,10 +269,10 @@ export default function TicketDetail() {
                 value={ticket.severity}
                 disabled={isPending}
                 onValueChange={(value) => {
-                  const severity = SEVERITIES.find(
+                  const severity = allowedSeverities.find(
                     (candidate) => candidate === value,
                   );
-                  if (severity) {
+                  if (severity && severity !== ticket.severity) {
                     void changeTicket({ severity });
                   }
                 }}
@@ -268,12 +282,21 @@ export default function TicketDetail() {
                 </SelectTrigger>
                 <SelectContent>
                   {SEVERITIES.map((severity) => (
-                    <SelectItem key={severity} value={severity}>
+                    <SelectItem
+                      key={severity}
+                      value={severity}
+                      disabled={!allowedSeverities.includes(severity)}
+                    >
                       {supportLabel(severity)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-muted-foreground text-xs">
+                {allowedSeverities.length
+                  ? 'Available severities are determined by the organization’s current plan.'
+                  : 'This organization’s plan does not allow severity changes.'}
+              </p>
             </div>
           )}
           <div>

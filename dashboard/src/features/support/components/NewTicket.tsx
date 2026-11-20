@@ -1,23 +1,27 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormTextarea } from '@/components/form/FormTextarea';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import DraftAttachments from '@/features/support/components/DraftAttachments';
 import {
   SupportBackLink,
   SupportError,
 } from '@/features/support/components/SupportArea';
+import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
+import { useSupportAttachmentDraft } from '@/features/support/hooks/use-support-attachment-draft';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
+  getAllowedSupportSeverities,
   SERVICES,
   SEVERITIES,
   supportLabel,
@@ -33,6 +37,11 @@ import {
 } from '@/generated/graphql';
 
 export default function NewTicket() {
+  const { user } = useSupportSession();
+  return <NewTicketForm key={user?.id ?? 'signed-out'} />;
+}
+
+function NewTicketForm() {
   const router = useRouter();
   const client = useQueryClient();
   const { user, request } = useSupportSession();
@@ -43,11 +52,12 @@ export default function NewTicket() {
       projectID: 'none',
       title: '',
       description: '',
-      severity: SupportSeverities_Enum.Normal,
+      severity: SupportSeverities_Enum.Low,
       services: [],
     },
   });
   const organizationID = form.watch('organizationID');
+  const draft = useSupportAttachmentDraft(organizationID);
   const organizations = useQuery({
     queryKey: ['support', user?.id, 'user', 'organizations'],
     queryFn: ({ signal }) =>
@@ -64,6 +74,18 @@ export default function NewTicket() {
   const selectedOrganization = organizations.data?.organizations.find(
     (organization) => organization.id === organizationID,
   );
+  const allowedSeverities = getAllowedSupportSeverities(
+    selectedOrganization?.plan?.supportAllowedSeverities,
+  );
+  const selectedSeverity = form.watch('severity');
+  useEffect(() => {
+    const allowed = getAllowedSupportSeverities(
+      selectedOrganization?.plan?.supportAllowedSeverities,
+    );
+    if (allowed[0] && !allowed.includes(form.getValues('severity'))) {
+      form.setValue('severity', allowed[0], { shouldValidate: true });
+    }
+  }, [selectedOrganization, form]);
   const create = useMutation({
     mutationFn: async (values: TicketFormValues) => {
       const organization = organizations.data?.organizations.find(
@@ -76,21 +98,59 @@ export default function NewTicket() {
       ) {
         throw new Error('Select an organization and one of its projects.');
       }
-      const result = await request<DashboardCreateSupportTicketMutation>(
-        DashboardCreateSupportTicketDocument,
-        {
-          input: {
-            ...values,
-            projectID: values.projectID === 'none' ? null : values.projectID,
-          },
-        },
-        undefined,
-        'user',
-      );
-      if (!result.insertSupportTicket) {
-        throw new Error('The ticket was not created. Please try again.');
+      const submission = await draft.prepareSubmission();
+      if (submission.ticketID) {
+        return submission.ticketID;
       }
-      return result.insertSupportTicket.id as string;
+      if (
+        !getAllowedSupportSeverities(
+          organization.plan?.supportAllowedSeverities,
+        ).includes(values.severity)
+      ) {
+        throw new Error(
+          'Select a severity available on this organization’s plan.',
+        );
+      }
+      try {
+        const result = await request<DashboardCreateSupportTicketMutation>(
+          DashboardCreateSupportTicketDocument,
+          {
+            input: {
+              ...values,
+              projectID: values.projectID === 'none' ? null : values.projectID,
+              ...(submission.draftID
+                ? { attachmentDraftID: submission.draftID }
+                : {}),
+            },
+          },
+          undefined,
+          'user',
+        );
+        if (!result.insertSupportTicket) {
+          throw new Error('The ticket was not created. Please try again.');
+        }
+        return result.insertSupportTicket.id as string;
+      } catch (error: unknown) {
+        if (submission.draftID) {
+          try {
+            const recoveredID = await draft.recoverSubmission();
+            if (recoveredID) {
+              return recoveredID;
+            }
+          } catch (recoveryError: unknown) {
+            console.error(
+              'Unable to confirm draft submission',
+              recoveryError instanceof Error
+                ? recoveryError.message
+                : 'Unknown error',
+            );
+            throw new Error(
+              'Ticket submission could not be confirmed. Reload draft attachments and retry with this draft instead of starting a new ticket.',
+            );
+          }
+        }
+        throw error;
+      }
     },
     onSuccess: async (id) => {
       await client.invalidateQueries({ queryKey: ['support', user?.id] });
@@ -151,6 +211,9 @@ export default function NewTicket() {
                 name="organizationID"
                 label="Organization"
                 placeholder="Select an organization"
+                disabled={
+                  draft.hasFiles || draft.busy || form.formState.isSubmitting
+                }
                 onChange={() => form.setValue('projectID', 'none')}
               >
                 {organizations.data?.organizations.map((organization) => (
@@ -175,9 +238,25 @@ export default function NewTicket() {
                 ))}
               </FormSelect>
             </div>
-            <FormSelect control={form.control} name="severity" label="Severity">
+            <FormSelect
+              control={form.control}
+              name="severity"
+              label="Severity"
+              disabled={!selectedOrganization || form.formState.isSubmitting}
+              helperText={
+                !selectedOrganization
+                  ? 'Select an organization to see its allowed severities.'
+                  : allowedSeverities.length === 0
+                    ? 'This organization’s plan does not allow new support tickets.'
+                    : 'Available severities are determined by the organization’s plan.'
+              }
+            >
               {SEVERITIES.map((severity) => (
-                <SelectItem key={severity} value={severity}>
+                <SelectItem
+                  key={severity}
+                  value={severity}
+                  disabled={!allowedSeverities.includes(severity)}
+                >
                   {supportLabel(severity)}
                 </SelectItem>
               ))}
@@ -226,21 +305,33 @@ export default function NewTicket() {
               label="Title"
               placeholder="A short summary of the issue"
             />
-            <FormTextarea
+            <SupportMarkdownEditor
               control={form.control}
               name="description"
               label="Description"
               placeholder="What did you expect, what happened, and how can we reproduce it?"
-              className="min-h-48"
+              disabled={form.formState.isSubmitting}
             />
             <p className="text-muted-foreground text-xs">
-              Do not include passwords, access tokens, or other secrets. Replies
-              appear here in the dashboard; email notifications are not enabled.
+              Do not include passwords, access tokens, or other secrets.
             </p>
+            <DraftAttachments
+              draft={draft}
+              disabled={form.formState.isSubmitting || !selectedOrganization}
+            />
+            {draft.blocked && !draft.busy && !draft.query.isError && (
+              <p className="text-muted-foreground text-sm">
+                Upload or remove unfinished attachments before creating the
+                ticket.
+              </p>
+            )}
             <div className="flex justify-end">
               <ButtonWithLoading
                 type="submit"
                 loading={form.formState.isSubmitting}
+                disabled={
+                  draft.blocked || !allowedSeverities.includes(selectedSeverity)
+                }
               >
                 Create ticket
               </ButtonWithLoading>
