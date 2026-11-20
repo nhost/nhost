@@ -97,7 +97,7 @@ export default function Header({ className, ...props }: HeaderProps) {
       {hasRoomForSearchBox && (
         <div className="flex min-w-0 flex-1 justify-center">
           <CommandPaletteTrigger
-            className="w-full max-w-[28rem]"
+            className="w-full max-w-[20rem]"
             onOpen={openCommandPalette}
           />
         </div>
