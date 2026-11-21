@@ -21,7 +21,7 @@
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.4.6",
-    "@segment/analytics-next": "^1.84.3",
+    "@segment/analytics-next": "^1.84.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "cobe": "^0.6.5",
@@ -48,7 +48,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "18.11.18",
-    "autoprefixer": "^10.6.2",
+    "autoprefixer": "^10.7.0",
     "postcss": "^8.5.33",
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.4",
