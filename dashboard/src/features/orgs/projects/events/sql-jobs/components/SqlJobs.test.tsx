@@ -1,6 +1,8 @@
+import { EditorView } from '@uiw/react-codemirror';
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
+import SqlJobForm from '@/features/orgs/projects/events/sql-jobs/components/SqlJobForm';
 import SqlJobs from '@/features/orgs/projects/events/sql-jobs/components/SqlJobs';
 import {
   cronStateFixture,
@@ -13,6 +15,8 @@ import type {
 import { mockMatchMediaValue } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
+  act,
+  fireEvent,
   mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
@@ -53,6 +57,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 const HASURA_URL = 'https://local.hasura.local.nhost.run';
 let installed = true;
+let preloaded = true;
 let jobs: SqlJob[] = [];
 let state: CronState = cronStateFixture;
 let writes: Array<{ url: string; body: unknown }> = [];
@@ -78,7 +83,10 @@ const server = setupServer(
       const sql = body.args[0].args.sql;
       if (sql.includes('shared_preload_libraries')) {
         return HttpResponse.json([
-          { result_type: 'TuplesOk', result: [['trim'], ['pg_cron']] },
+          {
+            result_type: 'TuplesOk',
+            result: [['trim'], [preloaded ? 'pg_cron' : '']],
+          },
         ]);
       }
       return HttpResponse.json([
@@ -164,6 +172,10 @@ const server = setupServer(
 );
 
 beforeAll(() => {
+  Object.defineProperties(Range.prototype, {
+    getClientRects: { configurable: true, value: () => [] },
+    getBoundingClientRect: { configurable: true, value: () => new DOMRect() },
+  });
   mockScrollIntoViewAndPointerCapture();
   server.listen({ onUnhandledRequest: 'error' });
 });
@@ -178,6 +190,7 @@ beforeEach(() => {
     },
   });
   installed = true;
+  preloaded = true;
   jobs = [{ ...sqlJobFixture }];
   state = cronStateFixture;
   writes = [];
@@ -196,6 +209,24 @@ async function page() {
   return screen.findByRole('heading', { name: 'SQL Jobs' });
 }
 
+function sqlEditor() {
+  const content = screen.getByRole('textbox', { name: 'SQL command' });
+  const editor = EditorView.findFromDOM(content);
+  if (!editor) {
+    throw new Error('The SQL editor is not mounted.');
+  }
+  return editor;
+}
+
+function setSqlCommand(command: string) {
+  const editor = sqlEditor();
+  act(() => {
+    editor.dispatch({
+      changes: { from: 0, to: editor.state.doc.length, insert: command },
+    });
+  });
+}
+
 async function createJob(user: TestUserEvent) {
   await page();
   await user.click(
@@ -203,7 +234,7 @@ async function createJob(user: TestUserEvent) {
   );
   const dialog = within(await screen.findByRole('dialog'));
   await user.type(dialog.getByLabelText('Job name'), 'nightly-cleanup');
-  await user.type(dialog.getByLabelText('SQL command'), 'SELECT 1;\nSELECT 2;');
+  setSqlCommand('SELECT 1;\nSELECT 2;');
   await user.click(dialog.getByRole('button', { name: 'Create job' }));
   await waitFor(() => expect(writes).toHaveLength(1));
 }
@@ -221,6 +252,30 @@ describe('SQL Jobs', () => {
       sheet.getByRole('columnheader', { name: 'Started' }),
     ).toHaveAttribute('aria-sort', 'descending');
     expect(sheet.getByText(sqlJobFixture.jobid)).toBeInTheDocument();
+    expect(
+      sheet.queryByText('Database', { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      sheet.queryByText('Connection', { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(sheet.queryByText('localhost:5432')).not.toBeInTheDocument();
+    const schedule = sheet.getByLabelText('Schedule');
+    expect(schedule).toHaveValue(sqlJobFixture.schedule);
+    expect(schedule).toHaveAttribute('readonly');
+    expect(
+      sheet.queryByRole('button', { name: 'Daily at 05:00' }),
+    ).not.toBeInTheDocument();
+    expect(sheet.getByRole('textbox', { name: 'SQL command' })).toHaveAttribute(
+      'contenteditable',
+      'false',
+    );
+    expect(sqlEditor().state.doc.toString()).toBe(sqlJobFixture.command);
+    await user.click(schedule);
+    await user.keyboard('{Home}');
+    expect(sheet.getByText('Minute')).toHaveAttribute('aria-current', 'true');
+    await user.type(schedule, '*/5 * * * *');
+    expect(schedule).toHaveValue(sqlJobFixture.schedule);
+    expect(writes).toHaveLength(0);
     await user.click(sheet.getByRole('button', { name: 'Close' }));
     await user.click(
       screen.getByRole('radio', { name: 'Disabled', hidden: false }),
@@ -228,6 +283,196 @@ describe('SQL Jobs', () => {
     expect(
       await screen.findByText('No jobs match your search or filter.'),
     ).toBeInTheDocument();
+  });
+
+  it('uses a real SQL editor without execution controls and validates its contents', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    const editor = dialog.getByRole('textbox', { name: 'SQL command' });
+    expect(editor).toHaveAttribute('contenteditable', 'true');
+    expect(
+      dialog.queryByRole('button', { name: 'Run' }),
+    ).not.toBeInTheDocument();
+    await user.type(dialog.getByLabelText('Job name'), 'editor-test');
+    setSqlCommand('SELECT 1;');
+    await user.click(editor);
+    await user.keyboard('{Control>}{Enter}{/Control}');
+    expect(writes).toHaveLength(0);
+    setSqlCommand('   ');
+    await user.click(dialog.getByRole('button', { name: 'Create job' }));
+    expect(await dialog.findByText('SQL is required.')).toBeInTheDocument();
+    expect(writes).toHaveLength(0);
+  });
+
+  it('allows Tab to leave the SQL editor', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.click(dialog.getByRole('textbox', { name: 'SQL command' }));
+    await user.keyboard('{Tab}');
+    expect(dialog.getByLabelText('Database role')).toHaveFocus();
+  });
+
+  it('highlights cron fields as the cursor moves by keyboard and selection', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    const schedule = dialog.getByLabelText('Schedule');
+    await user.clear(schedule);
+    await user.type(schedule, '0 22 * * 1-5');
+    expect(dialog.getByText('Weekday')).toHaveAttribute('aria-current', 'true');
+    await user.keyboard('{Home}');
+    expect(dialog.getByText('Minute')).toHaveAttribute('aria-current', 'true');
+    await user.keyboard('{ArrowRight}{ArrowRight}');
+    expect(dialog.getByText('Hour')).toHaveAttribute('aria-current', 'true');
+    await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}');
+    expect(dialog.getByText('Day')).toHaveAttribute('aria-current', 'true');
+    await user.keyboard('{ArrowRight}{ArrowRight}');
+    expect(dialog.getByText('Month')).toHaveAttribute('aria-current', 'true');
+    fireEvent.select(schedule, {
+      target: { selectionStart: 9, selectionEnd: 9 },
+    });
+    expect(dialog.getByText('Weekday')).toHaveAttribute('aria-current', 'true');
+    await user.click(dialog.getByLabelText('Job name'));
+    expect(dialog.getByText('Weekday')).not.toHaveAttribute('aria-current');
+  });
+
+  it('explains cron operators and supported shortcuts without dismissing the job modal', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.click(
+      dialog.getByRole('button', { name: 'Cron schedule help' }),
+    );
+    const help = within(
+      await screen.findByRole('dialog', { name: 'Cron schedule help' }),
+    );
+    expect(
+      help.getByRole('heading', { name: 'Cron syntax' }),
+    ).toBeInTheDocument();
+    expect(help.getByText('*/15')).toBeInTheDocument();
+    expect(help.getByText('$')).toBeInTheDocument();
+    expect(help.getByText('@hourly')).toBeInTheDocument();
+    expect(help.getByText('@daily')).toBeInTheDocument();
+    expect(help.getByText('@annually')).toBeInTheDocument();
+    expect(help.getByText('@reboot')).toBeInTheDocument();
+    expect(help.getByText('@restart')).toBeInTheDocument();
+    expect(help.getByText('59 seconds')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Cron schedule help' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Create SQL job' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(writes).toHaveLength(0);
+  });
+
+  it('fills the schedule from examples without creating a job', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.click(dialog.getByRole('button', { name: 'Daily at 05:00' }));
+    expect(dialog.getByLabelText('Schedule')).toHaveValue('0 5 * * *');
+    await user.click(dialog.getByRole('button', { name: 'Weekdays at 22:00' }));
+    expect(dialog.getByLabelText('Schedule')).toHaveValue('0 22 * * 1-5');
+    await user.click(dialog.getByRole('button', { name: 'Every 10 seconds' }));
+    expect(dialog.getByLabelText('Schedule')).toHaveValue('10 seconds');
+    expect(dialog.getByText('Minute')).not.toHaveAttribute('aria-current');
+    expect(
+      dialog.getByText(
+        'This seconds-based interval replaces all five cron fields.',
+      ),
+    ).toBeInTheDocument();
+    expect(writes).toHaveLength(0);
+  });
+
+  it.each([
+    '@daily',
+    '@reboot',
+    '@restart',
+    '1 second',
+    '10 seconds',
+    '0 0 $ * *',
+  ])('preserves the pg_cron schedule %s when saving', async (schedule) => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.type(dialog.getByLabelText('Job name'), 'schedule-example');
+    await user.clear(dialog.getByLabelText('Schedule'));
+    await user.type(dialog.getByLabelText('Schedule'), schedule);
+    if (schedule.startsWith('@') || schedule.includes('second')) {
+      expect(dialog.getByText('Minute')).not.toHaveAttribute('aria-current');
+      expect(dialog.getByText('Hour')).not.toHaveAttribute('aria-current');
+    }
+    setSqlCommand('SELECT 1;');
+    await user.click(dialog.getByRole('button', { name: 'Create job' }));
+    await waitFor(() => expect(writes).toHaveLength(1));
+    expect(JSON.stringify(writes[0].body)).toContain(schedule);
+  });
+
+  it('always creates jobs in the supplied database, even when a preset specifies another', async () => {
+    const user = new TestUserEvent();
+    render(
+      <SqlJobForm
+        database="supplied-database"
+        timezone="GMT"
+        initialValues={{
+          jobname: 'supplied-database-job',
+          command: 'SELECT 1;',
+          database: 'preset-database',
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    expect(dialog.queryByLabelText('Database')).not.toBeInTheDocument();
+    await user.click(dialog.getByRole('button', { name: 'Create job' }));
+    await waitFor(() => expect(writes).toHaveLength(1));
+    const body = JSON.stringify(writes[0].body);
+    expect(body).toContain('supplied-database');
+    expect(body).not.toContain('preset-database');
+  });
+
+  it('preserves an existing job database when editing without a database input', async () => {
+    const user = new TestUserEvent();
+    render(
+      <SqlJobForm
+        job={{ ...sqlJobFixture, database: 'existing-database' }}
+        database="supplied-database"
+        timezone="GMT"
+        onClose={vi.fn()}
+      />,
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    expect(dialog.queryByLabelText('Database')).not.toBeInTheDocument();
+    await user.click(dialog.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => expect(writes).toHaveLength(1));
+    const body = JSON.stringify(writes[0].body);
+    expect(body).toContain('existing-database');
+    expect(body).not.toContain('supplied-database');
   });
 
   it('creates local jobs with reversible Hasura migrations', async () => {
@@ -281,17 +526,38 @@ describe('SQL Jobs', () => {
     });
   });
 
-  it('disables a job through a migration without deleting it', async () => {
-    const user = new TestUserEvent();
-    await page();
-    await user.click(
-      await screen.findByRole('button', { name: 'Disable refresh-summary' }),
-    );
-    await waitFor(() => expect(writes).toHaveLength(1));
-    expect(writes[0].body).toMatchObject({
-      up: [{ args: { sql: expect.stringContaining('cron.alter_job') } }],
-    });
-  });
+  it.each([true, false])(
+    'uses labeled icon actions and toggles the job through a migration (active=%s)',
+    async (active) => {
+      const user = new TestUserEvent();
+      jobs[0].active = active;
+      await page();
+      const toggleAction = active ? 'Disable' : 'Enable';
+      await screen.findByRole('button', {
+        name: `${toggleAction} refresh-summary`,
+      });
+      for (const action of [toggleAction, 'Edit', 'Delete']) {
+        const button = screen.getByRole('button', {
+          name: `${action} refresh-summary`,
+        });
+        expect(button).toHaveAttribute('title', `${action} job`);
+        expect(button.textContent).toBe('');
+        expect(button.querySelector('svg')).toHaveAttribute(
+          'aria-hidden',
+          'true',
+        );
+      }
+      await user.click(
+        screen.getByRole('button', {
+          name: `${toggleAction} refresh-summary`,
+        }),
+      );
+      await waitFor(() => expect(writes).toHaveLength(1));
+      expect(writes[0].body).toMatchObject({
+        up: [{ args: { sql: expect.stringContaining('cron.alter_job') } }],
+      });
+    },
+  );
 
   it('requires confirmation before deleting a job', async () => {
     const user = new TestUserEvent();
@@ -408,10 +674,118 @@ describe('SQL Jobs', () => {
     expect(
       await dialog.findByText('Invalid cron expression'),
     ).toBeInTheDocument();
-    expect(dialog.getByLabelText('SQL command')).toHaveValue(
-      sqlJobFixture.command,
-    );
+    expect(sqlEditor().state.doc.toString()).toBe(sqlJobFixture.command);
   });
+
+  it('keeps editable scheduler settings without the raw live-settings section', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(screen.getByRole('tab', { name: 'Settings' }));
+
+    expect(await screen.findByLabelText('Timezone')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Maximum concurrent jobs'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('switch', { name: 'Record job runs' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Live Postgres settings' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it.each([false, true])(
+    'previews and creates a daily 05:00 retention job (platform: %s)',
+    async (platform) => {
+      mocks.platform.mockReturnValue(platform);
+      state = {
+        ...cronStateFixture,
+        database: 'retention-db',
+        schedulerDatabase: 'retention-db',
+      };
+      const user = new TestUserEvent();
+      await page();
+      await user.click(screen.getByRole('tab', { name: 'Settings' }));
+      await user.click(
+        await screen.findByRole('button', { name: 'Create retention job' }),
+      );
+      const dialog = within(await screen.findByRole('dialog'));
+
+      expect(
+        dialog.getByRole('heading', { name: 'Create SQL job' }),
+      ).toBeInTheDocument();
+      expect(dialog.getByLabelText('Job name')).toHaveValue(
+        'cleanup-cron-run-history',
+      );
+      expect(dialog.getByLabelText('Job name')).toBeEnabled();
+      expect(dialog.getByLabelText('Schedule')).toHaveValue('0 5 * * *');
+      expect(sqlEditor().state.doc.toString()).toBe(
+        "DELETE FROM cron.job_run_details\nWHERE end_time < now() - interval '7 days';",
+      );
+      expect(dialog.queryByLabelText('Database')).not.toBeInTheDocument();
+      expect(dialog.getByLabelText('Database role')).toHaveValue('postgres');
+      expect(dialog.getByRole('switch', { name: 'Enabled' })).toBeChecked();
+      expect(writes).toHaveLength(0);
+      expect(configWrites).toHaveLength(0);
+
+      await user.click(dialog.getByRole('button', { name: 'Create job' }));
+      await waitFor(() => expect(writes).toHaveLength(1));
+      expect(writes[0].url).toBe(
+        `${HASURA_URL}/${platform ? 'v2/query' : 'apis/migrate'}`,
+      );
+      const body = JSON.stringify(writes[0].body);
+      expect(body).toContain('cleanup-cron-run-history');
+      expect(body).toContain('retention-db');
+      expect(body).toContain('0 5 * * *');
+      expect(body).toContain('DELETE FROM cron.job_run_details');
+      expect(body).toContain('7 days');
+      expect(configWrites).toHaveLength(0);
+    },
+  );
+
+  it('does not persist a cancelled retention preset or reuse it for ordinary jobs', async () => {
+    const user = new TestUserEvent();
+    await page();
+    await user.click(screen.getByRole('tab', { name: 'Settings' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Create retention job' }),
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await user.click(dialog.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    expect(writes).toHaveLength(0);
+    expect(configWrites).toHaveLength(0);
+
+    await user.click(screen.getByRole('tab', { name: 'Jobs' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Create SQL job' }),
+    );
+    const ordinaryDialog = within(await screen.findByRole('dialog'));
+    expect(ordinaryDialog.getByLabelText('Job name')).toHaveValue('');
+    expect(sqlEditor().state.doc.toString()).toBe('');
+    expect(ordinaryDialog.getByLabelText('Schedule')).toHaveValue('0 * * * *');
+  });
+
+  it.each(['not installed', 'not preloaded', 'in another database'])(
+    'disables retention-job creation when pg_cron is %s',
+    async (condition) => {
+      installed = condition !== 'not installed';
+      preloaded = condition !== 'not preloaded';
+      if (condition === 'in another database') {
+        state = { ...cronStateFixture, schedulerDatabase: 'another-database' };
+      }
+      const user = new TestUserEvent();
+      await page();
+      await user.click(screen.getByRole('tab', { name: 'Settings' }));
+      expect(
+        await screen.findByRole('button', { name: 'Create retention job' }),
+      ).toBeDisabled();
+      expect(writes).toHaveLength(0);
+    },
+  );
 
   it('does not save invalid scheduler settings', async () => {
     const user = new TestUserEvent();

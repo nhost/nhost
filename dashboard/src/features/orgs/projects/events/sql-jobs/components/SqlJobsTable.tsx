@@ -1,3 +1,4 @@
+import { Edit, Pause, Play, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -84,31 +85,38 @@ export default function SqlJobsTable({
               <TableCell>
                 <div className="flex justify-end gap-1">
                   <Button
-                    size="sm"
-                    variant="ghost"
+                    size="icon-sm"
+                    variant="subtle"
                     disabled={disabled}
+                    title={job.active ? 'Disable job' : 'Enable job'}
                     aria-label={`${job.active ? 'Disable' : 'Enable'} ${name}`}
                     onClick={() => onToggle(job)}
                   >
-                    {job.active ? 'Disable' : 'Enable'}
+                    {job.active ? (
+                      <Pause className="size-4" aria-hidden="true" />
+                    ) : (
+                      <Play className="size-4" aria-hidden="true" />
+                    )}
                   </Button>
                   <Button
-                    size="sm"
-                    variant="ghost"
+                    size="icon-sm"
+                    variant="subtle"
                     disabled={disabled}
+                    title="Edit job"
                     aria-label={`Edit ${name}`}
                     onClick={() => onEdit(job)}
                   >
-                    Edit
+                    <Edit className="size-4" aria-hidden="true" />
                   </Button>
                   <Button
-                    size="sm"
-                    variant="ghost"
+                    size="icon-sm"
+                    variant="subtle"
                     disabled={disabled}
+                    title="Delete job"
                     aria-label={`Delete ${name}`}
                     onClick={() => onDelete(job)}
                   >
-                    Delete
+                    <Trash2 className="size-4" aria-hidden="true" />
                   </Button>
                 </div>
               </TableCell>

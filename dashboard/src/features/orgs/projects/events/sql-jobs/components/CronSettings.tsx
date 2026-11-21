@@ -5,18 +5,9 @@ import * as Yup from 'yup';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
-import { TextLink } from '@/components/ui/v3/text-link';
 import { GitHubConnectedNotice } from '@/features/orgs/projects/common/components/settings/GitHubConnectedNotice';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { CronState } from '@/features/orgs/projects/events/sql-jobs/types';
@@ -56,7 +47,17 @@ export const cronSettingsSchema = Yup.object({
 
 type CronSettingsValues = Yup.InferType<typeof cronSettingsSchema>;
 
-function CronConfigForm({ state }: { state: CronState }) {
+interface CronSettingsProps {
+  state: CronState;
+  canCreateJob: boolean;
+  onCreateRetentionJob: VoidFunction;
+}
+
+function CronConfigForm({
+  state,
+  canCreateJob,
+  onCreateRetentionJob,
+}: CronSettingsProps) {
   const concurrencySetting = state.settings.find(
     ({ name }) => name === 'cron.max_running_jobs',
   );
@@ -160,12 +161,26 @@ function CronConfigForm({ state }: { state: CronState }) {
             type="number"
             helperText={`This server accepts ${minJobs}–${maxJobs} concurrent jobs. Zero stops jobs from running.`}
           />
-          <FormSwitch
-            control={form.control}
-            name="logRun"
-            label="Record job runs"
-            helperText="Run history is not cleaned up automatically. Consider scheduling a retention job."
-          />
+          <div className="space-y-2">
+            <FormSwitch
+              control={form.control}
+              name="logRun"
+              label="Record job runs"
+              helperText="Run history is not cleaned up automatically."
+            />
+            <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm">
+              <p>Consider scheduling a retention job.</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!canCreateJob}
+                onClick={onCreateRetentionJob}
+              >
+                Create retention job
+              </Button>
+            </div>
+          </div>
         </fieldset>
         <ButtonWithLoading
           type="submit"
@@ -179,7 +194,11 @@ function CronConfigForm({ state }: { state: CronState }) {
   );
 }
 
-export default function CronSettings({ state }: { state: CronState }) {
+export default function CronSettings({
+  state,
+  canCreateJob,
+  onCreateRetentionJob,
+}: CronSettingsProps) {
   const settingsDisabled = useSettingsDisabled();
   return (
     <div className="space-y-6">
@@ -188,62 +207,16 @@ export default function CronSettings({ state }: { state: CronState }) {
         <Alert>
           <AlertTitle>Project configuration is unavailable</AlertTitle>
           <AlertDescription>
-            Configure pg_cron in your PostgreSQL server configuration. Live
-            values are shown below.
+            Configure pg_cron in your PostgreSQL server configuration.
           </AlertDescription>
         </Alert>
       ) : (
-        <CronConfigForm state={state} />
+        <CronConfigForm
+          state={state}
+          canCreateJob={canCreateJob}
+          onCreateRetentionJob={onCreateRetentionJob}
+        />
       )}
-      <section className="space-y-3">
-        <h2 className="font-semibold text-lg">Live Postgres settings</h2>
-        <p className="text-muted-foreground text-sm">
-          The values currently used by Postgres can differ from saved settings
-          until it restarts.
-        </p>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Setting</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Applies on</TableHead>
-              <TableHead>Description</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {state.settings.map((setting) => (
-              <TableRow key={setting.name}>
-                <TableCell className="font-mono">{setting.name}</TableCell>
-                <TableCell>
-                  {setting.setting}
-                  {setting.pending_restart && (
-                    <span className="ml-2 text-amber-600">Restart pending</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {setting.context === 'postmaster'
-                    ? 'Restart'
-                    : setting.context === 'sighup'
-                      ? 'Reload'
-                      : setting.context}
-                </TableCell>
-                <TableCell>{setting.short_desc}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {state.settings.length === 0 && (
-          <p className="text-muted-foreground text-sm">
-            Preload pg_cron to see its live settings.
-          </p>
-        )}
-        <TextLink
-          external
-          href="https://docs.nhost.io/reference/configuration#postgressettingsextensionscron"
-        >
-          pg_cron configuration reference
-        </TextLink>
-      </section>
     </div>
   );
 }

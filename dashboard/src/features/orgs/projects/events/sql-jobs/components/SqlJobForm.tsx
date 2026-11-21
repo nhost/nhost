@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
+import { FormCodeEditor } from '@/components/form/FormCodeEditor';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSwitch } from '@/components/form/FormSwitch';
-import { FormTextarea } from '@/components/form/FormTextarea';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -16,11 +16,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { Form } from '@/components/ui/v3/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import SqlJobScheduleInput from '@/features/orgs/projects/events/sql-jobs/components/SqlJobScheduleInput';
 import {
   createSqlJobChange,
   editSqlJobChange,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
+import {
+  SQL_EDITOR_EXTENSIONS,
+  SQL_EDITOR_SETUP,
+} from '@/features/orgs/projects/events/sql-jobs/sql-editor';
 import type {
   SqlJob,
   SqlJobValues,
@@ -41,6 +53,7 @@ const validationSchema = Yup.object({
 
 interface SqlJobFormProps {
   job?: SqlJob;
+  initialValues?: Partial<SqlJobValues>;
   database: string;
   timezone: string;
   onClose: () => void;
@@ -48,6 +61,7 @@ interface SqlJobFormProps {
 
 export default function SqlJobForm({
   job,
+  initialValues,
   database,
   timezone,
   onClose,
@@ -62,9 +76,10 @@ export default function SqlJobForm({
           jobname: '',
           schedule: '0 * * * *',
           command: '',
-          database,
           username: 'postgres',
           active: true,
+          ...initialValues,
+          database,
         },
   });
 
@@ -87,7 +102,9 @@ export default function SqlJobForm({
     await execPromiseWithErrorToast(
       async () => {
         await mutation.mutateAsync(
-          job ? editSqlJobChange(job, values) : createSqlJobChange(values),
+          job
+            ? editSqlJobChange(job, { ...values, database: job.database })
+            : createSqlJobChange({ ...values, database }),
         );
         onClose();
       },
@@ -130,32 +147,43 @@ export default function SqlJobForm({
                     name.
                   </p>
                 )}
-                <FormInput
+                <FormField
                   control={form.control}
                   name="schedule"
-                  label="Schedule"
-                  helperText={`Schedules use ${timezone}. Enter a cron expression (0 * * * *), a shortcut (@daily), or an interval (5 seconds).`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SqlJobScheduleInput
+                          {...field}
+                          timezone={timezone}
+                          disabled={mutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                <FormTextarea
+                <FormCodeEditor
                   control={form.control}
                   name="command"
                   label="SQL command"
-                  className="min-h-40 font-mono"
-                  placeholder="REFRESH MATERIALIZED VIEW public.summary;"
-                  helperText="Saving schedules this SQL; it does not execute it immediately."
+                  aria-label="SQL command"
+                  extensions={SQL_EDITOR_EXTENSIONS}
+                  basicSetup={SQL_EDITOR_SETUP}
+                  indentWithTab={false}
+                  readOnly={mutation.isPending}
+                  className="[&_.cm-content]:min-h-40 [&_.cm-scroller]:max-h-72"
+                >
+                  <FormDescription>
+                    Saving schedules this SQL; it does not execute it
+                    immediately.
+                  </FormDescription>
+                </FormCodeEditor>
+                <FormInput
+                  control={form.control}
+                  name="username"
+                  label="Database role"
                 />
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormInput
-                    control={form.control}
-                    name="database"
-                    label="Database"
-                  />
-                  <FormInput
-                    control={form.control}
-                    name="username"
-                    label="Database role"
-                  />
-                </div>
                 <FormSwitch
                   control={form.control}
                   name="active"

@@ -1,3 +1,5 @@
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
+import CodeMirror from '@uiw/react-codemirror';
 import { ArrowDown } from 'lucide-react';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
@@ -19,8 +21,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import SqlJobScheduleInput from '@/features/orgs/projects/events/sql-jobs/components/SqlJobScheduleInput';
+import {
+  SQL_EDITOR_EXTENSIONS,
+  SQL_EDITOR_SETUP,
+} from '@/features/orgs/projects/events/sql-jobs/sql-editor';
 import type { SqlJob } from '@/features/orgs/projects/events/sql-jobs/types';
 import { useSqlJobRuns } from '@/features/orgs/projects/events/sql-jobs/use-sql-jobs';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
+import { useThemePreference } from '@/providers/Theme';
+
+const SQL_VIEWER_EXTENSIONS = [
+  ...SQL_EDITOR_EXTENSIONS,
+  codeMirrorAppBackground,
+];
+const SQL_VIEWER_SETUP = {
+  ...SQL_EDITOR_SETUP,
+  highlightActiveLine: false,
+  highlightActiveLineGutter: false,
+};
 
 export function runTime(value: string | null): string {
   return value ? new Date(value).toLocaleString() : '—';
@@ -44,11 +63,14 @@ export function RunStatus({ status }: { status: string }) {
 
 export default function SqlJobDetails({
   job,
+  timezone,
   onClose,
 }: {
   job: SqlJob;
+  timezone: string;
   onClose: () => void;
 }) {
+  const { resolvedTheme } = useThemePreference();
   const [offset, setOffset] = useState(0);
   const pageSize = 20;
   const runs = useSqlJobRuns(job, offset, pageSize + 1);
@@ -62,28 +84,21 @@ export default function SqlJobDetails({
             browser's timezone.
           </SheetDescription>
         </SheetHeader>
-        <dl className="mb-6 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <dt className="text-muted-foreground">Schedule</dt>
-            <dd className="font-mono">{job.schedule}</dd>
-          </div>
+        <div className="mb-6">
+          <SqlJobScheduleInput
+            value={job.schedule}
+            timezone={timezone}
+            readOnly
+          />
+        </div>
+        <dl className="mb-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
           <div>
             <dt className="text-muted-foreground">State</dt>
             <dd>{job.active ? 'Enabled' : 'Disabled'}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Database</dt>
-            <dd>{job.database}</dd>
-          </div>
-          <div>
             <dt className="text-muted-foreground">Database role</dt>
             <dd>{job.username}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Connection</dt>
-            <dd>
-              {job.nodename}:{job.nodeport}
-            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Job ID</dt>
@@ -91,9 +106,17 @@ export default function SqlJobDetails({
           </div>
         </dl>
         <h3 className="mb-2 font-semibold">SQL command</h3>
-        <pre className="mb-6 overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted p-4 text-sm">
-          {job.command}
-        </pre>
+        <CodeMirror
+          aria-label="SQL command"
+          value={job.command}
+          theme={resolvedTheme === 'light' ? githubLight : githubDark}
+          extensions={SQL_VIEWER_EXTENSIONS}
+          basicSetup={SQL_VIEWER_SETUP}
+          readOnly
+          editable={false}
+          indentWithTab={false}
+          className="mb-6 overflow-hidden rounded-md border text-sm [&_.cm-content]:min-h-40 [&_.cm-scroller]:max-h-72"
+        />
         <div className="mb-3 flex items-center justify-between gap-4">
           <h3 className="font-semibold">Run history</h3>
           <Button

@@ -39,6 +39,7 @@ import {
 import type {
   SqlJob,
   SqlJobChange,
+  SqlJobValues,
 } from '@/features/orgs/projects/events/sql-jobs/types';
 import {
   useCronState,
@@ -67,7 +68,10 @@ export default function SqlJobs() {
   const [extensionDialog, setExtensionDialog] = useState<
     'install' | 'preload' | null
   >(null);
-  const [form, setForm] = useState<{ job?: SqlJob } | null>(null);
+  const [form, setForm] = useState<{
+    job?: SqlJob;
+    initialValues?: Partial<SqlJobValues>;
+  } | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [search, setSearch] = useState('');
@@ -135,6 +139,7 @@ export default function SqlJobs() {
     state.data?.schedulerDatabase &&
       state.data.schedulerDatabase !== state.data.database,
   );
+  const canCreateJob = installed && preloaded && !wrongDatabase;
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 p-6 md:p-10">
@@ -270,7 +275,7 @@ export default function SqlJobs() {
                 </Button>
                 <Button
                   className="ml-auto"
-                  disabled={!preloaded || wrongDatabase}
+                  disabled={!canCreateJob}
                   onClick={() => setForm({})}
                 >
                   <Plus className="mr-2 size-4" />
@@ -314,7 +319,22 @@ export default function SqlJobs() {
           )}
         </TabsContent>
         <TabsContent value="settings" className="pt-4">
-          {state.data && <CronSettings state={state.data} />}
+          {state.data && (
+            <CronSettings
+              state={state.data}
+              canCreateJob={canCreateJob}
+              onCreateRetentionJob={() =>
+                setForm({
+                  initialValues: {
+                    jobname: 'cleanup-cron-run-history',
+                    schedule: '0 5 * * *',
+                    command:
+                      "DELETE FROM cron.job_run_details\nWHERE end_time < now() - interval '7 days';",
+                  },
+                })
+              }
+            />
+          )}
         </TabsContent>
       </Tabs>
 
@@ -338,6 +358,7 @@ export default function SqlJobs() {
       {form && state.data && (
         <SqlJobForm
           job={form.job}
+          initialValues={form.initialValues}
           database={state.data.database}
           timezone={timezone}
           onClose={() => setForm(null)}
@@ -347,6 +368,7 @@ export default function SqlJobs() {
         <SqlJobDetails
           key={selectedJob.jobid}
           job={selectedJob}
+          timezone={timezone}
           onClose={() => setSelectedJobId(null)}
         />
       )}
