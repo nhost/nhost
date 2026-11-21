@@ -103,8 +103,12 @@ export default function SqlJobForm({
       async () => {
         await mutation.mutateAsync(
           job
-            ? editSqlJobChange(job, { ...values, database: job.database })
-            : createSqlJobChange({ ...values, database }),
+            ? editSqlJobChange(
+                job,
+                { ...values, database: job.database },
+                database,
+              )
+            : createSqlJobChange({ ...values, database }, database),
         );
         onClose();
       },

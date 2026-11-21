@@ -124,7 +124,11 @@ When creating a new feature page, check whether it needs to be added to:
 Events → SQL Jobs manages pg_cron through the default database source. Job and
 extension writes use Hasura migrations locally and plain SQL on hosted projects.
 Migrations identify named jobs by name and role, not by database-specific numeric
-IDs. Legacy unnamed jobs must match their saved definition exactly.
+IDs. Jobs targeting the current source database use `current_database()` so local
+migrations replay on hosted databases with different names. Explicit cross-database
+targets keep their quoted database names and depend on those databases existing
+in the destination environment. Legacy unnamed jobs must match their saved
+definition, with the same database-relative resolution.
 
 The schedule control and cursor helpers live in
 `events/common/components/CronScheduleInput`, shared by SQL Jobs and Cron

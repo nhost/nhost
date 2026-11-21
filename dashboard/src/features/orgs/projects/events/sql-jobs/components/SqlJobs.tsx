@@ -126,6 +126,11 @@ export default function SqlJobs() {
     );
   }
 
+  const database = state.data?.database;
+  if (!database) {
+    return null;
+  }
+
   const filteredJobs =
     jobs.data?.filter(
       (job) =>
@@ -171,7 +176,7 @@ export default function SqlJobs() {
                     label: 'Disable pg_cron',
                     description:
                       'This uninstalls pg_cron and permanently deletes all SQL jobs and their run history. It does not affect webhook cron triggers. A local down migration can recreate job definitions, but cannot restore run history. The library stays preloaded.',
-                    change: disableCronChange(jobs.data ?? []),
+                    change: disableCronChange(jobs.data ?? [], database),
                   })
                 }
               >
@@ -294,14 +299,16 @@ export default function SqlJobs() {
                   disabled={mutation.isPending || !preloaded}
                   onView={(job) => setSelectedJobId(job.jobid)}
                   onEdit={(job) => setForm({ job })}
-                  onToggle={(job) => changeJob(setSqlJobActiveChange(job))}
+                  onToggle={(job) =>
+                    changeJob(setSqlJobActiveChange(job, database))
+                  }
                   onDelete={(job) =>
                     setConfirmation({
                       title: `Delete ${job.jobname ?? `Job ${job.jobid}`}?`,
                       label: 'Delete job',
                       description:
                         'This removes the job from the scheduler. Recorded run history is kept in Postgres. A currently running command is not cancelled.',
-                      change: deleteSqlJobChange(job),
+                      change: deleteSqlJobChange(job, database),
                     })
                   }
                 />

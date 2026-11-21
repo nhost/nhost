@@ -9,7 +9,7 @@ import {
   SQL_JOBS_SQL,
   setSqlJobActiveChange,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
-import { sqlJobFixture } from '@/features/orgs/projects/events/sql-jobs/test-fixtures';
+import { sqlJobFixture as baseSqlJobFixture } from '@/features/orgs/projects/events/sql-jobs/test-fixtures';
 import type {
   SqlJob,
   SqlJobRun,
@@ -18,6 +18,8 @@ import type {
 // Opt in with a disposable Nhost Postgres container whose scheduler database
 // is postgres and whose cron.launch_active_jobs is off. Never use a project DB.
 const container = process.env.PGCRON_TEST_CONTAINER;
+const sourceDatabase = 'local';
+const sqlJobFixture = { ...baseSqlJobFixture, database: sourceDatabase };
 
 function sql(statements: string) {
   return execFileSync(
@@ -44,7 +46,7 @@ function sql(statements: string) {
 }
 
 function assertSql(condition: string) {
-  return `DO $$ BEGIN IF NOT (${condition}) THEN RAISE EXCEPTION 'Assertion failed'; END IF; END $$;`;
+  return `DO $$ BEGIN IF (${condition}) IS NOT TRUE THEN RAISE EXCEPTION 'Assertion failed'; END IF; END $$;`;
 }
 
 (container ? describe : describe.skip)('SQL Jobs against real pg_cron', () => {
@@ -113,29 +115,46 @@ function assertSql(condition: string) {
 
   it('creates, edits, disables, deletes and rolls back without replaying numeric IDs', () => {
     const job = { ...sqlJobFixture, jobid: '99999' };
-    const create = createSqlJobChange({ ...job, jobname: job.jobname! });
-    const edit = editSqlJobChange(job, {
-      ...job,
-      jobname: job.jobname!,
-      schedule: '5 seconds',
-      command: "SELECT 'hello';\nSELECT $$body$$;",
-    });
-    const toggle = setSqlJobActiveChange(job);
-    const remove = deleteSqlJobChange(job);
+    const create = createSqlJobChange(
+      { ...job, jobname: job.jobname! },
+      sourceDatabase,
+    );
+    const edit = editSqlJobChange(
+      job,
+      {
+        ...job,
+        jobname: job.jobname!,
+        schedule: '5 seconds',
+        command: "SELECT 'hello';\nSELECT $$body$$;",
+      },
+      sourceDatabase,
+    );
+    const toggle = setSqlJobActiveChange(job, sourceDatabase);
+    const remove = deleteSqlJobChange(job, sourceDatabase);
+    const inCurrentDatabase = assertSql(
+      '(SELECT bool_and(database = current_database()) FROM cron.job)',
+    );
     const output = sql(`
+      ${assertSql("NOT EXISTS (SELECT FROM pg_database WHERE datname = 'local')")}
       ${create.up}
       ${assertSql('(SELECT count(*) FROM cron.job) = 1')}
+      ${inCurrentDatabase}
       ${SQL_JOBS_SQL}
       ${edit.up}
       ${assertSql("(SELECT schedule FROM cron.job) = '5 seconds'")}
+      ${inCurrentDatabase}
       ${edit.down}
+      ${inCurrentDatabase}
       ${toggle.up}
+      ${inCurrentDatabase}
       ${assertSql('(SELECT active FROM cron.job) = false')}
       ${toggle.down}
+      ${inCurrentDatabase}
       ${assertSql('(SELECT active FROM cron.job) = true')}
       ${remove.up}
       ${assertSql('(SELECT count(*) FROM cron.job) = 0')}
       ${remove.down}
+      ${inCurrentDatabase}
       ${assertSql('(SELECT count(*) FROM cron.job) = 1')}
       ${create.down}
       ${assertSql('(SELECT count(*) FROM cron.job) = 0')}
@@ -147,12 +166,15 @@ function assertSql(condition: string) {
     const command =
       "SELECT 'quoted';\nDO $$BEGIN RAISE EXCEPTION 'must not run'; END$$;\n-- \\ backslash";
     const jobname = "job'); DROP SCHEMA public CASCADE; --";
-    const create = createSqlJobChange({
-      ...sqlJobFixture,
-      jobname,
-      command,
-      active: false,
-    });
+    const create = createSqlJobChange(
+      {
+        ...sqlJobFixture,
+        jobname,
+        command,
+        active: false,
+      },
+      sourceDatabase,
+    );
     const output = sql(
       `${create.up}\nSELECT command FROM cron.job;\n${create.down}`,
     );
@@ -160,10 +182,13 @@ function assertSql(condition: string) {
   });
 
   it('rejects duplicate names instead of silently overwriting a job', () => {
-    const change = createSqlJobChange({
-      ...sqlJobFixture,
-      jobname: sqlJobFixture.jobname!,
-    });
+    const change = createSqlJobChange(
+      {
+        ...sqlJobFixture,
+        jobname: sqlJobFixture.jobname!,
+      },
+      sourceDatabase,
+    );
     expect(() => sql(`${change.up}\n${change.up}`)).toThrow();
   });
 
@@ -174,8 +199,8 @@ function assertSql(condition: string) {
       nodename: '/tmp',
       active: false,
     };
-    const remove = deleteSqlJobChange(unnamed);
-    const toggle = setSqlJobActiveChange(unnamed);
+    const remove = deleteSqlJobChange(unnamed, sourceDatabase);
+    const toggle = setSqlJobActiveChange(unnamed, sourceDatabase);
     sql(`
       ${remove.down}
       ${assertSql("(SELECT nodename FROM cron.job) = '/tmp'")}
@@ -194,14 +219,15 @@ function assertSql(condition: string) {
       command: 'SELECT 10',
       active: false,
     };
-    const disable = disableCronChange([sqlJobFixture, unnamed]);
+    const disable = disableCronChange([sqlJobFixture, unnamed], sourceDatabase);
     sql(`
-      ${createSqlJobChange({ ...sqlJobFixture, jobname: sqlJobFixture.jobname! }).up}
-      ${deleteSqlJobChange(unnamed).down}
+      ${createSqlJobChange({ ...sqlJobFixture, jobname: sqlJobFixture.jobname! }, sourceDatabase).up}
+      ${deleteSqlJobChange(unnamed, sourceDatabase).down}
       ${disable.up}
       ${assertSql("NOT EXISTS (SELECT FROM pg_extension WHERE extname = 'pg_cron')")}
       ${disable.down}
       ${assertSql('(SELECT count(*) FROM cron.job) = 2')}
+      ${assertSql('(SELECT bool_and(database = current_database()) FROM cron.job)')}
       ${assertSql('(SELECT count(*) FROM cron.job WHERE NOT active) = 1')}
     `);
   });
@@ -240,11 +266,14 @@ function assertSql(condition: string) {
           result: string[][];
         };
       }
-      const change = createSqlJobChange({
-        ...sqlJobFixture,
-        jobname: sqlJobFixture.jobname!,
-        active: false,
-      });
+      const change = createSqlJobChange(
+        {
+          ...sqlJobFixture,
+          jobname: sqlJobFixture.jobname!,
+          active: false,
+        },
+        sourceDatabase,
+      );
       query('CREATE EXTENSION pg_cron;');
       try {
         expect(query(CRON_STATE_SQL, true).result_type).toBe('TuplesOk');
@@ -261,9 +290,51 @@ function assertSql(condition: string) {
     },
   );
 
+  it.each(['named', 'unnamed'])(
+    'preserves an explicit cross-database target for %s jobs through changes and rollback',
+    (kind) => {
+      const job = {
+        ...sqlJobFixture,
+        jobname: kind === 'named' ? 'cross-database-job' : null,
+        database: 'template1',
+      };
+      const remove = deleteSqlJobChange(job, sourceDatabase);
+      const edit = editSqlJobChange(
+        job,
+        { ...job, jobname: job.jobname ?? '', schedule: '5 seconds' },
+        sourceDatabase,
+      );
+      const toggle = setSqlJobActiveChange(job, sourceDatabase);
+      const disable = disableCronChange([job], sourceDatabase);
+      const inTargetDatabase = assertSql(
+        "(SELECT database FROM cron.job) = 'template1'",
+      );
+      sql(`
+        ${remove.down}
+        ${inTargetDatabase}
+        ${edit.up}
+        ${inTargetDatabase}
+        ${edit.down}
+        ${inTargetDatabase}
+        ${toggle.up}
+        ${inTargetDatabase}
+        ${toggle.down}
+        ${inTargetDatabase}
+        ${remove.up}
+        ${assertSql('(SELECT count(*) FROM cron.job) = 0')}
+        ${remove.down}
+        ${inTargetDatabase}
+        ${disable.up}
+        ${disable.down}
+        ${inTargetDatabase}
+        ${remove.up}
+      `);
+    },
+  );
+
   it('fails closed when an unnamed definition matches multiple jobs', () => {
     const unnamed = { ...sqlJobFixture, jobname: null };
-    const remove = deleteSqlJobChange(unnamed);
+    const remove = deleteSqlJobChange(unnamed, sourceDatabase);
     expect(() => sql(`${remove.down}\n${remove.down}\n${remove.up}`)).toThrow();
   });
 });

@@ -54,17 +54,23 @@ export function getJobRunsSql(jobid: string, offset: number, limit: number) {
   );
 }
 
+function jobDatabaseSql(database: string, currentDatabase: string): string {
+  return database === currentDatabase
+    ? 'current_database()'
+    : format('%L', database);
+}
+
 // IDs differ when migrations replay on another database. Named jobs have a
 // stable (name, role) key; legacy unnamed jobs must match their old definition.
-function jobPredicate(job: SqlJob): string {
+function jobPredicate(job: SqlJob, currentDatabase: string): string {
   if (job.jobname !== null) {
     return format('jobname = %L AND username = %L', job.jobname, job.username);
   }
 
   return format(
-    'jobname IS NULL AND username = %L AND database = %L AND schedule = %L AND command = %L AND nodename = %L AND nodeport = %L',
+    'jobname IS NULL AND username = %L AND database = %s AND schedule = %L AND command = %L AND nodename = %L AND nodeport = %L',
     job.username,
-    job.database,
+    jobDatabaseSql(job.database, currentDatabase),
     job.schedule,
     job.command,
     job.nodename,
@@ -76,16 +82,20 @@ function block(body: string): string {
   return withPostgresRole(format('DO %L', `${body};`));
 }
 
-function createJobSql(job: SqlJobValues | SqlJob): string {
+function createJobSql(
+  job: SqlJobValues | SqlJob,
+  currentDatabase: string,
+): string {
+  const database = jobDatabaseSql(job.database, currentDatabase);
   const schedule =
     job.jobname === null
       ? format('cron.schedule(%L, %L)', job.schedule, job.command)
       : format(
-          'cron.schedule_in_database(%L, %L, %L, %L, %L, %L)',
+          'cron.schedule_in_database(%L, %L, %L, %s, %L, %L)',
           job.jobname,
           job.schedule,
           job.command,
-          job.database,
+          database,
           job.username,
           job.active,
         );
@@ -113,33 +123,37 @@ function createJobSql(job: SqlJobValues | SqlJob): string {
 BEGIN
   ${guard}
   SELECT ${schedule} INTO target_job_id;
-  PERFORM cron.alter_job(target_job_id, database := ${format('%L', job.database)},
+  PERFORM cron.alter_job(target_job_id, database := ${database},
     username := ${format('%L', job.username)}, active := ${format('%L', job.active)});
   ${restoreConnection}
 END`);
 }
 
-function deleteJobSql(job: SqlJob): string {
+function deleteJobSql(job: SqlJob, currentDatabase: string): string {
   return block(`DECLARE target_job_id bigint;
 BEGIN
-  SELECT jobid INTO STRICT target_job_id FROM cron.job WHERE ${jobPredicate(job)};
+  SELECT jobid INTO STRICT target_job_id FROM cron.job WHERE ${jobPredicate(job, currentDatabase)};
   PERFORM cron.unschedule(target_job_id);
 END`);
 }
 
-function alterJobSql(before: SqlJob, after: SqlJobValues | SqlJob): string {
+function alterJobSql(
+  before: SqlJob,
+  after: SqlJobValues | SqlJob,
+  currentDatabase: string,
+): string {
   return block(
     format(
       `DECLARE target_job_id bigint;
 BEGIN
   SELECT jobid INTO STRICT target_job_id FROM cron.job WHERE %s;
   PERFORM cron.alter_job(target_job_id, schedule := %L, command := %L,
-    database := %L, username := %L, active := %L);
+    database := %s, username := %L, active := %L);
 END`,
-      jobPredicate(before),
+      jobPredicate(before, currentDatabase),
       after.schedule,
       after.command,
-      after.database,
+      jobDatabaseSql(after.database, currentDatabase),
       after.username,
       after.active,
     ),
@@ -150,7 +164,10 @@ function migrationName(action: string, name: string | null): string {
   return `${action}_sql_job_${(name ?? 'unnamed').replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
 
-export function createSqlJobChange(values: SqlJobValues): SqlJobChange {
+export function createSqlJobChange(
+  values: SqlJobValues,
+  currentDatabase: string,
+): SqlJobChange {
   const job: SqlJob = {
     ...values,
     jobid: '',
@@ -160,45 +177,60 @@ export function createSqlJobChange(values: SqlJobValues): SqlJobChange {
   };
   return {
     name: migrationName('create', values.jobname),
-    up: createJobSql(values),
-    down: deleteJobSql(job),
+    up: createJobSql(values, currentDatabase),
+    down: deleteJobSql(job, currentDatabase),
   };
 }
 
 export function editSqlJobChange(
   before: SqlJob,
   values: SqlJobValues,
+  currentDatabase: string,
 ): SqlJobChange {
   const after = { ...before, ...values, jobname: before.jobname };
   return {
     name: migrationName('update', before.jobname),
-    up: alterJobSql(before, after),
-    down: alterJobSql(after, before),
+    up: alterJobSql(before, after, currentDatabase),
+    down: alterJobSql(after, before, currentDatabase),
   };
 }
 
-export function deleteSqlJobChange(job: SqlJob): SqlJobChange {
+export function deleteSqlJobChange(
+  job: SqlJob,
+  currentDatabase: string,
+): SqlJobChange {
   return {
     name: migrationName('delete', job.jobname),
-    up: deleteJobSql(job),
-    down: createJobSql(job),
+    up: deleteJobSql(job, currentDatabase),
+    down: createJobSql(job, currentDatabase),
   };
 }
 
-export function disableCronChange(jobs: SqlJob[]): SqlJobChange {
+export function disableCronChange(
+  jobs: SqlJob[],
+  currentDatabase: string,
+): SqlJobChange {
   return {
     name: 'disable_extension_pg_cron',
     up: getUninstallExtensionSQL('pg_cron'),
-    down: [getInstallExtensionSQL('pg_cron'), ...jobs.map(createJobSql)].join(
-      '\n',
-    ),
+    down: [
+      getInstallExtensionSQL('pg_cron'),
+      ...jobs.map((job) => createJobSql(job, currentDatabase)),
+    ].join('\n'),
   };
 }
 
-export function setSqlJobActiveChange(job: SqlJob): SqlJobChange {
-  return editSqlJobChange(job, {
-    ...job,
-    jobname: job.jobname ?? '',
-    active: !job.active,
-  });
+export function setSqlJobActiveChange(
+  job: SqlJob,
+  currentDatabase: string,
+): SqlJobChange {
+  return editSqlJobChange(
+    job,
+    {
+      ...job,
+      jobname: job.jobname ?? '',
+      active: !job.active,
+    },
+    currentDatabase,
+  );
 }

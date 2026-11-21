@@ -452,7 +452,8 @@ describe('SQL Jobs', () => {
     await user.click(dialog.getByRole('button', { name: 'Create job' }));
     await waitFor(() => expect(writes).toHaveLength(1));
     const body = JSON.stringify(writes[0].body);
-    expect(body).toContain('supplied-database');
+    expect(body).toContain('current_database()');
+    expect(body).not.toContain("'supplied-database'");
     expect(body).not.toContain('preset-database');
   });
 
@@ -736,7 +737,8 @@ describe('SQL Jobs', () => {
       );
       const body = JSON.stringify(writes[0].body);
       expect(body).toContain('cleanup-cron-run-history');
-      expect(body).toContain('retention-db');
+      expect(body).toContain('current_database()');
+      expect(body).not.toContain("'retention-db'");
       expect(body).toContain('0 5 * * *');
       expect(body).toContain('DELETE FROM cron.job_run_details');
       expect(body).toContain('7 days');

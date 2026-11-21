@@ -8,9 +8,11 @@ import {
 import {
   createSqlJobChange,
   deleteSqlJobChange,
+  disableCronChange,
   editSqlJobChange,
   getJobRunsSql,
   SQL_JOBS_SQL,
+  setSqlJobActiveChange,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
 import { sqlJobFixture } from '@/features/orgs/projects/events/sql-jobs/test-fixtures';
 
@@ -130,17 +132,71 @@ describe('SQL Jobs transport', () => {
 });
 
 describe('SQL Jobs migration contracts', () => {
+  it.each(['named', 'unnamed'])(
+    'makes every same-database %s job change portable in both directions',
+    (kind) => {
+      const job = {
+        ...sqlJobFixture,
+        database: 'local',
+        jobname: kind === 'named' ? 'portable-job' : null,
+      };
+      const values = { ...job, jobname: job.jobname ?? '' };
+      const changes = [
+        createSqlJobChange({ ...values, jobname: 'new-job' }, 'local'),
+        editSqlJobChange(job, values, 'local'),
+        setSqlJobActiveChange(job, 'local'),
+        deleteSqlJobChange(job, 'local'),
+        disableCronChange([job], 'local'),
+      ];
+      for (const operation of changes) {
+        const migration = buildSqlJobMigration(operation);
+        expect(migration.up[0].args.sql).not.toContain("'local'");
+        expect(migration.down[0].args.sql).not.toContain("'local'");
+        expect(operation.up + operation.down).toContain('current_database()');
+      }
+    },
+  );
+
+  it.each(['named', 'unnamed'])(
+    'preserves explicit cross-database targets for %s jobs',
+    (kind) => {
+      const job = {
+        ...sqlJobFixture,
+        database: 'reporting',
+        jobname: kind === 'named' ? 'cross-database-job' : null,
+      };
+      const values = { ...job, jobname: job.jobname ?? '' };
+      const changes = [
+        createSqlJobChange({ ...values, jobname: 'new-job' }, 'local'),
+        editSqlJobChange(job, values, 'local'),
+        setSqlJobActiveChange(job, 'local'),
+        deleteSqlJobChange(job, 'local'),
+        disableCronChange([job], 'local'),
+      ];
+      for (const operation of changes) {
+        expect(operation.up + operation.down).toContain("''reporting''");
+        expect(operation.up + operation.down).not.toContain(
+          'current_database()',
+        );
+      }
+    },
+  );
+
   it('never embeds environment-specific job IDs in migration writes', () => {
-    const create = createSqlJobChange({
-      ...sqlJobFixture,
-      jobname: sqlJobFixture.jobname!,
-    });
-    const edit = editSqlJobChange(sqlJobFixture, {
-      ...sqlJobFixture,
-      jobname: sqlJobFixture.jobname!,
-      username: 'another-role',
-    });
-    const remove = deleteSqlJobChange(sqlJobFixture);
+    const create = createSqlJobChange(
+      { ...sqlJobFixture, jobname: sqlJobFixture.jobname! },
+      sqlJobFixture.database,
+    );
+    const edit = editSqlJobChange(
+      sqlJobFixture,
+      {
+        ...sqlJobFixture,
+        jobname: sqlJobFixture.jobname!,
+        username: 'another-role',
+      },
+      sqlJobFixture.database,
+    );
+    const remove = deleteSqlJobChange(sqlJobFixture, sqlJobFixture.database);
     for (const operation of [create, edit, remove]) {
       expect(operation.up).not.toContain(sqlJobFixture.jobid);
       expect(operation.down).not.toContain(sqlJobFixture.jobid);
