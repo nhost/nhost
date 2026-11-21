@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import { attachmentValidationError } from '@/features/support/utils/attachments';
+import {
+  attachmentValidationError,
+  type SupportAttachmentUploaded,
+} from '@/features/support/utils/attachments';
 import {
   DashboardCreateSupportAttachmentDraftDocument,
   type DashboardCreateSupportAttachmentDraftMutation,
@@ -34,7 +37,7 @@ interface DraftUpload {
   error?: string;
 }
 type DraftAction =
-  | { type: 'upload'; files?: File[] }
+  | { type: 'upload'; files?: File[]; onUploaded?: SupportAttachmentUploaded }
   | { type: 'remove'; id: number }
   | { type: 'discard'; id: string }
   | { type: 'clear' };
@@ -247,6 +250,14 @@ export function useSupportAttachmentDraft(organizationID: string) {
               state?.attachments.some((file) => file.id === item.reservationID)
             ) {
               updateUpload(item.id, { status: 'uploaded' });
+              operation.onUploaded?.(
+                {
+                  id: item.reservationID,
+                  name: item.file.name,
+                  mimeType: item.file.type,
+                },
+                item.file,
+              );
               continue;
             }
             await discardReservation(item.reservationID);
@@ -266,6 +277,14 @@ export function useSupportAttachmentDraft(organizationID: string) {
           updateUpload(item.id, { reservationID });
           await uploadAttachment(reservationID, item.file, 'user');
           updateUpload(item.id, { status: 'uploaded' });
+          operation.onUploaded?.(
+            {
+              id: reservationID,
+              name: item.file.name,
+              mimeType: item.file.type,
+            },
+            item.file,
+          );
         } catch (error: unknown) {
           console.error(
             'Draft attachment upload failed',

@@ -161,6 +161,7 @@ const server = setupServer(
 mockMultipartFormData();
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
+  vi.stubGlobal('IntersectionObserver', undefined);
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   vi.stubGlobal(
     'URL',
@@ -218,9 +219,9 @@ function Attachments({ closed = false }: { closed?: boolean }) {
           name="body"
           label="Your reply"
           filesDisabled={controller.unavailable}
-          onFilesDrop={(selected) => {
-            void controller.uploadFiles(selected);
-          }}
+          onFilesDrop={(selected, onUploaded) =>
+            controller.uploadFiles(selected, onUploaded)
+          }
           attachments={(insert) => (
             <TicketAttachments
               controller={controller}
@@ -238,7 +239,81 @@ function renderAttachments(closed = false) {
 }
 
 describe('ticket attachments', () => {
-  it('uploads a drop directly from the reply editor without an upload button', async () => {
+  it('shows resized image thumbnails on closed tickets with the viewer role', async () => {
+    setRole('support_agent');
+    const id = '41261576-2d59-4c12-bc6e-e573bdba3af1';
+    files = [
+      {
+        ...attachment(id, 'screenshot.png'),
+        file: { id, name: 'screenshot.png', size: 30, mimeType: 'image/png' },
+      },
+    ];
+    const previews: { role: string | null; params: Record<string, string> }[] =
+      [];
+    server.use(
+      http.get(
+        'https://local.storage.local.nhost.run/v1/files/:id',
+        ({ request }) => {
+          previews.push({
+            role: request.headers.get('x-hasura-role'),
+            params: Object.fromEntries(new URL(request.url).searchParams),
+          });
+          return new HttpResponse(
+            new Uint8Array([82, 73, 70, 70, 0, 0, 0, 0, 87, 69, 66, 80]),
+            { headers: { 'content-type': 'image/webp' } },
+          );
+        },
+      ),
+    );
+    renderAttachments(true);
+    await screen.findByRole('img', { name: 'Preview of screenshot.png' });
+    expect(previews).toEqual([
+      {
+        role: 'support_agent',
+        params: { w: '128', h: '128', q: '75', f: 'webp' },
+      },
+    ]);
+    expect(
+      screen.getByRole('button', { name: 'Download screenshot.png' }),
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Insert screenshot.png into reply',
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each(['text/plain', 'image/png'])(
+    'uploads and inserts a dropped %s file without an upload button',
+    async (mimeType) => {
+      renderAttachments();
+      await waitFor(() =>
+        expect(screen.getByLabelText('Attach files')).toBeEnabled(),
+      );
+      fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
+        dataTransfer: {
+          types: ['Files'],
+          files: [
+            new File(['dropped logs'], 'dropped.txt', { type: mimeType }),
+          ],
+        },
+      });
+      await screen.findByRole('button', { name: 'Download dropped.txt' });
+      expect(uploads).toHaveLength(1);
+      expect(uploads[0]).toMatchObject({ name: 'dropped.txt', role: 'user' });
+      expect(
+        screen.queryByRole('button', { name: 'Upload files' }),
+      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue(
+          `${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${reservations[0].id})`,
+        ),
+      );
+    },
+  );
+
+  it('inserts only successful dropped files when a batch partially fails', async () => {
+    failures.add('failed.txt');
     renderAttachments();
     await waitFor(() =>
       expect(screen.getByLabelText('Attach files')).toBeEnabled(),
@@ -247,17 +322,20 @@ describe('ticket attachments', () => {
       dataTransfer: {
         types: ['Files'],
         files: [
-          new File(['dropped logs'], 'dropped.txt', { type: 'text/plain' }),
+          new File(['kept'], 'kept.txt'),
+          new File(['failed'], 'failed.txt'),
         ],
       },
     });
-    await screen.findByRole('button', { name: 'Download dropped.txt' });
-    expect(uploads).toHaveLength(1);
-    expect(uploads[0]).toMatchObject({ name: 'dropped.txt', role: 'user' });
+    await screen.findByText(/Upload could not be confirmed/);
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue(
+        `[kept.txt](attachment:${reservations[0].id})\n`,
+      ),
+    );
     expect(
-      screen.queryByRole('button', { name: 'Upload files' }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue('');
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    ).toBeEnabled();
   });
 
   it.each(['text/plain', 'image/png'])(

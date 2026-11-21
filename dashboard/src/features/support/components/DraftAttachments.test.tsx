@@ -53,6 +53,11 @@ const draftID = '87892ee8-df02-4292-9f38-9e288ef1e686';
 const ticketID = '7d442aba-6e61-4854-b354-0d5ec8d198d8';
 const originalClaims = structuredClone(mockSession.decodedToken);
 const originalToken = mockSession.accessToken;
+const originalURL = URL;
+const originalIntersectionObserver = IntersectionObserver;
+const createObjectURL = vi.fn().mockReturnValue('blob:draft-thumbnail');
+const revokeObjectURL = vi.fn();
+let previewRequests: { role: string | null; params: Record<string, string> }[];
 let draft: Draft | null;
 let submittedTicket: { id: string; attachmentDraftID: string } | null;
 let denyTicketReads: boolean;
@@ -123,6 +128,19 @@ function authorize(agent: boolean) {
   mockSession.accessToken = `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + 3600, 'https://hasura.io/jwt/claims': claims }))}.test-signature`;
 }
 const server = setupServer(
+  http.get(
+    'https://local.storage.local.nhost.run/v1/files/:id',
+    ({ request }) => {
+      previewRequests.push({
+        role: request.headers.get('x-hasura-role'),
+        params: Object.fromEntries(new URL(request.url).searchParams),
+      });
+      return new HttpResponse(
+        new Uint8Array([82, 73, 70, 70, 0, 0, 0, 0, 87, 69, 66, 80]),
+        { headers: { 'content-type': 'image/webp' } },
+      );
+    },
+  ),
   http.post('https://local.auth.local.nhost.run/v1/token', () =>
     HttpResponse.json({ ...mockSession }),
   ),
@@ -355,6 +373,33 @@ const server = setupServer(
 mockMultipartFormData();
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
+  vi.stubGlobal(
+    'URL',
+    class extends URL {
+      static createObjectURL = createObjectURL;
+      static revokeObjectURL = revokeObjectURL;
+    },
+  );
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(
+        private callback: (
+          entries: Pick<
+            IntersectionObserverEntry,
+            'target' | 'isIntersecting' | 'intersectionRatio'
+          >[],
+        ) => void,
+      ) {}
+      observe(target: Element) {
+        this.callback([{ target, isIntersecting: true, intersectionRatio: 1 }]);
+      }
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+      takeRecords = vi.fn(() => []);
+    },
+  );
+  previewRequests = [];
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   mockScrollIntoViewAndPointerCapture();
   toast.remove();
@@ -385,6 +430,8 @@ afterEach(() => {
   mockSession.accessToken = originalToken;
   mockSession.decodedToken = structuredClone(originalClaims);
   vi.clearAllMocks();
+  vi.stubGlobal('URL', originalURL);
+  vi.stubGlobal('IntersectionObserver', originalIntersectionObserver);
 });
 afterAll(() => server.close());
 
@@ -420,7 +467,61 @@ async function uploaded() {
 }
 
 describe('new ticket attachment drafts', () => {
-  it('automatically uploads files dropped into the description without sending a ticket', async () => {
+  it('shows resized draft image thumbnails as user even for a support agent', async () => {
+    authorize(true);
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await user.upload(
+      screen.getByLabelText('Attach files'),
+      new File(['image'], 'screenshot.png', { type: 'image/png' }),
+    );
+    expect(
+      await screen.findByRole('img', { name: 'Preview of screenshot.png' }),
+    ).toHaveAttribute('src', 'blob:draft-thumbnail');
+    expect(previewRequests).toEqual([
+      { role: 'user', params: { w: '128', h: '128', q: '75', f: 'webp' } },
+    ]);
+  });
+
+  it.each(['text/plain', 'image/png'])(
+    'automatically uploads and inserts a dropped %s file without sending a ticket',
+    async (mimeType) => {
+      const user = new TestUserEvent();
+      render(<NewTicket />);
+      await fillForm(user);
+      fireEvent.drop(screen.getByRole('textbox', { name: 'Description' }), {
+        dataTransfer: {
+          types: ['Files'],
+          files: [
+            new File(['dropped logs'], 'dropped.txt', { type: mimeType }),
+          ],
+        },
+      });
+      await screen.findByRole('button', { name: 'Download dropped.txt' });
+      await uploaded();
+      expect(storageRequests).toHaveLength(1);
+      expect(storageRequests[0]).toMatchObject({
+        name: 'dropped.txt',
+        body: 'dropped logs',
+        role: 'user',
+      });
+      expect(requests.some((item) => item.operation === 'ticket')).toBe(false);
+      expect(
+        screen.queryByRole('button', { name: 'Upload files' }),
+      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.getByRole('textbox', { name: 'Description' }),
+        ).toHaveValue(
+          `**Diagnostic details**${mimeType.startsWith('image/') ? '!' : ''}[dropped.txt](attachment:${records[0].id})`,
+        ),
+      );
+    },
+  );
+
+  it('links only confirmed draft uploads when a drop partially fails', async () => {
+    failUpload.add('failed.txt');
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);
@@ -428,25 +529,23 @@ describe('new ticket attachment drafts', () => {
       dataTransfer: {
         types: ['Files'],
         files: [
-          new File(['dropped logs'], 'dropped.txt', { type: 'text/plain' }),
+          new File(['kept'], 'kept.txt'),
+          new File(['failed'], 'failed.txt'),
         ],
       },
     });
-    await screen.findByRole('button', { name: 'Download dropped.txt' });
-    await uploaded();
-    expect(storageRequests).toHaveLength(1);
-    expect(storageRequests[0]).toMatchObject({
-      name: 'dropped.txt',
-      body: 'dropped logs',
-      role: 'user',
-    });
-    expect(requests.some((item) => item.operation === 'ticket')).toBe(false);
-    expect(
-      screen.queryByRole('button', { name: 'Upload files' }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
-      '**Diagnostic details**',
+    await screen.findByText(/Upload could not be confirmed/);
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
+        `**Diagnostic details**[kept.txt](attachment:${records[0].id})\n`,
+      ),
     );
+    expect(
+      screen.getByRole('button', { name: 'Create ticket' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    ).toBeEnabled();
   });
 
   it('inserts uploaded file links and images at the description cursor and submits the raw Markdown', async () => {

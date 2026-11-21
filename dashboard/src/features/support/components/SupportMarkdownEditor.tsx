@@ -1,6 +1,11 @@
 import { Bold, Code, Italic, Link } from 'lucide-react';
-import { type ReactNode, useRef, useState } from 'react';
-import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { type ReactNode, useId, useRef, useState } from 'react';
+import {
+  type Control,
+  type FieldPath,
+  type FieldValues,
+  useFormContext,
+} from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -14,8 +19,10 @@ import {
 import { Textarea } from '@/components/ui/v3/textarea';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import {
+  attachmentValidationError,
   type SupportAttachmentFile,
   type SupportAttachmentScope,
+  type SupportAttachmentUploaded,
   supportAttachmentMarkdown,
 } from '@/features/support/utils/attachments';
 import { cn } from '@/lib/utils';
@@ -27,7 +34,10 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
   placeholder?: string;
   disabled?: boolean;
   filesDisabled?: boolean;
-  onFilesDrop?: (files: File[]) => void;
+  onFilesDrop?: (
+    files: File[],
+    onUploaded: SupportAttachmentUploaded,
+  ) => Promise<unknown>;
   attachmentScope?: SupportAttachmentScope;
   attachments?: (insert: (file: SupportAttachmentFile) => void) => ReactNode;
 }
@@ -44,6 +54,9 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
   attachments,
 }: SupportMarkdownEditorProps<T>) {
   const editor = useRef<HTMLTextAreaElement>(null);
+  const uploadID = useId();
+  const nextUpload = useRef(0);
+  const { getValues } = useFormContext<T>();
   const [preview, setPreview] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -89,6 +102,92 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
               start + markdown.length,
             );
           });
+        }
+        async function uploadDroppedFiles(files: File[]) {
+          if (!onFilesDrop || files.length === 0) {
+            return;
+          }
+          const textarea = editor.current;
+          const markers = new Map<File, string>();
+          const completed = new Map<File, string>();
+          for (const file of files) {
+            if (!attachmentValidationError(file)) {
+              nextUpload.current += 1;
+              markers.set(
+                file,
+                supportAttachmentMarkdown({
+                  id: `upload-${uploadID}-${nextUpload.current}`,
+                  name: `Uploading ${file.name}…`,
+                }),
+              );
+            }
+          }
+          if (markers.size > 0) {
+            const start = textarea?.selectionStart ?? value.length;
+            const end = textarea?.selectionEnd ?? value.length;
+            const pending = [...markers.values()].join('\n');
+            const pendingValue = `${value.slice(0, start)}${pending}${value.slice(end)}`;
+            field.onChange(pendingValue);
+            requestAnimationFrame(() => {
+              if (
+                textarea &&
+                !textarea.hidden &&
+                textarea.value === pendingValue
+              ) {
+                textarea.focus();
+                textarea.setSelectionRange(
+                  start + pending.length,
+                  start + pending.length,
+                );
+              }
+            });
+          }
+          try {
+            await onFilesDrop(files, (attachment, source) => {
+              completed.set(source, supportAttachmentMarkdown(attachment));
+            });
+          } catch (error: unknown) {
+            console.error(
+              'Dropped attachment upload failed',
+              error instanceof Error ? error.message : 'Unknown error',
+            );
+          } finally {
+            // Replace tokens in the latest text so typing during uploads is never overwritten.
+            const current = getValues(name);
+            if (typeof current === 'string') {
+              let updated: string = current;
+              let start = textarea?.selectionStart ?? current.length;
+              let end = textarea?.selectionEnd ?? current.length;
+              for (const [source, marker] of markers) {
+                const position = updated.indexOf(marker);
+                if (position < 0) {
+                  continue;
+                }
+                const replacement = completed.get(source) ?? '';
+                const adjust = (offset: number) =>
+                  offset <= position
+                    ? offset
+                    : offset >= position + marker.length
+                      ? offset + replacement.length - marker.length
+                      : position + replacement.length;
+                start = adjust(start);
+                end = adjust(end);
+                updated = `${updated.slice(0, position)}${replacement}${updated.slice(position + marker.length)}`;
+              }
+              if (updated !== current) {
+                field.onChange(updated);
+                requestAnimationFrame(() => {
+                  if (
+                    textarea &&
+                    document.activeElement === textarea &&
+                    textarea.value === updated
+                  ) {
+                    textarea.setSelectionRange(start, end);
+                  }
+                });
+              }
+            }
+          }
         }
         return (
           <FormItem>
@@ -183,7 +282,9 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   event.preventDefault();
                   setDragging(false);
                   if (!disabled && !filesDisabled && onFilesDrop) {
-                    onFilesDrop(Array.from(event.dataTransfer.files));
+                    void uploadDroppedFiles(
+                      Array.from(event.dataTransfer.files),
+                    );
                   }
                 }}
                 className={cn(
@@ -211,9 +312,9 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
             )}
             <FormDescription>
               Markdown supported: headings, lists, links, tables and fenced code
-              blocks. Drop files here to upload automatically (up to 5 MB each).
-              Insert uploaded images or file links using the attachment buttons.
-              HTML and remote images are disabled.
+              blocks. Drop files here to upload and insert links or images
+              automatically (up to 5 MB each). Attachment buttons can insert
+              existing files. HTML and remote images are disabled.
             </FormDescription>
             <FormMessage />
             {attachments?.(insertAttachment)}

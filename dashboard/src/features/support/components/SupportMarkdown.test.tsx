@@ -3,7 +3,9 @@ import { vi } from 'vitest';
 import { Form } from '@/components/form/Form';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
+import type { SupportAttachmentUploaded } from '@/features/support/utils/attachments';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -20,7 +22,10 @@ function Editor({
   filesDisabled,
 }: {
   onSubmit: (values: EditorValues) => void;
-  onFilesDrop?: (files: File[]) => void;
+  onFilesDrop?: (
+    files: File[],
+    onUploaded: SupportAttachmentUploaded,
+  ) => Promise<void>;
   filesDisabled?: boolean;
 }) {
   const form = useForm<EditorValues>({ defaultValues: { description: '' } });
@@ -44,7 +49,7 @@ describe('support Markdown', () => {
   it.each([false, true])(
     'handles file drops without submitting or changing text (disabled=%s)',
     async (filesDisabled) => {
-      const drop = vi.fn();
+      const drop = vi.fn().mockResolvedValue(undefined);
       const submit = vi.fn();
       const file = new File(['logs'], 'logs.txt');
       render(
@@ -64,10 +69,61 @@ describe('support Markdown', () => {
       });
       expect(drop).toHaveBeenCalledTimes(filesDisabled ? 0 : 1);
       if (!filesDisabled) {
-        expect(drop).toHaveBeenCalledWith([file]);
+        expect(drop).toHaveBeenCalledWith([file], expect.any(Function));
       }
-      expect(textbox).toHaveValue('Keep my text');
+      await waitFor(() => expect(textbox).toHaveValue('Keep my text'));
       expect(submit).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([false, true])(
+    'preserves edits made while a dropped file uploads (placeholder removed=%s)',
+    async (removePlaceholder) => {
+      const file = new File(['logs'], 'logs.txt', { type: 'text/plain' });
+      const id = '41261576-2d59-4c12-bc6e-e573bdba3af1';
+      let finish: () => void = () => {};
+      let uploaded: SupportAttachmentUploaded = () => {};
+      const pending = new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      const drop = async (
+        _files: File[],
+        onUploaded: SupportAttachmentUploaded,
+      ) => {
+        uploaded = onUploaded;
+        await pending;
+      };
+      const user = new TestUserEvent();
+      render(<Editor onSubmit={vi.fn()} onFilesDrop={drop} />);
+      const textbox = screen.getByRole('textbox', {
+        name: 'Description',
+      }) as HTMLTextAreaElement;
+      await user.type(textbox, 'before after');
+      textbox.setSelectionRange(7, 7);
+      fireEvent.drop(textbox, {
+        dataTransfer: { types: ['Files'], files: [file] },
+      });
+      expect(textbox.value).toContain('Uploading logs.txt');
+      if (removePlaceholder) {
+        await user.clear(textbox);
+        await user.type(textbox, 'replacement text');
+      } else {
+        await waitFor(() =>
+          expect(textbox.selectionStart).toBe(textbox.value.indexOf('after')),
+        );
+        await user.type(textbox, ' typed while uploading', {
+          initialSelectionStart: textbox.value.length,
+        });
+      }
+      await act(async () => {
+        uploaded({ id, name: file.name, mimeType: file.type }, file);
+        finish();
+      });
+      expect(textbox).toHaveValue(
+        removePlaceholder
+          ? 'replacement text'
+          : `before [logs.txt](attachment:${id})after typed while uploading`,
+      );
     },
   );
 

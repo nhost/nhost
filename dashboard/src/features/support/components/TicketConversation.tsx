@@ -164,9 +164,9 @@ export default function TicketConversation({
               }
               filesDisabled={attachments.unavailable}
               attachmentScope={{ ticketId }}
-              onFilesDrop={(files) => {
-                void attachments.uploadFiles(files);
-              }}
+              onFilesDrop={(files, onUploaded) =>
+                attachments.uploadFiles(files, onUploaded)
+              }
               attachments={(insert) => (
                 <TicketAttachments
                   controller={attachments}

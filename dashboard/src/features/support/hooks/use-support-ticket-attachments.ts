@@ -8,6 +8,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
   attachmentValidationError,
+  type SupportAttachmentUploaded,
   saveSupportAttachment,
 } from '@/features/support/utils/attachments';
 import {
@@ -65,7 +66,11 @@ export function useSupportTicketAttachments(
   }
   const upload = useMutation({
     retry: false,
-    mutationFn: async (selected?: File[]) => {
+    mutationFn: async (operation: {
+      files?: File[];
+      onUploaded?: SupportAttachmentUploaded;
+    }) => {
+      const selected = operation.files;
       if (closed || disabled || attachments.isError || attachments.isLoading) {
         throw new Error(
           'Attachments cannot be uploaded to this ticket right now.',
@@ -107,6 +112,14 @@ export function useSupportTicketAttachments(
             item.file,
           );
           updateUpload(item.id, { status: 'uploaded' });
+          operation.onUploaded?.(
+            {
+              id: reservation.insertSupportAttachmentUpload.id,
+              name: item.file.name,
+              mimeType: item.file.type,
+            },
+            item.file,
+          );
         } catch (error: unknown) {
           console.error(
             'Support attachment upload failed',
@@ -147,12 +160,15 @@ export function useSupportTicketAttachments(
       attachments.isError ||
       attachments.isLoading,
     files: attachments.data?.pages.flat() ?? [],
-    uploadFiles: (files?: File[]) =>
-      execPromiseWithErrorToast(() => upload.mutateAsync(files), {
-        loadingMessage: 'Uploading files…',
-        successMessage: 'Files uploaded',
-        errorMessage: 'Unable to upload files.',
-      }),
+    uploadFiles: (files?: File[], onUploaded?: SupportAttachmentUploaded) =>
+      execPromiseWithErrorToast(
+        () => upload.mutateAsync({ files, onUploaded }),
+        {
+          loadingMessage: 'Uploading files…',
+          successMessage: 'Files uploaded',
+          errorMessage: 'Unable to upload files.',
+        },
+      ),
     removeUpload: (id: number) => {
       if (!uploading) {
         setUploads((current) =>

@@ -6,6 +6,11 @@ export interface SupportAttachmentFile {
   mimeType?: string | null;
 }
 
+export type SupportAttachmentUploaded = (
+  attachment: SupportAttachmentFile,
+  source: File,
+) => void;
+
 export type SupportAttachmentScope =
   | { ticketId: string; draftId?: never }
   | { draftId: string; ticketId?: never };

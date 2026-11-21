@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
+import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
 import type { SupportAttachmentFile } from '@/features/support/utils/attachments';
 import { supportDate } from '@/features/support/utils/tickets';
@@ -59,16 +60,19 @@ export default function TicketAttachments({
                 key={attachment.id}
                 className="flex items-center justify-between gap-3 text-sm"
               >
-                <div className="min-w-0">
-                  <p className="break-words">
-                    {attachment.file?.name ?? 'Attachment unavailable'}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {attachment.file &&
-                      `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
-                    {attachment.uploaderName} ·{' '}
-                    {supportDate(attachment.createdAt)}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <SupportAttachmentPreview file={attachment.file} />
+                  <div className="min-w-0">
+                    <p className="break-words">
+                      {attachment.file?.name ?? 'Attachment unavailable'}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {attachment.file &&
+                        `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
+                      {attachment.uploaderName} ·{' '}
+                      {supportDate(attachment.createdAt)}
+                    </p>
+                  </div>
                 </div>
                 {attachment.file && (
                   <div className="flex shrink-0 gap-1">

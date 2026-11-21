@@ -1,3 +1,4 @@
+import type { GetFileParams } from '@nhost/nhost-js/storage';
 import { type DocumentNode, print } from 'graphql';
 import {
   attachmentValidationError,
@@ -102,10 +103,11 @@ export function useSupportSession() {
     id: string,
     requestRole: SupportRole = role,
     signal?: AbortSignal,
+    transform?: GetFileParams,
   ): Promise<Blob> {
     const headers = await requestHeaders(requestRole);
     signal?.throwIfAborted();
-    const response = await nhost.storage.getFile(id, undefined, {
+    const response = await nhost.storage.getFile(id, transform, {
       headers,
       cache: 'no-store',
       signal,

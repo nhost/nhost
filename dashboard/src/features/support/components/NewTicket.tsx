@@ -321,9 +321,14 @@ function NewTicketForm() {
               attachmentScope={
                 draft.identity ? { draftId: draft.identity.id } : undefined
               }
-              onFilesDrop={(files) => {
-                void execPromiseWithErrorToast(
-                  () => draft.action.mutateAsync({ type: 'upload', files }),
+              onFilesDrop={(files, onUploaded) => {
+                return execPromiseWithErrorToast(
+                  () =>
+                    draft.action.mutateAsync({
+                      type: 'upload',
+                      files,
+                      onUploaded,
+                    }),
                   {
                     loadingMessage: 'Uploading draft attachments…',
                     successMessage: 'Files uploaded',

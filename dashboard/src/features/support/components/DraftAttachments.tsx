@@ -6,6 +6,7 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
+import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import type { SupportAttachmentDraftController } from '@/features/support/hooks/use-support-attachment-draft';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
@@ -94,14 +95,20 @@ export default function DraftAttachments({
                   key={item.id}
                   className="flex items-center justify-between gap-3 text-sm"
                 >
-                  <div className="min-w-0 break-words">
-                    <p>{item.file?.name ?? 'Attachment unavailable'}</p>
-                    <p className="text-muted-foreground text-xs">
-                      Uploaded
-                      {item.file?.size != null
-                        ? ` · ${item.file.size.toLocaleString()} bytes`
-                        : ''}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <SupportAttachmentPreview
+                      file={item.file}
+                      requestRole="user"
+                    />
+                    <div className="min-w-0 break-words">
+                      <p>{item.file?.name ?? 'Attachment unavailable'}</p>
+                      <p className="text-muted-foreground text-xs">
+                        Uploaded
+                        {item.file?.size != null
+                          ? ` · ${item.file.size.toLocaleString()} bytes`
+                          : ''}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 gap-1">
                     {item.file && (
