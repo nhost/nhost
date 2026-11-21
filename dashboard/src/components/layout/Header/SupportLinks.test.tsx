@@ -22,6 +22,9 @@ describe('SupportLinks', () => {
           'href',
           '/support',
         );
+        expect(
+          screen.getByRole('link', { name: 'Support' }),
+        ).not.toHaveAttribute('target');
         expect(screen.getByRole('link', { name: 'Status' })).toHaveAttribute(
           'href',
           'https://status.nhost.io',
@@ -37,6 +40,10 @@ describe('SupportLinks', () => {
       expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
         'href',
         'https://docs.nhost.io',
+      );
+      expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
+        'target',
+        '_blank',
       );
     },
   );

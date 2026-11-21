@@ -18,18 +18,21 @@ interface SupportLinkProps {
 }
 
 function SupportLink({ href, icon, children }: SupportLinkProps) {
+  const external = href.startsWith('https://');
   return (
     <Link
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
       className="flex h-9 items-center gap-2 rounded-md px-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
     >
       <span className="flex size-4 shrink-0 items-center justify-center text-neutral-600 dark:text-sidebar-foreground">
         {icon}
       </span>
       <span className="flex-1">{children}</span>
-      <ExternalLinkIcon className="size-4 shrink-0 text-neutral-600 dark:text-sidebar-foreground" />
+      {external && (
+        <ExternalLinkIcon className="size-4 shrink-0 text-neutral-600 dark:text-sidebar-foreground" />
+      )}
     </Link>
   );
 }

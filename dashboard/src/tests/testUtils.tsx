@@ -229,6 +229,10 @@ export class TestUserEvent {
     });
   }
 
+  async upload(element: HTMLElement, files: File | File[]) {
+    await this.user.upload(element, files);
+  }
+
   async paste(value: string) {
     await waitFor(async () => {
       await this.user.paste(value);

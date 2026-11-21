@@ -649,7 +649,6 @@ const rawTree: CommandNode = {
       icon: <CircleHelpIcon className={iconClassName} />,
       kind: 'page',
       path: '/support',
-      scope: 'external',
       keywords: ['support', 'help', 'contact'],
       gate: 'platform',
     },
