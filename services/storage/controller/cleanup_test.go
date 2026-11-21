@@ -28,17 +28,19 @@ func TestRunCleanup(t *testing.T) {
 		nil,
 	)
 	tests := []struct {
-		name          string
-		listError     *controller.APIError
-		metadataError *controller.APIError
-		contentError  *controller.APIError
-		cleanupError  *controller.APIError
-		deleteContent bool
+		name             string
+		listError        *controller.APIError
+		metadataError    *controller.APIError
+		contentError     *controller.APIError
+		cleanupError     *controller.APIError
+		deleteContent    bool
+		wantDeletionLogs int
 	}{
 		{
-			name:          "deletes orphan and acknowledges queue entry",
-			metadataError: controller.ErrFileNotFound,
-			deleteContent: true,
+			name:             "deletes orphan and acknowledges queue entry",
+			metadataError:    controller.ErrFileNotFound,
+			deleteContent:    true,
+			wantDeletionLogs: 1,
 		},
 		{
 			name: "existing pending metadata protects content",
@@ -62,10 +64,11 @@ func TestRunCleanup(t *testing.T) {
 			deleteContent: true,
 		},
 		{
-			name:          "queue removal failure is retried later",
-			metadataError: controller.ErrFileNotFound,
-			cleanupError:  failure,
-			deleteContent: true,
+			name:             "queue removal failure is retried later",
+			metadataError:    controller.ErrFileNotFound,
+			cleanupError:     failure,
+			deleteContent:    true,
+			wantDeletionLogs: 1,
 		},
 	}
 
@@ -82,6 +85,14 @@ func TestRunCleanup(t *testing.T) {
 					ID:        "00000000-0000-0000-0000-000000000001",
 					DeletedAt: time.Now().Add(-25 * time.Hour),
 				}
+
+				var logged strings.Builder
+
+				deletionLog := fmt.Sprintf(
+					"level=INFO msg=%q fileID=%s",
+					"deleted orphaned file",
+					file.ID,
+				)
 				metadataStorage.EXPECT().ListFilesToDelete(
 					gomock.Any(), time.Now().Add(-24*time.Hour), "", 100, headers,
 				).Return([]controller.FileToDelete{file}, tt.listError)
@@ -100,12 +111,20 @@ func TestRunCleanup(t *testing.T) {
 					if tt.contentError == nil {
 						metadataStorage.EXPECT().RemoveFileFromCleanup(
 							gomock.Any(), file.ID, file.DeletedAt, headers,
-						).Return(tt.cleanupError).After(deletion)
+						).DoAndReturn(func(context.Context, string, time.Time, http.Header) *controller.APIError {
+							if !strings.Contains(logged.String(), deletionLog) {
+								t.Error(
+									"orphan deletion was not logged before queue acknowledgment",
+								)
+							}
+
+							return tt.cleanupError
+						}).After(deletion)
 					}
 				}
 
 				ctrl := controller.New("", "", "admin-secret", metadataStorage, contentStorage,
-					nil, nil, slog.New(slog.DiscardHandler))
+					nil, nil, slog.New(slog.NewTextHandler(&logged, nil)))
 
 				ctx, cancel := context.WithCancel(t.Context())
 				defer cancel()
@@ -115,6 +134,8 @@ func TestRunCleanup(t *testing.T) {
 				synctest.Wait()
 				cancel()
 				synctest.Wait()
+
+				assert(t, strings.Count(logged.String(), deletionLog), tt.wantDeletionLogs)
 			})
 		})
 	}
@@ -287,7 +308,11 @@ func testCleanupOperationDeadline(t *testing.T, operation, wantLog string, cance
 			contentStorage,
 			nil,
 			nil,
-			slog.New(slog.NewTextHandler(logged, nil)),
+			slog.New(slog.NewTextHandler(logged, &slog.HandlerOptions{
+				AddSource:   false,
+				Level:       slog.LevelError,
+				ReplaceAttr: nil,
+			})),
 		)
 
 		ctx, cancel := context.WithCancel(t.Context())

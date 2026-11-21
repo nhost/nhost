@@ -79,7 +79,11 @@ func TestRunCleanupHasuraNonGraphQLErrors(t *testing.T) {
 						contentStorage,
 						nil,
 						nil,
-						slog.New(slog.NewTextHandler(logged, nil)),
+						slog.New(slog.NewTextHandler(logged, &slog.HandlerOptions{
+							AddSource:   false,
+							Level:       slog.LevelError,
+							ReplaceAttr: nil,
+						})),
 					)
 
 					deadline, stop := context.WithTimeout(t.Context(), 5*time.Second)

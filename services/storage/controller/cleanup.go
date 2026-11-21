@@ -92,6 +92,8 @@ func (ctrl *Controller) cleanupFile(
 		return apiErr
 	}
 
+	ctrl.logger.InfoContext(ctx, "deleted orphaned file", slog.String("fileID", file.ID))
+
 	// Do not acknowledge a more recent deletion of the same ID.
 	return ctrl.metadataStorage.RemoveFileFromCleanup(ctx, file.ID, file.DeletedAt, headers)
 }
