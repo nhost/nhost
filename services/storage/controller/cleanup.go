@@ -33,6 +33,9 @@ func (ctrl *Controller) RunCleanup(ctx context.Context) {
 }
 
 func (ctrl *Controller) cleanupFiles(ctx context.Context) {
+	ctrl.logger.InfoContext(ctx, "starting file cleanup")
+	defer ctrl.logger.InfoContext(ctx, "finished file cleanup")
+
 	headers := http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}}
 	before := time.Now().Add(-cleanupMinAge)
 	after := ""

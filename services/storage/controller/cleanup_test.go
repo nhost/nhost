@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -16,6 +17,27 @@ import (
 	"github.com/nhost/nhost/services/storage/controller/mock"
 	gomock "go.uber.org/mock/gomock"
 )
+
+type cleanupLogBuffer struct {
+	mu   sync.Mutex
+	data []byte
+}
+
+func (b *cleanupLogBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.data = append(b.data, p...)
+
+	return len(p), nil
+}
+
+func (b *cleanupLogBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return string(b.data)
+}
 
 func TestRunCleanup(t *testing.T) {
 	t.Parallel()
@@ -34,40 +56,58 @@ func TestRunCleanup(t *testing.T) {
 		contentError     *controller.APIError
 		cleanupError     *controller.APIError
 		deleteContent    bool
+		queueLength      int
+		cancelOnList     bool
 		wantDeletionLogs int
 	}{
 		{
 			name:             "deletes orphan and acknowledges queue entry",
 			metadataError:    controller.ErrFileNotFound,
 			deleteContent:    true,
+			queueLength:      1,
 			wantDeletionLogs: 1,
 		},
 		{
-			name: "existing pending metadata protects content",
+			name:        "existing pending metadata protects content",
+			queueLength: 1,
 		},
 		{
-			name:      "listing failure does not delete anything",
-			listError: failure,
+			name:        "empty cleanup queue",
+			queueLength: 0,
+		},
+		{
+			name:         "cancellation finishes sweep",
+			queueLength:  1,
+			cancelOnList: true,
+		},
+		{
+			name:        "listing failure does not delete anything",
+			listError:   failure,
+			queueLength: 1,
 		},
 		{
 			name:          "metadata lookup fails closed",
 			metadataError: failure,
+			queueLength:   1,
 		},
 		{
 			name:          "unrelated not found fails closed",
 			metadataError: wrongNotFound,
+			queueLength:   1,
 		},
 		{
 			name:          "content deletion failure leaves queue entry",
 			metadataError: controller.ErrFileNotFound,
 			contentError:  failure,
 			deleteContent: true,
+			queueLength:   1,
 		},
 		{
 			name:             "queue removal failure is retried later",
 			metadataError:    controller.ErrFileNotFound,
 			cleanupError:     failure,
 			deleteContent:    true,
+			queueLength:      1,
 			wantDeletionLogs: 1,
 		},
 	}
@@ -86,18 +126,30 @@ func TestRunCleanup(t *testing.T) {
 					DeletedAt: time.Now().Add(-25 * time.Hour),
 				}
 
-				var logged strings.Builder
+				ctx, cancel := context.WithCancel(t.Context())
+				defer cancel()
+
+				var logged cleanupLogBuffer
 
 				deletionLog := fmt.Sprintf(
 					"level=INFO msg=%q fileID=%s",
 					"deleted orphaned file",
 					file.ID,
 				)
+
+				files := []controller.FileToDelete{file}[:tt.queueLength]
+
 				metadataStorage.EXPECT().ListFilesToDelete(
 					gomock.Any(), time.Now().Add(-24*time.Hour), "", 100, headers,
-				).Return([]controller.FileToDelete{file}, tt.listError)
+				).DoAndReturn(func(context.Context, time.Time, string, int, http.Header) ([]controller.FileToDelete, *controller.APIError) {
+					if tt.cancelOnList {
+						cancel()
+					}
 
-				if tt.listError == nil {
+					return files, tt.listError
+				})
+
+				if tt.listError == nil && len(files) > 0 && !tt.cancelOnList {
 					metadataStorage.EXPECT().GetFileByID(
 						gomock.Any(), file.ID, headers,
 					).Return(api.FileMetadata{IsUploaded: false}, tt.metadataError)
@@ -126,9 +178,6 @@ func TestRunCleanup(t *testing.T) {
 				ctrl := controller.New("", "", "admin-secret", metadataStorage, contentStorage,
 					nil, nil, slog.New(slog.NewTextHandler(&logged, nil)))
 
-				ctx, cancel := context.WithCancel(t.Context())
-				defer cancel()
-
 				go ctrl.RunCleanup(ctx)
 
 				synctest.Wait()
@@ -136,9 +185,25 @@ func TestRunCleanup(t *testing.T) {
 				synctest.Wait()
 
 				assert(t, strings.Count(logged.String(), deletionLog), tt.wantDeletionLogs)
+				assertCleanupSweepLogs(t, logged.String(), 1)
 			})
 		})
 	}
+}
+
+func assertCleanupSweepLogs(t *testing.T, logged string, wantSweeps int) {
+	t.Helper()
+
+	const (
+		startLog  = `level=INFO msg="starting file cleanup"`
+		finishLog = `level=INFO msg="finished file cleanup"`
+	)
+
+	lines := strings.Split(strings.TrimSpace(logged), "\n")
+	assert(t, strings.Count(logged, startLog), wantSweeps)
+	assert(t, strings.Count(logged, finishLog), wantSweeps)
+	assert(t, strings.Contains(lines[0], startLog), true)
+	assert(t, strings.Contains(lines[len(lines)-1], finishLog), true)
 }
 
 func TestRunCleanupRetriesDaily(t *testing.T) {
@@ -172,8 +237,10 @@ func TestRunCleanupRetriesDaily(t *testing.T) {
 			).Return(nil),
 		)
 
+		var logged cleanupLogBuffer
+
 		ctrl := controller.New("", "", "admin-secret", metadataStorage, contentStorage,
-			nil, nil, slog.New(slog.DiscardHandler))
+			nil, nil, slog.New(slog.NewTextHandler(&logged, nil)))
 
 		ctx, cancel := context.WithCancel(t.Context())
 		defer cancel()
@@ -181,12 +248,15 @@ func TestRunCleanupRetriesDaily(t *testing.T) {
 		go ctrl.RunCleanup(ctx)
 
 		synctest.Wait()
+		assertCleanupSweepLogs(t, logged.String(), 1)
 		time.Sleep(23 * time.Hour)
 		synctest.Wait()
+		assertCleanupSweepLogs(t, logged.String(), 1)
 		time.Sleep(time.Hour)
 		synctest.Wait()
 		cancel()
 		synctest.Wait()
+		assertCleanupSweepLogs(t, logged.String(), 2)
 	})
 }
 
@@ -482,8 +552,10 @@ func TestRunCleanupPaginatesPastProtectedFiles(t *testing.T) {
 			gomock.Any(), lastFile.ID, lastFile.DeletedAt, headers,
 		).Return(nil)
 
+		var logged cleanupLogBuffer
+
 		ctrl := controller.New("", "", "admin-secret", metadataStorage, contentStorage,
-			nil, nil, slog.New(slog.DiscardHandler))
+			nil, nil, slog.New(slog.NewTextHandler(&logged, nil)))
 
 		ctx, cancel := context.WithCancel(t.Context())
 		defer cancel()
@@ -491,6 +563,7 @@ func TestRunCleanupPaginatesPastProtectedFiles(t *testing.T) {
 		go ctrl.RunCleanup(ctx)
 
 		synctest.Wait()
+		assertCleanupSweepLogs(t, logged.String(), 1)
 		cancel()
 		synctest.Wait()
 	})
@@ -499,10 +572,13 @@ func TestRunCleanupPaginatesPastProtectedFiles(t *testing.T) {
 func TestRunCleanupCanceled(t *testing.T) {
 	t.Parallel()
 
+	var logged cleanupLogBuffer
+
 	mocks := gomock.NewController(t)
 	ctrl := controller.New("", "", "admin-secret", mock.NewMockMetadataStorage(mocks),
-		mock.NewMockContentStorage(mocks), nil, nil, slog.New(slog.DiscardHandler))
+		mock.NewMockContentStorage(mocks), nil, nil, slog.New(slog.NewTextHandler(&logged, nil)))
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	ctrl.RunCleanup(ctx)
+	assert(t, logged.String(), "")
 }
