@@ -311,14 +311,39 @@ function NewTicketForm() {
               label="Description"
               placeholder="What did you expect, what happened, and how can we reproduce it?"
               disabled={form.formState.isSubmitting}
+              filesDisabled={
+                !selectedOrganization ||
+                draft.busy ||
+                draft.query.isError ||
+                !!draft.query.data?.ticketID ||
+                draft.submissionUncertain
+              }
+              attachmentScope={
+                draft.identity ? { draftId: draft.identity.id } : undefined
+              }
+              onFilesDrop={(files) => {
+                void execPromiseWithErrorToast(
+                  () => draft.action.mutateAsync({ type: 'upload', files }),
+                  {
+                    loadingMessage: 'Uploading draft attachments…',
+                    successMessage: 'Files uploaded',
+                    errorMessage: 'Unable to upload draft attachments.',
+                  },
+                );
+              }}
+              attachments={(insert) => (
+                <DraftAttachments
+                  draft={draft}
+                  disabled={
+                    form.formState.isSubmitting || !selectedOrganization
+                  }
+                  onInsert={insert}
+                />
+              )}
             />
             <p className="text-muted-foreground text-xs">
               Do not include passwords, access tokens, or other secrets.
             </p>
-            <DraftAttachments
-              draft={draft}
-              disabled={form.formState.isSubmitting || !selectedOrganization}
-            />
             {draft.blocked && !draft.busy && !draft.query.isError && (
               <p className="text-muted-foreground text-sm">
                 Upload or remove unfinished attachments before creating the

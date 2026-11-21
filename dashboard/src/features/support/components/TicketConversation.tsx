@@ -9,7 +9,9 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
+import TicketAttachments from '@/features/support/components/TicketAttachments';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
+import { useSupportTicketAttachments } from '@/features/support/hooks/use-support-ticket-attachments';
 import { PAGE_SIZE, supportDate } from '@/features/support/utils/tickets';
 import {
   DashboardReplyToSupportTicketDocument,
@@ -70,6 +72,11 @@ export default function TicketConversation({
       await invalidate();
     },
   });
+  const attachments = useSupportTicketAttachments(
+    ticketId,
+    closed,
+    disabled || comments.isError || form.formState.isSubmitting,
+  );
   const conversation =
     comments.data?.pages
       .flatMap((page) => page.supportComments.slice(0, PAGE_SIZE))
@@ -117,21 +124,29 @@ export default function TicketConversation({
                   {supportDate(comment.createdAt)}
                 </time>
               </div>
-              <SupportMarkdown>{comment.body}</SupportMarkdown>
+              <SupportMarkdown attachmentScope={{ ticketId }}>
+                {comment.body}
+              </SupportMarkdown>
             </article>
           ))}
         </>
       )}
       {closed ? (
-        <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
-          This ticket is closed and read-only. Create a new ticket if you need
-          further help.
-        </p>
+        <>
+          <TicketAttachments controller={attachments} closed />
+          <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
+            This ticket is closed and read-only. Create a new ticket if you need
+            further help.
+          </p>
+        </>
       ) : (
         <FormProvider {...form}>
           <Form
             className="space-y-4 rounded-lg border p-5"
             onSubmit={async ({ body }: z.infer<typeof replySchema>) => {
+              if (attachments.uploading) {
+                return;
+              }
               await execPromiseWithErrorToast(() => reply.mutateAsync(body), {
                 loadingMessage: 'Sending reply…',
                 successMessage: 'Reply sent',
@@ -147,6 +162,18 @@ export default function TicketConversation({
               disabled={
                 disabled || comments.isError || form.formState.isSubmitting
               }
+              filesDisabled={attachments.unavailable}
+              attachmentScope={{ ticketId }}
+              onFilesDrop={(files) => {
+                void attachments.uploadFiles(files);
+              }}
+              attachments={(insert) => (
+                <TicketAttachments
+                  controller={attachments}
+                  closed={false}
+                  onInsert={insert}
+                />
+              )}
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground text-xs">
@@ -155,7 +182,7 @@ export default function TicketConversation({
               <ButtonWithLoading
                 type="submit"
                 loading={form.formState.isSubmitting}
-                disabled={disabled || comments.isError}
+                disabled={disabled || comments.isError || attachments.uploading}
               >
                 Send reply
               </ButtonWithLoading>

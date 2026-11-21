@@ -14,6 +14,7 @@ import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
   act,
+  fireEvent,
   mockScrollIntoViewAndPointerCapture,
   Providers,
   queryClient,
@@ -30,6 +31,7 @@ type Draft = NonNullable<
 interface Reservation {
   id: string;
   name: string;
+  mimeType: string;
   completed: boolean;
   discarded: boolean;
   draftID: string | null;
@@ -91,6 +93,7 @@ function reserve(name = 'Unknown upload'): Reservation {
   const entry = {
     id: `00000000-0000-4000-8000-${String(reservationCounter).padStart(12, '0')}`,
     name,
+    mimeType: 'text/plain',
     completed: false,
     discarded: false,
     draftID,
@@ -204,7 +207,12 @@ const server = setupServer(
               .slice(offset, offset + 100)
               .map((item) => ({
                 id: item.id,
-                file: { id: item.id, name: item.name, size: 10 },
+                file: {
+                  id: item.id,
+                  name: item.name,
+                  size: 10,
+                  mimeType: item.mimeType,
+                },
               })),
           },
         },
@@ -317,6 +325,7 @@ const server = setupServer(
       const entry = records.find((item) => item.id === id);
       if (entry) {
         entry.name = file.name;
+        entry.mimeType = file.type;
       }
       if (failUpload.delete(file.name)) {
         return HttpResponse.json(
@@ -403,7 +412,6 @@ async function uploadFiles(user: TestUserEvent, names = ['logs.txt']) {
       (name) => new File(['diagnostic contents'], name, { type: 'text/plain' }),
     ),
   );
-  await user.click(screen.getByRole('button', { name: 'Upload files' }));
 }
 async function uploaded() {
   await waitFor(() =>
@@ -412,6 +420,67 @@ async function uploaded() {
 }
 
 describe('new ticket attachment drafts', () => {
+  it('automatically uploads files dropped into the description without sending a ticket', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    fireEvent.drop(screen.getByRole('textbox', { name: 'Description' }), {
+      dataTransfer: {
+        types: ['Files'],
+        files: [
+          new File(['dropped logs'], 'dropped.txt', { type: 'text/plain' }),
+        ],
+      },
+    });
+    await screen.findByRole('button', { name: 'Download dropped.txt' });
+    await uploaded();
+    expect(storageRequests).toHaveLength(1);
+    expect(storageRequests[0]).toMatchObject({
+      name: 'dropped.txt',
+      body: 'dropped logs',
+      role: 'user',
+    });
+    expect(requests.some((item) => item.operation === 'ticket')).toBe(false);
+    expect(
+      screen.queryByRole('button', { name: 'Upload files' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
+      '**Diagnostic details**',
+    );
+  });
+
+  it('inserts uploaded file links and images at the description cursor and submits the raw Markdown', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    await user.upload(screen.getByLabelText('Attach files'), [
+      new File(['logs'], 'logs [safe].txt', { type: 'text/plain' }),
+      new File(['image'], 'screenshot.png', { type: 'image/png' }),
+    ]);
+    await uploaded();
+    const editor = screen.getByRole('textbox', {
+      name: 'Description',
+    }) as HTMLTextAreaElement;
+    editor.setSelectionRange(0, 0);
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Insert logs [safe].txt into description',
+      }),
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Insert screenshot.png into description',
+      }),
+    );
+    const markdown = `[logs \\[safe\\].txt](attachment:${records[0].id})![screenshot.png](attachment:${records[1].id})**Diagnostic details**`;
+    expect(editor).toHaveValue(markdown);
+    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+    await waitFor(() => expect(router.push).toHaveBeenCalled());
+    expect(
+      requests.find((item) => item.operation === 'ticket')?.variables,
+    ).toMatchObject({ input: { description: markdown } });
+  });
+
   it.each([false, true])(
     'uploads before creating the ticket, always as user (agent=%s)',
     async (agent) => {
@@ -489,7 +558,7 @@ describe('new ticket attachment drafts', () => {
       screen.getByText('Files must be 5 MB or smaller.'),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Upload files' }),
+      screen.queryByRole('button', { name: 'Retry failed uploads' }),
     ).not.toBeInTheDocument();
     expect(requests).toEqual([]);
   });
@@ -531,10 +600,12 @@ describe('new ticket attachment drafts', () => {
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Upload files' }),
+        screen.getByRole('button', { name: 'Retry failed uploads' }),
       ).toBeEnabled(),
     );
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    );
     await uploaded();
     expect(storageRequests).toHaveLength(2);
     expect(storageRequests[0].id).not.toBe(storageRequests[1].id);
@@ -555,10 +626,12 @@ describe('new ticket attachment drafts', () => {
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Upload files' }),
+        screen.getByRole('button', { name: 'Retry failed uploads' }),
       ).toBeEnabled(),
     );
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    );
     await uploaded();
     expect(storageRequests).toHaveLength(1);
     expect(records).toHaveLength(1);
@@ -579,10 +652,12 @@ describe('new ticket attachment drafts', () => {
     await user.click(discard);
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Upload files' }),
+        screen.getByRole('button', { name: 'Retry failed uploads' }),
       ).toBeEnabled(),
     );
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    );
     await uploaded();
     expect(records[0].discarded).toBe(true);
     expect(records[1].completed).toBe(true);

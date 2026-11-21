@@ -38,6 +38,7 @@ query dashboardSupportAttachmentDraft($id: uuid!, $offset: Int!) {
         id
         name
         size
+        mimeType
       }
     }
   }

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { Download, Paperclip, X } from 'lucide-react';
+import { Download, FilePlus2, Paperclip, X } from 'lucide-react';
 import Link from 'next/link';
 import { useId } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -8,24 +8,33 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { SupportError } from '@/features/support/components/SupportArea';
 import type { SupportAttachmentDraftController } from '@/features/support/hooks/use-support-attachment-draft';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import { saveSupportAttachment } from '@/features/support/utils/attachments';
+import {
+  type SupportAttachmentFile,
+  saveSupportAttachment,
+} from '@/features/support/utils/attachments';
 import { supportDate } from '@/features/support/utils/tickets';
 
 interface DraftAttachmentsProps {
   draft: SupportAttachmentDraftController;
   disabled: boolean;
+  onInsert: (file: SupportAttachmentFile) => void;
 }
 
 export default function DraftAttachments({
   draft,
   disabled,
+  onInsert,
 }: DraftAttachmentsProps) {
   const inputID = useId();
   const { downloadAttachment } = useSupportSession();
   const data = draft.query.data?.draft;
   const ticketID = draft.query.data?.ticketID;
   const unavailable =
-    disabled || draft.busy || draft.query.isError || !!ticketID;
+    disabled ||
+    draft.busy ||
+    draft.query.isError ||
+    !!ticketID ||
+    draft.submissionUncertain;
   const download = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const blob = await downloadAttachment(id, 'user');
@@ -57,8 +66,9 @@ export default function DraftAttachments({
         <Paperclip className="size-4" /> Attachments
       </h2>
       <p className="text-muted-foreground text-xs">
-        Upload files before creating the ticket. Draft files are private to you
-        until submission. Up to 5 MB per file.
+        Drop files onto the description or select them below to upload
+        automatically. Draft files are private to you until submission. Up to 5
+        MB per file.
       </p>
       {draft.identity && draft.query.isError ? (
         <SupportError
@@ -95,34 +105,48 @@ export default function DraftAttachments({
                   </div>
                   <div className="flex shrink-0 gap-1">
                     {item.file && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        aria-label={`Download ${item.file.name ?? 'attachment'}`}
-                        disabled={unavailable || download.status === 'loading'}
-                        onClick={() => {
-                          const file = item.file;
-                          if (!file) {
-                            return;
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          aria-label={`Download ${item.file.name ?? 'attachment'}`}
+                          disabled={
+                            unavailable || download.status === 'loading'
                           }
-                          void execPromiseWithErrorToast(
-                            () =>
-                              download.mutateAsync({
-                                id: file.id,
-                                name: file.name ?? 'attachment',
-                              }),
-                            {
-                              loadingMessage: 'Downloading attachment…',
-                              successMessage: 'Attachment downloaded',
-                              errorMessage:
-                                'Unable to download this attachment.',
-                            },
-                          );
-                        }}
-                      >
-                        <Download className="size-4" />
-                      </Button>
+                          onClick={() => {
+                            const file = item.file;
+                            if (!file) {
+                              return;
+                            }
+                            void execPromiseWithErrorToast(
+                              () =>
+                                download.mutateAsync({
+                                  id: file.id,
+                                  name: file.name ?? 'attachment',
+                                }),
+                              {
+                                loadingMessage: 'Downloading attachment…',
+                                successMessage: 'Attachment downloaded',
+                                errorMessage:
+                                  'Unable to download this attachment.',
+                              },
+                            );
+                          }}
+                        >
+                          <Download className="size-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          aria-label={`Insert ${item.file.name ?? 'attachment'} into description`}
+                          disabled={unavailable}
+                          onClick={() => item.file && onInsert(item.file)}
+                        >
+                          <FilePlus2 className="size-4" />
+                        </Button>
+                      </>
                     )}
                     <Button
                       type="button"
@@ -210,8 +234,15 @@ export default function DraftAttachments({
           disabled={unavailable}
           onChange={(event) => {
             const input = event.currentTarget;
-            draft.addFiles(Array.from(input.files ?? []));
+            const files = Array.from(input.files ?? []);
             input.value = '';
+            if (files.length > 0) {
+              void perform(
+                { type: 'upload', files },
+                'Uploading draft attachments…',
+                'Files uploaded',
+              );
+            }
           }}
         />
       </div>
@@ -251,25 +282,26 @@ export default function DraftAttachments({
           ))}
         </ul>
       )}
-      {queue.some(
-        (item) => item.status === 'pending' || item.status === 'failed',
-      ) && (
-        <ButtonWithLoading
-          type="button"
-          variant="outline"
-          loading={draft.busy}
-          disabled={unavailable}
-          onClick={() => {
-            void perform(
-              { type: 'upload' },
-              'Uploading draft attachments…',
-              'Files uploaded',
-            );
-          }}
-        >
-          Upload files
-        </ButtonWithLoading>
-      )}
+      {!draft.busy &&
+        queue.some(
+          (item) => item.status === 'pending' || item.status === 'failed',
+        ) && (
+          <ButtonWithLoading
+            type="button"
+            variant="outline"
+            loading={draft.busy}
+            disabled={unavailable}
+            onClick={() => {
+              void perform(
+                { type: 'upload' },
+                'Uploading draft attachments…',
+                'Files uploaded',
+              );
+            }}
+          >
+            Retry failed uploads
+          </ButtonWithLoading>
+        )}
       {draft.hasFiles && (
         <div className="space-y-2 border-t pt-3">
           <p className="text-muted-foreground text-xs">

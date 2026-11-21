@@ -3,12 +3,26 @@ import { vi } from 'vitest';
 import { Form } from '@/components/form/Form';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  fireEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 
 interface EditorValues {
   description: string;
 }
-function Editor({ onSubmit }: { onSubmit: (values: EditorValues) => void }) {
+function Editor({
+  onSubmit,
+  onFilesDrop,
+  filesDisabled,
+}: {
+  onSubmit: (values: EditorValues) => void;
+  onFilesDrop?: (files: File[]) => void;
+  filesDisabled?: boolean;
+}) {
   const form = useForm<EditorValues>({ defaultValues: { description: '' } });
   return (
     <FormProvider {...form}>
@@ -17,6 +31,8 @@ function Editor({ onSubmit }: { onSubmit: (values: EditorValues) => void }) {
           control={form.control}
           name="description"
           label="Description"
+          onFilesDrop={onFilesDrop}
+          filesDisabled={filesDisabled}
         />
         <button type="submit">Submit</button>
       </Form>
@@ -25,6 +41,48 @@ function Editor({ onSubmit }: { onSubmit: (values: EditorValues) => void }) {
 }
 
 describe('support Markdown', () => {
+  it.each([false, true])(
+    'handles file drops without submitting or changing text (disabled=%s)',
+    async (filesDisabled) => {
+      const drop = vi.fn();
+      const submit = vi.fn();
+      const file = new File(['logs'], 'logs.txt');
+      render(
+        <Editor
+          onSubmit={submit}
+          onFilesDrop={drop}
+          filesDisabled={filesDisabled}
+        />,
+      );
+      const textbox = screen.getByRole('textbox', { name: 'Description' });
+      await new TestUserEvent().type(textbox, 'Keep my text');
+      fireEvent.dragOver(textbox, {
+        dataTransfer: { types: ['Files'], dropEffect: 'none' },
+      });
+      fireEvent.drop(textbox, {
+        dataTransfer: { types: ['Files'], files: [file] },
+      });
+      expect(drop).toHaveBeenCalledTimes(filesDisabled ? 0 : 1);
+      if (!filesDisabled) {
+        expect(drop).toHaveBeenCalledWith([file]);
+      }
+      expect(textbox).toHaveValue('Keep my text');
+      expect(submit).not.toHaveBeenCalled();
+    },
+  );
+
+  it('leaves ordinary text drags to the browser', () => {
+    const drop = vi.fn();
+    render(<Editor onSubmit={vi.fn()} onFilesDrop={drop} />);
+    const textbox = screen.getByRole('textbox', { name: 'Description' });
+    expect(
+      fireEvent.drop(textbox, {
+        dataTransfer: { types: ['text/plain'], files: [] },
+      }),
+    ).toBe(true);
+    expect(drop).not.toHaveBeenCalled();
+  });
+
   it('renders headings, formatting, lists, tables, task lists and fenced code', () => {
     render(
       <SupportMarkdown>

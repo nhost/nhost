@@ -101,11 +101,14 @@ export function useSupportSession() {
   async function downloadAttachment(
     id: string,
     requestRole: SupportRole = role,
+    signal?: AbortSignal,
   ): Promise<Blob> {
     const headers = await requestHeaders(requestRole);
+    signal?.throwIfAborted();
     const response = await nhost.storage.getFile(id, undefined, {
       headers,
       cache: 'no-store',
+      signal,
     });
     assertSession();
     return response.body;

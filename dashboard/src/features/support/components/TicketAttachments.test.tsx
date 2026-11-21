@@ -1,8 +1,12 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
+import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { Form } from '@/components/form/Form';
+import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
 import TicketAttachments from '@/features/support/components/TicketAttachments';
+import { useSupportTicketAttachments } from '@/features/support/hooks/use-support-ticket-attachments';
 import { SUPPORT_ATTACHMENT_BUCKET } from '@/features/support/utils/attachments';
 import type { DashboardSupportAttachmentsQuery } from '@/generated/graphql';
 import { useNhostClient } from '@/providers/nhost';
@@ -10,6 +14,7 @@ import { mockMultipartFormData } from '@/tests/mock-multipart-form-data';
 import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
+  fireEvent,
   queryClient,
   render,
   screen,
@@ -199,13 +204,87 @@ async function chooseFiles(user: TestUserEvent, selected: File[]) {
   );
   await user.upload(screen.getByLabelText('Attach files'), selected);
 }
-function renderAttachments(closed = false) {
-  return render(
-    <TicketAttachments ticketId={ticketId} closed={closed} disabled={false} />,
+function Attachments({ closed = false }: { closed?: boolean }) {
+  const controller = useSupportTicketAttachments(ticketId, closed, false);
+  const form = useForm({ defaultValues: { body: '' } });
+  if (closed) {
+    return <TicketAttachments controller={controller} closed />;
+  }
+  return (
+    <FormProvider {...form}>
+      <Form onSubmit={() => {}}>
+        <SupportMarkdownEditor
+          control={form.control}
+          name="body"
+          label="Your reply"
+          filesDisabled={controller.unavailable}
+          onFilesDrop={(selected) => {
+            void controller.uploadFiles(selected);
+          }}
+          attachments={(insert) => (
+            <TicketAttachments
+              controller={controller}
+              closed={false}
+              onInsert={insert}
+            />
+          )}
+        />
+      </Form>
+    </FormProvider>
   );
+}
+function renderAttachments(closed = false) {
+  return render(<Attachments closed={closed} />);
 }
 
 describe('ticket attachments', () => {
+  it('uploads a drop directly from the reply editor without an upload button', async () => {
+    renderAttachments();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Attach files')).toBeEnabled(),
+    );
+    fireEvent.drop(screen.getByRole('textbox', { name: 'Your reply' }), {
+      dataTransfer: {
+        types: ['Files'],
+        files: [
+          new File(['dropped logs'], 'dropped.txt', { type: 'text/plain' }),
+        ],
+      },
+    });
+    await screen.findByRole('button', { name: 'Download dropped.txt' });
+    expect(uploads).toHaveLength(1);
+    expect(uploads[0]).toMatchObject({ name: 'dropped.txt', role: 'user' });
+    expect(
+      screen.queryByRole('button', { name: 'Upload files' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Your reply' })).toHaveValue('');
+  });
+
+  it.each(['text/plain', 'image/png'])(
+    'inserts a %s attachment into the reply at the selection',
+    async (mimeType) => {
+      const id = '41261576-2d59-4c12-bc6e-e573bdba3af1';
+      const name = mimeType === 'image/png' ? 'screenshot.png' : 'logs.txt';
+      files = [
+        { ...attachment(id, name), file: { id, name, size: 30, mimeType } },
+      ];
+      const user = new TestUserEvent();
+      renderAttachments();
+      const insert = await screen.findByRole('button', {
+        name: `Insert ${name} into reply`,
+      });
+      const editor = screen.getByRole('textbox', {
+        name: 'Your reply',
+      }) as HTMLTextAreaElement;
+      await user.type(editor, 'before selected after');
+      editor.setSelectionRange(7, 15);
+      await user.click(insert);
+      expect(editor).toHaveValue(
+        `before ${mimeType === 'image/png' ? '!' : ''}[${name}](attachment:${id}) after`,
+      );
+    },
+  );
+
   it.each(['user', 'support_agent'] as const)(
     'reserves and uploads files with the native %s role',
     async (role) => {
@@ -217,7 +296,6 @@ describe('ticket attachments', () => {
           type: 'text/plain',
         }),
       ]);
-      await user.click(screen.getByRole('button', { name: 'Upload files' }));
       await screen.findByText('Uploaded');
       expect(reservations).toEqual([
         { id: expect.any(String), role, variables: { ticketId } },
@@ -251,7 +329,7 @@ describe('ticket attachments', () => {
       screen.getByText('Files must be 5 MB or smaller.'),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Upload files' }),
+      screen.queryByRole('button', { name: 'Retry failed uploads' }),
     ).not.toBeInTheDocument();
     expect(reservations).toEqual([]);
     expect(uploads).toEqual([]);
@@ -267,16 +345,17 @@ describe('ticket attachments', () => {
       new File(['first'], 'first.txt'),
       new File(['second'], 'second.txt'),
     ]);
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
       expect(
-        screen.getByRole('button', { name: 'Upload files' }),
+        screen.getByRole('button', { name: 'Retry failed uploads' }),
       ).toBeEnabled(),
     );
     await screen.findByRole('button', { name: 'Download first.txt' });
     expect(screen.queryByText('Files uploaded')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Retry failed uploads' }),
+    );
     await waitFor(() =>
       expect(screen.getAllByText('Uploaded')).toHaveLength(2),
     );
@@ -298,7 +377,6 @@ describe('ticket attachments', () => {
     const user = new TestUserEvent();
     renderAttachments();
     await chooseFiles(user, [new File(['logs'], 'logs.txt')]);
-    await user.click(screen.getByRole('button', { name: 'Upload files' }));
     await screen.findByText(/Upload could not be confirmed/);
     expect(uploads).toEqual([]);
   });
@@ -441,11 +519,7 @@ describe('ticket attachments', () => {
     render(
       <>
         <SwitchAccount />
-        <TicketAttachments
-          ticketId={ticketId}
-          closed={false}
-          disabled={false}
-        />
+        <Attachments />
       </>,
     );
     const user = new TestUserEvent();

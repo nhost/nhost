@@ -1,138 +1,36 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { Download, Paperclip, X } from 'lucide-react';
-import { useId, useRef, useState } from 'react';
+import { Download, FilePlus2, Paperclip, X } from 'lucide-react';
+import { useId } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import {
-  attachmentValidationError,
-  saveSupportAttachment,
-} from '@/features/support/utils/attachments';
+import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
+import type { SupportAttachmentFile } from '@/features/support/utils/attachments';
 import { supportDate } from '@/features/support/utils/tickets';
-import {
-  DashboardReserveSupportAttachmentDocument,
-  type DashboardReserveSupportAttachmentMutation,
-  DashboardSupportAttachmentsDocument,
-  type DashboardSupportAttachmentsQuery,
-} from '@/generated/graphql';
 
 interface TicketAttachmentsProps {
-  ticketId: string;
+  controller: SupportTicketAttachmentsController;
   closed: boolean;
-  disabled: boolean;
-}
-
-interface AttachmentUpload {
-  id: number;
-  file: File;
-  status: 'pending' | 'uploading' | 'uploaded' | 'failed' | 'invalid';
-  error?: string;
+  onInsert?: (file: SupportAttachmentFile) => void;
 }
 
 export default function TicketAttachments({
-  ticketId,
+  controller,
   closed,
-  disabled,
+  onInsert,
 }: TicketAttachmentsProps) {
-  const { queryKey, request, uploadAttachment, downloadAttachment } =
-    useSupportSession();
-  const client = useQueryClient();
   const inputId = useId();
-  const nextUploadId = useRef(0);
-  const [uploads, setUploads] = useState<AttachmentUpload[]>([]);
-  const attachmentsKey = [...queryKey, 'attachments', ticketId];
-  const attachments = useInfiniteQuery({
-    queryKey: attachmentsKey,
-    queryFn: async ({ pageParam = 0, signal }) => {
-      const result = await request<DashboardSupportAttachmentsQuery>(
-        DashboardSupportAttachmentsDocument,
-        { ticketId, offset: pageParam },
-        signal,
-      );
-      if (!result.supportTicket) {
-        throw new Error('This ticket is no longer accessible.');
-      }
-      return result.supportTicket.attachments;
-    },
-    getNextPageParam: (last, pages) =>
-      last.length === 100
-        ? pages.reduce((count, page) => count + page.length, 0)
-        : undefined,
-    cacheTime: 0,
-    retry: false,
-    refetchInterval: 30000,
-  });
-  function updateUpload(id: number, changes: Partial<AttachmentUpload>) {
-    setUploads((current) =>
-      current.map((candidate) =>
-        candidate.id === id ? { ...candidate, ...changes } : candidate,
-      ),
-    );
-  }
-  const upload = useMutation({
-    retry: false,
-    mutationFn: async () => {
-      let failed = 0;
-      // One file per request preserves per-file outcomes without multipart ambiguity.
-      for (const item of uploads.filter(
-        (candidate) =>
-          candidate.status === 'pending' || candidate.status === 'failed',
-      )) {
-        updateUpload(item.id, { status: 'uploading', error: undefined });
-        try {
-          const reservation =
-            await request<DashboardReserveSupportAttachmentMutation>(
-              DashboardReserveSupportAttachmentDocument,
-              { ticketId },
-            );
-          if (!reservation.insertSupportAttachmentUpload) {
-            throw new Error('Unable to reserve an upload ID.');
-          }
-          await uploadAttachment(
-            reservation.insertSupportAttachmentUpload.id,
-            item.file,
-          );
-          updateUpload(item.id, { status: 'uploaded' });
-        } catch (error: unknown) {
-          console.error(
-            'Support attachment upload failed',
-            error instanceof Error ? error.message : 'Unknown error',
-          );
-          failed += 1;
-          updateUpload(item.id, {
-            status: 'failed',
-            error:
-              'Upload could not be confirmed. Check the attachment list before retrying.',
-          });
-        }
-      }
-      if (failed > 0) {
-        throw new Error(
-          `${failed} file upload(s) could not be confirmed. Successful files are kept. Check attachments before retrying the failed files.`,
-        );
-      }
-    },
-    onSettled: () => client.invalidateQueries({ queryKey: attachmentsKey }),
-  });
-  const download = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const blob = await downloadAttachment(id);
-      saveSupportAttachment(blob, name);
-    },
-  });
-  const uploading = upload.status === 'loading';
-  const pending = uploads.some(
-    (item) => item.status === 'pending' || item.status === 'failed',
-  );
-  const files = attachments.data?.pages.flat() ?? [];
-
+  const {
+    attachments,
+    files,
+    uploads,
+    download,
+    uploading,
+    unavailable,
+    uploadFiles,
+    removeUpload,
+  } = controller;
   return (
     <section
       aria-label="Ticket attachments"
@@ -173,34 +71,50 @@ export default function TicketAttachments({
                   </p>
                 </div>
                 {attachment.file && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={download.status === 'loading'}
-                    aria-label={`Download ${attachment.file.name ?? 'attachment'}`}
-                    onClick={() => {
-                      const file = attachment.file;
-                      if (!file) {
-                        return;
-                      }
-                      void execPromiseWithErrorToast(
-                        () =>
-                          download.mutateAsync({
-                            id: file.id,
-                            name: file.name ?? 'attachment',
-                          }),
-                        {
-                          loadingMessage: 'Downloading attachment…',
-                          successMessage: 'Attachment downloaded',
-                          errorMessage:
-                            'Unable to download this attachment. Your access may have changed.',
-                        },
-                      );
-                    }}
-                  >
-                    <Download className="size-4" />
-                  </Button>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={download.status === 'loading'}
+                      aria-label={`Download ${attachment.file.name ?? 'attachment'}`}
+                      onClick={() => {
+                        const file = attachment.file;
+                        if (!file) {
+                          return;
+                        }
+                        void execPromiseWithErrorToast(
+                          () =>
+                            download.mutateAsync({
+                              id: file.id,
+                              name: file.name ?? 'attachment',
+                            }),
+                          {
+                            loadingMessage: 'Downloading attachment…',
+                            successMessage: 'Attachment downloaded',
+                            errorMessage:
+                              'Unable to download this attachment. Your access may have changed.',
+                          },
+                        );
+                      }}
+                    >
+                      <Download className="size-4" />
+                    </Button>
+                    {!closed && onInsert && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={unavailable}
+                        aria-label={`Insert ${attachment.file.name ?? 'attachment'} into reply`}
+                        onClick={() =>
+                          attachment.file && onInsert(attachment.file)
+                        }
+                      >
+                        <FilePlus2 className="size-4" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </li>
             ))}
@@ -228,35 +142,22 @@ export default function TicketAttachments({
             id={inputId}
             type="file"
             multiple
-            disabled={
-              disabled ||
-              uploading ||
-              attachments.isError ||
-              attachments.isLoading
-            }
+            disabled={unavailable}
             aria-describedby={`${inputId}-help`}
             onChange={(event) => {
               const input = event.currentTarget;
-              const selected = Array.from(input.files ?? []).map(
-                (file): AttachmentUpload => {
-                  const error = attachmentValidationError(file);
-                  nextUploadId.current += 1;
-                  return {
-                    id: nextUploadId.current,
-                    file,
-                    status: error ? 'invalid' : 'pending',
-                    error,
-                  };
-                },
-              );
-              setUploads((current) => [...current, ...selected]);
+              const selected = Array.from(input.files ?? []);
               input.value = '';
+              if (selected.length > 0) {
+                void uploadFiles(selected);
+              }
             }}
           />
           <p id={`${inputId}-help`} className="text-muted-foreground text-xs">
-            Up to 5 MB per file. Visible to everyone with access to this ticket.
-            Uploads do not send a reply or change ticket status. Do not include
-            secrets.
+            Drop files onto your reply or select them here to upload
+            automatically. Up to 5 MB per file. Visible to everyone with access
+            to this ticket. Uploads do not send a reply or change ticket status.
+            Do not include secrets.
           </p>
           <ul className="space-y-2" aria-live="polite">
             {uploads.map((item) => (
@@ -286,11 +187,7 @@ export default function TicketAttachments({
                     size="sm"
                     aria-label={`Remove ${item.file.name}`}
                     disabled={uploading}
-                    onClick={() =>
-                      setUploads((current) =>
-                        current.filter((candidate) => candidate.id !== item.id),
-                      )
-                    }
+                    onClick={() => removeUpload(item.id)}
                   >
                     <X className="size-4" />
                   </Button>
@@ -298,25 +195,22 @@ export default function TicketAttachments({
               </li>
             ))}
           </ul>
-          {pending && (
-            <ButtonWithLoading
-              type="button"
-              variant="outline"
-              loading={uploading}
-              disabled={
-                disabled || attachments.isError || attachments.isLoading
-              }
-              onClick={() => {
-                void execPromiseWithErrorToast(() => upload.mutateAsync(), {
-                  loadingMessage: 'Uploading files…',
-                  successMessage: 'Files uploaded',
-                  errorMessage: 'Unable to upload files.',
-                });
-              }}
-            >
-              Upload files
-            </ButtonWithLoading>
-          )}
+          {!uploading &&
+            uploads.some(
+              (item) => item.status === 'pending' || item.status === 'failed',
+            ) && (
+              <ButtonWithLoading
+                type="button"
+                variant="outline"
+                loading={uploading}
+                disabled={unavailable}
+                onClick={() => {
+                  void uploadFiles();
+                }}
+              >
+                Retry failed uploads
+              </ButtonWithLoading>
+            )}
         </div>
       )}
     </section>

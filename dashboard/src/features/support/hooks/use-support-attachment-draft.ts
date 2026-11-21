@@ -34,7 +34,7 @@ interface DraftUpload {
   error?: string;
 }
 type DraftAction =
-  | { type: 'upload' }
+  | { type: 'upload'; files?: File[] }
   | { type: 'remove'; id: number }
   | { type: 'discard'; id: string }
   | { type: 'clear' };
@@ -197,8 +197,17 @@ export function useSupportAttachmentDraft(organizationID: string) {
         );
         return;
       }
-      if (!organizationID) {
-        throw new Error('Select an organization before attaching files.');
+      if (!organizationID || submissionUncertain) {
+        throw new Error(
+          'Select an organization and confirm any previous submission before attaching files.',
+        );
+      }
+      const candidates = operation.files ? addFiles(operation.files) : uploads;
+      const queued = candidates.filter(
+        (item) => item.status === 'pending' || item.status === 'failed',
+      );
+      if (queued.length === 0) {
+        return;
       }
       let target = identity;
       let state: Draft | undefined;
@@ -230,10 +239,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
         setIdentity(target);
       }
       let failed = 0;
-      for (const item of uploads.filter(
-        (candidate) =>
-          candidate.status === 'pending' || candidate.status === 'failed',
-      )) {
+      for (const item of queued) {
         updateUpload(item.id, { status: 'uploading', error: undefined });
         try {
           if (item.reservationID) {
@@ -294,6 +300,7 @@ export function useSupportAttachmentDraft(organizationID: string) {
       };
     });
     setUploads((current) => [...current, ...items]);
+    return items;
   }
 
   async function prepareSubmission(): Promise<{

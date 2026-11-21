@@ -1,3 +1,40 @@
+import { z } from 'zod';
+
+export interface SupportAttachmentFile {
+  id: string;
+  name?: string | null;
+  mimeType?: string | null;
+}
+
+export type SupportAttachmentScope =
+  | { ticketId: string; draftId?: never }
+  | { draftId: string; ticketId?: never };
+
+export function supportAttachmentId(url: string): string | undefined {
+  if (!url.startsWith('attachment:')) {
+    return undefined;
+  }
+  const id = url.slice('attachment:'.length);
+  return z.uuid().safeParse(id).success ? id : undefined;
+}
+
+export function supportAttachmentMarkdown(file: SupportAttachmentFile): string {
+  const label = (file.name || 'attachment')
+    .replace(/[\r\n]/g, ' ')
+    .replace(/[\\[\]`*_<>!]/g, '\\$&');
+  return `${file.mimeType?.startsWith('image/') ? '!' : ''}[${label}](attachment:${file.id})`;
+}
+
+export function isSupportImage(mimeType: string): boolean {
+  return [
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+    'image/avif',
+  ].includes(mimeType);
+}
+
 export const SUPPORT_ATTACHMENT_BUCKET = 'support_tickets_attachments';
 export const MAX_SUPPORT_ATTACHMENT_SIZE = 5_000_000;
 
@@ -12,7 +49,7 @@ export function attachmentValidationError(file: File): string | undefined {
 }
 
 export function saveSupportAttachment(blob: Blob, filename: string): void {
-  // Never navigate to or embed untrusted attachment content in the dashboard.
+  // Downloads always use an inert MIME type, including files that support image previews.
   const url = URL.createObjectURL(
     new Blob([blob], { type: 'application/octet-stream' }),
   );

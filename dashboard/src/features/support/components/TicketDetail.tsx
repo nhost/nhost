@@ -17,7 +17,6 @@ import {
 } from '@/features/support/components/SupportArea';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import TicketActivity from '@/features/support/components/TicketActivity';
-import TicketAttachments from '@/features/support/components/TicketAttachments';
 import {
   TicketSeverity,
   TicketStatus,
@@ -175,13 +174,10 @@ export default function TicketDetail() {
                 {supportDate(ticket.createdAt)}
               </time>
             </div>
-            <SupportMarkdown>{ticket.description}</SupportMarkdown>
+            <SupportMarkdown attachmentScope={{ ticketId }}>
+              {ticket.description}
+            </SupportMarkdown>
           </article>
-          <TicketAttachments
-            ticketId={ticketId}
-            closed={closed}
-            disabled={isPending}
-          />
           <TicketConversation
             ticketId={ticketId}
             closed={closed}

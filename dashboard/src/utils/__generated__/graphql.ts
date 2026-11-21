@@ -33371,7 +33371,7 @@ export type DashboardSupportAttachmentDraftQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportAttachmentDraftQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any }>, supportAttachmentDraft?: { __typename?: 'supportAttachmentDrafts', id: any, organizationID: any, createdAt: any, uploads: Array<{ __typename?: 'supportAttachmentUploads', id: any }>, attachments: Array<{ __typename?: 'supportAttachmentUploads', id: any, file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null } | null }> } | null };
+export type DashboardSupportAttachmentDraftQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any }>, supportAttachmentDraft?: { __typename?: 'supportAttachmentDrafts', id: any, organizationID: any, createdAt: any, uploads: Array<{ __typename?: 'supportAttachmentUploads', id: any }>, attachments: Array<{ __typename?: 'supportAttachmentUploads', id: any, file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null, mimeType?: string | null } | null }> } | null };
 
 export type DashboardReserveSupportDraftAttachmentMutationVariables = Exact<{
   draftId: Scalars['uuid'];
@@ -33394,6 +33394,14 @@ export type DashboardSupportDraftAttachmentReservationQueryVariables = Exact<{
 
 
 export type DashboardSupportDraftAttachmentReservationQuery = { __typename?: 'query_root', supportAttachmentUpload?: { __typename?: 'supportAttachmentUploads', discardedAt?: any | null } | null };
+
+export type DashboardSupportInlineAttachmentQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  scope: SupportAttachmentUploads_Bool_Exp;
+}>;
+
+
+export type DashboardSupportInlineAttachmentQuery = { __typename?: 'query_root', supportAttachmentUploads: Array<{ __typename?: 'supportAttachmentUploads', file?: { __typename?: 'files', id: any, name?: string | null, size?: number | null, mimeType?: string | null } | null }> };
 
 export type DashboardSupportTicketFragment = { __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any };
 
@@ -40709,6 +40717,7 @@ export const DashboardSupportAttachmentDraftDocument = gql`
         id
         name
         size
+        mimeType
       }
     }
   }
@@ -40853,6 +40862,53 @@ export type DashboardSupportDraftAttachmentReservationLazyQueryHookResult = Retu
 export type DashboardSupportDraftAttachmentReservationQueryResult = Apollo.QueryResult<DashboardSupportDraftAttachmentReservationQuery, DashboardSupportDraftAttachmentReservationQueryVariables>;
 export function refetchDashboardSupportDraftAttachmentReservationQuery(variables: DashboardSupportDraftAttachmentReservationQueryVariables) {
       return { query: DashboardSupportDraftAttachmentReservationDocument, variables: variables }
+    }
+export const DashboardSupportInlineAttachmentDocument = gql`
+    query dashboardSupportInlineAttachment($id: uuid!, $scope: supportAttachmentUploads_bool_exp!) {
+  supportAttachmentUploads(
+    where: {_and: [$scope, {id: {_eq: $id}, discardedAt: {_is_null: true}, file: {bucketId: {_eq: "support_tickets_attachments"}, isUploaded: {_eq: true}}}]}
+    limit: 1
+  ) {
+    file {
+      id
+      name
+      size
+      mimeType
+    }
+  }
+}
+    `;
+
+/**
+ * __useDashboardSupportInlineAttachmentQuery__
+ *
+ * To run a query within a React component, call `useDashboardSupportInlineAttachmentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardSupportInlineAttachmentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardSupportInlineAttachmentQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      scope: // value for 'scope'
+ *   },
+ * });
+ */
+export function useDashboardSupportInlineAttachmentQuery(baseOptions: Apollo.QueryHookOptions<DashboardSupportInlineAttachmentQuery, DashboardSupportInlineAttachmentQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DashboardSupportInlineAttachmentQuery, DashboardSupportInlineAttachmentQueryVariables>(DashboardSupportInlineAttachmentDocument, options);
+      }
+export function useDashboardSupportInlineAttachmentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DashboardSupportInlineAttachmentQuery, DashboardSupportInlineAttachmentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DashboardSupportInlineAttachmentQuery, DashboardSupportInlineAttachmentQueryVariables>(DashboardSupportInlineAttachmentDocument, options);
+        }
+export type DashboardSupportInlineAttachmentQueryHookResult = ReturnType<typeof useDashboardSupportInlineAttachmentQuery>;
+export type DashboardSupportInlineAttachmentLazyQueryHookResult = ReturnType<typeof useDashboardSupportInlineAttachmentLazyQuery>;
+export type DashboardSupportInlineAttachmentQueryResult = Apollo.QueryResult<DashboardSupportInlineAttachmentQuery, DashboardSupportInlineAttachmentQueryVariables>;
+export function refetchDashboardSupportInlineAttachmentQuery(variables: DashboardSupportInlineAttachmentQueryVariables) {
+      return { query: DashboardSupportInlineAttachmentDocument, variables: variables }
     }
 export const DashboardSupportTicketsDocument = gql`
     query dashboardSupportTickets($where: supportTickets_bool_exp!, $offset: Int!) {
