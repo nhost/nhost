@@ -323,7 +323,9 @@ Open **Events** → **SQL Jobs** to enable or disable pg_cron, create and edit S
 
 SQL jobs run in the scheduler's configured timezone, unlike [Cron Triggers](/products/events/cron-triggers), which use UTC. The **Settings** tab manages the scheduler timezone, concurrency, and run logging. Use **Create retention job** to open an editable example that removes run-history entries older than seven days, scheduled daily at 05:00 in the scheduler's timezone.
 
-The dashboard saves job and extension changes as Hasura migrations when using the Nhost CLI and runs SQL directly on hosted projects. Scheduler settings are saved in the project configuration and require a PostgreSQL restart.
+The dashboard saves job and extension changes as Hasura migrations when using the Nhost CLI and runs SQL directly on hosted projects.
+
+Scheduler settings are stored in the project configuration (`[postgres.settings.extensions.cron]` in `nhost.toml`), not in migrations. On hosted projects, saving these settings restarts PostgreSQL and causes a short period of database downtime. With the Nhost CLI, run `nhost up` to restart PostgreSQL and apply the settings. See [Configuring Postgres](/products/database/configuring-postgres) for setting defaults and operational notes.
 
 ### Managing
 
