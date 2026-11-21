@@ -8,6 +8,8 @@ exclude = [
   '^https?://local\.nhost\.run',
   '^https?://localdev.*\.nhost\.run',
   '^https?://local\..*\.local\.nhost\.run',
+  # Disposable Hasura endpoint used only by opt-in SQL Jobs integration tests
+  '^http://127\.0\.0\.1:8080/v2/query$',
 
   # Test/staging infrastructure URLs
   '^https?://test\..*\.nhost\.run',
