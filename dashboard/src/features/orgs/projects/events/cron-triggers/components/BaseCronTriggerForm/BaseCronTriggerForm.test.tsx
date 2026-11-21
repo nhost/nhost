@@ -60,6 +60,8 @@ describe('Cron Trigger schedule input', () => {
       expect(
         dialog.queryByRole('button', { name: 'Every 10 seconds' }),
       ).not.toBeInTheDocument();
+      await user.click(dialog.getByRole('button', { name: 'Every 5 minutes' }));
+      expect(schedule).toHaveValue('*/5 * * * *');
       await user.click(dialog.getByRole('button', { name: 'Daily at 05:00' }));
       expect(schedule).toHaveValue('0 5 * * *');
       await user.click(dialog.getByRole('button', { name: 'Save trigger' }));
