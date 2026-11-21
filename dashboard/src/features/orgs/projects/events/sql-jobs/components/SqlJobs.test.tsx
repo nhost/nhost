@@ -560,6 +560,68 @@ describe('SQL Jobs', () => {
     },
   );
 
+  it.each([
+    {
+      opener: 'Delete refresh-summary',
+      submit: 'Delete job',
+      nextOpener: 'Disable pg_cron',
+    },
+    {
+      opener: 'Disable pg_cron',
+      submit: 'Disable pg_cron',
+      nextOpener: 'Delete refresh-summary',
+    },
+  ])(
+    'clears previous action errors before confirming $submit',
+    async ({ opener, submit, nextOpener }) => {
+      let attempts = 0;
+      server.use(
+        http.post(`${HASURA_URL}/apis/migrate`, () => {
+          attempts += 1;
+          return HttpResponse.json(
+            { error: attempts === 1 ? 'Toggle failed' : 'Confirmation failed' },
+            { status: 400 },
+          );
+        }),
+      );
+      const user = new TestUserEvent();
+      await page();
+      const toggle = await screen.findByRole('button', {
+        name: 'Disable refresh-summary',
+      });
+      await user.click(toggle);
+      await waitFor(() => expect(attempts).toBe(1));
+      await waitFor(() => expect(toggle).toBeEnabled());
+
+      await user.click(screen.getByRole('button', { name: opener }));
+      const dialog = within(await screen.findByRole('alertdialog'));
+      expect(dialog.queryByRole('alert')).not.toBeInTheDocument();
+      expect(dialog.queryByText('Toggle failed')).not.toBeInTheDocument();
+      expect(attempts).toBe(1);
+
+      await user.click(dialog.getByRole('button', { name: submit }));
+      expect(
+        await dialog.findByText('Confirmation failed'),
+      ).toBeInTheDocument();
+      expect(attempts).toBe(2);
+      await waitFor(() =>
+        expect(dialog.getByRole('button', { name: 'Cancel' })).toBeEnabled(),
+      );
+      await user.click(dialog.getByRole('button', { name: 'Cancel' }));
+      await waitFor(() =>
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      );
+
+      await user.click(screen.getByRole('button', { name: nextOpener }));
+      const nextDialog = within(await screen.findByRole('alertdialog'));
+      expect(nextDialog.queryByRole('alert')).not.toBeInTheDocument();
+      expect(
+        nextDialog.queryByText('Confirmation failed'),
+      ).not.toBeInTheDocument();
+      expect(attempts).toBe(2);
+    },
+  );
+
   it('requires confirmation before deleting a job', async () => {
     const user = new TestUserEvent();
     await page();

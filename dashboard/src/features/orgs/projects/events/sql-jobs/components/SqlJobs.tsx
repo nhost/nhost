@@ -170,15 +170,16 @@ export default function SqlJobs() {
               <Button
                 variant="outline"
                 disabled={!jobs.data || jobs.isError || mutation.isPending}
-                onClick={() =>
+                onClick={() => {
+                  mutation.reset();
                   setConfirmation({
                     title: 'Disable pg_cron?',
                     label: 'Disable pg_cron',
                     description:
                       'This uninstalls pg_cron and permanently deletes all SQL jobs and their run history. It does not affect webhook cron triggers. A local down migration can recreate job definitions, but cannot restore run history. The library stays preloaded.',
                     change: disableCronChange(jobs.data ?? [], database),
-                  })
-                }
+                  });
+                }}
               >
                 Disable pg_cron
               </Button>
@@ -302,15 +303,16 @@ export default function SqlJobs() {
                   onToggle={(job) =>
                     changeJob(setSqlJobActiveChange(job, database))
                   }
-                  onDelete={(job) =>
+                  onDelete={(job) => {
+                    mutation.reset();
                     setConfirmation({
                       title: `Delete ${job.jobname ?? `Job ${job.jobid}`}?`,
                       label: 'Delete job',
                       description:
                         'This removes the job from the scheduler. Recorded run history is kept in Postgres. A currently running command is not cancelled.',
                       change: deleteSqlJobChange(job, database),
-                    })
-                  }
+                    });
+                  }}
                 />
               )}
               {!jobs.isLoading &&
