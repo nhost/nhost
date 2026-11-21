@@ -25,6 +25,7 @@ const runningProjectPages = toRoutes([
   'events/event-triggers/[eventTriggerSlug]',
   'events/cron-triggers',
   'events/cron-triggers/[cronTriggerSlug]',
+  'events/sql-jobs',
   'events/one-offs',
   'graphql/console',
   'auth/users',

@@ -65,6 +65,11 @@ pnpm codegen-hasura-api     # Generate Hasura API client with Orval
 pnpm format                 # Format code with Biome
 ```
 
+The `CODEGEN_GRAPHQL_URL` and `CODEGEN_HASURA_ADMIN_SECRET` values in
+`.env.local` must target the dashboard's platform backend, not a managed
+project's GraphQL endpoint. Runtime `NEXT_PUBLIC_NHOST_*` values can still
+point at a local project.
+
 ## Project Structure
 
 ```
@@ -113,6 +118,24 @@ When creating a new feature page, check whether it needs to be added to:
 - Send metadata writes with `writeMetadata` from `@/utils/hasura-api/metadataFetch` unless the hook already switches to a `*Migration.ts` sibling for local projects; locally it also saves the change to `nhost/metadata`. Reads, reloads, and event and scheduled-event runs use `metadataOperation`.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+
+### SQL Jobs
+
+Events → SQL Jobs manages pg_cron through the default database source. Job and
+extension writes use Hasura migrations locally and plain SQL on hosted projects.
+Migrations identify named jobs by name and role, not by database-specific numeric
+IDs. Legacy unnamed jobs must match their saved definition exactly.
+
+Scheduler settings and preloaded libraries use the project configuration API so
+changes persist in `nhost.toml` locally and survive hosted redeployments. These
+server settings are not SQL migrations and need a Postgres restart. Settings
+operations use the normal `pnpm codegen` pipeline and `@/generated/graphql`.
+
+The real-Postgres tests are opt-in: set `PGCRON_TEST_CONTAINER` to a disposable
+Nhost Postgres container with `cron.database_name=postgres` and
+`cron.launch_active_jobs=off`, then run
+`pnpm exec vitest run src/features/orgs/projects/events/sql-jobs/sql.integration.test.ts`.
+Never point them at a project database.
 
 ### Metrics charts
 
