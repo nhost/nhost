@@ -126,6 +126,13 @@ extension writes use Hasura migrations locally and plain SQL on hosted projects.
 Migrations identify named jobs by name and role, not by database-specific numeric
 IDs. Legacy unnamed jobs must match their saved definition exactly.
 
+The schedule control and cursor helpers live in
+`events/common/components/CronScheduleInput`, shared by SQL Jobs and Cron
+Triggers. Select the scheduler explicitly: `hasura` shows five-field expressions
+in UTC; `pg_cron` also shows shortcuts, seconds-based intervals, and the
+scheduler's configured timezone. Keep syntax help and presets specific to each
+scheduler.
+
 Scheduler settings and preloaded libraries use the project configuration API so
 changes persist in `nhost.toml` locally and survive hosted redeployments. These
 server settings are not SQL migrations and need a Postgres restart. Settings

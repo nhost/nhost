@@ -311,6 +311,52 @@ describe('DatabaseExtensions', () => {
     ).toBeInTheDocument();
   });
 
+  it.each([false, true])(
+    'shows a visible SQL Jobs link for pg_cron in both views (installed=%s)',
+    async (installed) => {
+      setInstalledInCatalog('pg_cron', installed);
+      mocks.useRouter.mockReturnValue({
+        query: {
+          orgSlug: 'acme',
+          appSubdomain: 'project-one',
+          dataSourceSlug: 'default',
+        },
+      });
+      const all = await renderPage();
+      const card = screen.getByTestId('extension-card-pg_cron');
+      for (const container of [card, getRow(all, 'pg_cron')]) {
+        const link = within(container).getByRole('link', {
+          name: 'Manage SQL jobs',
+        });
+        expect(link).toBeVisible();
+        expect(link).toHaveAttribute(
+          'href',
+          '/orgs/acme/projects/project-one/events/sql-jobs',
+        );
+        expect(link.querySelector('.sr-only')).toBeNull();
+      }
+      expect(
+        within(getRow(all, 'cube')).queryByRole('link', {
+          name: 'Manage SQL jobs',
+        }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it('does not link a non-default database to the default-source SQL Jobs page', async () => {
+    mocks.useRouter.mockReturnValue({
+      query: {
+        orgSlug: 'local',
+        appSubdomain: 'local',
+        dataSourceSlug: 'other',
+      },
+    });
+    await renderPage();
+    expect(
+      screen.queryByRole('link', { name: 'Manage SQL jobs' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('filters the table by name, comment, and display name while popular cards stay', async () => {
     const user = new TestUserEvent();
     const all = await renderPage();

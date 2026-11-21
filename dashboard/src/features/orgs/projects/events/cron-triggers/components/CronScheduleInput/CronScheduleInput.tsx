@@ -4,23 +4,13 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { InputWithSuggestions } from '@/components/ui/v3/input-with-suggestions';
+import { CronScheduleInput as CronScheduleControl } from '@/features/orgs/projects/events/common/components/CronScheduleInput';
 import { cn } from '@/lib/utils';
 
 const inputClasses =
   '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
-
-const cronSuggestions = [
-  { label: 'Every minute', value: '* * * * *' },
-  { label: 'Every 5 minutes', value: '*/5 * * * *' },
-  { label: 'Every 30 minutes', value: '*/30 * * * *' },
-  { label: 'Hourly', value: '0 * * * *' },
-  { label: 'Daily at midnight (UTC)', value: '0 0 * * *' },
-  { label: 'Weekdays at 9am (UTC)', value: '0 9 * * 1-5' },
-];
 
 interface CronScheduleInputProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -51,15 +41,16 @@ export default function CronScheduleInput<
       name={name}
       render={({ field }) => (
         <FormItem className={cn(containerClassName)}>
-          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <InputWithSuggestions
+            <CronScheduleControl
+              scheduler="hasura"
+              timezone="UTC"
+              label={label}
               ref={field.ref}
               name={field.name}
               value={typeof field.value === 'string' ? field.value : ''}
               onChange={field.onChange}
               onBlur={field.onBlur}
-              suggestions={cronSuggestions}
               placeholder={placeholder}
               className={cn(inputClasses, className)}
             />

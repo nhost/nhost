@@ -10,7 +10,6 @@ import { getExtensionDisplayName } from '@/features/orgs/projects/database/exten
 import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extensions/utils/getExtensionDocsUrl';
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
 import { cn } from '@/lib/utils';
-import SqlJobsLink from './SqlJobsLink';
 
 export interface ExtensionNameProps {
   extension: PostgresExtension;
@@ -69,7 +68,6 @@ export default function ExtensionName({
         {displayName}
       </span>
       <DocsLink name={extension.name} displayName={displayName} />
-      {extension.name === 'pg_cron' && <SqlJobsLink />}
     </div>
   );
 }

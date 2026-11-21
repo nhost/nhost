@@ -261,17 +261,9 @@ export default function BaseCronTriggerForm({
                   <CronScheduleInput
                     control={form.control}
                     name="schedule"
-                    label={
-                      <div className="flex flex-row items-center gap-2">
-                        Schedule (Cron Expression){' '}
-                        <InfoTooltip>
-                          Schedule for your cron (events are created based on
-                          the UTC timezone)
-                        </InfoTooltip>
-                      </div>
-                    }
+                    label="Schedule (Cron Expression)"
                     placeholder="* * * * *"
-                    containerClassName="w-60"
+                    containerClassName="w-full max-w-lg"
                     className="w-full text-foreground aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:border-destructive aria-[invalid=true]:focus:ring-destructive/20"
                   />
                   <FormTextarea

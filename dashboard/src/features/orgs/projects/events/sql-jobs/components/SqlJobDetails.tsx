@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import SqlJobScheduleInput from '@/features/orgs/projects/events/sql-jobs/components/SqlJobScheduleInput';
+import { CronScheduleInput } from '@/features/orgs/projects/events/common/components/CronScheduleInput';
 import {
   SQL_EDITOR_EXTENSIONS,
   SQL_EDITOR_SETUP,
@@ -85,7 +85,8 @@ export default function SqlJobDetails({
           </SheetDescription>
         </SheetHeader>
         <div className="mb-6">
-          <SqlJobScheduleInput
+          <CronScheduleInput
+            scheduler="pg_cron"
             value={job.schedule}
             timezone={timezone}
             readOnly

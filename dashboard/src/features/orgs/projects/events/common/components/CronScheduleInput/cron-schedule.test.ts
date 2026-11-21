@@ -1,7 +1,4 @@
-import {
-  getCronFieldAtCursor,
-  getCronScheduleKind,
-} from '@/features/orgs/projects/events/sql-jobs/cron-schedule';
+import { getCronFieldAtCursor, getCronScheduleKind } from './cron-schedule';
 
 describe('cron field selection', () => {
   it.each([

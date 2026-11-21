@@ -1,5 +1,11 @@
 import { Info } from 'lucide-react';
-import { forwardRef, type SyntheticEvent, useId, useState } from 'react';
+import {
+  forwardRef,
+  type ReactNode,
+  type SyntheticEvent,
+  useId,
+  useState,
+} from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Input, type InputProps } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -8,18 +14,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import {
-  getCronFieldAtCursor,
-  getCronScheduleKind,
-} from '@/features/orgs/projects/events/sql-jobs/cron-schedule';
 import { cn } from '@/lib/utils';
+import { getCronFieldAtCursor, getCronScheduleKind } from './cron-schedule';
 
 const CRON_FIELDS = [
   { label: 'Minute', range: '0–59' },
   { label: 'Hour', range: '0–23' },
   { label: 'Day', range: '1–31' },
   { label: 'Month', range: '1–12' },
-  { label: 'Weekday', range: '0–7' },
+  { label: 'Weekday', range: '0–6' },
 ];
 
 const CRON_EXAMPLES = [
@@ -29,12 +32,19 @@ const CRON_EXAMPLES = [
   { label: 'Every 10 seconds', value: '10 seconds' },
 ];
 
-interface SqlJobScheduleInputProps
+interface CronScheduleInputProps
   extends Pick<
     InputProps,
-    'id' | 'name' | 'aria-describedby' | 'aria-invalid'
+    | 'id'
+    | 'name'
+    | 'aria-describedby'
+    | 'aria-invalid'
+    | 'placeholder'
+    | 'className'
   > {
   value: string;
+  scheduler: 'pg_cron' | 'hasura';
+  label?: ReactNode;
   onChange?: (value: string) => void;
   onBlur?: VoidFunction;
   timezone: string;
@@ -42,13 +52,14 @@ interface SqlJobScheduleInputProps
   disabled?: boolean;
 }
 
-const SqlJobScheduleInput = forwardRef<
-  HTMLInputElement,
-  SqlJobScheduleInputProps
->(
+const CronScheduleInput = forwardRef<HTMLInputElement, CronScheduleInputProps>(
   (
     {
       value,
+      scheduler,
+      label: inputLabel = 'Schedule',
+      placeholder = '0 22 * * 1-5',
+      className,
       onChange,
       onBlur,
       timezone,
@@ -70,11 +81,12 @@ const SqlJobScheduleInput = forwardRef<
     }
 
     const activeField = getCronFieldAtCursor(value, cursor);
-    const kind = getCronScheduleKind(value);
+    const isPgCron = scheduler === 'pg_cron';
+    const kind = isPgCron ? getCronScheduleKind(value) : 'expression';
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-1">
-          <Label htmlFor={inputId}>Schedule</Label>
+          <Label htmlFor={inputId}>{inputLabel}</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -111,50 +123,60 @@ const SqlJobScheduleInput = forwardRef<
                     A step over a wildcard or range: <code>*/15</code> or{' '}
                     <code>1-23/2</code>.
                   </dd>
-                  <dt className="font-mono">$</dt>
-                  <dd>The last day of the month, in the Day field only.</dd>
+                  {isPgCron && (
+                    <>
+                      <dt className="font-mono">$</dt>
+                      <dd>The last day of the month, in the Day field only.</dd>
+                    </>
+                  )}
                 </dl>
-                <p className="text-muted-foreground">
-                  Months also accept JAN–DEC; weekdays accept SUN–SAT. Sunday is
-                  0 or 7. If neither Day nor Weekday starts with *, a match in
-                  either is enough.
-                </p>
+                {isPgCron && (
+                  <p className="text-muted-foreground">
+                    Months also accept JAN–DEC; weekdays accept SUN–SAT. Sunday
+                    is 0 or 7. If neither Day nor Weekday starts with *, a match
+                    in either is enough.
+                  </p>
+                )}
               </div>
-              <div className="space-y-2">
-                <h3 className="font-semibold">Shortcuts</h3>
-                <ul className="space-y-1">
-                  <li>
-                    <code>@hourly</code> — at minute 0 of every hour.
-                  </li>
-                  <li>
-                    <code>@daily</code>, <code>@midnight</code> — daily at
-                    00:00.
-                  </li>
-                  <li>
-                    <code>@weekly</code> — Sunday at 00:00.
-                  </li>
-                  <li>
-                    <code>@monthly</code> — the first day of each month at
-                    00:00.
-                  </li>
-                  <li>
-                    <code>@yearly</code>, <code>@annually</code> — January 1 at
-                    00:00.
-                  </li>
-                  <li>
-                    <code>@reboot</code>, <code>@restart</code> — once when the
-                    scheduler starts.
-                  </li>
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-semibold">Seconds-based intervals</h3>
-                <p>
-                  Use <code>1 second</code> through <code>59 seconds</code>,
-                  such as <code>10 seconds</code>. An interval replaces the five
-                  cron fields; do not combine them.
-                </p>
-              </div>
+              {isPgCron && (
+                <>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold">Shortcuts</h3>
+                    <ul className="space-y-1">
+                      <li>
+                        <code>@hourly</code> — at minute 0 of every hour.
+                      </li>
+                      <li>
+                        <code>@daily</code>, <code>@midnight</code> — daily at
+                        00:00.
+                      </li>
+                      <li>
+                        <code>@weekly</code> — Sunday at 00:00.
+                      </li>
+                      <li>
+                        <code>@monthly</code> — the first day of each month at
+                        00:00.
+                      </li>
+                      <li>
+                        <code>@yearly</code>, <code>@annually</code> — January 1
+                        at 00:00.
+                      </li>
+                      <li>
+                        <code>@reboot</code>, <code>@restart</code> — once when
+                        the scheduler starts.
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold">Seconds-based intervals</h3>
+                    <p>
+                      Use <code>1 second</code> through <code>59 seconds</code>,
+                      such as <code>10 seconds</code>. An interval replaces the
+                      five cron fields; do not combine them.
+                    </p>
+                  </div>
+                </>
+              )}
               <p className="text-muted-foreground">
                 Calendar schedules use {timezone}, not your browser's timezone.
               </p>
@@ -175,8 +197,11 @@ const SqlJobScheduleInput = forwardRef<
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
-          placeholder="0 22 * * 1-5"
-          className="h-12 text-center font-mono text-lg tracking-wider md:text-lg"
+          placeholder={placeholder}
+          className={cn(
+            'h-12 text-center font-mono text-lg tracking-wider md:text-lg',
+            className,
+          )}
           onFocus={updateCursor}
           onSelect={updateCursor}
           onClick={updateCursor}
@@ -207,7 +232,9 @@ const SqlJobScheduleInput = forwardRef<
               >
                 {label}
               </span>
-              <span className="block text-[11px]">{range}</span>
+              <span className="block text-[11px]">
+                {label === 'Weekday' && isPgCron ? '0–7' : range}
+              </span>
             </div>
           ))}
         </div>
@@ -221,7 +248,10 @@ const SqlJobScheduleInput = forwardRef<
         {!readOnly && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-muted-foreground text-xs">Examples</span>
-            {CRON_EXAMPLES.map(({ label, value: example }) => (
+            {CRON_EXAMPLES.filter(
+              ({ value: example }) =>
+                isPgCron || getCronScheduleKind(example) === 'expression',
+            ).map(({ label, value: example }) => (
               <Button
                 key={example}
                 type="button"
@@ -244,12 +274,14 @@ const SqlJobScheduleInput = forwardRef<
         >
           Schedules use {timezone}.
           {!readOnly &&
-            ' Enter five cron fields, an @shortcut, or a 1–59 second interval.'}
+            (isPgCron
+              ? ' Enter five cron fields, an @shortcut, or a 1–59 second interval.'
+              : ' Enter five cron fields: minute, hour, day, month, and weekday.')}
         </p>
       </div>
     );
   },
 );
-SqlJobScheduleInput.displayName = 'SqlJobScheduleInput';
+CronScheduleInput.displayName = 'CronScheduleInput';
 
-export default SqlJobScheduleInput;
+export default CronScheduleInput;

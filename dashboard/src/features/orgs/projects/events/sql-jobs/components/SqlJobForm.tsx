@@ -24,7 +24,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/v3/form';
-import SqlJobScheduleInput from '@/features/orgs/projects/events/sql-jobs/components/SqlJobScheduleInput';
+import { CronScheduleInput } from '@/features/orgs/projects/events/common/components/CronScheduleInput';
 import {
   createSqlJobChange,
   editSqlJobChange,
@@ -153,7 +153,8 @@ export default function SqlJobForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <SqlJobScheduleInput
+                        <CronScheduleInput
+                          scheduler="pg_cron"
                           {...field}
                           timezone={timezone}
                           disabled={mutation.isPending}
