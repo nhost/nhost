@@ -24,8 +24,8 @@ export const SQL_JOBS_SQL =
     (SELECT row_to_json(r) FROM (
       SELECT runid::text, jobid::text, status, return_message,
         start_time, end_time, command
-      FROM cron.job_run_details WHERE jobid = job.jobid
-      ORDER BY runid DESC LIMIT 1
+      FROM cron.job_run_details AS runs WHERE runs.jobid = job.jobid
+      ORDER BY runs.runid DESC LIMIT 1
     ) r) AS "lastRun"
   FROM cron.job job ORDER BY job.jobid DESC
 ) j`);
@@ -44,8 +44,8 @@ export function getJobRunsSql(jobid: string, offset: number, limit: number) {
       `SELECT row_to_json(r) AS data FROM (
     SELECT runid::text, jobid::text, status, return_message,
       start_time, end_time, command
-    FROM cron.job_run_details WHERE jobid = %L::bigint
-    ORDER BY runid DESC LIMIT %s OFFSET %s
+    FROM cron.job_run_details AS runs WHERE runs.jobid = %L::bigint
+    ORDER BY runs.start_time DESC NULLS LAST, runs.runid DESC LIMIT %s OFFSET %s
   ) r`,
       jobid,
       limit,

@@ -10,7 +10,10 @@ import {
   setSqlJobActiveChange,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
 import { sqlJobFixture } from '@/features/orgs/projects/events/sql-jobs/test-fixtures';
-import type { SqlJob } from '@/features/orgs/projects/events/sql-jobs/types';
+import type {
+  SqlJob,
+  SqlJobRun,
+} from '@/features/orgs/projects/events/sql-jobs/types';
 
 // Opt in with a disposable Nhost Postgres container whose scheduler database
 // is postgres and whose cron.launch_active_jobs is off. Never use a project DB.
@@ -50,6 +53,62 @@ function assertSql(condition: string) {
       `${CRON_STATE_SQL}\n${SQL_JOBS_SQL}\n${getJobRunsSql('1', 0, 20)}`,
     );
     expect(result).toContain('"schedulerDatabase" : "postgres"');
+  });
+
+  it('orders run history by newest start, with numeric IDs breaking ties across pages', () => {
+    const output = sql(`
+      INSERT INTO cron.job_run_details (jobid, runid, status, start_time, command)
+      VALUES
+        (1, 9, 'succeeded', '2026-01-01T10:03:00Z', 'SELECT 1'),
+        (1, 10, 'succeeded', '2026-01-01T10:02:00Z', 'SELECT 1'),
+        (1, 99, 'succeeded', '2026-01-01T10:02:00Z', 'SELECT 1'),
+        (1, 100, 'succeeded', '2026-01-01T10:02:00Z', 'SELECT 1'),
+        (1, 9007199254740992, 'succeeded', '2026-01-01T10:01:00Z', 'SELECT 1'),
+        (1, 9007199254740993, 'succeeded', '2026-01-01T10:01:00Z', 'SELECT 1'),
+        (1, 999, 'starting', NULL, 'SELECT 1'),
+        (1, 1000, 'starting', NULL, 'SELECT 1'),
+        (2, 9007199254740994, 'succeeded', '2026-01-01T10:04:00Z', 'SELECT 1');
+      ${getJobRunsSql('1', 0, 4)}
+      ${getJobRunsSql('1', 4, 4)}
+    `);
+    const runIds = output
+      .split('\n')
+      .filter((line) => line.startsWith('{'))
+      .map((line) => (JSON.parse(line) as SqlJobRun).runid);
+
+    expect(runIds).toEqual([
+      '9',
+      '100',
+      '99',
+      '10',
+      '9007199254740993',
+      '9007199254740992',
+      '1000',
+      '999',
+    ]);
+  });
+
+  it("selects each job's latest run using numeric rather than text IDs", () => {
+    const output = sql(`
+      SELECT cron.schedule('first-job', '0 * * * *', 'SELECT 1');
+      SELECT cron.schedule('second-job', '0 * * * *', 'SELECT 2');
+      INSERT INTO cron.job_run_details (jobid, runid, status, start_time, command)
+      VALUES
+        (1, 9, 'failed', '2026-01-01T10:00:00Z', 'SELECT 1'),
+        (1, 10, 'succeeded', '2026-01-01T11:00:00Z', 'SELECT 1'),
+        (2, 99, 'succeeded', '2026-01-01T10:00:00Z', 'SELECT 2'),
+        (2, 100, 'failed', '2026-01-01T11:00:00Z', 'SELECT 2');
+      ${SQL_JOBS_SQL}
+    `);
+    const jobs = output
+      .split('\n')
+      .filter((line) => line.startsWith('{'))
+      .map((line) => JSON.parse(line) as SqlJob);
+
+    expect(jobs).toMatchObject([
+      { jobname: 'second-job', lastRun: { runid: '100', status: 'failed' } },
+      { jobname: 'first-job', lastRun: { runid: '10', status: 'succeeded' } },
+    ]);
   });
 
   it('creates, edits, disables, deletes and rolls back without replaying numeric IDs', () => {

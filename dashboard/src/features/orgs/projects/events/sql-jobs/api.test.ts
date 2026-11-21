@@ -10,6 +10,7 @@ import {
   deleteSqlJobChange,
   editSqlJobChange,
   getJobRunsSql,
+  SQL_JOBS_SQL,
 } from '@/features/orgs/projects/events/sql-jobs/sql';
 import { sqlJobFixture } from '@/features/orgs/projects/events/sql-jobs/test-fixtures';
 
@@ -147,6 +148,16 @@ describe('SQL Jobs migration contracts', () => {
     }
     expect(edit.up).toContain('postgres');
     expect(edit.down).toContain('another-role');
+  });
+
+  it('looks up the latest run by numeric rather than text ID', () => {
+    expect(SQL_JOBS_SQL).toContain('ORDER BY runs.runid DESC LIMIT 1');
+  });
+
+  it('orders history by start time and numeric run ID before paginating', () => {
+    expect(getJobRunsSql('1', 20, 21)).toContain(
+      'ORDER BY runs.start_time DESC NULLS LAST, runs.runid DESC LIMIT 21 OFFSET 20',
+    );
   });
 
   it('validates run-history pagination before constructing SQL', () => {

@@ -1,3 +1,4 @@
+import { ArrowDown } from 'lucide-react';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Badge } from '@/components/ui/v3/badge';
@@ -117,7 +118,12 @@ export default function SqlJobDetails({
                 <TableRow>
                   <TableHead>Run</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Started</TableHead>
+                  <TableHead aria-sort="descending">
+                    <span className="inline-flex items-center gap-1">
+                      Started
+                      <ArrowDown className="size-3.5" aria-hidden="true" />
+                    </span>
+                  </TableHead>
                   <TableHead>Finished</TableHead>
                   <TableHead>Result</TableHead>
                 </TableRow>

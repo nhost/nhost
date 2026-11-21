@@ -217,6 +217,9 @@ describe('SQL Jobs', () => {
     );
     const sheet = within(await screen.findByRole('dialog'));
     expect(await sheet.findByText('Permission denied')).toBeInTheDocument();
+    expect(
+      sheet.getByRole('columnheader', { name: 'Started' }),
+    ).toHaveAttribute('aria-sort', 'descending');
     expect(sheet.getByText(sqlJobFixture.jobid)).toBeInTheDocument();
     await user.click(sheet.getByRole('button', { name: 'Close' }));
     await user.click(
