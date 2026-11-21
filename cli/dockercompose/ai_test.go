@@ -9,7 +9,7 @@ import (
 
 func expectedAI() *Service {
 	return &Service{
-		Image: "nhost/graphite:0.2.5",
+		Image: "nhost/ai:0.2.5",
 		DependsOn: map[string]DependsOn{
 			"auth":     {Condition: "service_healthy"},
 			"graphql":  {Condition: "service_healthy"},
@@ -20,8 +20,8 @@ func expectedAI() *Service {
 		Environment: map[string]string{
 			"ENV1":                        "VALUE1",
 			"ENV2":                        "VALUE2",
-			"GRAPHITE_BASE_URL":           "http://ai:8090",
-			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
+			"AI_BASE_URL":                 "http://ai:8090",
+			"AI_WEBHOOK_SECRET":           "webhookSecret",
 			"HASURA_GRAPHQL_ADMIN_SECRET": "adminSecret",
 			"NHOST_STORAGE_URL":           "http://storage:5000/v1",
 			"LICENSE":                     "",
@@ -35,7 +35,7 @@ func expectedAI() *Service {
 			"host.docker.internal:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD", "graphite", "healthcheck"},
+			Test:        []string{"CMD", "ai", "healthcheck"},
 			Timeout:     "60s",
 			Interval:    "5s",
 			StartPeriod: "10s",
