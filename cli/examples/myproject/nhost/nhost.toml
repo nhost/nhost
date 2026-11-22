@@ -1,97 +1,38 @@
-[global]
-[[global.environment]]
-name = 'GREET'
-value = 'Sayonara'
-
-[[global.environment]]
-name = 'NODE_ENV'
-value = 'production'
-
-[[global.environment]]
-name = 'STRIPE_SECRET_KEY'
-value = '{{ secrets.STRIPE_SECRET_KEY }}'
-
-[hasura]
-version = 'v2.48.10-ce'
-adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
-webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
-
-[[hasura.jwtSecrets]]
-type = 'RS256'
-key = '{{ secrets.JWT_PUBLIC_KEY }}'
-signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
-kid = 'bskhwtelkajsd'
-
-[hasura.settings]
-corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io', 'http://localhost:3000']
-enableRemoteSchemaPermissions = false
-liveQueriesMultiplexedRefetchInterval = 3000
-
-[functions]
-[functions.node]
-version = 22
+provider = { }
 
 [auth]
-version = '0.50.1'
+version = "0.53.0"
 
-[auth.redirections]
-clientUrl = 'http://localhost:3000'
+[auth.elevatedPrivileges]
+mode = "disabled"
 
-[auth.signUp]
-enabled = true
-
-[auth.user]
-[auth.user.roles]
-default = 'user'
-allowed = ['user', 'me']
-
-[auth.user.locale]
-default = 'en'
-allowed = ['en']
-
-[auth.user.gravatar]
-enabled = true
-default = 'blank'
-rating = 'g'
-
-[auth.user.email]
-
-[auth.user.emailDomains]
-
-[auth.session]
-[auth.session.accessToken]
-expiresIn = 900
-
-[[auth.session.accessToken.customClaims]]
-key = 'spirit-animal'
-value = 'animals[0].id'
-default = '00000000-0000-0000-0000-000000000000'
-
-[auth.session.refreshToken]
-expiresIn = 2592000
-
-[auth.method]
-[auth.method.emailPassword]
-hibpEnabled = false
-emailVerificationRequired = false
-passwordMinLength = 9
-
-[auth.method.smsPasswordless]
+[auth.method.anonymous]
 enabled = false
 
-[auth.method.oauth]
+[auth.method.emailPassword]
+emailVerificationRequired = true
+hibpEnabled = false
+passwordMinLength = 9
+
+[auth.method.emailPasswordless]
+enabled = false
+
 [auth.method.oauth.apple]
 enabled = false
 
 [auth.method.oauth.azuread]
-tenant = 'common'
 enabled = false
+tenant = "common"
 
 [auth.method.oauth.bitbucket]
 enabled = false
 
 [auth.method.oauth.discord]
 enabled = false
+
+[auth.method.oauth.entraid]
+enabled = false
+tenant = "common"
 
 [auth.method.oauth.facebook]
 enabled = false
@@ -126,46 +67,146 @@ enabled = false
 [auth.method.oauth.workos]
 enabled = false
 
+[auth.method.otp.email]
+enabled = false
+
+[auth.method.otp.sms]
+enabled = false
+
+[auth.method.smsPasswordless]
+enabled = false
+
 [auth.method.webauthn]
 enabled = false
 
 [auth.method.webauthn.attestation]
-timeout = 60000
+timeout = 60_000
+
+[auth.misc]
+concealErrors = false
+
+[auth.oauth2Provider]
+enabled = false
+
+[auth.oauth2Provider.accessToken]
+expiresIn = 900
+
+[auth.oauth2Provider.clientIdMetadataDocument]
+enabled = false
+
+[auth.oauth2Provider.refreshToken]
+expiresIn = 2_592_000
+
+[auth.rateLimit.bruteForce]
+interval = "5m"
+limit = 10
+
+[auth.rateLimit.emails]
+interval = "1h"
+limit = 10
+
+[auth.rateLimit.global]
+interval = "1m"
+limit = 100
+
+[auth.rateLimit.oauth2Server]
+interval = "5m"
+limit = 100
+
+[auth.rateLimit.signups]
+interval = "5m"
+limit = 10
+
+[auth.rateLimit.sms]
+interval = "1h"
+limit = 10
+
+[auth.redirections]
+allowedUrls = [ ]
+clientUrl = "http://localhost:3000"
+
+[auth.session.accessToken]
+customClaims = [ ]
+expiresIn = 900
+
+[auth.session.refreshToken]
+expiresIn = 2_592_000
+
+[auth.signUp]
+disableAutoSignup = false
+disableNewUsers = false
+enabled = true
 
 [auth.totp]
 enabled = false
 
-[postgres]
-version = '14.20-20251217-1'
+[auth.user.email]
+allowed = [ ]
+blocked = [ ]
 
-[postgres.resources]
+[auth.user.emailDomains]
+allowed = [ ]
+blocked = [ ]
+
+[auth.user.gravatar]
+default = "blank"
+enabled = true
+rating = "g"
+
+[auth.user.locale]
+allowed = [ "en" ]
+default = "en"
+
+[auth.user.roles]
+allowed = [ "user", "me" ]
+default = "user"
+
+[functions.node]
+version = 24
+
+[global]
+environment = [ ]
+
+[hasura]
+adminSecret = "{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}"
+version = "v2.48.10-ce"
+webhookSecret = "{{ secrets.NHOST_WEBHOOK_SECRET }}"
+
+[hasura.events]
+httpPoolSize = 100
+
+[[hasura.jwtSecrets]]
+key = "{{ secrets.NHOST_JWT_PUBLIC_KEY }}"
+kid = "{{ secrets.NHOST_JWT_KID }}"
+signingKey = "{{ secrets.NHOST_JWT_PRIVATE_KEY }}"
+type = "RS256"
+
+[hasura.logs]
+level = "warn"
+
+[hasura.settings]
+corsDomain = [ "*" ]
+devMode = true
+enableAllowList = false
+enableConsole = true
+enableRemoteSchemaPermissions = false
+enabledAPIs = [ "metadata", "graphql", "pgdump", "config" ]
+inferFunctionPermissions = true
+liveQueriesMultiplexedRefetchInterval = 1_000
+stringifyNumericTypes = false
+
+[observability.grafana]
+adminPassword = "{{ secrets.GRAFANA_ADMIN_PASSWORD }}"
+contacts = { }
+
+[observability.grafana.alerting]
+enabled = false
+
+[postgres]
+version = "18.7-20261118-1"
+
 [postgres.resources.storage]
 capacity = 1
 
-[provider]
-
 [storage]
-version = '0.14.0'
-
-[ai]
-version = '0.8.1'
-webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
-
-[ai.resources]
-[ai.resources.compute]
-cpu = 125
-memory = 256
-
-[ai.openai]
-organization = ''
-apiKey = '{{ secrets.OPENAI_API_KEY }}'
-
-[ai.autoEmbeddings]
-synchPeriodMinutes = 5
-
-[observability]
-[observability.grafana]
-adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'
-
-[experimental.constellation]
-version = "0.7.0"
+version = "0.15.1"
