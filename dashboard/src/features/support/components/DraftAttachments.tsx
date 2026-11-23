@@ -1,33 +1,69 @@
-import { useMutation } from '@tanstack/react-query';
-import { Download, FilePlus2, Paperclip, X } from 'lucide-react';
+import { Loader2, Paperclip, X } from 'lucide-react';
 import Link from 'next/link';
-import { useId } from 'react';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
+import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import type { SupportAttachmentDraftController } from '@/features/support/hooks/use-support-attachment-draft';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import {
-  type SupportAttachmentFile,
-  saveSupportAttachment,
-} from '@/features/support/utils/attachments';
-import { supportDate } from '@/features/support/utils/tickets';
+import { cn } from '@/lib/utils';
 
 interface DraftAttachmentsProps {
   draft: SupportAttachmentDraftController;
   disabled: boolean;
-  onInsert: (file: SupportAttachmentFile) => void;
+  organizationSelected: boolean;
+  onFiles: (files: File[]) => Promise<void>;
+}
+
+function fileSize(size: number) {
+  return size >= 1000000
+    ? `${(size / 1000000).toFixed(1)} MB`
+    : `${Math.max(1, Math.ceil(size / 1000))} KB`;
+}
+
+function RemoveFile({
+  disabled,
+  label,
+  onClick,
+}: {
+  disabled: boolean;
+  label: string;
+  onClick: VoidFunction;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          disabled={disabled}
+          aria-label={label}
+          onClick={onClick}
+          className="shrink-0 hover:bg-destructive/10 hover:text-destructive"
+        >
+          <X className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Remove</TooltipContent>
+    </Tooltip>
+  );
 }
 
 export default function DraftAttachments({
   draft,
   disabled,
-  onInsert,
+  organizationSelected,
+  onFiles,
 }: DraftAttachmentsProps) {
-  const inputID = useId();
-  const { downloadAttachment } = useSupportSession();
+  const input = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [rejectedDrop, setRejectedDrop] = useState(false);
   const data = draft.query.data?.draft;
   const ticketID = draft.query.data?.ticketID;
   const unavailable =
@@ -36,12 +72,6 @@ export default function DraftAttachments({
     draft.query.isError ||
     !!ticketID ||
     draft.submissionUncertain;
-  const download = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const blob = await downloadAttachment(id, 'user');
-      saveSupportAttachment(blob, name);
-    },
-  });
   async function perform(
     operation: Parameters<typeof draft.action.mutateAsync>[0],
     loadingMessage: string,
@@ -61,24 +91,98 @@ export default function DraftAttachments({
   return (
     <section
       aria-label="Draft attachments"
-      className="space-y-4 rounded-lg border p-5"
+      className="space-y-3 bg-background"
+      onDragOver={(event) => {
+        if (!event.dataTransfer.types.includes('Files')) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const transfer = event.dataTransfer;
+        transfer.dropEffect = unavailable ? 'none' : 'copy';
+        setDragging(true);
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setDragging(false);
+        }
+      }}
+      onDrop={(event) => {
+        if (!event.dataTransfer.types.includes('Files')) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        setDragging(false);
+        setRejectedDrop(!organizationSelected);
+        if (!unavailable) {
+          void onFiles(Array.from(event.dataTransfer.files));
+        }
+      }}
     >
-      <h2 className="flex items-center gap-2 font-semibold text-sm">
-        <Paperclip className="size-4" /> Attachments
-      </h2>
-      <p className="text-muted-foreground text-xs">
-        Drop files onto the description or select them below to upload
-        automatically. Draft files are private to you until submission. Up to 5
-        MB per file.
-      </p>
-      {draft.identity && draft.query.isError ? (
+      <button
+        type="button"
+        aria-disabled={unavailable || undefined}
+        aria-label="Attach files"
+        className={cn(
+          'w-full rounded-md border border-dashed p-4 text-center text-muted-foreground text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          unavailable
+            ? 'cursor-not-allowed'
+            : 'cursor-pointer hover:border-primary hover:bg-muted/20',
+          unavailable && !dragging && 'opacity-50',
+          dragging &&
+            !unavailable &&
+            'border-primary border-solid bg-primary/5 text-primary hover:bg-primary/5',
+          dragging && !organizationSelected && 'border-destructive',
+        )}
+        onClick={() => {
+          if (!unavailable) {
+            input.current?.click();
+          }
+        }}
+      >
+        <Paperclip aria-hidden="true" className="mx-auto mb-2 size-4" />
+        {dragging && !organizationSelected ? (
+          <span className="block">Pick an organization first</span>
+        ) : dragging && !unavailable ? (
+          <span className="block">Drop to attach</span>
+        ) : !organizationSelected ? (
+          <span className="block">Pick an organization to attach files</span>
+        ) : (
+          <span className="block">
+            Drop files here or{' '}
+            <span className="font-medium text-foreground underline underline-offset-4">
+              browse
+            </span>
+          </span>
+        )}
+        <span className="mt-1 block text-xs">Up to 5 MB each</span>
+      </button>
+      <input
+        ref={input}
+        type="file"
+        multiple
+        hidden
+        disabled={unavailable}
+        aria-label="Choose attachments"
+        onChange={(event) => {
+          const target = event.currentTarget;
+          const files = Array.from(target.files ?? []);
+          target.value = '';
+          if (files.length > 0 && !unavailable) {
+            void onFiles(files);
+          }
+        }}
+      />
+      {draft.identity && draft.query.isError && (
         <SupportError
           message="Unable to load draft attachments. The draft may already have created a ticket, or your access may have changed. Retry to check before starting another ticket."
           retry={() => {
             void draft.query.refetch();
           }}
         />
-      ) : ticketID ? (
+      )}
+      {ticketID && (
         <p className="text-sm">
           This draft already created a ticket.{' '}
           <Link href={`/support/tickets/${ticketID}`} className="underline">
@@ -86,125 +190,6 @@ export default function DraftAttachments({
           </Link>
           .
         </p>
-      ) : (
-        <>
-          {!!data?.attachments.length && (
-            <ul className="space-y-3">
-              {data.attachments.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <SupportAttachmentPreview
-                      file={item.file}
-                      requestRole="user"
-                    />
-                    <div className="min-w-0 break-words">
-                      <p>{item.file?.name ?? 'Attachment unavailable'}</p>
-                      <p className="text-muted-foreground text-xs">
-                        Uploaded
-                        {item.file?.size != null
-                          ? ` · ${item.file.size.toLocaleString()} bytes`
-                          : ''}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    {item.file && (
-                      <>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          aria-label={`Download ${item.file.name ?? 'attachment'}`}
-                          disabled={
-                            unavailable || download.status === 'loading'
-                          }
-                          onClick={() => {
-                            const file = item.file;
-                            if (!file) {
-                              return;
-                            }
-                            void execPromiseWithErrorToast(
-                              () =>
-                                download.mutateAsync({
-                                  id: file.id,
-                                  name: file.name ?? 'attachment',
-                                }),
-                              {
-                                loadingMessage: 'Downloading attachment…',
-                                successMessage: 'Attachment downloaded',
-                                errorMessage:
-                                  'Unable to download this attachment.',
-                              },
-                            );
-                          }}
-                        >
-                          <Download className="size-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          aria-label={`Insert ${item.file.name ?? 'attachment'} into description`}
-                          disabled={unavailable}
-                          onClick={() => item.file && onInsert(item.file)}
-                        >
-                          <FilePlus2 className="size-4" />
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      disabled={unavailable}
-                      aria-label={`Remove attachment ${item.file?.name ?? item.id}`}
-                      onClick={() => {
-                        void perform(
-                          { type: 'discard', id: item.id },
-                          'Removing attachment…',
-                          'Attachment removed',
-                        );
-                      }}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {unidentified.map((item) => (
-            <div key={item.id} className="space-y-2 text-sm">
-              <p>
-                Unfinished upload {item.id}. Remove it before submitting the
-                ticket.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={unavailable}
-                onClick={() => {
-                  void perform(
-                    { type: 'discard', id: item.id },
-                    'Discarding unfinished upload…',
-                    'Unfinished upload discarded',
-                  );
-                }}
-              >
-                Discard unfinished upload {item.id}
-              </Button>
-            </div>
-          ))}
-          {data && (
-            <p className="text-muted-foreground text-xs">
-              Draft created {supportDate(data.createdAt)}.
-            </p>
-          )}
-        </>
       )}
       {draft.submissionUncertain && !ticketID && (
         <div className="space-y-2 text-sm">
@@ -218,7 +203,7 @@ export default function DraftAttachments({
           {!draft.query.isError && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               disabled={disabled || draft.busy || draft.query.isFetching}
               onClick={() => {
@@ -230,95 +215,13 @@ export default function DraftAttachments({
           )}
         </div>
       )}
-      <div className="space-y-2">
-        <label htmlFor={inputID} className="font-medium text-sm">
-          Attach files
-        </label>
-        <Input
-          id={inputID}
-          type="file"
-          multiple
-          disabled={unavailable}
-          onChange={(event) => {
-            const input = event.currentTarget;
-            const files = Array.from(input.files ?? []);
-            input.value = '';
-            if (files.length > 0) {
-              void perform(
-                { type: 'upload', files },
-                'Uploading draft attachments…',
-                'Files uploaded',
-              );
-            }
-          }}
-        />
-      </div>
-      {queue.length > 0 && (
-        <ul className="space-y-2" aria-live="polite">
-          {queue.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center justify-between gap-3 text-sm"
-            >
-              <div className="min-w-0 break-words">
-                <p>{item.file.name}</p>
-                <p className="text-muted-foreground text-xs">
-                  {item.error ??
-                    (item.status === 'uploading'
-                      ? 'Uploading…'
-                      : 'Ready to upload')}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-label={`Remove ${item.file.name}`}
-                disabled={unavailable}
-                onClick={() => {
-                  void perform(
-                    { type: 'remove', id: item.id },
-                    'Removing file…',
-                    'File removed',
-                  );
-                }}
-              >
-                <X className="size-4" />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!draft.busy &&
-        queue.some(
-          (item) => item.status === 'pending' || item.status === 'failed',
-        ) && (
-          <ButtonWithLoading
-            type="button"
-            variant="outline"
-            loading={draft.busy}
-            disabled={unavailable}
-            onClick={() => {
-              void perform(
-                { type: 'upload' },
-                'Uploading draft attachments…',
-                'Files uploaded',
-              );
-            }}
-          >
-            Retry failed uploads
-          </ButtonWithLoading>
-        )}
       {draft.hasFiles && (
-        <div className="space-y-2 border-t pt-3">
-          <p className="text-muted-foreground text-xs">
-            Discard draft attachments to change organization. Ticket text is
-            kept.
-          </p>
+        <p className="text-sm">
           <Button
             type="button"
-            variant="outline"
+            variant="link"
             size="sm"
+            className="h-auto p-0"
             disabled={
               disabled || draft.busy || !!ticketID || draft.submissionUncertain
             }
@@ -331,9 +234,130 @@ export default function DraftAttachments({
             }}
           >
             Discard draft attachments
-          </Button>
-        </div>
+          </Button>{' '}
+          to change organization. Ticket text is kept.
+        </p>
       )}
+      <div aria-live="polite">
+        {!organizationSelected && (dragging || rejectedDrop) && (
+          <p className="sr-only">Pick an organization first</p>
+        )}
+        {!draft.query.isError && !ticketID && (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {data?.attachments.map((item) => (
+              <li
+                key={item.id}
+                className="flex min-w-0 items-center gap-3 rounded-md border p-3 text-sm"
+              >
+                <SupportAttachmentPreview file={item.file} requestRole="user" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">
+                    {item.file?.name ?? 'Attachment unavailable'}
+                  </p>
+                  {item.file?.size != null && (
+                    <p className="text-muted-foreground text-xs">
+                      {fileSize(item.file.size)}
+                    </p>
+                  )}
+                </div>
+                <RemoveFile
+                  disabled={unavailable}
+                  label={`Remove attachment ${item.file?.name ?? item.id}`}
+                  onClick={() => {
+                    void perform(
+                      { type: 'discard', id: item.id },
+                      'Removing attachment…',
+                      'Attachment removed',
+                    );
+                  }}
+                />
+              </li>
+            ))}
+            {unidentified.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 rounded-md border p-3 text-sm"
+              >
+                <p className="min-w-0 flex-1 break-words">
+                  Unfinished upload {item.id}. Remove it before submitting the
+                  ticket.
+                </p>
+                <RemoveFile
+                  disabled={unavailable}
+                  label={`Discard unfinished upload ${item.id}`}
+                  onClick={() => {
+                    void perform(
+                      { type: 'discard', id: item.id },
+                      'Discarding unfinished upload…',
+                      'Unfinished upload discarded',
+                    );
+                  }}
+                />
+              </li>
+            ))}
+            {queue.map((item) => (
+              <li
+                key={item.id}
+                className={cn(
+                  'flex min-w-0 items-center gap-3 rounded-md border p-3 text-sm',
+                  item.status === 'failed' && 'border-destructive',
+                )}
+              >
+                {item.status === 'uploading' ? (
+                  <Loader2
+                    aria-hidden="true"
+                    className="size-5 shrink-0 animate-spin"
+                  />
+                ) : (
+                  <Paperclip aria-hidden="true" className="size-5 shrink-0" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{item.file.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {item.status === 'uploading'
+                      ? 'Uploading…'
+                      : item.status === 'failed'
+                        ? 'Upload failed'
+                        : 'Ready to upload'}{' '}
+                    · {fileSize(item.file.size)}
+                  </p>
+                  {item.error && (
+                    <p className="text-destructive text-xs">{item.error}</p>
+                  )}
+                </div>
+                {(item.status === 'failed' || item.status === 'pending') && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={unavailable}
+                    onClick={() => {
+                      void perform(
+                        { type: 'upload' },
+                        'Uploading draft attachments…',
+                        'Files uploaded',
+                      );
+                    }}
+                  >
+                    Retry
+                  </Button>
+                )}
+                <RemoveFile
+                  disabled={unavailable}
+                  label={`Remove ${item.file.name}`}
+                  onClick={() => {
+                    void perform(
+                      { type: 'remove', id: item.id },
+                      'Removing file…',
+                      'File removed',
+                    );
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

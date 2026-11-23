@@ -39,7 +39,10 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
     onUploaded: SupportAttachmentUploaded,
   ) => Promise<unknown>;
   attachmentScope?: SupportAttachmentScope;
-  attachments?: (insert: (file: SupportAttachmentFile) => void) => ReactNode;
+  attachments?: (
+    insert: (file: SupportAttachmentFile) => void,
+    uploadFiles: (files: File[]) => Promise<void>,
+  ) => ReactNode;
 }
 
 export default function SupportMarkdownEditor<T extends FieldValues>({
@@ -263,7 +266,8 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 ref={mergeRefs([field.ref, editor])}
                 placeholder={placeholder}
                 hidden={preview}
-                disabled={disabled}
+                readOnly={disabled}
+                aria-disabled={disabled || undefined}
                 onDragOver={(event) => {
                   if (!event.dataTransfer.types.includes('Files')) {
                     return;
@@ -290,7 +294,10 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 className={cn(
                   'min-h-40 font-mono',
                   preview && 'hidden',
-                  dragging && 'border-primary ring-2 ring-primary/30',
+                  dragging &&
+                    !disabled &&
+                    !filesDisabled &&
+                    'border-primary ring-2 ring-primary/30',
                 )}
               />
             </FormControl>
@@ -311,13 +318,10 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
               </section>
             )}
             <FormDescription>
-              Markdown supported: headings, lists, links, tables and fenced code
-              blocks. Drop files here to upload and insert links or images
-              automatically (up to 5 MB each). Attachment buttons can insert
-              existing files. HTML and remote images are disabled.
+              Markdown supported. Drop files to attach.
             </FormDescription>
             <FormMessage />
-            {attachments?.(insertAttachment)}
+            {attachments?.(insertAttachment, uploadDroppedFiles)}
           </FormItem>
         );
       }}

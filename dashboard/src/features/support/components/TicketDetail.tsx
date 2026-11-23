@@ -12,7 +12,7 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
-  SupportBackLink,
+  SupportBreadcrumb,
   SupportError,
 } from '@/features/support/components/SupportArea';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
@@ -100,7 +100,7 @@ export default function TicketDetail() {
   if (router.isReady && !validId) {
     return (
       <div className="space-y-6 p-8">
-        <SupportBackLink />
+        <SupportBreadcrumb currentPage="Ticket" />
         <SupportError message="Invalid ticket address." />
       </div>
     );
@@ -108,7 +108,7 @@ export default function TicketDetail() {
   if (detail.isError) {
     return (
       <div className="space-y-6 p-8">
-        <SupportBackLink />
+        <SupportBreadcrumb currentPage="Ticket" />
         <SupportError
           message="Unable to load this ticket. Your access may have changed."
           retry={() => {
@@ -119,12 +119,17 @@ export default function TicketDetail() {
     );
   }
   if (detail.isLoading || !router.isReady) {
-    return <Spinner wrapperClassName="py-16">Loading ticket…</Spinner>;
+    return (
+      <div className="space-y-6 p-5 sm:p-8">
+        <SupportBreadcrumb currentPage="Ticket" />
+        <Spinner wrapperClassName="py-16">Loading ticket…</Spinner>
+      </div>
+    );
   }
   if (!ticket) {
     return (
       <div className="space-y-6 p-8">
-        <SupportBackLink />
+        <SupportBreadcrumb currentPage="Ticket" />
         <h1 className="font-semibold text-xl">Ticket not found</h1>
         <p className="text-muted-foreground">
           This ticket does not exist, or you no longer have access to its
@@ -141,8 +146,8 @@ export default function TicketDetail() {
 
   return (
     <div key={`${user?.id}:${role}:${ticketId}`}>
-      <header className="space-y-4 border-b p-5 sm:p-8">
-        <SupportBackLink />
+      <header className="space-y-6 border-b p-5 sm:p-8">
+        <SupportBreadcrumb currentPage={`#${ticket.number}`} />
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-muted-foreground text-sm">
             #{ticket.number}

@@ -440,7 +440,7 @@ async function selectOrganization(user: TestUserEvent, name = 'Acme') {
   await user.click(await screen.findByRole('option', { name }));
 }
 async function fillForm(user: TestUserEvent) {
-  await screen.findByRole('heading', { name: 'Create a support ticket' });
+  await screen.findByRole('heading', { name: 'New ticket' });
   await selectOrganization(user);
   await user.type(
     screen.getByRole('textbox', { name: 'Title' }),
@@ -450,11 +450,13 @@ async function fillForm(user: TestUserEvent) {
     screen.getByRole('textbox', { name: 'Description' }),
     '**Diagnostic details**',
   );
-  await user.click(screen.getByRole('checkbox', { name: 'Storage' }));
+  await user.click(screen.getByRole('combobox', { name: 'Services' }));
+  await user.click(await screen.findByRole('option', { name: 'Storage' }));
+  await user.keyboard('{Escape}');
 }
 async function uploadFiles(user: TestUserEvent, names = ['logs.txt']) {
   await user.upload(
-    screen.getByLabelText('Attach files'),
+    screen.getByLabelText('Choose attachments'),
     names.map(
       (name) => new File(['diagnostic contents'], name, { type: 'text/plain' }),
     ),
@@ -467,13 +469,126 @@ async function uploaded() {
 }
 
 describe('new ticket attachment drafts', () => {
+  it('offers a keyboard-accessible picker only after selecting an organization', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await screen.findByRole('heading', { name: 'New ticket' });
+    const zone = screen.getByRole('button', { name: 'Attach files' });
+    expect(zone).toHaveAttribute('aria-disabled', 'true');
+    expect(zone).not.toHaveAttribute('disabled');
+    expect(zone).toHaveTextContent('Pick an organization to attach files');
+    await selectOrganization(user);
+    expect(zone).not.toHaveAttribute('aria-disabled');
+    const picker = vi.spyOn(
+      screen.getByLabelText('Choose attachments'),
+      'click',
+    );
+    zone.focus();
+    await user.keyboard('{Enter}');
+    expect(picker).toHaveBeenCalledTimes(1);
+    await user.keyboard(' ');
+    expect(picker).toHaveBeenCalledTimes(2);
+  });
+
+  it('prevents file navigation when unavailable or when a drop misses the attachments', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await screen.findByRole('heading', { name: 'New ticket' });
+    const zone = screen.getByRole('button', { name: 'Attach files' });
+    const transfer = {
+      types: ['Files'],
+      files: [new File(['image'], 'photo.png', { type: 'image/png' })],
+    };
+    expect(fireEvent.dragOver(zone, { dataTransfer: transfer })).toBe(false);
+    expect(zone).toHaveTextContent('Pick an organization first');
+    expect(zone).toHaveClass('border-destructive');
+    expect(fireEvent.drop(zone, { dataTransfer: transfer })).toBe(false);
+    expect(screen.getByText('Pick an organization first')).toHaveClass(
+      'sr-only',
+    );
+    const editor = screen.getByRole('textbox', { name: 'Description' });
+    expect(fireEvent.dragOver(editor, { dataTransfer: transfer })).toBe(false);
+    expect(editor).not.toHaveClass('ring-2');
+    expect(fireEvent.drop(editor, { dataTransfer: transfer })).toBe(false);
+    await selectOrganization(user);
+    expect(
+      fireEvent.drop(screen.getByRole('textbox', { name: 'Title' }), {
+        dataTransfer: transfer,
+      }),
+    ).toBe(false);
+    expect(storageRequests).toHaveLength(0);
+    expect(requests).toHaveLength(0);
+  });
+
+  it('shows the drag state and accepts additional files dropped on the attachment list', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    const zone = screen.getByRole('button', { name: 'Attach files' });
+    const transfer = {
+      types: ['Files'],
+      files: [new File(['logs'], 'first.txt')],
+    };
+    expect(fireEvent.dragOver(zone, { dataTransfer: transfer })).toBe(false);
+    expect(zone).toHaveTextContent('Drop to attach');
+    expect(zone).toHaveClass('border-solid', 'bg-primary/5', 'text-primary');
+    fireEvent.drop(zone, { dataTransfer: transfer });
+    await screen.findByRole('button', { name: 'Remove attachment first.txt' });
+    await uploaded();
+    const row = screen
+      .getByRole('button', { name: 'Remove attachment first.txt' })
+      .closest('li')!;
+    expect(
+      fireEvent.drop(row, {
+        dataTransfer: {
+          types: ['Files'],
+          files: [new File(['more logs'], 'second.txt')],
+        },
+      }),
+    ).toBe(false);
+    await screen.findByRole('button', { name: 'Remove attachment second.txt' });
+    await uploaded();
+    expect(storageRequests.map((request) => request.name)).toEqual([
+      'first.txt',
+      'second.txt',
+    ]);
+    expect(
+      requests.filter((request) => request.operation === 'draft'),
+    ).toHaveLength(1);
+  });
+
+  it('uploads multiple files from the drop zone and inserts confirmed links', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillForm(user);
+    fireEvent.drop(screen.getByRole('button', { name: 'Attach files' }), {
+      dataTransfer: {
+        types: ['Files'],
+        files: [
+          new File(['first'], 'first.txt'),
+          new File(['second'], 'second.txt'),
+        ],
+      },
+    });
+    await screen.findByRole('button', { name: 'Remove attachment second.txt' });
+    await uploaded();
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
+        `**Diagnostic details**[first.txt](attachment:${records[0].id})\n[second.txt](attachment:${records[1].id})`,
+      ),
+    );
+    expect(screen.getAllByText('1 KB')).toHaveLength(2);
+    expect(
+      screen.queryByRole('button', { name: /Download/ }),
+    ).not.toBeInTheDocument();
+  });
   it('shows resized draft image thumbnails as user even for a support agent', async () => {
     authorize(true);
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);
     await user.upload(
-      screen.getByLabelText('Attach files'),
+      screen.getByLabelText('Choose attachments'),
       new File(['image'], 'screenshot.png', { type: 'image/png' }),
     );
     expect(
@@ -498,7 +613,9 @@ describe('new ticket attachment drafts', () => {
           ],
         },
       });
-      await screen.findByRole('button', { name: 'Download dropped.txt' });
+      await screen.findByRole('button', {
+        name: 'Remove attachment dropped.txt',
+      });
       await uploaded();
       expect(storageRequests).toHaveLength(1);
       expect(storageRequests[0]).toMatchObject({
@@ -543,36 +660,27 @@ describe('new ticket attachment drafts', () => {
     expect(
       screen.getByRole('button', { name: 'Create ticket' }),
     ).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: 'Retry failed uploads' }),
-    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
   });
 
-  it('inserts uploaded file links and images at the description cursor and submits the raw Markdown', async () => {
+  it('inserts selected files at the description cursor and submits the raw Markdown', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillForm(user);
-    await user.upload(screen.getByLabelText('Attach files'), [
-      new File(['logs'], 'logs [safe].txt', { type: 'text/plain' }),
-      new File(['image'], 'screenshot.png', { type: 'image/png' }),
-    ]);
-    await uploaded();
     const editor = screen.getByRole('textbox', {
       name: 'Description',
     }) as HTMLTextAreaElement;
     editor.setSelectionRange(0, 0);
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Insert logs [safe].txt into description',
-      }),
-    );
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Insert screenshot.png into description',
-      }),
-    );
-    const markdown = `[logs \\[safe\\].txt](attachment:${records[0].id})![screenshot.png](attachment:${records[1].id})**Diagnostic details**`;
-    expect(editor).toHaveValue(markdown);
+    await user.upload(screen.getByLabelText('Choose attachments'), [
+      new File(['logs'], 'logs [safe].txt', { type: 'text/plain' }),
+      new File(['image'], 'screenshot.png', { type: 'image/png' }),
+    ]);
+    await uploaded();
+    const markdown = `[logs \\[safe\\].txt](attachment:${records[0].id})\n![screenshot.png](attachment:${records[1].id})**Diagnostic details**`;
+    await waitFor(() => expect(editor).toHaveValue(markdown));
+    expect(
+      screen.queryByRole('button', { name: /Insert .* into description/ }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() => expect(router.push).toHaveBeenCalled());
     expect(
@@ -622,7 +730,7 @@ describe('new ticket attachment drafts', () => {
           input: {
             attachmentDraftID: draftID,
             organizationID,
-            description: '**Diagnostic details**',
+            description: `**Diagnostic details**[logs.txt](attachment:${records[0].id})`,
           },
         },
       });
@@ -633,7 +741,7 @@ describe('new ticket attachment drafts', () => {
       });
       expect(records[0]).toMatchObject({ draftID: null, ticketID });
       await screen.findByRole('link', { name: 'Open the created ticket' });
-      expect(screen.getByLabelText('Attach files')).toBeDisabled();
+      expect(screen.getByLabelText('Choose attachments')).toBeDisabled();
       expect(
         screen.getByRole('button', { name: 'Discard draft attachments' }),
       ).toBeDisabled();
@@ -643,10 +751,10 @@ describe('new ticket attachment drafts', () => {
   it('requires an organization and valid file before creating any draft or reservation', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
-    await screen.findByRole('heading', { name: 'Create a support ticket' });
-    expect(screen.getByLabelText('Attach files')).toBeDisabled();
+    await screen.findByRole('heading', { name: 'New ticket' });
+    expect(screen.getByLabelText('Choose attachments')).toBeDisabled();
     await selectOrganization(user);
-    await user.upload(screen.getByLabelText('Attach files'), [
+    await user.upload(screen.getByLabelText('Choose attachments'), [
       new File([], 'empty.txt'),
       new File([new Uint8Array(5_000_001)], 'large.txt'),
     ]);
@@ -657,7 +765,7 @@ describe('new ticket attachment drafts', () => {
       screen.getByText('Files must be 5 MB or smaller.'),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Retry failed uploads' }),
+      screen.queryByRole('button', { name: 'Retry' }),
     ).not.toBeInTheDocument();
     expect(requests).toEqual([]);
   });
@@ -698,13 +806,9 @@ describe('new ticket attachment drafts', () => {
     await uploadFiles(user);
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Retry failed uploads' }),
-      ).toBeEnabled(),
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled(),
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Retry failed uploads' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
     await uploaded();
     expect(storageRequests).toHaveLength(2);
     expect(storageRequests[0].id).not.toBe(storageRequests[1].id);
@@ -724,13 +828,9 @@ describe('new ticket attachment drafts', () => {
     await uploadFiles(user);
     await screen.findByText(/Upload could not be confirmed/);
     await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Retry failed uploads' }),
-      ).toBeEnabled(),
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled(),
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Retry failed uploads' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
     await uploaded();
     expect(storageRequests).toHaveLength(1);
     expect(records).toHaveLength(1);
@@ -750,13 +850,9 @@ describe('new ticket attachment drafts', () => {
     expect(storageRequests).toEqual([]);
     await user.click(discard);
     await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Retry failed uploads' }),
-      ).toBeEnabled(),
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled(),
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Retry failed uploads' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
     await uploaded();
     expect(records[0].discarded).toBe(true);
     expect(records[1].completed).toBe(true);
@@ -938,7 +1034,7 @@ describe('new ticket attachment drafts', () => {
     expect(records[0].discarded).toBe(true);
     expect(draft?.id).toBe(draftID);
     expect(screen.getByRole('textbox', { name: 'Description' })).toHaveValue(
-      '**Diagnostic details**',
+      `**Diagnostic details**[logs.txt](attachment:${records[0].id})`,
     );
     await selectOrganization(user, 'Other org');
     expect(
@@ -954,8 +1050,13 @@ describe('new ticket attachment drafts', () => {
     await uploaded();
     draft!.createdAt = '2020-01-01T00:00:00Z';
     await queryClient.invalidateQueries({ queryKey: ['support'] });
-    await screen.findByText(/Draft created.*2020/);
-    expect(screen.getByLabelText('Attach files')).toBeEnabled();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Remove attachment logs.txt' }),
+      ).toBeEnabled(),
+    );
+    expect(screen.queryByText(/Draft created/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Choose attachments')).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Create ticket' })).toBeEnabled();
     expect(
       screen.getByRole('button', { name: 'Remove attachment logs.txt' }),
@@ -977,7 +1078,7 @@ describe('new ticket attachment drafts', () => {
     expect(
       screen.getByRole('button', { name: 'Create ticket' }),
     ).toBeDisabled();
-    expect(screen.getByLabelText('Attach files')).toBeDisabled();
+    expect(screen.getByLabelText('Choose attachments')).toBeDisabled();
   });
 
   it('reads all 100-row pages and blocks submission for an unfinished reservation beyond the first page', async () => {

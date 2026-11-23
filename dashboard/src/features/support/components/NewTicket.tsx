@@ -7,14 +7,27 @@ import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { FormField, FormItem, FormMessage } from '@/components/ui/v3/form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import DraftAttachments from '@/features/support/components/DraftAttachments';
 import {
-  SupportBackLink,
+  SupportBreadcrumb,
   SupportError,
 } from '@/features/support/components/SupportArea';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
@@ -161,7 +174,7 @@ function NewTicketForm() {
   if (organizations.isError) {
     return (
       <div className="space-y-6 p-8">
-        <SupportBackLink />
+        <SupportBreadcrumb currentPage="New ticket" />
         <SupportError
           message="Unable to load your organizations. Please try again."
           retry={() => {
@@ -173,26 +186,35 @@ function NewTicketForm() {
   }
   if (organizations.isLoading) {
     return (
-      <Spinner wrapperClassName="py-16">Loading your organizations…</Spinner>
+      <div className="space-y-6 p-5 sm:p-8">
+        <SupportBreadcrumb currentPage="New ticket" />
+        <Spinner wrapperClassName="py-16">Loading your organizations…</Spinner>
+      </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-5 sm:p-8">
-      <SupportBackLink />
+    <div className="space-y-6 p-5 sm:p-8">
+      <SupportBreadcrumb currentPage="New ticket" />
       <header>
-        <h1 className="font-semibold text-2xl">Create a support ticket</h1>
-        <p className="mt-2 text-muted-foreground text-sm">
-          Tell us what happened. Everyone in your organization can follow this
-          conversation.
-        </p>
+        <h1 className="font-semibold text-2xl">New ticket</h1>
       </header>
       {organizations.data?.organizations.length === 0 ? (
         <SupportError message="You need to belong to an organization before creating a support ticket." />
       ) : (
         <FormProvider {...form}>
           <Form
-            className="space-y-6 rounded-lg border p-5 sm:p-8"
+            className="space-y-6"
+            onDragOverCapture={(event) => {
+              if (event.dataTransfer.types.includes('Files')) {
+                event.preventDefault();
+              }
+            }}
+            onDropCapture={(event) => {
+              if (event.dataTransfer.types.includes('Files')) {
+                event.preventDefault();
+              }
+            }}
             onSubmit={async (values: TicketFormValues) => {
               await execPromiseWithErrorToast(
                 () => create.mutateAsync(values),
@@ -205,7 +227,7 @@ function NewTicketForm() {
               );
             }}
           >
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <FormSelect
                 control={form.control}
                 name="organizationID"
@@ -228,88 +250,78 @@ function NewTicketForm() {
                 label="Project"
                 disabled={!selectedOrganization}
               >
-                <SelectItem value="none">
-                  Organization-wide / No project
-                </SelectItem>
+                <SelectItem value="none">No project</SelectItem>
                 {selectedOrganization?.apps.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
                   </SelectItem>
                 ))}
               </FormSelect>
-            </div>
-            <FormSelect
-              control={form.control}
-              name="severity"
-              label="Severity"
-              disabled={!selectedOrganization || form.formState.isSubmitting}
-              helperText={
-                !selectedOrganization
-                  ? 'Select an organization to see its allowed severities.'
-                  : allowedSeverities.length === 0
-                    ? 'This organization’s plan does not allow new support tickets.'
-                    : 'Available severities are determined by the organization’s plan.'
-              }
-            >
-              {SEVERITIES.map((severity) => (
-                <SelectItem
-                  key={severity}
-                  value={severity}
-                  disabled={!allowedSeverities.includes(severity)}
-                >
-                  {supportLabel(severity)}
-                </SelectItem>
-              ))}
-            </FormSelect>
-            <FormField
-              control={form.control}
-              name="services"
-              render={({ field }) => (
-                <FormItem>
-                  <fieldset>
-                    <legend className="mb-3 font-medium text-sm">
-                      Affected services
-                    </legend>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {SERVICES.map((service) => (
-                        <label
-                          key={service}
-                          htmlFor={`support-service-${service}`}
-                          className="flex items-center gap-2 text-sm"
+              <FormSelect
+                control={form.control}
+                name="severity"
+                label="Severity"
+                disabled={!selectedOrganization || form.formState.isSubmitting}
+                helperText={
+                  selectedOrganization && allowedSeverities.length === 0
+                    ? 'Not available on this plan'
+                    : undefined
+                }
+              >
+                {SEVERITIES.map((severity) => (
+                  <SelectItem
+                    key={severity}
+                    value={severity}
+                    disabled={!allowedSeverities.includes(severity)}
+                  >
+                    {supportLabel(severity)}
+                  </SelectItem>
+                ))}
+              </FormSelect>
+              <FormField
+                control={form.control}
+                name="services"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Services</FormLabel>
+                    <MultiSelect
+                      values={field.value}
+                      onValuesChange={field.onChange}
+                    >
+                      <FormControl>
+                        <MultiSelectTrigger
+                          className="w-full"
+                          onBlur={field.onBlur}
                         >
-                          <Checkbox
-                            id={`support-service-${service}`}
-                            checked={field.value.includes(service)}
-                            onCheckedChange={(checked) =>
-                              field.onChange(
-                                checked === true
-                                  ? [...field.value, service]
-                                  : field.value.filter(
-                                      (value) => value !== service,
-                                    ),
-                              )
-                            }
-                          />
-                          {supportLabel(service)}
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                          <MultiSelectValue placeholder="Select services" />
+                        </MultiSelectTrigger>
+                      </FormControl>
+                      <MultiSelectContent>
+                        <MultiSelectGroup>
+                          {SERVICES.map((service) => (
+                            <MultiSelectItem key={service} value={service}>
+                              {supportLabel(service)}
+                            </MultiSelectItem>
+                          ))}
+                        </MultiSelectGroup>
+                      </MultiSelectContent>
+                    </MultiSelect>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormInput
               control={form.control}
               name="title"
               label="Title"
-              placeholder="A short summary of the issue"
+              placeholder="Short summary"
             />
             <SupportMarkdownEditor
               control={form.control}
               name="description"
               label="Description"
-              placeholder="What did you expect, what happened, and how can we reproduce it?"
+              placeholder="What happened, and how can we reproduce it?"
               disabled={form.formState.isSubmitting}
               filesDisabled={
                 !selectedOrganization ||
@@ -336,26 +348,28 @@ function NewTicketForm() {
                   },
                 );
               }}
-              attachments={(insert) => (
+              attachments={(_insert, uploadFiles) => (
                 <DraftAttachments
                   draft={draft}
                   disabled={
                     form.formState.isSubmitting || !selectedOrganization
                   }
-                  onInsert={insert}
+                  onFiles={uploadFiles}
+                  organizationSelected={!!selectedOrganization}
                 />
               )}
             />
-            <p className="text-muted-foreground text-xs">
-              Do not include passwords, access tokens, or other secrets.
-            </p>
             {draft.blocked && !draft.busy && !draft.query.isError && (
               <p className="text-muted-foreground text-sm">
                 Upload or remove unfinished attachments before creating the
                 ticket.
               </p>
             )}
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-muted-foreground text-xs">
+                Visible to everyone in your organization. Don't share passwords
+                or keys.
+              </p>
               <ButtonWithLoading
                 type="submit"
                 loading={form.formState.isSubmitting}
