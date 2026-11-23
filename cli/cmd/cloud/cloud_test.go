@@ -1,4 +1,4 @@
-package api_test
+package cloud_test
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/cmd/api"
+	"github.com/nhost/nhost/cli/cmd/cloud"
 	"github.com/urfave/cli/v3"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
@@ -47,16 +47,16 @@ type commandResult struct {
 func runCommand(t *testing.T, endpoint string, args []string) commandResult {
 	t.Helper()
 
-	argv := make([]string, 0, 7+len(args))
+	argv := make([]string, 0, 8+len(args))
 	argv = append(argv,
 		"--auth-url", endpoint, "--graphql-url", endpoint+"/graphql",
-		"--oauth2-client-id", "test-client", "api",
+		"--oauth2-client-id", "test-client", "cloud", "graphql",
 	)
 
-	return runAPICommand(t, append(argv, args...))
+	return runCloudCommand(t, append(argv, args...))
 }
 
-func runAPICommand(t *testing.T, args []string) commandResult {
+func runCloudCommand(t *testing.T, args []string) commandResult {
 	t.Helper()
 
 	flags, err := clienv.Flags()
@@ -67,7 +67,7 @@ func runAPICommand(t *testing.T, args []string) commandResult {
 	var stdout bytes.Buffer
 
 	root := &cli.Command{
-		Name: "nhost", Flags: flags, Commands: []*cli.Command{api.Command()},
+		Name: "nhost", Flags: flags, Commands: []*cli.Command{cloud.Command()},
 		Writer: &stdout, ErrWriter: io.Discard,
 		ExitErrHandler: func(_ context.Context, _ *cli.Command, _ error) {},
 	}
@@ -360,7 +360,7 @@ func TestSchema(t *testing.T) {
 			t.Setenv("NHOST_CLI_AUTH_URL", s.server.URL)
 			t.Setenv("NHOST_CLI_GRAPHQL_URL", s.server.URL+"/graphql")
 
-			got := runAPICommand(t, []string{"api", "schema"})
+			got := runCloudCommand(t, []string{"cloud", "graphql", "schema"})
 			if got.err != nil {
 				t.Fatal(got.err)
 			}
@@ -444,7 +444,7 @@ func TestSchemaSelections(t *testing.T) {
 			t.Setenv("NHOST_CLI_AUTH_URL", s.server.URL)
 			t.Setenv("NHOST_CLI_GRAPHQL_URL", s.server.URL+"/graphql")
 
-			got := runAPICommand(t, append([]string{"api", "schema"}, tt.args...))
+			got := runCloudCommand(t, append([]string{"cloud", "graphql", "schema"}, tt.args...))
 			if n := s.requests.Load(); n != 0 {
 				t.Errorf("schema sent %d requests, want zero", n)
 			}

@@ -1,14 +1,15 @@
-package api
+package cloud
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/cmd/api/internal/sdl"
 	"github.com/urfave/cli/v3"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/formatter"
 )
 
 const defaultSchemaDepth uint = 1
@@ -26,7 +27,8 @@ func CommandSchema() *cli.Command {
 			"interface implementations. Types through --depth are printed in full; deeper types stay " +
 			"referenced but undefined. Used scalars and enums are always included, except built-in scalars. " +
 			"A large --depth prints every needed type. --depth requires at least one field name. " +
-			"Reads the snapshot bundled with the CLI without a login or network access.",
+			"Reads the snapshot bundled with the CLI without a login or network access. " +
+			"Projects are called apps.",
 		Flags: []cli.Flag{
 			&cli.UintFlag{ //nolint:exhaustruct
 				Name:  "depth",
@@ -68,7 +70,7 @@ func schemaOutput(schema *ast.Schema, names []string, depth uint) ([]byte, error
 			return nil, fmt.Errorf("failed to select schema fields: %w", err)
 		}
 
-		return sdl.FormatSchemaDocument(doc), nil
+		return formatDocument(doc), nil
 	}
 
 	data, err := json.MarshalIndent(summarize(schema), "", "  ")
@@ -77,4 +79,11 @@ func schemaOutput(schema *ast.Schema, names []string, depth uint) ([]byte, error
 	}
 
 	return data, nil
+}
+
+func formatDocument(doc *ast.SchemaDocument) []byte {
+	var buf bytes.Buffer
+	formatter.NewFormatter(&buf, formatter.WithIndent("  ")).FormatSchemaDocument(doc)
+
+	return buf.Bytes()
 }

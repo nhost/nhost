@@ -1,4 +1,4 @@
-package api
+package cloud
 
 import (
 	"context"
@@ -23,8 +23,14 @@ const (
 
 func CommandRequest() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:      "request",
-		Usage:     "Send a query or mutation to the Nhost Cloud API and print its data as JSON",
+		Name:  "request",
+		Usage: "Send a query or mutation to the Nhost Cloud API and print its data as JSON",
+		Description: "Sends GraphQL to the Nhost Cloud API, which manages your organizations and " +
+			"projects, not to your project's own GraphQL API. Uses your nhost login session, or " +
+			"NHOST_PAT when set. Prefer `nhost mcp` tools. This raw pass-through runs exactly what " +
+			"you send with your permissions; reads can return secrets and mutations are not checked " +
+			"or confirmed, so configure your agent to ask before running " +
+			"`nhost cloud graphql request`. Projects are called apps.",
 		ArgsUsage: "<document>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct

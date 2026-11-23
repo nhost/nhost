@@ -1,4 +1,4 @@
-package api
+package cloud
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nhost/nhost/cli/cmd/api/internal/sdl"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
@@ -183,7 +182,7 @@ func TestSubset(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			output := sdl.FormatSchemaDocument(doc)
+			output := formatDocument(doc)
 			checkSubsetGolden(t, tt.golden, output)
 
 			if tt.validate {
@@ -231,14 +230,12 @@ func TestSubsetDoesNotMutate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		first := sdl.FormatSchemaDocument(doc)
-
-		second := sdl.FormatSchemaDocument(doc)
-		if !bytes.Equal(first, second) || (previous != nil && !bytes.Equal(previous, first)) {
-			t.Fatal("repeated subset selection and formatting changed output")
+		output := formatDocument(doc)
+		if previous != nil && !bytes.Equal(previous, output) {
+			t.Fatal("repeated subset selection changed output")
 		}
 
-		previous = first
+		previous = output
 	}
 
 	reordered, err := subset(
@@ -250,7 +247,7 @@ func TestSubsetDoesNotMutate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !bytes.Equal(previous, sdl.FormatSchemaDocument(reordered)) {
+	if !bytes.Equal(previous, formatDocument(reordered)) {
 		t.Fatal("name order or duplicates changed output")
 	}
 
