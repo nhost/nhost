@@ -316,10 +316,7 @@ export default function TicketList() {
       )}
       {!isAgent && (
         <section aria-labelledby="support-help-heading">
-          <h2
-            id="support-help-heading"
-            className="mt-4 font-medium text-muted-foreground text-sm"
-          >
+          <h2 id="support-help-heading" className="sr-only">
             Other ways to get help
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">

@@ -31,6 +31,7 @@ import {
   useInbox,
 } from '@/features/orgs/components/members/components/InboxPopover';
 import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
+import SupportViewSwitch from '@/features/support/components/SupportViewSwitch';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
@@ -111,6 +112,7 @@ export default function Header({
       )}
 
       <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
+        <SupportViewSwitch />
         {!hasRoomForSearchBox && (
           <CommandPaletteIconTrigger onOpen={openCommandPalette} />
         )}
