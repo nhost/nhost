@@ -17,6 +17,7 @@ import { useAuth } from '@/providers/Auth';
 import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
+  act,
   mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
@@ -298,41 +299,82 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
+function expectHelpFooter(visible: boolean) {
+  const heading = screen.queryByRole('heading', {
+    name: 'Other ways to get help',
+  });
+  if (!visible) {
+    expect(heading).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Read the docs/ }),
+    ).not.toBeInTheDocument();
+    return;
+  }
+  expect(heading).toBeInTheDocument();
+  expect(heading).toHaveClass('font-medium');
+  const cards = [
+    {
+      title: 'Read the docs',
+      description: 'Guides and answers for every Nhost feature.',
+      href: 'https://docs.nhost.io',
+    },
+    {
+      title: 'Report on GitHub',
+      description: 'Found a bug or want a feature? Open an issue.',
+      href: 'https://github.com/nhost/nhost/issues/new/choose',
+    },
+    {
+      title: 'Ask the community',
+      description: 'Get help from other developers on Discord.',
+      href: 'https://discord.com/invite/9V7Qb2U',
+    },
+  ];
+  for (const card of cards) {
+    const link = screen.getByRole('link', {
+      name: `${card.title} ${card.description} (opens in a new tab)`,
+    });
+    expect(link).toHaveAttribute('href', card.href);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(within(link).getByText(card.title)).toHaveClass(
+      'mt-3',
+      'font-semibold',
+      'text-sm',
+    );
+    expect(within(link).getByText(card.description)).not.toHaveClass(
+      'font-semibold',
+    );
+  }
+  expect(screen.queryByText(/Need a quick answer/)).not.toBeInTheDocument();
+}
+
 describe('native dashboard support', () => {
   it.each([
-    { page: 'list', current: 'Support' },
     { page: 'new', current: 'New ticket' },
     { page: 'ticket', current: '#42' },
   ])('shows the breadcrumb on the $page page', async ({ page, current }) => {
-    render(
-      page === 'list' ? (
-        <TicketList />
-      ) : page === 'new' ? (
-        <NewTicket />
-      ) : (
-        <TicketDetail />
-      ),
-    );
+    render(page === 'new' ? <NewTicket /> : <TicketDetail />);
     if (page === 'ticket') {
       await screen.findByRole('heading', { name: initialTicket.title });
     } else if (page === 'new') {
       await screen.findByRole('heading', { name: 'New ticket' });
-    } else {
-      await screen.findByRole('heading', { name: 'Support' });
     }
     const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
-    expect(within(nav).getByRole('link', { name: 'Home' })).toHaveAttribute(
-      'href',
-      '/',
-    );
+    expect(
+      within(nav).queryByRole('link', { name: 'Home' }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(nav)
+        .getAllByRole('listitem')
+        .filter((item) => item.getAttribute('aria-hidden') !== 'true'),
+    ).toHaveLength(2);
     const last = within(nav).getByText(current);
     expect(last).toHaveAttribute('aria-current', 'page');
     expect(last.tagName).toBe('LI');
-    if (page !== 'list') {
-      expect(
-        within(nav).getByRole('link', { name: 'Support' }),
-      ).toHaveAttribute('href', '/support');
-    }
+    expect(within(nav).getByRole('link', { name: 'Support' })).toHaveAttribute(
+      'href',
+      '/support',
+    );
     expect(screen.queryByText('← Support')).not.toBeInTheDocument();
   });
 
@@ -363,12 +405,101 @@ describe('native dashboard support', () => {
       expect(
         screen.queryByRole('button', { name: 'Next' }),
       ).not.toBeInTheDocument();
+      expectHelpFooter(!agent);
       expect(
-        screen.queryByRole('link', { name: 'Read the docs' }),
+        screen.getAllByRole('link', { name: 'Create ticket' }),
+      ).toHaveLength(1);
+      expect(
+        within(screen.getByRole('banner')).queryByRole('link', {
+          name: 'Create ticket',
+        }) !== null,
+      ).toBe(agent);
+      expect(
+        screen.queryByRole('navigation', { name: 'Breadcrumb' }),
       ).not.toBeInTheDocument();
-      expect(screen.getAllByRole('link', { name: 'New ticket' })).toHaveLength(
-        agent ? 1 : 2,
+      const box = screen.getByRole('heading', {
+        name: agent ? 'No tickets in this queue' : 'No tickets yet',
+      }).parentElement!;
+      expect(box).toHaveClass(
+        'min-h-80',
+        'sm:min-h-112',
+        'px-6',
+        'py-20',
+        'sm:px-8',
+        'sm:py-32',
+        'rounded-lg',
+        'border',
+        'items-center',
+        'justify-center',
       );
+      if (!agent) {
+        expect(
+          within(box).getByRole('link', { name: 'Create ticket' }),
+        ).toHaveAttribute('href', '/support/ticket');
+        expect(
+          within(box).getByText(
+            "Need help? Create a ticket and we'll reply here.",
+          ),
+        ).toBeInTheDocument();
+      }
+    },
+  );
+
+  it.each([false, true])(
+    'keeps the loading frame and only shows the agent header action (agent=%s)',
+    async (agent) => {
+      if (agent) {
+        makeAgent();
+      }
+      let release = () => {};
+      const pending = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      server.use(
+        nhostGraphQLLink.query('dashboardSupportTickets', async () => {
+          await pending;
+          return HttpResponse.json({ data: { supportTickets: [] } });
+        }),
+      );
+      render(<TicketList />);
+      try {
+        const loading = await screen.findByText('Loading tickets…');
+        expect(loading.closest('.min-h-80')).toHaveClass(
+          'sm:min-h-112',
+          'px-6',
+          'py-20',
+          'sm:px-8',
+          'sm:py-32',
+          'rounded-lg',
+          'border',
+          'items-center',
+          'justify-center',
+        );
+        expect(
+          screen.queryAllByRole('link', { name: 'Create ticket' }),
+        ).toHaveLength(agent ? 1 : 0);
+        expect(
+          screen.queryByRole('textbox', { name: 'Search tickets' }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('textbox', { name: 'Filter by organization' }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('combobox', { name: 'Ticket status' }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('navigation', { name: 'Agent queues' }),
+        ).not.toBeInTheDocument();
+        expectHelpFooter(!agent);
+      } finally {
+        release();
+      }
+      await screen.findByRole('heading', {
+        name: agent ? 'No tickets in this queue' : 'No tickets yet',
+      });
+      expect(
+        screen.getAllByRole('link', { name: 'Create ticket' }),
+      ).toHaveLength(1);
     },
   );
 
@@ -386,7 +517,28 @@ describe('native dashboard support', () => {
       ),
     );
     render(<TicketList />);
-    await screen.findByRole('heading', { name: 'No tickets match' });
+    const emptyHeading = await screen.findByRole('heading', {
+      name: 'No tickets match',
+    });
+    expectHelpFooter(true);
+    expect(emptyHeading.parentElement).toHaveClass(
+      'min-h-80',
+      'sm:min-h-112',
+      'px-6',
+      'py-20',
+      'sm:px-8',
+      'sm:py-32',
+      'rounded-lg',
+      'border',
+    );
+    expect(screen.getAllByRole('link', { name: 'Create ticket' })).toHaveLength(
+      1,
+    );
+    expect(
+      within(screen.getByRole('banner')).getByRole('link', {
+        name: 'Create ticket',
+      }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Search tickets' })).toHaveValue(
       'Missing',
     );
@@ -409,6 +561,60 @@ describe('native dashboard support', () => {
       { shallow: true },
     );
   });
+
+  it.each([false, true])(
+    'keeps loaded controls and content during background refresh (agent=%s)',
+    async (agent) => {
+      if (agent) {
+        makeAgent();
+      }
+      render(<TicketList />);
+      await screen.findByRole('link', { name: /Storage upload fails/ });
+      let release = () => {};
+      const pending = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const started = vi.fn();
+      server.use(
+        nhostGraphQLLink.query('dashboardSupportTickets', async () => {
+          started();
+          await pending;
+          return HttpResponse.json({ data: { supportTickets: [ticket] } });
+        }),
+      );
+      let refresh: Promise<void> | undefined;
+      act(() => {
+        refresh = queryClient.invalidateQueries({ queryKey: ['support'] });
+      });
+      try {
+        await waitFor(() => expect(started).toHaveBeenCalled());
+        expect(screen.queryByText('Loading tickets…')).not.toBeInTheDocument();
+        expect(
+          screen.getByRole('link', { name: /Storage upload fails/ }),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('textbox', { name: 'Search tickets' }),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('combobox', { name: 'Ticket status' }),
+        ).toBeInTheDocument();
+        if (agent) {
+          expect(
+            screen.getByRole('navigation', { name: 'Agent queues' }),
+          ).toBeInTheDocument();
+          expect(
+            screen.getByRole('textbox', { name: 'Filter by organization' }),
+          ).toBeInTheDocument();
+        }
+        expectHelpFooter(!agent);
+      } finally {
+        release();
+        await act(async () => {
+          await refresh;
+        });
+      }
+    },
+  );
 
   it('submits a search with Enter without a Search button', async () => {
     const user = new TestUserEvent();
@@ -442,7 +648,8 @@ describe('native dashboard support', () => {
       { timeout: 10000 },
     );
     expect(link).toHaveAttribute('href', `/support/tickets/${ticketId}`);
-    expect(screen.getByRole('link', { name: 'New ticket' })).toHaveAttribute(
+    expectHelpFooter(true);
+    expect(screen.getByRole('link', { name: 'Create ticket' })).toHaveAttribute(
       'href',
       '/support/ticket',
     );
@@ -519,6 +726,15 @@ describe('native dashboard support', () => {
       'Unable to load support tickets',
     );
     expect(screen.queryByText('No tickets yet')).not.toBeInTheDocument();
+    expectHelpFooter(true);
+    expect(screen.getAllByRole('link', { name: 'Create ticket' })).toHaveLength(
+      1,
+    );
+    expect(
+      within(screen.getByRole('banner')).getByRole('link', {
+        name: 'Create ticket',
+      }),
+    ).toBeInTheDocument();
   });
   it('supports an empty customer queue', async () => {
     server.use(
@@ -537,6 +753,7 @@ describe('native dashboard support', () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillTicket(user);
+    await select(user, 'Organization', 'Other org');
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() =>
       expect(push).toHaveBeenCalledWith(`/support/tickets/${ticketId}`),
@@ -546,7 +763,7 @@ describe('native dashboard support', () => {
       role: 'user',
       variables: {
         input: {
-          organizationID,
+          organizationID: otherOrganizationID,
           projectID: null,
           title: 'Uploads fail',
           description: 'Steps to reproduce',
@@ -559,6 +776,82 @@ describe('native dashboard support', () => {
       requests.find((request) => request.operation === 'organizations')?.role,
     ).toBe('user');
   });
+  it.each([0, 1, 2])(
+    'selects and locks a single organization with %s projects',
+    async (projectCount) => {
+      const apps = [
+        { id: projectID, name: 'Production' },
+        { id: otherOrganizationID, name: 'Staging' },
+      ].slice(0, projectCount);
+      server.use(
+        nhostGraphQLLink.query('dashboardSupportOrganizations', () =>
+          HttpResponse.json({
+            data: {
+              organizations: [
+                {
+                  id: organizationID,
+                  name: 'Acme',
+                  plan: { supportAllowedSeverities: ['low'] },
+                  apps,
+                },
+              ],
+            },
+          }),
+        ),
+      );
+      const user = new TestUserEvent();
+      render(<NewTicket />);
+      await screen.findByRole('heading', { name: 'New ticket' });
+      const org = screen.getByRole('combobox', { name: 'Organization' });
+      await waitFor(() => expect(org).toHaveTextContent('Acme'));
+      expect(org).toBeDisabled();
+      const project = screen.getByRole('combobox', { name: 'Project' });
+      await waitFor(() =>
+        expect(project).toHaveTextContent(
+          projectCount === 1 ? 'Production' : 'No project',
+        ),
+      );
+      if (projectCount === 1) {
+        expect(project).toBeDisabled();
+      } else {
+        expect(project).toBeEnabled();
+      }
+      if (projectCount === 2) {
+        await select(user, 'Project', 'Staging');
+      }
+      await user.type(
+        screen.getByRole('textbox', { name: 'Title' }),
+        'Need help',
+      );
+      await user.type(
+        screen.getByRole('textbox', { name: 'Description' }),
+        'Details',
+      );
+      await user.click(screen.getByRole('combobox', { name: 'Services' }));
+      await user.click(await screen.findByRole('option', { name: 'Storage' }));
+      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+      await waitFor(() =>
+        expect(
+          requests.find((request) => request.operation === 'create'),
+        ).toMatchObject({
+          role: 'user',
+          variables: {
+            input: {
+              organizationID,
+              projectID:
+                projectCount === 1
+                  ? projectID
+                  : projectCount === 2
+                    ? otherOrganizationID
+                    : null,
+            },
+          },
+        }),
+      );
+    },
+  );
+
   it('greys out severities not allowed by the selected organization’s plan', async () => {
     organizationSeverities = ['low'];
     const user = new TestUserEvent();
@@ -676,7 +969,10 @@ describe('native dashboard support', () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillTicket(user);
-    await select(user, 'Project', 'Production');
+    expect(screen.getByRole('combobox', { name: 'Project' })).toHaveTextContent(
+      'Production',
+    );
+    expect(screen.getByRole('combobox', { name: 'Project' })).toBeDisabled();
     await select(user, 'Organization', 'Other org');
     expect(screen.getByRole('combobox', { name: 'Project' })).toHaveTextContent(
       'No project',

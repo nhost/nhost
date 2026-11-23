@@ -195,6 +195,7 @@ module.exports = {
       },
       minHeight: {
         38: '9.5rem',
+        112: '28rem',
       },
       paddingLeft: {
         'pl-1.5': '7px',

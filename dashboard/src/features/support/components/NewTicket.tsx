@@ -84,9 +84,37 @@ function NewTicketForm() {
     cacheTime: 0,
     retry: false,
   });
+  const availableOrganizations = organizations.data?.organizations;
+  const organizationLocked =
+    draft.hasFiles || draft.busy || form.formState.isSubmitting;
+  useEffect(() => {
+    if (availableOrganizations?.length !== 1 || organizationLocked) {
+      return;
+    }
+    const singleOrganization = availableOrganizations[0];
+    if (form.getValues('organizationID') !== singleOrganization.id) {
+      form.setValue('organizationID', singleOrganization.id, {
+        shouldValidate: true,
+      });
+      form.setValue('projectID', 'none');
+    }
+  }, [availableOrganizations, organizationLocked, form]);
   const selectedOrganization = organizations.data?.organizations.find(
     (organization) => organization.id === organizationID,
   );
+  useEffect(() => {
+    if (!selectedOrganization || form.formState.isSubmitting) {
+      return;
+    }
+    const projects = selectedOrganization.apps;
+    if (projects.length === 1) {
+      form.setValue('projectID', projects[0].id, { shouldValidate: true });
+    } else if (
+      !projects.some((project) => project.id === form.getValues('projectID'))
+    ) {
+      form.setValue('projectID', 'none');
+    }
+  }, [selectedOrganization, form, form.formState.isSubmitting]);
   const allowedSeverities = getAllowedSupportSeverities(
     selectedOrganization?.plan?.supportAllowedSeverities,
   );
@@ -234,7 +262,7 @@ function NewTicketForm() {
                 label="Organization"
                 placeholder="Select an organization"
                 disabled={
-                  draft.hasFiles || draft.busy || form.formState.isSubmitting
+                  organizationLocked || availableOrganizations?.length === 1
                 }
                 onChange={() => form.setValue('projectID', 'none')}
               >
@@ -248,7 +276,10 @@ function NewTicketForm() {
                 control={form.control}
                 name="projectID"
                 label="Project"
-                disabled={!selectedOrganization}
+                disabled={
+                  !selectedOrganization ||
+                  selectedOrganization.apps.length === 1
+                }
               >
                 <SelectItem value="none">No project</SelectItem>
                 {selectedOrganization?.apps.map((project) => (

@@ -34,9 +34,15 @@ import { PlatformOnly } from '@/features/orgs/projects/common/components/Platfor
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
-export type HeaderProps = ComponentPropsWithoutRef<'header'>;
+export type HeaderProps = ComponentPropsWithoutRef<'header'> & {
+  showNavigation?: boolean;
+};
 
-export default function Header({ className, ...props }: HeaderProps) {
+export default function Header({
+  className,
+  showNavigation = true,
+  ...props
+}: HeaderProps) {
   const router = useRouter();
   // Most users are on desktop, so render it until the viewport is known.
   const isDesktop = useMediaQuery('md', { initialValue: true });
@@ -91,7 +97,8 @@ export default function Header({ className, ...props }: HeaderProps) {
           </Link>
         )}
 
-        {isDesktop ? <HeaderNavigation /> : <HeaderNavigationSheet />}
+        {showNavigation &&
+          (isDesktop ? <HeaderNavigation /> : <HeaderNavigationSheet />)}
       </div>
 
       {hasRoomForSearchBox && (

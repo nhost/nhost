@@ -194,6 +194,27 @@ mockScrollIntoViewAndPointerCapture();
 
 describe('Header', () => {
   it.each(['desktop', 'mobile'] as const)(
+    'can hide the organization switcher while keeping the dashboard logo on %s',
+    (viewport) => {
+      router.query = {};
+      router.asPath = '/support';
+      router.pathname = '/support';
+      mockViewport(viewport);
+      renderHeader({ showNavigation: false });
+      expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+        'href',
+        '/',
+      );
+      expect(screen.queryByText('Header navigation')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', {
+          name: /switch organization or project/i,
+        }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it.each(['desktop', 'mobile'] as const)(
     'hands its inbox state to the inbox popover on %s',
     (viewport) => {
       mockViewport(viewport);

@@ -1,5 +1,11 @@
+import { SiDiscord, SiGithub } from '@icons-pack/react-simple-icons';
 import { useQuery } from '@tanstack/react-query';
-import { LifeBuoyIcon, PlusIcon } from 'lucide-react';
+import {
+  BookOpenIcon,
+  ExternalLinkIcon,
+  LifeBuoyIcon,
+  PlusIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -22,10 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import {
-  SupportBreadcrumb,
-  SupportError,
-} from '@/features/support/components/SupportArea';
+import { SupportError } from '@/features/support/components/SupportArea';
 import {
   TicketSeverity,
   TicketStatus,
@@ -90,20 +93,21 @@ export default function TicketList() {
 
   return (
     <div className="space-y-6 p-5 sm:p-8">
-      <SupportBreadcrumb />
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-2">
           <h1 className="font-semibold text-2xl">Support</h1>
           {isAgent && <Badge variant="outline">Agent</Badge>}
         </div>
-        <Button asChild>
-          <Link href="/support/ticket">
-            <PlusIcon className="mr-2 size-4" />
-            New ticket
-          </Link>
-        </Button>
+        {(isAgent || (!tickets.isLoading && !emptyQueue)) && (
+          <Button asChild>
+            <Link href="/support/ticket">
+              <PlusIcon className="mr-2 size-4" />
+              Create ticket
+            </Link>
+          </Button>
+        )}
       </header>
-      {isAgent && (
+      {isAgent && !tickets.isLoading && (
         <nav className="flex flex-wrap gap-2" aria-label="Agent queues">
           <Button
             variant={search.queue === 'all' ? 'subtle' : 'ghost'}
@@ -125,7 +129,7 @@ export default function TicketList() {
           </Button>
         </nav>
       )}
-      {!emptyQueue && (
+      {!tickets.isLoading && !emptyQueue && (
         <div className="flex flex-col gap-3 sm:flex-row">
           <form
             className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row"
@@ -190,11 +194,18 @@ export default function TicketList() {
           }}
         />
       ) : tickets.isLoading ? (
-        <Spinner wrapperClassName="py-16">Loading tickets…</Spinner>
+        <div className="flex min-h-80 w-full flex-col items-center justify-center rounded-lg border px-6 py-20 text-center sm:min-h-112 sm:px-8 sm:py-32">
+          <Spinner>Loading tickets…</Spinner>
+        </div>
       ) : rows.length === 0 ? (
-        <div className="py-24 text-center">
-          <LifeBuoyIcon className="mx-auto mb-4 size-8 text-muted-foreground" />
-          <h2 className="font-semibold">
+        <div className="flex min-h-80 w-full flex-col items-center justify-center rounded-lg border px-6 py-20 text-center sm:min-h-112 sm:px-8 sm:py-32">
+          <div className="rounded-full bg-muted p-3">
+            <LifeBuoyIcon
+              aria-hidden="true"
+              className="size-6 text-muted-foreground"
+            />
+          </div>
+          <h2 className="mt-4 font-semibold">
             {emptyQueue
               ? isAgent
                 ? 'No tickets in this queue'
@@ -204,13 +215,13 @@ export default function TicketList() {
           {emptyQueue ? (
             !isAgent && (
               <>
-                <p className="mt-2 text-muted-foreground text-sm">
-                  Need help? Open a ticket and we'll reply here.
+                <p className="mt-1 max-w-sm text-muted-foreground text-sm">
+                  Need help? Create a ticket and we'll reply here.
                 </p>
                 <Button asChild className="mt-6">
                   <Link href="/support/ticket">
                     <PlusIcon className="mr-2 size-4" />
-                    New ticket
+                    Create ticket
                   </Link>
                 </Button>
               </>
@@ -218,7 +229,7 @@ export default function TicketList() {
           ) : (
             <Button
               variant="ghost"
-              className="mt-2"
+              className="mt-6"
               onClick={() =>
                 changeSearch({ q: '', organization: '', status: 'active' })
               }
@@ -281,7 +292,7 @@ export default function TicketList() {
           </Table>
         </div>
       )}
-      {(search.page > 0 || rows.length > PAGE_SIZE) && (
+      {!tickets.isLoading && (search.page > 0 || rows.length > PAGE_SIZE) && (
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
@@ -303,28 +314,87 @@ export default function TicketList() {
           </Button>
         </div>
       )}
-      {rows.length > 0 && !tickets.isError && (
-        <p className="text-muted-foreground text-xs">
-          Need a quick answer?{' '}
-          <Link
-            href="https://docs.nhost.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
+      {!isAgent && (
+        <section aria-labelledby="support-help-heading">
+          <h2
+            id="support-help-heading"
+            className="mt-4 font-medium text-muted-foreground text-sm"
           >
-            Read the docs
-          </Link>{' '}
-          or{' '}
-          <Link
-            href="https://discord.com/invite/9V7Qb2U"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            ask the community
-          </Link>
-          .
-        </p>
+            Other ways to get help
+          </h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Link
+              href="https://docs.nhost.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center justify-between">
+                <BookOpenIcon
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
+                <ExternalLinkIcon
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+                />
+              </span>
+              <span className="mt-3 font-semibold text-sm">Read the docs</span>{' '}
+              <span className="text-muted-foreground text-sm">
+                Guides and answers for every Nhost feature.
+              </span>{' '}
+              <span className="sr-only">(opens in a new tab)</span>
+            </Link>
+            <Link
+              href="https://github.com/nhost/nhost/issues/new/choose"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center justify-between">
+                <SiGithub
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
+                <ExternalLinkIcon
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+                />
+              </span>
+              <span className="mt-3 font-semibold text-sm">
+                Report on GitHub
+              </span>{' '}
+              <span className="text-muted-foreground text-sm">
+                Found a bug or want a feature? Open an issue.
+              </span>{' '}
+              <span className="sr-only">(opens in a new tab)</span>
+            </Link>
+            <Link
+              href="https://discord.com/invite/9V7Qb2U"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center justify-between">
+                <SiDiscord
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
+                <ExternalLinkIcon
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+                />
+              </span>
+              <span className="mt-3 font-semibold text-sm">
+                Ask the community
+              </span>{' '}
+              <span className="text-muted-foreground text-sm">
+                Get help from other developers on Discord.
+              </span>{' '}
+              <span className="sr-only">(opens in a new tab)</span>
+            </Link>
+          </div>
+        </section>
       )}
     </div>
   );
