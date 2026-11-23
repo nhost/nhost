@@ -66,6 +66,25 @@ mutation DeleteFile($id: uuid!) {
   }
 }
 
+query ListFilesToDelete($before: timestamptz!, $after: uuid_comparison_exp!, $limit: Int!) {
+  filesToDelete(
+    where: {deletedAt: {_lte: $before}, id: $after}
+    order_by: {id: asc}
+    limit: $limit
+  ) {
+    id
+    deletedAt
+  }
+}
+
+mutation RemoveFileFromCleanup($id: uuid!, $before: timestamptz!) {
+  deleteFilesToDelete(
+    where: {id: {_eq: $id}, deletedAt: {_lte: $before}}
+  ) {
+    affected_rows
+  }
+}
+
 mutation InsertVirus($object: virus_insert_input!) {
   insertVirus(object: $object) {
     id
