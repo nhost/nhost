@@ -9,6 +9,7 @@ import { AccountSettingsCard } from '@/features/account/settings/components/Acco
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateUserDisplayNameMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { useNhostClient } from '@/providers/nhost';
 
 const validationSchema = Yup.object({
   displayName: Yup.string()
@@ -22,6 +23,7 @@ export type DisplayNameSettingFormValues = Yup.InferType<
 
 export default function DisplayNameSetting() {
   const user = useUserData();
+  const nhost = useNhostClient();
 
   const { id: userID, displayName } = user || {};
 
@@ -44,6 +46,14 @@ export default function DisplayNameSetting() {
             displayName: formValues.displayName,
           },
         });
+
+        const session = nhost.getUserSession();
+        if (session?.user && session.user.id === userID) {
+          nhost.sessionStorage.set({
+            ...session,
+            user: { ...session.user, displayName: formValues.displayName },
+          });
+        }
 
         form.reset({ displayName: formValues.displayName });
       },

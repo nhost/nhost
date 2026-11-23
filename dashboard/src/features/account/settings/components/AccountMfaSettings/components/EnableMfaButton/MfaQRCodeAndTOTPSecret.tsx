@@ -35,7 +35,7 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
         activeMfaType: 'totp',
       });
       toast.success(
-        'Two-factor authentication has been enabled.',
+        'Multi-factor authentication has been enabled.',
         getToastStyleProps(),
       );
       onSuccess();

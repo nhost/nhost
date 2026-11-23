@@ -187,6 +187,23 @@ describe('HeaderNavigationSheet', () => {
     expect(openCreateOrgDialog).toHaveBeenCalledOnce();
   });
 
+  it.each([orgA, undefined])(
+    'renders no switcher on account settings with current organization %s',
+    (currentOrg) => {
+      router.pathname = '/account';
+      router.query = {};
+      useOrgsMock.mockReturnValue({ orgs: [orgA, orgB], currentOrg });
+
+      render(<HeaderNavigationSheet />);
+
+      expect(
+        screen.queryByRole('button', { name: sheetTriggerName }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Org A')).not.toBeInTheDocument();
+      expect(screen.queryByText('Select organization')).not.toBeInTheDocument();
+    },
+  );
+
   it('renders nothing outside the platform', () => {
     useIsPlatformMock.mockReturnValue(false);
 

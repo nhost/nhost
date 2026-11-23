@@ -15,7 +15,6 @@ import useMfaEnabled from '@/features/account/settings/components/AccountMfaSett
 import { StatusDot } from '@/features/account/settings/components/StatusDot';
 import useGetSecurityKeys from '@/features/account/settings/hooks/useGetSecurityKeys';
 import highlightSection from '@/features/account/settings/utils/highlightSection';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 
@@ -65,21 +64,19 @@ function pluralize(count: number, word: string) {
 
 /**
  * Profile summary at the top of the account settings: avatar, name, email,
- * how many organizations and projects the user belongs to, member since and
- * the security status. Display only, everything is edited on the pages below.
+ * member since and security status. Display only, everything is edited on
+ * the pages below.
  */
 export default function AccountProfileHeader() {
   const user = useUserData();
   const { isMfaEnabled, loading: loadingMfa } = useMfaEnabled();
   const { data: securityKeysData } = useGetSecurityKeys();
   const { data: providersData } = useGetAuthUserProvidersQuery();
-  const { orgs, loading: loadingOrgs } = useOrgs();
 
   const securityKeyCount = securityKeysData?.authUserSecurityKeys.length ?? 0;
   const isGithubConnected = !!providersData?.authUserProviders?.some(
     ({ providerId }) => providerId === 'github',
   );
-  const projectCount = orgs.reduce((total, org) => total + org.apps.length, 0);
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', {
         month: 'short',
@@ -134,25 +131,17 @@ export default function AccountProfileHeader() {
         </div>
 
         <div className="grid shrink-0 justify-items-end gap-5">
-          <div className="flex divide-x">
-            {!loadingOrgs && (
-              <>
-                <ProfileStat value={orgs.length} label="Organizations" />
-                <ProfileStat value={projectCount} label="Projects" />
-              </>
-            )}
-            {memberSince && (
-              <ProfileStat value={memberSince} label="Member since" />
-            )}
-          </div>
+          {memberSince && (
+            <ProfileStat value={memberSince} label="Member since" />
+          )}
 
           <div className="flex flex-wrap gap-x-5 gap-y-2 sm:justify-end">
             {!loadingMfa && (
               <ProfileStatus
                 active={isMfaEnabled}
-                section="two-factor-authentication"
+                section="multi-factor-authentication"
               >
-                {isMfaEnabled ? 'Two-factor on' : 'Two-factor off'}
+                {isMfaEnabled ? 'MFA on' : 'MFA off'}
               </ProfileStatus>
             )}
             {securityKeysData && (

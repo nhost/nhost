@@ -22,8 +22,8 @@ const ROWS: Section[][] = [
   [{ id: 'password', title: 'Password', Card: PasswordSettings }],
   [
     {
-      id: 'two-factor-authentication',
-      title: 'Two-factor authentication',
+      id: 'multi-factor-authentication',
+      title: 'Multi-factor authentication',
       Card: AccountMfaSettings,
     },
     {
@@ -54,7 +54,7 @@ function AuthenticationSectionBlock({ id, title, Card }: Section) {
 }
 
 /**
- * Every way to sign in on one page: password, then two-factor and connected
+ * Every way to sign in on one page: password, then multi-factor and connected
  * accounts side by side, then passkeys. Each card keeps its own logic and gets a heading with
  * an anchor, so the profile header can link straight to it.
  */

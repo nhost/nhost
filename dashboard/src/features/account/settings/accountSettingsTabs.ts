@@ -62,7 +62,7 @@ export const ACCOUNT_MENU_LINKS: {
 /** The sections of the Authentication page, used as anchors. */
 export type AuthenticationSection =
   | 'password'
-  | 'two-factor-authentication'
+  | 'multi-factor-authentication'
   | 'passkeys'
   | 'connected-accounts';
 

@@ -110,6 +110,21 @@ describe('HeaderNavigation', () => {
 
   afterAll(() => server.close());
 
+  it('renders no navigation or organization name on account settings', () => {
+    mockRouter.pathname = '/account';
+    mockRouter.query = {};
+    window.localStorage.setItem('slug', JSON.stringify(organization.slug));
+
+    render(<HeaderNavigation />);
+
+    expect(
+      screen.queryByRole('navigation', { name: 'Header navigation' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(organization.name)).not.toBeInTheDocument();
+    expect(screen.queryByText('Account settings')).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
   it('renders the project selector only when appSubdomain exists', async () => {
     const { rerender } = render(<HeaderNavigation />);
 

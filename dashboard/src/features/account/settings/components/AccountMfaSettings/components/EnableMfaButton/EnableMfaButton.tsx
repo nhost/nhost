@@ -27,17 +27,17 @@ function EnableMfaButton() {
       <DialogTrigger asChild>
         <Button variant="outline" disabled={buttonDisabled}>
           <ShieldCheck className="mr-2 h-4 w-4" />
-          Enable
+          Enable multi-factor authentication
         </Button>
       </DialogTrigger>
       <DialogContent className="z-[9999] p-12 text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-xl leading-7 tracking-normal">
-            Enable two-factor authentication
+            Enable multi-factor authentication
           </DialogTitle>
         </DialogHeader>
         <DialogDescription className="hidden">
-          Enable two-factor authentication
+          Enable multi-factor authentication
         </DialogDescription>
         <MfaQRCodeAndTOTPSecret onSuccess={handleOnSuccess} />
       </DialogContent>

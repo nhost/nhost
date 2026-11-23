@@ -32,7 +32,7 @@ export default function HeaderNavigationSheet() {
   const { orgs, currentOrg } = useOrgs();
   const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
 
-  if (!isPlatform) {
+  if (!isPlatform || router.pathname === '/account') {
     return null;
   }
 

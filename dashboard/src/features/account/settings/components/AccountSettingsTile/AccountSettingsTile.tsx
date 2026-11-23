@@ -17,7 +17,7 @@ interface AccountSettingsTileProps {
 }
 
 /**
- * A small card for a setting that is either on or off, like two-factor or a
+ * A small card for a setting that is either on or off, like multi-factor or a
  * linked account. Tiles sit side by side and stretch to the same height, with
  * the button pinned to the bottom.
  */
