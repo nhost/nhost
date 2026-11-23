@@ -208,3 +208,68 @@ func TestToLiteralValue(t *testing.T) { //nolint:gocognit,cyclop
 		})
 	}
 }
+
+func TestToLiteralValueContainers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		input       any
+		wantKind    ast.ValueKind
+		wantLiteral string
+	}{
+		{"typed string list", []string{"a"}, ast.ListValue, `["a"]`},
+		{
+			"coerced nested string lists",
+			[]any{[]string{"x"}, []string{"y"}},
+			ast.ListValue,
+			`[["x"],["y"]]`,
+		},
+		{
+			"coerced input object field",
+			map[string]any{"ids": []string{"z"}},
+			ast.ObjectValue,
+			`{ids:["z"]}`,
+		},
+		{"typed float list", []float64{4, 4.5}, ast.ListValue, `[4,4.5]`},
+		{"typed integer list", []int64{1}, ast.ListValue, `[1]`},
+		{"typed boolean list", []bool{true, false}, ast.ListValue, `[true,false]`},
+		{
+			"typed map with sorted fields",
+			map[string][]string{"z": {"last"}, "a": {"first"}},
+			ast.ObjectValue,
+			`{a:["first"],z:["last"]}`,
+		},
+		{
+			"untyped map with sorted fields",
+			map[string]any{"z": "last", "a": "first"},
+			ast.ObjectValue,
+			`{a:"first",z:"last"}`,
+		},
+		{"array", [2]string{"a", "b"}, ast.ListValue, `["a","b"]`},
+		{"typed nil slice", []string(nil), ast.NullValue, `null`},
+		{"nil any slice", []any(nil), ast.NullValue, `null`},
+		{"typed nil map", map[string]string(nil), ast.NullValue, `null`},
+		{"nil any map", map[string]any(nil), ast.NullValue, `null`},
+		{"typed empty slice", []string{}, ast.ListValue, `[]`},
+		{"typed empty map", map[string]string{}, ast.ObjectValue, `{}`},
+		{"byte slice remains opaque", []byte("a"), ast.StringValue, `"[97]"`},
+		{"non string map remains opaque", map[int]string{1: "a"}, ast.StringValue, `"map[1:a]"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := toLiteralValue(tt.input)
+			if got.Kind != tt.wantKind {
+				t.Errorf("kind mismatch: want %v, got %v", tt.wantKind, got.Kind)
+			}
+
+			// Serialization checks all child kinds and raw values, including quotes,
+			// numeric/boolean scalars and deterministic object-field order.
+			if diff := cmp.Diff(tt.wantLiteral, got.String()); diff != "" {
+				t.Errorf("literal mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

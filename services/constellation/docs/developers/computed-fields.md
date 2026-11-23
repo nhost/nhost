@@ -38,6 +38,10 @@ Developer notes for table-owned computed fields. User-facing behavior is in
   permission instead.
 - Multiplexed subscriptions must keep `core.SessionVarValue` markers for
   session arguments, so each subscriber binds its own session.
+- Validated SQL inputs distinguish an omitted variable from explicit null before
+  computed argument parsing. An omitted argument uses its SQL default, or fails
+  if required; explicit null binds SQL NULL. Comparison-object and nested-list
+  variables use the same immutable resolution path as ordinary columns.
 - A successful `buildState` publishes reconciled schemas and SQL roots
   together. A polled `export_metadata` returns the raw snapshot and can be
   ahead of the served state.

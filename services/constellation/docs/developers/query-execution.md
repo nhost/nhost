@@ -23,11 +23,13 @@ This document traces a GraphQL request through Constellation, from HTTP arrival 
                                   ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Controller.execute (controller/resolve.go)                          │
+│  • Expand root fragments; prune @skip / @include selections          │
+│  • queries.NormalizeInputVariables (copy-on-write; may reject)       │
+│  • groupFieldsByConnector (route root fields by fieldToConnector)    │
 │  • Introspection shortcut: __schema / __type → controller/intro…     │
-│  • state.queryPlanner.Plan(operation, fragments, role)               │
+│  • state.queryPlanner.Plan(operation, fragments, role, variables)    │
 │      → QueryPlan { PrimaryQueries, RemoteQueries }                   │
 │  • Reject remote relationships in subscriptions                      │
-│  • groupFieldsByConnector (route root fields by fieldToConnector)    │
 └──────────────────────────────────────────────────────────────────────┘
                                   │
                                   ▼
@@ -99,6 +101,18 @@ WebSocket `HandlerGet` still snapshots with `c.state.Load()` and cancels the con
 
 Validation failures produce a `GraphQLResponse` with `Errors` and `Data: nil` — `Resolve` itself only returns a Go error for unrecoverable internal failures.
 
+### Input normalization
+
+`Controller.execute` expands root fragments and prunes `@skip` / `@include` selections, then calls `queries.NormalizeInputVariables` (`connector/sql/graphql/queries/input_variables.go`). This runs before field routing, introspection, planning, and connector validation or execution. It uses the selected operation's variable definitions, coerced variables, and validated argument/input metadata while that provenance is still available:
+
+- An omitted nullable variable uses its variable or input default. Without a default, a nullable list position becomes a `null` literal without reindexing; otherwise, outside mutation selectors, its argument or input-object field is removed.
+- Explicit `null` stays present rather than activating a default. A null variable at a non-null use site is rejected, even when a nullable variable's non-null default made that use statically valid (for example, `$label: String = "keep"` inside `_in: [$label]`).
+- If omission would remove a restriction in a mutation-root `where` tree, the request is rejected instead. This includes `updates[].where`, nested `on_conflict.where`, comparison/relationship objects, and `_or` arms, but not `returning` read selections. Literal or supplied empty filters remain intentional and valid. See [Variables and optional inputs](../user/postgres-features.md#variables-and-optional-inputs) for the filter contract.
+
+Both rejection cases produce a structured `QueryValidationError` with `extensions.code: "validation-failed"`, a `$.selectionSet.<fieldPath>.args` path, and `data: null`, before any connector runs or mutation side effect occurs.
+
+Rewriting is copy-on-write, including reachable fragments, so cached ASTs remain unchanged. The planner and connectors receive the input-normalized operations and fragments; `buildConnectorOperation` later calls `pruneConnectorDocument` to drop unused fragments and variable definitions. `queries.Roots.BuildQuery` reapplies normalization for direct SQL and subscription callers that bypass HTTP `Resolve`; controller-level normalization is still needed before remote planning discards the original input metadata.
+
 ## 5. Introspection shortcut
 
 `isIntrospectionQuery` (`controller/resolve.go:423`) checks whether any root selection is `__schema` or `__type`. If so, the controller delegates to `controller/introspection.Execute`, which walks the validated schema directly — no connector calls, no planner work. The introspection package is intentionally state-less; it gets the schema and the AST and returns a map.
@@ -129,7 +143,7 @@ Mutations are not rejected here, but mutation pipelines never produce cross-conn
 
 ## 7. Field routing
 
-`groupFieldsByConnector` (`controller/resolve.go`) walks the _original_ operation (not the clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
+`groupFieldsByConnector` (`controller/resolve.go`) walks the input-normalized operation (not the planner's clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
 
 ## 8. Pre-execution connector validation
 
@@ -154,7 +168,7 @@ type Connector interface {
 }
 ```
 
-`buildConnectorOperation` (`controller/resolve.go:415`) prefers the planner's `CleanOperation` + `CleanFragments` when they exist. Without a plan (programmatic embedding via `NewFromConnectors`, no relationships), it falls back to `BuildSubOperation` against the raw selections.
+`buildConnectorOperation` (`controller/resolve.go:415`) prefers the planner's `CleanOperation` + `CleanFragments` when they exist. Without a plan (programmatic embedding via `NewFromConnectors`, no relationships), it falls back to `BuildSubOperation` against the input-normalized selections.
 
 `Execute` returns `map[string]any`. Results from all connectors are merged into a single map keyed by root field alias. Errors are accumulated rather than fatal:
 
@@ -188,7 +202,7 @@ SQLite rejects these plans.
 
 ### Remote schema connector
 
-`connector/remoteschema.Connector.Execute` (`connector/remoteschema/connector.go:180`):
+`connector/remoteschema.Connector.Execute` (`connector/remoteschema/connector.go:180`) receives the controller's input-normalized operation and fragments, with unused variable definitions already pruned. Omitted-variable references have therefore been removed, defaulted, or replaced with null list slots before the connector renders the forwarded document:
 
 1. Clones the operation and applies `@preset` argument injection per role and session (`applyPresets`).
 2. Renders the clone + fragments to a GraphQL string with `formatter.NewFormatter`.
@@ -241,6 +255,7 @@ Subscriptions never go through HTTP `Resolve`. They arrive on the WebSocket endp
 | Auth                               | Missing session                | `{"errors": [{"message": "..."}], "data": null}`        |
 | Schema lookup                      | Unknown role                   | `{"errors": [...], "data": null}`                       |
 | Parse / validate                   | gqlparser                      | `{"errors": [...with locations/path...], "data": null}` |
+| Input normalization                | Null at non-null use site / omitted mutation restriction | `{"errors": [...validation-failed...], "data": null}` |
 | Planner                            | Internal failure               | `{"errors": [...], "data": null}`                       |
 | Pre-execution connector validation | Structured argument validation | `{"errors": [...], "data": null}`                       |
 | Connector                          | One failed, others ok          | `{"errors": [...], "data": {partial}}`                  |
