@@ -18,6 +18,7 @@ export type Scalars = {
   ConfigInt32: any;
   ConfigLocale: any;
   ConfigPort: any;
+  ConfigPostgresPreloadLibrary: any;
   ConfigRunServiceName: any;
   ConfigUint: any;
   ConfigUint8: any;
@@ -2540,6 +2541,13 @@ export type ConfigPostgresPitrUpdateInput = {
   retention?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
+export type ConfigPostgresPreloadLibraryComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigPostgresPreloadLibrary']>;
+  _in?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
+  _neq?: InputMaybe<Scalars['ConfigPostgresPreloadLibrary']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
+};
+
 /** Resources for the service */
 export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
@@ -2624,6 +2632,7 @@ export type ConfigPostgresSettings = {
   minWalSize?: Maybe<Scalars['String']>;
   randomPageCost?: Maybe<Scalars['Float']>;
   sharedBuffers?: Maybe<Scalars['String']>;
+  sharedPreloadLibraries?: Maybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: Maybe<Scalars['String']>;
   walBuffers?: Maybe<Scalars['String']>;
   walLevel?: Maybe<Scalars['String']>;
@@ -2653,6 +2662,7 @@ export type ConfigPostgresSettingsComparisonExp = {
   minWalSize?: InputMaybe<ConfigStringComparisonExp>;
   randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
   sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  sharedPreloadLibraries?: InputMaybe<ConfigPostgresPreloadLibraryComparisonExp>;
   trackIoTiming?: InputMaybe<ConfigStringComparisonExp>;
   walBuffers?: InputMaybe<ConfigStringComparisonExp>;
   walLevel?: InputMaybe<ConfigStringComparisonExp>;
@@ -2679,6 +2689,7 @@ export type ConfigPostgresSettingsInsertInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  sharedPreloadLibraries?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
@@ -2705,6 +2716,7 @@ export type ConfigPostgresSettingsUpdateInput = {
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
+  sharedPreloadLibraries?: InputMaybe<Array<Scalars['ConfigPostgresPreloadLibrary']>>;
   trackIoTiming?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
   walLevel?: InputMaybe<Scalars['String']>;
@@ -27902,6 +27914,14 @@ export type UpdateUserDisplayNameMutationVariables = Exact<{
 
 export type UpdateUserDisplayNameMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, displayName: string } | null };
 
+export type GetBillingMetricsQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  from: Scalars['timestamptz'];
+}>;
+
+
+export type GetBillingMetricsQuery = { __typename?: 'query_root', billingReports: Array<{ __typename?: 'billing_reports', appID: any, type: Billing_Report_Type_Enum, value: number, reportEnds: any }>, billingResources: Array<{ __typename?: 'billing_resources', appID: any, functionsAmount: number, customDomains: number, persistentVolume: number, pitr: number }>, billingTimeBasedUsages: Array<{ __typename?: 'billing_time_based_usage', appID: any, value: number }> };
+
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -27949,6 +27969,13 @@ export type RestoreApplicationDatabasePiTrMutationVariables = Exact<{
 
 
 export type RestoreApplicationDatabasePiTrMutation = { __typename?: 'mutation_root', restoreApplicationDatabasePiTR: boolean };
+
+export type GetConfiguredPreloadLibrariesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetConfiguredPreloadLibrariesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres: { __typename?: 'ConfigPostgres', settings?: { __typename?: 'ConfigPostgresSettings', sharedPreloadLibraries?: Array<any> | null } | null } } | null };
 
 export type GetPersistentVolumesEncryptedQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -28634,7 +28661,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, status: Organization_Status_Enum, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -28938,6 +28965,14 @@ export type GetRunServicesQueryVariables = Exact<{
 
 
 export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+
+export type GetAllRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetAllRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string, pullCredentials?: string | null }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }> } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -29772,6 +29807,64 @@ export function useUpdateUserDisplayNameMutation(baseOptions?: Apollo.MutationHo
 export type UpdateUserDisplayNameMutationHookResult = ReturnType<typeof useUpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationResult = Apollo.MutationResult<UpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
+export const GetBillingMetricsDocument = gql`
+    query getBillingMetrics($organizationID: uuid!, $from: timestamptz!) {
+  billingReports(
+    where: {organizationID: {_eq: $organizationID}, reportEnds: {_gte: $from}}
+    order_by: {reportEnds: desc}
+  ) {
+    appID
+    type
+    value
+    reportEnds
+  }
+  billingResources(where: {organizationID: {_eq: $organizationID}}) {
+    appID
+    functionsAmount
+    customDomains
+    persistentVolume
+    pitr
+  }
+  billingTimeBasedUsages(
+    where: {organizationID: {_eq: $organizationID}, productType: {_eq: dedicated_compute}}
+  ) {
+    appID
+    value
+  }
+}
+    `;
+
+/**
+ * __useGetBillingMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetBillingMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBillingMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBillingMetricsQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetBillingMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+      }
+export function useGetBillingMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+        }
+export type GetBillingMetricsQueryHookResult = ReturnType<typeof useGetBillingMetricsQuery>;
+export type GetBillingMetricsLazyQueryHookResult = ReturnType<typeof useGetBillingMetricsLazyQuery>;
+export type GetBillingMetricsQueryResult = Apollo.QueryResult<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>;
+export function refetchGetBillingMetricsQuery(variables: GetBillingMetricsQueryVariables) {
+      return { query: GetBillingMetricsDocument, variables: variables }
+    }
 export const GetAiSettingsDocument = gql`
     query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -30084,6 +30177,50 @@ export function useRestoreApplicationDatabasePiTrMutation(baseOptions?: Apollo.M
 export type RestoreApplicationDatabasePiTrMutationHookResult = ReturnType<typeof useRestoreApplicationDatabasePiTrMutation>;
 export type RestoreApplicationDatabasePiTrMutationResult = Apollo.MutationResult<RestoreApplicationDatabasePiTrMutation>;
 export type RestoreApplicationDatabasePiTrMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabasePiTrMutation, RestoreApplicationDatabasePiTrMutationVariables>;
+export const GetConfiguredPreloadLibrariesDocument = gql`
+    query GetConfiguredPreloadLibraries($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    __typename
+    postgres {
+      settings {
+        sharedPreloadLibraries
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetConfiguredPreloadLibrariesQuery__
+ *
+ * To run a query within a React component, call `useGetConfiguredPreloadLibrariesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfiguredPreloadLibrariesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfiguredPreloadLibrariesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetConfiguredPreloadLibrariesQuery(baseOptions: Apollo.QueryHookOptions<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>(GetConfiguredPreloadLibrariesDocument, options);
+      }
+export function useGetConfiguredPreloadLibrariesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>(GetConfiguredPreloadLibrariesDocument, options);
+        }
+export type GetConfiguredPreloadLibrariesQueryHookResult = ReturnType<typeof useGetConfiguredPreloadLibrariesQuery>;
+export type GetConfiguredPreloadLibrariesLazyQueryHookResult = ReturnType<typeof useGetConfiguredPreloadLibrariesLazyQuery>;
+export type GetConfiguredPreloadLibrariesQueryResult = Apollo.QueryResult<GetConfiguredPreloadLibrariesQuery, GetConfiguredPreloadLibrariesQueryVariables>;
+export function refetchGetConfiguredPreloadLibrariesQuery(variables: GetConfiguredPreloadLibrariesQueryVariables) {
+      return { query: GetConfiguredPreloadLibrariesDocument, variables: variables }
+    }
 export const GetPersistentVolumesEncryptedDocument = gql`
     query GetPersistentVolumesEncrypted($appId: uuid!) {
   systemConfig(appID: $appId) {
@@ -34005,6 +34142,7 @@ export const GetOrganizationsDocument = gql`
     id
     name
     slug
+    status
     plan {
       id
       name
@@ -35797,6 +35935,53 @@ export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServi
 export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
 export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
       return { query: GetRunServicesDocument, variables: variables }
+    }
+export const GetAllRunServicesDocument = gql`
+    query getAllRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceConfig
+      }
+    }
+  }
+}
+    ${RunServiceConfigFragmentDoc}`;
+
+/**
+ * __useGetAllRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetAllRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetAllRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+      }
+export function useGetAllRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>(GetAllRunServicesDocument, options);
+        }
+export type GetAllRunServicesQueryHookResult = ReturnType<typeof useGetAllRunServicesQuery>;
+export type GetAllRunServicesLazyQueryHookResult = ReturnType<typeof useGetAllRunServicesLazyQuery>;
+export type GetAllRunServicesQueryResult = Apollo.QueryResult<GetAllRunServicesQuery, GetAllRunServicesQueryVariables>;
+export function refetchGetAllRunServicesQuery(variables: GetAllRunServicesQueryVariables) {
+      return { query: GetAllRunServicesDocument, variables: variables }
     }
 export const GetLocalRunServiceConfigsDocument = gql`
     query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {

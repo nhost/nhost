@@ -17,7 +17,8 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, apiErr := ctrl.wf.GetUserByTicket(ctx, req.Body.Ticket, logger)
+	// Don't consume the ticket yet so a mistyped code can be retried.
+	user, apiErr := ctrl.wf.GetUserByActiveTicket(ctx, req.Body.Ticket, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -42,6 +43,11 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 	if !valid {
 		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp), nil
+	}
+
+	user, apiErr = ctrl.wf.GetUserByTicket(ctx, req.Body.Ticket, logger)
+	if apiErr != nil {
+		return ctrl.sendError(apiErr), nil
 	}
 
 	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)

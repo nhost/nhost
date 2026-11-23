@@ -1,0 +1,7 @@
+# Em dashes are house style; shown only on request.
+extends: existence
+message: "Em dash; house style allows it."
+level: suggestion
+nonword: true
+tokens:
+  - '—'

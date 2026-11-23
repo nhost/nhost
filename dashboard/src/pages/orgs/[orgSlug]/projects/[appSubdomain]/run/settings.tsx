@@ -20,8 +20,8 @@ import {
   type SettingsTab,
   SettingsTabs,
 } from '@/features/orgs/projects/common/components/settings/SettingsTabs';
+import { useAllRunServices } from '@/features/orgs/projects/common/hooks/useAllRunServices';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { AreaSettingsLayout } from '@/features/orgs/projects/common/layout/AreaSettingsLayout';
 import { CustomDomainsNotice } from '@/features/orgs/projects/custom-domains/settings/components/CustomDomainsNotice';
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
@@ -61,7 +61,7 @@ function RunCustomDomainSettings() {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
-  const { services, loading, error } = useRunServices();
+  const { services, loading, error } = useAllRunServices();
 
   if (isPlatform && org?.plan?.isFree) {
     return (

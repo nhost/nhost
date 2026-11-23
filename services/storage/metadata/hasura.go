@@ -15,6 +15,10 @@ var errFileNotInserted = errors.New("file was not inserted")
 
 func parseGraphqlError(err error) *controller.APIError {
 	if ghErr, ok := errors.AsType[*clientv2.ErrorResponse](err); ok {
+		if ghErr.GqlErrors == nil || len(*ghErr.GqlErrors) == 0 {
+			return controller.InternalServerError(err)
+		}
+
 		code, ok := (*ghErr.GqlErrors)[0].Extensions["code"]
 		if !ok {
 			return controller.InternalServerError(err)

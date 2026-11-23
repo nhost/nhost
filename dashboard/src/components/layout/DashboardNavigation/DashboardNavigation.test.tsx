@@ -55,7 +55,7 @@ describe('DashboardNavigation', () => {
         'href',
         '/orgs/nhost/projects',
       );
-      expect(screen.getByRole('link', { name: 'General' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute(
         'href',
         '/orgs/nhost/settings',
       );
@@ -78,7 +78,7 @@ describe('DashboardNavigation', () => {
 
       render(<DashboardNavigation />);
 
-      expect(screen.getByRole('link', { name: 'General' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute(
         'aria-current',
         'page',
       );

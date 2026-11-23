@@ -3,6 +3,8 @@ package controller
 import (
 	"context"
 	"log/slog"
+	"net/http"
+	"time"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
@@ -32,6 +34,15 @@ func (ctrl *Controller) DeleteFile( //nolint:ireturn
 		)
 
 		return apiErr, nil
+	}
+
+	if apiErr := ctrl.metadataStorage.RemoveFileFromCleanup(
+		ctx, request.Id, time.Now(),
+		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+	); apiErr != nil {
+		// The content is gone. Keep the successful response and let the worker retry.
+		logger.ErrorContext(ctx, "problem removing file from cleanup queue",
+			slog.String("fileID", request.Id), slog.String("error", apiErr.Error()))
 	}
 
 	fastly.FileChangedToContext(ctx, request.Id)
