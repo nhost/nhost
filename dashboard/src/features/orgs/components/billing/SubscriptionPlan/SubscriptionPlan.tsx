@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -25,19 +26,21 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
+import { useCustomerPortal } from '@/features/orgs/components/billing/hooks/useCustomerPortal';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
+  Organization_Status_Enum,
   useBillingChangeOrganizationPlanMutation,
-  useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
 } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
+import { SUPPORT_TICKET_URL } from '@/utils/constants/common';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -51,12 +54,13 @@ export default function SubscriptionPlan() {
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const [updateFreeOrg] = useBillingUpgradeFreeOrganizationMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
-  const [fetchOrganizationCustomePortalLink, { loading }] =
-    useBillingOrganizationCustomePortalLazyQuery();
+  const { openCustomerPortal, loading } = useCustomerPortal();
   const { asPath, query, isReady } = useRouter();
   const { openUpgradeModal } = query;
 
   const isFreeOrg = org?.plan.isFree;
+  // Only support can restore a cancelled subscription, so it can't upgrade.
+  const isCancelled = org?.status === Organization_Status_Enum.Cancelled;
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
   const form = useForm<z.infer<typeof changeOrgPlanForm>>({
@@ -129,35 +133,6 @@ export default function SubscriptionPlan() {
     }
   };
 
-  const handleUpdatePaymentDetails = async () => {
-    const { id: organizationID } = org;
-    await execPromiseWithErrorToast(
-      async () => {
-        const { data: { billingOrganizationCustomePortal = null } = {} } =
-          await fetchOrganizationCustomePortalLink({
-            variables: {
-              organizationID,
-            },
-          });
-
-        if (billingOrganizationCustomePortal) {
-          const newWindow = window.open(billingOrganizationCustomePortal);
-          if (!newWindow) {
-            window.location.href = billingOrganizationCustomePortal;
-          }
-        } else {
-          throw new Error('Could not fetch customer portal link');
-        }
-      },
-      {
-        loadingMessage: 'Processing',
-        successMessage: 'Redirecting to customer portal',
-        errorMessage:
-          'An error occurred while redirecting to customer portal! Please try again',
-      },
-    );
-  };
-
   const planOptions = useMemo(
     () =>
       plans.map((plan) => {
@@ -216,23 +191,40 @@ export default function SubscriptionPlan() {
             <div className="flex flex-1 flex-col gap-8 md:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <span className="font-medium">Current plan</span>
-                <span className="font-bold text-primary text-xl">
-                  {org?.plan?.name}
-                </span>
+                {isCancelled ? (
+                  <Alert variant="destructive" className="text-left">
+                    <AlertTitle>This subscription is cancelled</AlertTitle>
+                    <AlertDescription>
+                      Several payments failed, so the subscription was
+                      cancelled. To restore access to this organization,{' '}
+                      <TextLink href={SUPPORT_TICKET_URL} external>
+                        open a support ticket
+                        <span className="sr-only">(opens in a new tab)</span>
+                      </TextLink>
+                      .
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <span className="font-bold text-primary text-xl">
+                    {org?.plan?.name}
+                  </span>
+                )}
               </div>
 
-              <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-xl">
-                    ${org?.plan?.price}
-                  </span>
-                  <Slash
-                    className="h-5 w-5 text-muted-foreground/40"
-                    strokeWidth={2.5}
-                  />
-                  <span className="font-semibold text-xl">month</span>
+              {!isCancelled && (
+                <div className="flex flex-1 items-start justify-start md:items-end md:justify-end">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-xl">
+                      ${org?.plan?.price}
+                    </span>
+                    <Slash
+                      className="h-5 w-5 text-muted-foreground/40"
+                      strokeWidth={2.5}
+                    />
+                    <span className="font-semibold text-xl">month</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
@@ -254,21 +246,23 @@ export default function SubscriptionPlan() {
               <ButtonWithLoading
                 className="truncate"
                 variant="outline"
-                onClick={handleUpdatePaymentDetails}
+                onClick={openCustomerPortal}
                 disabled={isFreeOrg}
                 loading={loading}
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button disabled={loading} onClick={() => setOpen(true)}>
-                Upgrade
-              </Button>
+              {!isCancelled && (
+                <Button disabled={loading} onClick={() => setOpen(true)}>
+                  Upgrade
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open && !isCancelled} onOpenChange={setOpen}>
         <DialogContent
           className={cn(
             'text-foreground sm:max-w-xl',

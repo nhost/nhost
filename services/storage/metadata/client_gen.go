@@ -212,6 +212,35 @@ func (t *DeleteFile_DeleteFile) GetID() string {
 	return t.ID
 }
 
+type ListFilesToDelete_FilesToDelete struct {
+	DeletedAt time.Time "json:\"deletedAt\" graphql:\"deletedAt\""
+	ID        string    "json:\"id\" graphql:\"id\""
+}
+
+func (t *ListFilesToDelete_FilesToDelete) GetDeletedAt() *time.Time {
+	if t == nil {
+		t = &ListFilesToDelete_FilesToDelete{}
+	}
+	return &t.DeletedAt
+}
+func (t *ListFilesToDelete_FilesToDelete) GetID() string {
+	if t == nil {
+		t = &ListFilesToDelete_FilesToDelete{}
+	}
+	return t.ID
+}
+
+type RemoveFileFromCleanup_DeleteFilesToDelete struct {
+	AffectedRows int64 "json:\"affected_rows\" graphql:\"affected_rows\""
+}
+
+func (t *RemoveFileFromCleanup_DeleteFilesToDelete) GetAffectedRows() int64 {
+	if t == nil {
+		t = &RemoveFileFromCleanup_DeleteFilesToDelete{}
+	}
+	return t.AffectedRows
+}
+
 type InsertVirus_InsertVirus struct {
 	ID string "json:\"id\" graphql:\"id\""
 }
@@ -287,6 +316,28 @@ func (t *DeleteFile) GetDeleteFile() *DeleteFile_DeleteFile {
 		t = &DeleteFile{}
 	}
 	return t.DeleteFile
+}
+
+type ListFilesToDelete struct {
+	FilesToDelete []*ListFilesToDelete_FilesToDelete "json:\"filesToDelete\" graphql:\"filesToDelete\""
+}
+
+func (t *ListFilesToDelete) GetFilesToDelete() []*ListFilesToDelete_FilesToDelete {
+	if t == nil {
+		t = &ListFilesToDelete{}
+	}
+	return t.FilesToDelete
+}
+
+type RemoveFileFromCleanup struct {
+	DeleteFilesToDelete *RemoveFileFromCleanup_DeleteFilesToDelete "json:\"deleteFilesToDelete,omitempty\" graphql:\"deleteFilesToDelete\""
+}
+
+func (t *RemoveFileFromCleanup) GetDeleteFilesToDelete() *RemoveFileFromCleanup_DeleteFilesToDelete {
+	if t == nil {
+		t = &RemoveFileFromCleanup{}
+	}
+	return t.DeleteFilesToDelete
 }
 
 type InsertVirus struct {
@@ -485,6 +536,58 @@ func (c *Client) DeleteFile(ctx context.Context, id string, interceptors ...clie
 	return &res, nil
 }
 
+const ListFilesToDeleteDocument = `query ListFilesToDelete ($before: timestamptz!, $after: uuid_comparison_exp!, $limit: Int!) {
+	filesToDelete(where: {deletedAt:{_lte:$before},id:$after}, order_by: {id:asc}, limit: $limit) {
+		id
+		deletedAt
+	}
+}
+`
+
+func (c *Client) ListFilesToDelete(ctx context.Context, before time.Time, after UUIDComparisonExp, limit int64, interceptors ...clientv2.RequestInterceptor) (*ListFilesToDelete, error) {
+	vars := map[string]any{
+		"before": before,
+		"after":  after,
+		"limit":  limit,
+	}
+
+	var res ListFilesToDelete
+	if err := c.Client.Post(ctx, "ListFilesToDelete", ListFilesToDeleteDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const RemoveFileFromCleanupDocument = `mutation RemoveFileFromCleanup ($id: uuid!, $before: timestamptz!) {
+	deleteFilesToDelete(where: {id:{_eq:$id},deletedAt:{_lte:$before}}) {
+		affected_rows
+	}
+}
+`
+
+func (c *Client) RemoveFileFromCleanup(ctx context.Context, id string, before time.Time, interceptors ...clientv2.RequestInterceptor) (*RemoveFileFromCleanup, error) {
+	vars := map[string]any{
+		"id":     id,
+		"before": before,
+	}
+
+	var res RemoveFileFromCleanup
+	if err := c.Client.Post(ctx, "RemoveFileFromCleanup", RemoveFileFromCleanupDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const InsertVirusDocument = `mutation InsertVirus ($object: virus_insert_input!) {
 	insertVirus(object: $object) {
 		id
@@ -510,11 +613,13 @@ func (c *Client) InsertVirus(ctx context.Context, object VirusInsertInput, inter
 }
 
 var DocumentOperationNames = map[string]string{
-	GetBucketDocument:        "GetBucket",
-	GetFileDocument:          "GetFile",
-	ListFilesSummaryDocument: "ListFilesSummary",
-	InsertFileDocument:       "InsertFile",
-	UpdateFileDocument:       "UpdateFile",
-	DeleteFileDocument:       "DeleteFile",
-	InsertVirusDocument:      "InsertVirus",
+	GetBucketDocument:             "GetBucket",
+	GetFileDocument:               "GetFile",
+	ListFilesSummaryDocument:      "ListFilesSummary",
+	InsertFileDocument:            "InsertFile",
+	UpdateFileDocument:            "UpdateFile",
+	DeleteFileDocument:            "DeleteFile",
+	ListFilesToDeleteDocument:     "ListFilesToDelete",
+	RemoveFileFromCleanupDocument: "RemoveFileFromCleanup",
+	InsertVirusDocument:           "InsertVirus",
 }

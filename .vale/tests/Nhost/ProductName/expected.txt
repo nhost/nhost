@@ -1,0 +1,4 @@
+.vale/tests/Nhost/ProductName/fail.mdx:5:13:Nhost.ProductName:Use 'Nhost' instead of 'nhost', or code formatting for the CLI command.
+.vale/tests/Nhost/ProductName/fail.mdx:7:1:Nhost.ProductName:Use 'Nhost' instead of 'NHOST', or code formatting for the CLI command.
+.vale/tests/Nhost/ProductName/fail.mdx:9:13:Nhost.ProductName:Use 'Nhost' instead of 'nhost', or code formatting for the CLI command.
+.vale/tests/Nhost/ProductName/fail.mdx:11:6:Nhost.ProductName:Use 'Nhost' instead of 'nhost', or code formatting for the CLI command.

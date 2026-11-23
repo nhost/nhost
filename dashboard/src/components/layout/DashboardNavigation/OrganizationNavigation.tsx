@@ -21,7 +21,7 @@ export default function OrganizationNavigation() {
         icon={<LayoutGridIcon className={iconClassName} />}
       />
       <NavigationList.Item
-        label="General"
+        label="Settings"
         href={`${baseHref}/settings`}
         icon={<CogIcon className={iconClassName} />}
       />

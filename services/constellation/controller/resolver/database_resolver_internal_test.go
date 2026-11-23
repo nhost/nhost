@@ -219,7 +219,7 @@ func TestDatabaseResolverBuildOperation(t *testing.T) { //nolint:gocognit,cyclop
 				aggregateInfo:       nil,
 			}
 
-			op := dr.BuildOperation(rq)
+			op := dr.BuildOperation(rq, nil)
 			tt.check(t, op, rq)
 		})
 	}
