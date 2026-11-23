@@ -1,9 +1,11 @@
 package controller_test
 
 import (
+	"context"
 	"log/slog"
-	"os"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
@@ -14,61 +16,82 @@ import (
 func TestDeleteFile(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		name     string
-		expected api.DeleteFileResponseObject
+	failure := controller.InternalServerError(context.DeadlineExceeded)
+	tests := []struct {
+		name          string
+		metadataError *controller.APIError
+		contentError  *controller.APIError
+		cleanupError  *controller.APIError
+		expected      api.DeleteFileResponseObject
 	}{
 		{
-			name:     "success",
+			name:     "success clears cleanup queue",
 			expected: api.DeleteFile204Response{},
+		},
+		{
+			name:          "metadata deletion fails",
+			metadataError: failure,
+			expected:      failure,
+		},
+		{
+			name:         "content deletion fails and leaves cleanup queued",
+			contentError: failure,
+			expected:     failure,
+		},
+		{
+			name:         "queue removal failure does not fail a completed deletion",
+			cleanupError: failure,
+			expected:     api.DeleteFile204Response{},
 		},
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := gomock.NewController(t)
-			defer c.Finish()
+			const fileID = "55af1e60-0f28-454e-885e-ea6aab2bb288"
 
-			metadataStorage := mock.NewMockMetadataStorage(c)
-			contentStorage := mock.NewMockContentStorage(c)
+			mocks := gomock.NewController(t)
+			metadataStorage := mock.NewMockMetadataStorage(mocks)
+			contentStorage := mock.NewMockContentStorage(mocks)
+			deletion := metadataStorage.EXPECT().DeleteFileByID(
+				gomock.Any(), fileID, gomock.Any(),
+			).Return(tt.metadataError)
 
-			metadataStorage.EXPECT().DeleteFileByID(
-				gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
-			).Return(nil)
+			if tt.metadataError == nil {
+				contentDeletion := contentStorage.EXPECT().DeleteFile(
+					gomock.Any(), fileID,
+				).Return(tt.contentError).After(deletion)
 
-			contentStorage.EXPECT().DeleteFile(
-				gomock.Any(),
-				"55af1e60-0f28-454e-885e-ea6aab2bb288",
-			).Return(
-				nil,
-			)
+				if tt.contentError == nil {
+					metadataStorage.EXPECT().RemoveFileFromCleanup(
+						gomock.Any(), fileID, gomock.Any(),
+						http.Header{"x-hasura-admin-secret": []string{"admin-secret"}},
+					).DoAndReturn(func(
+						_ context.Context, _ string, before time.Time, _ http.Header,
+					) *controller.APIError {
+						if before.Before(time.Now().Add(-time.Minute)) || before.After(time.Now()) {
+							t.Errorf("cleanup cutoff = %v, want current time", before)
+						}
 
-			ctrl := controller.New(
-				"http://asd",
-				"/v1",
-				"asdasd",
-				metadataStorage,
-				contentStorage,
-				nil,
-				nil,
-				logger,
-			)
-
-			resp, err := ctrl.DeleteFile(
-				t.Context(),
-				api.DeleteFileRequestObject{
-					Id: "55af1e60-0f28-454e-885e-ea6aab2bb288",
-				},
-			)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+						return tt.cleanupError
+					}).After(contentDeletion)
+				}
 			}
 
-			assert(t, tc.expected, resp)
+			ctrl := controller.New(
+				"http://example.com", "/v1", "admin-secret",
+				metadataStorage, contentStorage, nil, nil, slog.New(slog.DiscardHandler),
+			)
+
+			resp, err := ctrl.DeleteFile(t.Context(), api.DeleteFileRequestObject{Id: fileID})
+			if err != nil {
+				t.Fatalf("DeleteFile() error = %v", err)
+			}
+
+			if resp != tt.expected {
+				t.Errorf("DeleteFile() response = %v, want %v", resp, tt.expected)
+			}
 		})
 	}
 }

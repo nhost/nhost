@@ -53,6 +53,50 @@ func ResolveVariable(value *ast.Value, variables map[string]any) (*ast.Value, er
 	return resolved, nil
 }
 
+// ResolveVariables resolves variable references throughout an AST input value.
+// Unlike a round trip through Go values, it preserves literal field/list order,
+// enum kinds and validation metadata. Only changed nodes are copied: cached ASTs
+// and the caller's variable map remain read-only.
+func ResolveVariables(value *ast.Value, variables map[string]any) (*ast.Value, error) {
+	if value.Kind == ast.Variable {
+		return ResolveVariable(value, variables)
+	}
+
+	var children ast.ChildValueList
+
+	for i, child := range value.Children {
+		resolved, err := ResolveVariables(child.Value, variables)
+		if err != nil {
+			if value.Kind == ast.ObjectValue {
+				return nil, fmt.Errorf("resolving field %q: %w", child.Name, err)
+			}
+
+			return nil, fmt.Errorf("resolving list element %d: %w", i, err)
+		}
+
+		if resolved == child.Value {
+			continue
+		}
+
+		if children == nil {
+			children = slices.Clone(value.Children)
+		}
+
+		cloned := *child
+		cloned.Value = resolved
+		children[i] = &cloned
+	}
+
+	if children == nil {
+		return value, nil
+	}
+
+	cloned := *value
+	cloned.Children = children
+
+	return &cloned, nil
+}
+
 // ResolveASTValue resolves an AST value to a Go value, recursively substituting
 // any nested variable references inside objects and lists. ExtractGoValue alone
 // errors on a Variable child because it has no variables map — callers like
@@ -204,11 +248,27 @@ func AnyToString(val any) string {
 	}
 }
 
-// CoerceSQLValue converts values that need type-specific SQL constructors into
-// the parameter representation those constructors expect. PostGIS spatial
-// constructors accept GeoJSON text, so object/list literals and variables are
-// marshalled to deterministic JSON strings while raw string values pass through.
+// CoerceSQLValue converts GraphQL values to typed SQL parameters. JSONB strings
+// need explicit encoding: pgx otherwise treats Go strings as serialized JSON.
+// json.RawMessage marks encoded values so repeated coercion leaves them intact.
+// Permission-owned parameters are subsequently substituted by permissions, which
+// distinguishes encoded session references from already-serialized session JSON.
+// SQL NULL remains nil. PostGIS constructors instead expect GeoJSON text, so
+// spatial strings pass through while objects/lists are marshalled to JSON text.
 func CoerceSQLValue(sqlType string, val any) (any, error) {
+	if sqlType == "jsonb" {
+		if text, ok := val.(string); ok {
+			b, err := stdjson.Marshal(text)
+			if err != nil {
+				return nil, fmt.Errorf("marshalling JSON string value: %w", err)
+			}
+
+			return stdjson.RawMessage(b), nil
+		}
+
+		return val, nil
+	}
+
 	if !pgtypes.IsSpatial(sqlType) || val == nil {
 		return val, nil
 	}
@@ -228,10 +288,10 @@ func CoerceSQLValue(sqlType string, val any) (any, error) {
 	}
 }
 
-// CoerceSQLValues applies CoerceSQLValue to a slice, preserving byte-for-byte
-// identity for non-spatial SQL types.
+// CoerceSQLValues applies CoerceSQLValue to each typed operand without mutating
+// the input slice. Types that need no coercion retain the original slice.
 func CoerceSQLValues(sqlType string, vals []any) ([]any, error) {
-	if !pgtypes.IsSpatial(sqlType) {
+	if !pgtypes.IsSpatial(sqlType) && sqlType != "jsonb" {
 		return vals, nil
 	}
 
@@ -239,7 +299,7 @@ func CoerceSQLValues(sqlType string, vals []any) ([]any, error) {
 	for i, val := range vals {
 		coerced, err := CoerceSQLValue(sqlType, val)
 		if err != nil {
-			return nil, fmt.Errorf("coercing spatial value %d: %w", i, err)
+			return nil, fmt.Errorf("coercing SQL value %d: %w", i, err)
 		}
 
 		out[i] = coerced
@@ -408,6 +468,25 @@ func GoValueToAST(value any) (*ast.Value, error) { //nolint:cyclop,funlen
 	case []string:
 		return sliceToASTList(v)
 
+	// gqlparser's singleton list coercion preserves the scalar's Go type.
+	case []int:
+		return sliceToASTList(v)
+
+	case []int32:
+		return sliceToASTList(v)
+
+	case []int64:
+		return sliceToASTList(v)
+
+	case []float32:
+		return sliceToASTList(v)
+
+	case []float64:
+		return sliceToASTList(v)
+
+	case []bool:
+		return sliceToASTList(v)
+
 	case string:
 		return &ast.Value{ //nolint:exhaustruct
 			Kind: ast.EnumValue,
@@ -457,8 +536,7 @@ func GoValueToAST(value any) (*ast.Value, error) { //nolint:cyclop,funlen
 
 // sliceToASTList converts a Go slice of any element type into an ast.ListValue
 // by recursing into GoValueToAST for each element. The element type is generic
-// so the three list branches in GoValueToAST ([]map[string]any, []any,
-// []string) share a single implementation and cannot drift.
+// so all supported list types share a single implementation and cannot drift.
 func sliceToASTList[T any](in []T) (*ast.Value, error) {
 	children := make(ast.ChildValueList, 0, len(in))
 

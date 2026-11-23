@@ -132,6 +132,21 @@ func (mr *MockMetadataStorageMockRecorder) ListFiles(ctx, headers any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockMetadataStorage)(nil).ListFiles), ctx, headers)
 }
 
+// ListFilesToDelete mocks base method.
+func (m *MockMetadataStorage) ListFilesToDelete(ctx context.Context, before time.Time, after string, limit int, headers http.Header) ([]controller.FileToDelete, *controller.APIError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFilesToDelete", ctx, before, after, limit, headers)
+	ret0, _ := ret[0].([]controller.FileToDelete)
+	ret1, _ := ret[1].(*controller.APIError)
+	return ret0, ret1
+}
+
+// ListFilesToDelete indicates an expected call of ListFilesToDelete.
+func (mr *MockMetadataStorageMockRecorder) ListFilesToDelete(ctx, before, after, limit, headers any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFilesToDelete", reflect.TypeOf((*MockMetadataStorage)(nil).ListFilesToDelete), ctx, before, after, limit, headers)
+}
+
 // PopulateMetadata mocks base method.
 func (m *MockMetadataStorage) PopulateMetadata(ctx context.Context, id, name string, size int64, bucketID, etag string, IsUploaded bool, mimeType string, metadata map[string]any, headers http.Header) (api.FileMetadata, *controller.APIError) {
 	m.ctrl.T.Helper()
@@ -145,6 +160,20 @@ func (m *MockMetadataStorage) PopulateMetadata(ctx context.Context, id, name str
 func (mr *MockMetadataStorageMockRecorder) PopulateMetadata(ctx, id, name, size, bucketID, etag, IsUploaded, mimeType, metadata, headers any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateMetadata", reflect.TypeOf((*MockMetadataStorage)(nil).PopulateMetadata), ctx, id, name, size, bucketID, etag, IsUploaded, mimeType, metadata, headers)
+}
+
+// RemoveFileFromCleanup mocks base method.
+func (m *MockMetadataStorage) RemoveFileFromCleanup(ctx context.Context, id string, before time.Time, headers http.Header) *controller.APIError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveFileFromCleanup", ctx, id, before, headers)
+	ret0, _ := ret[0].(*controller.APIError)
+	return ret0
+}
+
+// RemoveFileFromCleanup indicates an expected call of RemoveFileFromCleanup.
+func (mr *MockMetadataStorageMockRecorder) RemoveFileFromCleanup(ctx, id, before, headers any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveFileFromCleanup", reflect.TypeOf((*MockMetadataStorage)(nil).RemoveFileFromCleanup), ctx, id, before, headers)
 }
 
 // SetIsUploaded mocks base method.

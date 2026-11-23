@@ -127,10 +127,10 @@ func getServer(
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
-) (*http.Server, error) {
+) (*http.Server, *controller.Controller, error) {
 	av, err := getAv(cmd.String(flagClamavServer))
 	if err != nil {
-		return nil, fmt.Errorf("problem trying to get av: %w", err)
+		return nil, nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
 	ctrl := controller.New(
@@ -148,7 +148,7 @@ func getServer(
 
 	swagger, err := api.GetSpec()
 	if err != nil {
-		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+		return nil, nil, fmt.Errorf("loading OpenAPI schema: %w", err)
 	}
 
 	router, mw, err := oapi.NewRouter(
@@ -159,7 +159,7 @@ func getServer(
 		logger,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create router: %w", err)
+		return nil, nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
 	router.GET("/healthz", func(c *gin.Context) {
@@ -184,7 +184,7 @@ func getServer(
 		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
 	}
 
-	return server, nil
+	return server, ctrl, nil
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -545,7 +545,7 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		cmd.String(flagHasuraEndpoint) + "/graphql",
 	)
 
-	server, err := getServer( //nolint: contextcheck
+	server, ctrl, err := getServer( //nolint: contextcheck
 		cmd,
 		metadataStorage,
 		contentStorage,
@@ -557,6 +557,13 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	}
 
 	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
+
+	cleanupDone := make(chan struct{})
+	go func() {
+		defer close(cleanupDone)
+
+		ctrl.RunCleanup(servCtx)
+	}()
 
 	go func() {
 		defer cancel()
@@ -575,6 +582,8 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	if err := server.Shutdown(ctx); err != nil {
 		logger.ErrorContext(ctx, "problem shutting down server", slog.String("error", err.Error()))
 	}
+
+	<-cleanupDone
 
 	return nil
 }

@@ -54,15 +54,75 @@ describe('ProjectsGrid', () => {
     expect(usLink).toHaveAttribute('href', '/orgs/test-org/projects/us');
     expect(euLink).toHaveAttribute('href', '/orgs/test-org/projects/eu');
 
-    const usFlag = screen.getByRole('button', {
+    const usRegion = screen.getByRole('button', {
       name: 'Region: Virginia (us-east-1)',
     });
     expect(
       screen.getByRole('button', { name: 'Region: Frankfurt (eu-central-1)' }),
     ).toBeInTheDocument();
-    // The flag sits above the link, never inside it, so clicking it
+    // The region sits above the link, never inside it, so clicking it
     // does not open the project.
-    expect(usLink).not.toContainElement(usFlag);
+    expect(usLink).not.toContainElement(usRegion);
+
+    // The menu trigger sits above the link too, and names its project by
+    // region as well.
+    const usMenu = screen.getByRole('button', {
+      name: 'Actions for shop (us-east-1)',
+    });
+    expect(
+      screen.getByRole('button', { name: 'Actions for shop (eu-central-1)' }),
+    ).toBeInTheDocument();
+    expect(usLink).not.toContainElement(usMenu);
+  });
+
+  it('shows no deployment line for a project without a repository', () => {
+    render(
+      <ProjectsGrid
+        projects={[
+          makeProject('x', {
+            id: 'x',
+            name: 'us-east-1',
+            countryCode: 'US',
+            city: 'Virginia',
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText('No deployments yet')).not.toBeInTheDocument();
+  });
+
+  it('shows region, repository and deployment in order without the branch', () => {
+    const project = makeProject('connected', {
+      id: 'us',
+      name: 'us-east-1',
+      countryCode: 'US',
+      city: 'Virginia',
+    });
+    project.githubRepository = { fullName: 'nhost/nhost' };
+
+    render(<ProjectsGrid projects={[project]} />);
+
+    const title = screen.getByText('shop');
+    const region = screen.getByRole('button', {
+      name: 'Region: Virginia (us-east-1)',
+    });
+    const repository = screen.getByText('nhost/nhost');
+    const deployment = screen.getByText('No deployments yet');
+
+    for (const [before, after] of [
+      [title, region],
+      [region, repository],
+      [repository, deployment],
+    ]) {
+      expect(before.compareDocumentPosition(after)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    }
+    expect(repository.previousElementSibling?.tagName.toLowerCase()).toBe(
+      'svg',
+    );
+    expect(screen.queryByText(/main/)).not.toBeInTheDocument();
   });
 
   it('keeps the plain link name when the region has no name', () => {

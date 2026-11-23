@@ -168,7 +168,7 @@ github.com/ProtonMail/go-crypto/openpgp/x448
 github.com/RoaringBitmap/roaring/v2
 github.com/RoaringBitmap/roaring/v2/internal
 github.com/RoaringBitmap/roaring/v2/roaring64
-# github.com/agnivade/levenshtein v1.2.1
+# github.com/agnivade/levenshtein v1.2.2
 ## explicit; go 1.21
 github.com/agnivade/levenshtein
 # github.com/anthropics/anthropic-sdk-go v1.26.0
@@ -585,9 +585,6 @@ github.com/cshum/vipsgen/vips
 ## explicit; go 1.18
 github.com/cyphar/filepath-securejoin
 github.com/cyphar/filepath-securejoin/internal/consts
-# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-## explicit
-github.com/davecgh/go-spew/spew
 # github.com/distribution/reference v0.6.0
 ## explicit; go 1.20
 github.com/distribution/reference
@@ -1160,10 +1157,12 @@ github.com/speakeasy-api/jsonpath/pkg/jsonpath/token
 ## explicit; go 1.21.0
 github.com/spf13/cast
 github.com/spf13/cast/internal
-# github.com/stretchr/testify v1.11.1
+# github.com/stretchr/testify v1.12.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
+github.com/stretchr/testify/internal/difflib
+github.com/stretchr/testify/internal/spew
 # github.com/thlib/go-timezone-local v0.0.0-20210907160436-ef149e42d28e
 ## explicit; go 1.16
 github.com/thlib/go-timezone-local/tzlocal
@@ -1216,8 +1215,8 @@ github.com/valyala/bytebufferpool
 # github.com/valyala/fasttemplate v1.2.2
 ## explicit; go 1.12
 github.com/valyala/fasttemplate
-# github.com/vektah/gqlparser/v2 v2.5.34
-## explicit; go 1.22
+# github.com/vektah/gqlparser/v2 v2.5.34 => github.com/dbarrosop/gqlparser/v2 v2.0.0-20261119095130-166fafd464c0
+## explicit; go 1.25
 github.com/vektah/gqlparser/v2
 github.com/vektah/gqlparser/v2/ast
 github.com/vektah/gqlparser/v2/formatter
@@ -1305,7 +1304,7 @@ go.uber.org/mock/gomock
 # go.yaml.in/yaml/v2 v2.4.4
 ## explicit; go 1.15
 go.yaml.in/yaml/v2
-# go.yaml.in/yaml/v3 v3.0.4
+# go.yaml.in/yaml/v3 v3.0.5
 ## explicit; go 1.16
 go.yaml.in/yaml/v3
 # golang.org/x/arch v0.20.0
@@ -1533,3 +1532,4 @@ gopkg.in/yaml.v3
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/util/jsonpath
 # github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
+# github.com/vektah/gqlparser/v2 => github.com/dbarrosop/gqlparser/v2 v2.0.0-20261119095130-166fafd464c0
