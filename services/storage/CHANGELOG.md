@@ -1,3 +1,9 @@
+## [storage@0.17.0] - 2026-11-23
+
+### 🚀 Features
+
+- *(storage)* Clean up files after metadata deletion (#5431)
+
 ## [storage@0.16.0] - 2026-11-20
 
 ### 🚀 Features

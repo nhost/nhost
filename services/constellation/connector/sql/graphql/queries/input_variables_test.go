@@ -35,11 +35,15 @@ func TestNormalizeInputVariables(t *testing.T) {
  input Input {first:Int defaulted:Int=7 requiredDefault:Int!=9 nested:Input list:[Int] strict:[Int!] json:jsonb}
  type Item {id:Int items(input:Input,limit:Int,required:Int!=8):[Item!]!}
  type Query {items(input:Input,limit:Int,defaulted:Int=11,required:Int!=12):[Item!]!}
- input Predicate {_and:[Predicate!] _or:[Predicate!] _not:Predicate id:Comparison}
+ input Predicate {_and:[Predicate!] _or:[Predicate!] _not:Predicate id:Comparison flag:Boolean=true requiredDefault:Int!=9}
  input Comparison {_eq:Int}
  input Changes {where:Predicate value:Int}
  input OtherInput {where:Input}
- type Mutation {change(where:Predicate,changes:[Changes!],input:OtherInput):Item}
+ type Mutation {
+  change(where:Predicate,changes:[Changes!],input:OtherInput):Item
+  defaultedChange(where:Predicate={flag:true}):Item
+  requiredDefaultedChange(where:Predicate!={flag:true}):Item
+ }
  `})
 	if err != nil {
 		t.Fatalf("LoadSchema: %v", err)
@@ -67,6 +71,47 @@ func TestNormalizeInputVariables(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:  "mutation selector argument default",
+			query: `mutation($x:Predicate){defaultedChange(where:$x){id}}`,
+			want:  `mutation($x:Predicate){defaultedChange{id}}`,
+		},
+		{
+			name:  "mutation non-null selector argument default",
+			query: `mutation($x:Predicate){requiredDefaultedChange(where:$x){id}}`,
+			want:  `mutation($x:Predicate){requiredDefaultedChange{id}}`,
+		},
+		{
+			name:  "mutation selector field default",
+			query: `mutation($x:Boolean){change(where:{flag:$x}){id}}`,
+			want:  `mutation($x:Boolean){change(where:{}){id}}`,
+		},
+		{
+			name:  "mutation non-null selector field default",
+			query: `mutation($x:Int){change(where:{requiredDefault:$x}){id}}`,
+			want:  `mutation($x:Int){change(where:{}){id}}`,
+		},
+		{
+			name:  "mutation nested selector field default",
+			query: `mutation($x:Boolean){change(changes:[{where:{_or:[{flag:$x},{id:{_eq:1}}]}}]){id}}`,
+			want:  `mutation($x:Boolean){change(changes:[{where:{_or:[{},{id:{_eq:1}}]}}]){id}}`,
+		},
+		{
+			name:    "mutation selector field default does not allow omitted sibling restriction",
+			query:   `mutation($x:Boolean,$id:Int){change(where:{flag:$x,id:{_eq:$id}}){id}}`,
+			wantErr: true,
+		},
+		{
+			name:    "mutation selector argument default does not allow omitted nested restriction",
+			query:   `mutation($x:Int){defaultedChange(where:{id:{_eq:$x}}){id}}`,
+			wantErr: true,
+		},
+		{
+			name:      "mutation non-null selector default rejects explicit null",
+			query:     `mutation($x:Predicate){requiredDefaultedChange(where:$x){id}}`,
+			variables: map[string]any{"x": nil},
+			wantErr:   true,
+		},
+		{
 			name:  "mutation non-selector where stays optional",
 			query: `mutation($x:Int){change(input:{where:{first:$x}}){id}}`,
 			want:  `mutation($x:Int){change(input:{where:{}}){id}}`,
@@ -84,12 +129,12 @@ func TestNormalizeInputVariables(t *testing.T) {
 		{
 			name:  "argument default",
 			query: `query($x:Int){items(defaulted:$x){id}}`,
-			want:  `query($x:Int){items(defaulted:11){id}}`,
+			want:  `query($x:Int){items{id}}`,
 		},
 		{
 			name:  "required argument default",
 			query: `query($x:Int){items(required:$x){id}}`,
-			want:  `query($x:Int){items(required:12){id}}`,
+			want:  `query($x:Int){items{id}}`,
 		},
 		{
 			name:  "nested fields and list position",
@@ -99,7 +144,7 @@ func TestNormalizeInputVariables(t *testing.T) {
 		{
 			name:  "input field defaults",
 			query: `query($x:Int){items(input:{defaulted:$x,requiredDefault:$x}){id}}`,
-			want:  `query($x:Int){items(input:{defaulted:7,requiredDefault:9}){id}}`,
+			want:  `query($x:Int){items(input:{}){id}}`,
 		},
 		{
 			name:  "json scalar object and list",
