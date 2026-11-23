@@ -1,4 +1,4 @@
-Nhost
+(?i)Nhost
 Hasura
 GraphQL
 [Ss]ignup

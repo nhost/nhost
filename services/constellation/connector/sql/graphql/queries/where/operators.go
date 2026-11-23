@@ -22,7 +22,9 @@ type operatorParser func(
 ) (Statement, error)
 
 // scalarParser adapts a filter constructor that consumes a single resolved Go
-// value (used by _eq/_neq/_gt/_gte/_lt/_lte/_like family/_regex family/_has_key).
+// value (used by _eq/_neq/_gt/_gte/_lt/_lte/_like family/_has_key). SQL renderers
+// coerce typed operands; not every operator takes the column's type (_has_key
+// takes text even when its target is JSONB).
 func scalarParser(
 	build func(*core.Column, *comparisonTarget, any, dialect.Dialect) Statement,
 ) operatorParser {
@@ -33,7 +35,7 @@ func scalarParser(
 		vars map[string]any,
 		d dialect.Dialect,
 	) (Statement, error) {
-		val, err := resolveTargetScalarValue(c, target, v, vars)
+		val, err := resolveScalarValue(v, vars)
 		if err != nil {
 			return nil, err
 		}
@@ -355,7 +357,7 @@ func operatorParserTable() map[string]operatorParser {
 		"_cast": func(c *core.Column, target *comparisonTarget, v *ast.Value,
 			vars map[string]any, d dialect.Dialect,
 		) (Statement, error) {
-			return parseComparisonCast(c, target, v, vars, d)
+			return parseComparisonCast(c, target, v, vars, d, false)
 		},
 		"_contains": containmentParser(
 			func(c *core.Column, vs []any, d dialect.Dialect) Statement {

@@ -350,7 +350,7 @@ func TestSchemaResolverBuildOperation(t *testing.T) { //nolint:gocognit,gocyclo,
 				aggregateInfo:       nil,
 			}
 
-			tt.check(t, sr.BuildOperation(rq))
+			tt.check(t, sr.BuildOperation(rq, nil))
 		})
 	}
 }

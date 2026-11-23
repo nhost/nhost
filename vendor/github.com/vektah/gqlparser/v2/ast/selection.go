@@ -36,9 +36,19 @@ type Argument struct {
 	Comment  *CommentGroup
 }
 
+// ArgumentMap resolves the field's arguments and default values into a map, panicking on error.
 func (f *Field) ArgumentMap(vars map[string]any) map[string]any {
+	m, err := f.TryArgumentMap(vars)
+	if err != nil {
+		panic(err)
+	}
+	return m
+}
+
+// TryArgumentMap resolves the field's arguments and default values into a map.
+func (f *Field) TryArgumentMap(vars map[string]any) (map[string]any, error) {
 	if f.Definition == nil {
-		return nil
+		return nil, nil
 	}
 	return arg2map(f.Definition.Arguments, f.Arguments, vars)
 }

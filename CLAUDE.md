@@ -85,7 +85,17 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 - **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
-- **Prose (Markdown and MDX)** — Vale, from `.vale/styles/` at the repository root, shared by three configs: `docs/.vale.ini` for the docs site, `landing/.vale.ini` for the blog, and the root `.vale.ini` for every other tracked Markdown file not listed in `.vale/markdown.ignore`. The `Nhost` style runs everywhere, `NhostBlog` on the blog only. Error-level alerts fail the `docs`, `landing` and `vale` Nix checks. Spelling is checked by `typos` (`.vale/spellcheck.sh`), not `Vale.Spelling`. Commands, severity tiers with their measured counts, and the fixture harness (`.vale/test.sh`) are in `.vale/styles/README.md`. A rule's tier moves only on a measured count, and a change under `.vale/styles/` moves every destination.
+- **Prose (Markdown and MDX)** — Vale, from `.vale/styles/` at the repository root, shared by three configs: `docs/.vale.ini` for the docs site, `landing/.vale.ini` for the blog, and the root `.vale.ini` for every other tracked Markdown file not listed in `.vale/markdown.ignore`. The `Nhost` style runs everywhere, `NhostBlog` on the blog only. Error-level alerts fail the `docs`, `landing` and `vale` Nix checks. Spelling is checked by `typos` (`.vale/spellcheck.sh`), not `Vale.Spelling`. Commands, severity tiers with their measured counts, and the fixture harness (`.vale/test.sh`) are in `.vale/README.md`. A rule's tier moves only on a measured count, and a change under `.vale/styles/` moves every destination.
+
+### Prose checks after editing Markdown
+
+After creating or editing any `*.md` or `*.mdx` file, run the target for its location from the repository root before committing:
+
+- docs pages (`docs/src/content/docs/`): `make -C docs lint-prose-changed`
+- blog posts (`landing/src/pages/blog/`): `make -C landing/blog lint-prose-changed`
+- any other Markdown: `make -C tools/vale lint-prose-changed`
+
+Each lints the files changed against `main` with the right `.vale.ini`, inside the dev shell that provides `vale`; uncommitted and untracked files count as changed. Fix every error. Fix warnings in the text you added or changed, but leave warnings elsewhere in the file alone: many pages predate the rules and carry warnings that a dedicated sweep will clear. CI fails only on errors, so these targets are the only place warnings surface. A finding that is a false positive is a rule problem: raise it rather than rewording around it or adding the file to an ignore list.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 
@@ -103,4 +113,4 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 
 ## Review Guidelines
 
-PR review should apply the rules docs in `.claude/docs/`. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.
+PR review should apply the rules docs in `.claude/docs/`. When the change touches Markdown or MDX, run the prose checks above on the branch and report any errors and warnings. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.
