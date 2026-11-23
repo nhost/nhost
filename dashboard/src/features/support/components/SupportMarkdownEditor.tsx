@@ -201,6 +201,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 variant="ghost"
                 size="sm"
                 aria-pressed={!preview}
+                disabled={disabled}
                 onClick={() => setPreview(false)}
               >
                 Write
@@ -210,6 +211,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 variant="ghost"
                 size="sm"
                 aria-pressed={preview}
+                disabled={disabled}
                 onClick={() => setPreview(true)}
               >
                 Preview
@@ -292,7 +294,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                   }
                 }}
                 className={cn(
-                  'min-h-40 font-mono',
+                  'min-h-40 font-mono placeholder:font-sans',
                   preview && 'hidden',
                   dragging &&
                     !disabled &&

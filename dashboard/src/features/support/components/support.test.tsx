@@ -191,16 +191,24 @@ const server = setupServer(
             {
               id: organizationID,
               name: 'Acme',
+              slug: 'acme',
               plan:
                 organizationSeverities === null
                   ? null
-                  : { supportAllowedSeverities: organizationSeverities },
+                  : {
+                      name: 'Pro',
+                      supportAllowedSeverities: organizationSeverities,
+                    },
               apps: [{ id: projectID, name: 'Production' }],
             },
             {
               id: otherOrganizationID,
               name: 'Other org',
-              plan: { supportAllowedSeverities: otherOrganizationSeverities },
+              slug: 'other-org',
+              plan: {
+                name: 'Starter',
+                supportAllowedSeverities: otherOrganizationSeverities,
+              },
               apps: [],
             },
           ],
@@ -259,15 +267,17 @@ function makeAgent() {
   };
 }
 async function select(user: TestUserEvent, label: string, option: string) {
+  if (label === 'Severity') {
+    await user.click(screen.getByRole('radio', { name: option }));
+    return;
+  }
   await user.click(screen.getByRole('combobox', { name: label }));
   await user.click(await screen.findByRole('option', { name: option }));
 }
 async function fillTicket(user: TestUserEvent) {
   await screen.findByRole('heading', { name: 'New ticket' });
   await select(user, 'Organization', 'Acme');
-  await user.click(screen.getByRole('combobox', { name: 'Services' }));
-  await user.click(await screen.findByRole('option', { name: 'Storage' }));
-  await user.keyboard('{Escape}');
+  await user.click(screen.getByRole('button', { name: 'Storage' }));
   await user.type(
     screen.getByRole('textbox', { name: 'Title' }),
     'Uploads fail',
@@ -280,6 +290,7 @@ async function fillTicket(user: TestUserEvent) {
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
   resetSampleTickets(mockSession.user!.id);
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   toast.remove();
@@ -1270,9 +1281,7 @@ describe('native dashboard support', () => {
         screen.getByRole('textbox', { name: 'Description' }),
         'Details',
       );
-      await user.click(screen.getByRole('combobox', { name: 'Services' }));
-      await user.click(await screen.findByRole('option', { name: 'Storage' }));
-      await user.keyboard('{Escape}');
+      await user.click(screen.getByRole('button', { name: 'Storage' }));
       await user.click(screen.getByRole('button', { name: 'Create ticket' }));
       await waitFor(() =>
         expect(
@@ -1295,23 +1304,141 @@ describe('native dashboard support', () => {
     },
   );
 
-  it('greys out severities not allowed by the selected organization’s plan', async () => {
+  it('groups the form in three numbered steps and leaves the message editable before an organization is picked', async () => {
+    render(<NewTicket />);
+    await screen.findByRole('heading', { name: 'New ticket' });
+    for (const name of ['Where', 'What', 'Details']) {
+      expect(screen.getByRole('group', { name })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('textbox', { name: 'Title' })).toBeEnabled();
+    const description = screen.getByRole('textbox', { name: 'Description' });
+    expect(description).not.toHaveAttribute('readonly');
+    expect(description).not.toHaveAttribute('placeholder');
+    expect(screen.getByRole('textbox', { name: 'Title' })).not.toHaveAttribute(
+      'placeholder',
+    );
+    expect(screen.queryByText('Pick one or more')).not.toBeInTheDocument();
+    expect(description).toHaveValue('');
+    expect(screen.getAllByText('Pick an organization first')).toHaveLength(2);
+    for (const name of ['Low', 'Normal', 'High', 'Urgent']) {
+      expect(screen.getByRole('radio', { name })).toBeDisabled();
+    }
+    const services = screen.getByRole('toolbar', { name: 'Services' });
+    expect(within(services).getAllByRole('button')).toHaveLength(12);
+    for (const service of within(services).getAllByRole('button')) {
+      expect(service).toBeDisabled();
+    }
+  });
+
+  it('supports multiple service chips, deselection and an error when none are picked', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await screen.findByRole('heading', { name: 'New ticket' });
+    await select(user, 'Organization', 'Acme');
+    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
+    expect(
+      await screen.findByText('Pick at least one service'),
+    ).toBeInTheDocument();
+    const services = screen.getByRole('toolbar', { name: 'Services' });
+    expect(services).toHaveClass('flex-wrap');
+    for (const service of within(services).getAllByRole('button')) {
+      expect(service).toHaveClass('border-destructive', 'rounded-full');
+    }
+    const storage = within(services).getByRole('button', { name: 'Storage' });
+    const database = within(services).getByRole('button', { name: 'Database' });
+    await user.click(storage);
+    await user.click(database);
+    expect(storage).toHaveAttribute('aria-pressed', 'true');
+    expect(database).toHaveAttribute('aria-pressed', 'true');
+    await user.click(storage);
+    expect(storage).toHaveAttribute('aria-pressed', 'false');
+    expect(database).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Pick at least one service'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('moves the plan explanation and upgrade link into a keyboard-accessible hover card', async () => {
     organizationSeverities = ['low'];
     const user = new TestUserEvent();
     render(<NewTicket />);
     await fillTicket(user);
-    await user.click(screen.getByRole('combobox', { name: 'Severity' }));
-    expect(screen.getByRole('option', { name: 'Low' })).not.toHaveAttribute(
-      'aria-disabled',
-      'true',
+    expect(
+      screen.queryByText(/Your Pro plan includes Low severity/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'See plans' }),
+    ).not.toBeInTheDocument();
+    const help = screen.getByRole('button', {
+      name: 'Normal plan availability',
+    });
+    await user.pointer({ target: help });
+    const popup = await screen.findByRole('dialog', {
+      name: 'Normal plan availability',
+    });
+    expect(
+      within(popup).getByText(/Your Pro plan includes Low severity/),
+    ).toBeInTheDocument();
+    expect(
+      within(popup).getByRole('link', { name: 'See plans' }),
+    ).toHaveAttribute('href', '/orgs/acme/billing?openUpgradeModal=true');
+    act(() => help.focus());
+    await user.keyboard('{Tab}');
+    expect(
+      within(popup).getByRole('link', { name: 'See plans' }),
+    ).toHaveFocus();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Normal plan availability' }),
+      ).not.toBeInTheDocument(),
     );
+    expect(help).toHaveFocus();
+    expect(screen.getByRole('radio', { name: 'Normal' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Low' })).toBeChecked();
+    organizationSeverities = ['low', 'normal', 'high', 'urgent'];
+    await queryClient.invalidateQueries({ queryKey: ['support'] });
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Normal plan availability' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.queryAllByText('Team')).toHaveLength(0);
+  });
+
+  it('supports keyboard severity selection and clicking the whole card', async () => {
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    act(() => screen.getByRole('radio', { name: 'Low' }).focus());
+    await user.keyboard('{ArrowRight>}');
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: 'Normal' })).toBeChecked(),
+    );
+    await user.keyboard('{/ArrowRight}');
+    await user.click(screen.getByText('A feature is broken'));
+    expect(screen.getByRole('radio', { name: 'High' })).toBeChecked();
+  });
+
+  it('locks severities not allowed by the selected organization’s plan', async () => {
+    organizationSeverities = ['low'];
+    const user = new TestUserEvent();
+    render(<NewTicket />);
+    await fillTicket(user);
+    expect(screen.getByRole('radio', { name: 'Low' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Low' })).toBeChecked();
     for (const name of ['Normal', 'High', 'Urgent']) {
-      expect(screen.getByRole('option', { name })).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      );
+      expect(screen.getByRole('radio', { name })).toBeDisabled();
     }
-    await user.click(screen.getByRole('option', { name: 'Low' }));
+    expect(screen.getAllByText('Team')).toHaveLength(3);
+    for (const badge of screen.getAllByText('Team')) {
+      expect(badge).toHaveClass('border-brand-violet/20', 'text-brand-violet');
+    }
+    expect(
+      screen.getByRole('radio', { name: 'Normal' }),
+    ).toHaveAccessibleDescription('Team plan Something works, but not well');
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() =>
       expect(
@@ -1319,6 +1446,7 @@ describe('native dashboard support', () => {
       ).toMatchObject({ variables: { input: { severity: 'low' } } }),
     );
   });
+
   it('selects a permitted fallback and resets disallowed severity when the organization changes', async () => {
     organizationSeverities = ['urgent'];
     otherOrganizationSeverities = ['normal', 'high'];
@@ -1326,30 +1454,17 @@ describe('native dashboard support', () => {
     render(<NewTicket />);
     await fillTicket(user);
     await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Severity' }),
-      ).toHaveTextContent('Urgent'),
+      expect(screen.getByRole('radio', { name: 'Urgent' })).toBeChecked(),
     );
     await select(user, 'Organization', 'Other org');
     await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Severity' }),
-      ).toHaveTextContent('Normal'),
+      expect(screen.getByRole('radio', { name: 'Normal' })).toBeChecked(),
     );
-    await user.click(screen.getByRole('combobox', { name: 'Severity' }));
-    expect(screen.getByRole('option', { name: 'Low' })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
-    expect(screen.getByRole('option', { name: 'Urgent' })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
-    expect(screen.getByRole('option', { name: 'High' })).not.toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
+    expect(screen.getByRole('radio', { name: 'Low' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Urgent' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'High' })).toBeEnabled();
   });
+
   it.each([[], null])(
     'blocks creation for empty or unreadable plan entitlements (%s)',
     async (allowed) => {
@@ -1360,21 +1475,21 @@ describe('native dashboard support', () => {
       expect(
         screen.getByRole('button', { name: 'Create ticket' }),
       ).toBeDisabled();
+      await user.pointer({
+        target: screen.getByRole('button', { name: 'Low plan availability' }),
+      });
       expect(
-        screen.getByText('Not available on this plan'),
+        await screen.findByText(/Support isn't on your .* plan\./),
       ).toBeInTheDocument();
-      await user.click(screen.getByRole('combobox', { name: 'Severity' }));
       for (const name of ['Low', 'Normal', 'High', 'Urgent']) {
-        expect(screen.getByRole('option', { name })).toHaveAttribute(
-          'aria-disabled',
-          'true',
-        );
+        expect(screen.getByRole('radio', { name })).toBeDisabled();
       }
       expect(requests.some((request) => request.operation === 'create')).toBe(
         false,
       );
     },
   );
+
   it('refreshes plan entitlements without retaining a disallowed severity', async () => {
     const user = new TestUserEvent();
     render(<NewTicket />);
@@ -1383,9 +1498,7 @@ describe('native dashboard support', () => {
     organizationSeverities = ['low'];
     await queryClient.invalidateQueries({ queryKey: ['support'] });
     await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Severity' }),
-      ).toHaveTextContent('Low'),
+      expect(screen.getByRole('radio', { name: 'Low' })).toBeChecked(),
     );
   });
   it('creates tickets with the raw Markdown description after previewing', async () => {
@@ -1441,9 +1554,7 @@ describe('native dashboard support', () => {
     await select(user, 'Organization', 'Acme');
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     expect(await screen.findByText('Add a title')).toBeInTheDocument();
-    expect(
-      screen.getByText('Select at least one affected service'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Pick at least one service')).toBeInTheDocument();
     expect(requests.some((request) => request.operation === 'create')).toBe(
       false,
     );

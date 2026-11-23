@@ -85,7 +85,9 @@ query dashboardSupportOrganizations($userId: uuid!) {
   ) {
     id
     name
+    slug
     plan {
+      name
       supportAllowedSeverities
     }
     apps(order_by: { name: asc }) {

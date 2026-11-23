@@ -40,9 +40,7 @@ export const ticketFormSchema = z.object({
   projectID: z.union([z.uuid(), z.literal('none')]),
   title: z.string().trim().min(1, 'Add a title').max(200),
   severity: z.enum(SEVERITIES),
-  services: z
-    .array(z.enum(SERVICES))
-    .min(1, 'Select at least one affected service'),
+  services: z.array(z.enum(SERVICES)).min(1, 'Pick at least one service'),
   description: z.string().trim().min(1, 'Describe the issue').max(50000),
 });
 export type TicketFormValues = z.infer<typeof ticketFormSchema>;

@@ -33440,7 +33440,7 @@ export type DashboardSupportOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, plan: { __typename?: 'plans', supportAllowedSeverities: Array<string> }, apps: Array<{ __typename?: 'apps', id: any, name: string }> }> };
+export type DashboardSupportOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', name: string, supportAllowedSeverities: Array<string> }, apps: Array<{ __typename?: 'apps', id: any, name: string }> }> };
 
 export type DashboardCreateSupportTicketMutationVariables = Exact<{
   input: SupportTickets_Insert_Input;
@@ -41105,7 +41105,9 @@ export const DashboardSupportOrganizationsDocument = gql`
   organizations(where: {members: {userID: {_eq: $userId}}}, order_by: {name: asc}) {
     id
     name
+    slug
     plan {
+      name
       supportAllowedSeverities
     }
     apps(order_by: {name: asc}) {

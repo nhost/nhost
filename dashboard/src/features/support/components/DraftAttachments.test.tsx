@@ -23,6 +23,7 @@ import {
   screen,
   TestUserEvent,
   waitFor,
+  within,
 } from '@/tests/testUtils';
 
 type Draft = NonNullable<
@@ -151,7 +152,9 @@ const server = setupServer(
           {
             id: organizationID,
             name: 'Acme',
+            slug: 'acme',
             plan: {
+              name: 'Team',
               supportAllowedSeverities: ['low', 'normal', 'high', 'urgent'],
             },
             apps: [],
@@ -159,7 +162,8 @@ const server = setupServer(
           {
             id: otherOrganizationID,
             name: 'Other org',
-            plan: { supportAllowedSeverities: ['low'] },
+            slug: 'other-org',
+            plan: { name: 'Starter', supportAllowedSeverities: ['low'] },
             apps: [],
           },
         ],
@@ -450,9 +454,7 @@ async function fillForm(user: TestUserEvent) {
     screen.getByRole('textbox', { name: 'Description' }),
     '**Diagnostic details**',
   );
-  await user.click(screen.getByRole('combobox', { name: 'Services' }));
-  await user.click(await screen.findByRole('option', { name: 'Storage' }));
-  await user.keyboard('{Escape}');
+  await user.click(screen.getByRole('button', { name: 'Storage' }));
 }
 async function uploadFiles(user: TestUserEvent, names = ['logs.txt']) {
   await user.upload(
@@ -503,9 +505,11 @@ describe('new ticket attachment drafts', () => {
     expect(zone).toHaveTextContent('Pick an organization first');
     expect(zone).toHaveClass('border-destructive');
     expect(fireEvent.drop(zone, { dataTransfer: transfer })).toBe(false);
-    expect(screen.getByText('Pick an organization first')).toHaveClass(
-      'sr-only',
-    );
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Draft attachments' }),
+      ).getByText('Pick an organization first'),
+    ).toHaveClass('sr-only');
     const editor = screen.getByRole('textbox', { name: 'Description' });
     expect(fireEvent.dragOver(editor, { dataTransfer: transfer })).toBe(false);
     expect(editor).not.toHaveClass('ring-2');
