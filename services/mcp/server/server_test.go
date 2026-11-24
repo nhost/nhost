@@ -114,7 +114,7 @@ func runTests(
 	if diff := cmp.Diff(
 		res,
 		&mcp.InitializeResult{
-			ProtocolVersion: "2025-06-18",
+			ProtocolVersion: "2026-07-28",
 			Capabilities: mcp.ServerCapabilities{
 				Elicitation:  nil,
 				Experimental: nil,
@@ -153,6 +153,8 @@ func runTests(
 		cmpopts.SortSlices(func(a, b mcp.Tool) bool {
 			return a.Name < b.Name
 		}),
+		cmpopts.IgnoreFields(mcp.PaginatedResult{}, "CacheableResult"),
+		cmpopts.IgnoreFields(mcp.ToolInputSchema{}, "PropertyOrder"),
 	); diff != "" {
 		t.Errorf("ListToolsResult mismatch (-want +got):\n%s", diff)
 	}
@@ -187,6 +189,7 @@ func defaultTools() *mcp.ListToolsResult {
 							"items": map[string]any{"type": string("string")},
 						},
 					},
+					Required: []string{},
 				},
 				Annotations: mcp.ToolAnnotation{
 					Title:           "Get GraphQL Schema",

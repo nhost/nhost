@@ -30,7 +30,7 @@ func (t *NhostToml) Register(server *server.MCPServer) {
 			Name: "nhost.toml",
 			Annotations: &mcp.Annotations{
 				Audience: []mcp.Role{mcp.RoleAssistant},
-				Priority: 1.0,
+				Priority: new(1.0),
 			},
 			Description: NhostTomlResourceDescription,
 			MIMEType:    "text/plain",

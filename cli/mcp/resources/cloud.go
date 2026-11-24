@@ -43,7 +43,7 @@ func (t *Cloud) Register(server *server.MCPServer) {
 			Name: "nhost-cloud",
 			Annotations: &mcp.Annotations{
 				Audience: []mcp.Role{mcp.RoleAssistant},
-				Priority: 1.0,
+				Priority: new(1.0),
 			},
 			Description: CloudDescription,
 			MIMEType:    "text/plain",
