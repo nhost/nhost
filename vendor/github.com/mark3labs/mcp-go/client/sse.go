@@ -8,20 +8,41 @@ import (
 	"github.com/mark3labs/mcp-go/client/transport"
 )
 
+// WithHeaders sets static headers for the SSE client.
 func WithHeaders(headers map[string]string) transport.ClientOption {
 	return transport.WithHeaders(headers)
 }
 
+// WithHeaderFunc sets a function that returns headers for each SSE request.
 func WithHeaderFunc(headerFunc transport.HTTPHeaderFunc) transport.ClientOption {
 	return transport.WithHeaderFunc(headerFunc)
 }
 
+// WithHTTPClient sets a custom HTTP client for the SSE transport.
 func WithHTTPClient(httpClient *http.Client) transport.ClientOption {
 	return transport.WithHTTPClient(httpClient)
 }
 
+// WithHTTPHost sets a custom Host header for the SSE client, enabling manual DNS resolution.
+// This allows connecting to an IP address while sending a specific Host header to the server.
+// For example, connecting to "http://192.168.1.100:8080/sse" but sending Host: "api.example.com"
+func WithHTTPHost(host string) transport.ClientOption {
+	return transport.WithHTTPHost(host)
+}
+
 // NewSSEMCPClient creates a new SSE-based MCP client with the given base URL.
 // Returns an error if the URL is invalid.
+//
+// Example:
+//
+//	c, err := client.NewSSEMCPClient("http://localhost:8080/mcp/sse")
+//	if err != nil {
+//	    log.Fatalf("Failed to create client: %v", err)
+//	}
+//	defer c.Close()
+//
+// Note: Use a variable name other than "client" (e.g., "c", "mcpClient") to avoid
+// shadowing the package name.
 func NewSSEMCPClient(baseURL string, options ...transport.ClientOption) (*Client, error) {
 	sseTransport, err := transport.NewSSE(baseURL, options...)
 	if err != nil {
