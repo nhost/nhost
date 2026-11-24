@@ -48,11 +48,11 @@ export function TicketStatus({
 export function TicketSeverity({ severity }: { severity: string }) {
   return (
     <Badge
-      variant="secondary"
+      variant="outline"
       className={cn(
-        'whitespace-nowrap',
-        severity === 'urgent' && 'bg-destructive/10 text-destructive',
-        severity === 'high' && 'bg-primary/10 text-primary',
+        'whitespace-nowrap font-medium text-muted-foreground',
+        severity === 'urgent' && 'border-destructive/50 text-destructive',
+        severity === 'high' && 'border-primary/50 text-primary',
       )}
     >
       {supportLabel(severity)}

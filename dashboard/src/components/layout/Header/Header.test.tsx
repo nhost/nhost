@@ -201,7 +201,7 @@ describe('Header', () => {
       const claims = {
         'x-hasura-user-id': mockSession.user!.id,
         'x-hasura-default-role': 'user',
-        'x-hasura-allowed-roles': ['user', 'support_agent'],
+        'x-hasura-allowed-roles': ['user', 'support'],
       };
       mockSession.decodedToken = {
         ...originalClaims,

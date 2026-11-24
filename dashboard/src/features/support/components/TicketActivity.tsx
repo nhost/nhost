@@ -23,7 +23,10 @@ export default function TicketActivity({ ticketId }: { ticketId: string }) {
     refetchInterval: 30000,
   });
   return (
-    <section aria-label="Ticket activity" className="space-y-4 border-t pt-5">
+    <section
+      aria-label="Ticket activity"
+      className="space-y-4 rounded-lg border p-4"
+    >
       <h2 className="font-semibold text-sm">Activity</h2>
       {events.isError ? (
         <SupportError

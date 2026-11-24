@@ -17,7 +17,12 @@ import SupportMarkdownEditor from '@/features/support/components/SupportMarkdown
 import TicketAttachments from '@/features/support/components/TicketAttachments';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import { useSupportTicketAttachments } from '@/features/support/hooks/use-support-ticket-attachments';
-import { PAGE_SIZE, supportDate } from '@/features/support/utils/tickets';
+import {
+  PAGE_SIZE,
+  supportDate,
+  supportGap,
+  supportInitials,
+} from '@/features/support/utils/tickets';
 import {
   DashboardReplyToSupportTicketDocument,
   type DashboardReplyToSupportTicketMutation,
@@ -34,16 +39,6 @@ interface TimelineMessage {
   createdAt: string;
   body: string;
   authorRole?: string;
-}
-
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => [...part][0])
-    .join('')
-    .toLocaleUpperCase();
 }
 
 interface TicketConversationProps {
@@ -121,23 +116,43 @@ export default function TicketConversation({
           {[
             { ...opening, id: 'opening' },
             ...(comments.isError ? [] : conversation),
-          ].map((message, index) => {
-            const teamReply = message.authorRole === 'support_agent';
+          ].map((message, index, messages) => {
+            const teamReply = message.authorRole === 'support';
+            const next = messages[index + 1];
+            const showGap = !!next && !(index === 0 && comments.hasNextPage);
+            const nhostReplied = !teamReply && next?.authorRole === 'support';
             return (
               <li
                 key={message.id}
                 className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3"
               >
-                {!comments.isError && index < conversation.length && (
-                  <div
-                    aria-hidden="true"
-                    className="absolute top-9 bottom-0 left-4 -mb-5 border-l"
-                  />
+                {!comments.isError &&
+                  (index < conversation.length || !closed) && (
+                    <div
+                      aria-hidden="true"
+                      className={cn(
+                        'absolute top-9 bottom-0 left-[calc(1.125rem-0.5px)] border-l',
+                        index < conversation.length ? '-mb-5' : '-mb-6',
+                      )}
+                    />
+                  )}
+                {showGap && (
+                  <div className="absolute top-9 -bottom-5 left-[1.125rem] flex -translate-x-1/2 items-center">
+                    <span
+                      className={cn(
+                        'whitespace-nowrap rounded-full border bg-background px-1.5 py-px text-[0.625rem] text-muted-foreground',
+                        nhostReplied && 'border-primary/40 text-primary',
+                      )}
+                    >
+                      {supportGap(message.createdAt, next.createdAt)}
+                      <span className="sr-only"> until the next message</span>
+                    </span>
+                  </div>
                 )}
                 <Avatar
-                  className="size-9"
+                  className="h-9 w-9"
                   aria-hidden="true"
-                  fallback={initials(message.authorName)}
+                  fallback={supportInitials(message.authorName)}
                   fallbackClassName={
                     teamReply
                       ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground'
@@ -164,7 +179,7 @@ export default function TicketConversation({
                   <div
                     className={cn(
                       'rounded-lg p-4',
-                      teamReply ? 'bg-primary/5' : 'bg-muted/10',
+                      teamReply ? 'bg-primary/10' : 'bg-muted/60',
                     )}
                   >
                     <SupportMarkdown attachmentScope={{ ticketId }}>
@@ -205,11 +220,11 @@ export default function TicketConversation({
         ) : (
           <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
             <Avatar
-              className="size-9"
+              className="h-9 w-9"
               aria-hidden="true"
-              fallback={initials(user?.displayName || 'You')}
+              fallback={supportInitials(user?.displayName || 'You')}
               fallbackClassName={
-                role === 'support_agent'
+                role === 'support'
                   ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground'
                   : undefined
               }
@@ -235,9 +250,7 @@ export default function TicketConversation({
                   control={form.control}
                   name="body"
                   label={
-                    role === 'support_agent'
-                      ? 'Reply to customer'
-                      : 'Your reply'
+                    role === 'support' ? 'Reply to customer' : 'Your reply'
                   }
                   placeholder="Write a reply…"
                   disabled={
@@ -284,7 +297,7 @@ export default function TicketConversation({
       </section>
       <aside
         aria-label="Ticket details"
-        className="min-w-0 space-y-5 border-t pt-5 lg:border-t-0 lg:pt-0"
+        className="min-w-0 space-y-5 border-t pt-5 lg:border-t-0 lg:pt-7"
       >
         {sidebar}
         {closed ? (

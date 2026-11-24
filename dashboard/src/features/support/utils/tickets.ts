@@ -166,3 +166,32 @@ export function ticketStatusLabel(status: string, isAgent: boolean): string {
   }
   return supportLabel(status);
 }
+
+export function supportInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => [...part][0])
+    .join('')
+    .toLocaleUpperCase();
+}
+
+export function supportGap(from: string, to: string): string {
+  const minutes = Math.max(
+    0,
+    Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000),
+  );
+  if (minutes < 1) {
+    return '<1 min';
+  }
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) {
+    return `${hours}h`;
+  }
+  const days = Math.round(hours / 24);
+  return days === 1 ? '1 day' : `${days} days`;
+}

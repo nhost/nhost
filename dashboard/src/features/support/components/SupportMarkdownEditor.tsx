@@ -262,11 +262,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                     onClick={() => fileInput.current?.click()}
                   >
                     {attachmentPickerInFooter ? (
-                      replySubmit ? (
-                        'Attach'
-                      ) : (
-                        'browse'
-                      )
+                      'browse'
                     ) : (
                       <Paperclip aria-hidden="true" className="size-4" />
                     )}
@@ -395,14 +391,8 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                         className="size-3.5 shrink-0"
                       />
                       <div>
-                        {replySubmit ? (
-                          <>{picker} files up to 5 MB</>
-                        ) : (
-                          <>
-                            <span>Drag files here</span> or {picker}. Up to 5 MB
-                            each.
-                          </>
-                        )}
+                        <span>Drag files here</span> or {picker}. Up to 5 MB
+                        each.
                       </div>
                       {replySubmit && (
                         <div className="ml-auto">{replySubmit}</div>

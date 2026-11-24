@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
-export type SupportRole = 'user' | 'support_agent';
+export type SupportRole = 'user' | 'support';
 
 export function useSupportSession() {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ export function useSupportSession() {
   const { isAgent, isSample, useSampleRequests, canViewAsAgent } =
     useSupportView();
   const role: SupportRole =
-    isAgent && !(isSample && !useSampleRequests) ? 'support_agent' : 'user';
+    isAgent && !(isSample && !useSampleRequests) ? 'support' : 'user';
   const queryKey = [
     'support',
     user?.id,
@@ -49,11 +49,11 @@ export function useSupportSession() {
         'x-hasura-allowed-roles'
       ];
     if (
-      requestRole === 'support_agent' &&
+      requestRole === 'support' &&
       (!isAgent ||
         !canViewAsAgent ||
         !Array.isArray(activeRoles) ||
-        !activeRoles.includes('support_agent'))
+        !activeRoles.includes('support'))
     ) {
       throw new Error('Your support access changed. Please reload this page.');
     }

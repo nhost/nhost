@@ -3,6 +3,11 @@ import { useId } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
@@ -35,18 +40,27 @@ export default function TicketAttachments({
     uploadFiles,
     removeUpload,
   } = controller;
+  const pendingUploads = uploads.filter(
+    (item) => !compact || item.status !== 'uploaded',
+  );
+  if (
+    compact &&
+    !attachments.isError &&
+    !attachments.isLoading &&
+    files.length === 0 &&
+    pendingUploads.length === 0
+  ) {
+    return null;
+  }
   return (
     <section
       aria-label="Ticket attachments"
-      className={cn(
-        'space-y-4',
-        compact ? 'border-t pt-5' : 'rounded-lg border p-5',
-      )}
+      className={cn('space-y-4 rounded-lg border', compact ? 'p-4' : 'p-5')}
     >
       <h2 className="flex items-center gap-2 font-semibold text-sm">
         {compact ? (
           <>
-            All attachments
+            Attachments
             {!attachments.isError &&
               !attachments.isLoading &&
               ` · ${files.length}${attachments.hasNextPage ? '+' : ''}`}
@@ -98,47 +112,55 @@ export default function TicketAttachments({
                 </div>
                 {attachment.file && (
                   <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={download.status === 'loading'}
-                      aria-label={`Download ${attachment.file.name ?? 'attachment'}`}
-                      onClick={() => {
-                        const file = attachment.file;
-                        if (!file) {
-                          return;
-                        }
-                        void execPromiseWithErrorToast(
-                          () =>
-                            download.mutateAsync({
-                              id: file.id,
-                              name: file.name ?? 'attachment',
-                            }),
-                          {
-                            loadingMessage: 'Downloading attachment…',
-                            successMessage: 'Attachment downloaded',
-                            errorMessage:
-                              'Unable to download this attachment. Your access may have changed.',
-                          },
-                        );
-                      }}
-                    >
-                      <Download className="size-4" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="subtle"
+                          disabled={download.status === 'loading'}
+                          aria-label={`Download ${attachment.file.name ?? 'attachment'}`}
+                          onClick={() => {
+                            const file = attachment.file;
+                            if (!file) {
+                              return;
+                            }
+                            void execPromiseWithErrorToast(
+                              () =>
+                                download.mutateAsync({
+                                  id: file.id,
+                                  name: file.name ?? 'attachment',
+                                }),
+                              {
+                                loadingMessage: 'Downloading attachment…',
+                                successMessage: 'Attachment downloaded',
+                                errorMessage:
+                                  'Unable to download this attachment. Your access may have changed.',
+                              },
+                            );
+                          }}
+                        >
+                          <Download className="size-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Download</TooltipContent>
+                    </Tooltip>
                     {!closed && onInsert && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={unavailable}
-                        aria-label={`Insert ${attachment.file.name ?? 'attachment'} into reply`}
-                        onClick={() =>
-                          attachment.file && onInsert(attachment.file)
-                        }
-                      >
-                        <FilePlus2 className="size-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="subtle"
+                            disabled={unavailable}
+                            aria-label={`Insert ${attachment.file.name ?? 'attachment'} into reply`}
+                            onClick={() =>
+                              attachment.file && onInsert(attachment.file)
+                            }
+                          >
+                            <FilePlus2 className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Add to reply</TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 )}
@@ -159,7 +181,7 @@ export default function TicketAttachments({
           )}
         </>
       )}
-      {!closed && (
+      {!closed && (!compact || pendingUploads.length > 0) && (
         <div className="space-y-3 border-t pt-4">
           {!compact && (
             <>
@@ -193,42 +215,40 @@ export default function TicketAttachments({
             </>
           )}
           <ul className="space-y-2" aria-live="polite">
-            {uploads
-              .filter((item) => !compact || item.status !== 'uploaded')
-              .map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <div className="min-w-0 break-words">
-                    <span>{item.file.name}</span>
-                    <p className="text-muted-foreground text-xs">
-                      {item.error ??
-                        (
-                          {
-                            pending: 'Ready to upload',
-                            uploading: 'Uploading…',
-                            uploaded: 'Uploaded',
-                            failed: 'Upload failed',
-                            invalid: 'Invalid file',
-                          } as const
-                        )[item.status]}
-                    </p>
-                  </div>
-                  {item.status !== 'uploaded' && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`Remove ${item.file.name}`}
-                      disabled={uploading}
-                      onClick={() => removeUpload(item.id)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  )}
-                </li>
-              ))}
+            {pendingUploads.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <div className="min-w-0 break-words">
+                  <span>{item.file.name}</span>
+                  <p className="text-muted-foreground text-xs">
+                    {item.error ??
+                      (
+                        {
+                          pending: 'Ready to upload',
+                          uploading: 'Uploading…',
+                          uploaded: 'Uploaded',
+                          failed: 'Upload failed',
+                          invalid: 'Invalid file',
+                        } as const
+                      )[item.status]}
+                  </p>
+                </div>
+                {item.status !== 'uploaded' && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Remove ${item.file.name}`}
+                    disabled={uploading}
+                    onClick={() => removeUpload(item.id)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                )}
+              </li>
+            ))}
           </ul>
           {!uploading &&
             uploads.some(

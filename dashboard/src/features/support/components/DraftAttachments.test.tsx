@@ -121,7 +121,7 @@ function authorize(agent: boolean) {
   const claims = {
     'x-hasura-user-id': mockSession.user!.id,
     'x-hasura-default-role': 'user',
-    'x-hasura-allowed-roles': agent ? ['user', 'support_agent'] : ['user'],
+    'x-hasura-allowed-roles': agent ? ['user', 'support'] : ['user'],
   };
   mockSession.decodedToken = {
     ...originalClaims,

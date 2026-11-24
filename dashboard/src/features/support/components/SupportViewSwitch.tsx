@@ -18,9 +18,7 @@ export function useSupportView() {
       'x-hasura-allowed-roles'
     ];
   const canViewAsAgent =
-    !!user &&
-    Array.isArray(allowedRoles) &&
-    allowedRoles.includes('support_agent');
+    !!user && Array.isArray(allowedRoles) && allowedRoles.includes('support');
   const router = useRouter();
   const canPreview =
     !!user &&

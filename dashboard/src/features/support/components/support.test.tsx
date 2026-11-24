@@ -157,7 +157,7 @@ const server = setupServer(
               body: 'We are investigating.',
               authorID: 'agent-id',
               authorName: 'Support Bob',
-              authorRole: 'support_agent',
+              authorRole: 'support',
               createdAt: '2026-01-02T12:00:00Z',
             },
           ],
@@ -259,11 +259,11 @@ const server = setupServer(
 );
 
 function makeAgent() {
-  mockSession.accessToken = sessionToken(['user', 'support_agent']);
+  mockSession.accessToken = sessionToken(['user', 'support']);
   mockSession.decodedToken = {
     ...originalClaims,
     'https://hasura.io/jwt/claims': {
-      'x-hasura-allowed-roles': ['user', 'support_agent'],
+      'x-hasura-allowed-roles': ['user', 'support'],
     },
   };
 }
@@ -530,9 +530,7 @@ describe('temporary Support view preview', () => {
         requests.find((request) => request.operation === 'create'),
       ).toMatchObject({ role: 'user' }),
     );
-    expect(requests.some((request) => request.role === 'support_agent')).toBe(
-      false,
-    );
+    expect(requests.some((request) => request.role === 'support')).toBe(false);
   });
 
   it('shows not found when switching a real ticket into the sample set', async () => {
@@ -596,11 +594,11 @@ describe('temporary Support view preview', () => {
     const group = await screen.findByRole('radiogroup', {
       name: 'View support as',
     });
-    await screen.findByRole('button', { name: 'Assigned to me' });
+    await screen.findByRole('checkbox', { name: 'Assigned to me' });
     await user.click(within(group).getByRole('radio', { name: 'Customer' }));
     await screen.findByRole('heading', { name: 'Other ways to get help' });
     expect(
-      screen.queryByRole('button', { name: 'Assigned to me' }),
+      screen.queryByRole('checkbox', { name: 'Assigned to me' }),
     ).not.toBeInTheDocument();
     await waitFor(() =>
       expect(
@@ -626,12 +624,12 @@ describe('temporary Support view preview', () => {
       within(restored).getByRole('radio', { name: 'Customer' }),
     ).toHaveAttribute('data-state', 'on');
     await user.click(within(restored).getByRole('radio', { name: 'Agent' }));
-    await screen.findByRole('button', { name: 'Assigned to me' });
+    await screen.findByRole('checkbox', { name: 'Assigned to me' });
     expectHelpFooter(true);
     await waitFor(() =>
       expect(
         requests.filter((request) => request.operation === 'list').at(-1),
-      ).toMatchObject({ role: 'support_agent' }),
+      ).toMatchObject({ role: 'support' }),
     );
   });
 
@@ -679,7 +677,7 @@ describe('temporary Support view preview', () => {
         HttpResponse.json({
           data: {
             supportTicket:
-              request.headers.get('x-hasura-role') === 'support_agent'
+              request.headers.get('x-hasura-role') === 'support'
                 ? ticket
                 : null,
             supportTicketTransitions: [],
@@ -787,7 +785,7 @@ describe('temporary Support view preview', () => {
           DashboardSupportTicketDocument,
           { id: ticketId },
           undefined,
-          'support_agent',
+          'support',
         ),
       ).rejects.toThrow('Your support access changed');
       expect(requests.some((request) => request.operation === 'detail')).toBe(
@@ -850,7 +848,7 @@ describe('native dashboard support', () => {
         name: agent ? 'No tickets in this queue' : 'No tickets yet',
       });
       expect(
-        screen.getByRole('textbox', { name: 'Search tickets' }),
+        screen.getByRole('combobox', { name: 'Search tickets' }),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: 'Status' }),
@@ -935,7 +933,7 @@ describe('native dashboard support', () => {
           screen.queryAllByRole('link', { name: 'Create ticket' }),
         ).toHaveLength(agent ? 1 : 0);
         expect(
-          screen.getByRole('textbox', { name: 'Search tickets' }),
+          screen.getByRole('combobox', { name: 'Search tickets' }),
         ).toBeInTheDocument();
         expect(
           screen.getByRole('button', { name: 'Status' }),
@@ -989,9 +987,9 @@ describe('native dashboard support', () => {
         name: 'Create ticket',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Search tickets' })).toHaveValue(
-      'Missing',
-    );
+    expect(
+      screen.getByRole('combobox', { name: 'Search tickets' }),
+    ).toHaveValue('Missing');
     expect(
       screen.queryByRole('textbox', { name: 'Filter by organization' }),
     ).not.toBeInTheDocument();
@@ -1043,14 +1041,14 @@ describe('native dashboard support', () => {
           screen.getByRole('link', { name: /Storage upload fails/ }),
         ).toBeInTheDocument();
         expect(
-          screen.getByRole('textbox', { name: 'Search tickets' }),
+          screen.getByRole('combobox', { name: 'Search tickets' }),
         ).toBeInTheDocument();
         expect(
           screen.getByRole('button', { name: 'Status' }),
         ).toBeInTheDocument();
         if (agent) {
           expect(
-            screen.getByRole('button', { name: 'Assigned to me' }),
+            screen.getByRole('checkbox', { name: 'Assigned to me' }),
           ).toBeInTheDocument();
         }
         expectHelpFooter(true);
@@ -1074,7 +1072,7 @@ describe('native dashboard support', () => {
       screen.queryByRole('button', { name: 'Next' }),
     ).not.toBeInTheDocument();
     await user.type(
-      screen.getByRole('textbox', { name: 'Search tickets' }),
+      screen.getByRole('combobox', { name: 'Search tickets' }),
       'Uploads{Enter}',
     );
     expect(replace).toHaveBeenCalledWith(
@@ -1101,7 +1099,7 @@ describe('native dashboard support', () => {
       '/support/ticket',
     );
     expect(
-      screen.queryByRole('button', { name: 'Assigned to me' }),
+      screen.queryByRole('checkbox', { name: 'Assigned to me' }),
     ).not.toBeInTheDocument();
     expect(requests[0]).toMatchObject({
       operation: 'list',
@@ -1109,7 +1107,7 @@ describe('native dashboard support', () => {
       variables: { offset: 0 },
     });
   });
-  it('exposes global agent queues only for the native support_agent role', async () => {
+  it('exposes global agent queues only for the native support role', async () => {
     makeAgent();
     mocks.useRouter.mockReturnValue({
       ...mockRouter,
@@ -1124,7 +1122,7 @@ describe('native dashboard support', () => {
       await screen.findByRole('link', { name: /Storage upload fails/ }),
     ).toBeInTheDocument();
     expect(requests[0]).toMatchObject({
-      role: 'support_agent',
+      role: 'support',
       variables: {
         offset: 100,
         where: {
@@ -1136,7 +1134,7 @@ describe('native dashboard support', () => {
       },
     });
     await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Assigned to me', pressed: true }),
+      screen.getByRole('checkbox', { name: 'Assigned to me', checked: true }),
     );
     expect(replace).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1147,18 +1145,18 @@ describe('native dashboard support', () => {
     );
   });
   it('does not expose agent queues for the retired plural role', async () => {
-    mockSession.accessToken = sessionToken(['user', 'support_agents']);
+    mockSession.accessToken = sessionToken(['user', 'supports']);
     mockSession.decodedToken = {
       ...originalClaims,
       'https://hasura.io/jwt/claims': {
-        'x-hasura-allowed-roles': ['user', 'support_agents'],
+        'x-hasura-allowed-roles': ['user', 'supports'],
       },
     };
     render(<TicketList />);
     await screen.findByRole('link', { name: /Storage upload fails/ });
     expect(screen.queryByText('Agent')).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Assigned to me' }),
+      screen.queryByRole('checkbox', { name: 'Assigned to me' }),
     ).not.toBeInTheDocument();
     expect(requests[0]).toMatchObject({ operation: 'list', role: 'user' });
   });
@@ -1672,7 +1670,7 @@ describe('native dashboard support', () => {
               {
                 id: 'comment-markdown',
                 authorName: 'Support Bob',
-                authorRole: 'support_agent',
+                authorRole: 'support',
                 body: '### Investigation\n\n- Check permissions',
                 createdAt: initialTicket.createdAt,
               },
@@ -1727,7 +1725,7 @@ describe('native dashboard support', () => {
       expect(
         requests.find((request) => request.operation === 'update'),
       ).toMatchObject({
-        role: 'support_agent',
+        role: 'support',
         variables: {
           id: ticketId,
           version: 1,
@@ -1770,7 +1768,7 @@ describe('native dashboard support', () => {
       expect(
         requests.find((request) => request.operation === 'update'),
       ).toMatchObject({
-        role: 'support_agent',
+        role: 'support',
         variables: {
           id: ticketId,
           version: 1,
@@ -1789,15 +1787,15 @@ describe('native dashboard support', () => {
         expect.arrayContaining([
           expect.objectContaining({
             operation: 'detail',
-            role: 'support_agent',
+            role: 'support',
           }),
           expect.objectContaining({
             operation: 'comments',
-            role: 'support_agent',
+            role: 'support',
           }),
           expect.objectContaining({
             operation: 'events',
-            role: 'support_agent',
+            role: 'support',
           }),
         ]),
       );
@@ -1807,7 +1805,7 @@ describe('native dashboard support', () => {
       expect(
         requests.find((request) => request.operation === 'update'),
       ).toMatchObject({
-        role: 'support_agent',
+        role: 'support',
         variables: {
           id: ticketId,
           version: 1,
@@ -1932,7 +1930,7 @@ describe('native dashboard support', () => {
       expect(
         requests.find((request) => request.operation === 'update'),
       ).toMatchObject({
-        role: 'support_agent',
+        role: 'support',
         variables: { id: ticketId, version: 1, changes: { severity: 'low' } },
       }),
     );
@@ -1973,7 +1971,7 @@ describe('native dashboard support', () => {
       expect(
         requests.find((request) => request.operation === 'update'),
       ).toMatchObject({
-        role: 'support_agent',
+        role: 'support',
         variables: { id: ticketId, version: 1, changes: { severity: 'high' } },
       }),
     );
@@ -1992,7 +1990,7 @@ describe('native dashboard support', () => {
     view.rerender(<TicketList />);
     await waitFor(() =>
       expectInputValue(
-        screen.getByRole('textbox', { name: 'Search tickets' }),
+        screen.getByRole('combobox', { name: 'Search tickets' }),
         'Sign in',
       ),
     );

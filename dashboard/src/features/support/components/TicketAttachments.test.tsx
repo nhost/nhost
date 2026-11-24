@@ -63,12 +63,11 @@ function attachment(id: string, name = 'diagnostic.html'): Attachment {
     file: { id, name, size: 30, mimeType: 'text/html' },
   };
 }
-function setRole(role: 'user' | 'support_agent') {
+function setRole(role: 'user' | 'support') {
   const claims = {
     'x-hasura-user-id': mockSession.user!.id,
     'x-hasura-default-role': 'user',
-    'x-hasura-allowed-roles':
-      role === 'user' ? ['user'] : ['user', 'support_agent'],
+    'x-hasura-allowed-roles': role === 'user' ? ['user'] : ['user', 'support'],
   };
   mockSession.decodedToken = {
     ...originalClaims,
@@ -255,7 +254,7 @@ function renderAttachments(closed = false) {
 
 describe('ticket attachments', () => {
   it('shows resized image thumbnails on closed tickets with the viewer role', async () => {
-    setRole('support_agent');
+    setRole('support');
     const id = '41261576-2d59-4c12-bc6e-e573bdba3af1';
     files = [
       {
@@ -284,7 +283,7 @@ describe('ticket attachments', () => {
     await screen.findByRole('img', { name: 'Preview of screenshot.png' });
     expect(previews).toEqual([
       {
-        role: 'support_agent',
+        role: 'support',
         params: { w: '128', h: '128', q: '75', f: 'webp' },
       },
     ]);
@@ -385,7 +384,7 @@ describe('ticket attachments', () => {
     },
   );
 
-  it.each(['user', 'support_agent'] as const)(
+  it.each(['user', 'support'] as const)(
     'reserves and uploads files with the native %s role',
     async (role) => {
       setRole(role);
@@ -481,7 +480,7 @@ describe('ticket attachments', () => {
     expect(uploads).toEqual([]);
   });
 
-  it.each(['user', 'support_agent'] as const)(
+  it.each(['user', 'support'] as const)(
     'downloads closed-ticket files safely with the native %s role',
     async (role) => {
       setRole(role);

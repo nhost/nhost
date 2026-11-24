@@ -71,7 +71,7 @@ function authorize(agent: boolean) {
   const claims = {
     'x-hasura-user-id': mockSession.user!.id,
     'x-hasura-default-role': 'user',
-    'x-hasura-allowed-roles': agent ? ['user', 'support_agent'] : ['user'],
+    'x-hasura-allowed-roles': agent ? ['user', 'support'] : ['user'],
   };
   mockSession.decodedToken = {
     ...originalClaims,
@@ -121,7 +121,7 @@ describe('private inline attachments', () => {
       expect(
         await screen.findByRole('img', { name: 'Screenshot' }),
       ).toHaveAttribute('src', 'blob:private-image');
-      const role = agent ? 'support_agent' : 'user';
+      const role = agent ? 'support' : 'user';
       expect(metadataReads).toEqual([
         { role, variables: { id, scope: { ticketID: { _eq: ticketId } } } },
       ]);
@@ -138,7 +138,7 @@ describe('private inline attachments', () => {
     },
   );
 
-  it('previews agent-owned draft images as user, not support_agent', async () => {
+  it('previews agent-owned draft images as user, not support', async () => {
     authorize(true);
     render(
       <SupportMarkdown

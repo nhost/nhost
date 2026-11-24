@@ -58,7 +58,7 @@ function authorize(agent: boolean) {
   const claims = {
     'x-hasura-user-id': mockSession.user!.id,
     'x-hasura-default-role': 'user',
-    'x-hasura-allowed-roles': agent ? ['user', 'support_agent'] : ['user'],
+    'x-hasura-allowed-roles': agent ? ['user', 'support'] : ['user'],
   };
   mockSession.decodedToken = {
     ...originalClaims,
@@ -96,7 +96,7 @@ afterAll(() => server.close());
 describe('support attachment list previews', () => {
   it.each([
     { agent: false, requestRole: undefined, expectedRole: 'user' },
-    { agent: true, requestRole: undefined, expectedRole: 'support_agent' },
+    { agent: true, requestRole: undefined, expectedRole: 'support' },
     { agent: true, requestRole: 'user', expectedRole: 'user' },
   ] as const)(
     'fetches private resized thumbnails as $expectedRole (agent=$agent, override=$requestRole)',

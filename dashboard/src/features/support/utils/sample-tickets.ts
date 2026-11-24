@@ -38,6 +38,7 @@ interface SampleState {
   comments: Map<string, Comment[]>;
   events: Map<string, Event[]>;
   files: Map<string, SampleFile>;
+  reads: Map<string, string>;
 }
 const states = new Map<string, SampleState>();
 const sampleID = (index: number) =>
@@ -93,6 +94,7 @@ function createState(actor: SampleActor): SampleState {
     comments: new Map(),
     events: new Map(),
     files: new Map(),
+    reads: new Map(),
   };
   state.tickets = titles.map((title, index): Ticket => {
     const minute =
@@ -168,7 +170,7 @@ function createState(actor: SampleActor): SampleState {
             id: sampleID(1000 + index * 10 + reply),
             authorID: reply % 2 ? ticket.requesterID : otherAgentID,
             authorName: reply % 2 ? ticket.requesterName : 'Taylor Reed',
-            authorRole: reply % 2 ? 'user' : 'support_agent',
+            authorRole: reply % 2 ? 'user' : 'support',
             body,
             createdAt: new Date(
               Date.parse(ticket.createdAt) + (reply + 1) * 60000,
@@ -177,6 +179,15 @@ function createState(actor: SampleActor): SampleState {
         )
         .reverse(),
     );
+  }
+  // Every other sample ticket starts as read, so the queue shows both states.
+  for (const [index, ticket] of state.tickets.entries()) {
+    if (index % 2 === 0) {
+      state.reads.set(
+        ticket.id,
+        new Date(Date.UTC(2026, 10, 21)).toISOString(),
+      );
+    }
   }
   const blob = imageBlob();
   state.files.set(imageID, {
@@ -315,7 +326,16 @@ export function sampleSupportRequest<TData>(
             sampleAttachmentCount: [...state.files.values()].filter(
               (file) => file.ticketID === item.id && file.attachment,
             ).length,
-            sampleLastReply: state.comments.get(item.id)?.[0]?.authorName,
+            comments_aggregate: {
+              aggregate: { count: state.comments.get(item.id)?.length ?? 0 },
+            },
+            reads: state.reads.has(item.id)
+              ? [{ readAt: state.reads.get(item.id) }]
+              : [],
+            lastReply: (state.comments.get(item.id) ?? [])
+              .filter((comment) => comment.authorRole === variables.replyRole)
+              .slice(0, 1)
+              .map((comment) => ({ createdAt: comment.createdAt })),
           })),
         sampleTicketCount: matchingTickets.length,
       };
@@ -439,6 +459,14 @@ export function sampleSupportRequest<TData>(
       result = { updateSupportTickets: { affected_rows: 1 } };
       break;
     }
+    case 'dashboardMarkSupportTicketRead': {
+      const readAt = new Date().toISOString();
+      if (ticket) {
+        state.reads.set(ticketID, readAt);
+      }
+      result = { insertSupportTicketRead: ticket ? { readAt } : null };
+      break;
+    }
     case 'dashboardReplyToSupportTicket': {
       if (!ticket || ticket.status === SupportTicketStatuses_Enum.Closed) {
         throw new Error('This sample ticket is read-only or unavailable.');
@@ -447,7 +475,7 @@ export function sampleSupportRequest<TData>(
         id: crypto.randomUUID(),
         authorID: actor.id,
         authorName: actor.displayName || 'You',
-        authorRole: 'support_agent',
+        authorRole: 'support',
         body: String(variables.body),
         createdAt: new Date().toISOString(),
       };

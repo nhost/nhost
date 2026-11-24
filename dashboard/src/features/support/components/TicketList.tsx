@@ -5,6 +5,7 @@ import {
   ExternalLinkIcon,
   LifeBuoyIcon,
   ListFilter,
+  MessageSquare,
   Paperclip,
   PlusIcon,
 } from 'lucide-react';
@@ -12,16 +13,30 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/common/Pagination';
+import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
-import { Input } from '@/components/ui/v3/input';
+import {
+  type InputSuggestion,
+  InputWithSuggestions,
+} from '@/components/ui/v3/input-with-suggestions';
+import { Label } from '@/components/ui/v3/label';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import { SupportError } from '@/features/support/components/SupportArea';
 import {
@@ -33,6 +48,7 @@ import {
   PAGE_SIZE,
   SAMPLE_TICKET_PAGE_SIZE,
   STATUSES,
+  supportInitials,
   type TicketSearch,
   ticketFilter,
   ticketSearchSchema,
@@ -41,10 +57,29 @@ import {
   DashboardSupportTicketsDocument,
   type DashboardSupportTicketsQuery,
 } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
+
+const SUGGESTION_LIMIT = 8;
+
+function ticketSuggestions(rows: TicketListRow[]): InputSuggestion[] {
+  const tickets = rows.map((ticket) => ({
+    label: ticket.title,
+    value: `#${ticket.number}`,
+  }));
+  const places = [
+    ...new Set(
+      rows.flatMap((ticket) =>
+        ticket.projectName
+          ? [ticket.organizationName, ticket.projectName]
+          : [ticket.organizationName],
+      ),
+    ),
+  ].map((name) => ({ label: name, value: name }));
+  return [...places, ...tickets].slice(0, SUGGESTION_LIMIT);
+}
 
 type TicketListRow = DashboardSupportTicketsQuery['supportTickets'][number] & {
   sampleAttachmentCount?: number;
-  sampleLastReply?: string;
 };
 
 export default function TicketList() {
@@ -53,9 +88,41 @@ export default function TicketList() {
   const pageSize = isSample ? SAMPLE_TICKET_PAGE_SIZE : PAGE_SIZE;
   const search = ticketSearchSchema.parse(router.query);
   const [query, setQuery] = useState(search.q);
+  const [suggestionQuery, setSuggestionQuery] = useState('');
   useEffect(() => {
     setQuery(search.q);
   }, [search.q]);
+  useEffect(() => {
+    const timeout = setTimeout(() => setSuggestionQuery(query.trim()), 200);
+    return () => clearTimeout(timeout);
+  }, [query]);
+  const suggestions = useQuery({
+    queryKey: [
+      ...queryKey,
+      'ticket-suggestions',
+      search.status,
+      suggestionQuery,
+    ],
+    queryFn: ({ signal }) =>
+      request<{ supportTickets: TicketListRow[] }>(
+        DashboardSupportTicketsDocument,
+        {
+          where: ticketFilter(
+            { ...search, q: suggestionQuery, statusFilters: '', page: 0 },
+            user?.id ?? '',
+            isAgent,
+          ),
+          offset: 0,
+          replyRole: isAgent ? 'user' : 'support',
+        },
+        signal,
+      ),
+    enabled: !!user && router.isReady && suggestionQuery.length >= 2,
+    retry: false,
+    keepPreviousData: true,
+  });
+  const suggestionRows =
+    suggestionQuery.length >= 2 ? (suggestions.data?.supportTickets ?? []) : [];
   const tickets = useQuery({
     queryKey: [...queryKey, 'tickets', search],
     queryFn: ({ signal }) =>
@@ -64,6 +131,7 @@ export default function TicketList() {
         {
           where: ticketFilter(search, user?.id ?? '', isAgent),
           offset: search.page * pageSize,
+          replyRole: isAgent ? 'user' : 'support',
         },
         signal,
       ),
@@ -101,11 +169,11 @@ export default function TicketList() {
             <h1 className="font-semibold text-2xl">Support</h1>
             {isAgent && <Badge variant="outline">Agent</Badge>}
           </div>
-          <p className="text-muted-foreground text-sm">
-            {isAgent
-              ? 'Every customer ticket across all organizations.'
-              : 'Talk to the Nhost team about anything in your projects.'}
-          </p>
+          {!isAgent && (
+            <p className="text-muted-foreground text-sm">
+              Talk to the Nhost team about anything in your projects.
+            </p>
+          )}
         </div>
         {(isAgent || (!tickets.isLoading && !emptyQueue)) && (
           <Button asChild>
@@ -116,7 +184,7 @@ export default function TicketList() {
           </Button>
         )}
       </header>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs
           value={
             search.status === 'finished'
@@ -140,17 +208,21 @@ export default function TicketList() {
         </Tabs>
         <div className="flex flex-wrap items-center gap-2">
           {isAgent && (
-            <Button
-              variant={search.queue === 'mine' ? 'subtle' : 'outline'}
-              aria-pressed={search.queue === 'mine'}
-              onClick={() =>
-                changeSearch({
-                  queue: search.queue === 'mine' ? 'all' : 'mine',
-                })
-              }
-            >
-              Assigned to me
-            </Button>
+            <div className="mr-2 flex items-center gap-2">
+              <Checkbox
+                id="support-assigned-to-me"
+                checked={search.queue === 'mine'}
+                onCheckedChange={(checked) =>
+                  changeSearch({ queue: checked === true ? 'mine' : 'all' })
+                }
+              />
+              <Label
+                htmlFor="support-assigned-to-me"
+                className="cursor-pointer whitespace-nowrap font-normal text-sm"
+              >
+                Assigned to me
+              </Label>
+            </div>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -194,13 +266,25 @@ export default function TicketList() {
               changeSearch({ q: query, organization: '' });
             }}
           >
-            <Input
+            <InputWithSuggestions
               aria-label="Search tickets"
               placeholder="Search tickets, projects or #id"
               value={query}
               maxLength={200}
-              onChange={(event) => setQuery(event.target.value)}
-              className="sm:w-72"
+              onChange={setQuery}
+              suggestions={ticketSuggestions(suggestionRows)}
+              filterSuggestions={false}
+              onSuggestionSelect={(value) => {
+                const ticket = suggestionRows.find(
+                  (row) => `#${row.number}` === value,
+                );
+                if (ticket) {
+                  void router.push(`/support/tickets/${ticket.id}`);
+                  return;
+                }
+                changeSearch({ q: value, organization: '' });
+              }}
+              containerClassName="sm:w-72"
             />
           </form>
         </div>
@@ -264,78 +348,145 @@ export default function TicketList() {
           )}
         </div>
       ) : (
-        <ul className="divide-y">
-          {rows.slice(0, pageSize).map((ticket) => (
-            <li key={ticket.id}>
-              <Link
-                href={`/support/tickets/${ticket.id}`}
-                className="group grid gap-2 rounded-sm px-2 py-4 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset lg:grid-cols-12 lg:items-center"
-              >
-                <div
-                  className={
-                    isAgent ? 'min-w-0 lg:col-span-5' : 'min-w-0 lg:col-span-7'
-                  }
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="px-2 text-foreground">Ticket</TableHead>
+              <TableHead className="text-foreground">Project</TableHead>
+              <TableHead className="text-foreground">Status</TableHead>
+              <TableHead className="text-foreground">Severity</TableHead>
+              {isAgent && (
+                <TableHead className="text-foreground">Assignee</TableHead>
+              )}
+              <TableHead className="text-right text-foreground">
+                Updated
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.slice(0, pageSize).map((ticket) => {
+              const yourTurn = isAgent
+                ? ticket.status === 'new' ||
+                  ticket.status === 'waiting_for_support'
+                : ticket.status === 'waiting_for_customer';
+              const replies = ticket.comments_aggregate?.aggregate?.count ?? 0;
+              const lastReply = ticket.lastReply?.[0]?.createdAt;
+              const readAt = ticket.reads?.[0]?.readAt;
+              const newReply =
+                !!lastReply &&
+                (!readAt || Date.parse(lastReply) > Date.parse(readAt));
+              return (
+                <TableRow
+                  key={ticket.id}
+                  className={cn(
+                    'group cursor-pointer hover:bg-muted/20',
+                    newReply &&
+                      'bg-primary/5 shadow-[inset_2px_0_0_hsl(var(--primary))] hover:bg-primary/10',
+                  )}
+                  onClick={(event) => {
+                    if ((event.target as HTMLElement).closest('a')) {
+                      return;
+                    }
+                    void router.push(`/support/tickets/${ticket.id}`);
+                  }}
                 >
-                  <p className="break-words font-medium group-hover:text-primary">
-                    <span className="mr-2 font-mono text-muted-foreground text-xs">
-                      #{ticket.number}
-                    </span>
-                    {ticket.title}
-                  </p>
-                  <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
-                    {isAgent && <span>{ticket.requesterName} ·</span>}
-                    <span>
-                      {ticket.organizationName} /{' '}
-                      {ticket.projectName ?? 'Organization-wide'}
-                    </span>
-                    {ticket.sampleLastReply && (
-                      <span>· {ticket.sampleLastReply} replied</span>
-                    )}
-                    {!!ticket.sampleAttachmentCount && (
-                      <span className="inline-flex items-center gap-1">
-                        <Paperclip aria-hidden="true" className="size-3" />
-                        {ticket.sampleAttachmentCount}
-                        <span className="sr-only"> attachments</span>
+                  <TableCell className="max-w-md px-2 py-3">
+                    <Link
+                      href={`/support/tickets/${ticket.id}`}
+                      className="break-words font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-hover:text-primary"
+                    >
+                      {ticket.title}
+                    </Link>
+                    {newReply ? (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-primary/40 px-1.5 py-px align-middle font-medium text-[0.625rem] text-primary">
+                        <span
+                          aria-hidden="true"
+                          className="size-1.5 rounded-full bg-primary"
+                        />
+                        New reply
                       </span>
+                    ) : (
+                      yourTurn && (
+                        <span className="ml-2 inline-flex items-center rounded-full border border-primary/40 px-1.5 py-px align-middle text-[0.625rem] text-primary">
+                          Needs reply
+                        </span>
+                      )
                     )}
-                  </p>
-                </div>
-                <div
-                  className={
-                    isAgent
-                      ? 'flex flex-wrap items-center gap-3 lg:col-span-7 lg:grid lg:grid-cols-7'
-                      : 'flex flex-wrap items-center gap-3 lg:col-span-5 lg:grid lg:grid-cols-5'
-                  }
-                >
-                  <span className="lg:col-span-2">
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
+                      <span className="font-mono">#{ticket.number}</span>
+                      {isAgent && <span>· {ticket.requesterName}</span>}
+                      {replies > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          ·{' '}
+                          <MessageSquare
+                            aria-hidden="true"
+                            className="size-3"
+                          />
+                          {replies}
+                          <span className="sr-only">
+                            {replies === 1 ? ' reply' : ' replies'}
+                          </span>
+                        </span>
+                      )}
+                      {!!ticket.sampleAttachmentCount && (
+                        <span className="inline-flex items-center gap-1">
+                          <Paperclip aria-hidden="true" className="size-3" />
+                          {ticket.sampleAttachmentCount}
+                          <span className="sr-only"> attachments</span>
+                        </span>
+                      )}
+                    </p>
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <p className="text-sm">
+                      {ticket.projectName ?? 'Organization-wide'}
+                    </p>
+                    <p className="mt-1 text-muted-foreground text-xs">
+                      {ticket.organizationName}
+                    </p>
+                  </TableCell>
+                  <TableCell className="py-3">
                     <TicketStatus
                       status={ticket.status}
                       isAgent={isAgent}
                       dot
                     />
-                  </span>
-                  <span className="lg:col-span-2">
+                  </TableCell>
+                  <TableCell className="py-3">
                     <TicketSeverity severity={ticket.severity} />
-                  </span>
+                  </TableCell>
                   {isAgent && (
-                    <span className="break-words text-muted-foreground text-sm lg:col-span-2">
-                      {ticket.assigneeName ?? 'Unassigned'}
-                    </span>
+                    <TableCell className="py-3">
+                      {ticket.assigneeName ? (
+                        <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm">
+                          <Avatar
+                            className="h-6 w-6 text-[0.625rem]"
+                            fallback={supportInitials(ticket.assigneeName)}
+                          />
+                          {ticket.assigneeName}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          Unassigned
+                        </span>
+                      )}
+                    </TableCell>
                   )}
-                  <time
-                    dateTime={ticket.updatedAt}
-                    className="whitespace-nowrap text-muted-foreground text-xs lg:text-right"
-                  >
-                    {new Intl.DateTimeFormat(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                    }).format(new Date(ticket.updatedAt))}
-                  </time>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <TableCell className="whitespace-nowrap py-3 text-right text-muted-foreground text-xs">
+                    <time dateTime={ticket.updatedAt}>
+                      {new Intl.DateTimeFormat(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }).format(new Date(ticket.updatedAt))}
+                    </time>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
       {isSample && !tickets.isError && samplePageCount > 1 && (
         <Pagination
