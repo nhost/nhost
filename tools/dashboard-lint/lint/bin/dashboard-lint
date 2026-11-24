@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec node "$(dirname "$(readlink -f "$0")")/../src/main.mjs" "$@"

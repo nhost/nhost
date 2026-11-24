@@ -1,0 +1,6 @@
+language js
+
+`$obj.$method($args)` where {
+  $method <: or { `querySelector`, `querySelectorAll` },
+  register_diagnostic(span=$method, message="[no-query-selector-in-tests] Query elements the way a user finds them, not with querySelector.", severity="error")
+}

@@ -9,6 +9,7 @@
     "analyze": "ANALYZE=true pnpm build",
     "start": "next start",
     "lint": "biome check",
+    "lint:design": "biome check --config-path=biome.design.json --max-diagnostics=none",
     "test": "pnpm test:typecheck && pnpm lint && pnpm test:vitest && pnpm test:broken-links",
     "test:vitest": "vitest run",
     "test:watch": "vitest",
@@ -24,7 +25,9 @@
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
     "e2e": "pnpm e2e:tests --project=main --workers=1 && pnpm e2e:tests --project=main-parallelizable --workers=2",
     "e2e:local": "pnpm e2e:tests --project=local",
-    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding",
+    "design-doctor": "node design-doctor/cli.mjs",
+    "test:design-doctor": "biome check design-doctor && tsc -p design-doctor && vitest run --config design-doctor/vitest.config.mts"
   },
   "dependencies": {
     "@apollo/client": "^3.14.1",

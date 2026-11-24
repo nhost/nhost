@@ -1,0 +1,128 @@
+{
+  "root": true,
+  "extends": ["../biome.json", "./biome.json"],
+  "vcs": {
+    "root": ".."
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noImportCycles": "off"
+      }
+    }
+  },
+  "plugins": [
+    {
+      "path": "./design-doctor/generated/plugins/no-direct-radix-imports.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/no-reinvented-components.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/no-arbitrary-values.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/no-raw-colors.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/no-unknown-classes.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/no-inline-styles.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    },
+    {
+      "path": "./design-doctor/generated/plugins/require-static-classes.grit",
+      "includes": [
+        "**/dashboard/src/**",
+        "!**/dashboard/src/components/ui/v3/**",
+        "!**/dashboard/src/**/*.test.*",
+        "!**/dashboard/src/**/*.spec.*",
+        "!**/dashboard/src/**/__tests__/**",
+        "!**/dashboard/src/**/tests/**",
+        "!**/dashboard/src/**/testUtils/**",
+        "!**/dashboard/src/**/mocks/**",
+        "!**/dashboard/src/**/__mocks__/**",
+        "!**/dashboard/src/**/generated/**",
+        "!**/dashboard/src/**/__generated__/**"
+      ]
+    }
+  ]
+}

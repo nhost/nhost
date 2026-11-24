@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "changed": 0,
+    "unchanged": 3732,
+    "matches": 0,
+    "duration": 954030792,
+    "errors": 0,
+    "warnings": 38,
+    "infos": 0,
+    "skipped": 0,
+    "suggestedFixesSkipped": 0,
+    "diagnosticsNotPrinted": 0,
+    "scannerDuration": 71615125
+  },
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "message": "[design/no-direct-radix-imports] \"HoverCardPortal\" No exact ui/v3 export is recorded for this primitive; check the catalog or ask design before replacing it. Docs: design-doctor/docs/rules/no-direct-radix-imports.md",
+      "category": "plugin",
+      "location": {
+        "path": "src/components/presentational/HoverCardTimestamp/HoverCardTimestamp.tsx",
+        "start": {
+          "line": 1,
+          "column": 10
+        },
+        "end": {
+          "line": 1,
+          "column": 25
+        }
+      },
+      "advices": []
+    },
+    {
+      "severity": "warning",
+      "message": "[design/no-reinvented-components] \"button\" Use Button from @/components/ui/v3/button instead of raw <button>. Button offers variants (default, destructive, outline, outline-emboss, secondary, ghost, subtle, link), sizes (xs, sm, md, lg, icon-xs, icon-sm, icon) and asChild composition. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md",
+      "category": "plugin",
+      "location": {
+        "path": "src/components/common/CookieConsent/CookieConsent.tsx",
+        "start": {
+          "line": 81,
+          "column": 12
+        },
+        "end": {
+          "line": 81,
+          "column": 18
+        }
+      },
+      "advices": []
+    },
+    {
+      "severity": "warning",
+      "message": "",
+      "category": "check",
+      "location": {
+        "path": "src/utils/__generated__/graphql.ts",
+        "start": {
+          "line": 0,
+          "column": 0
+        },
+        "end": {
+          "line": 0,
+          "column": 0
+        }
+      },
+      "advices": []
+    }
+  ],
+  "command": "check"
+}

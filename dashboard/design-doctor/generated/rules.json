@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "biomeVersion": "2.5.11",
+  "scope": {
+    "includes": [
+      "**/dashboard/src/**",
+      "!**/dashboard/src/components/ui/v3/**",
+      "!**/dashboard/src/**/*.test.*",
+      "!**/dashboard/src/**/*.spec.*",
+      "!**/dashboard/src/**/__tests__/**",
+      "!**/dashboard/src/**/tests/**",
+      "!**/dashboard/src/**/testUtils/**",
+      "!**/dashboard/src/**/mocks/**",
+      "!**/dashboard/src/**/__mocks__/**",
+      "!**/dashboard/src/**/generated/**",
+      "!**/dashboard/src/**/__generated__/**"
+    ]
+  },
+  "rules": [
+    {
+      "id": "no-direct-radix-imports",
+      "version": 2,
+      "category": "components",
+      "weight": 2,
+      "subject": "Named imports and re-exports use the imported name (before any alias); default and namespace imports use the local identifier; side-effect imports, export * forms and dynamic imports use the quoted module literal, normalizing double quotes to single quotes.",
+      "docs": "design-doctor/docs/rules/no-direct-radix-imports.md",
+      "vocabularyHash": "d4c06cfd42d71eb076f96b0730618782ad93c0c615a0264af47aaa991bb3c5f8"
+    },
+    {
+      "id": "no-reinvented-components",
+      "version": 1,
+      "category": "components",
+      "weight": 2,
+      "subject": "The raw JSX tag name, or input[type=checkbox] / input[type=radio] for a statically typed input.",
+      "docs": "design-doctor/docs/rules/no-reinvented-components.md",
+      "vocabularyHash": "9edd0885c673b6c1c19d2ff700e7fcfd1ca1eeea7a9aa89b0de82d4e160fe6ac"
+    },
+    {
+      "id": "no-arbitrary-values",
+      "version": 2,
+      "category": "appearance",
+      "weight": 1,
+      "subject": "The complete arbitrary-value class token including variants and important marker, or an arbitrary CSS property token.",
+      "docs": "design-doctor/docs/rules/no-arbitrary-values.md",
+      "vocabularyHash": "62584c5cc390d1e951a27b793ac537e06c9dea8f578635f9b6597ec5d558d019"
+    },
+    {
+      "id": "no-raw-colors",
+      "version": 1,
+      "category": "colors",
+      "weight": 2,
+      "subject": "The complete class token (including variants, important marker and opacity), or attribute=value for a literal SVG color.",
+      "docs": "design-doctor/docs/rules/no-raw-colors.md",
+      "vocabularyHash": "16778bc7afd0367fffa1a2a1093dab88a6b124c785bc564646b606613c8f796c"
+    },
+    {
+      "id": "no-unknown-classes",
+      "version": 2,
+      "category": "utilities",
+      "weight": 3,
+      "subject": "The complete statically readable class token, including unknown variants, important markers and opacity modifiers. Bases after valid variants are not checked.",
+      "docs": "design-doctor/docs/rules/no-unknown-classes.md",
+      "vocabularyHash": "6b453961882a72d0e4811cebf352e98fed492b5798577a6cca8e0acb43f678ff"
+    },
+    {
+      "id": "no-inline-styles",
+      "version": 1,
+      "category": "appearance",
+      "weight": 1,
+      "subject": "The unquoted property name; a flattened expression for conditional, logical, array, template and other unreadable styles; a callee followed by (); a spread prefixed with three dots; [computed]; style for a string attribute; or `<style>` for a style element. Subjects omit whitespace and source positions.",
+      "docs": "design-doctor/docs/rules/no-inline-styles.md",
+      "vocabularyHash": "560f01c3f90d32c7a936b2d8128d9510e5ff8c63506795882c28fe164da9b719"
+    },
+    {
+      "id": "require-static-classes",
+      "version": 1,
+      "category": "utilities",
+      "weight": 3,
+      "subject": "Glued template edges replace interpolations with ${…}; the joined subject depends on the chunk around the final interpolation (text-${b} w-[${a}px] joins w-[${…}px], but w-[${a}px] ${b} has separate edges). Unreadable design-component values use the JSX tag and a flattened identifier, member or callee with empty parentheses. Direct calls omit arguments; member expressions over calls retain flattened arguments (getA(1).b). Subjects omit source positions.",
+      "docs": "design-doctor/docs/rules/require-static-classes.md",
+      "vocabularyHash": "6240087b584d20f2cc37d37871c67601f6621913a20ee2c3445e10d484faa766"
+    }
+  ]
+}

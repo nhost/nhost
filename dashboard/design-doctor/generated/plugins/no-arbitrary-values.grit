@@ -1,0 +1,102 @@
+language js
+
+pattern class_normalized($normalized) {
+  $token where {
+    $token <: r"^(?:(?:[A-Za-z0-9_+/@-]+(?:\[[^\]]+\])?|\[[^\]]+\]):)*([\s\S]+)$"($base),
+    $base <: r"^(?:!|-)*([\s\S]+)$"($normalized)
+  }
+}
+
+pattern class_token($acc) {
+  $part where { $part <: r"^[^ \t\r\n]+$", or { $part <: includes "[" }, $part <: class_normalized($normal), or {
+      $normal <: r"^(?:slide-in-from-bottom|backdrop-brightness|backdrop-hue-rotate|placeholder-opacity|slide-in-from-right|slide-out-to-bottom|backdrop-grayscale|slide-in-from-left|slide-out-to-right|backdrop-contrast|backdrop-saturate|slide-in-from-top|slide-out-to-left|backdrop-opacity|border-spacing-x|border-spacing-y|slide-out-to-top|underline-offset|backdrop-invert|backdrop-sepia|border-opacity|border-spacing|divide-opacity|outline-offset|animate-delay|backdrop-blur|ring-opacity|text-opacity|drop-shadow|placeholder|ring-offset|bg-opacity|brightness|decoration|hue-rotate|line-clamp|list-image|rounded-bl|rounded-br|rounded-ee|rounded-es|rounded-se|rounded-ss|rounded-tl|rounded-tr|transition|direction|fill-mode|grayscale|rounded-b|rounded-e|rounded-l|rounded-r|rounded-s|rounded-t|border-b|border-e|border-l|border-r|border-s|border-t|border-x|border-y|contrast|divide-x|divide-y|duration|fade-out|saturate|spin-out|tracking|zoom-out|animate|fade-in|leading|opacity|outline|rounded|space-x|space-y|spin-in|zoom-in|accent|border|divide|indent|invert|repeat|shadow|stroke|caret|delay|gap-x|gap-y|sepia|blur|ease|fill|font|from|list|ring|text|gap|via|bg|pb|pe|pl|pr|ps|pt|px|py|to|p)-\[[^\]]+\](?:/[^ ]+)?$",
+      $normal <: r"^\[(?:(?:[a-z-]*-)?color|background|fill|stroke|padding(?:-[a-z-]+)?|gap|row-gap|column-gap|border-spacing(?:-[xy])?|font(?:-[a-z-]+)?|letter-spacing|line-height|text-decoration(?:-[a-z-]+)?|text-transform|text-indent|text-underline(?:-[a-z-]+)?|word-spacing|list-style(?:-[a-z-]+)?|border(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?)?(?:-(?:width|style|radius))?|border-[a-z-]+-radius|outline(?:-[a-z-]+)?|--tw-ring-width|--tw-ring-inset|box-shadow|text-shadow|opacity|filter|backdrop-filter|mix-blend-mode|background-blend-mode|transition(?:-[a-z-]+)?|animation(?:-[a-z-]+)?):[^\]]+\]$"
+    },
+    not { $normal <: r"^.*-\[(?:(?:[a-z]+:)?var\(--[^)]+\)|--[A-Za-z0-9_-]+)\](?:/[^ ]+)?$" },
+    not { $normal <: r"^\[[^:]+:var\(--[^)]+\)\]$" },
+    not { $normal <: r"^.*-\[(?:rgb|hsl|hwb|oklch|oklab)\(var\(--[^)]+\)(?:/[^)]+)?\)\](?:/[^ ]+)?$" },
+    not { $normal <: r"^\[(?:(?:[a-z-]*-)?color|background|fill|stroke):(?:rgb|hsl|hwb|oklch|oklab)\(var\(--[^)]+\)(?:/[^)]+)?\)\]$" }, $acc += $part, $acc += " " }
+}
+
+or {
+  JsxString() as $site where { or { $site <: includes "[" }, $site <: within JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$") until JsxAttribute(), or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-arbitrary-values] $acc Guidance: Arbitrary appearance value. Use a declared v3 token or scale; see pnpm design-doctor for exact or nearest (not exact) replacements in generated/tokens.md. Docs: design-doctor/docs/rules/no-arbitrary-values.md`, severity="warn") },
+  JsStringLiteralExpression() as $site where { or { $site <: includes "[" }, $site <: within or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") }, not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    }, or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-arbitrary-values] $acc Guidance: Arbitrary appearance value. Use a declared v3 token or scale; see pnpm design-doctor for exact or nearest (not exact) replacements in generated/tokens.md. Docs: design-doctor/docs/rules/no-arbitrary-values.md`, severity="warn") },
+  JsTemplateChunkElement() as $site where { or { $site <: includes "[" }, $site <: within or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") }, not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    }, or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-arbitrary-values] $acc Guidance: Arbitrary appearance value. Use a declared v3 token or scale; see pnpm design-doctor for exact or nearest (not exact) replacements in generated/tokens.md. Docs: design-doctor/docs/rules/no-arbitrary-values.md`, severity="warn") },
+  JsPropertyObjectMember(name=$site, value=$value) as $member where {
+    or { $site <: includes "[" },
+    $member <: within JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"),
+    or {
+      $site <: r"^['\x22][^'\x22]+['\x22]$",
+      $site <: r"^[A-Za-z_$][A-Za-z0-9_$]*$" where {
+        not { $member <: within JsCallExpression(callee=r"^cva$") until JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") }
+      }
+    },
+    not {
+      $member <: within JsCallExpression(callee=r"^cva$"),
+      $value <: or { JsStringLiteralExpression(), JsArrayExpression(), JsObjectExpression() }
+    },
+    not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    },
+    or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-arbitrary-values] $acc Guidance: Arbitrary appearance value. Use a declared v3 token or scale; see pnpm design-doctor for exact or nearest (not exact) replacements in generated/tokens.md. Docs: design-doctor/docs/rules/no-arbitrary-values.md`, severity="warn")
+  }
+}

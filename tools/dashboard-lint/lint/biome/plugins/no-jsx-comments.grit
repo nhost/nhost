@@ -1,0 +1,6 @@
+language js
+
+JsxExpressionChild() as $child where {
+  $child <: r"^\{\s*/\*[\s\S]*\*/\s*\}$",
+  register_diagnostic(span=$child, message="[no-jsx-comments] Do not label JSX with comments.", severity="error")
+}

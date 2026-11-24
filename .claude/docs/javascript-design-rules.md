@@ -38,7 +38,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 ### Comments
 
 - No comments unless explaining complex logic — code should be self-explanatory.
-- No inline JSX comments like `{/* Section Name */}` to label sections.
+- No inline JSX comments like `{/* Section Name */}` to label sections. The dashboard design doctor's leading `{/* design-doctor-ignore <rule-id>: <reason> */}` directive before a JSX child is exempt; it suppresses that rule only for the next syntax node. A nonempty reason is required.
 - In `.mdx` files, HTML `<!-- ... -->` comments are a parse error in MDX v3 (`@mdx-js/mdx` 3, used by `@astrojs/mdx` 7). When comments are necessary, use `{/* ... */}` instead, as with the generated-block markers in `docs/src/content/docs/products/database/extensions.mdx`.
 
 ---
@@ -77,8 +77,11 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 ### Styling
 
 - Tailwind CSS with `tailwind-merge` and `clsx`.
-- Use `cn()` from `@/lib/utils` for class merging: `className={cn('base-class', variant && 'variant-class', { 'bg-red-500': isError }, className)}`.
-- Component variants use `class-variance-authority` (see `button.tsx`).
+- Use `cn()` from `@/lib/utils` for class merging: `className={cn('base-class', variant && 'variant-class', { 'bg-destructive': isError }, className)}`.
+- Use declared color tokens only; no palette utilities or `white`/`black`. Avoid arbitrary appearance values; prefer declared Tailwind v3 scales and tokens.
+- For dynamic values, pass a CSS custom property (`style={{ '--x': value }}` with `w-[var(--x)]`) instead of ordinary inline styles. Keep class names complete and static; do not glue interpolation into a utility.
+- Prefer shared components over raw elements, and import Radix primitives through `ui/v3` wrappers rather than directly from `@radix-ui/*`.
+- Component variants use `class-variance-authority` (see `button.tsx`). See `dashboard/design-doctor/generated/tokens.md` and `dashboard/design-doctor/generated/catalog.md`; run `pnpm design-doctor --changed --base <PR base branch> --check` from `dashboard/`.
 
 ### Errors (dashboard-specific)
 

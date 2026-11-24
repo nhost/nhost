@@ -1,0 +1,3613 @@
+{
+  "schemaVersion": 1,
+  "modules": [
+    {
+      "importPath": "@/components/common/ApplyLocalSettingsDialog",
+      "exports": [
+        "ApplyLocalSettingsDialog"
+      ]
+    },
+    {
+      "importPath": "@/components/common/CookieConsent",
+      "exports": [
+        "CookieConsent"
+      ]
+    },
+    {
+      "importPath": "@/components/common/DatePicker",
+      "exports": [
+        "DatePicker"
+      ]
+    },
+    {
+      "importPath": "@/components/common/DateTimePicker",
+      "exports": [
+        "DateTimePicker"
+      ]
+    },
+    {
+      "importPath": "@/components/common/DialogProvider",
+      "exports": [
+        "DialogContext",
+        "DialogProvider",
+        "useDialog"
+      ]
+    },
+    {
+      "importPath": "@/components/common/DiscardChangesDialog",
+      "exports": [
+        "DiscardChangesDialog"
+      ]
+    },
+    {
+      "importPath": "@/components/common/DragAndDropList",
+      "exports": [
+        "DragAndDropList",
+        "DraggableItem"
+      ]
+    },
+    {
+      "importPath": "@/components/common/ElevateSessionDialog",
+      "exports": [
+        "ElevateSessionDialog"
+      ]
+    },
+    {
+      "importPath": "@/components/common/MfaOtpForm",
+      "exports": [
+        "MfaOtpForm"
+      ]
+    },
+    {
+      "importPath": "@/components/common/NavLink",
+      "exports": [
+        "ListNavLink",
+        "NavLink"
+      ]
+    },
+    {
+      "importPath": "@/components/common/OpenTransferDialogButton",
+      "exports": [
+        "OpenTransferDialogButton"
+      ]
+    },
+    {
+      "importPath": "@/components/common/Pagination",
+      "exports": [
+        "Pagination"
+      ]
+    },
+    {
+      "importPath": "@/components/common/PermissionSettingsSection",
+      "exports": [
+        "PermissionSettingsSection"
+      ]
+    },
+    {
+      "importPath": "@/components/common/PermissionsGrid",
+      "exports": [
+        "PermissionsGrid",
+        "findPermission"
+      ]
+    },
+    {
+      "importPath": "@/components/common/PermissionsGridLayout",
+      "exports": [
+        "PermissionsGridLayout"
+      ]
+    },
+    {
+      "importPath": "@/components/common/PickerTriggerSlot",
+      "exports": [
+        "usePickerTriggerSlot"
+      ]
+    },
+    {
+      "importPath": "@/components/common/RoleActionSwitcher",
+      "exports": [
+        "RoleActionSwitcher"
+      ]
+    },
+    {
+      "importPath": "@/components/common/SelectOrg",
+      "exports": [
+        "SelectOrg"
+      ]
+    },
+    {
+      "importPath": "@/components/common/SelectOrgAndProject",
+      "exports": [
+        "SelectOrgAndProject"
+      ]
+    },
+    {
+      "importPath": "@/components/common/ThemeSwitcher",
+      "exports": [
+        "ThemeSwitcher"
+      ]
+    },
+    {
+      "importPath": "@/components/common/TimePicker",
+      "exports": [
+        "TimePicker"
+      ]
+    },
+    {
+      "importPath": "@/components/common/TimePickerField",
+      "exports": [
+        "TimePickerField"
+      ]
+    },
+    {
+      "importPath": "@/components/common/TimezonePicker",
+      "exports": [
+        "TimezonePicker"
+      ]
+    },
+    {
+      "importPath": "@/components/common/UpgradeToProBanner",
+      "exports": [
+        "UpgradeToProBanner"
+      ]
+    },
+    {
+      "importPath": "@/components/common/VirtualizedCombobox",
+      "exports": [
+        "VirtualizedCombobox"
+      ]
+    },
+    {
+      "importPath": "@/components/common/useMediaQuery",
+      "exports": [
+        "useMediaQuery"
+      ]
+    },
+    {
+      "importPath": "@/components/form/Form",
+      "exports": [
+        "Form"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormActivityIndicator",
+      "exports": [
+        "FormActivityIndicator"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormCheckbox",
+      "exports": [
+        "FormCheckbox"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormCodeEditor",
+      "exports": [
+        "FormCodeEditor"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormCombobox",
+      "exports": [
+        "FormCombobox"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormFreeCombobox",
+      "exports": [
+        "FormFreeCombobox"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormInput",
+      "exports": [
+        "FormInput"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormPasswordInput",
+      "exports": [
+        "FormPasswordInput"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormSelect",
+      "exports": [
+        "FormSelect"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormSwitch",
+      "exports": [
+        "FormSwitch"
+      ]
+    },
+    {
+      "importPath": "@/components/form/FormTextarea",
+      "exports": [
+        "FormTextarea"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/CodeBlock",
+      "exports": [
+        "CodeBlock"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/CopyToClipboardButton",
+      "exports": [
+        "CopyToClipboardButton"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/ErrorMessage",
+      "exports": [
+        "ErrorMessage"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/HighlightedText",
+      "exports": [
+        "HighlightedText"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/HoverCardTimestamp",
+      "exports": [
+        "HoverCardTimestamp"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/LoadingScreen",
+      "exports": [
+        "LoadingScreen"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/Logo",
+      "exports": [
+        "Logo"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/Nav",
+      "exports": [
+        "Nav"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/NhostIcon",
+      "exports": [
+        "NhostIcon"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/ReadOnlyCombobox",
+      "exports": [
+        "ReadOnlyCombobox"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/ReadOnlySelect",
+      "exports": [
+        "ReadOnlySelect"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/ReadOnlyToggle",
+      "exports": [
+        "ReadOnlyToggle"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/RetryableErrorBoundary",
+      "exports": [
+        "RetryableErrorBoundary"
+      ]
+    },
+    {
+      "importPath": "@/components/presentational/StatusCircle",
+      "exports": [
+        "StatusCircle"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/accordion",
+      "exports": [
+        "Accordion",
+        "AccordionContent",
+        "AccordionItem",
+        "AccordionTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "exports": [
+        "AlertDialog",
+        "AlertDialogAction",
+        "AlertDialogCancel",
+        "AlertDialogContent",
+        "AlertDialogDescription",
+        "AlertDialogFooter",
+        "AlertDialogHeader",
+        "AlertDialogOverlay",
+        "AlertDialogPortal",
+        "AlertDialogTitle",
+        "AlertDialogTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/alert",
+      "exports": [
+        "Alert",
+        "AlertDescription",
+        "AlertTitle"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/avatar",
+      "exports": [
+        "Avatar",
+        "AvatarFallback",
+        "AvatarImage",
+        "AvatarRoot"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/badge",
+      "exports": [
+        "Badge",
+        "badgeVariants"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/button-group",
+      "exports": [
+        "ButtonGroup",
+        "ButtonGroupSeparator",
+        "ButtonGroupText",
+        "buttonGroupVariants"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/button",
+      "exports": [
+        "Button",
+        "ButtonWithLoading",
+        "buttonVariants"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/calendar",
+      "exports": [
+        "Calendar"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/chart",
+      "exports": [
+        "ChartContainer",
+        "ChartLegend",
+        "ChartLegendContent",
+        "ChartStyle",
+        "ChartTooltip",
+        "ChartTooltipContent"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/checkbox",
+      "exports": [
+        "Checkbox"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/collapsible",
+      "exports": [
+        "Collapsible",
+        "CollapsibleContent",
+        "CollapsibleTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/combobox",
+      "exports": [
+        "Combobox"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/command",
+      "exports": [
+        "Command",
+        "CommandCreateItem",
+        "CommandDialog",
+        "CommandEmpty",
+        "CommandGroup",
+        "CommandInput",
+        "CommandItem",
+        "CommandList",
+        "CommandSeparator",
+        "CommandShortcut"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/dialog",
+      "exports": [
+        "Dialog",
+        "DialogClose",
+        "DialogContent",
+        "DialogDescription",
+        "DialogFooter",
+        "DialogHeader",
+        "DialogOverlay",
+        "DialogPortal",
+        "DialogTitle",
+        "DialogTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "exports": [
+        "DropdownMenu",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuContent",
+        "DropdownMenuGroup",
+        "DropdownMenuItem",
+        "DropdownMenuLabel",
+        "DropdownMenuPortal",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/fancy-multi-select",
+      "exports": [
+        "FancyMultiSelect"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/form",
+      "exports": [
+        "Form",
+        "FormControl",
+        "FormDescription",
+        "FormField",
+        "FormItem",
+        "FormLabel",
+        "FormMessage",
+        "useFormField"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/free-combobox",
+      "exports": [
+        "FreeCombobox"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/hover-card",
+      "exports": [
+        "HoverCard",
+        "HoverCardContent",
+        "HoverCardTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/inline-code",
+      "exports": [
+        "InlineCode"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/input-group",
+      "exports": [
+        "InputGroup",
+        "InputGroupAddon",
+        "InputGroupButton",
+        "InputGroupInput",
+        "InputGroupText",
+        "InputGroupTextarea"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/input-with-suggestions",
+      "exports": [
+        "InputWithSuggestions"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/input",
+      "exports": [
+        "Input"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/label",
+      "exports": [
+        "Label"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/multi-select",
+      "exports": [
+        "MultiSelect",
+        "MultiSelectContent",
+        "MultiSelectGroup",
+        "MultiSelectItem",
+        "MultiSelectSeparator",
+        "MultiSelectTrigger",
+        "MultiSelectValue"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/pagination",
+      "exports": [
+        "Pagination",
+        "PaginationContent",
+        "PaginationEllipsis",
+        "PaginationItem",
+        "PaginationLink",
+        "PaginationNext",
+        "PaginationPrevious"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/password-input",
+      "exports": [
+        "PasswordInput"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/popover",
+      "exports": [
+        "Popover",
+        "PopoverAnchor",
+        "PopoverClose",
+        "PopoverContent",
+        "PopoverTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/progress",
+      "exports": [
+        "Progress"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/radio-group",
+      "exports": [
+        "RadioGroup",
+        "RadioGroupItem"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/route-tabs",
+      "exports": [
+        "RouteTabLink",
+        "RouteTabSeparator",
+        "RouteTabs"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/select",
+      "exports": [
+        "Select",
+        "SelectContent",
+        "SelectGroup",
+        "SelectItem",
+        "SelectLabel",
+        "SelectScrollDownButton",
+        "SelectScrollUpButton",
+        "SelectSeparator",
+        "SelectTrigger",
+        "SelectValue"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/separator",
+      "exports": [
+        "Separator"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/sheet",
+      "exports": [
+        "Sheet",
+        "SheetClose",
+        "SheetContent",
+        "SheetDescription",
+        "SheetFooter",
+        "SheetHeader",
+        "SheetOverlay",
+        "SheetPortal",
+        "SheetTitle",
+        "SheetTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/skeleton",
+      "exports": [
+        "Skeleton"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/spinner",
+      "exports": [
+        "Spinner"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/switch",
+      "exports": [
+        "Switch"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/table",
+      "exports": [
+        "Table",
+        "TableBody",
+        "TableCaption",
+        "TableCell",
+        "TableFooter",
+        "TableHead",
+        "TableHeader",
+        "TableRow"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/tabs",
+      "exports": [
+        "Tabs",
+        "TabsContent",
+        "TabsList",
+        "TabsTrigger"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/text-link",
+      "exports": [
+        "TextLink"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/textarea",
+      "exports": [
+        "Textarea"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/toggle-group",
+      "exports": [
+        "ToggleGroup",
+        "ToggleGroupItem"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/toggle",
+      "exports": [
+        "Toggle",
+        "toggleVariants"
+      ]
+    },
+    {
+      "importPath": "@/components/ui/v3/tooltip",
+      "exports": [
+        "Tooltip",
+        "TooltipContent",
+        "TooltipProvider",
+        "TooltipTrigger"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "name": "ApplyLocalSettingsDialog",
+      "importPath": "@/components/common/ApplyLocalSettingsDialog",
+      "source": "src/components/common/ApplyLocalSettingsDialog/ApplyLocalSettingsDialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CookieConsent",
+      "importPath": "@/components/common/CookieConsent",
+      "source": "src/components/common/CookieConsent/CookieConsent.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DatePicker",
+      "importPath": "@/components/common/DatePicker",
+      "source": "src/components/common/DatePicker/DatePicker.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DateTimePicker",
+      "importPath": "@/components/common/DateTimePicker",
+      "source": "src/components/common/DateTimePicker/DateTimePicker.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DialogContext",
+      "importPath": "@/components/common/DialogProvider",
+      "source": "src/components/common/DialogProvider/DialogContext.ts",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DialogProvider",
+      "importPath": "@/components/common/DialogProvider",
+      "source": "src/components/common/DialogProvider/DialogProvider.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DiscardChangesDialog",
+      "importPath": "@/components/common/DiscardChangesDialog",
+      "source": "src/components/common/DiscardChangesDialog/DiscardChangesDialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DragAndDropList",
+      "importPath": "@/components/common/DragAndDropList",
+      "source": "src/components/common/DragAndDropList/DragAndDropList.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DraggableItem",
+      "importPath": "@/components/common/DragAndDropList",
+      "source": "src/components/common/DragAndDropList/DraggableItem.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ElevateSessionDialog",
+      "importPath": "@/components/common/ElevateSessionDialog",
+      "source": "src/components/common/ElevateSessionDialog/ElevateSessionDialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MfaOtpForm",
+      "importPath": "@/components/common/MfaOtpForm",
+      "source": "src/components/common/MfaOtpForm/MfaOtpForm.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ListNavLink",
+      "importPath": "@/components/common/NavLink",
+      "source": "src/components/common/NavLink/ListNavLink.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "NavLink",
+      "importPath": "@/components/common/NavLink",
+      "source": "src/components/common/NavLink/NavLink.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "OpenTransferDialogButton",
+      "importPath": "@/components/common/OpenTransferDialogButton",
+      "source": "src/components/common/OpenTransferDialogButton/OpenTransferDialogButton.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Pagination",
+      "importPath": "@/components/common/Pagination",
+      "source": "src/components/common/Pagination/Pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PermissionSettingsSection",
+      "importPath": "@/components/common/PermissionSettingsSection",
+      "source": "src/components/common/PermissionSettingsSection/PermissionSettingsSection.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PermissionsGrid",
+      "importPath": "@/components/common/PermissionsGrid",
+      "source": "src/components/common/PermissionsGrid/PermissionsGrid.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PermissionsGridLayout",
+      "importPath": "@/components/common/PermissionsGridLayout",
+      "source": "src/components/common/PermissionsGridLayout/PermissionsGridLayout.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "RoleActionSwitcher",
+      "importPath": "@/components/common/RoleActionSwitcher",
+      "source": "src/components/common/RoleActionSwitcher/RoleActionSwitcher.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "SelectOrg",
+      "importPath": "@/components/common/SelectOrg",
+      "source": "src/components/common/SelectOrg/SelectOrg.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "SelectOrgAndProject",
+      "importPath": "@/components/common/SelectOrgAndProject",
+      "source": "src/components/common/SelectOrgAndProject/SelectOrgAndProject.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ThemeSwitcher",
+      "importPath": "@/components/common/ThemeSwitcher",
+      "source": "src/components/common/ThemeSwitcher/ThemeSwitcher.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TimePicker",
+      "importPath": "@/components/common/TimePicker",
+      "source": "src/components/common/TimePicker/TimePicker.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TimePickerField",
+      "importPath": "@/components/common/TimePickerField",
+      "source": "src/components/common/TimePickerField/TimePickerField.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TimezonePicker",
+      "importPath": "@/components/common/TimezonePicker",
+      "source": "src/components/common/TimezonePicker/TimezonePicker.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "UpgradeToProBanner",
+      "importPath": "@/components/common/UpgradeToProBanner",
+      "source": "src/components/common/UpgradeToProBanner/UpgradeToProBanner.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "VirtualizedCombobox",
+      "importPath": "@/components/common/VirtualizedCombobox",
+      "source": "src/components/common/VirtualizedCombobox/VirtualizedCombobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Form",
+      "importPath": "@/components/form/Form",
+      "source": "src/components/form/Form/Form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormActivityIndicator",
+      "importPath": "@/components/form/FormActivityIndicator",
+      "source": "src/components/form/FormActivityIndicator/FormActivityIndicator.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormCheckbox",
+      "importPath": "@/components/form/FormCheckbox",
+      "source": "src/components/form/FormCheckbox/FormCheckbox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormCodeEditor",
+      "importPath": "@/components/form/FormCodeEditor",
+      "source": "src/components/form/FormCodeEditor/FormCodeEditor.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormCombobox",
+      "importPath": "@/components/form/FormCombobox",
+      "source": "src/components/form/FormCombobox/FormCombobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormFreeCombobox",
+      "importPath": "@/components/form/FormFreeCombobox",
+      "source": "src/components/form/FormFreeCombobox/FormFreeCombobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormInput",
+      "importPath": "@/components/form/FormInput",
+      "source": "src/components/form/FormInput/FormInput.tsx",
+      "purpose": "Form-managed text input with field validation.",
+      "replaces": [
+        "input"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormPasswordInput",
+      "importPath": "@/components/form/FormPasswordInput",
+      "source": "src/components/form/FormPasswordInput/FormPasswordInput.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormSelect",
+      "importPath": "@/components/form/FormSelect",
+      "source": "src/components/form/FormSelect/FormSelect.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormSwitch",
+      "importPath": "@/components/form/FormSwitch",
+      "source": "src/components/form/FormSwitch/FormSwitch.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormTextarea",
+      "importPath": "@/components/form/FormTextarea",
+      "source": "src/components/form/FormTextarea/FormTextarea.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CodeBlock",
+      "importPath": "@/components/presentational/CodeBlock",
+      "source": "src/components/presentational/CodeBlock/CodeBlock.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CopyToClipboardButton",
+      "importPath": "@/components/presentational/CopyToClipboardButton",
+      "source": "src/components/presentational/CopyToClipboardButton/CopyToClipboardButton.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ErrorMessage",
+      "importPath": "@/components/presentational/ErrorMessage",
+      "source": "src/components/presentational/ErrorMessage/ErrorMessage.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "HighlightedText",
+      "importPath": "@/components/presentational/HighlightedText",
+      "source": "src/components/presentational/HighlightedText/HighlightedText.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "HoverCardTimestamp",
+      "importPath": "@/components/presentational/HoverCardTimestamp",
+      "source": "src/components/presentational/HoverCardTimestamp/HoverCardTimestamp.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "LoadingScreen",
+      "importPath": "@/components/presentational/LoadingScreen",
+      "source": "src/components/presentational/LoadingScreen/LoadingScreen.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Logo",
+      "importPath": "@/components/presentational/Logo",
+      "source": "src/components/presentational/Logo/Logo.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Nav",
+      "importPath": "@/components/presentational/Nav",
+      "source": "src/components/presentational/Nav/Nav.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "NhostIcon",
+      "importPath": "@/components/presentational/NhostIcon",
+      "source": "src/components/presentational/NhostIcon/NhostIcon.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ReadOnlyCombobox",
+      "importPath": "@/components/presentational/ReadOnlyCombobox",
+      "source": "src/components/presentational/ReadOnlyCombobox/ReadOnlyCombobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ReadOnlySelect",
+      "importPath": "@/components/presentational/ReadOnlySelect",
+      "source": "src/components/presentational/ReadOnlySelect/ReadOnlySelect.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ReadOnlyToggle",
+      "importPath": "@/components/presentational/ReadOnlyToggle",
+      "source": "src/components/presentational/ReadOnlyToggle/ReadOnlyToggle.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "RetryableErrorBoundary",
+      "importPath": "@/components/presentational/RetryableErrorBoundary",
+      "source": "src/components/presentational/RetryableErrorBoundary/RetryableErrorBoundary.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "StatusCircle",
+      "importPath": "@/components/presentational/StatusCircle",
+      "source": "src/components/presentational/StatusCircle/StatusCircle.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Accordion",
+      "importPath": "@/components/ui/v3/accordion",
+      "source": "src/components/ui/v3/accordion.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-accordion",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "AccordionContent",
+      "importPath": "@/components/ui/v3/accordion",
+      "source": "src/components/ui/v3/accordion.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-accordion",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "AccordionItem",
+      "importPath": "@/components/ui/v3/accordion",
+      "source": "src/components/ui/v3/accordion.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-accordion",
+        "primitive": "Item"
+      }
+    },
+    {
+      "name": "AccordionTrigger",
+      "importPath": "@/components/ui/v3/accordion",
+      "source": "src/components/ui/v3/accordion.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-accordion",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "Alert",
+      "importPath": "@/components/ui/v3/alert",
+      "source": "src/components/ui/v3/alert.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "alertVariants",
+          "variants": {
+            "variant": [
+              "default",
+              "destructive",
+              "warning",
+              "success"
+            ]
+          },
+          "defaultVariants": {
+            "variant": "default"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "AlertDescription",
+      "importPath": "@/components/ui/v3/alert",
+      "source": "src/components/ui/v3/alert.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "AlertTitle",
+      "importPath": "@/components/ui/v3/alert",
+      "source": "src/components/ui/v3/alert.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "AlertDialog",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "AlertDialogAction",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Action"
+      }
+    },
+    {
+      "name": "AlertDialogCancel",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Cancel"
+      }
+    },
+    {
+      "name": "AlertDialogContent",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "AlertDialogDescription",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Description"
+      }
+    },
+    {
+      "name": "AlertDialogFooter",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "AlertDialogHeader",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "AlertDialogOverlay",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Overlay"
+      }
+    },
+    {
+      "name": "AlertDialogPortal",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Portal"
+      }
+    },
+    {
+      "name": "AlertDialogTitle",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Title"
+      }
+    },
+    {
+      "name": "AlertDialogTrigger",
+      "importPath": "@/components/ui/v3/alert-dialog",
+      "source": "src/components/ui/v3/alert-dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-alert-dialog",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "Avatar",
+      "importPath": "@/components/ui/v3/avatar",
+      "source": "src/components/ui/v3/avatar.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-avatar",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "AvatarFallback",
+      "importPath": "@/components/ui/v3/avatar",
+      "source": "src/components/ui/v3/avatar.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-avatar",
+        "primitive": "Fallback"
+      }
+    },
+    {
+      "name": "AvatarImage",
+      "importPath": "@/components/ui/v3/avatar",
+      "source": "src/components/ui/v3/avatar.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-avatar",
+        "primitive": "Image"
+      }
+    },
+    {
+      "name": "AvatarRoot",
+      "importPath": "@/components/ui/v3/avatar",
+      "source": "src/components/ui/v3/avatar.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-avatar",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "Badge",
+      "importPath": "@/components/ui/v3/badge",
+      "source": "src/components/ui/v3/badge.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "badgeVariants",
+          "variants": {
+            "variant": [
+              "default",
+              "secondary",
+              "destructive",
+              "outline"
+            ]
+          },
+          "defaultVariants": {
+            "variant": "default"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "Button",
+      "importPath": "@/components/ui/v3/button",
+      "source": "src/components/ui/v3/button.tsx",
+      "purpose": "Styled button with semantic variants, sizes, loading and asChild support.",
+      "replaces": [
+        "button"
+      ],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "baseButtonVariants",
+          "variants": {
+            "variant": [
+              "default",
+              "destructive",
+              "outline",
+              "ghost",
+              "subtle",
+              "link",
+              "menu",
+              "menu-destructive"
+            ],
+            "size": [
+              "xs",
+              "sm",
+              "md",
+              "lg",
+              "inline",
+              "icon-xs",
+              "icon-sm",
+              "icon"
+            ]
+          },
+          "defaultVariants": {
+            "variant": "default",
+            "size": "sm"
+          },
+          "conditionalDefaults": {
+            "sizeByVariant": {
+              "subtle": "icon-sm"
+            }
+          }
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "ButtonWithLoading",
+      "importPath": "@/components/ui/v3/button",
+      "source": "src/components/ui/v3/button.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "baseButtonVariants",
+          "variants": {
+            "variant": [
+              "default",
+              "destructive",
+              "outline",
+              "ghost",
+              "subtle",
+              "link",
+              "menu",
+              "menu-destructive"
+            ],
+            "size": [
+              "xs",
+              "sm",
+              "md",
+              "lg",
+              "inline",
+              "icon-xs",
+              "icon-sm",
+              "icon"
+            ]
+          },
+          "defaultVariants": {
+            "variant": "default",
+            "size": "sm"
+          },
+          "conditionalDefaults": {
+            "sizeByVariant": {
+              "subtle": "icon-sm"
+            }
+          }
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "ButtonGroup",
+      "importPath": "@/components/ui/v3/button-group",
+      "source": "src/components/ui/v3/button-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "buttonGroupVariants",
+          "variants": {
+            "orientation": [
+              "horizontal",
+              "vertical"
+            ]
+          },
+          "defaultVariants": {
+            "orientation": "horizontal"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "ButtonGroupSeparator",
+      "importPath": "@/components/ui/v3/button-group",
+      "source": "src/components/ui/v3/button-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ButtonGroupText",
+      "importPath": "@/components/ui/v3/button-group",
+      "source": "src/components/ui/v3/button-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Calendar",
+      "importPath": "@/components/ui/v3/calendar",
+      "source": "src/components/ui/v3/calendar.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartContainer",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartLegend",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartLegendContent",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartStyle",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartTooltip",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "ChartTooltipContent",
+      "importPath": "@/components/ui/v3/chart",
+      "source": "src/components/ui/v3/chart.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Checkbox",
+      "importPath": "@/components/ui/v3/checkbox",
+      "source": "src/components/ui/v3/checkbox.tsx",
+      "purpose": "Accessible checkbox backed by Radix.",
+      "replaces": [
+        "input[type=checkbox]"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-checkbox",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "Collapsible",
+      "importPath": "@/components/ui/v3/collapsible",
+      "source": "src/components/ui/v3/collapsible.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-collapsible",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "CollapsibleContent",
+      "importPath": "@/components/ui/v3/collapsible",
+      "source": "src/components/ui/v3/collapsible.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-collapsible",
+        "primitive": "CollapsibleContent"
+      }
+    },
+    {
+      "name": "CollapsibleTrigger",
+      "importPath": "@/components/ui/v3/collapsible",
+      "source": "src/components/ui/v3/collapsible.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-collapsible",
+        "primitive": "CollapsibleTrigger"
+      }
+    },
+    {
+      "name": "Combobox",
+      "importPath": "@/components/ui/v3/combobox",
+      "source": "src/components/ui/v3/combobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Command",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandCreateItem",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandDialog",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandEmpty",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandGroup",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandInput",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandItem",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandList",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandSeparator",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "CommandShortcut",
+      "importPath": "@/components/ui/v3/command",
+      "source": "src/components/ui/v3/command.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Dialog",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "DialogClose",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Close"
+      }
+    },
+    {
+      "name": "DialogContent",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "DialogDescription",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Description"
+      }
+    },
+    {
+      "name": "DialogFooter",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DialogHeader",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DialogOverlay",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Overlay"
+      }
+    },
+    {
+      "name": "DialogPortal",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Portal"
+      }
+    },
+    {
+      "name": "DialogTitle",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Title"
+      }
+    },
+    {
+      "name": "DialogTrigger",
+      "importPath": "@/components/ui/v3/dialog",
+      "source": "src/components/ui/v3/dialog.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "DropdownMenu",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "DropdownMenuCheckboxItem",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "CheckboxItem"
+      }
+    },
+    {
+      "name": "DropdownMenuContent",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "DropdownMenuGroup",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Group"
+      }
+    },
+    {
+      "name": "DropdownMenuItem",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Item"
+      }
+    },
+    {
+      "name": "DropdownMenuLabel",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Label"
+      }
+    },
+    {
+      "name": "DropdownMenuPortal",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Portal"
+      }
+    },
+    {
+      "name": "DropdownMenuRadioGroup",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "RadioGroup"
+      }
+    },
+    {
+      "name": "DropdownMenuRadioItem",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "RadioItem"
+      }
+    },
+    {
+      "name": "DropdownMenuSeparator",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Separator"
+      }
+    },
+    {
+      "name": "DropdownMenuShortcut",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "DropdownMenuSub",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Sub"
+      }
+    },
+    {
+      "name": "DropdownMenuSubContent",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "SubContent"
+      }
+    },
+    {
+      "name": "DropdownMenuSubTrigger",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "SubTrigger"
+      }
+    },
+    {
+      "name": "DropdownMenuTrigger",
+      "importPath": "@/components/ui/v3/dropdown-menu",
+      "source": "src/components/ui/v3/dropdown-menu.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dropdown-menu",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "FancyMultiSelect",
+      "importPath": "@/components/ui/v3/fancy-multi-select",
+      "source": "src/components/ui/v3/fancy-multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Form",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormControl",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormDescription",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormField",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormItem",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormLabel",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FormMessage",
+      "importPath": "@/components/ui/v3/form",
+      "source": "src/components/ui/v3/form.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "FreeCombobox",
+      "importPath": "@/components/ui/v3/free-combobox",
+      "source": "src/components/ui/v3/free-combobox.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "HoverCard",
+      "importPath": "@/components/ui/v3/hover-card",
+      "source": "src/components/ui/v3/hover-card.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-hover-card",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "HoverCardContent",
+      "importPath": "@/components/ui/v3/hover-card",
+      "source": "src/components/ui/v3/hover-card.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-hover-card",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "HoverCardTrigger",
+      "importPath": "@/components/ui/v3/hover-card",
+      "source": "src/components/ui/v3/hover-card.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-hover-card",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "InlineCode",
+      "importPath": "@/components/ui/v3/inline-code",
+      "source": "src/components/ui/v3/inline-code.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Input",
+      "importPath": "@/components/ui/v3/input",
+      "source": "src/components/ui/v3/input.tsx",
+      "purpose": "Styled text input for standalone fields.",
+      "replaces": [
+        "input"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "InputGroup",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "InputGroupAddon",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "inputGroupAddonVariants",
+          "variants": {
+            "align": [
+              "inline-start",
+              "inline-end",
+              "block-start",
+              "block-end"
+            ]
+          },
+          "defaultVariants": {
+            "align": "inline-start"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "InputGroupButton",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "inputGroupButtonVariants",
+          "variants": {
+            "size": [
+              "xs",
+              "sm",
+              "icon-xs",
+              "icon-sm"
+            ]
+          },
+          "defaultVariants": {
+            "size": "xs"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "InputGroupInput",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "InputGroupText",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "InputGroupTextarea",
+      "importPath": "@/components/ui/v3/input-group",
+      "source": "src/components/ui/v3/input-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "InputWithSuggestions",
+      "importPath": "@/components/ui/v3/input-with-suggestions",
+      "source": "src/components/ui/v3/input-with-suggestions.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Label",
+      "importPath": "@/components/ui/v3/label",
+      "source": "src/components/ui/v3/label.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-label",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "MultiSelect",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectContent",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectGroup",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectItem",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectSeparator",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectTrigger",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "MultiSelectValue",
+      "importPath": "@/components/ui/v3/multi-select",
+      "source": "src/components/ui/v3/multi-select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Pagination",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationContent",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationEllipsis",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationItem",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationLink",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationNext",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PaginationPrevious",
+      "importPath": "@/components/ui/v3/pagination",
+      "source": "src/components/ui/v3/pagination.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "PasswordInput",
+      "importPath": "@/components/ui/v3/password-input",
+      "source": "src/components/ui/v3/password-input.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Popover",
+      "importPath": "@/components/ui/v3/popover",
+      "source": "src/components/ui/v3/popover.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-popover",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "PopoverAnchor",
+      "importPath": "@/components/ui/v3/popover",
+      "source": "src/components/ui/v3/popover.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-popover",
+        "primitive": "Anchor"
+      }
+    },
+    {
+      "name": "PopoverClose",
+      "importPath": "@/components/ui/v3/popover",
+      "source": "src/components/ui/v3/popover.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-popover",
+        "primitive": "Close"
+      }
+    },
+    {
+      "name": "PopoverContent",
+      "importPath": "@/components/ui/v3/popover",
+      "source": "src/components/ui/v3/popover.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-popover",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "PopoverTrigger",
+      "importPath": "@/components/ui/v3/popover",
+      "source": "src/components/ui/v3/popover.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-popover",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "Progress",
+      "importPath": "@/components/ui/v3/progress",
+      "source": "src/components/ui/v3/progress.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-progress",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "RadioGroup",
+      "importPath": "@/components/ui/v3/radio-group",
+      "source": "src/components/ui/v3/radio-group.tsx",
+      "purpose": "Accessible radio selection group backed by Radix.",
+      "replaces": [
+        "input[type=radio]"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-radio-group",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "RadioGroupItem",
+      "importPath": "@/components/ui/v3/radio-group",
+      "source": "src/components/ui/v3/radio-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-radio-group",
+        "primitive": "Item"
+      }
+    },
+    {
+      "name": "RouteTabLink",
+      "importPath": "@/components/ui/v3/route-tabs",
+      "source": "src/components/ui/v3/route-tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "RouteTabSeparator",
+      "importPath": "@/components/ui/v3/route-tabs",
+      "source": "src/components/ui/v3/route-tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "RouteTabs",
+      "importPath": "@/components/ui/v3/route-tabs",
+      "source": "src/components/ui/v3/route-tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Select",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": "Accessible select root backed by Radix; compose with SelectTrigger and SelectContent.",
+      "replaces": [
+        "select"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "SelectContent",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "SelectGroup",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Group"
+      }
+    },
+    {
+      "name": "SelectItem",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Item"
+      }
+    },
+    {
+      "name": "SelectLabel",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Label"
+      }
+    },
+    {
+      "name": "SelectScrollDownButton",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "ScrollDownButton"
+      }
+    },
+    {
+      "name": "SelectScrollUpButton",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "ScrollUpButton"
+      }
+    },
+    {
+      "name": "SelectSeparator",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Separator"
+      }
+    },
+    {
+      "name": "SelectTrigger",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "SelectValue",
+      "importPath": "@/components/ui/v3/select",
+      "source": "src/components/ui/v3/select.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-select",
+        "primitive": "Value"
+      }
+    },
+    {
+      "name": "Separator",
+      "importPath": "@/components/ui/v3/separator",
+      "source": "src/components/ui/v3/separator.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-separator",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "Sheet",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "SheetClose",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Close"
+      }
+    },
+    {
+      "name": "SheetContent",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "sheetVariants",
+          "variants": {
+            "side": [
+              "top",
+              "bottom",
+              "left",
+              "right"
+            ]
+          },
+          "defaultVariants": {
+            "side": "right"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "SheetDescription",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Description"
+      }
+    },
+    {
+      "name": "SheetFooter",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "SheetHeader",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "SheetOverlay",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Overlay"
+      }
+    },
+    {
+      "name": "SheetPortal",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Portal"
+      }
+    },
+    {
+      "name": "SheetTitle",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Title"
+      }
+    },
+    {
+      "name": "SheetTrigger",
+      "importPath": "@/components/ui/v3/sheet",
+      "source": "src/components/ui/v3/sheet.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-dialog",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "Skeleton",
+      "importPath": "@/components/ui/v3/skeleton",
+      "source": "src/components/ui/v3/skeleton.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Spinner",
+      "importPath": "@/components/ui/v3/spinner",
+      "source": "src/components/ui/v3/spinner.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "loaderVariants",
+          "variants": {
+            "size": [
+              "xs",
+              "small",
+              "medium",
+              "large"
+            ]
+          },
+          "defaultVariants": {
+            "size": "medium"
+          },
+          "conditionalDefaults": {}
+        },
+        {
+          "name": "spinnerVariants",
+          "variants": {
+            "show": [
+              "true",
+              "false"
+            ]
+          },
+          "defaultVariants": {
+            "show": "true"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": null
+    },
+    {
+      "name": "Switch",
+      "importPath": "@/components/ui/v3/switch",
+      "source": "src/components/ui/v3/switch.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-switch",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "Table",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": "Styled table root and companion table elements.",
+      "replaces": [
+        "table"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableBody",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableCaption",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableCell",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableFooter",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableHead",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableHeader",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "TableRow",
+      "importPath": "@/components/ui/v3/table",
+      "source": "src/components/ui/v3/table.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Tabs",
+      "importPath": "@/components/ui/v3/tabs",
+      "source": "src/components/ui/v3/tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tabs",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "TabsContent",
+      "importPath": "@/components/ui/v3/tabs",
+      "source": "src/components/ui/v3/tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tabs",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "TabsList",
+      "importPath": "@/components/ui/v3/tabs",
+      "source": "src/components/ui/v3/tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tabs",
+        "primitive": "List"
+      }
+    },
+    {
+      "name": "TabsTrigger",
+      "importPath": "@/components/ui/v3/tabs",
+      "source": "src/components/ui/v3/tabs.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tabs",
+        "primitive": "Trigger"
+      }
+    },
+    {
+      "name": "TextLink",
+      "importPath": "@/components/ui/v3/text-link",
+      "source": "src/components/ui/v3/text-link.tsx",
+      "purpose": "App-aware navigation link with shared text styling.",
+      "replaces": [
+        "a"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Textarea",
+      "importPath": "@/components/ui/v3/textarea",
+      "source": "src/components/ui/v3/textarea.tsx",
+      "purpose": "Styled multiline text field.",
+      "replaces": [
+        "textarea"
+      ],
+      "dropIn": false,
+      "cva": [],
+      "radix": null
+    },
+    {
+      "name": "Toggle",
+      "importPath": "@/components/ui/v3/toggle",
+      "source": "src/components/ui/v3/toggle.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [
+        {
+          "name": "toggleVariants",
+          "variants": {
+            "variant": [
+              "default",
+              "outline"
+            ],
+            "size": [
+              "default",
+              "sm",
+              "lg"
+            ]
+          },
+          "defaultVariants": {
+            "variant": "default",
+            "size": "default"
+          },
+          "conditionalDefaults": {}
+        }
+      ],
+      "radix": {
+        "package": "@radix-ui/react-toggle",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "ToggleGroup",
+      "importPath": "@/components/ui/v3/toggle-group",
+      "source": "src/components/ui/v3/toggle-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-toggle-group",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "ToggleGroupItem",
+      "importPath": "@/components/ui/v3/toggle-group",
+      "source": "src/components/ui/v3/toggle-group.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-toggle-group",
+        "primitive": "Item"
+      }
+    },
+    {
+      "name": "Tooltip",
+      "importPath": "@/components/ui/v3/tooltip",
+      "source": "src/components/ui/v3/tooltip.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tooltip",
+        "primitive": "Root"
+      }
+    },
+    {
+      "name": "TooltipContent",
+      "importPath": "@/components/ui/v3/tooltip",
+      "source": "src/components/ui/v3/tooltip.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tooltip",
+        "primitive": "Content"
+      }
+    },
+    {
+      "name": "TooltipProvider",
+      "importPath": "@/components/ui/v3/tooltip",
+      "source": "src/components/ui/v3/tooltip.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tooltip",
+        "primitive": "Provider"
+      }
+    },
+    {
+      "name": "TooltipTrigger",
+      "importPath": "@/components/ui/v3/tooltip",
+      "source": "src/components/ui/v3/tooltip.tsx",
+      "purpose": null,
+      "replaces": [],
+      "dropIn": false,
+      "cva": [],
+      "radix": {
+        "package": "@radix-ui/react-tooltip",
+        "primitive": "Trigger"
+      }
+    }
+  ],
+  "undocumented": [
+    "@/components/common/ApplyLocalSettingsDialog#ApplyLocalSettingsDialog",
+    "@/components/common/CookieConsent#CookieConsent",
+    "@/components/common/DatePicker#DatePicker",
+    "@/components/common/DateTimePicker#DateTimePicker",
+    "@/components/common/DialogProvider#DialogContext",
+    "@/components/common/DialogProvider#DialogProvider",
+    "@/components/common/DiscardChangesDialog#DiscardChangesDialog",
+    "@/components/common/DragAndDropList#DragAndDropList",
+    "@/components/common/DragAndDropList#DraggableItem",
+    "@/components/common/ElevateSessionDialog#ElevateSessionDialog",
+    "@/components/common/MfaOtpForm#MfaOtpForm",
+    "@/components/common/NavLink#ListNavLink",
+    "@/components/common/NavLink#NavLink",
+    "@/components/common/OpenTransferDialogButton#OpenTransferDialogButton",
+    "@/components/common/Pagination#Pagination",
+    "@/components/common/PermissionSettingsSection#PermissionSettingsSection",
+    "@/components/common/PermissionsGrid#PermissionsGrid",
+    "@/components/common/PermissionsGridLayout#PermissionsGridLayout",
+    "@/components/common/RoleActionSwitcher#RoleActionSwitcher",
+    "@/components/common/SelectOrg#SelectOrg",
+    "@/components/common/SelectOrgAndProject#SelectOrgAndProject",
+    "@/components/common/ThemeSwitcher#ThemeSwitcher",
+    "@/components/common/TimePicker#TimePicker",
+    "@/components/common/TimePickerField#TimePickerField",
+    "@/components/common/TimezonePicker#TimezonePicker",
+    "@/components/common/UpgradeToProBanner#UpgradeToProBanner",
+    "@/components/common/VirtualizedCombobox#VirtualizedCombobox",
+    "@/components/form/Form#Form",
+    "@/components/form/FormActivityIndicator#FormActivityIndicator",
+    "@/components/form/FormCheckbox#FormCheckbox",
+    "@/components/form/FormCodeEditor#FormCodeEditor",
+    "@/components/form/FormCombobox#FormCombobox",
+    "@/components/form/FormFreeCombobox#FormFreeCombobox",
+    "@/components/form/FormPasswordInput#FormPasswordInput",
+    "@/components/form/FormSelect#FormSelect",
+    "@/components/form/FormSwitch#FormSwitch",
+    "@/components/form/FormTextarea#FormTextarea",
+    "@/components/presentational/CodeBlock#CodeBlock",
+    "@/components/presentational/CopyToClipboardButton#CopyToClipboardButton",
+    "@/components/presentational/ErrorMessage#ErrorMessage",
+    "@/components/presentational/HighlightedText#HighlightedText",
+    "@/components/presentational/HoverCardTimestamp#HoverCardTimestamp",
+    "@/components/presentational/LoadingScreen#LoadingScreen",
+    "@/components/presentational/Logo#Logo",
+    "@/components/presentational/Nav#Nav",
+    "@/components/presentational/NhostIcon#NhostIcon",
+    "@/components/presentational/ReadOnlyCombobox#ReadOnlyCombobox",
+    "@/components/presentational/ReadOnlySelect#ReadOnlySelect",
+    "@/components/presentational/ReadOnlyToggle#ReadOnlyToggle",
+    "@/components/presentational/RetryableErrorBoundary#RetryableErrorBoundary",
+    "@/components/presentational/StatusCircle#StatusCircle",
+    "@/components/ui/v3/accordion#Accordion",
+    "@/components/ui/v3/accordion#AccordionContent",
+    "@/components/ui/v3/accordion#AccordionItem",
+    "@/components/ui/v3/accordion#AccordionTrigger",
+    "@/components/ui/v3/alert#Alert",
+    "@/components/ui/v3/alert#AlertDescription",
+    "@/components/ui/v3/alert#AlertTitle",
+    "@/components/ui/v3/alert-dialog#AlertDialog",
+    "@/components/ui/v3/alert-dialog#AlertDialogAction",
+    "@/components/ui/v3/alert-dialog#AlertDialogCancel",
+    "@/components/ui/v3/alert-dialog#AlertDialogContent",
+    "@/components/ui/v3/alert-dialog#AlertDialogDescription",
+    "@/components/ui/v3/alert-dialog#AlertDialogFooter",
+    "@/components/ui/v3/alert-dialog#AlertDialogHeader",
+    "@/components/ui/v3/alert-dialog#AlertDialogOverlay",
+    "@/components/ui/v3/alert-dialog#AlertDialogPortal",
+    "@/components/ui/v3/alert-dialog#AlertDialogTitle",
+    "@/components/ui/v3/alert-dialog#AlertDialogTrigger",
+    "@/components/ui/v3/avatar#Avatar",
+    "@/components/ui/v3/avatar#AvatarFallback",
+    "@/components/ui/v3/avatar#AvatarImage",
+    "@/components/ui/v3/avatar#AvatarRoot",
+    "@/components/ui/v3/badge#Badge",
+    "@/components/ui/v3/button#ButtonWithLoading",
+    "@/components/ui/v3/button-group#ButtonGroup",
+    "@/components/ui/v3/button-group#ButtonGroupSeparator",
+    "@/components/ui/v3/button-group#ButtonGroupText",
+    "@/components/ui/v3/calendar#Calendar",
+    "@/components/ui/v3/chart#ChartContainer",
+    "@/components/ui/v3/chart#ChartLegend",
+    "@/components/ui/v3/chart#ChartLegendContent",
+    "@/components/ui/v3/chart#ChartStyle",
+    "@/components/ui/v3/chart#ChartTooltip",
+    "@/components/ui/v3/chart#ChartTooltipContent",
+    "@/components/ui/v3/collapsible#Collapsible",
+    "@/components/ui/v3/collapsible#CollapsibleContent",
+    "@/components/ui/v3/collapsible#CollapsibleTrigger",
+    "@/components/ui/v3/combobox#Combobox",
+    "@/components/ui/v3/command#Command",
+    "@/components/ui/v3/command#CommandCreateItem",
+    "@/components/ui/v3/command#CommandDialog",
+    "@/components/ui/v3/command#CommandEmpty",
+    "@/components/ui/v3/command#CommandGroup",
+    "@/components/ui/v3/command#CommandInput",
+    "@/components/ui/v3/command#CommandItem",
+    "@/components/ui/v3/command#CommandList",
+    "@/components/ui/v3/command#CommandSeparator",
+    "@/components/ui/v3/command#CommandShortcut",
+    "@/components/ui/v3/dialog#Dialog",
+    "@/components/ui/v3/dialog#DialogClose",
+    "@/components/ui/v3/dialog#DialogContent",
+    "@/components/ui/v3/dialog#DialogDescription",
+    "@/components/ui/v3/dialog#DialogFooter",
+    "@/components/ui/v3/dialog#DialogHeader",
+    "@/components/ui/v3/dialog#DialogOverlay",
+    "@/components/ui/v3/dialog#DialogPortal",
+    "@/components/ui/v3/dialog#DialogTitle",
+    "@/components/ui/v3/dialog#DialogTrigger",
+    "@/components/ui/v3/dropdown-menu#DropdownMenu",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuCheckboxItem",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuContent",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuGroup",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuItem",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuLabel",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuPortal",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuRadioGroup",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuRadioItem",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuSeparator",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuShortcut",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuSub",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuSubContent",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuSubTrigger",
+    "@/components/ui/v3/dropdown-menu#DropdownMenuTrigger",
+    "@/components/ui/v3/fancy-multi-select#FancyMultiSelect",
+    "@/components/ui/v3/form#Form",
+    "@/components/ui/v3/form#FormControl",
+    "@/components/ui/v3/form#FormDescription",
+    "@/components/ui/v3/form#FormField",
+    "@/components/ui/v3/form#FormItem",
+    "@/components/ui/v3/form#FormLabel",
+    "@/components/ui/v3/form#FormMessage",
+    "@/components/ui/v3/free-combobox#FreeCombobox",
+    "@/components/ui/v3/hover-card#HoverCard",
+    "@/components/ui/v3/hover-card#HoverCardContent",
+    "@/components/ui/v3/hover-card#HoverCardTrigger",
+    "@/components/ui/v3/inline-code#InlineCode",
+    "@/components/ui/v3/input-group#InputGroup",
+    "@/components/ui/v3/input-group#InputGroupAddon",
+    "@/components/ui/v3/input-group#InputGroupButton",
+    "@/components/ui/v3/input-group#InputGroupInput",
+    "@/components/ui/v3/input-group#InputGroupText",
+    "@/components/ui/v3/input-group#InputGroupTextarea",
+    "@/components/ui/v3/input-with-suggestions#InputWithSuggestions",
+    "@/components/ui/v3/label#Label",
+    "@/components/ui/v3/multi-select#MultiSelect",
+    "@/components/ui/v3/multi-select#MultiSelectContent",
+    "@/components/ui/v3/multi-select#MultiSelectGroup",
+    "@/components/ui/v3/multi-select#MultiSelectItem",
+    "@/components/ui/v3/multi-select#MultiSelectSeparator",
+    "@/components/ui/v3/multi-select#MultiSelectTrigger",
+    "@/components/ui/v3/multi-select#MultiSelectValue",
+    "@/components/ui/v3/pagination#Pagination",
+    "@/components/ui/v3/pagination#PaginationContent",
+    "@/components/ui/v3/pagination#PaginationEllipsis",
+    "@/components/ui/v3/pagination#PaginationItem",
+    "@/components/ui/v3/pagination#PaginationLink",
+    "@/components/ui/v3/pagination#PaginationNext",
+    "@/components/ui/v3/pagination#PaginationPrevious",
+    "@/components/ui/v3/password-input#PasswordInput",
+    "@/components/ui/v3/popover#Popover",
+    "@/components/ui/v3/popover#PopoverAnchor",
+    "@/components/ui/v3/popover#PopoverClose",
+    "@/components/ui/v3/popover#PopoverContent",
+    "@/components/ui/v3/popover#PopoverTrigger",
+    "@/components/ui/v3/progress#Progress",
+    "@/components/ui/v3/radio-group#RadioGroupItem",
+    "@/components/ui/v3/route-tabs#RouteTabLink",
+    "@/components/ui/v3/route-tabs#RouteTabSeparator",
+    "@/components/ui/v3/route-tabs#RouteTabs",
+    "@/components/ui/v3/select#SelectContent",
+    "@/components/ui/v3/select#SelectGroup",
+    "@/components/ui/v3/select#SelectItem",
+    "@/components/ui/v3/select#SelectLabel",
+    "@/components/ui/v3/select#SelectScrollDownButton",
+    "@/components/ui/v3/select#SelectScrollUpButton",
+    "@/components/ui/v3/select#SelectSeparator",
+    "@/components/ui/v3/select#SelectTrigger",
+    "@/components/ui/v3/select#SelectValue",
+    "@/components/ui/v3/separator#Separator",
+    "@/components/ui/v3/sheet#Sheet",
+    "@/components/ui/v3/sheet#SheetClose",
+    "@/components/ui/v3/sheet#SheetContent",
+    "@/components/ui/v3/sheet#SheetDescription",
+    "@/components/ui/v3/sheet#SheetFooter",
+    "@/components/ui/v3/sheet#SheetHeader",
+    "@/components/ui/v3/sheet#SheetOverlay",
+    "@/components/ui/v3/sheet#SheetPortal",
+    "@/components/ui/v3/sheet#SheetTitle",
+    "@/components/ui/v3/sheet#SheetTrigger",
+    "@/components/ui/v3/skeleton#Skeleton",
+    "@/components/ui/v3/spinner#Spinner",
+    "@/components/ui/v3/switch#Switch",
+    "@/components/ui/v3/table#TableBody",
+    "@/components/ui/v3/table#TableCaption",
+    "@/components/ui/v3/table#TableCell",
+    "@/components/ui/v3/table#TableFooter",
+    "@/components/ui/v3/table#TableHead",
+    "@/components/ui/v3/table#TableHeader",
+    "@/components/ui/v3/table#TableRow",
+    "@/components/ui/v3/tabs#Tabs",
+    "@/components/ui/v3/tabs#TabsContent",
+    "@/components/ui/v3/tabs#TabsList",
+    "@/components/ui/v3/tabs#TabsTrigger",
+    "@/components/ui/v3/toggle#Toggle",
+    "@/components/ui/v3/toggle-group#ToggleGroup",
+    "@/components/ui/v3/toggle-group#ToggleGroupItem",
+    "@/components/ui/v3/tooltip#Tooltip",
+    "@/components/ui/v3/tooltip#TooltipContent",
+    "@/components/ui/v3/tooltip#TooltipProvider",
+    "@/components/ui/v3/tooltip#TooltipTrigger"
+  ]
+}

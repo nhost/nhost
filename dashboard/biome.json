@@ -1,6 +1,13 @@
 {
   "root": false,
   "extends": "//",
+  "files": {
+    "includes": [
+      "**",
+      "!design-doctor/generated",
+      "!design-doctor/tests/fixtures"
+    ]
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -125,6 +132,10 @@
           }
         }
       }
+    },
+    {
+      "includes": ["design-doctor/**"],
+      "linter": { "rules": { "style": { "noRestrictedImports": "off" } } }
     },
     {
       "includes": ["**/*.css"],

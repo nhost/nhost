@@ -1,0 +1,165 @@
+language js
+
+or {
+  JsTemplateChunkElement() as $site where {
+    $site <: within or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") },
+    not { $site <: within or { JsBinaryExpression(), JsComputedMemberName(), JsComputedMemberExpression() } },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") } },
+    or {
+      $site <: after JsTemplateElement() where {
+        $site <: before JsTemplateElement(),
+        or {
+          $site <: r"^([^\s]+)[\s](?:[\s\S]*[\s])?([^\s]+)$"($first, $last),
+          $site <: r"^([^\s]+)$"($first) where { $last = $first }
+        },
+        register_diagnostic(span=$site, message=`[design/require-static-classes] ${…}$first $last${…}  Guidance: Glued interpolation may not generate CSS in Tailwind v3 and cannot be checked by the other design rules. Use a lookup of complete classes, a conditional, or a CSS variable with w-[var(--x)]. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+      },
+      $site <: r"^(?:[\s\S]*[\s])?([^\s]+)$"($last) where {
+        $site <: before JsTemplateElement(),
+        or {
+          and {
+            $site <: within JsTemplateExpression() as $template,
+            $template <: r"^\x60(?:[^$\x60]*\$\{[^$\x60]*\})*([^$\x60]*)\$\{[^$\x60]*\}([^$\x60]*)\x60$"($before, $after),
+            $site <: $before,
+            $before <: r"^(?:[\s\S]*[\s])?[^\s]+$",
+            $after <: r"^([^\s]*)(?:[\s][\s\S]*)?$"($tail),
+            register_diagnostic(span=$site, message=`[design/require-static-classes] "$last${…}$tail" Glued interpolation may not generate CSS in Tailwind v3 and cannot be checked by the other design rules. Use a lookup of complete classes, a conditional, or a CSS variable with w-[var(--x)]. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+          },
+          register_diagnostic(span=$site, message=`[design/require-static-classes] "$last${…}" Glued interpolation may not generate CSS in Tailwind v3 and cannot be checked by the other design rules. Use a lookup of complete classes, a conditional, or a CSS variable with w-[var(--x)]. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+        }
+      },
+      $site <: r"^([^\s]+)(?:[\s][\s\S]*)?$"($first) where {
+        $site <: after JsTemplateElement(),
+        not {
+          $site <: within JsTemplateExpression() as $template,
+          $template <: r"^\x60(?:[^$\x60]*\$\{[^$\x60]*\})*([^$\x60]*)\$\{[^$\x60]*\}([^$\x60]*)\x60$"($before, $after),
+          $before <: r"^(?:[\s\S]*[\s])?[^\s]+$",
+          or { $template <: r"^\x60[^$\x60]*\$\{[^$\x60]*\}[^$\x60]*\x60$", $before <: r"^\s[\s\S]*$" }
+        },
+        register_diagnostic(span=$site, message=`[design/require-static-classes] "${…}$first" Glued interpolation may not generate CSS in Tailwind v3 and cannot be checked by the other design rules. Use a lookup of complete classes, a conditional, or a CSS variable with w-[var(--x)]. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+      }
+    }
+  },
+  JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$", initializer=$value) as $attr where {
+    $value <: contains JsxExpressionAttributeValue(expression=$e),
+    or {
+      $e <: JsIdentifierExpression() as $kind,
+      $e <: JsStaticMemberExpression() as $kind,
+      $e <: JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$") as $kind,
+      $e <: JsLogicalExpression(right=$kind) where { $kind <: or {
+    JsIdentifierExpression(),
+    JsStaticMemberExpression(),
+    JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$")
+  } },
+      $e <: JsConditionalExpression(consequent=$kind, alternate=$second) where {
+        or { $kind <: or {
+    JsIdentifierExpression(),
+    JsStaticMemberExpression(),
+    JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$")
+  }, $second <: or {
+    JsIdentifierExpression(),
+    JsStaticMemberExpression(),
+    JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$")
+  } }
+      }
+    },
+    $attr <: within JsModule() as $module,
+    $attr <: within or { JsxOpeningElement(name=$name), JsxSelfClosingElement(name=$name) },
+    or {
+    and {
+      $name <: r"^([A-Za-z_$][A-Za-z0-9_$]*)$"($local),
+      $module <: contains or {
+        JsNamedImportSpecifier(name=$original, local_name=$local) as $spec,
+        JsShorthandNamedImportSpecifier(local_name=$local) as $spec,
+        JsDefaultImportSpecifier(local_name=$local) as $spec
+      } where {
+        $spec <: within or { JsImportNamedClause(source=$source), JsImportCombinedClause(source=$source), JsImportDefaultClause(source=$source) },
+        $source <: includes "@/components/",
+        $source <: r"^['\x22](?:@\/components\/common\/ApplyLocalSettingsDialog|@\/components\/common\/CookieConsent|@\/components\/common\/DatePicker|@\/components\/common\/DateTimePicker|@\/components\/common\/DialogProvider|@\/components\/common\/DiscardChangesDialog|@\/components\/common\/DragAndDropList|@\/components\/common\/ElevateSessionDialog|@\/components\/common\/MfaOtpForm|@\/components\/common\/NavLink|@\/components\/common\/OpenTransferDialogButton|@\/components\/common\/Pagination|@\/components\/common\/PermissionSettingsSection|@\/components\/common\/PermissionsGrid|@\/components\/common\/PermissionsGridLayout|@\/components\/common\/PickerTriggerSlot|@\/components\/common\/RoleActionSwitcher|@\/components\/common\/SelectOrg|@\/components\/common\/SelectOrgAndProject|@\/components\/common\/ThemeSwitcher|@\/components\/common\/TimePicker|@\/components\/common\/TimePickerField|@\/components\/common\/TimezonePicker|@\/components\/common\/UpgradeToProBanner|@\/components\/common\/VirtualizedCombobox|@\/components\/common\/useMediaQuery|@\/components\/form\/Form|@\/components\/form\/FormActivityIndicator|@\/components\/form\/FormCheckbox|@\/components\/form\/FormCodeEditor|@\/components\/form\/FormCombobox|@\/components\/form\/FormFreeCombobox|@\/components\/form\/FormInput|@\/components\/form\/FormPasswordInput|@\/components\/form\/FormSelect|@\/components\/form\/FormSwitch|@\/components\/form\/FormTextarea|@\/components\/presentational\/CodeBlock|@\/components\/presentational\/CopyToClipboardButton|@\/components\/presentational\/ErrorMessage|@\/components\/presentational\/HighlightedText|@\/components\/presentational\/HoverCardTimestamp|@\/components\/presentational\/LoadingScreen|@\/components\/presentational\/Logo|@\/components\/presentational\/Nav|@\/components\/presentational\/NhostIcon|@\/components\/presentational\/ReadOnlyCombobox|@\/components\/presentational\/ReadOnlySelect|@\/components\/presentational\/ReadOnlyToggle|@\/components\/presentational\/RetryableErrorBoundary|@\/components\/presentational\/StatusCircle|@\/components\/ui\/v3\/accordion|@\/components\/ui\/v3\/alert|@\/components\/ui\/v3\/alert-dialog|@\/components\/ui\/v3\/avatar|@\/components\/ui\/v3\/badge|@\/components\/ui\/v3\/button|@\/components\/ui\/v3\/button-group|@\/components\/ui\/v3\/calendar|@\/components\/ui\/v3\/chart|@\/components\/ui\/v3\/checkbox|@\/components\/ui\/v3\/collapsible|@\/components\/ui\/v3\/combobox|@\/components\/ui\/v3\/command|@\/components\/ui\/v3\/dialog|@\/components\/ui\/v3\/dropdown-menu|@\/components\/ui\/v3\/fancy-multi-select|@\/components\/ui\/v3\/form|@\/components\/ui\/v3\/free-combobox|@\/components\/ui\/v3\/hover-card|@\/components\/ui\/v3\/inline-code|@\/components\/ui\/v3\/input|@\/components\/ui\/v3\/input-group|@\/components\/ui\/v3\/input-with-suggestions|@\/components\/ui\/v3\/label|@\/components\/ui\/v3\/multi-select|@\/components\/ui\/v3\/pagination|@\/components\/ui\/v3\/password-input|@\/components\/ui\/v3\/popover|@\/components\/ui\/v3\/progress|@\/components\/ui\/v3\/radio-group|@\/components\/ui\/v3\/route-tabs|@\/components\/ui\/v3\/select|@\/components\/ui\/v3\/separator|@\/components\/ui\/v3\/sheet|@\/components\/ui\/v3\/skeleton|@\/components\/ui\/v3\/spinner|@\/components\/ui\/v3\/switch|@\/components\/ui\/v3\/table|@\/components\/ui\/v3\/tabs|@\/components\/ui\/v3\/text-link|@\/components\/ui\/v3\/textarea|@\/components\/ui\/v3\/toggle|@\/components\/ui\/v3\/toggle-group|@\/components\/ui\/v3\/tooltip)['\x22]$"
+      }
+    },
+    and {
+      $name <: r"^([A-Za-z_$][A-Za-z0-9_$]*)\.([A-Za-z_$][A-Za-z0-9_$]*)$"($namespace, $export),
+      $export <: r"^(?:Accordion|AccordionContent|AccordionItem|AccordionTrigger|Alert|AlertDescription|AlertDialog|AlertDialogAction|AlertDialogCancel|AlertDialogContent|AlertDialogDescription|AlertDialogFooter|AlertDialogHeader|AlertDialogOverlay|AlertDialogPortal|AlertDialogTitle|AlertDialogTrigger|AlertTitle|ApplyLocalSettingsDialog|Avatar|AvatarFallback|AvatarImage|AvatarRoot|Badge|Button|ButtonGroup|ButtonGroupSeparator|ButtonGroupText|ButtonWithLoading|Calendar|ChartContainer|ChartLegend|ChartLegendContent|ChartStyle|ChartTooltip|ChartTooltipContent|Checkbox|CodeBlock|Collapsible|CollapsibleContent|CollapsibleTrigger|Combobox|Command|CommandCreateItem|CommandDialog|CommandEmpty|CommandGroup|CommandInput|CommandItem|CommandList|CommandSeparator|CommandShortcut|CookieConsent|CopyToClipboardButton|DatePicker|DateTimePicker|Dialog|DialogClose|DialogContent|DialogContext|DialogDescription|DialogFooter|DialogHeader|DialogOverlay|DialogPortal|DialogProvider|DialogTitle|DialogTrigger|DiscardChangesDialog|DragAndDropList|DraggableItem|DropdownMenu|DropdownMenuCheckboxItem|DropdownMenuContent|DropdownMenuGroup|DropdownMenuItem|DropdownMenuLabel|DropdownMenuPortal|DropdownMenuRadioGroup|DropdownMenuRadioItem|DropdownMenuSeparator|DropdownMenuShortcut|DropdownMenuSub|DropdownMenuSubContent|DropdownMenuSubTrigger|DropdownMenuTrigger|ElevateSessionDialog|ErrorMessage|FancyMultiSelect|Form|FormActivityIndicator|FormCheckbox|FormCodeEditor|FormCombobox|FormControl|FormDescription|FormField|FormFreeCombobox|FormInput|FormItem|FormLabel|FormMessage|FormPasswordInput|FormSelect|FormSwitch|FormTextarea|FreeCombobox|HighlightedText|HoverCard|HoverCardContent|HoverCardTimestamp|HoverCardTrigger|InlineCode|Input|InputGroup|InputGroupAddon|InputGroupButton|InputGroupInput|InputGroupText|InputGroupTextarea|InputWithSuggestions|Label|ListNavLink|LoadingScreen|Logo|MfaOtpForm|MultiSelect|MultiSelectContent|MultiSelectGroup|MultiSelectItem|MultiSelectSeparator|MultiSelectTrigger|MultiSelectValue|Nav|NavLink|NhostIcon|OpenTransferDialogButton|Pagination|PaginationContent|PaginationEllipsis|PaginationItem|PaginationLink|PaginationNext|PaginationPrevious|PasswordInput|PermissionSettingsSection|PermissionsGrid|PermissionsGridLayout|Popover|PopoverAnchor|PopoverClose|PopoverContent|PopoverTrigger|Progress|RadioGroup|RadioGroupItem|ReadOnlyCombobox|ReadOnlySelect|ReadOnlyToggle|RetryableErrorBoundary|RoleActionSwitcher|RouteTabLink|RouteTabSeparator|RouteTabs|Select|SelectContent|SelectGroup|SelectItem|SelectLabel|SelectOrg|SelectOrgAndProject|SelectScrollDownButton|SelectScrollUpButton|SelectSeparator|SelectTrigger|SelectValue|Separator|Sheet|SheetClose|SheetContent|SheetDescription|SheetFooter|SheetHeader|SheetOverlay|SheetPortal|SheetTitle|SheetTrigger|Skeleton|Spinner|StatusCircle|Switch|Table|TableBody|TableCaption|TableCell|TableFooter|TableHead|TableHeader|TableRow|Tabs|TabsContent|TabsList|TabsTrigger|TextLink|Textarea|ThemeSwitcher|TimePicker|TimePickerField|TimezonePicker|Toggle|ToggleGroup|ToggleGroupItem|Tooltip|TooltipContent|TooltipProvider|TooltipTrigger|UpgradeToProBanner|VirtualizedCombobox)$",
+      $module <: contains JsNamespaceImportSpecifier(local_name=$namespace) as $spec where {
+        $spec <: within or { JsImportNamespaceClause(source=$source), JsImportCombinedClause(source=$source) },
+        $source <: includes "@/components/",
+        $source <: r"^['\x22](?:@\/components\/common\/ApplyLocalSettingsDialog|@\/components\/common\/CookieConsent|@\/components\/common\/DatePicker|@\/components\/common\/DateTimePicker|@\/components\/common\/DialogProvider|@\/components\/common\/DiscardChangesDialog|@\/components\/common\/DragAndDropList|@\/components\/common\/ElevateSessionDialog|@\/components\/common\/MfaOtpForm|@\/components\/common\/NavLink|@\/components\/common\/OpenTransferDialogButton|@\/components\/common\/Pagination|@\/components\/common\/PermissionSettingsSection|@\/components\/common\/PermissionsGrid|@\/components\/common\/PermissionsGridLayout|@\/components\/common\/PickerTriggerSlot|@\/components\/common\/RoleActionSwitcher|@\/components\/common\/SelectOrg|@\/components\/common\/SelectOrgAndProject|@\/components\/common\/ThemeSwitcher|@\/components\/common\/TimePicker|@\/components\/common\/TimePickerField|@\/components\/common\/TimezonePicker|@\/components\/common\/UpgradeToProBanner|@\/components\/common\/VirtualizedCombobox|@\/components\/common\/useMediaQuery|@\/components\/form\/Form|@\/components\/form\/FormActivityIndicator|@\/components\/form\/FormCheckbox|@\/components\/form\/FormCodeEditor|@\/components\/form\/FormCombobox|@\/components\/form\/FormFreeCombobox|@\/components\/form\/FormInput|@\/components\/form\/FormPasswordInput|@\/components\/form\/FormSelect|@\/components\/form\/FormSwitch|@\/components\/form\/FormTextarea|@\/components\/presentational\/CodeBlock|@\/components\/presentational\/CopyToClipboardButton|@\/components\/presentational\/ErrorMessage|@\/components\/presentational\/HighlightedText|@\/components\/presentational\/HoverCardTimestamp|@\/components\/presentational\/LoadingScreen|@\/components\/presentational\/Logo|@\/components\/presentational\/Nav|@\/components\/presentational\/NhostIcon|@\/components\/presentational\/ReadOnlyCombobox|@\/components\/presentational\/ReadOnlySelect|@\/components\/presentational\/ReadOnlyToggle|@\/components\/presentational\/RetryableErrorBoundary|@\/components\/presentational\/StatusCircle|@\/components\/ui\/v3\/accordion|@\/components\/ui\/v3\/alert|@\/components\/ui\/v3\/alert-dialog|@\/components\/ui\/v3\/avatar|@\/components\/ui\/v3\/badge|@\/components\/ui\/v3\/button|@\/components\/ui\/v3\/button-group|@\/components\/ui\/v3\/calendar|@\/components\/ui\/v3\/chart|@\/components\/ui\/v3\/checkbox|@\/components\/ui\/v3\/collapsible|@\/components\/ui\/v3\/combobox|@\/components\/ui\/v3\/command|@\/components\/ui\/v3\/dialog|@\/components\/ui\/v3\/dropdown-menu|@\/components\/ui\/v3\/fancy-multi-select|@\/components\/ui\/v3\/form|@\/components\/ui\/v3\/free-combobox|@\/components\/ui\/v3\/hover-card|@\/components\/ui\/v3\/inline-code|@\/components\/ui\/v3\/input|@\/components\/ui\/v3\/input-group|@\/components\/ui\/v3\/input-with-suggestions|@\/components\/ui\/v3\/label|@\/components\/ui\/v3\/multi-select|@\/components\/ui\/v3\/pagination|@\/components\/ui\/v3\/password-input|@\/components\/ui\/v3\/popover|@\/components\/ui\/v3\/progress|@\/components\/ui\/v3\/radio-group|@\/components\/ui\/v3\/route-tabs|@\/components\/ui\/v3\/select|@\/components\/ui\/v3\/separator|@\/components\/ui\/v3\/sheet|@\/components\/ui\/v3\/skeleton|@\/components\/ui\/v3\/spinner|@\/components\/ui\/v3\/switch|@\/components\/ui\/v3\/table|@\/components\/ui\/v3\/tabs|@\/components\/ui\/v3\/text-link|@\/components\/ui\/v3\/textarea|@\/components\/ui\/v3\/toggle|@\/components\/ui\/v3\/toggle-group|@\/components\/ui\/v3\/tooltip)['\x22]$"
+      }
+    }
+  },
+    or {
+      $e <: JsConditionalExpression() where {
+        $acc = "",
+        or { and { or {
+    $kind <: JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$"),
+    $kind <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      not { $kind <: r"^(?:undefined|null|true|false)$" },
+      or { not { $kind <: r"^(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?|[A-Za-z_$][A-Za-z0-9_$]*(?:\??\.[A-Za-z_$][A-Za-z0-9_$]*)*\??\.(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?))$" }, $module <: contains or {
+    JsNamedImportSpecifier(local_name=$kind),
+    JsShorthandNamedImportSpecifier(local_name=$kind),
+    JsDefaultImportSpecifier(local_name=$kind)
+  } }
+    }
+  }, or {
+    $kind <: JsCallExpression(callee=$callee) where {
+      $acc += $name, $acc += " ", $acc += join(split(join(split(join(split($callee, "\n"), ""), "	"), ""), " "), ""), $acc += "() "
+    },
+    $kind <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      $acc += $name, $acc += " ", $acc += join(split(join(split(join(split($kind, "\n"), ""), "	"), ""), " "), ""), $acc += " "
+    }
+  } }, $kind <: r"[\s\S]*" },
+        or { and { or {
+    $second <: JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$"),
+    $second <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      not { $second <: r"^(?:undefined|null|true|false)$" },
+      or { not { $second <: r"^(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?|[A-Za-z_$][A-Za-z0-9_$]*(?:\??\.[A-Za-z_$][A-Za-z0-9_$]*)*\??\.(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?))$" }, $module <: contains or {
+    JsNamedImportSpecifier(local_name=$second),
+    JsShorthandNamedImportSpecifier(local_name=$second),
+    JsDefaultImportSpecifier(local_name=$second)
+  } }
+    }
+  }, or {
+    $second <: JsCallExpression(callee=$callee) where {
+      $acc += $name, $acc += " ", $acc += join(split(join(split(join(split($callee, "\n"), ""), "	"), ""), " "), ""), $acc += "() "
+    },
+    $second <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      $acc += $name, $acc += " ", $acc += join(split(join(split(join(split($second, "\n"), ""), "	"), ""), " "), ""), $acc += " "
+    }
+  } }, $second <: r"[\s\S]*" },
+        not $acc <: "",
+        register_diagnostic(span=$attr, message=`[design/require-static-classes] $acc Guidance: This value cannot be checked by the other design rules. Inline complete classes or use a same-file *ClassName/*Classes constant. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+      },
+      $kind <: JsCallExpression(callee=$callee) where {
+        or {
+    $kind <: JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$"),
+    $kind <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      not { $kind <: r"^(?:undefined|null|true|false)$" },
+      or { not { $kind <: r"^(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?|[A-Za-z_$][A-Za-z0-9_$]*(?:\??\.[A-Za-z_$][A-Za-z0-9_$]*)*\??\.(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?))$" }, $module <: contains or {
+    JsNamedImportSpecifier(local_name=$kind),
+    JsShorthandNamedImportSpecifier(local_name=$kind),
+    JsDefaultImportSpecifier(local_name=$kind)
+  } }
+    }
+  },
+        $acc = join(split(join(split(join(split($callee, "\n"), ""), "	"), ""), " "), ""),
+        register_diagnostic(span=$attr, message=`[design/require-static-classes] "$name $acc()" This call cannot be checked by the other design rules. Inline complete class strings or use cn/clsx/cx/twMerge/twJoin/tw for complete-class alternatives. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+      },
+      $kind <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+        or {
+    $kind <: JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw)$"),
+    $kind <: or { JsIdentifierExpression(), JsStaticMemberExpression() } where {
+      not { $kind <: r"^(?:undefined|null|true|false)$" },
+      or { not { $kind <: r"^(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?|[A-Za-z_$][A-Za-z0-9_$]*(?:\??\.[A-Za-z_$][A-Za-z0-9_$]*)*\??\.(?:className|[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?))$" }, $module <: contains or {
+    JsNamedImportSpecifier(local_name=$kind),
+    JsShorthandNamedImportSpecifier(local_name=$kind),
+    JsDefaultImportSpecifier(local_name=$kind)
+  } }
+    }
+  },
+        $acc = join(split(join(split(join(split($kind, "\n"), ""), "	"), ""), " "), ""),
+        register_diagnostic(span=$attr, message=`[design/require-static-classes] "$name $acc" This value cannot be checked by the other design rules. Inline complete class strings; for constants, use *ClassName/*Classes so their definition is checked. Docs: design-doctor/docs/rules/require-static-classes.md`, severity="warn")
+      }
+    }
+  }
+}

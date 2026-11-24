@@ -1,0 +1,1545 @@
+{
+  "files": {
+    "src/components/auth/SignInRightColumn.tsx": {
+      "no-arbitrary-values": {
+        "from-[#0052CD]/10": 1,
+        "to-[#FF02F5]/10": 1
+      },
+      "no-raw-colors": {
+        "border-white/10": 1
+      }
+    },
+    "src/components/common/ApplyLocalSettingsDialog/ApplyLocalSettingsDialog.tsx": {
+      "no-raw-colors": {
+        "bg-slate-500": 1,
+        "text-slate-100": 1
+      }
+    },
+    "src/components/common/CookieConsent/CookieConsent.tsx": {
+      "no-raw-colors": {
+        "bg-black/95": 1,
+        "bg-blue-600": 1,
+        "border-gray-600": 1,
+        "hover:bg-blue-700": 1,
+        "hover:bg-gray-800": 1,
+        "hover:text-white": 1,
+        "text-neutral-400": 2,
+        "text-white": 4
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/components/common/DatePicker/DatePicker.tsx": {
+      "no-arbitrary-values": {
+        "text-[11px]": 1
+      }
+    },
+    "src/components/common/DateTimePicker/DateTimePicker.tsx": {
+      "no-arbitrary-values": {
+        "text-[11px]": 1
+      }
+    },
+    "src/components/common/DialogProvider/DialogProvider.tsx": {
+      "no-raw-colors": {
+        "bg-black/30": 1
+      }
+    },
+    "src/components/common/PermissionsGrid/PermissionsGrid.tsx": {
+      "no-reinvented-components": {
+        "button": 1,
+        "table": 1
+      }
+    },
+    "src/components/common/VirtualizedCombobox/VirtualizedCombobox.tsx": {
+      "no-inline-styles": {
+        "height": 3,
+        "overflow": 1,
+        "position": 1,
+        "transform": 1,
+        "width": 4
+      }
+    },
+    "src/components/form/FormCombobox/FormCombobox.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      },
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/components/form/FormFreeCombobox/FormFreeCombobox.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      }
+    },
+    "src/components/form/FormInput/FormInput.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      },
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/components/form/FormPasswordInput/FormPasswordInput.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      },
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/components/form/FormSelect/FormSelect.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      },
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/components/form/FormSwitch/FormSwitch.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      }
+    },
+    "src/components/form/FormTextarea/FormTextarea.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      },
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/components/layout/AreaSidebar/AreaSidebar.tsx": {
+      "no-arbitrary-values": {
+        "gap-[1.2rem]": 1,
+        "tracking-[0.16em]": 1
+      }
+    },
+    "src/components/layout/AuthFlowLayout/AuthFlowLayout.tsx": {
+      "no-unknown-classes": {
+        "backface-hidden": 1
+      }
+    },
+    "src/components/layout/DashboardSidebar/DashboardSidebar.tsx": {
+      "no-arbitrary-values": {
+        "pl-[22px]": 1,
+        "transition-[padding]": 1,
+        "transition-[width]": 1
+      }
+    },
+    "src/components/layout/FeatureSidebar/FeatureSidebar.tsx": {
+      "no-raw-colors": {
+        "bg-black/50": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/components/layout/Header/HeaderCombobox.tsx": {
+      "no-raw-colors": {
+        "hover:bg-neutral-100": 2
+      }
+    },
+    "src/components/layout/Header/ProjectStatus.tsx": {
+      "require-static-classes": {
+        "Badge WARNING_BADGE": 2
+      }
+    },
+    "src/components/layout/Header/SheetListSection.tsx": {
+      "no-arbitrary-values": {
+        "tracking-[0.16em]": 1
+      }
+    },
+    "src/components/layout/Header/SupportLinks.tsx": {
+      "no-raw-colors": {
+        "text-neutral-600": 2
+      }
+    },
+    "src/components/layout/NavigationList/NavigationList.tsx": {
+      "no-arbitrary-values": {
+        "[transition-duration:150ms,150ms,300ms]": 1,
+        "transition-[color,background-color,padding]": 1,
+        "transition-[grid-template-rows,opacity]": 1
+      }
+    },
+    "src/components/layout/SettingsCard/SettingsDocsLink.tsx": {
+      "no-reinvented-components": {
+        "a": 1
+      }
+    },
+    "src/components/layout/Sidebar/SidebarItem.tsx": {
+      "no-raw-colors": {
+        "bg-neutral-100": 1,
+        "hover:bg-neutral-100": 1,
+        "hover:bg-neutral-50": 1,
+        "hover:text-neutral-600": 1,
+        "hover:text-neutral-900": 1,
+        "text-neutral-600": 1
+      }
+    },
+    "src/components/layout/Sidebar/SidebarSectionTitle.tsx": {
+      "no-arbitrary-values": {
+        "tracking-[0.08em]": 1
+      }
+    },
+    "src/components/presentational/CodeBlock/CodeBlock.tsx": {
+      "no-raw-colors": {
+        "border-slate-500/30": 1,
+        "text-slate-400": 1
+      },
+      "no-unknown-classes": {
+        "bg-codeblock-tabs": 1
+      }
+    },
+    "src/components/presentational/HoverCardTimestamp/HoverCardTimestamp.tsx": {
+      "no-direct-radix-imports": {
+        "HoverCardPortal": 1
+      }
+    },
+    "src/components/presentational/Logo/Logo.tsx": {
+      "no-raw-colors": {
+        "dark:fill-white": 1
+      }
+    },
+    "src/components/presentational/NhostIcon/NhostIcon.tsx": {
+      "no-raw-colors": {
+        "fill=#0052CD": 1,
+        "fill=white": 2
+      }
+    },
+    "src/components/presentational/StatusCircle/StatusCircle.tsx": {
+      "no-raw-colors": {
+        "bg-blue-500": 1,
+        "bg-gray-400": 1,
+        "bg-green-500": 1,
+        "bg-red-500": 1,
+        "bg-yellow-500": 1
+      }
+    },
+    "src/features/account/settings/components/AccountMfaSettings/components/AccountMfaSettings.tsx": {
+      "no-raw-colors": {
+        "border-green-400": 1,
+        "text-green-400": 1
+      }
+    },
+    "src/features/account/settings/components/CreatePATForm/CreatedPATAlert.tsx": {
+      "no-arbitrary-values": {
+        "dark:bg-[#2f363d]": 1
+      }
+    },
+    "src/features/account/settings/components/PATSettings/PATSettings.tsx": {
+      "no-raw-colors": {
+        "text-amber-600": 1
+      }
+    },
+    "src/features/auth/SignIn/SignInWithEmailAndPassword/components/MfaSignInOtpForm.tsx": {
+      "no-arbitrary-values": {
+        "text-[1.25rem]": 1
+      },
+      "no-unknown-classes": {
+        "ws-full": 1
+      }
+    },
+    "src/features/auth/SignIn/components/LastUsedBadge/LastUsedBadge.tsx": {
+      "no-arbitrary-values": {
+        "bg-[#0c2d6b]": 1,
+        "text-[10px]": 1
+      },
+      "no-raw-colors": {
+        "border-blue-500/40": 1,
+        "text-blue-200": 1
+      }
+    },
+    "src/features/command-palette/components/CommandPalette.tsx": {
+      "no-arbitrary-values": {
+        "transition-[height]": 1
+      },
+      "no-inline-styles": {
+        "height": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/command-palette/components/CommandPaletteTrigger.tsx": {
+      "no-arbitrary-values": {
+        "text-[10px]": 1
+      },
+      "no-raw-colors": {
+        "bg-neutral-100": 1,
+        "bg-white": 1,
+        "border-neutral-200": 1,
+        "focus-visible:bg-white": 1,
+        "focus-visible:border-neutral-300": 1,
+        "hover:bg-neutral-100": 1,
+        "hover:border-neutral-200": 1,
+        "hover:text-neutral-500": 1,
+        "text-neutral-500": 2
+      }
+    },
+    "src/features/command-palette/components/CommandRow.tsx": {
+      "no-arbitrary-values": {
+        "text-[10px]": 1
+      }
+    },
+    "src/features/command-palette/components/Kbd.tsx": {
+      "no-arbitrary-values": {
+        "text-[11px]": 1
+      }
+    },
+    "src/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog.tsx": {
+      "no-direct-radix-imports": {
+        "DialogDescription": 1
+      },
+      "no-raw-colors": {
+        "bg-white": 1,
+        "text-black": 1
+      },
+      "no-unknown-classes": {
+        "text-md": 2
+      }
+    },
+    "src/features/orgs/components/billing/SubscriptionPlan/SubscriptionPlan.tsx": {
+      "no-raw-colors": {
+        "bg-white": 1,
+        "text-black": 1
+      },
+      "no-unknown-classes": {
+        "text-md": 2
+      }
+    },
+    "src/features/orgs/components/members/components/InboxPopover/InboxPopover.tsx": {
+      "no-raw-colors": {
+        "bg-white": 1,
+        "text-black": 1
+      }
+    },
+    "src/features/orgs/guards/ProjectStateGate/ProjectStateScreen.tsx": {
+      "no-direct-radix-imports": {
+        "DialogPrimitive": 1
+      },
+      "no-raw-colors": {
+        "bg-black/30": 1
+      }
+    },
+    "src/features/orgs/projects/ai/AssistantForm/components/ArgumentsFormSection/ArgumentsFormSection.tsx": {
+      "no-raw-colors": {
+        "dark:data-[state=unchecked]:bg-slate-500": 1
+      }
+    },
+    "src/features/orgs/projects/ai/AssistantsList/AssistantsList.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/ai/FileStoresList/FileStoresList.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/authentication/oauth2-clients/components/OAuth2ClientsList/OAuth2ClientsList.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/authentication/users/components/EditUserForm/EditUserForm.tsx": {
+      "no-unknown-classes": {
+        "span-cols-1": 1
+      }
+    },
+    "src/features/orgs/projects/authentication/users/components/UsersBody/UsersBody.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/common/components/DataGridTableViewConfigurationPopover/DataGridTableViewConfigurationPopover.tsx": {
+      "no-inline-styles": {
+        "overflow": 1
+      }
+    },
+    "src/features/orgs/projects/common/components/LogsRegexFilter/LogsRegexFilter.tsx": {
+      "no-raw-colors": {
+        "bg-slate-500": 3,
+        "text-blue-500": 1,
+        "text-slate-100": 3
+      }
+    },
+    "src/features/orgs/projects/common/components/StagingMetadata/StagingMetadata.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500/10": 1,
+        "bg-blue-500/10": 1,
+        "bg-emerald-500/10": 1,
+        "border-amber-500/30": 1,
+        "border-blue-500/30": 1,
+        "border-emerald-500/30": 1,
+        "dark:text-amber-400": 1,
+        "dark:text-blue-400": 1,
+        "dark:text-emerald-400": 1,
+        "text-amber-600": 1,
+        "text-blue-600": 1,
+        "text-emerald-600": 1
+      }
+    },
+    "src/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip.tsx": {
+      "no-inline-styles": {
+        "WebkitBoxOrient": 1,
+        "WebkitLineClamp": 1,
+        "display": 1,
+        "overflow": 1
+      }
+    },
+    "src/features/orgs/projects/common/metrics/components/InteractiveChartLegend/InteractiveChartLegend.tsx": {
+      "no-arbitrary-values": {
+        "rounded-[2px]": 1
+      },
+      "no-inline-styles": {
+        "backgroundColor": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/common/metrics/components/MetricChart/MetricChart.tsx": {
+      "no-inline-styles": {
+        "height": 2
+      }
+    },
+    "src/features/orgs/projects/common/metrics/components/MetricChartTooltip/PinnedTooltip.tsx": {
+      "no-inline-styles": {
+        "left": 1,
+        "top": 1
+      }
+    },
+    "src/features/orgs/projects/common/metrics/components/MetricChartTooltip/TooltipCard.tsx": {
+      "no-arbitrary-values": {
+        "rounded-[2px]": 1
+      },
+      "no-inline-styles": {
+        "backgroundColor": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/common/metrics/components/StackedBarMetricChart/StackedBarMetricChart.tsx": {
+      "no-inline-styles": {
+        "height": 2,
+        "minWidth": 2
+      }
+    },
+    "src/features/orgs/projects/custom-domains/settings/components/VerifyDomain/VerifyDomain.tsx": {
+      "no-raw-colors": {
+        "bg-green-100": 1,
+        "dark:bg-green-900/30": 1,
+        "dark:text-green-400": 1,
+        "text-green-900": 1,
+        "text-slate-500": 1
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/ImportBackupContent/LogicalBackupImport.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.375]": 1,
+        "text-[0.9375rem]": 1
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/PointInTimeBackupsContent/PointInTimeRecovery.tsx": {
+      "no-arbitrary-values": {
+        "gap-[1.875rem]": 1
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/PointInTimeBackupsContent/RestoreRecommendationNote.tsx": {
+      "no-arbitrary-values": {
+        "!leading-[1.5]": 1
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/common/PointInTimeBackupInfo/EarliestBackup.tsx": {
+      "no-arbitrary-values": {
+        "text-[1.125rem]": 2
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/common/PointInTimeBackupInfo/PointInTimeBackupInfo.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.375]": 1,
+        "text-[0.75rem]": 2,
+        "text-[0.9375]": 1
+      }
+    },
+    "src/features/orgs/projects/database/backups/components/common/PointInTimeBackupInfo/RestoreBackupDialogButton.tsx": {
+      "no-direct-radix-imports": {
+        "DialogDescription": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/RemoteSchemaFieldNode.tsx": {
+      "no-inline-styles": {
+        "marginLeft": 1,
+        "paddingLeft": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/BaseTableForm/PrimaryKeySelect.tsx": {
+      "no-arbitrary-values": {
+        "text-[0.9375rem]": 1
+      },
+      "no-unknown-classes": {
+        "pb-": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/BaseTableForm/TableObjectsSection.tsx": {
+      "no-raw-colors": {
+        "text-green-600": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/ColumnAutocomplete.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.2rem]": 1
+      },
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/AddNodeButton.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/ExistsNodeRenderer.tsx": {
+      "no-raw-colors": {
+        "[&:focus-within:not(:has(.group-node:focus-within))]:ring-blue-400/40": 1,
+        "[&:hover:not(:has(.group-node:hover))]:ring-blue-400/30": 1,
+        "bg-blue-50": 1,
+        "bg-blue-500": 1,
+        "dark:bg-blue-950/30": 1,
+        "text-white": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/GroupNodeRenderer.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/OperatorComboBox.tsx": {
+      "no-inline-styles": {
+        "minWidth": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/RelationshipNodeRenderer.tsx": {
+      "no-raw-colors": {
+        "[&:focus-within:not(:has(.group-node:focus-within))]:ring-emerald-400/40": 1,
+        "[&:hover:not(:has(.group-node:hover))]:ring-emerald-400/30": 1,
+        "bg-emerald-50": 1,
+        "bg-emerald-600": 1,
+        "dark:bg-emerald-950/30": 1,
+        "text-white": 1
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar/DataBrowserSidebar.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "px-[0.625rem]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup/DatabaseRecordInputGroup.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.125rem]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup/NullDefaultToggleField.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/DatabaseRecordInputGroup/TemporalRecordField.tsx": {
+      "no-arbitrary-values": {
+        "px-[1px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditFunctionForm/EditFunctionForm.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditFunctionGraphQLSettingsForm/EditFunctionGraphQLSettingsForm.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[12px]": 1
+      },
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/ColumnsNameCustomizationSection/ColumnsNameCustomizationSection.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/ColumnsNameCustomizationSection/ColumnsNameCustomizationSectionSkeleton.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/ComputedFieldsSection/AddComputedFieldPanel.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/ComputedFieldsSection/ComputedFieldRowForm.tsx": {
+      "no-raw-colors": {
+        "text-amber-500": 1,
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/ComputedFieldsSection/ComputedFieldsSection.tsx": {
+      "no-raw-colors": {
+        "text-white": 2
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsSection.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/CustomGraphQLRootFieldsSection/CustomGraphQLRootFieldsSectionSkeleton.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/SetIsEnumSection/SetIsEnumSection.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/SetIsEnumSection/SetIsEnumSectionSkeleton.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditGraphQLSettingsForm/sections/TrackUntrackSection/TrackUntrackSection.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 2,
+        "text-[12px]": 2
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView/FunctionDefinitionView.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/SQLEditor/SQLEditor.tsx": {
+      "no-inline-styles": {
+        "height": 1,
+        "tableLayout": 1
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/TrackFunctionButton/TrackFunctionButton.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "border-amber-500/30": 3,
+        "dark:text-amber-400": 4,
+        "hover:bg-amber-500/10": 3,
+        "text-amber-600": 4
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/TrackTableButton/TrackTableButton.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "border-amber-500/30": 1,
+        "dark:text-amber-400": 2,
+        "hover:bg-amber-500/10": 1,
+        "text-amber-600": 2
+      }
+    },
+    "src/features/orgs/projects/database/dataGrid/components/ViewDefinitionView/ViewDefinitionView.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/database/extensions/components/InstallExtensionDialog/InstallStep.tsx": {
+      "no-raw-colors": {
+        "bg-emerald-600": 1,
+        "border-emerald-600": 1,
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor/LogicalModelAddNodeButton.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor/LogicalModelCustomCheckEditor.tsx": {
+      "require-static-classes": {
+        "Button getModeButtonClassName()": 2
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor/LogicalModelGroupNodeRenderer.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/LogicalModelDetails/sections/LogicalModelOverview.tsx": {
+      "no-reinvented-components": {
+        "table": 1
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesSidebarListItem/NativeQueriesSidebarListItem.tsx": {
+      "no-arbitrary-values": {
+        "p-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/database/native-queries/components/NativeQueryDetails/sections/NativeQueryOverview.tsx": {
+      "no-reinvented-components": {
+        "table": 1
+      }
+    },
+    "src/features/orgs/projects/database/schema-diagram/FunctionNode.tsx": {
+      "no-inline-styles": {
+        "right": 1
+      }
+    },
+    "src/features/orgs/projects/database/schema-diagram/PermissionDot.tsx": {
+      "no-arbitrary-values": {
+        "opacity-[0.35]": 1
+      },
+      "no-inline-styles": {
+        "height": 1,
+        "width": 1
+      },
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "bg-blue-500": 1,
+        "bg-green-500": 1,
+        "bg-red-500": 1,
+        "border-amber-500": 1,
+        "border-blue-500": 1,
+        "border-green-500": 1,
+        "border-red-500": 1,
+        "border-slate-400": 1
+      }
+    },
+    "src/features/orgs/projects/database/schema-diagram/SchemaDiagram.tsx": {
+      "no-arbitrary-values": {
+        "shadow-[0_8px_24px_rgb(var(--schema-color)/0.35)]": 1,
+        "transition-[opacity,box-shadow]": 1
+      },
+      "no-unknown-classes": {
+        "schema-diagram-canvas": 1
+      }
+    },
+    "src/features/orgs/projects/database/schema-diagram/SchemaDiagramToolbar.tsx": {
+      "no-raw-colors": {
+        "fill=rgb(148, 163, 184)": 2,
+        "stroke=rgb(148, 163, 184)": 7
+      }
+    },
+    "src/features/orgs/projects/database/schema-diagram/TableNode.tsx": {
+      "no-arbitrary-values": {
+        "text-[11px]": 1
+      },
+      "no-inline-styles": {
+        "left": 1,
+        "right": 1,
+        "top": 1
+      },
+      "no-raw-colors": {
+        "dark:text-purple-400": 2,
+        "text-purple-600": 2
+      }
+    },
+    "src/features/orgs/projects/database/settings/components/DatabaseMigrateLogsModal/DatabaseMigrateLogsModal.tsx": {
+      "no-raw-colors": {
+        "text-white": 4
+      }
+    },
+    "src/features/orgs/projects/deployments/components/AppDeployments/AppDeployments.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/deployments/components/DeploymentDetails/DeploymentDetails.tsx": {
+      "no-raw-colors": {
+        "bg-blue-500": 2,
+        "bg-blue-500/10": 1,
+        "bg-gray-400": 2,
+        "bg-gray-500/10": 1,
+        "bg-green-500": 2,
+        "bg-green-500/10": 1,
+        "bg-red-500": 2,
+        "bg-red-500/10": 1,
+        "bg-yellow-500": 2,
+        "bg-yellow-500/10": 1,
+        "border-white/20": 1,
+        "text-blue-500": 1,
+        "text-gray-400": 1,
+        "text-green-500": 1,
+        "text-red-500": 1,
+        "text-white": 3,
+        "text-white/40": 2,
+        "text-white/60": 1,
+        "text-yellow-500": 1
+      }
+    },
+    "src/features/orgs/projects/deployments/components/DeploymentDurationLabel/DeploymentDurationLabel.tsx": {
+      "no-inline-styles": {
+        "fontVariantNumeric": 2
+      }
+    },
+    "src/features/orgs/projects/deployments/components/DeploymentListItem/DeploymentListItem.tsx": {
+      "no-raw-colors": {
+        "bg-green-100": 1,
+        "dark:bg-green-900/40": 1,
+        "dark:text-green-400": 1,
+        "text-green-700": 1,
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/events/common/components/HeadersTable/HeadersTable.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.3rem]": 2,
+        "py-[0.2rem]": 2
+      }
+    },
+    "src/features/orgs/projects/events/common/components/HttpStatusText/HttpStatusText.tsx": {
+      "no-raw-colors": {
+        "dark:text-green-400": 1,
+        "dark:text-red-400": 1,
+        "dark:text-yellow-400": 1,
+        "text-green-600": 1,
+        "text-red-600": 1,
+        "text-yellow-600": 1
+      }
+    },
+    "src/features/orgs/projects/events/common/components/PayloadTransformFormSection/TransformedRequestBody.tsx": {
+      "no-arbitrary-values": {
+        "rounded-[5px]": 2
+      }
+    },
+    "src/features/orgs/projects/events/common/components/RequestOptionsFormSection/RequestURLTransformPreview.tsx": {
+      "no-arbitrary-values": {
+        "rounded-[5px]": 2
+      }
+    },
+    "src/features/orgs/projects/events/common/components/ScheduledEventStatusCell/ScheduledEventStatusCell.tsx": {
+      "no-raw-colors": {
+        "dark:text-amber-400": 1,
+        "dark:text-green-400": 1,
+        "dark:text-red-400": 1,
+        "dark:text-rose-400": 1,
+        "dark:text-slate-400": 1,
+        "text-amber-600": 1,
+        "text-green-600": 1,
+        "text-red-600": 1,
+        "text-rose-600": 1,
+        "text-slate-500": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/BaseCronTriggerForm/BaseCronTriggerForm.tsx": {
+      "no-unknown-classes": {
+        "w-xl": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CreateCronTriggerForm/CreateCronTriggerForm.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronScheduleInput/CronScheduleInput.tsx": {
+      "no-raw-colors": {
+        "aria-[invalid=true]:border-red-500": 1,
+        "aria-[invalid=true]:focus:border-red-500": 1,
+        "aria-[invalid=true]:focus:ring-red-500": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggerEventsDataTable/CronTriggerEventsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 2
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggerInvocationLogsDataTable/CronTriggerInvocationLogsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 4
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggerView/CronTriggerView.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.3rem]": 2,
+        "py-[0.2rem]": 2
+      },
+      "no-raw-colors": {
+        "dark:text-gray-100": 1,
+        "dark:text-gray-400": 1,
+        "text-gray-600": 1,
+        "text-gray-900": 1
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggerView/CronTriggerViewSkeleton.tsx": {
+      "no-raw-colors": {
+        "border-gray-200": 5,
+        "dark:border-gray-700": 5
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggerView/sections/CronTriggerOverview.tsx": {
+      "no-raw-colors": {
+        "bg-gray-100": 1,
+        "border-gray-200": 8,
+        "dark:bg-gray-700": 1,
+        "dark:border-gray-700": 8,
+        "dark:hover:bg-gray-700": 2,
+        "dark:text-gray-100": 21,
+        "dark:text-gray-400": 14,
+        "hover:bg-gray-100": 2,
+        "text-gray-600": 14,
+        "text-gray-900": 21
+      }
+    },
+    "src/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar/CronTriggerListItem.tsx": {
+      "no-arbitrary-values": {
+        "p-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/BaseEventTriggerForm/BaseEventTriggerForm.tsx": {
+      "no-unknown-classes": {
+        "w-xl": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/CreateEventTriggerForm/CreateEventTriggerForm.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerEventsDataTable/EventTriggerEventsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 2
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerEventsDataTable/eventsDataTableColumns.tsx": {
+      "no-raw-colors": {
+        "dark:text-green-400": 1,
+        "dark:text-red-400": 1,
+        "text-green-600": 1,
+        "text-red-600": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerInvocationLogsDataTable/EventTriggerInvocationLogsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 4
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerView.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.3rem]": 2,
+        "py-[0.2rem]": 2
+      },
+      "no-raw-colors": {
+        "dark:text-gray-100": 1,
+        "dark:text-gray-400": 1,
+        "text-gray-600": 1,
+        "text-gray-900": 1
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerView/EventTriggerViewSkeleton.tsx": {
+      "no-raw-colors": {
+        "border-gray-200": 4,
+        "dark:border-gray-700": 4
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerView/sections/EventTriggerOverview.tsx": {
+      "no-raw-colors": {
+        "bg-gray-100": 1,
+        "border-gray-200": 7,
+        "dark:bg-gray-700": 1,
+        "dark:border-gray-700": 7,
+        "dark:hover:bg-gray-700": 2,
+        "dark:text-gray-100": 19,
+        "dark:text-gray-400": 13,
+        "hover:bg-gray-100": 2,
+        "text-gray-600": 13,
+        "text-gray-900": 19
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggerView/sections/TriggerOperationsSection.tsx": {
+      "no-raw-colors": {
+        "bg-gray-200": 1,
+        "border-gray-200": 1,
+        "dark:bg-gray-600": 1,
+        "dark:border-gray-700": 1,
+        "dark:text-gray-100": 2,
+        "dark:text-gray-200": 1,
+        "dark:text-gray-400": 1,
+        "text-gray-600": 1,
+        "text-gray-800": 1,
+        "text-gray-900": 2
+      }
+    },
+    "src/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar/EventTriggerListItem.tsx": {
+      "no-arbitrary-values": {
+        "p-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/events/one-offs/components/CreateOneOffForm/CreateOneOffForm.tsx": {
+      "no-unknown-classes": {
+        "w-xl": 1
+      }
+    },
+    "src/features/orgs/projects/events/one-offs/components/OneOffEventsDataTable/OneOffEventsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 2
+      },
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/events/one-offs/components/OneOffInvocationLogsDataTable/OneOffInvocationLogsDataTable.tsx": {
+      "no-inline-styles": {
+        "width": 4
+      }
+    },
+    "src/features/orgs/projects/graphql/actions/components/ActionDetails/ActionDetails.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.3rem]": 1,
+        "py-[0.2rem]": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar/ActionListItem.tsx": {
+      "no-arbitrary-values": {
+        "p-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar/ActionsBrowserSidebar.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/actions/components/BaseActionForm/BaseActionForm.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500/10": 1,
+        "border-amber-500/30": 1,
+        "text-amber-500": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/actions/components/NoActionsEmptyState/NoActionsEmptyState.tsx": {
+      "no-reinvented-components": {
+        "a": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/sections/ImportMetadataSection/ImportMetadataDialog.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/sections/ImportMetadataSection/ImportMetadataSection.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500/10": 1,
+        "text-amber-500": 1
+      }
+    },
+    "src/features/orgs/projects/graphql/metadata/components/MetadataConsistentStatus/MetadataConsistentStatus.tsx": {
+      "no-raw-colors": {
+        "bg-emerald-500/10": 2,
+        "hover:bg-emerald-500/20": 1,
+        "text-emerald-500": 2
+      }
+    },
+    "src/features/orgs/projects/logs/components/LogsBody/LogsTable.tsx": {
+      "no-arbitrary-values": {
+        "leading-[0.875rem]": 1,
+        "text-[0.75rem]": 1
+      },
+      "no-inline-styles": {
+        "borderCollapse": 1,
+        "borderSpacing": 1,
+        "height": 3,
+        "minWidth": 2,
+        "scrollbarGutter": 1,
+        "stickyLeft!==null?{left:stickyLeft}:undefined": 2,
+        "tableLayout": 1,
+        "width": 4
+      },
+      "no-reinvented-components": {
+        "button": 1,
+        "table": 1
+      }
+    },
+    "src/features/orgs/projects/logs/components/LogsBody/columns.tsx": {
+      "no-arbitrary-values": {
+        "leading-[0.875rem]": 2,
+        "text-[0.75rem]": 2,
+        "text-[11px]": 1
+      }
+    },
+    "src/features/orgs/projects/logs/components/LogsBody/serviceStyle.ts": {
+      "no-raw-colors": {
+        "bg-amber-100": 1,
+        "bg-blue-100": 1,
+        "bg-cyan-100": 1,
+        "bg-emerald-100": 1,
+        "bg-indigo-100": 1,
+        "bg-pink-100": 1,
+        "bg-purple-100": 1,
+        "bg-teal-100": 1,
+        "bg-violet-100": 1,
+        "bg-yellow-100": 1,
+        "bg-zinc-100": 1,
+        "dark:bg-amber-500/20": 1,
+        "dark:bg-blue-500/20": 1,
+        "dark:bg-cyan-500/20": 1,
+        "dark:bg-emerald-500/20": 1,
+        "dark:bg-indigo-500/20": 1,
+        "dark:bg-pink-500/20": 1,
+        "dark:bg-purple-500/20": 1,
+        "dark:bg-teal-500/20": 1,
+        "dark:bg-violet-500/20": 1,
+        "dark:bg-yellow-500/20": 1,
+        "dark:bg-zinc-500/20": 1,
+        "dark:text-amber-300": 1,
+        "dark:text-blue-300": 1,
+        "dark:text-cyan-300": 1,
+        "dark:text-emerald-300": 1,
+        "dark:text-indigo-300": 1,
+        "dark:text-pink-300": 1,
+        "dark:text-purple-300": 1,
+        "dark:text-teal-300": 1,
+        "dark:text-violet-300": 1,
+        "dark:text-yellow-300": 1,
+        "dark:text-zinc-300": 1,
+        "text-amber-800": 1,
+        "text-blue-800": 1,
+        "text-cyan-800": 1,
+        "text-emerald-800": 1,
+        "text-indigo-800": 1,
+        "text-pink-800": 1,
+        "text-purple-800": 1,
+        "text-teal-800": 1,
+        "text-violet-800": 1,
+        "text-yellow-800": 1,
+        "text-zinc-800": 1
+      }
+    },
+    "src/features/orgs/projects/overview/components/ProjectHealthBadge/ProjectHealthBadge.tsx": {
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "bg-emerald-600": 1
+      }
+    },
+    "src/features/orgs/projects/overview/health/health.ts": {
+      "no-raw-colors": {
+        "bg-amber-500": 1,
+        "bg-emerald-600": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaForm/GraphQLCustomizations.tsx": {
+      "no-raw-colors": {
+        "hover:text-blue-800": 1,
+        "text-blue-600": 1
+      },
+      "no-reinvented-components": {
+        "a": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/RelationshipTypeSection.tsx": {
+      "no-unknown-classes": {
+        "text-md": 2
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/BaseRemoteSchemaRelationshipForm/sections/SchemaToArgumentMapSelector.tsx": {
+      "no-raw-colors": {
+        "text-red-500": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/PresetValueInput.tsx": {
+      "no-raw-colors": {
+        "text-gray-600": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/RemoteSchemaRolePermissionsEditorForm.tsx": {
+      "no-raw-colors": {
+        "border-gray-200": 2,
+        "text-blue-600": 1,
+        "text-gray-400": 2,
+        "text-gray-500": 7,
+        "text-gray-700": 2,
+        "text-green-600": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/EditRemoteSchemaPermissionsForm/RolePermissionsRow.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar/RemoteSchemaBrowserSidebar.tsx": {
+      "no-arbitrary-values": {
+        "p-[0.625rem]": 1,
+        "px-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/RemoteSchemaPreview.tsx": {
+      "no-raw-colors": {
+        "text-red-600": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/RemoteSchemaTree.tsx": {
+      "no-inline-styles": {
+        "resolvedTheme==='dark'?{backgroundColor:'hsl(var(--background))',color:'hsl(var(--foreground))'}:undefined": 1
+      }
+    },
+    "src/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview/utils.ts": {
+      "no-raw-colors": {
+        "text-gray-400": 1
+      }
+    },
+    "src/features/orgs/projects/resources/settings/components/CostSummary/CostSummary.tsx": {
+      "no-raw-colors": {
+        "bg-emerald-100": 1,
+        "dark:bg-emerald-900/40": 1,
+        "dark:text-emerald-300": 1,
+        "text-emerald-700": 1
+      }
+    },
+    "src/features/orgs/projects/resources/settings/components/PresetSelector/PresetSelector.tsx": {
+      "no-raw-colors": {
+        "text-white/70": 1,
+        "text-white/90": 1
+      }
+    },
+    "src/features/orgs/projects/resources/settings/components/ResourceBreakdownChart/ResourceBreakdownChart.tsx": {
+      "no-inline-styles": {
+        "width": 3
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/FunctionsBrowserSidebar/FunctionListItem.tsx": {
+      "no-arbitrary-values": {
+        "pr-[1.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/MetadataCard/MetadataCard.tsx": {
+      "no-raw-colors": {
+        "border-gray-200": 1,
+        "dark:border-gray-700": 1
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/MetadataCard/MetadataRow.tsx": {
+      "no-raw-colors": {
+        "dark:text-gray-100": 1,
+        "dark:text-gray-400": 1,
+        "text-gray-600": 1,
+        "text-gray-900": 1
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/MetricsTab/sections/ErrorsSection.tsx": {
+      "no-inline-styles": {
+        "color": 1
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/OverviewTab/OverviewTab.tsx": {
+      "no-raw-colors": {
+        "dark:text-gray-100": 2,
+        "dark:text-gray-400": 4,
+        "text-gray-600": 4,
+        "text-gray-900": 2
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/ResponseArea/ResponseArea.tsx": {
+      "no-raw-colors": {
+        "border-gray-200": 2,
+        "dark:border-gray-700": 2
+      }
+    },
+    "src/features/orgs/projects/serverless-functions/components/ServerlessFunctionView/ServerlessFunctionView.tsx": {
+      "no-arbitrary-values": {
+        "px-[0.3rem]": 1,
+        "py-[0.2rem]": 1
+      }
+    },
+    "src/features/orgs/projects/services/components/ServiceForm/components/CommandFormSection/CommandFormSection.tsx": {
+      "no-arbitrary-values": {
+        "list-['-_']": 1
+      }
+    },
+    "src/features/orgs/projects/storage/components/Bucket/Bucket.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[1.125rem]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/storage/components/EditBucketForm/EditBucketForm.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/storage/components/StorageMaintenanceButton/StorageMaintenanceButton.tsx": {
+      "no-arbitrary-values": {
+        "text-[0.625rem]": 1
+      }
+    },
+    "src/features/orgs/projects/storage/components/StorageSidebar/StorageSidebar.tsx": {
+      "no-arbitrary-values": {
+        "leading-[1.66]": 1,
+        "p-[0.625rem]": 1,
+        "px-[0.625rem]": 1,
+        "text-[12px]": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/CellResetButtons/CellResetButtons.tsx": {
+      "no-arbitrary-values": {
+        "text-[10px]": 2
+      },
+      "no-reinvented-components": {
+        "button": 2
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGrid/useDataGrid.tsx": {
+      "no-inline-styles": {
+        "cursor": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridBody/DataGridBody.tsx": {
+      "no-arbitrary-values": {
+        "hover:bg-[color-mix(in_srgb,hsl(var(--muted))_60%,hsl(var(--background)))]": 1
+      },
+      "no-inline-styles": {
+        "height": 1,
+        "width": 2
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell/DataGridBooleanCell.tsx": {
+      "no-inline-styles": {
+        "width": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridCell/DataGridCell.tsx": {
+      "no-inline-styles": {
+        "right": 1,
+        "width": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridHeader/DataGridHeader.tsx": {
+      "no-inline-styles": {
+        "maxWidth": 1,
+        "minWidth": 1,
+        "right": 1,
+        "width": 1,
+        "zIndex": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton/DataGridHeaderButton.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell/DataGridNumericCell.tsx": {
+      "no-arbitrary-values": {
+        "focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)]": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/FilePreviewDialog.tsx": {
+      "no-raw-colors": {
+        "bg-black": 2,
+        "text-gray-600": 1,
+        "text-neutral-800": 1,
+        "text-white": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/ViewFileButton.tsx": {
+      "no-reinvented-components": {
+        "button": 1
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/icons.tsx": {
+      "no-raw-colors": {
+        "fill=#0052CD": 1,
+        "fill=#3787FF": 1,
+        "fill=#6D1EEE": 2,
+        "fill=#9C73DF": 2,
+        "fill=#C91737": 1,
+        "fill=#F13154": 1,
+        "fill=white": 5,
+        "stroke=#063799": 2
+      }
+    },
+    "src/features/orgs/projects/storage/dataGrid/components/DataGridTextCell/DataGridTextCell.tsx": {
+      "no-arbitrary-values": {
+        "focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)]": 2,
+        "text-[#7d8ca3]": 1
+      }
+    },
+    "src/features/orgs/utils/execPromiseWithErrorToast/BaseErrorToast.tsx": {
+      "no-raw-colors": {
+        "bg-black": 1,
+        "text-white": 5
+      },
+      "no-reinvented-components": {
+        "button": 2
+      }
+    },
+    "src/features/orgs/utils/execPromiseWithErrorToast/MetadataConflictToast.tsx": {
+      "no-raw-colors": {
+        "border-white/20": 1,
+        "focus-visible:text-white": 1,
+        "hover:text-white": 1,
+        "text-amber-500": 1,
+        "text-white/70": 1,
+        "text-white/80": 2
+      }
+    },
+    "src/features/orgs/utils/highlightMatch/highlightMatch.tsx": {
+      "no-raw-colors": {
+        "bg-yellow-300/60": 1,
+        "dark:bg-yellow-200/60": 1
+      }
+    },
+    "src/pages/email/verify.tsx": {
+      "no-arbitrary-values": {
+        "text-[1.125rem]": 1
+      },
+      "no-raw-colors": {
+        "text-white": 1
+      }
+    },
+    "src/pages/index.tsx": {
+      "no-raw-colors": {
+        "text-amber-500": 1
+      }
+    },
+    "src/pages/oauth2/authorize.tsx": {
+      "no-raw-colors": {
+        "text-amber-500": 1,
+        "text-red-500": 2
+      },
+      "no-unknown-classes": {
+        "backface-hidden": 1
+      }
+    },
+    "src/pages/onboarding/index.tsx": {
+      "no-raw-colors": {
+        "bg-green-500": 2,
+        "bg-white": 1,
+        "dark:text-gray-400": 1,
+        "text-black": 1,
+        "text-gray-600": 2,
+        "text-white": 1
+      }
+    },
+    "src/pages/onboarding/project.tsx": {
+      "no-raw-colors": {
+        "bg-green-600": 4,
+        "text-white": 2
+      }
+    },
+    "src/pages/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId].tsx": {
+      "no-arbitrary-values": {
+        "xs+:pb-[56.5px]": 1
+      }
+    },
+    "src/pages/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/index.tsx": {
+      "no-arbitrary-values": {
+        "text-[1.125rem]": 1
+      }
+    },
+    "src/pages/run-one-click-install.tsx": {
+      "no-arbitrary-values": {
+        "px-[6px]": 1,
+        "text-[10px]": 1
+      }
+    },
+    "src/pages/signup.tsx": {
+      "no-arbitrary-values": {
+        "from-[#0052CD]": 1,
+        "from-[#0052CD]/10": 1,
+        "to-[#FF02F5]": 1,
+        "to-[#FF02F5]/10": 1
+      },
+      "no-raw-colors": {
+        "border-white/10": 2
+      }
+    },
+    "src/utils/toast/showLoadingToast.tsx": {
+      "no-raw-colors": {
+        "text-white": 1
+      },
+      "no-unknown-classes": {
+        "animate-enter": 1,
+        "animate-leave": 1
+      }
+    },
+    "src/utils/toast/triggerToast.tsx": {
+      "no-inline-styles": {
+        "backgroundColor": 1
+      },
+      "no-raw-colors": {
+        "text-white": 1
+      },
+      "no-unknown-classes": {
+        "animate-enter": 1,
+        "animate-leave": 1
+      }
+    }
+  },
+  "rules": {
+    "no-arbitrary-values": {
+      "version": 2,
+      "vocabularyHash": "62584c5cc390d1e951a27b793ac537e06c9dea8f578635f9b6597ec5d558d019"
+    },
+    "no-direct-radix-imports": {
+      "version": 2,
+      "vocabularyHash": "d4c06cfd42d71eb076f96b0730618782ad93c0c615a0264af47aaa991bb3c5f8"
+    },
+    "no-inline-styles": {
+      "version": 1,
+      "vocabularyHash": "560f01c3f90d32c7a936b2d8128d9510e5ff8c63506795882c28fe164da9b719"
+    },
+    "no-raw-colors": {
+      "version": 1,
+      "vocabularyHash": "16778bc7afd0367fffa1a2a1093dab88a6b124c785bc564646b606613c8f796c"
+    },
+    "no-reinvented-components": {
+      "version": 1,
+      "vocabularyHash": "9edd0885c673b6c1c19d2ff700e7fcfd1ca1eeea7a9aa89b0de82d4e160fe6ac"
+    },
+    "no-unknown-classes": {
+      "version": 2,
+      "vocabularyHash": "6b453961882a72d0e4811cebf352e98fed492b5798577a6cca8e0acb43f678ff"
+    },
+    "require-static-classes": {
+      "version": 1,
+      "vocabularyHash": "6240087b584d20f2cc37d37871c67601f6621913a20ee2c3445e10d484faa766"
+    }
+  },
+  "schemaVersion": 1
+}

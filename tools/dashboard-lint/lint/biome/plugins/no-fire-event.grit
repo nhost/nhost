@@ -1,0 +1,5 @@
+language js
+
+`fireEvent.$method($args)` where {
+  register_diagnostic(span=$method, message="[no-fire-event] Use TestUserEvent instead of fireEvent.", severity="error")
+}

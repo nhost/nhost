@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "incremental": false,
+    "allowJs": false,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["src/**/*.mts", "tests/**/*.test.mts", "vitest.config.mts"],
+  "exclude": ["tests/fixtures", "generated", "node_modules"]
+}

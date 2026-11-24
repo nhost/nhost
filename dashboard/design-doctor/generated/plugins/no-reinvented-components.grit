@@ -1,0 +1,86 @@
+language js
+
+or {
+  JsxElement(opening_element=JsxOpeningElement(name=$name, attributes=$attrs)) as $node where {
+  $name <: r"^(?:button|input|textarea|select|table|a)$",
+  not { $node <: within JsxElement(opening_element=JsxOpeningElement(attributes=$parentAttributes), children=$children) where {
+  $parentAttributes <: some JsxAttribute(name=$asChild) where { $asChild <: r"^asChild$" },
+  not { $parentAttributes <: some JsxAttribute(name=$asChild, initializer=$state) where { $asChild <: r"^asChild$", $state <: r"^=\{false\}$" } },
+  $children <: contains $node until or { JsxElement(), JsxSelfClosingElement(), JsxFragment(), JsCallExpression(), JsArrowFunctionExpression(), JsFunctionExpression() }
+} },
+  or { $name <: r"^button$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "button" Use Button from @/components/ui/v3/button instead of raw <button>. Button offers variants (default, destructive, outline, ghost, subtle, link, menu, menu-destructive), sizes (xs, sm, md, lg, inline, icon-xs, icon-sm, icon) and asChild composition. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    $attrs <: some JsxAttribute(name=$type, initializer=$value) where { $type <: r"^type$", $value <: r"^=(?:['\x22]checkbox['\x22]|\{['\x22]checkbox['\x22]\})$" },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input[type=checkbox]" Use Checkbox from @/components/ui/v3/checkbox instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    $attrs <: some JsxAttribute(name=$type, initializer=$value) where { $type <: r"^type$", $value <: r"^=(?:['\x22]radio['\x22]|\{['\x22]radio['\x22]\})$" },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input[type=radio]" Use RadioGroup from @/components/ui/v3/radio-group instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    not { $attrs <: some JsxAttribute(name=$type, initializer=$value) where {
+    $type <: r"^type$",
+    or {
+      $value <: r"^=(?:['\x22](?:checkbox|radio|file|hidden|range)['\x22]|\{['\x22](?:checkbox|radio|file|hidden|range)['\x22]\})$",
+      not { $value <: r"^=(?:['\x22][^'\x22]*['\x22]|\{['\x22][^'\x22]*['\x22]\})$" }
+    }
+  } },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input" Use Input from @/components/ui/v3/input or FormInput from @/components/form/FormInput instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^textarea$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "textarea" Use Textarea from @/components/ui/v3/textarea instead of raw <textarea>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^select$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "select" Use Select from @/components/ui/v3/select instead of raw <select>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^table$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "table" Use Table from @/components/ui/v3/table instead of raw <table>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^a$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "a" Use TextLink from @/components/ui/v3/text-link instead of raw <a>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  } }
+},
+  JsxSelfClosingElement(name=$name, attributes=$attrs) as $node where {
+  $name <: r"^(?:button|input|textarea|select|table|a)$",
+  not { $node <: within JsxElement(opening_element=JsxOpeningElement(attributes=$parentAttributes), children=$children) where {
+  $parentAttributes <: some JsxAttribute(name=$asChild) where { $asChild <: r"^asChild$" },
+  not { $parentAttributes <: some JsxAttribute(name=$asChild, initializer=$state) where { $asChild <: r"^asChild$", $state <: r"^=\{false\}$" } },
+  $children <: contains $node until or { JsxElement(), JsxSelfClosingElement(), JsxFragment(), JsCallExpression(), JsArrowFunctionExpression(), JsFunctionExpression() }
+} },
+  or { $name <: r"^button$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "button" Use Button from @/components/ui/v3/button instead of raw <button>. Button offers variants (default, destructive, outline, ghost, subtle, link, menu, menu-destructive), sizes (xs, sm, md, lg, inline, icon-xs, icon-sm, icon) and asChild composition. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    $attrs <: some JsxAttribute(name=$type, initializer=$value) where { $type <: r"^type$", $value <: r"^=(?:['\x22]checkbox['\x22]|\{['\x22]checkbox['\x22]\})$" },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input[type=checkbox]" Use Checkbox from @/components/ui/v3/checkbox instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    $attrs <: some JsxAttribute(name=$type, initializer=$value) where { $type <: r"^type$", $value <: r"^=(?:['\x22]radio['\x22]|\{['\x22]radio['\x22]\})$" },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input[type=radio]" Use RadioGroup from @/components/ui/v3/radio-group instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^input$" where {
+    not { $attrs <: some JsxAttribute(name=$type, initializer=$value) where {
+    $type <: r"^type$",
+    or {
+      $value <: r"^=(?:['\x22](?:checkbox|radio|file|hidden|range)['\x22]|\{['\x22](?:checkbox|radio|file|hidden|range)['\x22]\})$",
+      not { $value <: r"^=(?:['\x22][^'\x22]*['\x22]|\{['\x22][^'\x22]*['\x22]\})$" }
+    }
+  } },
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "input" Use Input from @/components/ui/v3/input or FormInput from @/components/form/FormInput instead of raw <input>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^textarea$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "textarea" Use Textarea from @/components/ui/v3/textarea instead of raw <textarea>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^select$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "select" Use Select from @/components/ui/v3/select instead of raw <select>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^table$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "table" Use Table from @/components/ui/v3/table instead of raw <table>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  },
+    $name <: r"^a$" where {
+    register_diagnostic(span=$name, message=`[design/no-reinvented-components] "a" Use TextLink from @/components/ui/v3/text-link instead of raw <a>. This is not a safe drop-in replacement; check props, semantics and behavior, or ask design when no exact replacement fits. Docs: design-doctor/docs/rules/no-reinvented-components.md`, severity="warn")
+  } }
+}
+}

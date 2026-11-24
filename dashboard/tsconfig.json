@@ -42,6 +42,7 @@
     ".nhost",
     "nhost",
     "functions",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "design-doctor"
   ]
 }

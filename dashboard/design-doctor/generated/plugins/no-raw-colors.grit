@@ -1,0 +1,106 @@
+language js
+
+pattern class_normalized($normalized) {
+  $token where {
+    $token <: r"^(?:(?:[A-Za-z0-9_+/@-]+(?:\[[^\]]+\])?|\[[^\]]+\]):)*([\s\S]+)$"($base),
+    $base <: r"^(?:!|-)*([\s\S]+)$"($normalized)
+  }
+}
+
+pattern class_token($acc) {
+  $part where { $part <: r"^[^ \t\r\n]+$", or { $part <: includes "-" }, or { $part <: includes "00", $part <: includes "50", $part <: includes "white", $part <: includes "black" }, or { $part <: includes "-slate-", $part <: includes "-gray-", $part <: includes "-zinc-", $part <: includes "-neutral-", $part <: includes "-stone-", $part <: includes "-red-", $part <: includes "-orange-", $part <: includes "-amber-", $part <: includes "-yellow-", $part <: includes "-lime-", $part <: includes "-green-", $part <: includes "-emerald-", $part <: includes "-teal-", $part <: includes "-cyan-", $part <: includes "-sky-", $part <: includes "-blue-", $part <: includes "-indigo-", $part <: includes "-violet-", $part <: includes "-purple-", $part <: includes "-fuchsia-", $part <: includes "-pink-", $part <: includes "-rose-", $part <: includes "-white", $part <: includes "-black" }, $part <: class_normalized($normal), $normal <: r"^(?:ring-offset|border-x|border-y|border-t|border-r|border-b|border-l|border-s|border-e|bg|text|border|divide|ring|outline|accent|caret|placeholder|decoration|fill|stroke|from|via|to|shadow)-(?:(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)|white|black)(?:/(?:[\w.%]+|\[[^\]]*\]))?$", $acc += $part, $acc += " " }
+}
+
+or {
+  JsxString() as $site where { or { $site <: includes "-" }, or { $site <: includes "00", $site <: includes "50", $site <: includes "white", $site <: includes "black" }, or { $site <: includes "-slate-", $site <: includes "-gray-", $site <: includes "-zinc-", $site <: includes "-neutral-", $site <: includes "-stone-", $site <: includes "-red-", $site <: includes "-orange-", $site <: includes "-amber-", $site <: includes "-yellow-", $site <: includes "-lime-", $site <: includes "-green-", $site <: includes "-emerald-", $site <: includes "-teal-", $site <: includes "-cyan-", $site <: includes "-sky-", $site <: includes "-blue-", $site <: includes "-indigo-", $site <: includes "-violet-", $site <: includes "-purple-", $site <: includes "-fuchsia-", $site <: includes "-pink-", $site <: includes "-rose-", $site <: includes "-white", $site <: includes "-black" }, $site <: within JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$") until JsxAttribute(), or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-raw-colors] $acc Guidance: Raw palette color. See pnpm design-doctor for nearest (not exact) tokens; declare colors in tailwind.config.js theme.extend.colors and CSS variables in src/styles/globals.css. Docs: design-doctor/docs/rules/no-raw-colors.md`, severity="warn") },
+  JsStringLiteralExpression() as $site where { or { $site <: includes "-" }, or { $site <: includes "00", $site <: includes "50", $site <: includes "white", $site <: includes "black" }, or { $site <: includes "-slate-", $site <: includes "-gray-", $site <: includes "-zinc-", $site <: includes "-neutral-", $site <: includes "-stone-", $site <: includes "-red-", $site <: includes "-orange-", $site <: includes "-amber-", $site <: includes "-yellow-", $site <: includes "-lime-", $site <: includes "-green-", $site <: includes "-emerald-", $site <: includes "-teal-", $site <: includes "-cyan-", $site <: includes "-sky-", $site <: includes "-blue-", $site <: includes "-indigo-", $site <: includes "-violet-", $site <: includes "-purple-", $site <: includes "-fuchsia-", $site <: includes "-pink-", $site <: includes "-rose-", $site <: includes "-white", $site <: includes "-black" }, $site <: within or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") }, not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    }, or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-raw-colors] $acc Guidance: Raw palette color. See pnpm design-doctor for nearest (not exact) tokens; declare colors in tailwind.config.js theme.extend.colors and CSS variables in src/styles/globals.css. Docs: design-doctor/docs/rules/no-raw-colors.md`, severity="warn") },
+  JsTemplateChunkElement() as $site where { or { $site <: includes "-" }, or { $site <: includes "00", $site <: includes "50", $site <: includes "white", $site <: includes "black" }, or { $site <: includes "-slate-", $site <: includes "-gray-", $site <: includes "-zinc-", $site <: includes "-neutral-", $site <: includes "-stone-", $site <: includes "-red-", $site <: includes "-orange-", $site <: includes "-amber-", $site <: includes "-yellow-", $site <: includes "-lime-", $site <: includes "-green-", $site <: includes "-emerald-", $site <: includes "-teal-", $site <: includes "-cyan-", $site <: includes "-sky-", $site <: includes "-blue-", $site <: includes "-indigo-", $site <: includes "-violet-", $site <: includes "-purple-", $site <: includes "-fuchsia-", $site <: includes "-pink-", $site <: includes "-rose-", $site <: includes "-white", $site <: includes "-black" }, $site <: within or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") }, not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    }, or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-raw-colors] $acc Guidance: Raw palette color. See pnpm design-doctor for nearest (not exact) tokens; declare colors in tailwind.config.js theme.extend.colors and CSS variables in src/styles/globals.css. Docs: design-doctor/docs/rules/no-raw-colors.md`, severity="warn") },
+  JsPropertyObjectMember(name=$site, value=$value) as $member where {
+    or { $site <: includes "-" }, or { $site <: includes "00", $site <: includes "50", $site <: includes "white", $site <: includes "black" }, or { $site <: includes "-slate-", $site <: includes "-gray-", $site <: includes "-zinc-", $site <: includes "-neutral-", $site <: includes "-stone-", $site <: includes "-red-", $site <: includes "-orange-", $site <: includes "-amber-", $site <: includes "-yellow-", $site <: includes "-lime-", $site <: includes "-green-", $site <: includes "-emerald-", $site <: includes "-teal-", $site <: includes "-cyan-", $site <: includes "-sky-", $site <: includes "-blue-", $site <: includes "-indigo-", $site <: includes "-violet-", $site <: includes "-purple-", $site <: includes "-fuchsia-", $site <: includes "-pink-", $site <: includes "-rose-", $site <: includes "-white", $site <: includes "-black" },
+    $member <: within JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"),
+    or {
+      $site <: r"^['\x22][^'\x22]+['\x22]$",
+      $site <: r"^[A-Za-z_$][A-Za-z0-9_$]*$" where {
+        not { $member <: within JsCallExpression(callee=r"^cva$") until JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") }
+      }
+    },
+    not {
+      $member <: within JsCallExpression(callee=r"^cva$"),
+      $value <: or { JsStringLiteralExpression(), JsArrayExpression(), JsObjectExpression() }
+    },
+    not { $site <: within JsBinaryExpression() },
+    not { $site <: within JsComputedMemberName() },
+    not { $site <: within JsCallExpression(callee=not r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$") until or { JsxAttribute(name=r"^(?:className|[A-Za-z_$][A-Za-z0-9_$]*ClassName)$"), JsCallExpression(callee=r"^(?:cn|clsx|cx|twMerge|twJoin|tw|cva)$"), JsVariableDeclarator(id=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$"), JsPropertyObjectMember(name=r"^[A-Za-z0-9_$]*[Cc]lass(?:Names?|es)?$") } },
+    not { $site <: within JsPropertyObjectMember(name=r"^defaultVariants$") },
+    not {
+      $site <: within JsPropertyObjectMember(name=r"^compoundVariants$"),
+      not { $site <: within JsPropertyObjectMember(name=r"^class(?:Name)?$") }
+    },
+    or {
+    $site <: r"^[\x22']([\s\S]*)[\x22']$"($inner),
+    $site <: r"^([\s\S]*)$"($inner)
+  },
+  $acc = "",
+
+  $parts = split(join(split(join(split(join(split($inner, "	"), " "), "\n"), " "), " "), " "), " "),
+  $parts <: every or { class_token($acc), $_ },
+
+  not $acc <: "",
+  register_diagnostic(span=$site, message=`[design/no-raw-colors] $acc Guidance: Raw palette color. See pnpm design-doctor for nearest (not exact) tokens; declare colors in tailwind.config.js theme.extend.colors and CSS variables in src/styles/globals.css. Docs: design-doctor/docs/rules/no-raw-colors.md`, severity="warn")
+  }
+,
+JsxAttribute(name=$name, initializer=$initializer) as $attr where {
+  $name <: or { "fill", "stroke", "color", "stopColor", "floodColor", "lightingColor" },
+  $attr <: within or { JsxOpeningElement(name=$tag), JsxSelfClosingElement(name=$tag) },
+  $tag <: r"^[a-z][a-z0-9:-]*$",
+  or {
+    $initializer <: r"^=['\x22]((?:#[0-9a-fA-F]{3,8}|(?:rgb|rgba|hsl|hsla|hwb|oklch|oklab|lab|lch|color|color-mix)\([^'\x22]*\)|(?:aliceblue|antiquewhite|aqua|aquamarine|azure|beige|bisque|black|blanchedalmond|blue|blueviolet|brown|burlywood|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise|darkviolet|deeppink|deepskyblue|dimgray|dimgrey|dodgerblue|firebrick|floralwhite|forestgreen|fuchsia|gainsboro|ghostwhite|gold|goldenrod|gray|green|greenyellow|grey|honeydew|hotpink|indianred|indigo|ivory|khaki|lavender|lavenderblush|lawngreen|lemonchiffon|lightblue|lightcoral|lightcyan|lightgoldenrodyellow|lightgray|lightgreen|lightgrey|lightpink|lightsalmon|lightseagreen|lightskyblue|lightslategray|lightslategrey|lightsteelblue|lightyellow|lime|limegreen|linen|magenta|maroon|mediumaquamarine|mediumblue|mediumorchid|mediumpurple|mediumseagreen|mediumslateblue|mediumspringgreen|mediumturquoise|mediumvioletred|midnightblue|mintcream|mistyrose|moccasin|navajowhite|navy|oldlace|olive|olivedrab|orange|orangered|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum|powderblue|purple|rebeccapurple|red|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell|sienna|silver|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|teal|thistle|tomato|turquoise|violet|wheat|white|whitesmoke|yellow|yellowgreen)))['\x22]$"($color)
+  },
+  not { $color <: r"^hsl\(var\(--(?:accent|accent-foreground|backdrop|background|background-default|border|brand-violet|card|card-foreground|chart-1|chart-2|chart-3|chart-4|chart-5|console-background|data-cell-bg|data-cell-bg-disabled|data-cell-bg-hover|data-table-border-color|destructive|destructive-foreground|destructive-hover|disabled|divider|error-toast-bg|foreground|grey-400|grey-500|input|muted|muted-foreground|on-solid|paper|popover|popover-foreground|primary|primary-foreground|primary-highlight|primary-main|primary-text|ring|secondary|secondary-100|secondary-200|secondary-300|secondary-400|secondary-500|secondary-600|secondary-700|secondary-800|secondary-foreground|sidebar-foreground|sidebar-section-title|success|table-selected|warning|warning-foreground)\)\)$" },
+  register_diagnostic(span=$attr, message=`[design/no-raw-colors] "$name=$color" Literal SVG color. Use currentColor with a text token class or a declared CSS color variable (hsl(var(--name)) for channel variables); declare tokens in tailwind.config.js theme.extend.colors and src/styles/globals.css. Docs: design-doctor/docs/rules/no-raw-colors.md`, severity="warn")
+}
+}

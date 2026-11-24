@@ -1,0 +1,35 @@
+{
+  "root": true,
+  "vcs": { "enabled": false },
+  "files": { "includes": ["**", "!**/__generated__/**", "!**/generated/**"] },
+  "formatter": { "enabled": false },
+  "assist": { "enabled": false },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "style": { "noNestedTernary": "error" }
+    }
+  },
+  "plugins": ["@PLUGINS@/no-jsx-comments.grit"],
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useConsistentTestIt": {
+              "level": "error",
+              "options": { "function": "it", "withinDescribe": "it" }
+            },
+            "noConditionalExpect": "error"
+          }
+        }
+      },
+      "plugins": [
+        "@PLUGINS@/no-fire-event.grit",
+        "@PLUGINS@/no-query-selector-in-tests.grit"
+      ]
+    }
+  ]
+}
