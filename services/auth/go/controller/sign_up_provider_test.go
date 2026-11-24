@@ -3,10 +3,11 @@ package controller_test
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/providers"
+	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
 
@@ -252,22 +253,54 @@ func TestSignUpProvider(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			assertRequest(
+			response := assertRequest(
 				t.Context(),
 				t,
 				c.SignUpProvider,
 				tc.request,
 				tc.expectedResponse,
-				cmp.FilterPath(func(p cmp.Path) bool {
-					if last := p.Last(); last != nil {
-						return last.String() == ".Location" || last.String() == ".SetCookie"
-					}
+				testhelpers.FilterPathLast([]string{".Location"}, RegexpComparer()),
+				testhelpers.FilterPathLast([]string{".SetCookie"}, RegexpComparer()),
+			)
 
-					return false
-				}, RegexpComparer()),
+			assertSignUpProviderState(
+				t, jwtGetter, response, tc.request.Params, tc.config().ClientURL.String(),
 			)
 		})
 	}
+}
+
+func assertSignUpProviderState(
+	t *testing.T,
+	jwtGetter *controller.JWTGetter,
+	response api.SignUpProviderResponseObject,
+	params api.SignUpProviderParams,
+	defaultRedirectTo string,
+) {
+	t.Helper()
+
+	redirect, ok := response.(api.SignUpProvider302Response)
+	if !ok {
+		return
+	}
+
+	assertProviderRedirectState(
+		t, jwtGetter, redirect.Headers.Location, defaultRedirectTo,
+		providers.State{
+			Connect: nil,
+			Options: &api.SignUpOptions{
+				AllowedRoles: params.AllowedRoles,
+				DefaultRole:  params.DefaultRole,
+				DisplayName:  params.DisplayName,
+				Locale:       params.Locale,
+				Metadata:     params.Metadata,
+				RedirectTo:   params.RedirectTo,
+			},
+			State:         params.State,
+			Flow:          providers.FlowSignup,
+			CodeChallenge: params.CodeChallenge,
+		},
+	)
 }

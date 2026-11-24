@@ -6,22 +6,21 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/providers"
 )
 
-func (ctrl *Controller) getSigninProviderValidateRequest(
+func (ctrl *Controller) validateProviderStart(
 	ctx context.Context,
-	req api.SignInProviderRequestObject,
+	redirectToParam, codeChallenge *string,
 	logger *slog.Logger,
 ) (*url.URL, *APIError) {
 	options, apiErr := ctrl.wf.ValidateOptionsRedirectTo(
 		ctx,
 		&api.OptionsRedirectTo{
-			RedirectTo: req.Params.RedirectTo,
+			RedirectTo: redirectToParam,
 		},
 		logger,
 	)
@@ -37,7 +36,7 @@ func (ctrl *Controller) getSigninProviderValidateRequest(
 		return nil, ErrInvalidRequest
 	}
 
-	if cc := deptr(req.Params.CodeChallenge); cc != "" {
+	if cc := deptr(codeChallenge); cc != "" {
 		if err := pkce.ValidateCodeChallengeFormat(cc); err != nil {
 			logger.WarnContext(ctx, "invalid code challenge format", logError(err))
 			return nil, ErrInvalidRequest
@@ -54,21 +53,19 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("provider", string(req.Provider)))
 
-	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(ctx, req, logger)
+	redirectTo, apiErr := ctrl.validateProviderStart(
+		ctx, req.Params.RedirectTo, req.Params.CodeChallenge, logger,
+	)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
-	provider := ctrl.Providers.Get(string(req.Provider))
-	if provider == nil {
-		logger.ErrorContext(ctx, "provider not enabled")
-		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
-	}
-
-	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
-		jwt.MapClaims{
-			"connect": req.Params.Connect,
-			"options": api.SignUpOptions{
+	location, apiErr := ctrl.startProvider(
+		ctx,
+		ctrl.Providers.Get(string(req.Provider)),
+		providers.State{
+			Connect: req.Params.Connect,
+			Options: &api.SignUpOptions{
 				AllowedRoles: req.Params.AllowedRoles,
 				DefaultRole:  req.Params.DefaultRole,
 				DisplayName:  req.Params.DisplayName,
@@ -76,21 +73,10 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 				Metadata:     req.Params.Metadata,
 				RedirectTo:   new(redirectTo.String()),
 			},
-			"state":         req.Params.State,
-			"flow":          providers.FlowSignin,
-			"codeChallenge": req.Params.CodeChallenge,
+			State:         req.Params.State,
+			Flow:          providers.FlowSignin,
+			CodeChallenge: req.Params.CodeChallenge,
 		},
-		time.Now().Add(time.Minute),
-	)
-	if err != nil {
-		logger.ErrorContext(ctx, "error signing state token", logError(err))
-		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
-	}
-
-	url, apiErr := ctrl.getProviderAuthCodeURL(
-		ctx,
-		provider,
-		state,
 		req.Params.ProviderSpecificParams,
 		req.Params.UpstreamParams,
 		logger,
@@ -101,9 +87,40 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 
 	return api.SignInProvider302Response{
 		Headers: api.SignInProvider302ResponseHeaders{
-			Location: url,
+			Location: location,
 		},
 	}, nil
+}
+
+func (ctrl *Controller) startProvider(
+	ctx context.Context,
+	provider *providers.Provider,
+	state providers.State,
+	providerSpecificParams *api.ProviderSpecificParams,
+	upstreamParams *api.UpstreamAuthParams,
+	logger *slog.Logger,
+) (string, *APIError) {
+	if provider == nil {
+		logger.ErrorContext(ctx, "provider not enabled")
+		return "", ErrDisabledEndpoint
+	}
+
+	signedState, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
+		state.Encode(), time.Now().Add(time.Minute),
+	)
+	if err != nil {
+		logger.ErrorContext(ctx, "error signing state token", logError(err))
+		return "", ErrInternalServerError
+	}
+
+	return ctrl.getProviderAuthCodeURL(
+		ctx,
+		provider,
+		signedState,
+		providerSpecificParams,
+		upstreamParams,
+		logger,
+	)
 }
 
 // getProviderAuthCodeURL builds the provider authorization URL, forwarding
