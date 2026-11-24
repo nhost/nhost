@@ -27,8 +27,9 @@ func (t *GraphqlManagement) Register(server *server.MCPServer) {
 			URI:  GraphqlManagementResourceURI,
 			Name: "graphql-management",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{mcp.RoleAssistant},
-				Priority: 1.0,
+				Audience:     []mcp.Role{mcp.RoleAssistant},
+				Priority:     new(1.0),
+				LastModified: "",
 			},
 			Description: GraphqlManagementDescription,
 			MIMEType:    "text/plain",
