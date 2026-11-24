@@ -45,14 +45,13 @@ import { useSupportSession } from '@/features/support/hooks/use-support-session'
 import { SERVICE_ICONS } from '@/features/support/utils/service-icons';
 import {
   getAllowedSupportSeverities,
+  markTicketSeen,
   SEVERITIES,
   supportDate,
   supportInitials,
   supportLabel,
 } from '@/features/support/utils/tickets';
 import {
-  DashboardMarkSupportTicketReadDocument,
-  type DashboardMarkSupportTicketReadMutation,
   DashboardSupportTicketDocument,
   type DashboardSupportTicketQuery,
   DashboardUpdateSupportTicketDocument,
@@ -82,22 +81,14 @@ export default function TicketDetail() {
     refetchInterval: 30000,
   });
   const ticket = detail.data?.supportTicket;
-  // Mark the ticket as read on open and whenever a refetch shows new activity.
-  // A failed marker only leaves the ticket highlighted in the list.
+  // Remember in this browser that the ticket was seen, on open and whenever a
+  // refetch shows new activity, so the queue stops marking it as a new reply.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only re-mark when the ticket or its activity changes
   useEffect(() => {
-    if (!ticket?.id) {
-      return;
+    if (ticket?.id && user?.id) {
+      markTicketSeen(user.id, ticket.id);
     }
-    request<DashboardMarkSupportTicketReadMutation>(
-      DashboardMarkSupportTicketReadDocument,
-      { id: ticket.id },
-    )
-      .then(() =>
-        client.invalidateQueries({ queryKey: [...queryKey, 'tickets'] }),
-      )
-      .catch(() => undefined);
-  }, [ticket?.id, ticket?.updatedAt]);
+  }, [ticket?.id, ticket?.updatedAt, user?.id]);
   const allowedSeverities = getAllowedSupportSeverities(
     ticket?.organization?.plan?.supportAllowedSeverities,
   );
@@ -201,7 +192,7 @@ export default function TicketDetail() {
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
               <span className="font-mono">#{ticket.number}</span>
-              <TicketStatus status={ticket.status} isAgent={isAgent} dot />
+              <TicketStatus status={ticket.status} isAgent={isAgent} />
               <span>
                 Opened by {ticket.requesterName} on{' '}
                 {supportDate(ticket.createdAt)}
@@ -339,7 +330,7 @@ export default function TicketDetail() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={ticket.status}>
-                        <TicketStatus status={ticket.status} isAgent dot />
+                        <TicketStatus status={ticket.status} isAgent />
                       </SelectItem>
                       {transitions.map((transition) => (
                         <SelectItem
@@ -353,7 +344,6 @@ export default function TicketDetail() {
                             <TicketStatus
                               status={transition.toStatus}
                               isAgent
-                              dot
                             />
                           )}
                         </SelectItem>
@@ -361,7 +351,7 @@ export default function TicketDetail() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <TicketStatus status={ticket.status} isAgent={isAgent} dot />
+                  <TicketStatus status={ticket.status} isAgent={isAgent} />
                 )}
               </div>
               <div className="space-y-2">

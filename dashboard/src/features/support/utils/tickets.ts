@@ -34,7 +34,6 @@ export const SERVICES = [
   'other',
 ] as const;
 export const PAGE_SIZE = 50;
-export const SAMPLE_TICKET_PAGE_SIZE = 25;
 
 export const ticketFormSchema = z.object({
   organizationID: z.uuid('Select an organization'),
@@ -194,4 +193,33 @@ export function supportGap(from: string, to: string): string {
   }
   const days = Math.round(hours / 24);
   return days === 1 ? '1 day' : `${days} days`;
+}
+
+// When each ticket was last opened, kept in this browser only and per user, so
+// the queue can mark replies that arrived after that visit.
+function seenKey(userId: string) {
+  return `nhost-support-seen:${userId}`;
+}
+
+export function readSeenTickets(userId: string): Record<string, string> {
+  try {
+    const value = JSON.parse(localStorage.getItem(seenKey(userId)) ?? '{}');
+    return value && typeof value === 'object' ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+export function markTicketSeen(userId: string, ticketId: string) {
+  try {
+    localStorage.setItem(
+      seenKey(userId),
+      JSON.stringify({
+        ...readSeenTickets(userId),
+        [ticketId]: new Date().toISOString(),
+      }),
+    );
+  } catch {
+    // Storage can be full or blocked; the ticket then just stays highlighted.
+  }
 }

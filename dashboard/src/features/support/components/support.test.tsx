@@ -4,35 +4,24 @@ import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
 import NewTicket from '@/features/support/components/NewTicket';
 import { SupportArea } from '@/features/support/components/SupportArea';
-import SupportViewSwitch from '@/features/support/components/SupportViewSwitch';
 import TicketDetail from '@/features/support/components/TicketDetail';
 import TicketList from '@/features/support/components/TicketList';
-import { useSupportSession } from '@/features/support/hooks/use-support-session';
-import { resetSampleTickets } from '@/features/support/utils/sample-tickets';
 import {
-  DashboardReserveSupportAttachmentDocument,
-  type DashboardReserveSupportAttachmentMutation,
   type DashboardSupportEventsQuery,
-  DashboardSupportTicketDocument,
   type DashboardSupportTicketQuery,
-  DashboardSupportTicketsDocument,
-  type DashboardSupportTicketsQuery,
   SupportSeverities_Enum,
   SupportTicketEventKinds_Enum,
   SupportTicketStatuses_Enum,
 } from '@/generated/graphql';
 import { useAuth } from '@/providers/Auth';
-import { useNhostClient } from '@/providers/nhost';
 import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { expectInputValue } from '@/tests/supportEditor';
 import {
   act,
   mockScrollIntoViewAndPointerCapture,
-  Providers,
   queryClient,
   render,
-  renderHook,
   screen,
   TestUserEvent,
   waitFor,
@@ -292,12 +281,8 @@ async function fillTicket(user: TestUserEvent) {
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-  resetSampleTickets(mockSession.user!.id);
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   toast.remove();
-  window.localStorage.removeItem(
-    `support-preview-view:${mockSession.user!.id}`,
-  );
   mockSession.accessToken = sessionToken(['user']);
   queryClient.clear();
   ticket = structuredClone(initialTicket);
@@ -317,9 +302,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   toast.remove();
-  window.localStorage.removeItem(
-    `support-preview-view:${mockSession.user!.id}`,
-  );
   mockSession.accessToken = originalToken;
   server.resetHandlers();
   vi.clearAllMocks();
@@ -380,420 +362,6 @@ function expectHelpFooter(visible: boolean) {
   }
   expect(screen.queryByText(/Need a quick answer/)).not.toBeInTheDocument();
 }
-
-describe('temporary Support view preview', () => {
-  function supportRoute(pathname = '/support') {
-    mocks.useRouter.mockReturnValue({
-      ...mockRouter,
-      pathname,
-      query: { ticketId },
-      isReady: true,
-      push,
-      replace,
-    });
-  }
-
-  it('never exposes the preview in production, even with a saved agent value', async () => {
-    vi.stubEnv('NEXT_PUBLIC_ENV', 'prod');
-    supportRoute();
-    window.localStorage.setItem(
-      `support-preview-view:${mockSession.user!.id}`,
-      'agent',
-    );
-    render(
-      <>
-        <SupportViewSwitch />
-        <TicketList />
-      </>,
-    );
-    await screen.findByRole('link', { name: /Storage upload fails/ });
-    expect(
-      screen.queryByRole('radiogroup', { name: 'View support as' }),
-    ).not.toBeInTheDocument();
-    expectHelpFooter(true);
-    expect(
-      requests.find((request) => request.operation === 'list'),
-    ).toMatchObject({ role: 'user' });
-  });
-
-  it.each(['dev', 'staging'])(
-    'offers customer accounts both views in %s without mixing real and sample lists',
-    async (environment) => {
-      vi.stubEnv('NEXT_PUBLIC_ENV', environment);
-      supportRoute();
-      const user = new TestUserEvent();
-      render(
-        <>
-          <SupportViewSwitch />
-          <TicketList />
-        </>,
-      );
-      await screen.findByRole('link', { name: /Storage upload fails/ });
-      const group = screen.getByRole('radiogroup', { name: 'View support as' });
-      expect(
-        within(group).getByRole('radio', { name: 'Customer' }),
-      ).toHaveAttribute('data-state', 'on');
-      const realRequests = requests.length;
-      await user.click(within(group).getByRole('radio', { name: 'Agent' }));
-      await screen.findByText('Sample data');
-      await screen.findByRole('link', {
-        name: /Can't connect to Postgres after upgrade/,
-      });
-      expect(
-        screen.queryByRole('link', { name: /Storage upload fails/ }),
-      ).not.toBeInTheDocument();
-      expectHelpFooter(true);
-      expect(requests).toHaveLength(realRequests);
-      await user.click(within(group).getByRole('radio', { name: 'Customer' }));
-      await screen.findByRole('link', { name: /Storage upload fails/ });
-      expect(screen.queryByText('Sample data')).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole('link', {
-          name: /Can't connect to Postgres after upgrade/,
-        }),
-      ).not.toBeInTheDocument();
-      expectHelpFooter(true);
-    },
-  );
-
-  it('never calls GraphQL, Storage or session refresh for sample actions', async () => {
-    supportRoute();
-    window.localStorage.setItem(
-      `support-preview-view:${mockSession.user!.id}`,
-      'agent',
-    );
-    const { result } = renderHook(
-      () => ({ support: useSupportSession(), client: useNhostClient() }),
-      { wrapper: Providers },
-    );
-    await waitFor(() => expect(result.current.support.user).not.toBeNull());
-    expect(result.current.support.isSample).toBe(true);
-    expect(result.current.support.isAgent).toBe(true);
-    expect(result.current.support.queryKey[2]).toBe('sample');
-    const graphql = vi.spyOn(result.current.client.graphql, 'request');
-    const refresh = vi.spyOn(result.current.client, 'refreshSession');
-    const upload = vi.spyOn(result.current.client.storage, 'uploadFiles');
-    const download = vi.spyOn(result.current.client.storage, 'getFile');
-    try {
-      const data =
-        await result.current.support.request<DashboardSupportTicketsQuery>(
-          DashboardSupportTicketsDocument,
-          { where: {}, offset: 0 },
-        );
-      const reservation =
-        await result.current.support.request<DashboardReserveSupportAttachmentMutation>(
-          DashboardReserveSupportAttachmentDocument,
-          {
-            ticketId: data.supportTickets.find(
-              (candidate) => candidate.status === 'new',
-            )!.id,
-          },
-        );
-      const id = reservation.insertSupportAttachmentUpload!.id;
-      await result.current.support.uploadAttachment(
-        id,
-        new File(['only in memory'], 'example.txt', { type: 'text/plain' }),
-      );
-      expect(
-        (await result.current.support.downloadAttachment(id)).size,
-      ).toBeGreaterThan(0);
-      expect(graphql).not.toHaveBeenCalled();
-      expect(refresh).not.toHaveBeenCalled();
-      expect(upload).not.toHaveBeenCalled();
-      expect(download).not.toHaveBeenCalled();
-    } finally {
-      graphql.mockRestore();
-      refresh.mockRestore();
-      upload.mockRestore();
-      download.mockRestore();
-    }
-  });
-
-  it('keeps ticket creation real and user-scoped while Agent sample view is selected', async () => {
-    supportRoute('/support/ticket');
-    window.localStorage.setItem(
-      `support-preview-view:${mockSession.user!.id}`,
-      'agent',
-    );
-    const user = new TestUserEvent();
-    render(
-      <>
-        <SupportViewSwitch />
-        <NewTicket />
-      </>,
-    );
-    await fillTicket(user);
-    expect(screen.getByText('Sample data')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Create ticket' }));
-    await waitFor(() =>
-      expect(
-        requests.find((request) => request.operation === 'create'),
-      ).toMatchObject({ role: 'user' }),
-    );
-    expect(requests.some((request) => request.role === 'support')).toBe(false);
-  });
-
-  it('shows not found when switching a real ticket into the sample set', async () => {
-    supportRoute('/support/tickets/[ticketId]');
-    const user = new TestUserEvent();
-    render(
-      <>
-        <SupportViewSwitch />
-        <TicketDetail />
-      </>,
-    );
-    await screen.findByRole('heading', { name: ticket.title });
-    const group = screen.getByRole('radiogroup', { name: 'View support as' });
-    await user.click(within(group).getByRole('radio', { name: 'Agent' }));
-    await screen.findByRole('heading', { name: 'Ticket not found' });
-    expect(push).not.toHaveBeenCalled();
-    await user.click(within(group).getByRole('radio', { name: 'Customer' }));
-    await screen.findByRole('heading', { name: ticket.title });
-  });
-
-  it.each(['/support', '/support/ticket', '/support/tickets/[ticketId]'])(
-    'shows the switch for agents on %s',
-    async (pathname) => {
-      makeAgent();
-      supportRoute(pathname);
-      render(<SupportViewSwitch />);
-      const group = await screen.findByRole('radiogroup', {
-        name: 'View support as',
-      });
-      expect(
-        within(group).getByRole('radio', { name: 'Agent' }),
-      ).toHaveAttribute('data-state', 'on');
-      await new TestUserEvent().click(
-        within(group).getByRole('radio', { name: 'Agent' }),
-      );
-      expect(
-        within(group).getByRole('radio', { name: 'Agent' }),
-      ).toHaveAttribute('data-state', 'on');
-    },
-  );
-
-  it('does not show the switch outside Support', async () => {
-    makeAgent();
-    supportRoute('/account');
-    render(<SupportViewSwitch />);
-    expect(
-      screen.queryByRole('radiogroup', { name: 'View support as' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('switches all list consumers together and persists the choice for this user', async () => {
-    makeAgent();
-    supportRoute();
-    const user = new TestUserEvent();
-    const view = render(
-      <>
-        <SupportViewSwitch />
-        <TicketList />
-      </>,
-    );
-    const group = await screen.findByRole('radiogroup', {
-      name: 'View support as',
-    });
-    await screen.findByRole('checkbox', { name: 'Assigned to me' });
-    await user.click(within(group).getByRole('radio', { name: 'Customer' }));
-    await screen.findByRole('heading', { name: 'Other ways to get help' });
-    expect(
-      screen.queryByRole('checkbox', { name: 'Assigned to me' }),
-    ).not.toBeInTheDocument();
-    await waitFor(() =>
-      expect(
-        requests.filter((request) => request.operation === 'list').at(-1),
-      ).toMatchObject({ role: 'user' }),
-    );
-    expect(
-      window.localStorage.getItem(
-        `support-preview-view:${mockSession.user!.id}`,
-      ),
-    ).toBe('customer');
-    view.unmount();
-    render(
-      <>
-        <SupportViewSwitch />
-        <TicketList />
-      </>,
-    );
-    const restored = await screen.findByRole('radiogroup', {
-      name: 'View support as',
-    });
-    expect(
-      within(restored).getByRole('radio', { name: 'Customer' }),
-    ).toHaveAttribute('data-state', 'on');
-    await user.click(within(restored).getByRole('radio', { name: 'Agent' }));
-    await screen.findByRole('checkbox', { name: 'Assigned to me' });
-    expectHelpFooter(true);
-    await waitFor(() =>
-      expect(
-        requests.filter((request) => request.operation === 'list').at(-1),
-      ).toMatchObject({ role: 'support' }),
-    );
-  });
-
-  it('hides ticket management controls and uses user requests in customer preview', async () => {
-    makeAgent();
-    supportRoute('/support/tickets/[ticketId]');
-    const user = new TestUserEvent();
-    render(
-      <>
-        <SupportViewSwitch />
-        <TicketDetail />
-      </>,
-    );
-    await screen.findByRole('combobox', { name: 'Change ticket status' });
-    expect(
-      screen.getByRole('combobox', { name: 'Change ticket severity' }),
-    ).toBeInTheDocument();
-    await user.click(
-      within(
-        screen.getByRole('radiogroup', { name: 'View support as' }),
-      ).getByRole('radio', { name: 'Customer' }),
-    );
-    await screen.findByRole('heading', { name: ticket.title });
-    await waitFor(() =>
-      expect(
-        requests.filter((request) => request.operation === 'detail').at(-1),
-      ).toMatchObject({ role: 'user' }),
-    );
-    expect(
-      screen.queryByRole('combobox', { name: 'Change ticket status' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('combobox', { name: 'Change ticket severity' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Assign to me' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('shows an inaccessible ticket state in customer view without redirecting', async () => {
-    makeAgent();
-    supportRoute('/support/tickets/[ticketId]');
-    server.use(
-      nhostGraphQLLink.query('dashboardSupportTicket', ({ request }) =>
-        HttpResponse.json({
-          data: {
-            supportTicket:
-              request.headers.get('x-hasura-role') === 'support'
-                ? ticket
-                : null,
-            supportTicketTransitions: [],
-          },
-        }),
-      ),
-    );
-    const user = new TestUserEvent();
-    render(
-      <>
-        <SupportViewSwitch />
-        <TicketDetail />
-      </>,
-    );
-    await screen.findByRole('button', { name: 'Assign to me' });
-    const group = screen.getByRole('radiogroup', { name: 'View support as' });
-    await user.click(within(group).getByRole('radio', { name: 'Customer' }));
-    await screen.findByRole('heading', { name: 'Ticket not found' });
-    expect(
-      screen.queryByRole('button', { name: 'Assign to me' }),
-    ).not.toBeInTheDocument();
-    expect(push).not.toHaveBeenCalled();
-    await user.click(within(group).getByRole('radio', { name: 'Agent' }));
-    await screen.findByRole('button', { name: 'Assign to me' });
-  });
-
-  it('ignores another user’s saved view', async () => {
-    makeAgent();
-    supportRoute();
-    window.localStorage.setItem(
-      'support-preview-view:another-user',
-      'customer',
-    );
-    try {
-      render(<SupportViewSwitch />);
-      const group = await screen.findByRole('radiogroup', {
-        name: 'View support as',
-      });
-      expect(
-        within(group).getByRole('radio', { name: 'Agent' }),
-      ).toHaveAttribute('data-state', 'on');
-    } finally {
-      window.localStorage.removeItem('support-preview-view:another-user');
-    }
-  });
-
-  it('uses samples instead of real agent requests when the account loses its role', async () => {
-    makeAgent();
-    supportRoute();
-    window.localStorage.setItem(
-      `support-preview-view:${mockSession.user!.id}`,
-      'agent',
-    );
-    function RevokeRole() {
-      const { session, updateSession } = useAuth();
-      return (
-        <button
-          type="button"
-          onClick={() =>
-            updateSession({ ...session!, decodedToken: originalClaims })
-          }
-        >
-          Revoke preview role
-        </button>
-      );
-    }
-    render(
-      <>
-        <SupportViewSwitch />
-        <RevokeRole />
-        <TicketList />
-      </>,
-    );
-    await screen.findByRole('radiogroup', { name: 'View support as' });
-    const realRequests = requests.length;
-    await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Revoke preview role' }),
-    );
-    await screen.findByText('Sample data');
-    await screen.findByRole('link', {
-      name: /Can't connect to Postgres after upgrade/,
-    });
-    expect(
-      screen.queryByRole('link', { name: /Storage upload fails/ }),
-    ).not.toBeInTheDocument();
-    expect(requests).toHaveLength(realRequests);
-  });
-
-  it.each([false, true])(
-    'blocks explicit agent requests in customer view (real agent=%s)',
-    async (agent) => {
-      if (agent) {
-        makeAgent();
-        window.localStorage.setItem(
-          `support-preview-view:${mockSession.user!.id}`,
-          'customer',
-        );
-      }
-      const { result } = renderHook(() => useSupportSession(), {
-        wrapper: Providers,
-      });
-      await waitFor(() => expect(result.current.user).not.toBeNull());
-      await expect(
-        result.current.request(
-          DashboardSupportTicketDocument,
-          { id: ticketId },
-          undefined,
-          'support',
-        ),
-      ).rejects.toThrow('Your support access changed');
-      expect(requests.some((request) => request.operation === 'detail')).toBe(
-        false,
-      );
-    },
-  );
-});
 
 describe('native dashboard support', () => {
   it.each([
@@ -918,17 +486,7 @@ describe('native dashboard support', () => {
       render(<TicketList />);
       try {
         const loading = await screen.findByText('Loading tickets…');
-        expect(loading.closest('.min-h-80')).toHaveClass(
-          'sm:min-h-112',
-          'px-6',
-          'py-20',
-          'sm:px-8',
-          'sm:py-32',
-          'rounded-lg',
-          'border',
-          'items-center',
-          'justify-center',
-        );
+        expect(loading.closest('.min-h-28')).toBeInTheDocument();
         expect(
           screen.queryAllByRole('link', { name: 'Create ticket' }),
         ).toHaveLength(agent ? 1 : 0);
@@ -938,7 +496,7 @@ describe('native dashboard support', () => {
         expect(
           screen.getByRole('button', { name: 'Status' }),
         ).toBeInTheDocument();
-        expectHelpFooter(true);
+        expectHelpFooter(false);
       } finally {
         release();
       }
@@ -1589,8 +1147,20 @@ describe('native dashboard support', () => {
       screen.queryByRole('combobox', { name: 'Change ticket severity' }),
     ).not.toBeInTheDocument();
   });
+  it('keeps the conversation without tabs when the only event is creation', async () => {
+    makeAgent();
+    render(<TicketDetail />);
+    await screen.findByRole('region', { name: 'Conversation' });
+    await waitFor(() =>
+      expect(requests.some(({ operation }) => operation === 'events')).toBe(
+        true,
+      ),
+    );
+    expect(
+      screen.queryByRole('tablist', { name: 'Ticket view' }),
+    ).not.toBeInTheDocument();
+  });
   it.each([
-    { kind: SupportTicketEventKinds_Enum.Created, label: 'Created' },
     {
       kind: SupportTicketEventKinds_Enum.StatusChanged,
       label: 'Status changed',
@@ -1609,11 +1179,14 @@ describe('native dashboard support', () => {
       makeAgent();
       event.kind = kind;
       render(<TicketDetail />);
-      await waitFor(() =>
-        expect(
-          screen.getByRole('region', { name: 'Ticket activity' }),
-        ).toHaveTextContent(`Customer Alice · ${label}`),
-      );
+      const tab = await screen.findByRole('tab', { name: 'Activity · 1' });
+      await new TestUserEvent().click(tab);
+      const activity = screen.getByRole('region', { name: 'Ticket activity' });
+      expect(
+        within(activity).getByRole('row', {
+          name: new RegExp(`Customer Alice.*${label}`),
+        }),
+      ).toBeInTheDocument();
     },
   );
   it.each([

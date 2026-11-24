@@ -45,6 +45,7 @@ import {
   SupportError,
 } from '@/features/support/components/SupportArea';
 import SupportMarkdownEditor from '@/features/support/components/SupportMarkdownEditor';
+import { TicketSeverity } from '@/features/support/components/TicketBadges';
 import { useSupportAttachmentDraft } from '@/features/support/hooks/use-support-attachment-draft';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
@@ -536,7 +537,13 @@ function NewTicketForm() {
                                         className="sr-only"
                                       />
                                       <span className="flex items-center justify-between gap-2 font-medium text-sm">
-                                        {supportLabel(severity)}
+                                        <span
+                                          className={
+                                            locked ? 'opacity-60' : undefined
+                                          }
+                                        >
+                                          <TicketSeverity severity={severity} />
+                                        </span>
                                         {selectedOrganization &&
                                           locked &&
                                           (severity ===

@@ -124,12 +124,15 @@ export default function SupportEditorAttachment({
       draggable={!compact && !disabled && !uploading}
       className={cn(
         'group/attachment relative my-2 inline-flex max-w-full items-center rounded-md border align-middle hover:border-primary/50',
-        !image && !uploading && !compactThumbnail &&
+        !image &&
+          !uploading &&
+          !compactThumbnail &&
           'gap-2 bg-muted/10 py-2 pr-10 pl-3 text-sm',
         !compact && !image && showPreview && 'pr-20',
         !compact && !disabled && !uploading && 'cursor-move',
         compact && 'not-prose my-1',
-        compactThumbnail && 'h-20 w-28 justify-center overflow-hidden bg-muted/50',
+        compactThumbnail &&
+          'h-20 w-28 justify-center overflow-hidden bg-muted/50',
       )}
     >
       {uploading ? (
@@ -143,7 +146,9 @@ export default function SupportEditorAttachment({
           file={file}
           requestRole={requestRole}
           className="size-full border-0 bg-transparent"
-          label={attachment.isError ? `Attachment unavailable: ${name}` : filename}
+          label={
+            attachment.isError ? `Attachment unavailable: ${name}` : filename
+          }
         />
       ) : image ? (
         <SupportAttachmentPreview
@@ -164,7 +169,9 @@ export default function SupportEditorAttachment({
             <Paperclip aria-hidden="true" className="size-4 shrink-0" />
           )}
           <span className="min-w-0 break-words">
-            {compact && attachment.isError ? `Attachment unavailable: ${filename}` : filename}
+            {compact && attachment.isError
+              ? `Attachment unavailable: ${filename}`
+              : filename}
           </span>
         </>
       )}
@@ -173,7 +180,7 @@ export default function SupportEditorAttachment({
           ref={previewButton}
           type="button"
           aria-label={`View ${filename} full size`}
-          className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           onClick={() => setPreviewOpen(true)}
         />
       )}

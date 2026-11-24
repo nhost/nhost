@@ -18,7 +18,7 @@ function renderChangeValue(kind: string, value: string | null | undefined) {
     return 'None';
   }
   if (kind === 'status_changed') {
-    return <TicketStatus status={value} isAgent dot />;
+    return <TicketStatus status={value} isAgent />;
   }
   if (kind === 'severity_changed') {
     return <TicketSeverity severity={value} />;
@@ -54,7 +54,9 @@ export default function TicketActivity({
           {events.map((event) => (
             <TableRow key={event.id}>
               <TableCell className="whitespace-nowrap px-2 text-muted-foreground">
-                <time dateTime={event.createdAt}>{supportDate(event.createdAt)}</time>
+                <time dateTime={event.createdAt}>
+                  {supportDate(event.createdAt)}
+                </time>
               </TableCell>
               <TableCell>{event.actorName}</TableCell>
               <TableCell>{supportLabel(event.kind)}</TableCell>
@@ -69,7 +71,9 @@ export default function TicketActivity({
           ))}
         </TableBody>
       </Table>
-      <p className="text-muted-foreground text-xs">Showing the latest 100 events.</p>
+      <p className="text-muted-foreground text-xs">
+        Showing the latest 100 events.
+      </p>
     </section>
   );
 }

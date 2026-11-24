@@ -10,7 +10,12 @@ import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/v3/tabs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportMarkdown from '@/features/support/components/SupportMarkdown';
@@ -81,8 +86,10 @@ export default function TicketConversation({
     retry: false,
     refetchInterval: 30000,
   });
-  const activity = isAgent && !events.isError ? events.data?.supportTicketEvents : undefined;
-  const hasActivity = !!activity?.length;
+  const activity =
+    isAgent && !events.isError ? events.data?.supportTicketEvents : undefined;
+  const hasActivity =
+    activity?.some((event) => event.kind !== 'created') ?? false;
   const comments = useInfiniteQuery({
     queryKey: [...queryKey, 'comments', ticketId],
     queryFn: ({ pageParam = 0, signal }) =>
@@ -136,12 +143,24 @@ export default function TicketConversation({
         className="min-w-0"
       >
         {hasActivity && (
-          <TabsList variant="underline" aria-label="Ticket view" className="mb-8">
-            <TabsTrigger variant="underline" value="conversation">Conversation</TabsTrigger>
-            <TabsTrigger variant="underline" value="activity">Activity · {activity?.length}</TabsTrigger>
+          <TabsList
+            variant="underline"
+            aria-label="Ticket view"
+            className="mb-8"
+          >
+            <TabsTrigger variant="underline" value="conversation">
+              Conversation
+            </TabsTrigger>
+            <TabsTrigger variant="underline" value="activity">
+              Activity · {activity?.length}
+            </TabsTrigger>
           </TabsList>
         )}
-        <TabsContent value="conversation" forceMount className="mt-0 data-[state=inactive]:hidden">
+        <TabsContent
+          value="conversation"
+          forceMount
+          className="mt-0 data-[state=inactive]:hidden"
+        >
           <section aria-label="Conversation" className="min-w-0 space-y-6">
             <ol className="space-y-5">
               {[
@@ -150,8 +169,10 @@ export default function TicketConversation({
               ].map((message, index, messages) => {
                 const teamReply = message.authorRole === 'support';
                 const next = messages[index + 1];
-                const showGap = !!next && !(index === 0 && comments.hasNextPage);
-                const nhostReplied = !teamReply && next?.authorRole === 'support';
+                const showGap =
+                  !!next && !(index === 0 && comments.hasNextPage);
+                const nhostReplied =
+                  !teamReply && next?.authorRole === 'support';
                 return (
                   <li
                     key={message.id}
@@ -176,7 +197,10 @@ export default function TicketConversation({
                           )}
                         >
                           {supportGap(message.createdAt, next.createdAt)}
-                          <span className="sr-only"> until the next message</span>
+                          <span className="sr-only">
+                            {' '}
+                            until the next message
+                          </span>
                         </span>
                       </div>
                     )}
@@ -220,17 +244,19 @@ export default function TicketConversation({
                           {message.body}
                         </SupportMarkdown>
                       </div>
-                      {index === 0 && comments.hasNextPage && !comments.isError && (
-                        <Button
-                          variant="outline"
-                          disabled={comments.isFetchingNextPage}
-                          onClick={() => {
-                            void comments.fetchNextPage();
-                          }}
-                        >
-                          Load earlier replies
-                        </Button>
-                      )}
+                      {index === 0 &&
+                        comments.hasNextPage &&
+                        !comments.isError && (
+                          <Button
+                            variant="outline"
+                            disabled={comments.isFetchingNextPage}
+                            onClick={() => {
+                              void comments.fetchNextPage();
+                            }}
+                          >
+                            Load earlier replies
+                          </Button>
+                        )}
                     </article>
                   </li>
                 );
@@ -248,8 +274,8 @@ export default function TicketConversation({
             ) : null}
             {closed ? (
               <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
-                This ticket is closed and read-only. Create a new ticket if you need
-                further help.
+                This ticket is closed and read-only. Create a new ticket if you
+                need further help.
               </p>
             ) : (
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-6">
@@ -266,7 +292,11 @@ export default function TicketConversation({
                 <FormProvider {...form}>
                   <Form
                     onSubmit={async ({ body }: z.infer<typeof replySchema>) => {
-                      if (disabled || comments.isError || attachments.uploading) {
+                      if (
+                        disabled ||
+                        comments.isError ||
+                        attachments.uploading
+                      ) {
                         return;
                       }
                       await execPromiseWithErrorToast(
@@ -288,7 +318,9 @@ export default function TicketConversation({
                       }
                       placeholder="Write a reply…"
                       disabled={
-                        disabled || comments.isError || form.formState.isSubmitting
+                        disabled ||
+                        comments.isError ||
+                        form.formState.isSubmitting
                       }
                       filesDisabled={attachments.unavailable}
                       attachmentScope={attachmentScope}
@@ -343,7 +375,12 @@ export default function TicketConversation({
       >
         {sidebar}
         {closed ? (
-          <TicketAttachments controller={attachments} scope={attachmentScope} closed compact />
+          <TicketAttachments
+            controller={attachments}
+            scope={attachmentScope}
+            closed
+            compact
+          />
         ) : (
           <div ref={setAttachmentPanel} />
         )}

@@ -163,7 +163,8 @@ export default function SupportAttachmentPreview({
         <img
           src={image.url}
           alt={
-            accessibleLabel ?? (variant === 'editor'
+            accessibleLabel ??
+            (variant === 'editor'
               ? (file?.name ?? 'attachment')
               : `Preview of ${file?.name ?? 'attachment'}`)
           }
@@ -184,7 +185,9 @@ export default function SupportAttachmentPreview({
           className="size-6 text-muted-foreground"
           role="img"
           aria-hidden={false}
-          aria-label={accessibleLabel ?? `${label}: ${file?.name ?? 'attachment'}`}
+          aria-label={
+            accessibleLabel ?? `${label}: ${file?.name ?? 'attachment'}`
+          }
         />
       )}
     </span>

@@ -14,7 +14,11 @@ import SupportAttachmentPreview from '@/features/support/components/SupportAttac
 import SupportImageViewer from '@/features/support/components/SupportImageViewer';
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
-import { isSupportImage, type SupportAttachmentFile, type SupportAttachmentScope } from '@/features/support/utils/attachments';
+import {
+  isSupportImage,
+  type SupportAttachmentFile,
+  type SupportAttachmentScope,
+} from '@/features/support/utils/attachments';
 import { supportDate } from '@/features/support/utils/tickets';
 import { cn } from '@/lib/utils';
 
@@ -53,11 +57,13 @@ export default function TicketAttachments({
     : files.find((attachment) => attachment.file?.id === previewID)?.file;
   function downloadFile(file: SupportAttachmentFile) {
     void execPromiseWithErrorToast(
-      () => download.mutateAsync({ id: file.id, name: file.name ?? 'attachment' }),
+      () =>
+        download.mutateAsync({ id: file.id, name: file.name ?? 'attachment' }),
       {
         loadingMessage: 'Downloading attachment…',
         successMessage: 'Attachment downloaded',
-        errorMessage: 'Unable to download this attachment. Your access may have changed.',
+        errorMessage:
+          'Unable to download this attachment. Your access may have changed.',
       },
     );
   }
@@ -113,7 +119,10 @@ export default function TicketAttachments({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  {compact && scope && attachment.file && isSupportImage(attachment.file.mimeType ?? '') ? (
+                  {compact &&
+                  scope &&
+                  attachment.file &&
+                  isSupportImage(attachment.file.mimeType ?? '') ? (
                     <button
                       type="button"
                       aria-label={`View ${attachment.file.name ?? 'attachment'} full size`}
@@ -124,7 +133,10 @@ export default function TicketAttachments({
                         setPreviewOpen(true);
                       }}
                     >
-                      <SupportAttachmentPreview file={attachment.file} className="size-8 border-0" />
+                      <SupportAttachmentPreview
+                        file={attachment.file}
+                        className="size-8 border-0"
+                      />
                     </button>
                   ) : (
                     <SupportAttachmentPreview
@@ -133,7 +145,13 @@ export default function TicketAttachments({
                     />
                   )}
                   <div className="min-w-0">
-                    <p className={compact ? 'truncate text-muted-foreground text-xs' : 'break-words'}>
+                    <p
+                      className={
+                        compact
+                          ? 'truncate text-muted-foreground text-xs'
+                          : 'break-words'
+                      }
+                    >
                       {attachment.file?.name ?? 'Attachment unavailable'}
                     </p>
                     {!compact && (

@@ -35,9 +35,6 @@ query dashboardSupportTickets(
         count
       }
     }
-    reads {
-      readAt
-    }
     lastReply: comments(
       where: { authorRole: { _eq: $replyRole } }
       order_by: [{ createdAt: desc }, { id: desc }]
@@ -171,14 +168,5 @@ mutation dashboardUpdateSupportTicket(
     _set: $changes
   ) {
     affected_rows
-  }
-}
-
-mutation dashboardMarkSupportTicketRead($id: uuid!) {
-  insertSupportTicketRead(
-    object: { ticketID: $id }
-    on_conflict: { constraint: ticket_reads_pkey, update_columns: [readAt] }
-  ) {
-    readAt
   }
 }

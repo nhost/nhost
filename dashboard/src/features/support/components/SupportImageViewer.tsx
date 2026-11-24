@@ -41,9 +41,7 @@ export default function SupportImageViewer({
           trigger.current?.focus({ preventScroll: true });
         }}
       >
-        <DialogTitle className="truncate pr-8 text-sm">
-          {filename}
-        </DialogTitle>
+        <DialogTitle className="truncate pr-8 text-sm">{filename}</DialogTitle>
         {open && (
           <FullSizeImage
             file={file}

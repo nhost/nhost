@@ -33412,14 +33412,7 @@ export type DashboardSupportTicketsQueryVariables = Exact<{
 }>;
 
 
-export type DashboardSupportTicketsQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, comments_aggregate: { __typename?: 'supportComments_aggregate', aggregate?: { __typename?: 'supportComments_aggregate_fields', count: number } | null }, reads: Array<{ __typename?: 'supportTicketReads', readAt: any }>, lastReply: Array<{ __typename?: 'supportComments', createdAt: any }> }> };
-
-export type DashboardMarkSupportTicketReadMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DashboardMarkSupportTicketReadMutation = { __typename?: 'mutation_root', insertSupportTicketRead?: { __typename?: 'supportTicketReads', readAt: any } | null };
+export type DashboardSupportTicketsQuery = { __typename?: 'query_root', supportTickets: Array<{ __typename?: 'supportTickets', id: any, number: any, title: string, status: SupportTicketStatuses_Enum, severity: SupportSeverities_Enum, services: Array<string>, organizationID: any, organizationName: string, projectID?: any | null, projectName?: string | null, requesterID: any, requesterName: string, assigneeID?: any | null, assigneeName?: string | null, version: number, createdAt: any, updatedAt: any, comments_aggregate: { __typename?: 'supportComments_aggregate', aggregate?: { __typename?: 'supportComments_aggregate_fields', count: number } | null }, lastReply: Array<{ __typename?: 'supportComments', createdAt: any }> }> };
 
 export type DashboardSupportTicketQueryVariables = Exact<{
   id: Scalars['uuid'];
@@ -40932,9 +40925,6 @@ export const DashboardSupportTicketsDocument = gql`
         count
       }
     }
-    reads {
-      readAt
-    }
     lastReply: comments(
       where: {authorRole: {_eq: $replyRole}}
       order_by: [{createdAt: desc}, {id: desc}]
@@ -40945,17 +40935,6 @@ export const DashboardSupportTicketsDocument = gql`
   }
 }
     ${DashboardSupportTicketFragmentDoc}`;
-
-export const DashboardMarkSupportTicketReadDocument = gql`
-    mutation dashboardMarkSupportTicketRead($id: uuid!) {
-  insertSupportTicketRead(
-    object: {ticketID: $id}
-    on_conflict: {constraint: ticket_reads_pkey, update_columns: [readAt]}
-  ) {
-    readAt
-  }
-}
-    `;
 
 /**
  * __useDashboardSupportTicketsQuery__

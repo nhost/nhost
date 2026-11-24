@@ -1,32 +1,25 @@
 import type { GetFileParams } from '@nhost/nhost-js/storage';
 import { type DocumentNode, print } from 'graphql';
-import { useSupportView } from '@/features/support/components/SupportViewSwitch';
 import {
   attachmentValidationError,
   SUPPORT_ATTACHMENT_BUCKET,
 } from '@/features/support/utils/attachments';
-import {
-  downloadSampleAttachment,
-  sampleSupportRequest,
-  uploadSampleAttachment,
-} from '@/features/support/utils/sample-tickets';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
 export type SupportRole = 'user' | 'support';
 
 export function useSupportSession() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const nhost = useNhostClient();
-  const { isAgent, isSample, useSampleRequests, canViewAsAgent } =
-    useSupportView();
-  const role: SupportRole =
-    isAgent && !(isSample && !useSampleRequests) ? 'support' : 'user';
-  const queryKey = [
-    'support',
-    user?.id,
-    useSampleRequests ? 'sample' : role,
-  ] as const;
+  const allowedRoles =
+    session?.decodedToken['https://hasura.io/jwt/claims']?.[
+      'x-hasura-allowed-roles'
+    ];
+  const isAgent =
+    !!user && Array.isArray(allowedRoles) && allowedRoles.includes('support');
+  const role: SupportRole = isAgent ? 'support' : 'user';
+  const queryKey = ['support', user?.id, role] as const;
 
   function assertSession() {
     if (!user || nhost.getUserSession()?.user?.id !== user.id) {
@@ -51,7 +44,6 @@ export function useSupportSession() {
     if (
       requestRole === 'support' &&
       (!isAgent ||
-        !canViewAsAgent ||
         !Array.isArray(activeRoles) ||
         !activeRoles.includes('support'))
     ) {
@@ -71,10 +63,6 @@ export function useSupportSession() {
     requestRole: SupportRole = role,
   ): Promise<TData> {
     signal?.throwIfAborted();
-    if (useSampleRequests) {
-      assertSession();
-      return sampleSupportRequest<TData>(document, variables, user!);
-    }
     const headers = await requestHeaders(requestRole);
     signal?.throwIfAborted();
     const response = await nhost.graphql.request<TData>(
@@ -99,11 +87,6 @@ export function useSupportSession() {
     const validationError = attachmentValidationError(file);
     if (validationError) {
       throw new Error(validationError);
-    }
-    if (useSampleRequests) {
-      assertSession();
-      uploadSampleAttachment(user!, id, file);
-      return;
     }
     const headers = await requestHeaders(requestRole);
     const response = await nhost.storage.uploadFiles(
@@ -136,10 +119,6 @@ export function useSupportSession() {
     transform?: GetFileParams,
   ): Promise<Blob> {
     signal?.throwIfAborted();
-    if (useSampleRequests) {
-      assertSession();
-      return downloadSampleAttachment(user!, id, transform);
-    }
     const headers = await requestHeaders(requestRole);
     signal?.throwIfAborted();
     const response = await nhost.storage.getFile(id, transform, {
@@ -154,7 +133,6 @@ export function useSupportSession() {
   return {
     user,
     isAgent,
-    isSample,
     role,
     queryKey,
     request,

@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
 import { openCreateOrgDialog } from '@/features/orgs/components/CreateOrgFormDialog/createOrgDialogStore';
-import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   act,
   mockScrollIntoViewAndPointerCapture,
@@ -193,42 +193,6 @@ const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
 mockScrollIntoViewAndPointerCapture();
 
 describe('Header', () => {
-  it.each(['desktop', 'mobile'] as const)(
-    'keeps the agent Support preview first in the header actions on %s',
-    async (viewport) => {
-      const originalToken = mockSession.accessToken;
-      const originalClaims = structuredClone(mockSession.decodedToken);
-      const claims = {
-        'x-hasura-user-id': mockSession.user!.id,
-        'x-hasura-default-role': 'user',
-        'x-hasura-allowed-roles': ['user', 'support'],
-      };
-      mockSession.decodedToken = {
-        ...originalClaims,
-        'https://hasura.io/jwt/claims': claims,
-      };
-      mockSession.accessToken = `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: mockSession.user!.id, exp: Math.floor(Date.now() / 1000) + 3600, 'https://hasura.io/jwt/claims': claims }))}.test-signature`;
-      router.query = {};
-      router.asPath = '/support';
-      router.pathname = '/support';
-      mockViewport(viewport);
-      try {
-        renderHeader({ showNavigation: false });
-        const group = await screen.findByRole('radiogroup', {
-          name: 'View support as',
-        });
-        expect(group).toBeVisible();
-        expect(group.parentElement).toBe(
-          group.parentElement?.parentElement?.firstElementChild,
-        );
-        expect(screen.getByText('View as')).toHaveClass('hidden', 'md:inline');
-      } finally {
-        mockSession.accessToken = originalToken;
-        mockSession.decodedToken = originalClaims;
-      }
-    },
-  );
-
   it.each(['desktop', 'mobile'] as const)(
     'can hide the organization switcher while keeping the dashboard logo on %s',
     (viewport) => {

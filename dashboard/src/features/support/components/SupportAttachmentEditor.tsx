@@ -133,6 +133,7 @@ const SupportAttachmentEditor = forwardRef<
   useLayoutEffect(() => {
     format.current = onFormat;
   }, [onFormat]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Portal content changes the editor dimensions.
   useLayoutEffect(() => {
     editor.current?.view?.requestMeasure();
   }, [widgets]);

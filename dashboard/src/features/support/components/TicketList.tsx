@@ -6,13 +6,11 @@ import {
   LifeBuoyIcon,
   ListFilter,
   MessageSquare,
-  Paperclip,
   PlusIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { Pagination } from '@/components/common/Pagination';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
@@ -46,7 +44,7 @@ import {
 import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
   PAGE_SIZE,
-  SAMPLE_TICKET_PAGE_SIZE,
+  readSeenTickets,
   STATUSES,
   supportInitials,
   type TicketSearch,
@@ -61,7 +59,9 @@ import { cn } from '@/lib/utils';
 
 const SUGGESTION_LIMIT = 8;
 
-function ticketSuggestions(rows: TicketListRow[]): InputSuggestion[] {
+function ticketSuggestions(
+  rows: DashboardSupportTicketsQuery['supportTickets'],
+): InputSuggestion[] {
   const tickets = rows.map((ticket) => ({
     label: ticket.title,
     value: `#${ticket.number}`,
@@ -78,15 +78,46 @@ function ticketSuggestions(rows: TicketListRow[]): InputSuggestion[] {
   return [...places, ...tickets].slice(0, SUGGESTION_LIMIT);
 }
 
-type TicketListRow = DashboardSupportTicketsQuery['supportTickets'][number] & {
-  sampleAttachmentCount?: number;
-};
-
 export default function TicketList() {
   const router = useRouter();
-  const { user, isAgent, isSample, queryKey, request } = useSupportSession();
-  const pageSize = isSample ? SAMPLE_TICKET_PAGE_SIZE : PAGE_SIZE;
-  const search = ticketSearchSchema.parse(router.query);
+  const { user, isAgent, queryKey, request } = useSupportSession();
+  const pageSize = PAGE_SIZE;
+  const urlSearch = ticketSearchSchema.parse(router.query);
+  const queueAvailability = useQuery({
+    queryKey: [...queryKey, 'customer-queue-availability'],
+    queryFn: async ({ signal }) => {
+      const [open, closed] = await Promise.all(
+        (['active', 'finished'] as const).map((status) =>
+          request<DashboardSupportTicketsQuery>(
+            DashboardSupportTicketsDocument,
+            {
+              where: ticketFilter(
+                { status, q: '', organization: '', queue: 'all', page: 0 },
+                '',
+                false,
+              ),
+              offset: 0,
+              replyRole: 'support',
+            },
+            signal,
+          ),
+        ),
+      );
+      return open.supportTickets.length > 0 && closed.supportTickets.length > 0;
+    },
+    enabled: !isAgent && !!user && router.isReady,
+    cacheTime: 0,
+    retry: false,
+    refetchInterval: 30000,
+  });
+  const waitingForQueues =
+    !isAgent && !!user && router.isReady && queueAvailability.isLoading;
+  const showQueueTabs =
+    isAgent || queueAvailability.isError || queueAvailability.data === true;
+  const search =
+    !isAgent && queueAvailability.data === false && !queueAvailability.isError
+      ? { ...urlSearch, status: 'all' as const }
+      : urlSearch;
   const [query, setQuery] = useState(search.q);
   const [suggestionQuery, setSuggestionQuery] = useState('');
   useEffect(() => {
@@ -104,7 +135,7 @@ export default function TicketList() {
       suggestionQuery,
     ],
     queryFn: ({ signal }) =>
-      request<{ supportTickets: TicketListRow[] }>(
+      request<DashboardSupportTicketsQuery>(
         DashboardSupportTicketsDocument,
         {
           where: ticketFilter(
@@ -117,7 +148,11 @@ export default function TicketList() {
         },
         signal,
       ),
-    enabled: !!user && router.isReady && suggestionQuery.length >= 2,
+    enabled:
+      !!user &&
+      router.isReady &&
+      !waitingForQueues &&
+      suggestionQuery.length >= 2,
     retry: false,
     keepPreviousData: true,
   });
@@ -126,7 +161,7 @@ export default function TicketList() {
   const tickets = useQuery({
     queryKey: [...queryKey, 'tickets', search],
     queryFn: ({ signal }) =>
-      request<{ supportTickets: TicketListRow[]; sampleTicketCount?: number }>(
+      request<DashboardSupportTicketsQuery>(
         DashboardSupportTicketsDocument,
         {
           where: ticketFilter(search, user?.id ?? '', isAgent),
@@ -135,27 +170,31 @@ export default function TicketList() {
         },
         signal,
       ),
-    enabled: !!user && router.isReady,
+    enabled: !!user && router.isReady && !waitingForQueues,
     cacheTime: 0,
     retry: false,
     refetchInterval: 30000,
   });
+  const loadingTickets =
+    !user ||
+    !router.isReady ||
+    waitingForQueues ||
+    (!tickets.isSuccess && !tickets.isError);
   const rows = tickets.data?.supportTickets ?? [];
-  const sampleTicketCount = tickets.data?.sampleTicketCount ?? 0;
-  const samplePageCount = Math.ceil(sampleTicketCount / pageSize);
+  const seenTickets = user ? readSeenTickets(user.id) : {};
   const emptyQueue =
-    !tickets.isLoading &&
-    !tickets.isError &&
+    tickets.isSuccess &&
+    !loadingTickets &&
     rows.length === 0 &&
     search.page === 0 &&
     !search.q &&
     !search.organization &&
-    search.status === 'active' &&
+    (search.status === 'active' || !showQueueTabs) &&
     !search.statusFilters &&
     search.queue === 'all';
   function changeSearch(changes: Partial<TicketSearch>) {
     void router.replace(
-      { pathname: '/support', query: { ...search, page: 0, ...changes } },
+      { pathname: '/support', query: { ...urlSearch, page: 0, ...changes } },
       undefined,
       { shallow: true },
     );
@@ -175,7 +214,7 @@ export default function TicketList() {
             </p>
           )}
         </div>
-        {(isAgent || (!tickets.isLoading && !emptyQueue)) && (
+        {(isAgent || (!loadingTickets && !emptyQueue)) && (
           <Button asChild>
             <Link href="/support/ticket">
               <PlusIcon className="mr-2 size-4" />
@@ -185,28 +224,36 @@ export default function TicketList() {
         )}
       </header>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs
-          value={
-            search.status === 'finished'
-              ? 'finished'
-              : search.status === 'active'
-                ? 'active'
-                : 'all'
-          }
-          onValueChange={(status) =>
-            changeSearch({
-              status: ticketSearchSchema.shape.status.parse(status),
-              statusFilters: '',
-            })
-          }
-        >
-          <TabsList variant="underline" aria-label="Ticket queues">
-            <TabsTrigger variant="underline" value="active">Open</TabsTrigger>
-            <TabsTrigger variant="underline" value="finished">Closed</TabsTrigger>
-            <TabsTrigger variant="underline" value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex flex-wrap items-center gap-2">
+        {showQueueTabs && (
+          <Tabs
+            value={
+              search.status === 'finished'
+                ? 'finished'
+                : search.status === 'active'
+                  ? 'active'
+                  : 'all'
+            }
+            onValueChange={(status) =>
+              changeSearch({
+                status: ticketSearchSchema.shape.status.parse(status),
+                statusFilters: '',
+              })
+            }
+          >
+            <TabsList variant="underline" aria-label="Ticket queues">
+              <TabsTrigger variant="underline" value="active">
+                Open
+              </TabsTrigger>
+              <TabsTrigger variant="underline" value="finished">
+                Closed
+              </TabsTrigger>
+              <TabsTrigger variant="underline" value="all">
+                All
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           {isAgent && (
             <div className="mr-2 flex items-center gap-2">
               <Checkbox
@@ -254,7 +301,7 @@ export default function TicketList() {
                       })
                     }
                   >
-                    <TicketStatus status={status} isAgent={isAgent} dot />
+                    <TicketStatus status={status} isAgent={isAgent} />
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -296,8 +343,8 @@ export default function TicketList() {
             void tickets.refetch();
           }}
         />
-      ) : tickets.isLoading ? (
-        <div className="flex min-h-80 w-full flex-col items-center justify-center rounded-lg border px-6 py-20 text-center sm:min-h-112 sm:px-8 sm:py-32">
+      ) : loadingTickets ? (
+        <div className="flex min-h-28 items-center justify-center">
           <Spinner>Loading tickets…</Spinner>
         </div>
       ) : rows.length === 0 ? (
@@ -352,7 +399,6 @@ export default function TicketList() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="px-2 text-foreground">Ticket</TableHead>
-              <TableHead className="text-foreground">Project</TableHead>
               <TableHead className="text-foreground">Status</TableHead>
               <TableHead className="text-foreground">Severity</TableHead>
               {isAgent && (
@@ -371,7 +417,7 @@ export default function TicketList() {
                 : ticket.status === 'waiting_for_customer';
               const replies = ticket.comments_aggregate?.aggregate?.count ?? 0;
               const lastReply = ticket.lastReply?.[0]?.createdAt;
-              const readAt = ticket.reads?.[0]?.readAt;
+              const readAt = seenTickets[ticket.id];
               const newReply =
                 !!lastReply &&
                 (!readAt || Date.parse(lastReply) > Date.parse(readAt));
@@ -414,7 +460,9 @@ export default function TicketList() {
                     )}
                     <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
                       <span className="font-mono">#{ticket.number}</span>
-                      {isAgent && <span>· {ticket.requesterName}</span>}
+                      <span>
+                        · {ticket.requesterName} – {ticket.organizationName}
+                      </span>
                       {replies > 0 && (
                         <span className="inline-flex items-center gap-1">
                           ·{' '}
@@ -428,29 +476,10 @@ export default function TicketList() {
                           </span>
                         </span>
                       )}
-                      {!!ticket.sampleAttachmentCount && (
-                        <span className="inline-flex items-center gap-1">
-                          <Paperclip aria-hidden="true" className="size-3" />
-                          {ticket.sampleAttachmentCount}
-                          <span className="sr-only"> attachments</span>
-                        </span>
-                      )}
                     </p>
                   </TableCell>
                   <TableCell className="py-3">
-                    <p className="text-sm">
-                      {ticket.projectName ?? 'Organization-wide'}
-                    </p>
-                    <p className="mt-1 text-muted-foreground text-xs">
-                      {ticket.organizationName}
-                    </p>
-                  </TableCell>
-                  <TableCell className="py-3">
-                    <TicketStatus
-                      status={ticket.status}
-                      isAgent={isAgent}
-                      dot
-                    />
+                    <TicketStatus status={ticket.status} isAgent={isAgent} />
                   </TableCell>
                   <TableCell className="py-3">
                     <TicketSeverity severity={ticket.severity} />
@@ -488,51 +517,36 @@ export default function TicketList() {
           </TableBody>
         </Table>
       )}
-      {isSample && !tickets.isError && samplePageCount > 1 && (
-        <Pagination
-          className="px-2 [&>nav]:order-last [&>nav]:ml-auto"
-          totalNrOfPages={samplePageCount}
-          currentPageNumber={search.page + 1}
-          totalNrOfElements={sampleTicketCount}
-          itemsLabel="tickets"
-          elementsPerPage={pageSize}
-          onPrevPageClick={() => changeSearch({ page: search.page - 1 })}
-          onNextPageClick={() => changeSearch({ page: search.page + 1 })}
-          onPageChange={(page) => changeSearch({ page: page - 1 })}
-        />
+      {!loadingTickets && (search.page > 0 || rows.length > pageSize) && (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={search.page === 0 || tickets.isFetching}
+            onClick={() => changeSearch({ page: search.page - 1 })}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={
+              tickets.isError || rows.length <= pageSize || tickets.isFetching
+            }
+            onClick={() => changeSearch({ page: search.page + 1 })}
+          >
+            Next
+          </Button>
+        </div>
       )}
-      {!isSample &&
-        !tickets.isLoading &&
-        (search.page > 0 || rows.length > pageSize) && (
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={search.page === 0 || tickets.isFetching}
-              onClick={() => changeSearch({ page: search.page - 1 })}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={
-                tickets.isError || rows.length <= pageSize || tickets.isFetching
-              }
-              onClick={() => changeSearch({ page: search.page + 1 })}
-            >
-              Next
-            </Button>
-          </div>
-        )}
-      <section aria-labelledby="support-help-heading">
+      <section aria-labelledby="support-help-heading" hidden={loadingTickets}>
         <h2 id="support-help-heading" className="sr-only">
           Other ways to get help
         </h2>
         <div
           className={cn(
             'grid gap-4 sm:grid-cols-3',
-            !tickets.isError && !tickets.isLoading && rows.length > 0
+            !tickets.isError && !loadingTickets && rows.length > 0
               ? 'mt-10'
               : 'mt-4',
           )}
