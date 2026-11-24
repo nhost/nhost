@@ -1,5 +1,5 @@
 import { Download, FilePlus2, Paperclip, X } from 'lucide-react';
-import { useId } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -11,8 +11,10 @@ import {
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
+import SupportImageViewer from '@/features/support/components/SupportImageViewer';
+import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
-import type { SupportAttachmentFile } from '@/features/support/utils/attachments';
+import { isSupportImage, type SupportAttachmentFile, type SupportAttachmentScope } from '@/features/support/utils/attachments';
 import { supportDate } from '@/features/support/utils/tickets';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +22,7 @@ interface TicketAttachmentsProps {
   controller: SupportTicketAttachmentsController;
   closed: boolean;
   compact?: boolean;
+  scope?: SupportAttachmentScope;
   onInsert?: (file: SupportAttachmentFile) => void;
 }
 
@@ -27,9 +30,14 @@ export default function TicketAttachments({
   controller,
   closed,
   compact = false,
+  scope,
   onInsert,
 }: TicketAttachmentsProps) {
   const inputId = useId();
+  const { role } = useSupportSession();
+  const previewTrigger = useRef<HTMLButtonElement>(null);
+  const [previewID, setPreviewID] = useState<string>();
+  const [previewOpen, setPreviewOpen] = useState(false);
   const {
     attachments,
     files,
@@ -40,6 +48,19 @@ export default function TicketAttachments({
     uploadFiles,
     removeUpload,
   } = controller;
+  const previewFile = attachments.isError
+    ? undefined
+    : files.find((attachment) => attachment.file?.id === previewID)?.file;
+  function downloadFile(file: SupportAttachmentFile) {
+    void execPromiseWithErrorToast(
+      () => download.mutateAsync({ id: file.id, name: file.name ?? 'attachment' }),
+      {
+        loadingMessage: 'Downloading attachment…',
+        successMessage: 'Attachment downloaded',
+        errorMessage: 'Unable to download this attachment. Your access may have changed.',
+      },
+    );
+  }
   const pendingUploads = uploads.filter(
     (item) => !compact || item.status !== 'uploaded',
   );
@@ -92,12 +113,27 @@ export default function TicketAttachments({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <SupportAttachmentPreview
-                    file={attachment.file}
-                    className={compact ? 'size-8' : undefined}
-                  />
+                  {compact && scope && attachment.file && isSupportImage(attachment.file.mimeType ?? '') ? (
+                    <button
+                      type="button"
+                      aria-label={`View ${attachment.file.name ?? 'attachment'} full size`}
+                      className="shrink-0 cursor-pointer rounded-md border hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={(event) => {
+                        previewTrigger.current = event.currentTarget;
+                        setPreviewID(attachment.file?.id);
+                        setPreviewOpen(true);
+                      }}
+                    >
+                      <SupportAttachmentPreview file={attachment.file} className="size-8 border-0" />
+                    </button>
+                  ) : (
+                    <SupportAttachmentPreview
+                      file={attachment.file}
+                      className={compact ? 'size-8' : undefined}
+                    />
+                  )}
                   <div className="min-w-0">
-                    <p className="break-words">
+                    <p className={compact ? 'truncate text-muted-foreground text-xs' : 'break-words'}>
                       {attachment.file?.name ?? 'Attachment unavailable'}
                     </p>
                     {!compact && (
@@ -124,19 +160,7 @@ export default function TicketAttachments({
                             if (!file) {
                               return;
                             }
-                            void execPromiseWithErrorToast(
-                              () =>
-                                download.mutateAsync({
-                                  id: file.id,
-                                  name: file.name ?? 'attachment',
-                                }),
-                              {
-                                loadingMessage: 'Downloading attachment…',
-                                successMessage: 'Attachment downloaded',
-                                errorMessage:
-                                  'Unable to download this attachment. Your access may have changed.',
-                              },
-                            );
+                            downloadFile(file);
                           }}
                         >
                           <Download className="size-4" />
@@ -267,6 +291,19 @@ export default function TicketAttachments({
               </ButtonWithLoading>
             )}
         </div>
+      )}
+      {scope && previewFile && (
+        <SupportImageViewer
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          trigger={previewTrigger}
+          file={previewFile}
+          filename={previewFile.name ?? 'Attachment'}
+          scope={scope}
+          requestRole={role}
+          onDownload={() => downloadFile(previewFile)}
+          downloading={download.status === 'loading'}
+        />
       )}
     </section>
   );

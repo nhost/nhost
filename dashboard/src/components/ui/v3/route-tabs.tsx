@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { isRouteActive } from '@/lib/route-navigation';
+import { UNDERLINE_TAB_CLASS } from '@/components/ui/v3/tab-styles';
 import { cn } from '@/lib/utils';
 
 const RouteTabsPresentationContext = createContext<'desktop' | 'mobile'>(
@@ -134,7 +135,7 @@ export function RouteTabLink({
 
   const active = isRouteActive(asPath, href, exact);
   const tabClassName = cn(
-    'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-semibold text-sm ring-offset-background transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-primary data-[state=active]:text-primary',
+    UNDERLINE_TAB_CLASS,
     disabled && 'pointer-events-none opacity-50 hover:text-muted-foreground',
     className,
   );

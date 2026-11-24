@@ -1,8 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Download, Maximize2, Paperclip, X } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/v3/dialog';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Tooltip,
@@ -11,14 +10,10 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
-import {
-  type SupportRole,
-  useSupportSession,
-} from '@/features/support/hooks/use-support-session';
+import SupportImageViewer from '@/features/support/components/SupportImageViewer';
+import { useSupportSession } from '@/features/support/hooks/use-support-session';
 import {
   isSupportImage,
-  MAX_SUPPORT_ATTACHMENT_SIZE,
-  type SupportAttachmentFile,
   type SupportAttachmentScope,
   saveSupportAttachment,
 } from '@/features/support/utils/attachments';
@@ -32,9 +27,11 @@ interface SupportEditorAttachmentProps {
   id: string;
   name: string;
   scope?: SupportAttachmentScope;
-  uploading: boolean;
-  disabled: boolean;
-  onRemove: VoidFunction;
+  uploading?: boolean;
+  disabled?: boolean;
+  onRemove?: VoidFunction;
+  compact?: boolean;
+  reserveThumbnail?: boolean;
   draftActions?: boolean;
   removalBlocked?: boolean;
 }
@@ -43,9 +40,11 @@ export default function SupportEditorAttachment({
   id,
   name,
   scope,
-  uploading,
-  disabled,
+  uploading = false,
+  disabled = false,
   onRemove,
+  compact = false,
+  reserveThumbnail = false,
   draftActions = false,
   removalBlocked = false,
 }: SupportEditorAttachmentProps) {
@@ -114,17 +113,23 @@ export default function SupportEditorAttachment({
       errorMessage: 'Unable to download this attachment.',
     });
   }
-  const showRemove = !disabled && (!draftActions || !!file);
-  const showPreview = draftActions && !!file;
+  const showRemove = !!onRemove && !disabled && (!draftActions || !!file);
+  const showPreview = (draftActions || compact) && !!file;
+  const clickThumbnail = compact && image;
+  const showActionIcon = showPreview && !clickThumbnail;
+  const compactThumbnail = compact && (image || (reserveThumbnail && !file));
   return (
     <span
       contentEditable={false}
-      draggable={!disabled && !uploading}
+      draggable={!compact && !disabled && !uploading}
       className={cn(
         'group/attachment relative my-2 inline-flex max-w-full items-center rounded-md border align-middle hover:border-primary/50',
-        !image && !uploading && 'gap-2 bg-muted/10 py-2 pr-10 pl-3 text-sm',
-        !image && showPreview && 'pr-20',
-        !disabled && !uploading && 'cursor-move',
+        !image && !uploading && !compactThumbnail &&
+          'gap-2 bg-muted/10 py-2 pr-10 pl-3 text-sm',
+        !compact && !image && showPreview && 'pr-20',
+        !compact && !disabled && !uploading && 'cursor-move',
+        compact && 'not-prose my-1',
+        compactThumbnail && 'h-20 w-28 justify-center overflow-hidden bg-muted/50',
       )}
     >
       {uploading ? (
@@ -133,6 +138,13 @@ export default function SupportEditorAttachment({
             {name}
           </span>
         </Skeleton>
+      ) : compactThumbnail ? (
+        <SupportAttachmentPreview
+          file={file}
+          requestRole={requestRole}
+          className="size-full border-0 bg-transparent"
+          label={attachment.isError ? `Attachment unavailable: ${name}` : filename}
+        />
       ) : image ? (
         <SupportAttachmentPreview
           file={file}
@@ -151,12 +163,23 @@ export default function SupportEditorAttachment({
           ) : (
             <Paperclip aria-hidden="true" className="size-4 shrink-0" />
           )}
-          <span className="min-w-0 break-words">{filename}</span>
+          <span className="min-w-0 break-words">
+            {compact && attachment.isError ? `Attachment unavailable: ${filename}` : filename}
+          </span>
         </>
       )}
-      {(!uploading || !draftActions) && (showPreview || showRemove) && (
+      {clickThumbnail && (
+        <button
+          ref={previewButton}
+          type="button"
+          aria-label={`View ${filename} full size`}
+          className="absolute inset-0 cursor-pointer rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          onClick={() => setPreviewOpen(true)}
+        />
+      )}
+      {(!uploading || !draftActions) && (showActionIcon || showRemove) && (
         <span className="pointer-events-none absolute top-1 right-1 z-10 flex gap-1 opacity-0 focus-within:pointer-events-auto focus-within:opacity-100 group-hover/attachment:pointer-events-auto group-hover/attachment:opacity-100">
-          {showPreview && (
+          {showActionIcon && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -214,30 +237,17 @@ export default function SupportEditorAttachment({
         </span>
       )}
       {showPreview && image && file && scope && (
-        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-          <DialogContent
-            aria-describedby={undefined}
-            className="w-fit max-w-[90vw] bg-background"
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              previewButton.current?.focus();
-            }}
-          >
-            <DialogTitle className="truncate pr-8 text-sm">
-              {filename}
-            </DialogTitle>
-            {previewOpen && (
-              <FullSizeImage
-                file={file}
-                filename={filename}
-                draftId={scope.draftId}
-                requestRole={requestRole}
-                onDownload={startDownload}
-                downloading={download.isLoading}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <SupportImageViewer
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          trigger={previewButton}
+          file={file}
+          filename={filename}
+          scope={scope}
+          requestRole={requestRole}
+          onDownload={startDownload}
+          downloading={download.isLoading}
+        />
       )}
     </span>
   );
@@ -248,94 +258,4 @@ const cardActionClass =
 
 function keepEditorSelection(event: MouseEvent<HTMLButtonElement>) {
   event.preventDefault();
-}
-
-interface FullSizeImageProps {
-  file: SupportAttachmentFile;
-  filename: string;
-  draftId?: string;
-  requestRole: SupportRole;
-  onDownload: VoidFunction;
-  downloading: boolean;
-}
-
-function FullSizeImage({
-  file,
-  filename,
-  draftId,
-  requestRole,
-  onDownload,
-  downloading,
-}: FullSizeImageProps) {
-  const { user, downloadAttachment } = useSupportSession();
-  const [image, setImage] = useState<{ bytes: Blob; url: string }>();
-  const [failedURL, setFailedURL] = useState<string>();
-  const preview = useQuery({
-    queryKey: [
-      'support',
-      user?.id,
-      requestRole,
-      'full-size-image',
-      draftId,
-      file.id,
-      file.mimeType,
-    ],
-    queryFn: async ({ signal }) => {
-      const mimeType = file.mimeType ?? '';
-      if (!isSupportImage(mimeType)) {
-        throw new Error('Attachment cannot be previewed.');
-      }
-      const bytes = await downloadAttachment(file.id, requestRole, signal);
-      if (
-        bytes.type !== mimeType ||
-        bytes.size === 0 ||
-        bytes.size > MAX_SUPPORT_ATTACHMENT_SIZE
-      ) {
-        throw new Error('The image preview is unavailable.');
-      }
-      return bytes;
-    },
-    enabled: !!user,
-    cacheTime: 0,
-    retry: false,
-  });
-  const bytes = !preview.isError ? preview.data : undefined;
-  useEffect(() => {
-    if (!bytes) {
-      return undefined;
-    }
-    const url = URL.createObjectURL(bytes);
-    setImage({ bytes, url });
-    return () => URL.revokeObjectURL(url);
-  }, [bytes]);
-
-  if (preview.isError || (image && image.url === failedURL)) {
-    return (
-      <div className="flex flex-col items-center gap-3 p-4 text-sm">
-        <p role="alert">Couldn't load this image.</p>
-        <Button
-          type="button"
-          variant="outline"
-          aria-label={`Download ${filename}`}
-          disabled={downloading}
-          onClick={onDownload}
-        >
-          Download
-        </Button>
-      </div>
-    );
-  }
-  if (!image || image.bytes !== bytes) {
-    return <Skeleton aria-label="Loading image" className="mx-auto size-40" />;
-  }
-  return (
-    // biome-ignore lint/performance/noImgElement: Private authenticated blob URLs must not go through the image optimizer.
-    <img
-      src={image.url}
-      alt={filename}
-      draggable={false}
-      className="mx-auto max-h-[85vh] max-w-[90vw] object-contain"
-      onError={() => setFailedURL(image.url)}
-    />
-  );
 }

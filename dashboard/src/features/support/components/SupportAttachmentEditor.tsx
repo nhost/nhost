@@ -83,6 +83,18 @@ const editorTheme = EditorView.theme({
   '.cm-widgetBuffer': { display: 'none' },
 });
 
+const basicSetup = {
+  lineNumbers: false,
+  foldGutter: false,
+  highlightActiveLine: false,
+  highlightActiveLineGutter: false,
+  highlightSelectionMatches: false,
+  bracketMatching: false,
+  closeBrackets: false,
+  autocompletion: false,
+  drawSelection: false,
+};
+
 const SupportAttachmentEditor = forwardRef<
   SupportEditorHandle,
   SupportAttachmentEditorProps
@@ -113,13 +125,17 @@ const SupportAttachmentEditor = forwardRef<
   const hosts = useRef(new Map<HTMLElement, WidgetHost>());
   const dropCaret = useRef<HTMLSpanElement>(null);
   const draggedAttachment = useRef<Pick<WidgetHost, 'element' | 'token'>>(null);
+  const format = useRef(onFormat);
   const [widgets, setWidgets] = useState<WidgetHost[]>([]);
   const refresh = useCallback(() => {
     queueMicrotask(() => setWidgets([...hosts.current.values()]));
   }, []);
   useLayoutEffect(() => {
+    format.current = onFormat;
+  }, [onFormat]);
+  useLayoutEffect(() => {
     editor.current?.view?.requestMeasure();
-  });
+  }, [widgets]);
   useImperativeHandle(
     ref,
     () => ({
@@ -307,7 +323,7 @@ const SupportAttachmentEditor = forwardRef<
           key: 'Mod-b',
           run: () => {
             if (!disabled) {
-              onFormat('**');
+              format.current('**');
             }
             return true;
           },
@@ -316,7 +332,7 @@ const SupportAttachmentEditor = forwardRef<
           key: 'Mod-i',
           run: () => {
             if (!disabled) {
-              onFormat('_');
+              format.current('_');
             }
             return true;
           },
@@ -325,7 +341,7 @@ const SupportAttachmentEditor = forwardRef<
           key: 'Mod-k',
           run: () => {
             if (!disabled) {
-              onFormat('[', '](https://)');
+              format.current('[', '](https://)');
             }
             return true;
           },
@@ -333,25 +349,35 @@ const SupportAttachmentEditor = forwardRef<
         { key: 'Tab', run: () => false },
         { key: 'Shift-Tab', run: () => false },
       ]),
-    [disabled, onFormat],
+    [disabled],
   );
 
-  const attributes: Record<string, string> = {
-    role: 'textbox',
-    'aria-label': label,
-    'aria-multiline': 'true',
-    'aria-readonly': String(disabled),
-    'aria-disabled': String(disabled),
-  };
-  if (id) {
-    attributes.id = id;
-  }
-  if (describedBy) {
-    attributes['aria-describedby'] = describedBy;
-  }
-  if (invalid !== undefined) {
-    attributes['aria-invalid'] = String(invalid);
-  }
+  const extensions = useMemo(() => {
+    const attributes: Record<string, string> = {
+      role: 'textbox',
+      'aria-label': label,
+      'aria-multiline': 'true',
+      'aria-readonly': String(disabled),
+      'aria-disabled': String(disabled),
+    };
+    if (id) {
+      attributes.id = id;
+    }
+    if (describedBy) {
+      attributes['aria-describedby'] = describedBy;
+    }
+    if (invalid !== undefined) {
+      attributes['aria-invalid'] = String(invalid);
+    }
+    return [
+      codeMirrorAppBackground,
+      editorTheme,
+      EditorView.lineWrapping,
+      EditorView.contentAttributes.of(attributes),
+      shortcuts,
+      decorations,
+    ];
+  }, [decorations, describedBy, disabled, id, invalid, label, shortcuts]);
 
   return (
     <fieldset
@@ -481,25 +507,8 @@ const SupportAttachmentEditor = forwardRef<
           onChange={onChange}
           readOnly={disabled}
           indentWithTab={false}
-          basicSetup={{
-            lineNumbers: false,
-            foldGutter: false,
-            highlightActiveLine: false,
-            highlightActiveLineGutter: false,
-            highlightSelectionMatches: false,
-            bracketMatching: false,
-            closeBrackets: false,
-            autocompletion: false,
-            drawSelection: false,
-          }}
-          extensions={[
-            codeMirrorAppBackground,
-            editorTheme,
-            EditorView.lineWrapping,
-            EditorView.contentAttributes.of(attributes),
-            shortcuts,
-            decorations,
-          ]}
+          basicSetup={basicSetup}
+          extensions={extensions}
         />
       </div>
       {footer}

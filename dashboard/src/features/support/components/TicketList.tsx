@@ -200,10 +200,10 @@ export default function TicketList() {
             })
           }
         >
-          <TabsList aria-label="Ticket queues">
-            <TabsTrigger value="active">Open</TabsTrigger>
-            <TabsTrigger value="finished">Closed</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+          <TabsList variant="underline" aria-label="Ticket queues">
+            <TabsTrigger variant="underline" value="active">Open</TabsTrigger>
+            <TabsTrigger variant="underline" value="finished">Closed</TabsTrigger>
+            <TabsTrigger variant="underline" value="all">All</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="flex flex-wrap items-center gap-2">

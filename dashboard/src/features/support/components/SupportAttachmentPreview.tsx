@@ -69,6 +69,7 @@ interface SupportAttachmentPreviewProps {
   requestRole?: SupportRole;
   variant?: 'list' | 'editor';
   className?: string;
+  label?: string;
 }
 
 export default function SupportAttachmentPreview({
@@ -76,11 +77,12 @@ export default function SupportAttachmentPreview({
   requestRole,
   variant = 'list',
   className,
+  label: accessibleLabel,
 }: SupportAttachmentPreviewProps) {
   const { user, role, downloadAttachment } = useSupportSession();
   const actorRole = requestRole ?? role;
   const eligible = !!file && isSupportImage(file.mimeType ?? '');
-  const container = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   const [image, setImage] = useState<{ blob: Blob; url: string }>();
   const [failedURL, setFailedURL] = useState<string>();
@@ -147,7 +149,7 @@ export default function SupportAttachmentPreview({
   }, [blob]);
   const { Icon, label } = attachmentIcon(file);
   return (
-    <div
+    <span
       ref={container}
       className={cn(
         'flex shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/50',
@@ -161,9 +163,9 @@ export default function SupportAttachmentPreview({
         <img
           src={image.url}
           alt={
-            variant === 'editor'
+            accessibleLabel ?? (variant === 'editor'
               ? (file?.name ?? 'attachment')
-              : `Preview of ${file?.name ?? 'attachment'}`
+              : `Preview of ${file?.name ?? 'attachment'}`)
           }
           width={variant === 'editor' ? 160 : 64}
           height={variant === 'editor' ? 160 : 64}
@@ -182,9 +184,9 @@ export default function SupportAttachmentPreview({
           className="size-6 text-muted-foreground"
           role="img"
           aria-hidden={false}
-          aria-label={`${label}: ${file?.name ?? 'attachment'}`}
+          aria-label={accessibleLabel ?? `${label}: ${file?.name ?? 'attachment'}`}
         />
       )}
-    </div>
+    </span>
   );
 }

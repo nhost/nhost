@@ -36,7 +36,6 @@ import {
   SupportBreadcrumb,
   SupportError,
 } from '@/features/support/components/SupportArea';
-import TicketActivity from '@/features/support/components/TicketActivity';
 import {
   TicketSeverity,
   TicketStatus,
@@ -475,7 +474,6 @@ export default function TicketDetail() {
             </section>
           </>
         }
-        activity={isAgent ? <TicketActivity ticketId={ticketId} /> : undefined}
       />
     </div>
   );

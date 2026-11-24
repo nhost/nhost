@@ -1,5 +1,7 @@
+import { memo } from 'react';
 import Markdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import SupportEditorAttachment from '@/features/support/components/SupportEditorAttachment';
 import SupportInlineAttachment from '@/features/support/components/SupportInlineAttachment';
 import {
   type SupportAttachmentScope,
@@ -9,11 +11,13 @@ import {
 interface SupportMarkdownProps {
   children: string;
   attachmentScope?: SupportAttachmentScope;
+  compactAttachments?: boolean;
 }
 
-export default function SupportMarkdown({
+function SupportMarkdown({
   children,
   attachmentScope,
+  compactAttachments = false,
 }: SupportMarkdownProps) {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:overflow-x-auto break-words prose-td:break-words [overflow-wrap:anywhere]">
@@ -27,6 +31,16 @@ export default function SupportMarkdown({
           a: ({ href, children: label }) => {
             const id = href ? supportAttachmentId(href) : undefined;
             if (id) {
+              if (compactAttachments && attachmentScope) {
+                return (
+                  <SupportEditorAttachment
+                    id={id}
+                    scope={attachmentScope}
+                    name={typeof label === 'string' ? label : 'Attachment'}
+                    compact
+                  />
+                );
+              }
               return attachmentScope ? (
                 <SupportInlineAttachment id={id} scope={attachmentScope}>
                   {label}
@@ -46,6 +60,17 @@ export default function SupportMarkdown({
           img: ({ src, alt }) => {
             const id =
               typeof src === 'string' ? supportAttachmentId(src) : undefined;
+            if (id && attachmentScope && compactAttachments) {
+              return (
+                <SupportEditorAttachment
+                  id={id}
+                  scope={attachmentScope}
+                  name={alt || 'Image'}
+                  compact
+                  reserveThumbnail
+                />
+              );
+            }
             return id && attachmentScope ? (
               <SupportInlineAttachment id={id} scope={attachmentScope} image>
                 {alt || 'image'}
@@ -64,3 +89,5 @@ export default function SupportMarkdown({
     </div>
   );
 }
+
+export default memo(SupportMarkdown);
