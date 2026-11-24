@@ -60,6 +60,8 @@
       },
       "correctness": {
         "noInnerDeclarations": "error",
+        "noNestedComponentDefinitions": "error",
+        "noReactPropAssignments": "error",
         "noUnusedImports": {
           "level": "error",
           "fix": "safe"
