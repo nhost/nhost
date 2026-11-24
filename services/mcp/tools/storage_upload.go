@@ -12,7 +12,7 @@ import (
 )
 
 type storageFile struct {
-	Name string `json:"name" jsonschema:"description=Original filename including extension"`
+	Name string `json:"name" jsonschema:"description=Filename including extension"`
 
 	Data string `json:"data" jsonschema:"description=Standard base64 file bytes; not a data URL"`
 
@@ -41,9 +41,9 @@ type storageUpdateMetadata struct {
 type storageUpdateRequest struct {
 	ID string `json:"id" jsonschema:"description=File ID to preserve and replace"`
 
-	File storageFile `json:"file"`
+	File storageFile `json:"file" jsonschema:"description=Replacement file; its name is used by default"`
 
-	Metadata *storageUpdateMetadata `json:"metadata,omitempty" jsonschema:"description=Replacement metadata"`
+	Metadata *storageUpdateMetadata `json:"metadata,omitempty" jsonschema:"description=Name override and custom JSON"`
 }
 
 func (t *storageTool) registerUpload(server *mcpserver.MCPServer) {
@@ -77,11 +77,13 @@ func (t *storageTool) registerUpdate(server *mcpserver.MCPServer) {
 		"storage-update",
 		mcp.WithDescription(
 			"Replace a stored file or image with base64-encoded content while preserving its ID (PUT /files/{id}). "+
-				"Supports an optional replacement name and custom JSON metadata. "+
+				"The stored name becomes file.name unless metadata.name is non-empty. "+
+				"To keep the stored name, pass it as file.name. "+
+				"A non-empty metadata.metadata object replaces all custom metadata; "+
+				"omitting it or passing {} leaves custom metadata unchanged. "+
 				limit+
 				"Returns HTTP status, headers and the complete storage response. "+
-				"Replacement is not atomic and failures may leave intermediate changes; "+
-				"metadata follows storage replacement semantics, not patch semantics.",
+				"Replacement is not atomic and failures may leave intermediate changes.",
 		),
 		storageAnnotation("Replace Storage File", false, true, false),
 		mcp.WithInputSchema[storageUpdateRequest](),

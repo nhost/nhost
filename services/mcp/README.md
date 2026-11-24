@@ -16,7 +16,7 @@ When `--storage-url` / `MCP_STORAGE_URL` is configured, it also provides four st
 
 - **`storage-upload`** - Uploads one or more files or images, with bucket selection and optional per-file IDs, names, and custom metadata.
 - **`storage-download`** - Downloads files or images, including image transformations, conditional requests, and byte ranges.
-- **`storage-update`** - Replaces file content while preserving its ID, with optional replacement name and custom metadata.
+- **`storage-update`** - Replaces file content while preserving its ID. The replacement filename becomes the stored name unless overridden.
 - **`storage-delete`** - Permanently deletes a file and its metadata.
 
 On startup, the server fetches a schema summary from your GraphQL endpoint and includes it in the MCP instructions, giving the AI assistant immediate context about your data model without any additional configuration.
@@ -134,7 +134,7 @@ Downloads above `MCP_STORAGE_MAX_TRANSFER_BYTES` return an MCP error with the up
 }
 ```
 
-`id` and `file` are required. Optional `metadata` supports `name` and arbitrary JSON `metadata` (including `{}`). This is a content replacement, not a metadata patch; it preserves the file ID and follows storage's replacement semantics.
+`id` and `file` are required, even when changing only the name or custom metadata. The file ID stays the same. The stored name becomes `file.name` unless `metadata.name` is non-empty. To keep the current name, use it as `file.name`. A non-empty `metadata.metadata` object replaces the entire custom metadata object. Omitting it or passing `{}` leaves the current custom metadata unchanged.
 
 ### Delete (`DELETE /files/{id}`)
 
