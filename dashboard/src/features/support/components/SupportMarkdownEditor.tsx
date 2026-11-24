@@ -48,6 +48,7 @@ interface SupportMarkdownEditorProps<T extends FieldValues> {
   filesDisabled?: boolean;
   organizationRequired?: boolean;
   attachmentPickerInFooter?: boolean;
+  replySubmit?: ReactNode;
   onDiscardInlineAttachment?: (id: string) => Promise<boolean>;
   onFilesDrop?: (
     files: File[],
@@ -70,6 +71,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
   filesDisabled,
   organizationRequired = false,
   attachmentPickerInFooter = false,
+  replySubmit,
   onDiscardInlineAttachment,
   onFilesDrop,
   attachmentScope,
@@ -260,7 +262,7 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                     onClick={() => fileInput.current?.click()}
                   >
                     {attachmentPickerInFooter ? (
-                      'browse'
+                      replySubmit ? 'Attach' : 'browse'
                     ) : (
                       <Paperclip aria-hidden="true" className="size-4" />
                     )}
@@ -383,15 +385,19 @@ export default function SupportMarkdownEditor<T extends FieldValues>({
                 footer={
                   attachmentPickerInFooter &&
                   picker && (
-                    <div className="flex w-full items-center gap-2 rounded-b-md border-input border-t bg-background px-3 py-2 text-muted-foreground text-xs">
+                    <div className="flex w-full flex-wrap items-center gap-2 rounded-b-md border-input border-t bg-background px-3 py-2 text-muted-foreground text-xs">
                       <Paperclip
                         aria-hidden="true"
                         className="size-3.5 shrink-0"
                       />
                       <div>
-                        <span>Drag files here</span> or {picker}. Up to 5 MB
-                        each.
+                        {replySubmit ? (
+                          <>{picker} files up to 5 MB</>
+                        ) : (
+                          <><span>Drag files here</span> or {picker}. Up to 5 MB each.</>
+                        )}
                       </div>
+                      {replySubmit && <div className="ml-auto">{replySubmit}</div>}
                     </div>
                   )
                 }

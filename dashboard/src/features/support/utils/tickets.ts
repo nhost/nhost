@@ -48,12 +48,15 @@ export type TicketFormValues = z.infer<typeof ticketFormSchema>;
 
 export const ticketSearchSchema = z.object({
   q: z.string().trim().max(200).catch(''),
-  status: z.enum(['active', 'all', ...STATUSES]).catch('active'),
+  status: z.enum(['active', 'all', 'finished', ...STATUSES]).catch('active'),
+  statusFilters: z.string().catch('').transform((value) =>
+    STATUSES.filter((status) => value.split(',').includes(status)).join(','),
+  ),
   organization: z.string().trim().max(200).catch(''),
   queue: z.enum(['all', 'mine', 'unassigned']).catch('all'),
   page: z.coerce.number().int().min(0).max(100000).catch(0),
 });
-export type TicketSearch = z.infer<typeof ticketSearchSchema>;
+export type TicketSearch = Omit<z.infer<typeof ticketSearchSchema>, 'statusFilters'> & { statusFilters?: string };
 
 function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, '\\$&');
@@ -74,8 +77,14 @@ export function ticketFilter(
         ],
       },
     });
+  } else if (search.status === 'finished') {
+    filters.push({ status: { _in: [SupportTicketStatuses_Enum.Resolved, SupportTicketStatuses_Enum.Closed] } });
   } else if (search.status !== 'all') {
     filters.push({ status: { _eq: search.status } });
+  }
+  const statuses = STATUSES.filter((status) => search.statusFilters?.split(',').includes(status));
+  if (statuses.length) {
+    filters.push({ status: { _in: statuses } });
   }
   if (search.organization) {
     filters.push({
@@ -88,7 +97,14 @@ export function ticketFilter(
     filters.push({ assigneeID: { _is_null: true } });
   }
   if (search.q) {
-    filters.push({ title: { _ilike: `%${escapeLike(search.q)}%` } });
+    const pattern = `%${escapeLike(search.q)}%`;
+    const number = /^#?\d+$/.test(search.q) ? Number(search.q.replace(/^#/, '')) : NaN;
+    filters.push({ _or: [
+      { title: { _ilike: pattern } },
+      { projectName: { _ilike: pattern } },
+      { organizationName: { _ilike: pattern } },
+      ...(Number.isSafeInteger(number) && number <= 2147483647 ? [{ number: { _eq: number } }] : []),
+    ] });
   }
   return { _and: filters };
 }
@@ -118,4 +134,14 @@ export function supportDate(value: string): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
+}
+
+export function ticketStatusLabel(status: string, isAgent: boolean): string {
+  if (status === 'waiting_for_customer') {
+    return isAgent ? 'Waiting on customer' : 'Waiting on you';
+  }
+  if (status === 'waiting_for_support') {
+    return isAgent ? 'Waiting on support' : 'Waiting on Nhost';
+  }
+  return supportLabel(status);
 }

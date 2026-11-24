@@ -37,7 +37,6 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/v3/toggle-group';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import DraftAttachments from '@/features/support/components/DraftAttachments';
 import SeverityPlanHelp from '@/features/support/components/SeverityPlanHelp';
@@ -85,7 +84,6 @@ export default function NewTicket() {
 
 function NewTicketForm() {
   const router = useRouter();
-  const isPlatform = useIsPlatform();
   const client = useQueryClient();
   const { user, request } = useSupportSession();
   const form = useForm<TicketFormValues>({
@@ -204,18 +202,15 @@ function NewTicketForm() {
   const allowedSeverities = getAllowedSupportSeverities(
     selectedOrganization?.plan?.supportAllowedSeverities,
   );
-  const showSeverityPlans =
-    isPlatform &&
-    !!selectedOrganization &&
-    allowedSeverities.length < SEVERITIES.length;
   const planName = selectedOrganization?.plan?.name || 'current';
   const billingHref = selectedOrganization?.slug
     ? `/orgs/${encodeURIComponent(selectedOrganization.slug)}/billing?openUpgradeModal=true`
     : undefined;
+  const hasSupport = allowedSeverities.length > 0;
   const planExplanation =
-    allowedSeverities.length === 0
+    !hasSupport
       ? `Support isn't on your ${planName} plan.`
-      : `Your ${planName} plan includes Low severity. Team and Enterprise can also pick Normal, High and Urgent.`;
+      : `Your ${planName} plan includes Low.`;
   const selectedSeverity = form.watch('severity');
   useEffect(() => {
     const allowed = getAllowedSupportSeverities(
@@ -484,19 +479,7 @@ function NewTicketForm() {
                         name="severity"
                         render={({ field }) => (
                           <FormItem>
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <FormLabel>Severity</FormLabel>
-                              {showSeverityPlans && (
-                                <span
-                                  id="support-severity-plans"
-                                  className="inline-flex shrink-0 items-center text-muted-foreground text-xs"
-                                >
-                                  Unlock with
-                                  <OrganizationPlanBadge plan="Team" />
-                                  <OrganizationPlanBadge plan="Enterprise" />
-                                </span>
-                              )}
-                            </div>
+                            <FormLabel>Severity</FormLabel>
                             <FormControl>
                               <RadioGroup
                                 aria-label="Severity"
@@ -523,11 +506,18 @@ function NewTicketForm() {
                                       key={severity}
                                       htmlFor={`support-severity-${severity}`}
                                       className={cn(
-                                        'block h-full min-w-0 space-y-1 rounded-md border bg-muted/10 p-3 text-left text-foreground transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-                                        disabled
-                                          ? 'cursor-not-allowed opacity-60'
-                                          : 'cursor-pointer hover:border-primary/50 hover:bg-muted/20',
-                                        locked && 'border-dashed',
+                                        'block h-full min-w-0 space-y-1 rounded-md border bg-muted/10 p-3 text-left transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
+                                        locked
+                                          ? 'border-dashed text-muted-foreground'
+                                          : 'text-foreground',
+                                        !locked && disabled &&
+                                          'cursor-not-allowed opacity-60',
+                                        !disabled &&
+                                          'cursor-pointer hover:border-primary/50 hover:bg-muted/20',
+                                        locked &&
+                                          (!selectedOrganization || form.formState.isSubmitting
+                                            ? 'cursor-not-allowed'
+                                            : 'cursor-help hover:bg-muted/20'),
                                         !locked &&
                                           field.value === severity &&
                                           'border-primary',
@@ -541,16 +531,20 @@ function NewTicketForm() {
                                         value={severity}
                                         disabled={disabled}
                                         aria-label={supportLabel(severity)}
-                                        aria-describedby={`${showSeverityPlans && locked ? 'support-severity-plans ' : ''}support-severity-hint-${severity}`}
+                                        aria-describedby={`support-severity-hint-${severity}`}
                                         className="sr-only"
                                       />
                                       <span className="flex items-center justify-between gap-2 font-medium text-sm">
                                         {supportLabel(severity)}
                                         {selectedOrganization && locked && (
-                                          <Lock
-                                            aria-hidden="true"
-                                            className="size-3.5 shrink-0 text-muted-foreground"
-                                          />
+                                          severity === SupportSeverities_Enum.Low ? (
+                                            <Lock
+                                              aria-hidden="true"
+                                              className="size-3.5 shrink-0 text-muted-foreground"
+                                            />
+                                          ) : (
+                                            <OrganizationPlanBadge plan="Team" />
+                                          )
                                         )}
                                       </span>
                                       <span
@@ -566,10 +560,15 @@ function NewTicketForm() {
                                       key={severity}
                                       severity={supportLabel(severity)}
                                       explanation={planExplanation}
-                                      describedBy={
-                                        showSeverityPlans
-                                          ? 'support-severity-plans'
-                                          : undefined
+                                      plansIntro={
+                                        hasSupport
+                                          ? 'Normal, High and Urgent come with:'
+                                          : 'Available with:'
+                                      }
+                                      accessibleDescription={
+                                        severity === SupportSeverities_Enum.Low
+                                          ? `${supportLabel(severity)}. ${planExplanation}`
+                                          : `${supportLabel(severity)}. Needs Team or Enterprise plan.`
                                       }
                                       billingHref={billingHref}
                                       onSeePlans={() => {

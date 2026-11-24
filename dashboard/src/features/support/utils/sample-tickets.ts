@@ -229,6 +229,18 @@ function matches(ticket: Ticket, where: SupportTickets_Bool_Exp): boolean {
   if (where._and && !where._and.every((filter) => matches(ticket, filter))) {
     return false;
   }
+  if (where._or && !where._or.some((filter) => matches(ticket, filter))) {
+    return false;
+  }
+  if (where.status?._in && !where.status._in.includes(ticket.status)) {
+    return false;
+  }
+  if (where.number?._eq != null && ticket.number !== where.number._eq) {
+    return false;
+  }
+  if (where.projectName?._ilike && !like(ticket.projectName ?? '', where.projectName._ilike)) {
+    return false;
+  }
   if (where.status?._eq && ticket.status !== where.status._eq) {
     return false;
   }
@@ -295,7 +307,13 @@ export function sampleSupportRequest<TData>(
         supportTickets: matchingTickets.slice(
           offset,
           offset + SAMPLE_TICKET_PAGE_SIZE,
-        ),
+        ).map((item) => ({
+          ...item,
+          sampleAttachmentCount: [...state.files.values()].filter(
+            (file) => file.ticketID === item.id && file.attachment,
+          ).length,
+          sampleLastReply: state.comments.get(item.id)?.[0]?.authorName,
+        })),
         sampleTicketCount: matchingTickets.length,
       };
       break;

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
+import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
 import {
   Popover,
   PopoverContent,
@@ -10,7 +11,8 @@ interface SeverityPlanHelpProps {
   children: ReactElement;
   severity: string;
   explanation: string;
-  describedBy?: string;
+  plansIntro: string;
+  accessibleDescription: string;
   billingHref?: string;
   onSeePlans?: VoidFunction;
   disabled?: boolean;
@@ -22,7 +24,8 @@ export default function SeverityPlanHelp({
   children,
   severity,
   explanation,
-  describedBy,
+  plansIntro,
+  accessibleDescription,
   billingHref,
   onSeePlans,
   disabled,
@@ -78,8 +81,8 @@ export default function SeverityPlanHelp({
             type="button"
             disabled={disabled}
             aria-label={`${severity} plan availability`}
-            aria-describedby={describedBy}
-            className="absolute inset-0 cursor-help rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed"
+            aria-description={accessibleDescription}
+            className="absolute inset-0 cursor-help rounded-md hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:hover:bg-transparent"
             onClick={(event) => {
               event.preventDefault();
               show();
@@ -112,29 +115,39 @@ export default function SeverityPlanHelp({
         onFocusCapture={cancelClose}
         onBlurCapture={closeLater}
       >
-        <p>{explanation}</p>
-        {billingHref && (
-          <Link
-            href={billingHref}
-            onClick={(event) => {
-              if (
-                !onSeePlans ||
-                event.metaKey ||
-                event.ctrlKey ||
-                event.shiftKey ||
-                event.altKey
-              ) {
-                return;
-              }
-              event.preventDefault();
-              setOpen(false);
-              onSeePlans();
-            }}
-            className="inline-block rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            See plans
-          </Link>
-        )}
+        <p>
+          {explanation}
+          <br />
+          {plansIntro}
+        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1">
+            <OrganizationPlanBadge plan="Team" />
+            <OrganizationPlanBadge plan="Enterprise" />
+          </div>
+          {billingHref && (
+            <Link
+              href={billingHref}
+              onClick={(event) => {
+                if (
+                  !onSeePlans ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                setOpen(false);
+                onSeePlans();
+              }}
+              className="ml-auto inline-block rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              See plans
+            </Link>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );

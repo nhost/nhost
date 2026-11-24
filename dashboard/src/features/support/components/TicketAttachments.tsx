@@ -8,17 +8,20 @@ import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
 import type { SupportAttachmentFile } from '@/features/support/utils/attachments';
+import { cn } from '@/lib/utils';
 import { supportDate } from '@/features/support/utils/tickets';
 
 interface TicketAttachmentsProps {
   controller: SupportTicketAttachmentsController;
   closed: boolean;
+  compact?: boolean;
   onInsert?: (file: SupportAttachmentFile) => void;
 }
 
 export default function TicketAttachments({
   controller,
   closed,
+  compact = false,
   onInsert,
 }: TicketAttachmentsProps) {
   const inputId = useId();
@@ -35,10 +38,14 @@ export default function TicketAttachments({
   return (
     <section
       aria-label="Ticket attachments"
-      className="space-y-4 rounded-lg border p-5"
+      className={cn('space-y-4', compact ? 'border-t pt-5' : 'rounded-lg border p-5')}
     >
       <h2 className="flex items-center gap-2 font-semibold text-sm">
-        <Paperclip className="size-4" /> Attachments
+        {compact ? (
+          <>All attachments{!attachments.isError && !attachments.isLoading && ` · ${files.length}${attachments.hasNextPage ? '+' : ''}`}</>
+        ) : (
+          <><Paperclip className="size-4" /> Attachments</>
+        )}
       </h2>
       {attachments.isError ? (
         <SupportError
@@ -61,17 +68,17 @@ export default function TicketAttachments({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <SupportAttachmentPreview file={attachment.file} />
+                  <SupportAttachmentPreview file={attachment.file} className={compact ? 'size-8' : undefined} />
                   <div className="min-w-0">
                     <p className="break-words">
                       {attachment.file?.name ?? 'Attachment unavailable'}
                     </p>
-                    <p className="text-muted-foreground text-xs">
+                    {!compact && <p className="text-muted-foreground text-xs">
                       {attachment.file &&
                         `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
                       {attachment.uploaderName} ·{' '}
                       {supportDate(attachment.createdAt)}
-                    </p>
+                    </p>}
                   </div>
                 </div>
                 {attachment.file && (
@@ -139,6 +146,7 @@ export default function TicketAttachments({
       )}
       {!closed && (
         <div className="space-y-3 border-t pt-4">
+          {!compact && <>
           <label htmlFor={inputId} className="font-medium text-sm">
             Attach files
           </label>
@@ -163,8 +171,9 @@ export default function TicketAttachments({
             to this ticket. Uploads do not send a reply or change ticket status.
             Do not include secrets.
           </p>
+          </>}
           <ul className="space-y-2" aria-live="polite">
-            {uploads.map((item) => (
+            {uploads.filter((item) => !compact || item.status !== 'uploaded').map((item) => (
               <li
                 key={item.id}
                 className="flex items-center justify-between gap-3 text-sm"

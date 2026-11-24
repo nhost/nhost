@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Check } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { z } from 'zod';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import {
   Select,
@@ -15,7 +18,6 @@ import {
   SupportBreadcrumb,
   SupportError,
 } from '@/features/support/components/SupportArea';
-import SupportMarkdown from '@/features/support/components/SupportMarkdown';
 import TicketActivity from '@/features/support/components/TicketActivity';
 import {
   TicketSeverity,
@@ -28,12 +30,14 @@ import {
   SEVERITIES,
   supportDate,
   supportLabel,
+  ticketStatusLabel,
 } from '@/features/support/utils/tickets';
 import {
   DashboardSupportTicketDocument,
   type DashboardSupportTicketQuery,
   DashboardUpdateSupportTicketDocument,
   type DashboardUpdateSupportTicketMutation,
+  SupportTicketStatuses_Enum,
   type SupportTickets_Set_Input,
 } from '@/generated/graphql';
 
@@ -146,55 +150,43 @@ export default function TicketDetail() {
 
   return (
     <div key={`${user?.id}:${role}:${ticketId}`}>
-      <header className="space-y-6 border-b p-5 sm:p-8">
-        <SupportBreadcrumb currentPage={`#${ticket.number}`} />
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono text-muted-foreground text-sm">
-            #{ticket.number}
-          </span>
-          <TicketStatus status={ticket.status} />
-          <TicketSeverity severity={ticket.severity} />
-        </div>
-        <h1 className="break-words font-semibold text-2xl">{ticket.title}</h1>
-        <p className="text-muted-foreground text-sm">
-          {ticket.organizationName}
-          {ticket.projectName
-            ? ` / ${ticket.projectName}`
-            : ' / Organization-wide'}{' '}
-          · Opened {supportDate(ticket.createdAt)}
-        </p>
-      </header>
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
-        <section
-          aria-label="Conversation"
-          className="min-w-0 space-y-5 p-5 sm:p-8"
-        >
-          <article className="rounded-lg border p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold text-sm">{ticket.requesterName}</h2>
-              <time
-                dateTime={ticket.createdAt}
-                className="text-muted-foreground text-xs"
-              >
-                {supportDate(ticket.createdAt)}
-              </time>
+      <header className="space-y-5 p-5 sm:p-8">
+        <Link href="/support" className="inline-flex items-center gap-2 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          All tickets
+        </Link>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 space-y-2">
+            <h1 className="break-words font-semibold text-3xl">{ticket.title}</h1>
+            <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+              <span className="font-mono">#{ticket.number}</span>
+              <TicketStatus status={ticket.status} isAgent={isAgent} dot />
+              <span>Opened by {ticket.requesterName} on {supportDate(ticket.createdAt)}</span>
             </div>
-            <SupportMarkdown attachmentScope={{ ticketId }}>
-              {ticket.description}
-            </SupportMarkdown>
-          </article>
-          <TicketConversation
-            ticketId={ticketId}
-            closed={closed}
-            invalidate={invalidate}
-            disabled={isPending}
-          />
-        </section>
-        <aside className="space-y-6 border-t p-5 sm:p-8 lg:border-t-0 lg:border-l">
+          </div>
+          {isAgent && !closed && transitions.some((transition) => transition.toStatus === 'resolved') && (
+            <Button
+              variant="outline"
+              disabled={isPending}
+              onClick={() => { void changeTicket({ status: SupportTicketStatuses_Enum.Resolved }); }}
+            >
+              <Check aria-hidden="true" className="mr-2 size-4" />
+              Mark as resolved
+            </Button>
+          )}
+        </div>
+      </header>
+      <TicketConversation
+        ticketId={ticketId}
+        opening={{ authorName: ticket.requesterName, createdAt: ticket.createdAt, body: ticket.description }}
+        closed={closed}
+        invalidate={invalidate}
+        disabled={isPending}
+        sidebar={(
+          <>
           <div className="space-y-2">
             <h2 className="font-semibold text-sm">Status</h2>
-            <TicketStatus status={ticket.status} />
-            {isAgent && !closed && transitions.length > 0 && (
+            {isAgent && !closed && transitions.length > 0 ? (
               <Select
                 value={ticket.status}
                 disabled={isPending}
@@ -212,7 +204,7 @@ export default function TicketDetail() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ticket.status}>
-                    {supportLabel(ticket.status)}
+                    {ticketStatusLabel(ticket.status, true)}
                   </SelectItem>
                   {transitions.map((transition) => (
                     <SelectItem
@@ -222,15 +214,17 @@ export default function TicketDetail() {
                       {transition.toStatus === 'waiting_for_support' &&
                       ticket.status === 'resolved'
                         ? 'Reopen ticket'
-                        : supportLabel(transition.toStatus)}
+                        : ticketStatusLabel(transition.toStatus, true)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            ) : (
+              <TicketStatus status={ticket.status} isAgent={isAgent} dot />
             )}
           </div>
           <div className="space-y-2">
-            <h2 className="font-semibold text-sm">Assignee</h2>
+            <h2 className="font-semibold text-sm">Assigned to</h2>
             <p className="text-muted-foreground text-sm">
               {ticket.assigneeName ?? 'Unassigned'}
             </p>
@@ -239,7 +233,8 @@ export default function TicketDetail() {
                 {ticket.assigneeID !== user?.id && (
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="link"
+                    className="h-auto p-0"
                     disabled={isPending}
                     onClick={() => {
                       void changeTicket({ assigneeID: user?.id });
@@ -263,9 +258,10 @@ export default function TicketDetail() {
               </div>
             )}
           </div>
-          {isAgent && !closed && (
-            <div className="space-y-2">
-              <h2 className="font-semibold text-sm">Severity</h2>
+          <div className="space-y-2">
+            <h2 className="font-semibold text-sm">Severity</h2>
+            {isAgent && !closed ? (
+              <>
               <Select
                 value={ticket.severity}
                 disabled={isPending}
@@ -298,17 +294,45 @@ export default function TicketDetail() {
                   ? 'Available severities are determined by the organization’s current plan.'
                   : 'This organization’s plan does not allow severity changes.'}
               </p>
-            </div>
-          )}
-          <div>
-            <h2 className="mb-2 font-semibold text-sm">Affected services</h2>
-            <p className="text-muted-foreground text-sm">
-              {ticket.services.map(supportLabel).join(', ')}
-            </p>
+              </>
+            ) : <TicketSeverity severity={ticket.severity} />}
           </div>
-          <TicketActivity ticketId={ticketId} />
-        </aside>
-      </div>
+          <dl className="space-y-4 text-sm">
+            {isAgent && (
+              <div>
+                <dt className="text-muted-foreground">Customer</dt>
+                <dd>{ticket.requesterName}</dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-muted-foreground">Organization</dt>
+              <dd>{ticket.organizationName}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Project</dt>
+              <dd>{ticket.projectName ?? 'Organization-wide'}</dd>
+            </div>
+            {isAgent && (
+              <div>
+                <dt className="text-muted-foreground">Opened</dt>
+                <dd>{supportDate(ticket.createdAt)}</dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-muted-foreground">Last update</dt>
+              <dd>{supportDate(ticket.updatedAt)}</dd>
+            </div>
+            <div>
+              <dt className="mb-2 text-muted-foreground">Services</dt>
+              <dd className="flex flex-wrap gap-2">
+                {ticket.services.map((service) => <Badge key={service} variant="outline">{supportLabel(service)}</Badge>)}
+              </dd>
+            </div>
+          </dl>
+          </>
+        )}
+        activity={isAgent ? <TicketActivity ticketId={ticketId} /> : undefined}
+      />
     </div>
   );
 }
