@@ -844,3 +844,62 @@ func TestResolveCIMDClient(t *testing.T) { //nolint:maintidx
 		})
 	}
 }
+
+func TestResolveCIMDClientDefaultTransport(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		meta := map[string]any{
+			"client_id":     "https://" + r.Host + "/client.json",
+			"redirect_uris": []string{"https://" + r.Host + "/callback"},
+		}
+		if err := json.NewEncoder(w).Encode(meta); err != nil {
+			t.Errorf("writing test metadata: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	clientID := server.URL + "/client.json"
+	results := []struct {
+		name          string
+		allowInsecure bool
+		wantErr       *oauth2.Error
+	}{
+		{
+			name: "production rejects loopback",
+			wantErr: &oauth2.Error{
+				Err:         "invalid_client",
+				Description: "Client ID metadata document URL must not point to a private address",
+			},
+		},
+		{name: "development accepts a local test server", allowInsecure: true},
+	}
+
+	for _, tt := range results {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := mock.NewMockDBClient(gomock.NewController(t))
+			if tt.allowInsecure {
+				db.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
+				db.EXPECT().UpsertOAuth2CIMDClient(gomock.Any(), gomock.Any()).
+					Return(sql.AuthOauth2Client{ClientID: clientID}, nil)
+			}
+
+			provider := oauth2.NewProvider(db, nil, nil, nil, oauth2.Config{
+				CIMDEnabled:                true,
+				CIMDAllowInsecureTransport: tt.allowInsecure,
+			}, nil)
+
+			got, gotErr := provider.ResolveCIMDClient(t.Context(), clientID, slog.Default())
+			if diff := cmp.Diff(tt.wantErr, gotErr); diff != "" {
+				t.Fatalf("error mismatch (-want +got):\n%s", diff)
+			}
+
+			if tt.wantErr == nil && got.ClientID != clientID {
+				t.Errorf("client ID = %q, want %q", got.ClientID, clientID)
+			}
+		})
+	}
+}
