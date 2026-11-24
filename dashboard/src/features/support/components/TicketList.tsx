@@ -529,7 +529,14 @@ export default function TicketList() {
         <h2 id="support-help-heading" className="sr-only">
           Other ways to get help
         </h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div
+          className={cn(
+            'grid gap-4 sm:grid-cols-3',
+            !tickets.isError && !tickets.isLoading && rows.length > 0
+              ? 'mt-10'
+              : 'mt-4',
+          )}
+        >
           <Link
             href="https://docs.nhost.io"
             target="_blank"
