@@ -50,6 +50,7 @@ describe('support ticket validation and filters', () => {
     ).toEqual({
       page: 0,
       status: 'active',
+      statusFilters: '',
       q: '',
       organization: '',
       queue: 'all',
@@ -67,7 +68,13 @@ describe('support ticket validation and filters', () => {
       _and: [
         { organizationName: { _ilike: '%Acme\\_%' } },
         { assigneeID: { _eq: 'user-id' } },
-        { title: { _ilike: '%50\\%\\_\\\\%' } },
+        {
+          _or: [
+            { title: { _ilike: '%50\\%\\_\\\\%' } },
+            { projectName: { _ilike: '%50\\%\\_\\\\%' } },
+            { organizationName: { _ilike: '%50\\%\\_\\\\%' } },
+          ],
+        },
       ],
     });
   });

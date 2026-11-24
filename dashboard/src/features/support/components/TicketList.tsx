@@ -14,13 +14,13 @@ import { useEffect, useState } from 'react';
 import { Pagination } from '@/components/common/Pagination';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { Input } from '@/components/ui/v3/input';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import { SupportError } from '@/features/support/components/SupportArea';
@@ -118,11 +118,19 @@ export default function TicketList() {
       </header>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
         <Tabs
-          value={search.status === 'finished' ? 'finished' : search.status === 'active' ? 'active' : 'all'}
-          onValueChange={(status) => changeSearch({
-            status: ticketSearchSchema.shape.status.parse(status),
-            statusFilters: '',
-          })}
+          value={
+            search.status === 'finished'
+              ? 'finished'
+              : search.status === 'active'
+                ? 'active'
+                : 'all'
+          }
+          onValueChange={(status) =>
+            changeSearch({
+              status: ticketSearchSchema.shape.status.parse(status),
+              statusFilters: '',
+            })
+          }
         >
           <TabsList aria-label="Ticket queues">
             <TabsTrigger value="active">Open</TabsTrigger>
@@ -135,32 +143,44 @@ export default function TicketList() {
             <Button
               variant={search.queue === 'mine' ? 'subtle' : 'outline'}
               aria-pressed={search.queue === 'mine'}
-              onClick={() => changeSearch({ queue: search.queue === 'mine' ? 'all' : 'mine' })}
+              onClick={() =>
+                changeSearch({
+                  queue: search.queue === 'mine' ? 'all' : 'mine',
+                })
+              }
             >
               Assigned to me
             </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline"><ListFilter aria-hidden="true" className="mr-2 size-4" /> Status</Button>
+              <Button variant="outline">
+                <ListFilter aria-hidden="true" className="mr-2 size-4" /> Status
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {STATUSES.filter((status) => {
                 const finished = status === 'closed' || status === 'resolved';
-                return search.status === 'finished' ? finished : search.status !== 'active' || !finished;
+                return search.status === 'finished'
+                  ? finished
+                  : search.status !== 'active' || !finished;
               }).map((status) => {
-                const selected = (search.statusFilters ?? '').split(',').filter(Boolean);
+                const selected = (search.statusFilters ?? '')
+                  .split(',')
+                  .filter(Boolean);
                 return (
                   <DropdownMenuCheckboxItem
                     key={status}
                     checked={selected.includes(status)}
                     onSelect={(event) => event.preventDefault()}
-                    onCheckedChange={(checked) => changeSearch({
-                      statusFilters: (checked
-                        ? [...selected, status]
-                        : selected.filter((value) => value !== status)
-                      ).join(','),
-                    })}
+                    onCheckedChange={(checked) =>
+                      changeSearch({
+                        statusFilters: (checked
+                          ? [...selected, status]
+                          : selected.filter((value) => value !== status)
+                        ).join(','),
+                      })
+                    }
                   >
                     <TicketStatus status={status} isAgent={isAgent} dot />
                   </DropdownMenuCheckboxItem>
@@ -168,10 +188,12 @@ export default function TicketList() {
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <form onSubmit={(event) => {
-            event.preventDefault();
-            changeSearch({ q: query, organization: '' });
-          }}>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              changeSearch({ q: query, organization: '' });
+            }}
+          >
             <Input
               aria-label="Search tickets"
               placeholder="Search tickets, projects or #id"
@@ -228,7 +250,13 @@ export default function TicketList() {
               variant="ghost"
               className="mt-6"
               onClick={() =>
-                changeSearch({ q: '', organization: '', status: 'active', statusFilters: '', queue: 'all' })
+                changeSearch({
+                  q: '',
+                  organization: '',
+                  status: 'active',
+                  statusFilters: '',
+                  queue: 'all',
+                })
               }
             >
               Clear filters
@@ -241,31 +269,67 @@ export default function TicketList() {
             <li key={ticket.id}>
               <Link
                 href={`/support/tickets/${ticket.id}`}
-                className="group grid gap-2 rounded-sm px-2 py-4 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:grid-cols-12 lg:items-center"
+                className="group grid gap-2 rounded-sm px-2 py-4 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset lg:grid-cols-12 lg:items-center"
               >
-                <div className={isAgent ? 'min-w-0 lg:col-span-5' : 'min-w-0 lg:col-span-7'}>
+                <div
+                  className={
+                    isAgent ? 'min-w-0 lg:col-span-5' : 'min-w-0 lg:col-span-7'
+                  }
+                >
                   <p className="break-words font-medium group-hover:text-primary">
-                    <span className="mr-2 font-mono text-muted-foreground text-xs">#{ticket.number}</span>
+                    <span className="mr-2 font-mono text-muted-foreground text-xs">
+                      #{ticket.number}
+                    </span>
                     {ticket.title}
                   </p>
                   <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
                     {isAgent && <span>{ticket.requesterName} ·</span>}
-                    <span>{ticket.organizationName} / {ticket.projectName ?? 'Organization-wide'}</span>
-                    {ticket.sampleLastReply && <span>· {ticket.sampleLastReply} replied</span>}
+                    <span>
+                      {ticket.organizationName} /{' '}
+                      {ticket.projectName ?? 'Organization-wide'}
+                    </span>
+                    {ticket.sampleLastReply && (
+                      <span>· {ticket.sampleLastReply} replied</span>
+                    )}
                     {!!ticket.sampleAttachmentCount && (
                       <span className="inline-flex items-center gap-1">
                         <Paperclip aria-hidden="true" className="size-3" />
-                        {ticket.sampleAttachmentCount}<span className="sr-only"> attachments</span>
+                        {ticket.sampleAttachmentCount}
+                        <span className="sr-only"> attachments</span>
                       </span>
                     )}
                   </p>
                 </div>
-                <div className={isAgent ? 'flex flex-wrap items-center gap-3 lg:col-span-7 lg:grid lg:grid-cols-7' : 'flex flex-wrap items-center gap-3 lg:col-span-5 lg:grid lg:grid-cols-5'}>
-                  <span className="lg:col-span-2"><TicketStatus status={ticket.status} isAgent={isAgent} dot /></span>
-                  <span className="lg:col-span-2"><TicketSeverity severity={ticket.severity} /></span>
-                  {isAgent && <span className="break-words text-muted-foreground text-sm lg:col-span-2">{ticket.assigneeName ?? 'Unassigned'}</span>}
-                  <time dateTime={ticket.updatedAt} className="whitespace-nowrap text-muted-foreground text-xs lg:text-right">
-                    {new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(ticket.updatedAt))}
+                <div
+                  className={
+                    isAgent
+                      ? 'flex flex-wrap items-center gap-3 lg:col-span-7 lg:grid lg:grid-cols-7'
+                      : 'flex flex-wrap items-center gap-3 lg:col-span-5 lg:grid lg:grid-cols-5'
+                  }
+                >
+                  <span className="lg:col-span-2">
+                    <TicketStatus
+                      status={ticket.status}
+                      isAgent={isAgent}
+                      dot
+                    />
+                  </span>
+                  <span className="lg:col-span-2">
+                    <TicketSeverity severity={ticket.severity} />
+                  </span>
+                  {isAgent && (
+                    <span className="break-words text-muted-foreground text-sm lg:col-span-2">
+                      {ticket.assigneeName ?? 'Unassigned'}
+                    </span>
+                  )}
+                  <time
+                    dateTime={ticket.updatedAt}
+                    className="whitespace-nowrap text-muted-foreground text-xs lg:text-right"
+                  >
+                    {new Intl.DateTimeFormat(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    }).format(new Date(ticket.updatedAt))}
                   </time>
                 </div>
               </Link>
@@ -311,81 +375,79 @@ export default function TicketList() {
           </div>
         )}
       <section aria-labelledby="support-help-heading">
-          <h2 id="support-help-heading" className="sr-only">
-            Other ways to get help
-          </h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Link
-              href="https://docs.nhost.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="flex items-center justify-between">
-                <BookOpenIcon
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground"
-                />
-                <ExternalLinkIcon
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
-                />
-              </span>
-              <span className="mt-3 font-semibold text-sm">Read the docs</span>{' '}
-              <span className="text-muted-foreground text-sm">
-                Guides and answers for every Nhost feature.
-              </span>{' '}
-              <span className="sr-only">(opens in a new tab)</span>
-            </Link>
-            <Link
-              href="https://github.com/nhost/nhost/issues/new/choose"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="flex items-center justify-between">
-                <SiGithub
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground"
-                />
-                <ExternalLinkIcon
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
-                />
-              </span>
-              <span className="mt-3 font-semibold text-sm">
-                Report on GitHub
-              </span>{' '}
-              <span className="text-muted-foreground text-sm">
-                Found a bug or want a feature? Open an issue.
-              </span>{' '}
-              <span className="sr-only">(opens in a new tab)</span>
-            </Link>
-            <Link
-              href="https://discord.com/invite/9V7Qb2U"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="flex items-center justify-between">
-                <SiDiscord
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground"
-                />
-                <ExternalLinkIcon
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
-                />
-              </span>
-              <span className="mt-3 font-semibold text-sm">
-                Ask the community
-              </span>{' '}
-              <span className="text-muted-foreground text-sm">
-                Get help from other developers on Discord.
-              </span>{' '}
-              <span className="sr-only">(opens in a new tab)</span>
-            </Link>
-          </div>
+        <h2 id="support-help-heading" className="sr-only">
+          Other ways to get help
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <Link
+            href="https://docs.nhost.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="flex items-center justify-between">
+              <BookOpenIcon
+                aria-hidden="true"
+                className="size-5 text-muted-foreground"
+              />
+              <ExternalLinkIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+              />
+            </span>
+            <span className="mt-3 font-semibold text-sm">Read the docs</span>{' '}
+            <span className="text-muted-foreground text-sm">
+              Guides and answers for every Nhost feature.
+            </span>{' '}
+            <span className="sr-only">(opens in a new tab)</span>
+          </Link>
+          <Link
+            href="https://github.com/nhost/nhost/issues/new/choose"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="flex items-center justify-between">
+              <SiGithub
+                aria-hidden="true"
+                className="size-5 text-muted-foreground"
+              />
+              <ExternalLinkIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+              />
+            </span>
+            <span className="mt-3 font-semibold text-sm">Report on GitHub</span>{' '}
+            <span className="text-muted-foreground text-sm">
+              Found a bug or want a feature? Open an issue.
+            </span>{' '}
+            <span className="sr-only">(opens in a new tab)</span>
+          </Link>
+          <Link
+            href="https://discord.com/invite/9V7Qb2U"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex flex-col gap-1 rounded-lg border bg-muted/10 p-4 transition-colors hover:border-primary/50 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="flex items-center justify-between">
+              <SiDiscord
+                aria-hidden="true"
+                className="size-5 text-muted-foreground"
+              />
+              <ExternalLinkIcon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+              />
+            </span>
+            <span className="mt-3 font-semibold text-sm">
+              Ask the community
+            </span>{' '}
+            <span className="text-muted-foreground text-sm">
+              Get help from other developers on Discord.
+            </span>{' '}
+            <span className="sr-only">(opens in a new tab)</span>
+          </Link>
+        </div>
       </section>
     </div>
   );

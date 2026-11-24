@@ -8,8 +8,8 @@ import { SupportError } from '@/features/support/components/SupportArea';
 import SupportAttachmentPreview from '@/features/support/components/SupportAttachmentPreview';
 import type { SupportTicketAttachmentsController } from '@/features/support/hooks/use-support-ticket-attachments';
 import type { SupportAttachmentFile } from '@/features/support/utils/attachments';
-import { cn } from '@/lib/utils';
 import { supportDate } from '@/features/support/utils/tickets';
+import { cn } from '@/lib/utils';
 
 interface TicketAttachmentsProps {
   controller: SupportTicketAttachmentsController;
@@ -38,13 +38,23 @@ export default function TicketAttachments({
   return (
     <section
       aria-label="Ticket attachments"
-      className={cn('space-y-4', compact ? 'border-t pt-5' : 'rounded-lg border p-5')}
+      className={cn(
+        'space-y-4',
+        compact ? 'border-t pt-5' : 'rounded-lg border p-5',
+      )}
     >
       <h2 className="flex items-center gap-2 font-semibold text-sm">
         {compact ? (
-          <>All attachments{!attachments.isError && !attachments.isLoading && ` · ${files.length}${attachments.hasNextPage ? '+' : ''}`}</>
+          <>
+            All attachments
+            {!attachments.isError &&
+              !attachments.isLoading &&
+              ` · ${files.length}${attachments.hasNextPage ? '+' : ''}`}
+          </>
         ) : (
-          <><Paperclip className="size-4" /> Attachments</>
+          <>
+            <Paperclip className="size-4" /> Attachments
+          </>
         )}
       </h2>
       {attachments.isError ? (
@@ -68,17 +78,22 @@ export default function TicketAttachments({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <SupportAttachmentPreview file={attachment.file} className={compact ? 'size-8' : undefined} />
+                  <SupportAttachmentPreview
+                    file={attachment.file}
+                    className={compact ? 'size-8' : undefined}
+                  />
                   <div className="min-w-0">
                     <p className="break-words">
                       {attachment.file?.name ?? 'Attachment unavailable'}
                     </p>
-                    {!compact && <p className="text-muted-foreground text-xs">
-                      {attachment.file &&
-                        `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
-                      {attachment.uploaderName} ·{' '}
-                      {supportDate(attachment.createdAt)}
-                    </p>}
+                    {!compact && (
+                      <p className="text-muted-foreground text-xs">
+                        {attachment.file &&
+                          `${attachment.file.size?.toLocaleString() ?? 'Unknown size'} bytes · `}
+                        {attachment.uploaderName} ·{' '}
+                        {supportDate(attachment.createdAt)}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {attachment.file && (
@@ -146,67 +161,74 @@ export default function TicketAttachments({
       )}
       {!closed && (
         <div className="space-y-3 border-t pt-4">
-          {!compact && <>
-          <label htmlFor={inputId} className="font-medium text-sm">
-            Attach files
-          </label>
-          <Input
-            id={inputId}
-            type="file"
-            multiple
-            disabled={unavailable}
-            aria-describedby={`${inputId}-help`}
-            onChange={(event) => {
-              const input = event.currentTarget;
-              const selected = Array.from(input.files ?? []);
-              input.value = '';
-              if (selected.length > 0) {
-                void uploadFiles(selected);
-              }
-            }}
-          />
-          <p id={`${inputId}-help`} className="text-muted-foreground text-xs">
-            Drop files onto your reply or select them here to upload
-            automatically. Up to 5 MB per file. Visible to everyone with access
-            to this ticket. Uploads do not send a reply or change ticket status.
-            Do not include secrets.
-          </p>
-          </>}
-          <ul className="space-y-2" aria-live="polite">
-            {uploads.filter((item) => !compact || item.status !== 'uploaded').map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-3 text-sm"
+          {!compact && (
+            <>
+              <label htmlFor={inputId} className="font-medium text-sm">
+                Attach files
+              </label>
+              <Input
+                id={inputId}
+                type="file"
+                multiple
+                disabled={unavailable}
+                aria-describedby={`${inputId}-help`}
+                onChange={(event) => {
+                  const input = event.currentTarget;
+                  const selected = Array.from(input.files ?? []);
+                  input.value = '';
+                  if (selected.length > 0) {
+                    void uploadFiles(selected);
+                  }
+                }}
+              />
+              <p
+                id={`${inputId}-help`}
+                className="text-muted-foreground text-xs"
               >
-                <div className="min-w-0 break-words">
-                  <span>{item.file.name}</span>
-                  <p className="text-muted-foreground text-xs">
-                    {item.error ??
-                      (
-                        {
-                          pending: 'Ready to upload',
-                          uploading: 'Uploading…',
-                          uploaded: 'Uploaded',
-                          failed: 'Upload failed',
-                          invalid: 'Invalid file',
-                        } as const
-                      )[item.status]}
-                  </p>
-                </div>
-                {item.status !== 'uploaded' && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Remove ${item.file.name}`}
-                    disabled={uploading}
-                    onClick={() => removeUpload(item.id)}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                )}
-              </li>
-            ))}
+                Drop files onto your reply or select them here to upload
+                automatically. Up to 5 MB per file. Visible to everyone with
+                access to this ticket. Uploads do not send a reply or change
+                ticket status. Do not include secrets.
+              </p>
+            </>
+          )}
+          <ul className="space-y-2" aria-live="polite">
+            {uploads
+              .filter((item) => !compact || item.status !== 'uploaded')
+              .map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <div className="min-w-0 break-words">
+                    <span>{item.file.name}</span>
+                    <p className="text-muted-foreground text-xs">
+                      {item.error ??
+                        (
+                          {
+                            pending: 'Ready to upload',
+                            uploading: 'Uploading…',
+                            uploaded: 'Uploaded',
+                            failed: 'Upload failed',
+                            invalid: 'Invalid file',
+                          } as const
+                        )[item.status]}
+                    </p>
+                  </div>
+                  {item.status !== 'uploaded' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Remove ${item.file.name}`}
+                      disabled={uploading}
+                      onClick={() => removeUpload(item.id)}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  )}
+                </li>
+              ))}
           </ul>
           {!uploading &&
             uploads.some(

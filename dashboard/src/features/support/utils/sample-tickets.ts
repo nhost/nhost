@@ -95,7 +95,8 @@ function createState(actor: SampleActor): SampleState {
     files: new Map(),
   };
   state.tickets = titles.map((title, index): Ticket => {
-    const minute = index < STATUSES.length ? index : STATUSES.length - 1 - index;
+    const minute =
+      index < STATUSES.length ? index : STATUSES.length - 1 - index;
     const createdAt = new Date(Date.UTC(2026, 10, 20, 9, minute)).toISOString();
     const assigneeID =
       index % 3 === 0 ? actor.id : index % 3 === 1 ? otherAgentID : null;
@@ -238,7 +239,10 @@ function matches(ticket: Ticket, where: SupportTickets_Bool_Exp): boolean {
   if (where.number?._eq != null && ticket.number !== where.number._eq) {
     return false;
   }
-  if (where.projectName?._ilike && !like(ticket.projectName ?? '', where.projectName._ilike)) {
+  if (
+    where.projectName?._ilike &&
+    !like(ticket.projectName ?? '', where.projectName._ilike)
+  ) {
     return false;
   }
   if (where.status?._eq && ticket.status !== where.status._eq) {
@@ -304,16 +308,15 @@ export function sampleSupportRequest<TData>(
         )
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       result = {
-        supportTickets: matchingTickets.slice(
-          offset,
-          offset + SAMPLE_TICKET_PAGE_SIZE,
-        ).map((item) => ({
-          ...item,
-          sampleAttachmentCount: [...state.files.values()].filter(
-            (file) => file.ticketID === item.id && file.attachment,
-          ).length,
-          sampleLastReply: state.comments.get(item.id)?.[0]?.authorName,
-        })),
+        supportTickets: matchingTickets
+          .slice(offset, offset + SAMPLE_TICKET_PAGE_SIZE)
+          .map((item) => ({
+            ...item,
+            sampleAttachmentCount: [...state.files.values()].filter(
+              (file) => file.ticketID === item.id && file.attachment,
+            ).length,
+            sampleLastReply: state.comments.get(item.id)?.[0]?.authorName,
+          })),
         sampleTicketCount: matchingTickets.length,
       };
       break;

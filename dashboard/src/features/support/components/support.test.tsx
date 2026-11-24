@@ -442,7 +442,7 @@ describe('temporary Support view preview', () => {
       expect(
         screen.queryByRole('link', { name: /Storage upload fails/ }),
       ).not.toBeInTheDocument();
-      expectHelpFooter(false);
+      expectHelpFooter(true);
       expect(requests).toHaveLength(realRequests);
       await user.click(within(group).getByRole('radio', { name: 'Customer' }));
       await screen.findByRole('link', { name: /Storage upload fails/ });
@@ -596,15 +596,11 @@ describe('temporary Support view preview', () => {
     const group = await screen.findByRole('radiogroup', {
       name: 'View support as',
     });
-    await screen.findByRole('navigation', { name: 'Agent queues' });
-    await screen.findByRole('columnheader', { name: 'Assignee' });
+    await screen.findByRole('button', { name: 'Assigned to me' });
     await user.click(within(group).getByRole('radio', { name: 'Customer' }));
     await screen.findByRole('heading', { name: 'Other ways to get help' });
     expect(
-      screen.queryByRole('navigation', { name: 'Agent queues' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('columnheader', { name: 'Assignee' }),
+      screen.queryByRole('button', { name: 'Assigned to me' }),
     ).not.toBeInTheDocument();
     await waitFor(() =>
       expect(
@@ -630,9 +626,8 @@ describe('temporary Support view preview', () => {
       within(restored).getByRole('radio', { name: 'Customer' }),
     ).toHaveAttribute('data-state', 'on');
     await user.click(within(restored).getByRole('radio', { name: 'Agent' }));
-    await screen.findByRole('navigation', { name: 'Agent queues' });
-    await screen.findByRole('columnheader', { name: 'Assignee' });
-    expectHelpFooter(false);
+    await screen.findByRole('button', { name: 'Assigned to me' });
+    expectHelpFooter(true);
     await waitFor(() =>
       expect(
         requests.filter((request) => request.operation === 'list').at(-1),
@@ -759,7 +754,6 @@ describe('temporary Support view preview', () => {
       </>,
     );
     await screen.findByRole('radiogroup', { name: 'View support as' });
-    await screen.findByRole('columnheader', { name: 'Assignee' });
     const realRequests = requests.length;
     await new TestUserEvent().click(
       screen.getByRole('button', { name: 'Revoke preview role' }),
@@ -814,6 +808,13 @@ describe('native dashboard support', () => {
     } else if (page === 'new') {
       await screen.findByRole('heading', { name: 'New ticket' });
     }
+    if (page === 'ticket') {
+      expect(screen.getByRole('link', { name: 'All tickets' })).toHaveAttribute(
+        'href',
+        '/support',
+      );
+      return;
+    }
     const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
     expect(
       within(nav).queryByRole('link', { name: 'Home' }),
@@ -834,7 +835,7 @@ describe('native dashboard support', () => {
   });
 
   it.each([false, true])(
-    'hides filters and pagination for an empty queue (agent=%s)',
+    'keeps filters and hides pagination for an empty queue (agent=%s)',
     async (agent) => {
       if (agent) {
         makeAgent();
@@ -849,18 +850,18 @@ describe('native dashboard support', () => {
         name: agent ? 'No tickets in this queue' : 'No tickets yet',
       });
       expect(
-        screen.queryByRole('textbox', { name: 'Search tickets' }),
-      ).not.toBeInTheDocument();
+        screen.getByRole('textbox', { name: 'Search tickets' }),
+      ).toBeInTheDocument();
       expect(
-        screen.queryByRole('combobox', { name: 'Ticket status' }),
-      ).not.toBeInTheDocument();
+        screen.getByRole('button', { name: 'Status' }),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole('button', { name: 'Previous' }),
       ).not.toBeInTheDocument();
       expect(
         screen.queryByRole('button', { name: 'Next' }),
       ).not.toBeInTheDocument();
-      expectHelpFooter(!agent);
+      expectHelpFooter(true);
       expect(
         screen.getAllByRole('link', { name: 'Create ticket' }),
       ).toHaveLength(1);
@@ -934,18 +935,12 @@ describe('native dashboard support', () => {
           screen.queryAllByRole('link', { name: 'Create ticket' }),
         ).toHaveLength(agent ? 1 : 0);
         expect(
-          screen.queryByRole('textbox', { name: 'Search tickets' }),
-        ).not.toBeInTheDocument();
+          screen.getByRole('textbox', { name: 'Search tickets' }),
+        ).toBeInTheDocument();
         expect(
-          screen.queryByRole('textbox', { name: 'Filter by organization' }),
-        ).not.toBeInTheDocument();
-        expect(
-          screen.queryByRole('combobox', { name: 'Ticket status' }),
-        ).not.toBeInTheDocument();
-        expect(
-          screen.queryByRole('navigation', { name: 'Agent queues' }),
-        ).not.toBeInTheDocument();
-        expectHelpFooter(!agent);
+          screen.getByRole('button', { name: 'Status' }),
+        ).toBeInTheDocument();
+        expectHelpFooter(true);
       } finally {
         release();
       }
@@ -1051,17 +1046,14 @@ describe('native dashboard support', () => {
           screen.getByRole('textbox', { name: 'Search tickets' }),
         ).toBeInTheDocument();
         expect(
-          screen.getByRole('combobox', { name: 'Ticket status' }),
+          screen.getByRole('button', { name: 'Status' }),
         ).toBeInTheDocument();
         if (agent) {
           expect(
-            screen.getByRole('navigation', { name: 'Agent queues' }),
-          ).toBeInTheDocument();
-          expect(
-            screen.getByRole('textbox', { name: 'Filter by organization' }),
+            screen.getByRole('button', { name: 'Assigned to me' }),
           ).toBeInTheDocument();
         }
-        expectHelpFooter(!agent);
+        expectHelpFooter(true);
       } finally {
         release();
         await act(async () => {
@@ -1144,11 +1136,11 @@ describe('native dashboard support', () => {
       },
     });
     await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Unassigned' }),
+      screen.getByRole('button', { name: 'Assigned to me', pressed: true }),
     );
     expect(replace).toHaveBeenCalledWith(
       expect.objectContaining({
-        query: expect.objectContaining({ queue: 'unassigned', page: 0 }),
+        query: expect.objectContaining({ queue: 'all', page: 0 }),
       }),
       undefined,
       { shallow: true },
@@ -1379,7 +1371,7 @@ describe('native dashboard support', () => {
     render(<NewTicket />);
     await fillTicket(user);
     expect(
-      screen.queryByText(/Your Pro plan includes Low severity/),
+      screen.queryByText(/Your Pro plan includes Low\./),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'See plans' }),
@@ -1387,13 +1379,15 @@ describe('native dashboard support', () => {
     const help = screen.getByRole('button', {
       name: 'Normal plan availability',
     });
-    expect(help).toHaveAccessibleDescription('Unlock with Team Enterprise');
+    expect(help).toHaveAccessibleDescription(
+      'Normal. Needs Team or Enterprise plan.',
+    );
     await user.pointer({ target: help });
     const popup = await screen.findByRole('dialog', {
       name: 'Normal plan availability',
     });
     expect(
-      within(popup).getByText(/Your Pro plan includes Low severity/),
+      within(popup).getByText(/Your Pro plan includes Low\./),
     ).toBeInTheDocument();
     expect(
       within(popup).getByRole('link', { name: 'See plans' }),
@@ -1448,20 +1442,14 @@ describe('native dashboard support', () => {
     for (const name of ['Normal', 'High', 'Urgent']) {
       expect(screen.getByRole('radio', { name })).toBeDisabled();
     }
-    expect(screen.getAllByText('Team')).toHaveLength(1);
-    expect(screen.getAllByText('Enterprise')).toHaveLength(1);
-    expect(screen.getByText('Unlock with')).toHaveAttribute(
-      'id',
-      'support-severity-plans',
-    );
+    expect(screen.getAllByText('Team')).toHaveLength(3);
+    expect(screen.queryByText('Enterprise')).not.toBeInTheDocument();
     for (const badge of screen.getAllByText('Team')) {
       expect(badge).toHaveClass('border-brand-violet/20', 'text-brand-violet');
     }
     expect(
       screen.getByRole('radio', { name: 'Normal' }),
-    ).toHaveAccessibleDescription(
-      'Unlock with Team Enterprise Something works, but not well',
-    );
+    ).toHaveAccessibleDescription('Something works, but not well');
     await user.click(screen.getByRole('button', { name: 'Create ticket' }));
     await waitFor(() =>
       expect(
@@ -1502,7 +1490,9 @@ describe('native dashboard support', () => {
         target: screen.getByRole('button', { name: 'Low plan availability' }),
       });
       expect(
-        await screen.findByText(/Support isn't on your .* plan\./),
+        within(
+          await screen.findByRole('dialog', { name: 'Low plan availability' }),
+        ).getByText(/Support isn't on your .* plan\./),
       ).toBeInTheDocument();
       for (const name of ['Low', 'Normal', 'High', 'Urgent']) {
         expect(screen.getByRole('radio', { name })).toBeDisabled();
@@ -1587,13 +1577,13 @@ describe('native dashboard support', () => {
     expect(
       await screen.findByText('We are investigating.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Nhost Support')).toBeInTheDocument();
+    expect(screen.getByText('Nhost')).toBeInTheDocument();
     expect(screen.getByText('Reproduction steps')).toBeInTheDocument();
     expect(screen.queryByText(/<script>/)).not.toBeInTheDocument();
     expect(document.querySelector('article script')).toBeNull();
     expect(
-      await screen.findByRole('region', { name: 'Ticket activity' }),
-    ).toHaveTextContent('Customer Alice');
+      screen.queryByRole('region', { name: 'Ticket activity' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Assign to me' }),
     ).not.toBeInTheDocument();
@@ -1618,6 +1608,7 @@ describe('native dashboard support', () => {
   ])(
     'renders $kind enum events in ticket activity',
     async ({ kind, label }) => {
+      makeAgent();
       event.kind = kind;
       render(<TicketDetail />);
       await waitFor(() =>
@@ -2005,9 +1996,6 @@ describe('native dashboard support', () => {
         'Sign in',
       ),
     );
-    expect(
-      screen.getByRole('textbox', { name: 'Filter by organization' }),
-    ).toHaveValue('Acme');
   });
   it('drops cached agent tickets immediately when the token loses the staff role', async () => {
     makeAgent();

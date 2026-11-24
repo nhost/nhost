@@ -55,7 +55,12 @@ beforeEach(() => {
 describe('browser-only sample Support', () => {
   it('covers every status, severity, both organizations and assignment states', () => {
     const rows = tickets();
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(25);
+    const nextPage = sampleSupportRequest<
+      DashboardSupportTicketsQuery & { sampleTicketCount: number }
+    >(DashboardSupportTicketsDocument, { where: {}, offset: 25 }, actor);
+    expect(nextPage.sampleTicketCount).toBe(32);
+    expect(nextPage.supportTickets).toHaveLength(7);
     expect(new Set(rows.map((ticket) => ticket.status)).size).toBe(6);
     expect(new Set(rows.map((ticket) => ticket.severity)).size).toBe(4);
     expect(new Set(rows.map((ticket) => ticket.organizationID)).size).toBe(2);

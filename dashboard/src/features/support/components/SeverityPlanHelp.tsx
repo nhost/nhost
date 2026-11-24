@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { type ReactElement, useEffect, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useId, useRef, useState } from 'react';
 import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
 import {
   Popover,
@@ -30,6 +30,7 @@ export default function SeverityPlanHelp({
   onSeePlans,
   disabled,
 }: SeverityPlanHelpProps) {
+  const descriptionId = useId();
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
@@ -75,13 +76,16 @@ export default function SeverityPlanHelp({
         onBlurCapture={closeLater}
       >
         {children}
+        <span id={descriptionId} hidden>
+          {accessibleDescription}
+        </span>
         <PopoverTrigger asChild>
           <button
             ref={button}
             type="button"
             disabled={disabled}
             aria-label={`${severity} plan availability`}
-            aria-description={accessibleDescription}
+            aria-describedby={descriptionId}
             className="absolute inset-0 cursor-help rounded-md hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:hover:bg-transparent"
             onClick={(event) => {
               event.preventDefault();

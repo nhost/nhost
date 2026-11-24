@@ -151,186 +151,212 @@ export default function TicketDetail() {
   return (
     <div key={`${user?.id}:${role}:${ticketId}`}>
       <header className="space-y-5 p-5 sm:p-8">
-        <Link href="/support" className="inline-flex items-center gap-2 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <Link
+          href="/support"
+          className="inline-flex items-center gap-2 rounded-sm text-muted-foreground text-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <ArrowLeft aria-hidden="true" className="size-4" />
           All tickets
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-2">
-            <h1 className="break-words font-semibold text-3xl">{ticket.title}</h1>
+            <h1 className="break-words font-semibold text-3xl">
+              {ticket.title}
+            </h1>
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
               <span className="font-mono">#{ticket.number}</span>
               <TicketStatus status={ticket.status} isAgent={isAgent} dot />
-              <span>Opened by {ticket.requesterName} on {supportDate(ticket.createdAt)}</span>
+              <span>
+                Opened by {ticket.requesterName} on{' '}
+                {supportDate(ticket.createdAt)}
+              </span>
             </div>
           </div>
-          {isAgent && !closed && transitions.some((transition) => transition.toStatus === 'resolved') && (
-            <Button
-              variant="outline"
-              disabled={isPending}
-              onClick={() => { void changeTicket({ status: SupportTicketStatuses_Enum.Resolved }); }}
-            >
-              <Check aria-hidden="true" className="mr-2 size-4" />
-              Mark as resolved
-            </Button>
-          )}
+          {isAgent &&
+            !closed &&
+            transitions.some(
+              (transition) => transition.toStatus === 'resolved',
+            ) && (
+              <Button
+                variant="outline"
+                disabled={isPending}
+                onClick={() => {
+                  void changeTicket({
+                    status: SupportTicketStatuses_Enum.Resolved,
+                  });
+                }}
+              >
+                <Check aria-hidden="true" className="mr-2 size-4" />
+                Mark as resolved
+              </Button>
+            )}
         </div>
       </header>
       <TicketConversation
         ticketId={ticketId}
-        opening={{ authorName: ticket.requesterName, createdAt: ticket.createdAt, body: ticket.description }}
+        opening={{
+          authorName: ticket.requesterName,
+          createdAt: ticket.createdAt,
+          body: ticket.description,
+        }}
         closed={closed}
         invalidate={invalidate}
         disabled={isPending}
-        sidebar={(
+        sidebar={
           <>
-          <div className="space-y-2">
-            <h2 className="font-semibold text-sm">Status</h2>
-            {isAgent && !closed && transitions.length > 0 ? (
-              <Select
-                value={ticket.status}
-                disabled={isPending}
-                onValueChange={(value) => {
-                  const transition = transitions.find(
-                    (candidate) => candidate.toStatus === value,
-                  );
-                  if (transition) {
-                    void changeTicket({ status: transition.toStatus });
-                  }
-                }}
-              >
-                <SelectTrigger aria-label="Change ticket status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ticket.status}>
-                    {ticketStatusLabel(ticket.status, true)}
-                  </SelectItem>
-                  {transitions.map((transition) => (
-                    <SelectItem
-                      key={transition.toStatus}
-                      value={transition.toStatus}
-                    >
-                      {transition.toStatus === 'waiting_for_support' &&
-                      ticket.status === 'resolved'
-                        ? 'Reopen ticket'
-                        : ticketStatusLabel(transition.toStatus, true)}
+            <div className="space-y-2">
+              <h2 className="font-semibold text-sm">Status</h2>
+              {isAgent && !closed && transitions.length > 0 ? (
+                <Select
+                  value={ticket.status}
+                  disabled={isPending}
+                  onValueChange={(value) => {
+                    const transition = transitions.find(
+                      (candidate) => candidate.toStatus === value,
+                    );
+                    if (transition) {
+                      void changeTicket({ status: transition.toStatus });
+                    }
+                  }}
+                >
+                  <SelectTrigger aria-label="Change ticket status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ticket.status}>
+                      {ticketStatusLabel(ticket.status, true)}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <TicketStatus status={ticket.status} isAgent={isAgent} dot />
-            )}
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-semibold text-sm">Assigned to</h2>
-            <p className="text-muted-foreground text-sm">
-              {ticket.assigneeName ?? 'Unassigned'}
-            </p>
-            {isAgent && !closed && (
-              <div className="flex flex-wrap gap-2">
-                {ticket.assigneeID !== user?.id && (
-                  <Button
-                    size="sm"
-                    variant="link"
-                    className="h-auto p-0"
-                    disabled={isPending}
-                    onClick={() => {
-                      void changeTicket({ assigneeID: user?.id });
-                    }}
-                  >
-                    Assign to me
-                  </Button>
-                )}
-                {ticket.assigneeID && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={isPending}
-                    onClick={() => {
-                      void changeTicket({ assigneeID: null });
-                    }}
-                  >
-                    Unassign
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-semibold text-sm">Severity</h2>
-            {isAgent && !closed ? (
-              <>
-              <Select
-                value={ticket.severity}
-                disabled={isPending}
-                onValueChange={(value) => {
-                  const severity = allowedSeverities.find(
-                    (candidate) => candidate === value,
-                  );
-                  if (severity && severity !== ticket.severity) {
-                    void changeTicket({ severity });
-                  }
-                }}
-              >
-                <SelectTrigger aria-label="Change ticket severity">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SEVERITIES.map((severity) => (
-                    <SelectItem
-                      key={severity}
-                      value={severity}
-                      disabled={!allowedSeverities.includes(severity)}
-                    >
-                      {supportLabel(severity)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-muted-foreground text-xs">
-                {allowedSeverities.length
-                  ? 'Available severities are determined by the organization’s current plan.'
-                  : 'This organization’s plan does not allow severity changes.'}
+                    {transitions.map((transition) => (
+                      <SelectItem
+                        key={transition.toStatus}
+                        value={transition.toStatus}
+                      >
+                        {transition.toStatus === 'waiting_for_support' &&
+                        ticket.status === 'resolved'
+                          ? 'Reopen ticket'
+                          : ticketStatusLabel(transition.toStatus, true)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <TicketStatus status={ticket.status} isAgent={isAgent} dot />
+              )}
+            </div>
+            <div className="space-y-2">
+              <h2 className="font-semibold text-sm">Assigned to</h2>
+              <p className="text-muted-foreground text-sm">
+                {ticket.assigneeName ?? 'Unassigned'}
               </p>
-              </>
-            ) : <TicketSeverity severity={ticket.severity} />}
-          </div>
-          <dl className="space-y-4 text-sm">
-            {isAgent && (
+              {isAgent && !closed && (
+                <div className="flex flex-wrap gap-2">
+                  {ticket.assigneeID !== user?.id && (
+                    <Button
+                      size="sm"
+                      variant="link"
+                      className="h-auto p-0"
+                      disabled={isPending}
+                      onClick={() => {
+                        void changeTicket({ assigneeID: user?.id });
+                      }}
+                    >
+                      Assign to me
+                    </Button>
+                  )}
+                  {ticket.assigneeID && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isPending}
+                      onClick={() => {
+                        void changeTicket({ assigneeID: null });
+                      }}
+                    >
+                      Unassign
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <h2 className="font-semibold text-sm">Severity</h2>
+              {isAgent && !closed ? (
+                <>
+                  <Select
+                    value={ticket.severity}
+                    disabled={isPending}
+                    onValueChange={(value) => {
+                      const severity = allowedSeverities.find(
+                        (candidate) => candidate === value,
+                      );
+                      if (severity && severity !== ticket.severity) {
+                        void changeTicket({ severity });
+                      }
+                    }}
+                  >
+                    <SelectTrigger aria-label="Change ticket severity">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SEVERITIES.map((severity) => (
+                        <SelectItem
+                          key={severity}
+                          value={severity}
+                          disabled={!allowedSeverities.includes(severity)}
+                        >
+                          {supportLabel(severity)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-muted-foreground text-xs">
+                    {allowedSeverities.length
+                      ? 'Available severities are determined by the organization’s current plan.'
+                      : 'This organization’s plan does not allow severity changes.'}
+                  </p>
+                </>
+              ) : (
+                <TicketSeverity severity={ticket.severity} />
+              )}
+            </div>
+            <dl className="space-y-4 text-sm">
+              {isAgent && (
+                <div>
+                  <dt className="text-muted-foreground">Customer</dt>
+                  <dd>{ticket.requesterName}</dd>
+                </div>
+              )}
               <div>
-                <dt className="text-muted-foreground">Customer</dt>
-                <dd>{ticket.requesterName}</dd>
+                <dt className="text-muted-foreground">Organization</dt>
+                <dd>{ticket.organizationName}</dd>
               </div>
-            )}
-            <div>
-              <dt className="text-muted-foreground">Organization</dt>
-              <dd>{ticket.organizationName}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">Project</dt>
-              <dd>{ticket.projectName ?? 'Organization-wide'}</dd>
-            </div>
-            {isAgent && (
               <div>
-                <dt className="text-muted-foreground">Opened</dt>
-                <dd>{supportDate(ticket.createdAt)}</dd>
+                <dt className="text-muted-foreground">Project</dt>
+                <dd>{ticket.projectName ?? 'Organization-wide'}</dd>
               </div>
-            )}
-            <div>
-              <dt className="text-muted-foreground">Last update</dt>
-              <dd>{supportDate(ticket.updatedAt)}</dd>
-            </div>
-            <div>
-              <dt className="mb-2 text-muted-foreground">Services</dt>
-              <dd className="flex flex-wrap gap-2">
-                {ticket.services.map((service) => <Badge key={service} variant="outline">{supportLabel(service)}</Badge>)}
-              </dd>
-            </div>
-          </dl>
+              {isAgent && (
+                <div>
+                  <dt className="text-muted-foreground">Opened</dt>
+                  <dd>{supportDate(ticket.createdAt)}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-muted-foreground">Last update</dt>
+                <dd>{supportDate(ticket.updatedAt)}</dd>
+              </div>
+              <div>
+                <dt className="mb-2 text-muted-foreground">Services</dt>
+                <dd className="flex flex-wrap gap-2">
+                  {ticket.services.map((service) => (
+                    <Badge key={service} variant="outline">
+                      {supportLabel(service)}
+                    </Badge>
+                  ))}
+                </dd>
+              </div>
+            </dl>
           </>
-        )}
+        }
         activity={isAgent ? <TicketActivity ticketId={ticketId} /> : undefined}
       />
     </div>

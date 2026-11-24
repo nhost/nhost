@@ -207,10 +207,9 @@ function NewTicketForm() {
     ? `/orgs/${encodeURIComponent(selectedOrganization.slug)}/billing?openUpgradeModal=true`
     : undefined;
   const hasSupport = allowedSeverities.length > 0;
-  const planExplanation =
-    !hasSupport
-      ? `Support isn't on your ${planName} plan.`
-      : `Your ${planName} plan includes Low.`;
+  const planExplanation = !hasSupport
+    ? `Support isn't on your ${planName} plan.`
+    : `Your ${planName} plan includes Low.`;
   const selectedSeverity = form.watch('severity');
   useEffect(() => {
     const allowed = getAllowedSupportSeverities(
@@ -510,12 +509,14 @@ function NewTicketForm() {
                                         locked
                                           ? 'border-dashed text-muted-foreground'
                                           : 'text-foreground',
-                                        !locked && disabled &&
+                                        !locked &&
+                                          disabled &&
                                           'cursor-not-allowed opacity-60',
                                         !disabled &&
                                           'cursor-pointer hover:border-primary/50 hover:bg-muted/20',
                                         locked &&
-                                          (!selectedOrganization || form.formState.isSubmitting
+                                          (!selectedOrganization ||
+                                          form.formState.isSubmitting
                                             ? 'cursor-not-allowed'
                                             : 'cursor-help hover:bg-muted/20'),
                                         !locked &&
@@ -536,16 +537,17 @@ function NewTicketForm() {
                                       />
                                       <span className="flex items-center justify-between gap-2 font-medium text-sm">
                                         {supportLabel(severity)}
-                                        {selectedOrganization && locked && (
-                                          severity === SupportSeverities_Enum.Low ? (
+                                        {selectedOrganization &&
+                                          locked &&
+                                          (severity ===
+                                          SupportSeverities_Enum.Low ? (
                                             <Lock
                                               aria-hidden="true"
                                               className="size-3.5 shrink-0 text-muted-foreground"
                                             />
                                           ) : (
                                             <OrganizationPlanBadge plan="Team" />
-                                          )
-                                        )}
+                                          ))}
                                       </span>
                                       <span
                                         id={`support-severity-hint-${severity}`}
