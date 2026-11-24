@@ -91,7 +91,7 @@ MCP_STORAGE_MAX_REQUEST_BYTES=140000000
 
 Choose request headroom for base64 (about 33% larger), JSON, and metadata when raising the transfer budget. Split batches above your configured budget; raise the limits or use storage directly for larger individual uploads/replacements, which do not support chunking. MCP clients, model providers, proxies, and bucket settings may impose smaller limits.
 
-Uploads validate base64 before contacting storage, then decode it lazily into the outgoing multipart stream without retaining decoded files or a complete multipart payload. Successful downloads encode directly into the final base64 buffer, avoiding a separate raw-file buffer. **MCP request parsing and final responses are still buffered**: provision RAM for the configured sizes and concurrent requests, or lower the budgets on small deployments such as the 256 MiB example below. The budgets are byte-transfer ceilings, not a process-memory guarantee.
+Uploads validate base64 before contacting storage, then decode it lazily into the outgoing multipart stream without retaining decoded files or a complete multipart payload. Successful downloads encode directly into the final base64 buffer, avoiding a separate raw-file buffer. **MCP request parsing and final responses are still buffered**. As a starting memory estimate, allow about 7 times the file bytes per concurrent upload or image download, and about 15 times per concurrent non-image download, plus headroom for baseline memory, JSON, metadata, and other active calls. Measure peak memory with your workload. The budgets are byte-transfer ceilings, not a process-memory guarantee. Use the lower limits in the 256 MiB example below.
 
 ### Upload (`POST /files`)
 
@@ -148,9 +148,9 @@ To deploy to Nhost Run you can use the one-click install link below:
 
 https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9
 
-And edit as needed. To enable storage tools, add `MCP_STORAGE_URL` pointing to your backend's storage service (including `/v1`). Make sure to set the correct subdomain and region in the `MCP_AUTH_URL` (or your custom domain if you using one), set the `MCP_REALM` to the URL you will use for your MCP service, change the `MCP_INSTRUCTIONS` as needed and change or remove `MCP_ENFORCE_ROLE`
+Set `MCP_AUTH_URL` to your project's Auth URL and `MCP_REALM` to your public MCP URL. Adjust `MCP_INSTRUCTIONS` and `MCP_ENFORCE_ROLE` as needed.
 
-NOTE: Check the [releases](https://github.com/nhost/nhost/releases) page and make sure you are using the most recent version of the service.
+Check the [releases](https://github.com/nhost/nhost/releases) page for the most recent version. Both examples pin `nhost/mcp:0.1.0` for GraphQL only; that image does not support storage tools.
 
 Alternatively, add a `run-mcp.toml` to your project directory:
 
@@ -172,10 +172,6 @@ value = 'https://myapp.example.com'
 [[environment]]
 name = 'MCP_GRAPHQL_ENDPOINT'
 value = 'http://hasura-service:8080/v1/graphql'
-
-[[environment]]
-name = 'MCP_STORAGE_URL'
-value = 'https://local.storage.local.nhost.run/v1'
 
 [[environment]]
 name = 'MCP_INSTRUCTIONS'
@@ -205,6 +201,20 @@ You can also try locally with:
 ```
 nhost up --run-service run-mcp.toml
 ```
+
+### Enable storage on the example deployment
+
+For either method, replace `nhost/mcp:0.1.0` with a release image that supports `--storage-url`, `--storage-max-transfer-bytes`, and `--storage-max-request-bytes` (check `mcp --help` for that image). Older images ignore these environment variables.
+
+On the 256 MiB example service, set explicit lower limits for one transfer at a time. The server defaults can exhaust that much memory on a single call. Add one `[[environment]]` block per variable in `run-mcp.toml`, or set them in the one-click service configuration:
+
+```dotenv
+MCP_STORAGE_URL=https://SUBDOMAIN.storage.REGION.nhost.run/v1
+MCP_STORAGE_MAX_TRANSFER_BYTES=10000000
+MCP_STORAGE_MAX_REQUEST_BYTES=14000000
+```
+
+Use your backend's storage URL, including its API prefix (for local development, `https://local.storage.local.nhost.run/v1`). Increase memory as needed before raising the limits or allowing concurrent transfers. Leave `MCP_STORAGE_URL` unset to keep storage tools disabled.
 
 ## Connecting an MCP Client
 
