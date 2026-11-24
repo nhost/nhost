@@ -39,11 +39,8 @@ export default function CookieConsent({ onAccept }: CookieConsentProps) {
       <div className="rounded-lg border bg-black/95 p-6 shadow-lg backdrop-blur-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h3 className="mb-3 font-semibold text-sm text-white">
-              We use cookies on nhost.io and the Nhost dashboard for analytics
-              and to measure our advertising.
-            </h3>
-            <p className="mb-4 text-neutral-400 text-xs">
+            <p className="mb-4 text-neutral-300 text-sm">
+              We use cookies to understand how Nhost is used and to improve it.{' '}
               <NextLink
                 href="https://nhost.io/legal/cookies-policy"
                 target="_blank"

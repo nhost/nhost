@@ -56,8 +56,8 @@ export function deleteConsentCookie() {
 }
 
 /**
- * Carries over only legacy rejections. Acceptances are dropped so the new banner
- * disclosing use on both properties and advertising is shown again.
+ * Carries over only legacy rejections. Acceptances are dropped so people are
+ * asked again, now that the choice covers nhost.io and advertising cookies too.
  */
 export function migrateLegacyConsent() {
   try {
