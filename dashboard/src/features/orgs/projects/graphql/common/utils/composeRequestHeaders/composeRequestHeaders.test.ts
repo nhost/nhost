@@ -1,11 +1,4 @@
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import { parse } from 'graphql';
-import type {
-  Client,
-  ExecutionResult,
-  Sink,
-  SubscribePayload,
-} from 'graphql-ws';
+import { createTransport, type SubscriptionClient } from '@graphiql/toolkit';
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
@@ -90,83 +83,86 @@ describe('composeRequestHeaders', () => {
 });
 
 describe('withRequestHeaders', () => {
-  it('sends the selection composed with Headers-tab overrides on wrapped queries', async () => {
-    const requestMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue({ json: async () => ({ data: {} }) } as Response);
-    const baseFetcher = createGraphiQLFetcher({
-      url: 'https://local.graphql.local.nhost.run/v1/graphql',
-      fetch: requestMock,
-      enableIncrementalDelivery: false,
-    });
-    const fetcher = withRequestHeaders({
-      fetcher: baseFetcher,
+  const url = 'https://local.graphql.local.nhost.run/v1/graphql';
+
+  function createTestTransport(subscriptionClient?: SubscriptionClient) {
+    const requestMock = vi.fn<typeof fetch>(
+      async () =>
+        new Response(JSON.stringify({ data: {} }), {
+          headers: { 'content-type': 'application/json' },
+        }),
+    );
+    const transport = withRequestHeaders({
+      transport: createTransport({
+        url,
+        fetch: requestMock,
+        supportedMethods: ['POST'],
+        enableIncrementalDelivery: false,
+        subscriptionClient,
+      }),
       adminSecret,
       selection,
     });
-    const graphQLParams = {
+
+    return { requestMock, transport };
+  }
+
+  it('sends the selection composed with Headers-tab overrides on wrapped queries', async () => {
+    const { requestMock, transport } = createTestTransport();
+
+    await transport.send({
       query: 'query TestQuery { messages { id } }',
       operationName: 'TestQuery',
-    };
-
-    await fetcher(graphQLParams, {
-      documentAST: parse(graphQLParams.query),
       headers: { 'X-Hasura-Role': 'editor' },
     });
 
     expect(requestMock).toHaveBeenCalledWith(
-      'https://local.graphql.local.nhost.run/v1/graphql',
-      {
+      url,
+      expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify(graphQLParams),
-        headers: {
+        // The transport adds its own `accept` header.
+        headers: expect.objectContaining({
           'content-type': 'application/json',
           'x-hasura-admin-secret': adminSecret,
           'x-hasura-user-id': 'user-1',
           'x-hasura-role': 'editor',
-        },
-      },
+        }),
+      }),
     );
   });
 
-  it('routes wrapped subscriptions through the WebSocket client', async () => {
-    const requestMock = vi.fn<typeof fetch>();
-    const subscribeMock = vi.fn(
-      (
-        _payload: SubscribePayload,
-        sink: Sink<ExecutionResult>,
-      ): VoidFunction => {
-        queueMicrotask(() => sink.complete());
-        return () => {};
-      },
+  it('rejects invalid Headers-tab names without sending the request', () => {
+    const { requestMock, transport } = createTestTransport();
+
+    expect(() =>
+      transport.send({
+        query: 'query TestQuery { messages { id } }',
+        headers: { 'x hasura role': 'user' },
+      }),
+    ).toThrow(TypeError);
+    expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it('routes wrapped subscriptions through the subscription client', async () => {
+    const iterateMock = vi.fn<SubscriptionClient['iterate']>(() =>
+      (async function* () {})(),
     );
-    const baseFetcher = createGraphiQLFetcher({
-      url: 'https://local.graphql.local.nhost.run/v1/graphql',
-      fetch: requestMock,
-      enableIncrementalDelivery: false,
-      wsClient: { subscribe: subscribeMock } as unknown as Client,
+    const { requestMock, transport } = createTestTransport({
+      iterate: iterateMock,
     });
-    const fetcher = withRequestHeaders({
-      fetcher: baseFetcher,
-      adminSecret,
-      selection,
-    });
-    const graphQLParams = {
+    const result = transport.send({
       query: 'subscription TestSubscription { messages { id } }',
       operationName: 'TestSubscription',
-    };
-    const result = fetcher(graphQLParams, {
-      documentAST: parse(graphQLParams.query),
       headers: { 'X-Hasura-Role': 'editor' },
     });
 
-    await (result as AsyncIterable<ExecutionResult>)
-      [Symbol.asyncIterator]()
-      .next();
+    await (result as AsyncIterable<unknown>)[Symbol.asyncIterator]().next();
 
-    expect(subscribeMock).toHaveBeenCalledWith(
-      graphQLParams,
-      expect.any(Object),
+    expect(iterateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: 'subscription TestSubscription { messages { id } }',
+        operationName: 'TestSubscription',
+      }),
     );
     expect(requestMock).not.toHaveBeenCalled();
   });

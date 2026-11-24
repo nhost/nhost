@@ -77,8 +77,17 @@ describe('UserSelect', () => {
       ]);
     });
 
-    await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: 'Tutorial User' }));
+    await user.click(screen.getByTestId('graphql-request-as-trigger'));
+    await user.click(screen.getByRole('option', { name: /Tutorial User/ }));
+
+    expect(screen.getByTestId('graphql-request-as-trigger')).toHaveTextContent(
+      'Tutorial User',
+    );
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('Search users...'),
+      ).not.toBeInTheDocument();
+    });
 
     expect(onUserChange).toHaveBeenLastCalledWith(USER_ID, ['user']);
 

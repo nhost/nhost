@@ -12,7 +12,6 @@ import {
 } from '@/providers/Theme';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
-import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 import { nhost } from '@/utils/nhost';

@@ -90,7 +90,7 @@ test.describe
       });
 
       await expect(page.getByLabel('Result Window')).toContainText(
-        /field '.*' not found in type|not exist|permission/i,
+        /field\s+'.*'\s+not\s+found\s+in\s+type|not\s+exist|permission/i,
       );
     });
 
