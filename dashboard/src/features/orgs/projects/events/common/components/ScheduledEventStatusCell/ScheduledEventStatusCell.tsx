@@ -2,11 +2,11 @@ import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle, Check, Clock3, Lock, Skull } from 'lucide-react';
 import { ScheduledEventStatus } from '@/utils/hasura-api/generated/schemas';
 
-type StatusIconConfig = {
+interface StatusIconConfig {
   Icon: LucideIcon;
   colorClassName: string;
   label: string;
-};
+}
 
 const STATUS_ICON_MAP: Record<ScheduledEventStatus, StatusIconConfig> = {
   [ScheduledEventStatus.scheduled]: {

@@ -13,12 +13,12 @@ const defaultOptions = {
   table: 'users',
 };
 
-type RowCell = {
+interface RowCell {
   id: string;
   isPrimary?: boolean;
   specificType: string;
   value: unknown;
-};
+}
 
 function makeRow(cells: RowCell[]): DataBrowserGridRow {
   const original = Object.fromEntries(cells.map((c) => [c.id, c.value]));
@@ -64,7 +64,9 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-type CapturedRequest = { args: Array<{ args: { sql: string } }> };
+interface CapturedRequest {
+  args: Array<{ args: { sql: string } }>;
+}
 
 describe('updateRecord', () => {
   test('updates a scalar column using SQL literal syntax', async () => {

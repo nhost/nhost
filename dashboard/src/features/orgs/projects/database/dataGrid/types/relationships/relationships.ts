@@ -64,14 +64,14 @@ export type MetadataRemoteRelationship = RemoteRelationshipItem & {
 /**
  * Represents how a single argument is mapped in a remote field.
  */
-export type RemoteFieldArgumentMapping = {
+export interface RemoteFieldArgumentMapping {
   /** Whether this argument mapping is enabled. */
   enabled: boolean;
   /** The type of mapping: 'column' maps to a source table column, 'static' uses a literal value. */
   type: 'column' | 'static';
   /** The value: either a column name (for 'column') or the static value (for 'static'). */
   value: string;
-};
+}
 
 /**
  * Maps field paths to their argument mappings.

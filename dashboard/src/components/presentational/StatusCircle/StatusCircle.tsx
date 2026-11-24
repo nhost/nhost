@@ -19,9 +19,9 @@ export type DeploymentStatus =
   | undefined
   | null;
 
-export type StatusCircleProps = {
+export interface StatusCircleProps {
   status: PipelineRunStatus | DeploymentStatus;
-};
+}
 
 export default function StatusCircle({ status }: StatusCircleProps) {
   const base = 'w-1.5 h-1.5 rounded-full';
